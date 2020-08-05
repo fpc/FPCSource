@@ -565,6 +565,7 @@ type
 {$endif FPC_HAS_FEATURE_RTTI}
 
 {$if defined(FPC_HAS_FEATURE_RANDOM)}
+{$ifndef FPC_USE_SIMPLE_RANDOM}
 
 { Pascal translation of https://github.com/dajobe/libmtwist }
 
@@ -749,6 +750,55 @@ begin
   random := mtwist_u32rand * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
+
+{$else FPC_USE_SIMPLE_RANDOM}
+
+{ A simple implementation of random. TP/Delphi compatible. }
+
+const
+  QRAN_A = 134775813;
+  QRAN_C = 1;
+
+function rand_next: cardinal;
+var
+  s: cardinal;
+begin
+  s:=RandSeed*QRAN_A+QRAN_C;
+	RandSeed:=s;
+  rand_next:=s;
+end;
+
+function random(l: word): word;
+var
+  s,ss: cardinal;
+begin
+  s:=rand_next;
+  { use 32-bit multiplications here }
+  ss:=(s shr 16)*l;
+  s:=(s and $FFFF)*l shr 16;
+  random:=(ss + s) shr 16;
+end;
+
+function random(l: longint): longint;
+begin
+  random:=int64(rand_next)*l shr 32;
+end;
+
+function random(l:int64):int64;
+begin
+  random:=random(longint(l));
+end;
+
+{$ifndef FPUNONE}
+function random: extended;
+const
+  c = 1.0/$10000/$10000;
+begin
+  random:=rand_next*c;
+end;
+{$endif}
+
+{$endif FPC_USE_SIMPLE_RANDOM}
 {$endif FPC_HAS_FEATURE_RANDOM}
 
 
