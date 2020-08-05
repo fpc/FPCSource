@@ -350,7 +350,7 @@ endif
 override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
 ALLTARGETS=$(CYCLETARGETS)
 ifdef POWERPC
 PPC_TARGET=powerpc
@@ -522,8 +522,8 @@ endif
 ifeq ($(CPC_TARGET),z80)
 CPUSUF=z80
 endif
-ifeq ($(CPC_TARGET),wasm)
-CPUSUF=wasm
+ifeq ($(CPC_TARGET),wasm32)
+CPUSUF=wasm32
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
@@ -606,7 +606,7 @@ endif
 ifeq ($(PPC_TARGET),riscv64)
 override LOCALOPT+=-Furiscv
 endif
-ifeq ($(PPC_TARGET),wasm)
+ifeq ($(PPC_TARGET),wasm32)
 override LOCALOPT+=-dNOOPT
 endif
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
@@ -4699,8 +4699,8 @@ endif
 ifdef TEMPWPONAME2PREFIX
 	$(MAKE) g$(TEMPWPONAME2) COMPILERTEMPNAME=$(TEMPWPONAME2)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm
-PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
+PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm32
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)$(SYMLINKINSTALL_TARGETS)
@@ -4804,9 +4804,9 @@ regdatmips : mips/mipsreg.dat
 regdatz80 : z80/z80reg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkz80reg.pp
 	cd z80 && ..$(PATHSEP)utils$(PATHSEP)mkz80reg$(SRCEXEEXT)
-regdatwasm : wasm/wasmreg.dat
+regdatwasm : wasm32/wasmreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkwasmreg.pp
-	cd wasm && ..$(PATHSEP)utils$(PATHSEP)mkwasmreg$(SRCEXEEXT)
+	cd wasm32 && ..$(PATHSEP)utils$(PATHSEP)mkwasmreg$(SRCEXEEXT)
 regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80 regdatwasm
 intrdatx86 : x86/x86intr.dat
 		$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86inl.pp
