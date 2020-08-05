@@ -656,11 +656,9 @@ implementation
 
     function tcgnotnode.handle_locjump: boolean;
       begin
-        result:=(left.expectloc=LOC_JUMP);
+        result:=left.location.loc=LOC_JUMP;
         if result then
           begin
-            secondpass(left);
-
             if is_constboolnode(left) then
               internalerror(2014010101);
             if left.location.loc<>LOC_JUMP then

@@ -247,12 +247,9 @@ interface
       begin
         opsize:=def_cgsize(resultdef);
 
+        secondpass(left);
         if not handle_locjump then
          begin
-           { the second pass could change the location of left }
-           { if it is a register variable, so we've to do      }
-           { this before the case statement                    }
-           secondpass(left);
            case left.location.loc of
              LOC_FLAGS :
                begin

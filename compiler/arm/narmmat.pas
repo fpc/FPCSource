@@ -315,12 +315,9 @@ implementation
       var
         tmpreg : TRegister;
       begin
-        { if the location is LOC_JUMP, we do the secondpass after the
-          labels are allocated
-        }
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             case left.location.loc of
               LOC_FLAGS :
                 begin
