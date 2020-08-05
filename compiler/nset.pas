@@ -257,7 +257,6 @@ implementation
          if is_array_constructor(right.resultdef) then
           begin
             arrayconstructor_to_set(right);
-            firstpass(right);
             if codegenerror then
              exit;
           end;
