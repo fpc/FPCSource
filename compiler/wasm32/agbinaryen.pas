@@ -587,7 +587,7 @@ implementation
     as_wasm_binaryen_info : tasminfo =
        (
          id     : as_wasm32_binaryen;
-         idtxt  : 'Binaryen';
+         idtxt  : 'BINARYEN';
          asmbin : 'wasm-as';
          asmcmd : '$ASM $EXTRAOPT';
          supported_targets : [system_wasm32_wasm,system_wasm32_wasi];
