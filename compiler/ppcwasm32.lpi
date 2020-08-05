@@ -37,12 +37,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="wasm\pp"/>
+      <Filename Value="wasm32\pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="wasm"/>
-      <OtherUnitFiles Value="wasm;systems"/>
-      <UnitOutputDirectory Value="wasm\lazbuild"/>
+      <IncludeFiles Value="wasm32"/>
+      <OtherUnitFiles Value="wasm32;systems"/>
+      <UnitOutputDirectory Value="wasm32\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
