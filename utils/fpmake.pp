@@ -51,7 +51,7 @@ begin
     begin
     P:=AddPackage('utils');
     P.ShortName := 'tils';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
