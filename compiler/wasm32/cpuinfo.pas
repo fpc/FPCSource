@@ -77,7 +77,7 @@ Const
    ];
 
    cputypestr : array[tcputype] of string[9] = ('',
-     'WASM'
+     'WASM32'
    );
 
    fputypestr : array[tfputype] of string[8] = (
