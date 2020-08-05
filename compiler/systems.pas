@@ -187,7 +187,7 @@ interface
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
           system       : tsystem;
-          name         : string[34];
+          name         : string[39];
           shortname    : string[12];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
