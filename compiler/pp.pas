@@ -41,7 +41,7 @@ program pp;
   RISCV64             generate a compiler for the RiscV64 architecture
   SPARC               generate a compiler for SPARC
   SPARC64             generate a compiler for SPARC64
-  WASM                generate a compiler for WebAssembly
+  WASM32              generate a compiler for WebAssembly 32-bit
   X86_64              generate a compiler for the AMD x86-64 architecture
   XTENSA              generate a compiler for XTENSA
   Z80                 generate a compiler for Z80
@@ -195,12 +195,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif Z80}
-{$ifdef WASM}
+{$ifdef WASM32}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
-{$endif WASM}
+{$endif WASM32}
 
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}

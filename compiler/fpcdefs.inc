@@ -376,7 +376,8 @@
   {$define symansistr}
 {$endif}
 
-{$ifdef wasm}
+{$ifdef wasm32}
+  {$define wasm}
   {$define cpu32bit}
   {$define cpu64bitalu}
   {$define cpu32bitaddr}
