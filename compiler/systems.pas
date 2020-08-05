@@ -1137,9 +1137,9 @@ begin
   {$endif cpuaarch64}
 {$endif aarch64}
 
-{$ifdef wasm}
+{$ifdef wasm32}
   default_target(system_wasm32_wasm);
-{$endif wasm}
+{$endif wasm32}
 
 {$ifdef z80}
   default_target(system_z80_embedded);
