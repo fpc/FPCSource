@@ -37,8 +37,8 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       { wasm, same as cpu_none }
-       cpu_wasm
+       { wasm32, same as cpu_none }
+       cpu_wasm32
       );
 
    tfputype =
