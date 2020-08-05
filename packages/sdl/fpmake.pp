@@ -24,7 +24,9 @@ begin
     P.Dependencies.Add('morphunits',[morphos]);
     if Defaults.CPU=arm then
        P.OSes := P.OSes - [darwin];
-    P.OSes := P.OSes - [iphonesim,ios,java,os2,emx,go32v2,watcom,netware,netwlibc,nativent,embedded,android,amiga,aros,msdos,gba,nds,win16,atari,macosclassic,palmos,symbian,wii,freertos,zxspectrum];
+    P.OSes := P.OSes - [iphonesim,ios,java,os2,emx,go32v2,watcom,netware,netwlibc,nativent,embedded,
+                        android,amiga,aros,msdos,gba,nds,win16,atari,macosclassic,palmos,symbian,wii,
+                        freertos,zxspectrum,msxdos,amstradcpc];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do
