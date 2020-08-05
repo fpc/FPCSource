@@ -76,7 +76,7 @@ unit i_wasm;
             newline      : #10;
             dirsep       : '/';
             assem        : as_wasm32_wabt;
-            assemextern  : as_wasm32_binaryen;
+            assemextern  : as_wasm32_wabt;
             link         : ld_wasm;
             linkextern   : ld_wasm; // there's no linker, only object files for WASM
             ar           : ar_none;
