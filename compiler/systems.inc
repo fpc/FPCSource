@@ -51,7 +51,7 @@
              cpu_jvm,                      { 14 }
              cpu_i8086,                    { 15 }
              cpu_aarch64,                  { 16 }
-             cpu_wasm,                     { 17 }
+             cpu_wasm32,                   { 17 }
              cpu_sparc64,                  { 18 }
              cpu_riscv32,                  { 19 }
              cpu_riscv64,                  { 20 }

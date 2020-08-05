@@ -48,7 +48,7 @@ unit i_wasm;
             flags        : [tf_files_case_sensitive,tf_no_generic_stackcheck,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
-            cpu          : cpu_wasm;
+            cpu          : cpu_wasm32;
             unit_env     : '';
             extradefines : '';
             exeext       : '';
