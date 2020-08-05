@@ -2485,16 +2485,26 @@ implementation
                            begin
                              if not try_type_helper(p1,nil) then
                                begin
-                                 if pattern='CREATE' then
+                                 if p1.nodetype=typen then
                                    begin
-                                     consume(_ID);
-                                     p2:=parse_array_constructor(tarraydef(p1.resultdef));
-                                     p1.destroy;
-                                     p1:=p2;
+                                     if pattern='CREATE' then
+                                       begin
+                                         consume(_ID);
+                                         p2:=parse_array_constructor(tarraydef(p1.resultdef));
+                                         p1.destroy;
+                                         p1:=p2;
+                                       end
+                                     else
+                                       begin
+                                         Message2(scan_f_syn_expected,'CREATE',pattern);
+                                         p1.destroy;
+                                         p1:=cerrornode.create;
+                                         consume(_ID);
+                                       end;
                                    end
                                  else
                                    begin
-                                     Message2(scan_f_syn_expected,'CREATE',pattern);
+                                     Message(parser_e_invalid_qualifier);
                                      p1.destroy;
                                      p1:=cerrornode.create;
                                      consume(_ID);

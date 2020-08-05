@@ -14375,6 +14375,7 @@ tests/test/tarrconstr4.pp svneol=native#text/pascal
 tests/test/tarrconstr5.pp svneol=native#text/pascal
 tests/test/tarrconstr6.pp svneol=native#text/pascal
 tests/test/tarrconstr7.pp svneol=native#text/pascal
+tests/test/tarrconstr8.pp svneol=native#text/pascal
 tests/test/tasm1.pp svneol=native#text/plain
 tests/test/tasm10.pp svneol=native#text/plain
 tests/test/tasm10a.pp svneol=native#text/plain
