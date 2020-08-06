@@ -232,7 +232,8 @@ const
   { 109 } 'ZXSpectrum-Z80',
   { 110 } 'MSX-DOS-Z80',
   { 111 } 'Darwin-AArch64',
-  { 112 } 'AmstradCPC-Z80'
+  { 112 } 'AmstradCPC-Z80',
+  { 113 } 'WASI-WASM32'
   );
 
 const
@@ -386,8 +387,8 @@ type
        cpu_variant_armv8
       );
 
-  tcpu_wasm = (
-       cpu_variant_wasm_none);
+  tcpu_wasm32 = (
+       cpu_variant_wasm32_none);
 
   tcpu_sparc64 = (
     cpu_variant_sparc64_none,
@@ -447,8 +448,8 @@ type
           (cpu_i8086 : tcpu_i8086;);
        cpu_aarch64:                 { 16 }
           (cpu_aarch64 : tcpu_aarch64;);
-       cpu_wasm:                    { 17 }
-          (cpu_wasm : tcpu_wasm;);
+       cpu_wasm32:                  { 17 }
+          (cpu_wasm32 : tcpu_wasm32;);
        cpu_sparc64:                 { 18 }
           (cpu_sparc64 : tcpu_sparc64;);
        cpu_riscv32:                 { 19 }
