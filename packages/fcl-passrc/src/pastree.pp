@@ -4242,7 +4242,7 @@ begin
     if GenericTemplateTypes<>nil then
       Result:=Result+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Result
     else
-      Result:=Result+' = '+Result;
+      Result:=SafeName+' = '+Result;
     end;
   If (IndexRange<>'') then
     Result:=Result+'['+IndexRange+']';
