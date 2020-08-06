@@ -83,6 +83,7 @@ type
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
+    procedure WriteResourceString(aStr: TPasResString); virtual;
     procedure WriteEnumType(AType: TPasEnumType); virtual;
     procedure WriteElement(AElement: TPasElement);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
@@ -247,8 +248,17 @@ begin
     WriteProcImpl(TProcedureBody(AElement))
   else if AElement.InheritsFrom(TPasImplCommand) or AElement.InheritsFrom(TPasImplCommands) then
     WriteImplElement(TPasImplElement(AElement),false)
-  else
+  else if AElement.InheritsFrom(TPasResString) then
+    WriteResourceString(TPasResString(AElement))
+ else
     raise EPasWriter.CreateFmt('Writing not implemented for %s nodes',[AElement.ElementTypeName]);
+end;
+
+procedure TPasWriter.WriteResourceString(aStr : TPasResString);
+
+begin
+  PrepareDeclSection('resourcestring');
+  AddLn(Astr.GetDeclaration(True)+';');
 end;
 
 procedure TPasWriter.WriteEnumType(AType: TPasEnumType);
