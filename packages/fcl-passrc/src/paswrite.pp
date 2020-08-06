@@ -101,7 +101,7 @@ type
     procedure WriteOverloadedProc(aProc : TPasOverloadedProc; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
     Procedure WriteAliasType(AType : TPasAliasType); virtual;
     Procedure WriteRecordType(AType : TPasRecordType); virtual;
-    Procedure WriteArrayType(AType : TPasArrayType); virtual;
+    Procedure WriteArrayType(AType : TPasArrayType; Full : Boolean = True); virtual;
     procedure WriteProcType(AProc: TPasProcedureType);  virtual;
     procedure WriteProcDecl(AProc: TPasProcedure; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
     procedure WriteProcImpl(AProc: TProcedureBody; IsAsm : Boolean = false); virtual;
@@ -282,7 +282,7 @@ begin
   else if AType is TPasProcedureType then
     WriteProcType(TPasProcedureType(AType))
   else if AType is TPasArrayType then
-    WriteArrayType(TPasArrayType(AType))
+    WriteArrayType(TPasArrayType(AType),Full)
   else if AType is TPasRecordType then
     WriteRecordType(TPasRecordType(AType))
   else if AType is TPasAliasType then
@@ -787,10 +787,10 @@ begin
   end;
 end;
 
-procedure TPasWriter.WriteArrayType(AType: TPasArrayType);
+procedure TPasWriter.WriteArrayType(AType: TPasArrayType; Full : Boolean = True);
 
 begin
-  Add(AType.GetDeclaration(true));
+  Add(AType.GetDeclaration(Full));
 end;
 
 procedure TPasWriter.WriteProcType(AProc: TPasProcedureType);
