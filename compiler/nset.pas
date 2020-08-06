@@ -373,6 +373,25 @@ implementation
                      exit;
                    end;
                end;
+           end
+         { a in [a] => true, if a has no side effects }
+         else if (right.nodetype=addn) and
+           (taddnode(right).left.nodetype=setconstn) and
+           (tsetconstnode(taddnode(right).left).elements=0) and
+           (taddnode(right).right.nodetype=setelementn) and
+           (tsetelementnode(taddnode(right).right).right=nil) and
+           ((tsetelementnode(taddnode(right).right).left.isequal(left)) or
+            (
+              (tsetelementnode(taddnode(right).right).left.nodetype=typeconvn) and
+              (ttypeconvnode(tsetelementnode(taddnode(right).right).left).left.isequal(left))
+            )
+           ) and
+           not(might_have_sideeffects(left,[mhs_exceptions])) then
+           begin
+             t:=cordconstnode.create(1, pasbool1type, true);
+             typecheckpass(t);
+             result:=t;
+             exit;
            end;
       end;
 

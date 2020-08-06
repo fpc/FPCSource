@@ -51,7 +51,7 @@ unit i_wasi;
             cpu          : cpu_wasm32;
             unit_env     : '';
             extradefines : '';
-            exeext       : '';
+            exeext       : '.wasm';
             defext       : '.def';
             scriptext    : '.sh';
             smartext     : '.sl';

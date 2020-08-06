@@ -41,13 +41,14 @@ function GetDebuggingEnabled : Boolean;
 
 Function  StartDebugServer : integer;
 Function InitDebugClient : Boolean;
+Function InitDebugClient(const ShowOrNotPID: Boolean) : Boolean; overload;
 
 Const
   SendError       : String = '';
   DefaultDebugServer = 'debugserver';
  
 ResourceString
-  SProcessID = 'Process %s';
+  SProcessID = 'Process %s (PID=%d)';
   SEntering = '> Entering ';
   SExiting  = '< Exiting ';
   SSeparator = '>-=-=-=-=-=-=-=-=-=-=-=-=-=-=-<';
@@ -72,6 +73,7 @@ Const
 var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
+  AlwaysDisplayPID : Boolean = False;
   ServerID : Integer;
   DebugDisabled : Boolean = False;
   Indent : Integer = 0;
@@ -139,7 +141,10 @@ Var
 begin
   Mesg.MsgTimeStamp:=Now;
   Mesg.MsgType:=ErrorLevel[MTYpe];
-  Mesg.Msg:=Msg;
+  if AlwaysDisplayPID then
+    Mesg.Msg:=IntToStr(GetProcessID)+' '+Msg
+  else
+    Mesg.Msg:=Msg;
   SendDebugMessage(Mesg);
 end;
 
@@ -150,7 +155,10 @@ Var
 begin
   Mesg.MsgTimeStamp:=Now;
   Mesg.MsgType:=dmtInformation;
-  Mesg.Msg:=Msg;
+  if AlwaysDisplayPID then
+    Mesg.Msg:=IntToStr(GetProcessID)+' '+Msg
+  else
+    Mesg.Msg:=Msg;
   SendDebugMessage(Mesg);
 end;
 
@@ -184,7 +192,10 @@ Var
 begin
   Mesg.MsgTimeStamp:=Now;
   Mesg.MsgType:=dmtInformation;
-  Mesg.Msg:=Format(Msg,Args);
+  if AlwaysDisplayPID then
+    Mesg.Msg:=IntToStr(GetProcessID)+' '+Format(Msg,Args)
+  else
+    Mesg.Msg:=Format(Msg,Args);
   SendDebugMessage(Mesg);
 end;
 
@@ -196,7 +207,10 @@ Var
 begin
   Mesg.MsgTimeStamp:=Now;
   Mesg.MsgType:=ErrorLevel[mType];
-  Mesg.Msg:=Format(Msg,Args);
+  if AlwaysDisplayPID then
+    Mesg.Msg:=IntToStr(GetProcessID)+' '+Format(Msg,Args)
+  else
+    Mesg.Msg:=Format(Msg,Args);
   SendDebugMessage(Mesg);
 end;
 
@@ -247,7 +261,7 @@ begin
       begin
       Msg.MsgType:=lctStop;
       Msg.MsgTimeStamp:=Now;
-      Msg.Msg:=Format(SProcessID,[ApplicationName]);
+      Msg.Msg:=Format(SProcessID,[ApplicationName, GetProcessID]);
       WriteMessage(Msg);
       end;
     if assigned(MsgBuffer) then FreeAndNil(MsgBuffer);
@@ -261,7 +275,7 @@ Function InitDebugClient : Boolean;
 Var
   msg : TDebugMessage;
   I : Integer;
-  
+
 begin
   Result := False;
   DebugClient:=TSimpleIPCClient.Create(Nil);
@@ -294,9 +308,15 @@ begin
   MsgBuffer:=TMemoryStream.Create;
   Msg.MsgType:=lctIdentify;
   Msg.MsgTimeStamp:=Now;
-  Msg.Msg:=Format(SProcessID,[ApplicationName]);
+  Msg.Msg:=Format(SProcessID,[ApplicationName, GetProcessID]);
   WriteMessage(Msg);
   Result := True;
+end;
+
+function InitDebugClient(const ShowOrNotPID: Boolean): Boolean;
+begin
+  AlwaysDisplayPID:= ShowOrNotPID;
+  Result:= InitDebugClient;
 end;
 
 Finalization

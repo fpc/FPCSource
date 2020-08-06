@@ -265,14 +265,17 @@ begin
 
   LinkRes.Add('option quiet');
 
-  if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
-    LinkRes.Add('debug dwarf')
-  else if target_dbg.id=dbg_codeview then
-    LinkRes.Add('debug codeview')
-  else if cs_debuginfo in current_settings.moduleswitches then
-    LinkRes.Add('debug watcom all');
-  if cs_link_separate_dbg_file in current_settings.globalswitches then
-    LinkRes.Add('option symfile');
+  if cs_debuginfo in current_settings.moduleswitches then
+  begin
+    if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+      LinkRes.Add('debug dwarf')
+    else if target_dbg.id=dbg_codeview then
+      LinkRes.Add('debug codeview')
+    else
+      LinkRes.Add('debug watcom all');
+    if cs_link_separate_dbg_file in current_settings.globalswitches then
+      LinkRes.Add('option symfile');
+  end;
 
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of

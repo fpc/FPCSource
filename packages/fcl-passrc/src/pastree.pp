@@ -174,7 +174,7 @@ type
       const Arg: Pointer); virtual;
     procedure ForEachChildCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer; Child: TPasElement; CheckParent: boolean); virtual;
-    Function SafeName : String;                 // Name but with & prepended if name is a keyword.
+    Function SafeName : String; virtual;                // Name but with & prepended if name is a keyword.
     function FullPath: string;                  // parent's names, until parent is not TPasDeclarations
     function ParentPath: string;                // parent's names
     function FullName: string; virtual;         // FullPath + Name
@@ -514,6 +514,7 @@ type
   Protected
     Function FixTypeDecl(aDecl: String) : String;
   public
+    Function SafeName : String; override;
     function ElementTypeName: string; override;
   end;
   TPasTypeArray = array of TPasType;
@@ -2589,6 +2590,14 @@ begin
   if (Name<>'') then
     Result:=SafeName+' = '+Result;
   ProcessHints(false,Result);
+end;
+
+function TPasType.SafeName: String;
+begin
+  if SameText(Name,'string') then
+    Result:=Name
+  else
+    Result:=inherited SafeName;
 end;
 
 function TPasType.ElementTypeName: string; begin Result := SPasTreeType; end;
