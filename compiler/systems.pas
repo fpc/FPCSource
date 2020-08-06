@@ -199,7 +199,7 @@ interface
           smartext,
           unitext,
           unitlibext,
-          asmext       : string[4];
+          asmext       : string[5];
           objext       : string[6];
           resext       : string[4];
           resobjext    : string[7];
