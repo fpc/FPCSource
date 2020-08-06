@@ -291,6 +291,8 @@ begin
     Add(AType.GetDeclaration(true))
   else if AType is TPasSetType then
     Add(AType.GetDeclaration(true))
+  else if AType is TPasRangeType then
+    Add(AType.GetDeclaration(true))
   else
     raise EPasWriter.CreateFmt('Writing not implemented for %s type nodes',[aType.ElementTypeName]);
   if Full then
