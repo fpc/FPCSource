@@ -307,7 +307,10 @@ unit optcse;
       begin
         result:=fen_false;
         nodes:=nil;
-        if n.nodetype in cseinvariant then
+        if (n.nodetype in cseinvariant) and
+          { a setelement node is cseinvariant, but it might not be replaced by a block so
+            it cannot be the root of the cse search }
+          (n.nodetype<>setelementn) then
           begin
             csedomain:=true;
             foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);
