@@ -118,11 +118,11 @@ implementation
         reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
         if tcgppcgen(cg).hasLargeOffset(href) then
           begin
-{$ifdef cpu64}
+{$ifdef cpu64bitaddr}
             if (longint(href.offset) <> href.offset) then
               { add support for offsets > 32 bit }
               internalerror(200510201);
-{$endif cpu64}
+{$endif cpu64bitaddr}
             list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
               smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
             href.offset := smallint(href.offset and $ffff);
