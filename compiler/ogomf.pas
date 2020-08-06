@@ -74,6 +74,7 @@ interface
       private
         FClassName: string;
         FOverlayName: string;
+        FFirstSym: TObjSymbol;
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
         FPrimaryGroup: TObjSectionGroup;
@@ -81,6 +82,8 @@ interface
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         FLinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList;
         function GetOmfAlignment: TOmfSegmentAlignment;
+      protected
+        function GetAltName: string; override;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         destructor destroy;override;
@@ -1004,6 +1007,14 @@ implementation
           else
             internalerror(2015041504);
         end;
+      end;
+
+    function TOmfObjSection.GetAltName: string;
+      begin
+        if FFirstSym<>nil then
+          result:='/'+FFirstSym.Name
+        else
+          result:='';
       end;
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
@@ -1983,6 +1994,8 @@ implementation
             objsym.objsection:=objsec;
             objsym.offset:=PubDefElem.PublicOffset;
             objsym.size:=0;
+            if (objsym.bind=AB_GLOBAL) and (objsec.FFirstSym=nil) then
+              objsec.FFirstSym:=objsym;
           end;
         PubDefRec.Free;
         Result:=True;
