@@ -190,7 +190,7 @@ interface
        ttempinfoflags = set of ttempinfoflag;
 
      const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync,ti_nofini];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync,ti_nofini,ti_const];
 
      type
        { to allow access to the location by temp references even after the temp has }
@@ -1409,10 +1409,23 @@ implementation
 
 
     procedure ttempcreatenode.printnodedata(var t:text);
+      var
+        f: ttempinfoflag;
+        first: Boolean;
       begin
         inherited printnodedata(t);
         writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        write(t,printnodeindention,'[');
+        first:=true;
+        for f in tempflags do
+          begin
+            if not(first) then
+              write(t,',');
+            write(t,f);
+            first:=false;
+          end;
+        writeln(t,']');
         writeln(t,printnodeindention,'tempinit =');
         printnode(t,tempinfo^.tempinitcode);
       end;

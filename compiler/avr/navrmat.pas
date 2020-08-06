@@ -63,9 +63,9 @@ implementation
         i : longint;
         falselabel,truelabel,skiplabel: TAsmLabel;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             { short code? }
             if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) and
               (left.location.sreg.bitlen=1) then

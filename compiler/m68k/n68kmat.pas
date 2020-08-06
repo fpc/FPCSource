@@ -76,9 +76,9 @@ implementation
         hreg: tregister;
         opsize : tcgsize;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             opsize:=def_cgsize(resultdef);
 
             if ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then

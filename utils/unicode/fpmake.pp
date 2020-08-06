@@ -16,7 +16,7 @@ begin
     begin
     P:=AddPackage('utils-unicode');
     P.ShortName:='ucd';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -34,7 +34,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
 
-    P.OSes:=[win32, win64, linux, darwin, os2, emx];
+    // P.OSes:=[win32, win64, linux, darwin, os2, emx];
 
     T := P.Targets.AddImplicitUnit('helper.pas');
     T.ResourceStrings := true;

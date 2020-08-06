@@ -59,13 +59,9 @@ implementation
       var
         i: Integer;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            { the second pass could change the location of left }
-            { if it is a register variable, so we've to do      }
-            { this before the case statement                    }
-            secondpass(left);
-
             if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             case left.location.loc of

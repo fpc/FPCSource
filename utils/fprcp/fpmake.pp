@@ -24,9 +24,9 @@ begin
     { palmos does not have classes }
     P.OSes := P.OSes - [palmos];
     { Program does not fit in 16-bit memory constraints }
-    P.OSes := P.OSes - [msdos,win16];
+    P.OSes := P.OSes - [msdos,win16,zxspectrum,msxdos,amstradcpc];
     { avr-embedded and i8086-embedded have not floating point support by default }
-    if Defaults.CPU in [avr,i8086] then
+    if Defaults.CPU in [avr,i8086,z80] then
       P.OSes := P.OSes - [embedded];
 
     P.Author := '<various>';

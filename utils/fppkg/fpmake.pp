@@ -31,7 +31,7 @@ begin
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
 
-    P.OSes := P.OSes - [embedded,nativent,msdos,go32v2,win16,atari,macosclassic,palmos,symbian];
+    P.OSes := P.OSes - [embedded,nativent,msdos,go32v2,win16,atari,macosclassic,palmos,symbian,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

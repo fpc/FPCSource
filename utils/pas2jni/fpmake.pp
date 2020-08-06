@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.NeedLibC:= false;
 
-    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari];
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

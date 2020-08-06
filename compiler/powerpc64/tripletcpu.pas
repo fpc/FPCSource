@@ -38,9 +38,9 @@ uses
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
     if target_info.endian=endian_little then
-      result:='ppc64le'
+      result:='powerpc64le'
     else
-      result:='ppc64'
+      result:='powerpc64'
   end;
 
 

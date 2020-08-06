@@ -7732,6 +7732,8 @@ utils/fpcm/fpcmade.*
 utils/fpcm/fpcmake
 utils/fpcm/units
 utils/fpcmade.*
+utils/fpcmkcfg/bin
+utils/fpcmkcfg/units
 utils/fpcres/*.bak
 utils/fpcres/*.exe
 utils/fpcres/*.o

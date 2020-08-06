@@ -893,7 +893,7 @@ var rtl = {
     }
     var dimmax = stack.length-1;
     var depth = 0;
-    var lastlen = stack[dimmax].dim;
+    var lastlen = 0;
     var item = null;
     var a = null;
     var src = arr;
@@ -916,43 +916,50 @@ var rtl = {
         srclen = 0;
         oldlen = a.length;
       }
-      a.length = stack[depth].dim;
+      lastlen = stack[depth].dim;
+      a.length = lastlen;
       if (depth>0){
         item.a[item.i]=a;
         item.i++;
+        if ((lastlen===0) && (item.i<item.a.length)) continue;
       }
-      if (depth<dimmax){
-        item = stack[depth];
-        item.a = a;
-        item.i = 0;
-        item.src = src;
-        depth++;
-      } else {
-        if (rtl.isArray(defaultvalue)){
-          // array of dyn array
-          for (var i=0; i<srclen; i++) a[i]=src[i];
-          for (var i=oldlen; i<lastlen; i++) a[i]=[];
-        } else if (rtl.isObject(defaultvalue)) {
-          if (rtl.isTRecord(defaultvalue)){
-            // array of record
-            for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
-            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
-          } else {
-            // array of set
-            for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
-            for (var i=oldlen; i<lastlen; i++) a[i]={};
-          }
+      if (lastlen>0){
+        if (depth<dimmax){
+          item = stack[depth];
+          item.a = a;
+          item.i = 0;
+          item.src = src;
+          depth++;
+          continue;
         } else {
-          for (var i=0; i<srclen; i++) a[i]=src[i];
-          for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
+          if (srclen>lastlen) srclen=lastlen;
+          if (rtl.isArray(defaultvalue)){
+            // array of dyn array
+            for (var i=0; i<srclen; i++) a[i]=src[i];
+            for (var i=oldlen; i<lastlen; i++) a[i]=[];
+          } else if (rtl.isObject(defaultvalue)) {
+            if (rtl.isTRecord(defaultvalue)){
+              // array of record
+              for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
+              for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
+            } else {
+              // array of set
+              for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
+              for (var i=oldlen; i<lastlen; i++) a[i]={};
+            }
+          } else {
+            for (var i=0; i<srclen; i++) a[i]=src[i];
+            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
+          }
         }
-        while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
-          depth--;
-        };
-        if (depth===0){
-          if (dimmax===0) return a;
-          return stack[0].a;
-        }
+      }
+      // backtrack
+      while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
+        depth--;
+      };
+      if (depth===0){
+        if (dimmax===0) return a;
+        return stack[0].a;
       }
     }while (true);
   },
