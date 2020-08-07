@@ -737,7 +737,7 @@ implementation
               begin
                 case nodetype of
                   muln:
-                   result := cunaryminusnode.create(left.getcopy);
+                   result := ctypeconvnode.create_internal(cunaryminusnode.create(left.getcopy),left.resultdef);
                   else
                     ;
                 end;
@@ -818,9 +818,9 @@ implementation
               begin
                 case nodetype of
                   addn,orn,xorn:
-                   result := right.getcopy;
+                    result := right.getcopy;
                   subn:
-                   result := cunaryminusnode.create(right.getcopy);
+                    result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
                   andn,muln:
                     begin
                       if (cs_opt_level4 in current_settings.optimizerswitches) or
@@ -844,7 +844,7 @@ implementation
               begin
                 case nodetype of
                   muln:
-                   result := cunaryminusnode.create(right.getcopy);
+                   result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
                   else
                     ;
                 end;
@@ -976,7 +976,7 @@ implementation
                           end;
                       subn:
                         begin
-                          result:=cunaryminusnode.create(right.getcopy);
+                          result:=ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
                           exit;
                         end;
                       else

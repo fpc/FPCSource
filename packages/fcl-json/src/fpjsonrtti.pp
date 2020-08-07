@@ -113,7 +113,7 @@ Type
   TJSONRestorePropertyEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Var Handled : Boolean) of object;
   TJSONPropertyErrorEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Error : Exception; Var Continue : Boolean) of object;
   TJSONGetObjectEvent = Procedure (Sender : TOBject; AObject : TObject; Info : PPropInfo; AData : TJSONObject; DataName : TJSONStringType; Var AValue : TObject);
-  TJSONDestreamOption = (jdoCaseInsensitive,jdoIgnorePropertyErrors);
+  TJSONDestreamOption = (jdoCaseInsensitive,jdoIgnorePropertyErrors,jdoIgnoreNulls);
   TJSONDestreamOptions = set of TJSONDestreamOption;
 
   TJSONDeStreamer = Class(TJSONFiler)
@@ -396,7 +396,9 @@ begin
       If B then
         exit;
       end;
-    DoRestoreProperty(AObject,PropInfo,PropData);
+    if (PropData.JSONType=jtNull) then
+      if Not (jdoIgnoreNulls in Options) then
+        DoRestoreProperty(AObject,PropInfo,PropData);
   except
     On E : Exception do
       If Assigned(FOnPropError) then

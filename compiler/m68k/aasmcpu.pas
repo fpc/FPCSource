@@ -556,8 +556,7 @@ type
           R_ADDRESSREGISTER :
             result:=taicpu.op_ref_reg(A_MOVE,S_L,ref,r);
           R_FPUREGISTER :
-            // no need to handle sizes here
-            result:=taicpu.op_ref_reg(A_FMOVE,S_FS,ref,r);
+            result:=taicpu.op_ref_reg(A_FMOVE,fpuregopsize,ref,r);
           else
             internalerror(200602011);
         end;
@@ -572,8 +571,7 @@ type
           R_ADDRESSREGISTER :
             result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
           R_FPUREGISTER :
-            // no need to handle sizes here
-            result:=taicpu.op_reg_ref(A_FMOVE,S_FS,r,ref);
+            result:=taicpu.op_reg_ref(A_FMOVE,fpuregopsize,r,ref);
           else
             internalerror(200602012);
         end;
