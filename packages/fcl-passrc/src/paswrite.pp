@@ -36,7 +36,8 @@ type
                       woAddSourceLineNumber,    // Prefix line with original source line numbers (when available) in comment
                       woForwardClasses,   // Add forward definitions for all classes
                       woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
-                      woNoAsm         // Do not allow asm block
+                      woNoAsm,         // Do not allow asm block
+                      woSkipPrivateExternals
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -61,6 +62,7 @@ type
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
   protected
+    procedure DisableHintsWarnings;
     procedure PrepareDeclSectionInStruct(const ADeclSection: string);
     procedure MaybeSetLineElement(AElement: TPasElement);
     function GetExpr(E: TPasExpr): String; virtual;
@@ -302,6 +304,16 @@ begin
     AddLn(';');
 end;
 
+procedure TPasWriter.DisableHintsWarnings;
+
+begin
+  Addln('{$HINTS OFF}');
+  Addln('{$WARNINGS OFF}');
+  Addln('{$IFDEF FPC}');
+  Addln('{$NOTES OFF}');
+  Addln('{$ENDIF FPC}');
+end;
+
 procedure TPasWriter.WriteProgram(aModule: TPasProgram);
 
 Var
@@ -324,13 +336,7 @@ begin
     AddLn;
     end;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$IFDEF FPC}');
-    Addln('{$NOTES OFF}');
-    Addln('{$ENDIF FPC}');
-    end;
+    DisableHintsWarnings;
   if Assigned(aModule.ProgramSection) then
     WriteSection(aModule.ProgramSection);
   if Assigned(AModule.InitializationSection) then
@@ -367,11 +373,7 @@ begin
     AddLn;
     end;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$NOTES OFF}');
-    end;
+    DisableHintsWarnings;
   if Assigned(AModule.InitializationSection) then
     begin
     PrepareDeclSection('');
@@ -487,18 +489,14 @@ begin
   AddLn('implementation');
   FInImplementation:=True;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$NOTES OFF}');
-    end;
+    DisableHintsWarnings;
   if hasOption(woNoExternalFunc) then
     WriteDummyExternalFunctions(AModule.InterfaceSection);
   if Assigned(AModule.ImplementationSection) then
-  begin
+    begin
     AddLn;
     WriteSection(AModule.ImplementationSection);
-  end;
+    end;
   AddLn;
   if NotOption(woNoImplementation) then
     begin
@@ -843,11 +841,14 @@ Var
   IsImpl : Boolean;
 
 begin
+
   IsImpl:=AProc.Parent is TPasSection;
   if IsImpl then
     PrepareDeclSection('');
   if Not IsImpl then
     IsImpl:=FInImplementation;
+  if FInImplementation and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
+    Exit;
   Add(AProc.TypeName + ' ' + NamePrefix+AProc.SafeName);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
     AddProcArgs(AProc.ProcType.Args) ;
