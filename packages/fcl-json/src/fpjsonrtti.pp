@@ -423,9 +423,7 @@ procedure TJSONDeStreamer.DoClearProperty(AObject : TObject;PropInfo : PPropInfo
 Var
   PI : PPropInfo;
   TI : PTypeInfo;
-  I,J,S : Integer;
-  A : TJSONArray;
-  JS : TJSONStringType;
+
 begin
   PI:=PropInfo;
   TI:=PropInfo^.PropType;
@@ -456,6 +454,8 @@ begin
       SetOrdProp(AObject,PI,0);
     tkUString :
       SetUnicodeStrProp(AObject,PI,'');
+  else
+{
     tkObject,
     tkArray,
     tkRecord,
@@ -463,7 +463,7 @@ begin
     tkDynArray,
     tkInterfaceRaw,
     tkProcVar,
-    tkMethod :
+    tkMethod }
       Error(SErrUnsupportedPropertyKind,[PI^.Name]);
   end;
 end;
