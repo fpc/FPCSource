@@ -747,13 +747,11 @@ begin
     begin
     if LParentIsClassOrRecord then
       begin
-      Writeln('a');
       if NotOption(woNoExternalClass) then
         Add('; external name ''%s''',[aVar.ExportName.GetDeclaration(true)]);
       end
     else if NotOption(woNoExternalVar) then
       begin
-      Writeln('b');
       Add('; external ');
       if (aVar.LibraryName<>Nil) then
         Add('%s ',[aVar.LibraryName.GetDeclaration(true)]);
@@ -840,6 +838,7 @@ begin
     Add('; '+cCallingConventions[TPasProcedureType(AProc).CallingConvention]);
 end;
 
+
 procedure TPasWriter.WriteProcDecl(AProc: TPasProcedure; ForceBody : Boolean = False; NamePrefix : String = '');
 
   Procedure EmptyBody;
@@ -876,7 +875,7 @@ begin
   // delphi compatible order for example: procedure foo; reintroduce; overload; static;
   if not IsImpl and AProc.IsReintroduced then
     Add(' reintroduce;');
-  if AProc.IsOverload then
+  if AProc.IsOverload and (Not FInImplementation) then
     Add(' overload;');
   if not IsImpl then
     begin
