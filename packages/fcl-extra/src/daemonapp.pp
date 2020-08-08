@@ -175,10 +175,27 @@ Type
   end;
 
 
+  TWinControlCode = (
+    wccNetBindChange,
+    wccParamChange,
+    wccPreShutdown,
+    wccShutdown,
+    wccHardwareProfileChange,
+    wccPowerEvent,
+    wccSessionChange,
+    { Windows 7 + }
+    wccTimeChange,
+    wccTriggerEvent,
+    { Windows 8 + }
+    wccUserModeReboot
+  );
+  TWinControlCodes = set of TWinControlCode;
+
   { TWinBindings }
 
   TWinBindings = class(TPersistent)
   private
+    FAcceptedCodes: TWinControlCodes;
     FDependencies: TDependencies;
     FErrCode: DWord;
     FErrorSeverity: TErrorSeverity;
@@ -207,6 +224,7 @@ Type
     Property IDTag : DWord Read FTagID Write FTagID;
     Property ServiceType : TServiceType Read FServiceType Write FServiceType;
     Property ErrorSeverity : TErrorSeverity Read FErrorSeverity Write FErrorSeverity;
+    Property AcceptedCodes : TWinControlCodes Read FAcceptedCodes Write FAcceptedCodes;
   end;
 
   { TDaemonDef }
