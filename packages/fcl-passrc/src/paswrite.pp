@@ -35,7 +35,8 @@ type
                       woAddLineNumber,    // Prefix line with generated line numbers in comment
                       woAddSourceLineNumber,    // Prefix line with original source line numbers (when available) in comment
                       woForwardClasses,   // Add forward definitions for all classes
-                      woForceOverload     // Force 'overload;' on overloads that are not marked as such.
+                      woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
+                      woNoAsm         // Do not allow asm block
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -842,7 +843,7 @@ begin
     if AProc.IsStatic then
       Add(' static;');
     end;
-  if pmAssembler in AProc.Modifiers then
+  if (pmAssembler in AProc.Modifiers) and Not (woNoAsm in OPtions) then
     Add(' assembler;');
   if AProc.CallingConvention<>ccDefault then
     Add(' '+cCallingConventions[AProc.CallingConvention]+';');
