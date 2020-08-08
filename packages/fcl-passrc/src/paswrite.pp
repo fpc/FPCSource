@@ -83,10 +83,11 @@ type
   public
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
+    procedure WriteMembers(aMembers: TFPList; aDefaultVisibility: TPasMemberVisibility=visDefault); virtual;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
     procedure WriteResourceString(aStr: TPasResString); virtual;
     procedure WriteEnumType(AType: TPasEnumType); virtual;
-    procedure WriteElement(AElement: TPasElement);virtual;
+    procedure WriteElement(AElement: TPasElement;SkipSection : Boolean = False);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
     procedure WriteProgram(aModule : TPasProgram); virtual;
     Procedure WriteLibrary(aModule : TPasLibrary); virtual;
@@ -221,10 +222,11 @@ begin
     FLineElement:=AElement;
 end;
 
-procedure TPasWriter.WriteElement(AElement: TPasElement);
+procedure TPasWriter.WriteElement(AElement: TPasElement;SkipSection : Boolean = False);
 
 begin
-  MaybeSetLineElement(AElement);
+  if not SkipSection then
+    MaybeSetLineElement(AElement);
   if AElement.InheritsFrom(TPasModule) then
     WriteModule(TPasModule(AElement))
   else if AElement.InheritsFrom(TPasSection) then
@@ -611,17 +613,7 @@ procedure TPasWriter.WriteClass(AClass: TPasClassType);
 
 var
   i: Integer;
-  Member, LastMember: TPasElement;
   InterfacesListPrefix: string;
-  LastVisibility, CurVisibility: TPasMemberVisibility;
-
-  function ForceVisibility: boolean;
-  begin
-    Result := (LastMember <> nil) and
-      // variables can't be declared directly after methods nor properties
-      // (visibility section or var keyword is required)
-      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
-  end;
 
 begin
   PrepareDeclSection('type');
@@ -662,11 +654,35 @@ begin
       AddLn('['+AClass.InterfaceGUID+']');
   IncIndent;
   IncDeclSectionLevel;
-  LastVisibility := visDefault;
+  WriteMembers(AClass.Members);
+  DecDeclSectionLevel;
+  DecIndent;
+  Add('end');
+end;
+
+procedure TPasWriter.WriteMembers(aMembers : TFPList; aDefaultVisibility : TPasMemberVisibility = visDefault);
+
+Var
+  Member, LastMember: TPasElement;
+  LastVisibility, CurVisibility: TPasMemberVisibility;
+
+  function ForceVisibility: boolean;
+  begin
+    Result := (LastMember <> nil) and
+      // variables can't be declared directly after methods nor properties
+      // (visibility section or var keyword is required)
+      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
+  end;
+
+Var
+  I : integer;
+
+begin
+  LastVisibility:=aDefaultVisibility;
   LastMember := nil;
-  for i := 0 to AClass.Members.Count - 1 do
+  for i := 0 to aMembers.Count - 1 do
     begin
-    Member := TPasElement(AClass.Members[i]);
+    Member := TPasElement(aMembers[i]);
     CurVisibility := Member.Visibility;
     if (CurVisibility <> LastVisibility) or ForceVisibility then
       begin
@@ -685,9 +701,6 @@ begin
     WriteElement(Member);
     LastMember := Member;
     end;
-  DecDeclSectionLevel;
-  DecIndent;
-  Add('end');
 end;
 
 procedure TPasWriter.WriteConst(AConst: TPasConst);
@@ -710,7 +723,7 @@ begin
   // handle variables in classes/records
   else if vmClass in aVar.VarModifiers then
     PrepareDeclSectionInStruct('class var')
-  else if CurDeclSection<>'' then
+  else if (CurDeclSection<>'') and not (aVar.Parent.ClassType = TPasRecordType) then
     PrepareDeclSectionInStruct('var');
   Add(aVar.SafeName + ': ');
   if Not Assigned(aVar.VarType) then
@@ -722,11 +735,13 @@ begin
     begin
     if LParentIsClassOrRecord then
       begin
+      Writeln('a');
       if NotOption(woNoExternalClass) then
         Add('; external name ''%s''',[aVar.ExportName.GetDeclaration(true)]);
       end
     else if NotOption(woNoExternalVar) then
       begin
+      Writeln('b');
       Add('; external ');
       if (aVar.LibraryName<>Nil) then
         Add('%s ',[aVar.LibraryName.GetDeclaration(true)]);
@@ -774,19 +789,29 @@ end;
 procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 
 Var
-  S : TStrings;
   I : Integer;
+  Temp : String;
+  el : TPasElement;
 
 begin
-  S:=TStringList.Create;
-  try
-    S.Text:=AType.GetDeclaration(true);
-    For I:=0 to S.Count-2 do
-      AddLn(S[i]);
-    Add(S[S.Count-1]);
-  finally
-    S.Free;
-  end;
+  Temp:='record';
+  If aType.IsPacked then
+    if Atype.IsBitPacked then
+      Temp:='bitpacked '+Temp
+    else
+      Temp:='packed '+Temp;
+  If (Atype.Name<>'') then
+    begin
+    if AType.GenericTemplateTypes.Count>0 then
+      Temp:=AType.SafeName+GenericTemplateTypesAsString(AType.GenericTemplateTypes)+' = '+Temp
+    else
+      Temp:=AType.SafeName+' = '+Temp;
+    end;
+  AddLn(Temp);
+  IncIndent;
+  WriteMembers(AType.Members,visPublic);
+  DecIndent;
+  Add('end');
 end;
 
 procedure TPasWriter.WriteArrayType(AType: TPasArrayType; Full : Boolean = True);
