@@ -805,6 +805,14 @@ end;
 
 procedure TPasWriter.WriteProcDecl(AProc: TPasProcedure; ForceBody : Boolean = False; NamePrefix : String = '');
 
+  Procedure EmptyBody;
+
+  begin
+    Addln('');
+    Addln('begin');
+    AddLn('end;');
+    Addln('');
+  end;
 Var
   AddExternal : boolean;
   IsImpl : Boolean;
@@ -865,16 +873,15 @@ begin
     end;
   AddLn;
 
-  if Assigned(AProc.Body) then
-    WriteProcImpl(AProc.Body,pmAssembler in AProc.Modifiers)
-  else if ForceBody then
+  if Assigned(AProc.Body)  then
     begin
-    Addln('');
-    Addln('begin');
-    AddLn('end;');
-    Addln('');
-    end;
-
+    if (pmAssembler in AProc.Modifiers) and (woNoAsm in Options) then
+      EmptyBody
+    else
+      WriteProcImpl(AProc.Body,pmAssembler in AProc.Modifiers)
+    end
+  else if ForceBody then
+    EmptyBody;
 end;
 
 
