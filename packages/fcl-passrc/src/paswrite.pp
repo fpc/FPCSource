@@ -564,12 +564,13 @@ begin
   C:=0;
   if ASection.UsesList.Count>0 then
     begin
-    For I:=1 to WordCount(ExtraUnits,UnitSeps) do
-      begin
-      u:=Trim(ExtractWord(1,ExtraUnits,UnitSeps));
-      if (U<>'') then
-        AddUnit(U,Nil);
-      end;
+    if not (aSection is TImplementationSection) then
+      For I:=1 to WordCount(ExtraUnits,UnitSeps) do
+        begin
+        u:=Trim(ExtractWord(1,ExtraUnits,UnitSeps));
+        if (U<>'') then
+          AddUnit(U,Nil);
+        end;
     if length(ASection.UsesClause)=ASection.UsesList.Count then
       begin
       for i := 0 to length(ASection.UsesClause)-1 do
