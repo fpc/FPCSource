@@ -396,9 +396,8 @@ begin
       If B then
         exit;
       end;
-    if (PropData.JSONType=jtNull) then
-      if Not (jdoIgnoreNulls in Options) then
-        DoRestoreProperty(AObject,PropInfo,PropData);
+    if (PropData.JSONType<>jtNull) or not (jdoIgnoreNulls in Options) then
+      DoRestoreProperty(AObject,PropInfo,PropData)
   except
     On E : Exception do
       If Assigned(FOnPropError) then
