@@ -4249,7 +4249,7 @@ begin
   if Full then
     begin
     if GenericTemplateTypes<>nil then
-      Result:=Result+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Result
+      Result:=SafeName+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Result
     else
       Result:=SafeName+' = '+Result;
     end;

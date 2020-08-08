@@ -16957,28 +16957,35 @@ end;
 procedure TTestModule.TestExternalClass_Is;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtA''');
-  Add('  end;');
-  Add('  TExtAClass = class of TExtA;');
-  Add('  TExtB = class external name ''ExtB'' (TExtA)');
-  Add('  end;');
-  Add('  TExtBClass = class of TExtB;');
-  Add('  TExtC = class (TExtB)');
-  Add('  end;');
-  Add('  TExtCClass = class of TExtC;');
-  Add('var');
-  Add('  A: texta; ClA: TExtAClass;');
-  Add('  B: textb; ClB: TExtBClass;');
-  Add('  C: textc; ClC: TExtCClass;');
-  Add('begin');
-  Add('  if a is textb then ;');
-  Add('  if a is textc then ;');
-  Add('  if b is textc then ;');
-  Add('  if cla is textb then ;');
-  Add('  if cla is textc then ;');
-  Add('  if clb is textc then ;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '  end;',
+  '  TExtAClass = class of TExtA;',
+  '  TExtB = class external name ''ExtB'' (TExtA)',
+  '  end;',
+  '  TExtBClass = class of TExtB;',
+  '  TExtC = class (TExtB)',
+  '  end;',
+  '  TExtCClass = class of TExtC;',
+  'var',
+  '  A: texta; ClA: TExtAClass;',
+  '  B: textb; ClB: TExtBClass;',
+  '  C: textc; ClC: TExtCClass;',
+  'begin',
+  '  if a is textb then ;',
+  '  if a is textc then ;',
+  '  if b is textc then ;',
+  '  if cla is textb then ;',
+  '  if cla is textc then ;',
+  '  if clb is textc then ;',
+  '  try',
+  '  except',
+  '  on TExtA do ;',
+  '  on e: TExtB do ;',
+  '  end;',
+  '']);
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
@@ -17002,6 +17009,12 @@ begin
     'if (rtl.isExt($mod.ClA, ExtB)) ;',
     'if (rtl.is($mod.ClA, $mod.TExtC)) ;',
     'if (rtl.is($mod.ClB, $mod.TExtC)) ;',
+    'try {} catch ($e) {',
+    '  if (rtl.isExt($e,ExtA)) {}',
+    '  else if (rtl.isExt($e,ExtB)) {',
+    '    var e = $e;',
+    '  } else throw $e',
+    '};',
     '']));
 end;
 

@@ -445,6 +445,15 @@ end;
   TDaemonThread
   ---------------------------------------------------------------------}
 
+
+type
+  TMessageRec = record
+    EventType: DWord;
+    EventData: Pointer;
+  end;
+  PMessageRec = ^TMessageRec;
+
+
 procedure TDaemonThread.StartServiceExecute;
 
 Var
@@ -475,8 +484,13 @@ begin
         begin
         If (Msg.hwnd<>0) or (Msg.Message<>CM_SERVICE_CONTROL_CODE) then
           DispatchMessage(Msg)
+        else if (Msg.Message=CM_SERVICE_CONTROL_CODE) then
+        begin
+          HandleControlCode(Msg.wParam, PMessageRec(Msg.lParam)^.EventType, PMessageRec(Msg.lParam)^.EventData);
+          System.Dispose(PMessageRec(Msg.lParam));
+        end
         else
-          HandleControlCode(Msg.wParam);
+          HandleControlCode(Msg.wParam, 0, Nil);
         end;
       end;
   Until StopLoop;
@@ -524,21 +538,36 @@ procedure TDaemonController.Controller(ControlCode, EventType: DWord;
 
 Var
   TID : THandle;
-
+  msg: PMessageRec;
 begin
   if Assigned(FDaemon.FThread) then
     begin
     TID:=FDaemon.FThread.ThreadID;
     If FDaemon.FThread.Suspended then
       FDaemon.FThread.Resume;
-    PostThreadMessage(TID,CM_SERVICE_CONTROL_CODE,ControlCode,EventType);
+    New(msg);
+    msg^.EventType := EventType;
+    msg^.EventData := EventData;
+    PostThreadMessage(TID,CM_SERVICE_CONTROL_CODE,ControlCode,LPARAM(msg));
     end;
 end;
 
 
 function TDaemonController.ReportStatus: Boolean;
 
-  Function GetAcceptedCodes : Integer;
+  Function GetAcceptedCodes(ACodes : TWinControlCodes) : Integer;
+
+    function IsWindows7OrNewer: Boolean; inline;
+    begin
+      Result := (Win32MajorVersion > 6) or
+                ((Win32MajorVersion = 6) and (Win32MinorVersion >= 1));
+    end;
+
+    function IsWindows8OrNewer: Boolean; inline;
+    begin
+      Result := (Win32MajorVersion > 6) or
+                ((Win32MajorVersion = 6) and (Win32MinorVersion >= 2));
+    end;
 
   begin
     Result := SERVICE_ACCEPT_SHUTDOWN;
@@ -546,6 +575,26 @@ function TDaemonController.ReportStatus: Boolean;
       Result := Result or SERVICE_ACCEPT_STOP;
     if doAllowPause in FDAemon.Definition.Options then
       Result := Result or SERVICE_ACCEPT_PAUSE_CONTINUE;
+    if wccNetBindChange in ACodes then
+      Result := Result or SERVICE_ACCEPT_NETBINDCHANGE;
+    if wccParamChange in ACodes then
+      Result := Result or SERVICE_ACCEPT_PARAMCHANGE;
+    if wccPreShutdown in ACodes then
+      Result := Result or SERVICE_ACCEPT_PRESHUTDOWN;
+    if wccShutdown in ACodes then
+      Result := Result or SERVICE_ACCEPT_SHUTDOWN;
+    if wccHardwareProfileChange in ACodes then
+      Result := Result or SERVICE_ACCEPT_HARDWAREPROFILECHANGE;
+    if wccPowerEvent in ACodes then
+      Result := Result or SERVICE_ACCEPT_POWEREVENT;
+    if wccSessionChange in ACodes then
+      Result := Result or SERVICE_ACCEPT_SESSIONCHANGE;
+    if (wccTimeChange in ACodes) and IsWindows7OrNewer then
+      Result := Result or SERVICE_ACCEPT_TIMECHANGE;
+    if (wccTriggerEvent in ACodes) and IsWindows8OrNewer then
+      Result := Result or SERVICE_ACCEPT_TRIGGEREVENT;
+    if (wccUserModeReboot in ACodes) and IsWindows8OrNewer then
+      Result := Result or SERVICE_ACCEPT_USERMODEREBOOT;
   end;
 
 Var
@@ -592,7 +641,7 @@ begin
     if (FDaemon.Status=csStartPending) then
       dwControlsAccepted := 0
     else
-      dwControlsAccepted := GetAcceptedCodes;
+      dwControlsAccepted := GetAcceptedCodes(WB.AcceptedCodes);
     if (FDaemon.Status in PendingStatus) and (FDaemon.Status = LastStatus) then
       Inc(FCheckPoint)
     else

@@ -24353,25 +24353,45 @@ function TPasToJSConverter.ConvertExceptOn(El: TPasImplExceptOn;
   AContext: TConvertContext): TJSElement;
 // convert "on T do ;" to "if(T.isPrototypeOf(exceptObject)){}"
 // convert "on E:T do ;" to "if(T.isPrototypeOf(exceptObject)){ var E=exceptObject; }"
+// convert "on TExternal do ;" to "if(rtl.isExt(exceptObject,TExternal)){}"
+
 Var
   IfSt : TJSIfStatement;
   ListFirst , ListLast: TJSStatementList;
   DotExpr: TJSDotMemberExpression;
   Call: TJSCallExpression;
   V: TJSVariableStatement;
+  aResolver: TPas2JSResolver;
+  aType: TPasType;
+  IsExternal: Boolean;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
+  aType:=aResolver.ResolveAliasType(El.TypeEl);
+  IsExternal:=(aType is TPasClassType) and TPasClassType(aType).IsExternal;
+
   // create "if()"
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
-    // create "T.isPrototypeOf"
-    DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-    DotExpr.MExpr:=CreateReferencePathExpr(El.TypeEl,AContext);
-    DotExpr.Name:='isPrototypeOf';
-    // create "T.isPrototypeOf(exceptObject)"
-    Call:=CreateCallExpression(El);
-    Call.Expr:=DotExpr;
-    Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+    if IsExternal then
+      begin
+      // create rtl.isExt(exceptObject,T)
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIsExt)]);
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+      Call.AddArg(CreateReferencePathExpr(El.TypeEl,AContext));
+      end
+    else
+      begin
+      // create "T.isPrototypeOf"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+      DotExpr.MExpr:=CreateReferencePathExpr(El.TypeEl,AContext);
+      DotExpr.Name:='isPrototypeOf';
+      // create "T.isPrototypeOf(exceptObject)"
+      Call:=CreateCallExpression(El);
+      Call.Expr:=DotExpr;
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+      end;
     IfSt.Cond:=Call;
 
     if El.VarEl<>nil then

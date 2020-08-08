@@ -2252,14 +2252,11 @@ unit cgcpu;
     function tcg68k.force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
       var
         scratch_reg: TRegister;
-        instr: Taicpu;
       begin
         if isaddressregister(reg) then
           begin
             scratch_reg:=getintregister(list,OS_INT);
-            instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg);
-            add_move_instruction(instr);
-            list.concat(instr);
+            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg));
             result:=scratch_reg;
           end
         else
