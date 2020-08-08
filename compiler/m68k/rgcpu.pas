@@ -169,11 +169,9 @@ unit rgcpu;
             ;
         end;
 
-        if (opidx<0) then
+        if opidx<0 then
           exit;
-        instr.oper[opidx]^.typ:=top_ref;
-        new(instr.oper[opidx]^.ref);
-        instr.oper[opidx]^.ref^:=spilltemp;
+        instr.loadref(opidx,spilltemp);
         case taicpu(instr).opsize of
           S_B: inc(instr.oper[opidx]^.ref^.offset,3);
           S_W: inc(instr.oper[opidx]^.ref^.offset,2);
