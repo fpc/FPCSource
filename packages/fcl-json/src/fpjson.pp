@@ -12,9 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-{$h+}
 unit fpjson;
+
+{$i fcl-json.inc}
 
 interface
 
