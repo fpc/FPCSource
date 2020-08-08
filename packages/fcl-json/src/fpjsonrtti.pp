@@ -113,7 +113,7 @@ Type
   TJSONRestorePropertyEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Var Handled : Boolean) of object;
   TJSONPropertyErrorEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Error : Exception; Var Continue : Boolean) of object;
   TJSONGetObjectEvent = Procedure (Sender : TOBject; AObject : TObject; Info : PPropInfo; AData : TJSONObject; DataName : TJSONStringType; Var AValue : TObject);
-  TJSONDestreamOption = (jdoCaseInsensitive,jdoIgnorePropertyErrors,jdoIgnoreNulls);
+  TJSONDestreamOption = (jdoCaseInsensitive,jdoIgnorePropertyErrors,jdoIgnoreNulls,jdoNullClearsProperty);
   TJSONDestreamOptions = set of TJSONDestreamOption;
 
   TJSONDeStreamer = Class(TJSONFiler)
@@ -132,6 +132,7 @@ Type
     // Try to parse a date.
     Function ExtractDateTime(S : String): TDateTime;
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
+    procedure DoClearProperty(AObject: TObject; PropInfo: PPropInfo); virtual;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); virtual;
     function DoMapProperty(AObject: TObject; PropInfo: PPropInfo; JSON: TJSONObject): TJSONData; virtual;
     procedure DoBeforeReadObject(Const JSON: TJSONObject; AObject: TObject); virtual;
@@ -396,8 +397,13 @@ begin
       If B then
         exit;
       end;
-    if (PropData.JSONType<>jtNull) or not (jdoIgnoreNulls in Options) then
+    if (PropData.JSONType<>jtNull) then
       DoRestoreProperty(AObject,PropInfo,PropData)
+    else if (jdoNullClearsProperty in Options) then
+      DoClearProperty(aObject,PropInfo)
+    else if not (jdoIgnoreNulls in Options) then
+      DoRestoreProperty(AObject,PropInfo,PropData)
+
   except
     On E : Exception do
       If Assigned(FOnPropError) then
@@ -409,6 +415,56 @@ begin
         end
       else if Not (jdoIgnorePropertyErrors in Options) then
         Raise;
+  end;
+end;
+
+procedure TJSONDeStreamer.DoClearProperty(AObject : TObject;PropInfo : PPropInfo);
+
+Var
+  PI : PPropInfo;
+  TI : PTypeInfo;
+  I,J,S : Integer;
+  A : TJSONArray;
+  JS : TJSONStringType;
+begin
+  PI:=PropInfo;
+  TI:=PropInfo^.PropType;
+  case TI^.Kind of
+    tkUnknown :
+      Error(SErrUnknownPropertyKind,[PI^.Name]);
+    tkInteger,
+    tkEnumeration,
+    tkSet,
+    tkChar,
+    tkWChar,
+    tkBool,
+    tkQWord,
+    tkUChar,
+    tkInt64 :
+      SetOrdProp(AObject,PI,0);
+    tkFloat :
+      SetFloatProp(AObject,PI,0.0);
+    tkSString,
+    tkLString,
+    tkAString:
+      SetStrProp(AObject,PI,'');
+    tkWString :
+      SetWideStrProp(AObject,PI,'');
+    tkVariant:
+      SetVariantProp(AObject,PI,Null);
+    tkClass:
+      SetOrdProp(AObject,PI,0);
+    tkUString :
+      SetUnicodeStrProp(AObject,PI,'');
+    tkObject,
+    tkArray,
+    tkRecord,
+    tkInterface,
+    tkDynArray,
+    tkInterfaceRaw,
+    tkProcVar,
+    tkMethod :
+      Error(SErrUnsupportedPropertyKind,[PI^.Name]);
   end;
 end;
 
