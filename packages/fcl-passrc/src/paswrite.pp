@@ -633,6 +633,14 @@ begin
     okRecordHelper: Add('record helper');
     okClassHelper: Add('class helper');
   end;
+  if (AClass.ObjKind in [okTypeHelper,okRecordHelper,okClassHelper]) then
+    begin
+    if not Assigned(AClass.HelperForType) then
+      Add(' for unknowntype')
+    else
+      Add(' for '+AClass.HelperForType.SafeName)
+    end;
+
   if AClass.IsForward then
     exit;
   if (AClass.ObjKind=okClass) and (ACLass.ExternalName<>'') and NotOption(woNoExternalClass) then
