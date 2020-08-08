@@ -37,7 +37,8 @@ type
                       woForwardClasses,   // Add forward definitions for all classes
                       woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
                       woNoAsm,         // Do not allow asm block
-                      woSkipPrivateExternals
+                      woSkipPrivateExternals,  // Skip generation of external procedure declaration in implementation section
+                      woAlwaysRecordHelper     // Force use of record helper for type helper
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -624,6 +625,11 @@ begin
     okObject: Add('object');
     okClass: Add('class');
     okInterface: Add('interface');
+    okTypeHelper :
+      if HasOption(woAlwaysRecordHelper) then
+        Add('record helper')
+      else
+        Add('type helper');
     okRecordHelper: Add('record helper');
     okClassHelper: Add('class helper');
   end;
