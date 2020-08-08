@@ -445,6 +445,15 @@ end;
   TDaemonThread
   ---------------------------------------------------------------------}
 
+
+type
+  TMessageRec = record
+    EventType: DWord;
+    EventData: Pointer;
+  end;
+  PMessageRec = ^TMessageRec;
+
+
 procedure TDaemonThread.StartServiceExecute;
 
 Var
@@ -475,8 +484,13 @@ begin
         begin
         If (Msg.hwnd<>0) or (Msg.Message<>CM_SERVICE_CONTROL_CODE) then
           DispatchMessage(Msg)
+        else if (Msg.Message=CM_SERVICE_CONTROL_CODE) then
+        begin
+          HandleControlCode(Msg.wParam, PMessageRec(Msg.lParam)^.EventType, PMessageRec(Msg.lParam)^.EventData);
+          System.Dispose(PMessageRec(Msg.lParam));
+        end
         else
-          HandleControlCode(Msg.wParam);
+          HandleControlCode(Msg.wParam, 0, Nil);
         end;
       end;
   Until StopLoop;
