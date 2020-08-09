@@ -399,10 +399,27 @@ begin
                    ClearEvent(Event);
                    end;
                  end;
+            kbCtrlPgUp:
+              begin
+               if ActiveDef > 0 then
+                Index := Pred (ActiveDef)
+               else
+                Index := Pred (DefCount);
+               ClearEvent(Event);
+              end;
+            kbCtrlPgDn:
+              begin
+               if ActiveDef < Pred (DefCount) then
+                Index := Succ (ActiveDef)
+               else
+                Index := 0;
+               ClearEvent(Event);
+              end;
        else
        for I:=0 to DefCount-1 do
            begin
-             if Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut
+             if (AtTab(I)^.ShortCut <> #0) and
+                         (Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut)
                 then begin
                        Index:=I;
                        ClearEvent(Event);
