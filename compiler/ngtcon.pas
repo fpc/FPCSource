@@ -350,11 +350,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             { carry-over to the next element? }
             if (shiftcount<0) then
               begin
-                if shiftcount>=AIntBits then
+                if shiftcount>=-AIntBits then
                   bp.nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
                               (AIntBits+shiftcount)
                 else
-                  bp.nextval:=0
+                  bp.nextval:=0;
               end
           end
         else
