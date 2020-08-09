@@ -402,7 +402,8 @@ begin
        else
        for I:=0 to DefCount-1 do
            begin
-             if Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut
+             if (AtTab(I)^.ShortCut <> #0) and
+                         (Upcase(GetAltChar(Event.KeyCode))=AtTab(I)^.ShortCut)
                 then begin
                        Index:=I;
                        ClearEvent(Event);
