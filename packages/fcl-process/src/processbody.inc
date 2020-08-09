@@ -48,10 +48,6 @@ Type
     FProcessOptions : TProcessOptions;
     FRunCommandSleepTime: Integer;
     FStartupOptions : TStartupOptions;
-    FProcessID : Integer;
-    FThreadID : Integer;
-    FProcessHandle : Thandle;
-    FThreadHandle : Thandle;
     FFillAttribute : Cardinal;
     FApplicationName : TProcessString;
     FConsoleTitle : TProcessString;
@@ -103,6 +99,10 @@ Type
     FInputStream  : TOutputPipeStream;
     FOutputStream : TInputPipeStream;
     FStderrStream : TInputPipeStream;
+    FProcessID : Integer;
+    FThreadID : Integer;
+    FProcessHandle : Thandle;
+    FThreadHandle : Thandle;
     procedure CloseProcessHandles; virtual;
     Procedure CreateStreams(InHandle,OutHandle,ErrHandle : Longint);virtual;
     procedure FreeStream(var AStream: THandleStream);
