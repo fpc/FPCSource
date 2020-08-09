@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="ppc386"/>
     </General>
     <BuildModes Count="1">
@@ -67,8 +68,7 @@
       </ConfigFile>
       <CustomOptions Value="-di386
 -dEXTDEBUG
--Sew
--Oodfa"/>
+-Sew"/>
     </Other>
   </CompilerOptions>
 </CONFIG>
