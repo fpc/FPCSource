@@ -306,7 +306,12 @@ begin
             S := BasePath;
 {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
             if not FileNameCasePreserving then
-              S := UpCase(S);
+              S := UpCase(S)
+            else
+            { Always uppercase driveletter }
+            if (Length (S) > 1) and CharInSet(S [1], ['a'..'z']) and
+              (S [2] = DriveSeparator) and (DriveSeparator <> DirectorySeparator) then
+                S [1] := Chr (Ord (S [1]) and not ($20));
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
