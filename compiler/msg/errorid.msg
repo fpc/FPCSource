@@ -3532,7 +3532,7 @@ Program ini datang bersama GNU General Public Licence
 Untuk informasi lebih jauh baca COPYING.v2
 
 Laporkan bugs, saran, dll ke:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

@@ -3552,7 +3552,7 @@ Este programa é oferecido sob a Licença Geral Pública GNU
 Para maiores informações leia COPYING.v2
 
 Reportar falhas, sugestões, etc. para:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

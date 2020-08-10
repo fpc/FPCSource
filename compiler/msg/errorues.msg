@@ -3496,7 +3496,7 @@ Este programa esta bajo la licencia GNU General Public Licence
 Para mas informació lea COPYING.v2
 
 Para informar de errores, sugerencias, etc:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

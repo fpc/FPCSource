@@ -3425,7 +3425,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
 Report bugs, suggestions, etc. to:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

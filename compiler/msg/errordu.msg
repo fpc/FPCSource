@@ -3834,12 +3834,12 @@ Dieses Programm unterliegt der GNU General Public Licence
 Weitere Informationen sind in COPYING.v2 zu finden
 
 Fehlerberichte bitte senden an:
-             http://bugs.freepascal.org
+             https://bugs.freepascal.org
 
 Weitere Informationen stehen auf unseren WWW Seiten (einschließlich Links zu
 Mailing-Listen, auf denen Fragen gestellt und potentielle neue Features
 diskutiert werden können, usw.):
-                 http://www.freepascal.org
+                 https://www.freepascal.org
 ]
 
 #

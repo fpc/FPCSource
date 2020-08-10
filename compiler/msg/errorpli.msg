@@ -2144,7 +2144,7 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.v2 aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

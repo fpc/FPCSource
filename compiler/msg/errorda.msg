@@ -3554,7 +3554,7 @@ Dette program dækkes af reglerne for GNU General Public License
 Læs COPYING.v2 for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk
