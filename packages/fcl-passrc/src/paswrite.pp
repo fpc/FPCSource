@@ -819,7 +819,9 @@ begin
     end;
   AddLn(Temp);
   IncIndent;
+  IncDeclSectionLevel;
   WriteMembers(AType.Members,visPublic);
+  DecDeclSectionLevel;
   DecIndent;
   Add('end');
 end;
