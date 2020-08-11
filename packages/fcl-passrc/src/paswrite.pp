@@ -739,7 +739,7 @@ begin
       Vart:=LowerCase(Vart);
       if (Value<>'') then
          Decl:=Decl+' = '+Value
-      else if ExportName<>Nil then // external name
+      else if (ExportName<>Nil) or ((Parent is TPasClassType) and (TPasClassType(Parent).ExternalName<>'')) then // external name
         case VarT of
           'integer',
           'byte',
