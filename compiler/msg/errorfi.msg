@@ -3513,7 +3513,7 @@ Optimisations supportées: $OPTIMIZATIONS
 Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
 Pour plus d'informations, consultez le fichier COPYING.v2.
 Rapports de bogues, suggestions, etc. à:
-    http://bugs.freepascal.org
+    https://bugs.freepascal.org
 ]
 #
 # Help pages (option -? and -h)
@@ -3571,12 +3571,12 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
 Please report bugs in our bug tracker on:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 
 More information may be found on our WWW pages (including directions
 for mailing lists useful for asking questions or discussing potential
 new features, etc.):
-                 http://www.freepascal.org
+                 https://www.freepascal.org
 ]
 
 #

@@ -3498,7 +3498,7 @@ Dit programma wordt verspreid onder de GNU General Public Licence
 Voor meer informatie, lees COPYING.v2. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
 
-                http://bugs.freepascal.org
+                https://bugs.freepascal.org
 ]
 #
 # Help pages (option -? and -h)

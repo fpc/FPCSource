@@ -2731,7 +2731,7 @@ Questo programma è distribuito sotto la GNU General Public Licence
 Per ulteriori informazioni leggere il file COPYING.v2
 
 Riferire difetti, suggerimenti ecc. a:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

@@ -3124,7 +3124,7 @@ Este programa ‚ oferecido sob a Licen‡a Geral P£blica GNU
 Para maiores informa‡äes leia COPYING.v2
 
 Reportar falhas, sugestäes, etc. para:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #
