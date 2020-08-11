@@ -886,7 +886,8 @@ implementation
               addn,subn,orn,andn,xorn,muln,divn,modn,symdifn,
               shln,shrn,
               equaln,unequaln,gtn,gten,ltn,lten,
-              assignn:
+              assignn,
+              slashn:
                 begin
 {$ifdef CPU64BITALU}
                   correction:=1;
@@ -894,8 +895,10 @@ implementation
                   correction:=2;
 {$endif CPU64BITALU}
                   inc(result,node_complexity(tbinarynode(p).left)+1*correction);
-                  if (p.nodetype in [muln,divn,modn]) then
-                    inc(result,5*correction*correction);
+                  if (p.nodetype in [divn,modn,slashn]) then
+                    inc(result,10*correction*correction)
+                  else if p.nodetype=muln then
+                    inc(result,4*correction*correction);
                   if (result >= NODE_COMPLEXITY_INF) then
                     begin
                       result := NODE_COMPLEXITY_INF;

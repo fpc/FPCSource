@@ -121,7 +121,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../units/x86_64-linux"/>
+      <OtherUnitFiles Value="../src/base;../src/dbase;../src/sqldb;../src/sqldb/interbase;../src/sqldb/mssql;../src/sqldb/mysql;../src/sqldb/odbc;../src/sqldb/oracle;../src/sqldb/postgres;../src/sqldb/sqlite;../src/memds;../src/sdf;../src/export"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

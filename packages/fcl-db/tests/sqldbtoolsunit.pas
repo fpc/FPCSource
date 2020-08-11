@@ -257,6 +257,7 @@ begin
       FieldtypeDefinitions[ftBlob]    := 'IMAGE';
       FieldtypeDefinitions[ftMemo]    := 'TEXT';
       FieldtypeDefinitions[ftGraphic] := '';
+      FieldtypeDefinitions[ftGuid]    := 'UNIQUEIDENTIFIER';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?

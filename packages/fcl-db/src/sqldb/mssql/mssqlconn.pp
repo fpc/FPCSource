@@ -876,6 +876,11 @@ begin
     ftGuid:
       begin
       desttype:=SQLCHAR;
+      dest[ 0]:=Ord('{');
+      dest[37]:=Ord('}');
+      dest[38]:=0; //strings must be null-terminated
+      Inc(dest);
+      destlen:=36;
       end;
     ftMemo,
     ftBlob:
@@ -892,7 +897,7 @@ begin
 
   case FieldDef.DataType of
     ftString, ftFixedChar:
-      PAnsiChar(dest + datalen)^ := #0; //strings must be null-terminated
+      dest[datalen] := 0; //strings must be null-terminated
     ftDate, ftTime, ftDateTime:
       if desttype = SYBMSDATETIME2 then
         PDateTime(buffer)^ := dbdatetimeallcrack(@dbdta)

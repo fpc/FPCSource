@@ -53,6 +53,7 @@ type
     procedure TestSQLInterval;
     procedure TestSQLIdentity;
     procedure TestSQLReal;
+    procedure TestSQLUUID;
 
     procedure TestStringLargerThen8192;
     procedure TestInsertLargeStrFields; // bug 9600
@@ -133,8 +134,8 @@ type
     procedure TestQueryAfterReconnect; // bug 16438
 
     procedure TestStringsReplace;
-    // Test SQLIte3 AlwaysUseBigInt, introduced after bug ID 36486.
-    Procedure TestAlwaysUseBigint;
+    // Test SQLite3 AlwaysUseBigInt, introduced after bug ID 36486.
+    Procedure TestSQLite3AlwaysUseBigint;
   end;
 
 
@@ -732,7 +733,7 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      ACheckFieldValueProc(fields[0],i);
+      ACheckFieldValueProc(Fields[0],i);
       Next;
       end;
     close;
@@ -928,6 +929,30 @@ begin
       datatype:='REAL';
   end;
   TestSQLFieldType(ftFloat, datatype, sizeof(double), @TestSQLReal_GetSQLText, @CheckFieldValue);
+end;
+
+
+const testUUIDValues: array[0..2] of shortstring = ('{00000000-0000-0000-0000-000000000000}','{A972C577-DFB0-064E-1189-0154C99310DA}','{A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11}');
+// Placed here, as long as bug 18702 is not solved
+function TestSQLUUID_GetSQLText(const i: integer) : string;
+begin
+  if i < Length(testUUIDValues) then
+    Result := QuotedStr(Copy(testUUIDValues[i],2,36))
+  else
+    Result := 'NULL';
+end;
+procedure TTestFieldTypes.TestSQLUUID;
+  procedure CheckFieldValue(AField:TField; i: integer);
+  begin
+    if i < Length(testUUIDValues) then
+      AssertEquals(testUUIDValues[i], AField.AsString)
+    else
+      AssertTrue(AField.IsNull);
+  end;
+begin
+  if FieldtypeDefinitions[ftGuid] = '' then
+    Ignore(STestNotApplicable);
+  TestSQLFieldType(ftGuid, FieldtypeDefinitions[ftGuid], 39, @TestSQLUUID_GetSQLText, @CheckFieldValue);
 end;
 
 
@@ -1501,7 +1526,7 @@ begin
   TestXXParamQuery(ftFMTBcd, FieldtypeDefinitions[ftFMTBcd], testValuesCount, testFmtBCDValues);
 end;
 
-Procedure TTestFieldTypes.TestFmtBCDParamQuery2;
+procedure TTestFieldTypes.TestFmtBCDParamQuery2;
 begin
   // This test tests FmtBCD params with smaller precision, which fits into INT32
   // TestFmtBCDParamQuery tests FmtBCD params with bigger precision, which fits into INT64
@@ -2429,7 +2454,7 @@ begin
     inherited RunTest;
 end;
 
-Procedure TTestFieldTypes.TestAlwaysUseBigint;
+procedure TTestFieldTypes.TestSQLite3AlwaysUseBigint;
 
 var
   I : byte;
