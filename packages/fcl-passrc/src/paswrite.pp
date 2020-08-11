@@ -720,8 +720,9 @@ procedure TPasWriter.WriteConst(AConst: TPasConst);
 
 Const
   Seps : Array[Boolean] of Char = ('=',':');
+
 Var
-  Decl : String;
+  Vart,Decl : String;
 
 begin
   PrepareDeclSection('const');
@@ -731,15 +732,35 @@ begin
     If Assigned(VarType) then
       begin
       If VarType.Name='' then
-        Decl:=VarType.GetDeclaration(False)
+        Vart:=VarType.GetDeclaration(False)
       else
-        Decl:=VarType.SafeName;
-      Decl:=Decl+Modifiers;
+        Vart:=VarType.SafeName;
+      Decl:=Vart+Modifiers;
+      Vart:=LowerCase(Vart);
       if (Value<>'') then
-         Decl:=Decl+' = '+Value;
+         Decl:=Decl+' = '+Value
+      else if ExportName<>Nil then // external name
+        case VarT of
+          'integer',
+          'byte',
+          'word',
+          'smallint',
+          'int64',
+          'nativeint',
+          'shortint',
+          'longint' : Decl:=Decl+' = 0';
+          'double',
+          'single',
+          'extended' : Decl:=Decl+' = 0.0';
+          'string' : Decl:=Decl+' = ''''';
+        else
+          if Pos('array',Vart)>0 then
+            Decl:=Decl+' = []';
+        end;
       end
     else
       Decl:=Value;
+
     Decl:=SafeName+' '+Seps[Assigned(VarType)]+' '+Decl;
     if NotOption(woSkipHints) then
       Decl:=Decl+HintsString;
