@@ -38,7 +38,8 @@ type
                       woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
                       woNoAsm,         // Do not allow asm block
                       woSkipPrivateExternals,  // Skip generation of external procedure declaration in implementation section
-                      woAlwaysRecordHelper     // Force use of record helper for type helper
+                      woAlwaysRecordHelper,     // Force use of record helper for type helper
+                      woSkipHints          // Do not add identifier hints
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -717,9 +718,33 @@ end;
 
 procedure TPasWriter.WriteConst(AConst: TPasConst);
 
+Const
+  Seps : Array[Boolean] of Char = ('=',':');
+Var
+  Decl : String;
+
 begin
   PrepareDeclSection('const');
-  AddLn(AConst.GetDeclaration(True)+';');
+  Decl:='';
+  With AConst do
+    begin
+    If Assigned(VarType) then
+      begin
+      If VarType.Name='' then
+        Decl:=VarType.GetDeclaration(False)
+      else
+        Decl:=VarType.SafeName;
+      Decl:=Decl+Modifiers;
+      if (Value<>'') then
+         Decl:=Decl+' = '+Value;
+      end
+    else
+      Decl:=Value;
+    Decl:=SafeName+' '+Seps[Assigned(VarType)]+' '+Decl;
+    if NotOption(woSkipHints) then
+      Decl:=Decl+HintsString;
+    end;
+  AddLn(Decl+';');
 end;
 
 procedure TPasWriter.WriteVariable(aVar: TPasVariable);
