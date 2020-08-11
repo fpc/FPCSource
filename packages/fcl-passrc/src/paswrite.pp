@@ -887,7 +887,7 @@ begin
     PrepareDeclSection('');
   if Not IsImpl then
     IsImpl:=FInImplementation;
-  if FInImplementation and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
+  if FInImplementation and not forcebody and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
     Exit;
   Add(AProc.TypeName + ' ' + NamePrefix+AProc.SafeName);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
