@@ -204,9 +204,12 @@ end;
 
 procedure TStubCreator.Execute;
 
+
 begin
   FLastErrorClass:='';
   FLastError:='';
+  if Defines.IndexOf('MakeStub')=-1 then
+
   Try
     DoExecute;
   except
@@ -307,6 +310,8 @@ begin
     SCanner.OnLog:=SE.Onlog;
     For S in FDefines do
       Scanner.AddDefine(S);
+    if FDefines.IndexOf('MAKESTUB')=-1 then
+      Scanner.AddDefine('MAKESTUB');
     Scanner.OpenFile(InputFilename);
     // Parser
     Parser:=TPasParser.Create(Scanner, FileResolver, SE);
