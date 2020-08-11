@@ -1143,7 +1143,7 @@ implementation
 
                         { strip leading 0's in iso mode }
                         if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
-                          while pattern[1]='0' do
+                          while (length(pattern)>1) and (pattern[1]='0') do
                             delete(pattern,1,1);
 
                         searchsym(pattern,srsym,srsymtable);
