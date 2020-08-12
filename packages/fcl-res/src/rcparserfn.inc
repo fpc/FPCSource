@@ -7,9 +7,12 @@ interface
 {$GOTO ON}
 
 uses
-  SysUtils, Classes, StrUtils, Contnrs, lexlib, yacclib, resource,
+  SysUtils, Classes, StrUtils, fgl, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
   bitmapresource, versionresource, versiontypes, groupcursorresource;
+
+type
+  TStringHashTable = specialize TFPGMap<String, String>;
 
 function yyparse : Integer;
 

@@ -7,7 +7,7 @@ type
   const
     yp_maxlevels = 16;
   var
-    Defines: TFPStringHashTable;
+    Defines: TStringHashTable;
     skip  : array[0..yp_maxlevels-1] of boolean;
     cheadermode: boolean;
     level : longint;
@@ -28,7 +28,7 @@ var
 constructor typreproc.Create;
 begin
   inherited Create;
-  Defines:= TFPStringHashTable.Create;
+  Defines:= TStringHashTable.Create;
   level:= 0;
   cheadermode:= false;
   fillchar(skip,sizeof(skip),0);
@@ -65,12 +65,12 @@ end;
 
 function typreproc.isdefine(ident: string): boolean;
 begin
-  Result:= Defines.Find(ident) <> nil;
+  Result:= Defines.IndexOf(ident) >= 0;
 end;
 
 function typreproc.getdefine(ident: string): string;
 begin
-  Result:= Defines.Items[ident];
+  Result:= Defines[ident];
 end;
 
 function typreproc.useline(line: string): boolean;
@@ -134,7 +134,7 @@ begin
             Defines[arg1]:= w;
           end;
           'undef': begin
-            Defines.Delete(w);
+            Defines.Remove(w);
           end;
           'include': begin
             arg1:= yinclude.expand(w);

@@ -100,7 +100,7 @@ begin
     rcparser.ypreproc:= typreproc.Create;
     rcparser.ypreproc.Defines.Add('RC_INVOKED', '');
     for i:= 0 to fRCDefines.Count-1 do
-      rcparser.ypreproc.Defines.Items[fRCDefines.Names[i]]:= fRCDefines.ValueFromIndex[i];
+      rcparser.ypreproc.Defines.KeyData[fRCDefines.Names[i]]:= fRCDefines.ValueFromIndex[i];
     rcparser.aktresources:= aResources;
     if rcparser.yyparse <> 0 then
       raise EReadError.Create('Parse Error');
