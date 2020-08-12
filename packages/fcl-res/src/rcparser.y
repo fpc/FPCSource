@@ -105,25 +105,130 @@ begin
   end;
 end;
 
+type
+  rcnumtype = record
+    v: LongWord;
+    long: boolean;
+  end;
+
+var
+  aktresource: TAbstractResource;
+  language: TLangID;
+  filestream: TFileStream;
+
+procedure create_resource(aId, aType: TResourceDesc; aClass: TResourceClass);
+var
+  r: TAbstractResource;
+begin
+  r:= aClass.Create(aId, aType);
+  r.LangID:= language;
+  aktresources.Add(r);
+  aktresource:= r;
+end;
+
+procedure create_resource(aId, aType: TResourceDesc); overload;
+begin
+  create_resource(aId, aType, TGenericResource);
+end;
+
+procedure assign_custom_stream(fn: string);
+var
+  fs: TFileStream;
+begin
+  fs:= TFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  aktresource.SetCustomRawDataStream(fs);
+end;
+
 
 var
   yycapture: AnsiString;
 %}
 
-%token ILLEGAL
-%token CSTRING NUMBER
-%token ID
+%token _ILLEGAL
+%token _NUMDECIMAL _NUMHEX _NUMDECIMALL _NUMHEXL _QUOTEDSTR
+%token _BEGIN _END
+%token _LANGUAGE _VERSION
+%token _ID
 
-%right EQUAL
-%right R_AND
+%type <rcnumtype> numpos numeral
+%type <String> ident_string filename_string long_string
+%type <TResourceDesc> resid
+%type <TMemoryStream> raw_data raw_item
 
-%left UNEQUAL GT LT GTE LTE
-%left QUESTIONMARK COLON
 %%
 
 rcfile
-    : rcfile ID               { Echo; }
-    |
+    : /* empty */
+    | rcfile defnstatement
+    ;
+
+defnstatement
+    : resourcedef
+    | languagedef
+    ;
+
+resourcedef
+    : res_user
+    ;
+
+res_user
+    : resid resid { create_resource($1, $2); } filename_string                  { assign_custom_stream($4); }
+    | resid resid { create_resource($1, $2); } _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($5); }
+    ;
+
+
+resid
+    : numeral                                      { $$:= TResourceDesc.Create($1.v); }
+    | ident_string                                 { $$:= TResourceDesc.Create($1); }
+    ;
+
+languagedef
+    : _LANGUAGE numpos ',' numpos                  { language:= MakeLangID($2.v, $4.v); }
+
+numpos
+    : numeral
+    ;
+
+numeral
+    : _NUMDECIMAL                                  { $$.v:= StrToInt(yytext); $$.long:= False; }
+    | _NUMDECIMALL                                 { $$.v:= StrToInt(Copy(yytext,1,length(yytext)-1)); $$.long:= True; }
+    | _NUMHEX                                      { $$.v:= StrToInt('$'+Copy(yytext,3,Maxint)); $$.long:= False; }
+    | _NUMHEXL                                     { $$.v:= StrToInt('$'+Copy(yytext,3,length(yytext)-3)); $$.long:= True; }
+    ;
+
+ident_string
+    : _ID                                          { $$:= yytext; }
+    | _QUOTEDSTR                                   { $$:= yytext; }
+    ;
+
+filename_string
+    : _QUOTEDSTR                                   { $$:= yytext; }
+    ;
+
+long_string
+    : _QUOTEDSTR                                   { $$:= yytext; }
+    ;
+
+raw_data
+    :                                              { $$:= TMemoryStream.Create; }
+      raw_item
+    | raw_data ',' { $$:= $1; } raw_item
+    ;
+
+raw_item
+    : long_string
+      {
+        $$:= $<TMemoryStream>0;
+        $$.WriteBuffer($1[1], Length($1));
+      }
+    | numeral
+      {
+        $$:= $<TMemoryStream>0;
+        if $1.long then
+          $$.WriteDWord(NtoLE($1.v))
+        else
+          $$.WriteWord(NtoLE(Word($1.v)));
+      }
     ;
 
 %%
