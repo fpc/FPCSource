@@ -1,11 +1,9 @@
 {%MainUnit rcparser.pas}
 
-{$modeswitch advancedrecords}
-
 interface
 
 uses
-  SysUtils, Classes, StrUtils, lexlib, yacclib, resource,
+  SysUtils, Classes, StrUtils, Contnrs, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
   bitmapresource, versionresource, versiontypes, groupcursorresource;
 
@@ -17,6 +15,7 @@ var
   yyfilename: AnsiString;
   yyparseresult: YYSType;
 
+procedure DisposePools;
 procedure SetDefaults;
 procedure PragmaCodePage(cp: string);
 
@@ -137,11 +136,19 @@ begin
   Result.v:= str_to_cbase(s);
 end;
 
+type
+  PStrPoolItem = ^TStrPoolItem;
+  TStrPoolItem = record
+    str: PUnicodeString;
+    next: PStrPoolItem;
+  end;
+
 const
   MAX_RCSTR_LEN = 4096;
 var
   strbuf: array[0..MAX_RCSTR_LEN + 1] of char;
   strbuflen: Integer;
+  stringpool: PStrPoolItem = nil;
 
 procedure strbuf_begin();
 begin
@@ -161,10 +168,17 @@ begin
 end;
 
 procedure string_new(var str: rcstrtype; val: UnicodeString; cp: TSystemCodePage);
+var
+  s: PStrPoolItem;
 begin
   New(str.v);
   str.v^:= val;
   str.cp:= cp;
+
+  New(s);
+  s^.next:= stringpool;
+  s^.str:= str.v;
+  stringpool:= s;
 end;
 
 procedure string_new_uni(var str: rcstrtype; val: PAnsiChar; len: integer; cp: TSystemCodePage; escapes: boolean);
@@ -273,6 +287,8 @@ begin
   r.LangID:= language;
   aktresources.Add(r);
   aktresource:= r;
+  aId.Free;
+  aType.Free;
 end;
 
 procedure create_resource(aId, aType: TResourceDesc); overload;
@@ -398,4 +414,15 @@ begin
   PragmaCodePage('DEFAULT');
 end;
 
+procedure DisposePools;
+var
+  s: PStrPoolItem;
+begin
+  while stringpool <> nil do begin
+    s:= stringpool;
+    stringpool:= s^.next;
+    dispose(s^.str);
+    dispose(s);
+  end;
+end;
 

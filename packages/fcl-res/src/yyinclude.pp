@@ -3,7 +3,7 @@
 {$IFDEF INC_HEADER}
 
 type
-  tyinclude = record
+  tyinclude = class
   const
     yi_maxlevels = 5;
   var
@@ -18,8 +18,8 @@ type
     WorkDir: string;
     SearchPaths: TStringList;
   public
-    procedure init();
-    procedure done();
+    constructor Create;
+    destructor Destroy; override;
     class function wrapone(): Boolean; static;
     function push(const incfile: ansistring): Boolean;
     function pop(): Boolean;
@@ -103,16 +103,18 @@ begin
   yyerror('Invalid include directive: "'+fn+'"');
 end;
 
-procedure tyinclude.init();
+constructor tyinclude.Create;
 begin
+  inherited;
   level:= 0;
   WorkDir:= GetCurrentDir;
   SearchPaths:= TStringList.Create;
 end;
 
-procedure tyinclude.done();
+destructor tyinclude.Destroy;
 begin
   FreeAndNil(SearchPaths);
+  inherited;
 end;
 
 {$ENDIF}

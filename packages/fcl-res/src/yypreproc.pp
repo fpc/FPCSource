@@ -3,7 +3,7 @@
 {$IFDEF INC_HEADER}
 
 type
-  typreproc = record
+  typreproc = class
   const
     yp_maxlevels = 16;
   var
@@ -12,8 +12,8 @@ type
     cheadermode: boolean;
     level : longint;
   public
-    procedure init();
-    procedure done();
+    constructor Create;
+    destructor Destroy; override;
     function isdefine(ident: string): boolean;
     function getdefine(ident: string): string;
     function useline(line: string): boolean;
@@ -25,17 +25,19 @@ var
 
 {$ELSE}
 
-procedure typreproc.init();
+constructor typreproc.Create;
 begin
+  inherited;
   Defines:= TFPStringHashTable.Create;
   level:= 0;
   cheadermode:= false;
   fillchar(skip,sizeof(skip),0);
 end;
 
-procedure typreproc.done();
+destructor typreproc.Destroy;
 begin
   FreeAndNil(Defines);
+  inherited;
 end;
 
 function Copy2SpaceDelTrim(var s: string): string;

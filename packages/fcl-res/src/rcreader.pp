@@ -88,16 +88,17 @@ begin
     rcparser.yyfilename:= '#MAIN.RC';
     rcparser.SetDefaults;
     SetTextCodePage(lexlib.yyinput, rcparser.opt_code_page);
-    rcparser.yinclude.init();
+    rcparser.yinclude:= tyinclude.Create;
     rcparser.yinclude.WorkDir:= aLocation;
-    rcparser.ypreproc.init();
+    rcparser.ypreproc:= typreproc.Create;
     rcparser.ypreproc.Defines.Add('RC_INVOKED', '');
     rcparser.aktresources:= aResources;
     if rcparser.yyparse <> 0 then
       raise EReadError.Create('Parse Error');
-    rcparser.ypreproc.done();
-    rcparser.yinclude.done();
   finally
+    rcparser.DisposePools;
+    FreeAndNil(rcparser.ypreproc);
+    FreeAndNil(rcparser.yinclude);
   end;
 end;
 
@@ -113,7 +114,6 @@ begin
 end;
 
 initialization
-  TResources.RegisterReader('.fpcres',TRCResourceReader);
-  TResources.RegisterReader('.frs',TRCResourceReader);
+  TResources.RegisterReader('.rc',TRCResourceReader);
 
 end.
