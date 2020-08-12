@@ -59,6 +59,7 @@ end;
 %}
 %x INCOMLINE INCOMMENT INSTRING INSTRINGL
 
+O [0-7]
 D [0-9]
 H [0-9a-fA-F]
 IDENT [a-zA-Z_]([a-zA-Z0-9_])*
@@ -76,6 +77,7 @@ IDENT [a-zA-Z_]([a-zA-Z0-9_])*
 
 {D}+L?                  return(_NUMBER);
 0x{H}+L?                return(_NUMBER);
+0o{O}+L?                return(_NUMBER);
 L\"                               begin start(INSTRINGL); strbuf_begin(); end;
 \"                                begin start(INSTRING); strbuf_begin(); end;
 <INSTRING,INSTRINGL>\"\"          strbuf_append('"');

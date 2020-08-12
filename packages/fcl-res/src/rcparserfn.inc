@@ -120,6 +120,8 @@ begin
     Exit(0);
   if Copy(s, 1, 2) = '0x' then
     Exit(StrToInt('$' + Copy(s, 3, Maxint)));
+  if Copy(s, 1, 2) = '0o' then
+    Exit(StrToInt('&' + Copy(s, 3, Maxint)));
   if Copy(s, 1, 1) = '0' then
     Exit(StrToInt('&' + Copy(s, 2, Maxint)));
   Result:= StrToInt(s);
