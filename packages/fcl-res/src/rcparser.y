@@ -113,6 +113,18 @@ type
     long: boolean;
   end;
 
+function str_to_num(s:string): rcnumtype;
+begin
+  // this does not handle empty strings - should never get them from the lexer
+  Result.long:= s[Length(s)] = 'L';
+  if Result.Long then
+    setlength(s, Length(s) - 1);
+  if Copy(s, 1, 2) = '0x' then
+    Result.v:= StrToInt('$' + Copy(s, 2, Maxint))
+  else
+    Result.v:= StrToInt(s);
+end;
+
 var
   aktresource: TAbstractResource;
   language: TLangID;
@@ -147,13 +159,48 @@ begin
   create_resource(aId, nil, cls);
 end;
 
+procedure stringtable_begin();
+begin
+  // create dummy resource that we will use to capture suboptions
+  create_resource(TResourceDesc.create(1), TResourceDesc.create(1));
+  aktresources.Remove(aktresource);
+end;
+
+procedure stringtable_add(ident: Word; str: string);
+var
+  table: word;
+  r: TStringTableResource;
+begin
+  table:= (ident div 16) + 1;
+  try
+    { TODO : This is stupid }
+    r:= aktresources.Find(RT_STRING, table, aktresource.LangID) as TStringTableResource;
+  except
+    on e: EResourceNotFoundException do begin
+      r:= TStringTableResource.Create;
+      r.LangID:= aktresource.LangID;
+      r.MemoryFlags:= aktresource.MemoryFlags;
+      r.Characteristics:= aktresource.Characteristics;
+      r.Version:= aktresource.Version;
+      r.FirstID:= ident;
+      aktresources.Add(r);
+    end;
+  end;
+  r.Strings[ident]:= str;
+end;
+
+
+procedure stringtable_end();
+begin
+  FreeAndNil(aktresource);
+end;
 
 var
   yycapture: AnsiString;
 %}
 
 %token _ILLEGAL
-%token _NUMDECIMAL _NUMHEX _NUMDECIMALL _NUMHEXL _QUOTEDSTR
+%token _NUMDECIMAL _NUMHEX _QUOTEDSTR
 %token _BEGIN _END _ID
 %token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
 %token _BITMAP _CURSOR _ICON
@@ -179,7 +226,8 @@ defnstatement
     ;
 
 resourcedef
-    : res_bitmap
+    : res_stringtable
+    | res_bitmap
     | res_cursor
     | res_icon
     | res_rcdata
@@ -197,6 +245,19 @@ res_icon
 res_rcdata
     : resid rcdataid { create_resource($1, $2); } suboptions filename_string                  { aktresource.SetCustomRawDataStream($5); }
     | resid rcdataid { create_resource($1, $2); } suboptions _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($6); }
+    ;
+
+res_stringtable
+    : _STRINGTABLE { stringtable_begin(); } suboptions _BEGIN stringtable_data _END { stringtable_end(); }
+
+stringtable_data
+    : /* empty */
+    | stringtable_data stringtable_entry
+    ;
+
+stringtable_entry
+    : numeral ',' long_string                      { stringtable_add($1.v, $3); }
+    | numeral long_string                          { stringtable_add($1.v, $2); }
     ;
 
 rcdataid
@@ -244,10 +305,8 @@ numpos
     ;
 
 numeral
-    : _NUMDECIMAL                                  { $$.v:= StrToInt(yytext); $$.long:= False; }
-    | _NUMDECIMALL                                 { $$.v:= StrToInt(Copy(yytext,1,length(yytext)-1)); $$.long:= True; }
-    | _NUMHEX                                      { $$.v:= StrToInt('$'+Copy(yytext,3,Maxint)); $$.long:= False; }
-    | _NUMHEXL                                     { $$.v:= StrToInt('$'+Copy(yytext,3,length(yytext)-3)); $$.long:= True; }
+    : _NUMDECIMAL                                  { $$:= str_to_num(yytext); }
+    | _NUMHEX                                      { $$:= str_to_num(yytext); }
     ;
 
 ident_string

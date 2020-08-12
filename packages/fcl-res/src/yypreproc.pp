@@ -99,6 +99,15 @@ begin
         end;
         skip[level]:= (skip[level-1] or (isdefine(w)));
       end;
+      'if': begin
+        inc(Level);
+        if Level >= yp_maxlevels then begin
+          yyerror('Too many ifdef levels');
+          exit;
+        end;
+        { TODO : implement some expressions? for now, always returns false }
+        skip[level]:= (skip[level-1] or False);
+      end;
       'else': begin
         skip[level]:= skip[level-1] or (not skip[level]);
       end;

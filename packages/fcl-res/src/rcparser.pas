@@ -117,6 +117,18 @@ type
     long: boolean;
   end;
 
+function str_to_num(s:string): rcnumtype;
+begin
+  // this does not handle empty strings - should never get them from the lexer
+  Result.long:= s[Length(s)] = 'L';
+  if Result.Long then
+    setlength(s, Length(s) - 1);
+  if Copy(s, 1, 2) = '0x' then
+    Result.v:= StrToInt('$' + Copy(s, 2, Maxint))
+  else
+    Result.v:= StrToInt(s);
+end;
+
 var
   aktresource: TAbstractResource;
   language: TLangID;
@@ -151,48 +163,80 @@ begin
   create_resource(aId, nil, cls);
 end;
 
+procedure stringtable_begin();
+begin
+  // create dummy resource that we will use to capture suboptions
+  create_resource(TResourceDesc.create(1), TResourceDesc.create(1));
+  aktresources.Remove(aktresource);
+end;
+
+procedure stringtable_add(ident: Word; str: string);
+var
+  table: word;
+  r: TStringTableResource;
+begin
+  table:= (ident div 16) + 1;
+  try
+    { TODO : This is stupid }
+    r:= aktresources.Find(RT_STRING, table, aktresource.LangID) as TStringTableResource;
+  except
+    on e: EResourceNotFoundException do begin
+      r:= TStringTableResource.Create;
+      r.LangID:= aktresource.LangID;
+      r.MemoryFlags:= aktresource.MemoryFlags;
+      r.Characteristics:= aktresource.Characteristics;
+      r.FirstID:= ident;
+      aktresources.Add(r);
+    end;
+  end;
+  r.Strings[ident]:= str;
+end;
+
+
+procedure stringtable_end();
+begin
+  FreeAndNil(aktresource);
+end;
 
 var
   yycapture: AnsiString;
 const _ILLEGAL = 257;
 const _NUMDECIMAL = 258;
 const _NUMHEX = 259;
-const _NUMDECIMALL = 260;
-const _NUMHEXL = 261;
-const _QUOTEDSTR = 262;
-const _BEGIN = 263;
-const _END = 264;
-const _ID = 265;
-const _LANGUAGE = 266;
-const _CHARACTERISTICS = 267;
-const _VERSION = 268;
-const _MOVEABLE = 269;
-const _FIXED = 270;
-const _PURE = 271;
-const _IMPURE = 272;
-const _PRELOAD = 273;
-const _LOADONCALL = 274;
-const _DISCARDABLE = 275;
-const _BITMAP = 276;
-const _CURSOR = 277;
-const _ICON = 278;
-const _ANICURSOR = 279;
-const _ANIICON = 280;
-const _DLGINCLUDE = 281;
-const _DLGINIT = 282;
-const _HTML = 283;
-const _MANIFEST = 284;
-const _MESSAGETABLE = 285;
-const _PLUGPLAY = 286;
-const _RCDATA = 287;
-const _VXD = 288;
-const _ACCELERATORS = 289;
-const _DIALOG = 290;
-const _DIALOGEX = 291;
-const _MENU = 292;
-const _MENUEX = 293;
-const _STRINGTABLE = 294;
-const _VERSIONINFO = 295;
+const _QUOTEDSTR = 260;
+const _BEGIN = 261;
+const _END = 262;
+const _ID = 263;
+const _LANGUAGE = 264;
+const _CHARACTERISTICS = 265;
+const _VERSION = 266;
+const _MOVEABLE = 267;
+const _FIXED = 268;
+const _PURE = 269;
+const _IMPURE = 270;
+const _PRELOAD = 271;
+const _LOADONCALL = 272;
+const _DISCARDABLE = 273;
+const _BITMAP = 274;
+const _CURSOR = 275;
+const _ICON = 276;
+const _ANICURSOR = 277;
+const _ANIICON = 278;
+const _DLGINCLUDE = 279;
+const _DLGINIT = 280;
+const _HTML = 281;
+const _MANIFEST = 282;
+const _MESSAGETABLE = 283;
+const _PLUGPLAY = 284;
+const _RCDATA = 285;
+const _VXD = 286;
+const _ACCELERATORS = 287;
+const _DIALOG = 288;
+const _DIALOGEX = 289;
+const _MENU = 290;
+const _MENUEX = 291;
+const _STRINGTABLE = 292;
+const _VERSIONINFO = 293;
 
 type YYSType = record case Integer of
                  1 : ( yyString : String );
@@ -242,158 +286,172 @@ begin
          yyval := yyv[yysp-0];
        end;
    9 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_BITMAP); 
+         yyval := yyv[yysp-0];
        end;
   10 : begin
-         TBitmapResource(aktresource).SetCustomBitmapDataStream(yyv[yysp-0].yyTFileStream); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_BITMAP); 
        end;
   11 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_CURSOR); 
+         TBitmapResource(aktresource).SetCustomBitmapDataStream(yyv[yysp-0].yyTFileStream); 
        end;
   12 : begin
-         TGroupCursorResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_CURSOR); 
        end;
   13 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, RT_ICON); 
+         TGroupCursorResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
        end;
   14 : begin
-         TGroupIconResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, RT_ICON); 
        end;
   15 : begin
-         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc); 
+         TGroupIconResource(aktresource).SetCustomItemDataStream(yyv[yysp-0].yyTFileStream); 
        end;
   16 : begin
-         aktresource.SetCustomRawDataStream(yyv[yysp-0].yyTFileStream); 
-       end;
-  17 : begin
          create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc); 
        end;
+  17 : begin
+         aktresource.SetCustomRawDataStream(yyv[yysp-0].yyTFileStream); 
+       end;
   18 : begin
-         aktresource.SetCustomRawDataStream(yyv[yysp-1].yyTMemoryStream); 
+         create_resource(yyv[yysp-1].yyTResourceDesc, yyv[yysp-0].yyTResourceDesc); 
        end;
   19 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANICURSOR); 
+         aktresource.SetCustomRawDataStream(yyv[yysp-1].yyTMemoryStream); 
        end;
   20 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANIICON); 
+         stringtable_begin(); 
        end;
   21 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINCLUDE); 
+         stringtable_end(); 
        end;
   22 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINIT); 
        end;
   23 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(23); 
+         yyval := yyv[yysp-1];
        end;
   24 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MANIFEST); 
+         stringtable_add(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyString); 
        end;
   25 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MESSAGETABLE); 
+         stringtable_add(yyv[yysp-1].yyrcnumtype.v, yyv[yysp-0].yyString); 
        end;
   26 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_PLUGPLAY); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANICURSOR); 
        end;
   27 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_RCDATA); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_ANIICON); 
        end;
   28 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_VXD); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINCLUDE); 
        end;
   29 : begin
-         yyval := yyv[yysp-0];
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_DLGINIT); 
        end;
   30 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcnumtype.v); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(23); 
        end;
   31 : begin
-         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyString); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MANIFEST); 
        end;
   32 : begin
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_MESSAGETABLE); 
        end;
   33 : begin
-         yyval := yyv[yysp-1];
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_PLUGPLAY); 
        end;
   34 : begin
-         aktresource.LangID:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_RCDATA); 
        end;
   35 : begin
-         aktresource.Characteristics:= yyv[yysp-0].yyrcnumtype.v; 
+         yyval.yyTResourceDesc:= TResourceDesc.Create(RT_VXD); 
        end;
   36 : begin
-         aktresource.Version:= yyv[yysp-0].yyrcnumtype.v; 
-       end;
-  37 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; 
-       end;
-  38 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_MOVEABLE; 
-       end;
-  39 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PURE; 
-       end;
-  40 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PURE; 
-       end;
-  41 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD; 
-       end;
-  42 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD; 
-       end;
-  43 : begin
-         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE; 
-       end;
-  44 : begin
-         language:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
-       end;
-  45 : begin
          yyval := yyv[yysp-0];
        end;
-  46 : begin
-         yyval.yyrcnumtype.v:= StrToInt(yytext); yyval.yyrcnumtype.long:= False; 
+  37 : begin
+         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyrcnumtype.v); 
        end;
-  47 : begin
-         yyval.yyrcnumtype.v:= StrToInt(Copy(yytext,1,length(yytext)-1)); yyval.yyrcnumtype.long:= True; 
+  38 : begin
+         yyval.yyTResourceDesc:= TResourceDesc.Create(yyv[yysp-0].yyString); 
        end;
-  48 : begin
-         yyval.yyrcnumtype.v:= StrToInt('$'+Copy(yytext,3,Maxint)); yyval.yyrcnumtype.long:= False; 
+  39 : begin
        end;
-  49 : begin
-         yyval.yyrcnumtype.v:= StrToInt('$'+Copy(yytext,3,length(yytext)-3)); yyval.yyrcnumtype.long:= True; 
-       end;
-  50 : begin
-         yyval.yyString:= yytext; 
-       end;
-  51 : begin
-         yyval.yyString:= yytext; 
-       end;
-  52 : begin
-         yyval.yyTFileStream:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); 
-       end;
-  53 : begin
-         yyval.yyString:= yytext; 
-       end;
-  54 : begin
-         yyval.yyTMemoryStream:= TMemoryStream.Create; 
-       end;
-  55 : begin
+  40 : begin
          yyval := yyv[yysp-1];
        end;
+  41 : begin
+         aktresource.LangID:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+       end;
+  42 : begin
+         aktresource.Characteristics:= yyv[yysp-0].yyrcnumtype.v; 
+       end;
+  43 : begin
+         aktresource.Version:= yyv[yysp-0].yyrcnumtype.v; 
+       end;
+  44 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; 
+       end;
+  45 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_MOVEABLE; 
+       end;
+  46 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PURE; 
+       end;
+  47 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PURE; 
+       end;
+  48 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD; 
+       end;
+  49 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD; 
+       end;
+  50 : begin
+         aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE; 
+       end;
+  51 : begin
+         language:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+       end;
+  52 : begin
+         yyval := yyv[yysp-0];
+       end;
+  53 : begin
+         yyval.yyrcnumtype:= str_to_num(yytext); 
+       end;
+  54 : begin
+         yyval.yyrcnumtype:= str_to_num(yytext); 
+       end;
+  55 : begin
+         yyval.yyString:= yytext; 
+       end;
   56 : begin
-         yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream; 
+         yyval.yyString:= yytext; 
        end;
   57 : begin
-         yyval := yyv[yysp-3];
+         yyval.yyTFileStream:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); 
        end;
   58 : begin
+         yyval.yyString:= yytext; 
+       end;
+  59 : begin
+         yyval.yyTMemoryStream:= TMemoryStream.Create; 
+       end;
+  60 : begin
+         yyval := yyv[yysp-1];
+       end;
+  61 : begin
+         yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream; 
+       end;
+  62 : begin
+         yyval := yyv[yysp-3];
+       end;
+  63 : begin
          
          yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream;
          yyval.yyTMemoryStream.WriteBuffer(yyv[yysp-0].yyString[1], Length(yyv[yysp-0].yyString));
          
        end;
-  59 : begin
+  64 : begin
          
          yyval.yyTMemoryStream:= yyv[yysp-1].yyTMemoryStream;
          if yyv[yysp-0].yyrcnumtype.long then
@@ -416,22 +474,21 @@ type YYARec = record
 
 const
 
-yynacts   = 132;
-yyngotos  = 55;
-yynstates = 80;
-yynrules  = 59;
+yynacts   = 130;
+yyngotos  = 64;
+yynstates = 90;
+yynrules  = 64;
 
 yya : array [1..yynacts] of YYARec = (
 { 0: }
 { 1: }
   ( sym: 0; act: 0 ),
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
-  ( sym: 262; act: 16 ),
-  ( sym: 265; act: 17 ),
-  ( sym: 266; act: 18 ),
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
+  ( sym: 260; act: 15 ),
+  ( sym: 263; act: 16 ),
+  ( sym: 264; act: 17 ),
+  ( sym: 292; act: 18 ),
 { 2: }
 { 3: }
 { 4: }
@@ -440,26 +497,24 @@ yya : array [1..yynacts] of YYARec = (
 { 7: }
 { 8: }
 { 9: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
-  ( sym: 262; act: 16 ),
-  ( sym: 265; act: 17 ),
-  ( sym: 276; act: 21 ),
-  ( sym: 277; act: 22 ),
-  ( sym: 278; act: 23 ),
-  ( sym: 279; act: 24 ),
-  ( sym: 280; act: 25 ),
-  ( sym: 281; act: 26 ),
-  ( sym: 282; act: 27 ),
-  ( sym: 283; act: 28 ),
-  ( sym: 284; act: 29 ),
-  ( sym: 285; act: 30 ),
-  ( sym: 286; act: 31 ),
-  ( sym: 287; act: 32 ),
-  ( sym: 288; act: 33 ),
 { 10: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
+  ( sym: 260; act: 15 ),
+  ( sym: 263; act: 16 ),
+  ( sym: 274; act: 21 ),
+  ( sym: 275; act: 22 ),
+  ( sym: 276; act: 23 ),
+  ( sym: 277; act: 24 ),
+  ( sym: 278; act: 25 ),
+  ( sym: 279; act: 26 ),
+  ( sym: 280; act: 27 ),
+  ( sym: 281; act: 28 ),
+  ( sym: 282; act: 29 ),
+  ( sym: 283; act: 30 ),
+  ( sym: 284; act: 31 ),
+  ( sym: 285; act: 32 ),
+  ( sym: 286; act: 33 ),
 { 11: }
 { 12: }
 { 13: }
@@ -467,24 +522,22 @@ yya : array [1..yynacts] of YYARec = (
 { 15: }
 { 16: }
 { 17: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 18: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
 { 19: }
-  ( sym: 262; act: -15 ),
-  ( sym: 266; act: -15 ),
-  ( sym: 267; act: -15 ),
-  ( sym: 268; act: -15 ),
-  ( sym: 269; act: -15 ),
-  ( sym: 270; act: -15 ),
-  ( sym: 271; act: -15 ),
-  ( sym: 272; act: -15 ),
-  ( sym: 273; act: -15 ),
-  ( sym: 274; act: -15 ),
-  ( sym: 275; act: -15 ),
-  ( sym: 263; act: -17 ),
+  ( sym: 260; act: -16 ),
+  ( sym: 264; act: -16 ),
+  ( sym: 265; act: -16 ),
+  ( sym: 266; act: -16 ),
+  ( sym: 267; act: -16 ),
+  ( sym: 268; act: -16 ),
+  ( sym: 269; act: -16 ),
+  ( sym: 270; act: -16 ),
+  ( sym: 271; act: -16 ),
+  ( sym: 272; act: -16 ),
+  ( sym: 273; act: -16 ),
+  ( sym: 261; act: -18 ),
 { 20: }
 { 21: }
 { 22: }
@@ -501,97 +554,100 @@ yya : array [1..yynacts] of YYARec = (
 { 33: }
 { 34: }
 { 35: }
-  ( sym: 44; act: 41 ),
+  ( sym: 44; act: 42 ),
 { 36: }
 { 37: }
 { 38: }
 { 39: }
 { 40: }
 { 41: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
 { 42: }
-  ( sym: 263; act: 49 ),
-  ( sym: 266; act: 50 ),
-  ( sym: 267; act: 51 ),
-  ( sym: 268; act: 52 ),
-  ( sym: 269; act: 53 ),
-  ( sym: 270; act: 54 ),
-  ( sym: 271; act: 55 ),
-  ( sym: 272; act: 56 ),
-  ( sym: 273; act: 57 ),
-  ( sym: 274; act: 58 ),
-  ( sym: 275; act: 59 ),
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 43: }
-  ( sym: 262; act: 61 ),
-  ( sym: 266; act: 50 ),
-  ( sym: 267; act: 51 ),
-  ( sym: 268; act: 52 ),
-  ( sym: 269; act: 53 ),
-  ( sym: 270; act: 54 ),
-  ( sym: 271; act: 55 ),
-  ( sym: 272; act: 56 ),
-  ( sym: 273; act: 57 ),
-  ( sym: 274; act: 58 ),
-  ( sym: 275; act: 59 ),
+  ( sym: 261; act: 51 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 44: }
-  ( sym: 262; act: 61 ),
-  ( sym: 266; act: 50 ),
-  ( sym: 267; act: 51 ),
-  ( sym: 268; act: 52 ),
-  ( sym: 269; act: 53 ),
-  ( sym: 270; act: 54 ),
-  ( sym: 271; act: 55 ),
-  ( sym: 272; act: 56 ),
-  ( sym: 273; act: 57 ),
-  ( sym: 274; act: 58 ),
-  ( sym: 275; act: 59 ),
+  ( sym: 261; act: 62 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 45: }
-  ( sym: 262; act: 61 ),
-  ( sym: 266; act: 50 ),
-  ( sym: 267; act: 51 ),
-  ( sym: 268; act: 52 ),
-  ( sym: 269; act: 53 ),
-  ( sym: 270; act: 54 ),
-  ( sym: 271; act: 55 ),
-  ( sym: 272; act: 56 ),
-  ( sym: 273; act: 57 ),
-  ( sym: 274; act: 58 ),
-  ( sym: 275; act: 59 ),
+  ( sym: 260; act: 64 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 46: }
-  ( sym: 262; act: 61 ),
-  ( sym: 266; act: 50 ),
-  ( sym: 267; act: 51 ),
-  ( sym: 268; act: 52 ),
-  ( sym: 269; act: 53 ),
-  ( sym: 270; act: 54 ),
-  ( sym: 271; act: 55 ),
-  ( sym: 272; act: 56 ),
-  ( sym: 273; act: 57 ),
-  ( sym: 274; act: 58 ),
-  ( sym: 275; act: 59 ),
+  ( sym: 260; act: 64 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 47: }
+  ( sym: 260; act: 64 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 48: }
+  ( sym: 260; act: 64 ),
+  ( sym: 264; act: 52 ),
+  ( sym: 265; act: 53 ),
+  ( sym: 266; act: 54 ),
+  ( sym: 267; act: 55 ),
+  ( sym: 268; act: 56 ),
+  ( sym: 269; act: 57 ),
+  ( sym: 270; act: 58 ),
+  ( sym: 271; act: 59 ),
+  ( sym: 272; act: 60 ),
+  ( sym: 273; act: 61 ),
 { 49: }
 { 50: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
 { 51: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
 { 52: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 53: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 54: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 55: }
 { 56: }
 { 57: }
@@ -603,53 +659,64 @@ yya : array [1..yynacts] of YYARec = (
 { 63: }
 { 64: }
 { 65: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
-  ( sym: 262; act: 73 ),
 { 66: }
-  ( sym: 44; act: 74 ),
-  ( sym: 264; act: 75 ),
 { 67: }
-  ( sym: 44; act: 76 ),
 { 68: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
+  ( sym: 262; act: 76 ),
 { 69: }
+  ( sym: 44; act: 77 ),
 { 70: }
 { 71: }
 { 72: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
+  ( sym: 260; act: 81 ),
 { 73: }
+  ( sym: 44; act: 82 ),
+  ( sym: 262; act: 83 ),
 { 74: }
 { 75: }
+  ( sym: 44; act: 85 ),
+  ( sym: 260; act: 81 ),
 { 76: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
 { 77: }
-  ( sym: 258; act: 12 ),
-  ( sym: 259; act: 13 ),
-  ( sym: 260; act: 14 ),
-  ( sym: 261; act: 15 ),
-  ( sym: 262; act: 73 )
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
 { 78: }
 { 79: }
+{ 80: }
+{ 81: }
+{ 82: }
+{ 83: }
+{ 84: }
+{ 85: }
+  ( sym: 260; act: 81 ),
+{ 86: }
+{ 87: }
+  ( sym: 258; act: 13 ),
+  ( sym: 259; act: 14 ),
+  ( sym: 260; act: 81 )
+{ 88: }
+{ 89: }
 );
 
 yyg : array [1..yyngotos] of YYARec = (
 { 0: }
   ( sym: -11; act: 1 ),
 { 1: }
-  ( sym: -18; act: 2 ),
-  ( sym: -17; act: 3 ),
-  ( sym: -16; act: 4 ),
-  ( sym: -15; act: 5 ),
-  ( sym: -14; act: 6 ),
-  ( sym: -13; act: 7 ),
-  ( sym: -12; act: 8 ),
-  ( sym: -7; act: 9 ),
-  ( sym: -4; act: 10 ),
-  ( sym: -3; act: 11 ),
+  ( sym: -19; act: 2 ),
+  ( sym: -18; act: 3 ),
+  ( sym: -17; act: 4 ),
+  ( sym: -16; act: 5 ),
+  ( sym: -15; act: 6 ),
+  ( sym: -14; act: 7 ),
+  ( sym: -13; act: 8 ),
+  ( sym: -12; act: 9 ),
+  ( sym: -7; act: 10 ),
+  ( sym: -4; act: 11 ),
+  ( sym: -3; act: 12 ),
 { 2: }
 { 3: }
 { 4: }
@@ -658,11 +725,11 @@ yyg : array [1..yyngotos] of YYARec = (
 { 7: }
 { 8: }
 { 9: }
+{ 10: }
   ( sym: -8; act: 19 ),
   ( sym: -7; act: 20 ),
-  ( sym: -4; act: 10 ),
-  ( sym: -3; act: 11 ),
-{ 10: }
+  ( sym: -4; act: 11 ),
+  ( sym: -3; act: 12 ),
 { 11: }
 { 12: }
 { 13: }
@@ -670,19 +737,20 @@ yyg : array [1..yyngotos] of YYARec = (
 { 15: }
 { 16: }
 { 17: }
-{ 18: }
   ( sym: -3; act: 34 ),
   ( sym: -2; act: 35 ),
+{ 18: }
+  ( sym: -26; act: 36 ),
 { 19: }
-  ( sym: -24; act: 36 ),
-  ( sym: -23; act: 37 ),
+  ( sym: -25; act: 37 ),
+  ( sym: -24; act: 38 ),
 { 20: }
 { 21: }
-  ( sym: -20; act: 38 ),
-{ 22: }
   ( sym: -21; act: 39 ),
-{ 23: }
+{ 22: }
   ( sym: -22; act: 40 ),
+{ 23: }
+  ( sym: -23; act: 41 ),
 { 24: }
 { 25: }
 { 26: }
@@ -696,48 +764,49 @@ yyg : array [1..yyngotos] of YYARec = (
 { 34: }
 { 35: }
 { 36: }
-  ( sym: -19; act: 42 ),
+  ( sym: -20; act: 43 ),
 { 37: }
-  ( sym: -19; act: 43 ),
+  ( sym: -20; act: 44 ),
 { 38: }
-  ( sym: -19; act: 44 ),
+  ( sym: -20; act: 45 ),
 { 39: }
-  ( sym: -19; act: 45 ),
+  ( sym: -20; act: 46 ),
 { 40: }
-  ( sym: -19; act: 46 ),
+  ( sym: -20; act: 47 ),
 { 41: }
-  ( sym: -3; act: 34 ),
-  ( sym: -2; act: 47 ),
+  ( sym: -20; act: 48 ),
 { 42: }
-  ( sym: -25; act: 48 ),
+  ( sym: -3; act: 34 ),
+  ( sym: -2; act: 49 ),
 { 43: }
-  ( sym: -25; act: 48 ),
-  ( sym: -5; act: 60 ),
+  ( sym: -29; act: 50 ),
 { 44: }
-  ( sym: -25; act: 48 ),
-  ( sym: -5; act: 62 ),
+  ( sym: -29; act: 50 ),
 { 45: }
-  ( sym: -25; act: 48 ),
+  ( sym: -29; act: 50 ),
   ( sym: -5; act: 63 ),
 { 46: }
-  ( sym: -25; act: 48 ),
-  ( sym: -5; act: 64 ),
+  ( sym: -29; act: 50 ),
+  ( sym: -5; act: 65 ),
 { 47: }
+  ( sym: -29; act: 50 ),
+  ( sym: -5; act: 66 ),
 { 48: }
+  ( sym: -29; act: 50 ),
+  ( sym: -5; act: 67 ),
 { 49: }
-  ( sym: -26; act: 65 ),
-  ( sym: -9; act: 66 ),
 { 50: }
-  ( sym: -3; act: 34 ),
-  ( sym: -2; act: 67 ),
 { 51: }
-  ( sym: -3; act: 34 ),
-  ( sym: -2; act: 68 ),
+  ( sym: -27; act: 68 ),
 { 52: }
   ( sym: -3; act: 34 ),
   ( sym: -2; act: 69 ),
 { 53: }
+  ( sym: -3; act: 34 ),
+  ( sym: -2; act: 70 ),
 { 54: }
+  ( sym: -3; act: 34 ),
+  ( sym: -2; act: 71 ),
 { 55: }
 { 56: }
 { 57: }
@@ -746,203 +815,146 @@ yyg : array [1..yyngotos] of YYARec = (
 { 60: }
 { 61: }
 { 62: }
+  ( sym: -30; act: 72 ),
+  ( sym: -9; act: 73 ),
 { 63: }
 { 64: }
 { 65: }
-  ( sym: -10; act: 70 ),
-  ( sym: -6; act: 71 ),
-  ( sym: -3; act: 72 ),
 { 66: }
 { 67: }
 { 68: }
+  ( sym: -28; act: 74 ),
+  ( sym: -3; act: 75 ),
 { 69: }
 { 70: }
 { 71: }
 { 72: }
+  ( sym: -10; act: 78 ),
+  ( sym: -6; act: 79 ),
+  ( sym: -3; act: 80 ),
 { 73: }
 { 74: }
-  ( sym: -27; act: 77 ),
 { 75: }
+  ( sym: -6; act: 84 ),
 { 76: }
-  ( sym: -3; act: 34 ),
-  ( sym: -2; act: 78 ),
 { 77: }
-  ( sym: -10; act: 79 ),
-  ( sym: -6; act: 71 ),
-  ( sym: -3; act: 72 )
+  ( sym: -3; act: 34 ),
+  ( sym: -2; act: 86 ),
 { 78: }
 { 79: }
+{ 80: }
+{ 81: }
+{ 82: }
+  ( sym: -31; act: 87 ),
+{ 83: }
+{ 84: }
+{ 85: }
+  ( sym: -6; act: 88 ),
+{ 86: }
+{ 87: }
+  ( sym: -10; act: 89 ),
+  ( sym: -6; act: 79 ),
+  ( sym: -3; act: 80 )
+{ 88: }
+{ 89: }
 );
 
 yyd : array [0..yynstates-1] of Integer = (
 { 0: } -1,
 { 1: } 0,
-{ 2: } -8,
-{ 3: } -7,
-{ 4: } -6,
-{ 5: } -5,
-{ 6: } -4,
-{ 7: } -3,
-{ 8: } -2,
-{ 9: } 0,
-{ 10: } -31,
-{ 11: } -30,
-{ 12: } -46,
-{ 13: } -48,
-{ 14: } -47,
-{ 15: } -49,
-{ 16: } -51,
-{ 17: } -50,
-{ 18: } 0,
+{ 2: } -9,
+{ 3: } -8,
+{ 4: } -7,
+{ 5: } -6,
+{ 6: } -5,
+{ 7: } -4,
+{ 8: } -3,
+{ 9: } -2,
+{ 10: } 0,
+{ 11: } -38,
+{ 12: } -37,
+{ 13: } -53,
+{ 14: } -54,
+{ 15: } -56,
+{ 16: } -55,
+{ 17: } 0,
+{ 18: } -20,
 { 19: } 0,
-{ 20: } -29,
-{ 21: } -9,
-{ 22: } -11,
-{ 23: } -13,
-{ 24: } -19,
-{ 25: } -20,
-{ 26: } -21,
-{ 27: } -22,
-{ 28: } -23,
-{ 29: } -24,
-{ 30: } -25,
-{ 31: } -26,
-{ 32: } -27,
-{ 33: } -28,
-{ 34: } -45,
+{ 20: } -36,
+{ 21: } -10,
+{ 22: } -12,
+{ 23: } -14,
+{ 24: } -26,
+{ 25: } -27,
+{ 26: } -28,
+{ 27: } -29,
+{ 28: } -30,
+{ 29: } -31,
+{ 30: } -32,
+{ 31: } -33,
+{ 32: } -34,
+{ 33: } -35,
+{ 34: } -52,
 { 35: } 0,
-{ 36: } -32,
-{ 37: } -32,
-{ 38: } -32,
-{ 39: } -32,
-{ 40: } -32,
-{ 41: } 0,
+{ 36: } -39,
+{ 37: } -39,
+{ 38: } -39,
+{ 39: } -39,
+{ 40: } -39,
+{ 41: } -39,
 { 42: } 0,
 { 43: } 0,
 { 44: } 0,
 { 45: } 0,
 { 46: } 0,
-{ 47: } -44,
-{ 48: } -33,
-{ 49: } -54,
-{ 50: } 0,
-{ 51: } 0,
+{ 47: } 0,
+{ 48: } 0,
+{ 49: } -51,
+{ 50: } -40,
+{ 51: } -22,
 { 52: } 0,
-{ 53: } -37,
-{ 54: } -38,
-{ 55: } -39,
-{ 56: } -40,
-{ 57: } -41,
-{ 58: } -42,
-{ 59: } -43,
-{ 60: } -16,
-{ 61: } -52,
-{ 62: } -10,
-{ 63: } -12,
-{ 64: } -14,
-{ 65: } 0,
-{ 66: } 0,
-{ 67: } 0,
-{ 68: } -35,
-{ 69: } -36,
-{ 70: } -55,
-{ 71: } -58,
-{ 72: } -59,
-{ 73: } -53,
-{ 74: } -56,
-{ 75: } -18,
-{ 76: } 0,
+{ 53: } 0,
+{ 54: } 0,
+{ 55: } -44,
+{ 56: } -45,
+{ 57: } -46,
+{ 58: } -47,
+{ 59: } -48,
+{ 60: } -49,
+{ 61: } -50,
+{ 62: } -59,
+{ 63: } -17,
+{ 64: } -57,
+{ 65: } -11,
+{ 66: } -13,
+{ 67: } -15,
+{ 68: } 0,
+{ 69: } 0,
+{ 70: } -42,
+{ 71: } -43,
+{ 72: } 0,
+{ 73: } 0,
+{ 74: } -23,
+{ 75: } 0,
+{ 76: } -21,
 { 77: } 0,
-{ 78: } -34,
-{ 79: } -57
+{ 78: } -60,
+{ 79: } -63,
+{ 80: } -64,
+{ 81: } -58,
+{ 82: } -61,
+{ 83: } -19,
+{ 84: } -25,
+{ 85: } 0,
+{ 86: } -41,
+{ 87: } 0,
+{ 88: } -24,
+{ 89: } -62
 );
 
 yyal : array [0..yynstates-1] of Integer = (
 { 0: } 1,
 { 1: } 1,
-{ 2: } 9,
-{ 3: } 9,
-{ 4: } 9,
-{ 5: } 9,
-{ 6: } 9,
-{ 7: } 9,
-{ 8: } 9,
-{ 9: } 9,
-{ 10: } 28,
-{ 11: } 28,
-{ 12: } 28,
-{ 13: } 28,
-{ 14: } 28,
-{ 15: } 28,
-{ 16: } 28,
-{ 17: } 28,
-{ 18: } 28,
-{ 19: } 32,
-{ 20: } 44,
-{ 21: } 44,
-{ 22: } 44,
-{ 23: } 44,
-{ 24: } 44,
-{ 25: } 44,
-{ 26: } 44,
-{ 27: } 44,
-{ 28: } 44,
-{ 29: } 44,
-{ 30: } 44,
-{ 31: } 44,
-{ 32: } 44,
-{ 33: } 44,
-{ 34: } 44,
-{ 35: } 44,
-{ 36: } 45,
-{ 37: } 45,
-{ 38: } 45,
-{ 39: } 45,
-{ 40: } 45,
-{ 41: } 45,
-{ 42: } 49,
-{ 43: } 60,
-{ 44: } 71,
-{ 45: } 82,
-{ 46: } 93,
-{ 47: } 104,
-{ 48: } 104,
-{ 49: } 104,
-{ 50: } 104,
-{ 51: } 108,
-{ 52: } 112,
-{ 53: } 116,
-{ 54: } 116,
-{ 55: } 116,
-{ 56: } 116,
-{ 57: } 116,
-{ 58: } 116,
-{ 59: } 116,
-{ 60: } 116,
-{ 61: } 116,
-{ 62: } 116,
-{ 63: } 116,
-{ 64: } 116,
-{ 65: } 116,
-{ 66: } 121,
-{ 67: } 123,
-{ 68: } 124,
-{ 69: } 124,
-{ 70: } 124,
-{ 71: } 124,
-{ 72: } 124,
-{ 73: } 124,
-{ 74: } 124,
-{ 75: } 124,
-{ 76: } 124,
-{ 77: } 128,
-{ 78: } 133,
-{ 79: } 133
-);
-
-yyah : array [0..yynstates-1] of Integer = (
-{ 0: } 0,
-{ 1: } 8,
 { 2: } 8,
 { 3: } 8,
 { 4: } 8,
@@ -950,82 +962,278 @@ yyah : array [0..yynstates-1] of Integer = (
 { 6: } 8,
 { 7: } 8,
 { 8: } 8,
-{ 9: } 27,
-{ 10: } 27,
-{ 11: } 27,
-{ 12: } 27,
-{ 13: } 27,
-{ 14: } 27,
-{ 15: } 27,
-{ 16: } 27,
-{ 17: } 27,
-{ 18: } 31,
-{ 19: } 43,
-{ 20: } 43,
-{ 21: } 43,
-{ 22: } 43,
-{ 23: } 43,
-{ 24: } 43,
-{ 25: } 43,
-{ 26: } 43,
-{ 27: } 43,
-{ 28: } 43,
-{ 29: } 43,
-{ 30: } 43,
-{ 31: } 43,
-{ 32: } 43,
-{ 33: } 43,
-{ 34: } 43,
-{ 35: } 44,
-{ 36: } 44,
-{ 37: } 44,
-{ 38: } 44,
-{ 39: } 44,
-{ 40: } 44,
-{ 41: } 48,
-{ 42: } 59,
-{ 43: } 70,
-{ 44: } 81,
-{ 45: } 92,
-{ 46: } 103,
-{ 47: } 103,
-{ 48: } 103,
-{ 49: } 103,
-{ 50: } 107,
-{ 51: } 111,
-{ 52: } 115,
-{ 53: } 115,
-{ 54: } 115,
-{ 55: } 115,
-{ 56: } 115,
-{ 57: } 115,
-{ 58: } 115,
-{ 59: } 115,
-{ 60: } 115,
-{ 61: } 115,
-{ 62: } 115,
-{ 63: } 115,
-{ 64: } 115,
-{ 65: } 120,
-{ 66: } 122,
-{ 67: } 123,
-{ 68: } 123,
-{ 69: } 123,
-{ 70: } 123,
-{ 71: } 123,
-{ 72: } 123,
-{ 73: } 123,
+{ 9: } 8,
+{ 10: } 8,
+{ 11: } 25,
+{ 12: } 25,
+{ 13: } 25,
+{ 14: } 25,
+{ 15: } 25,
+{ 16: } 25,
+{ 17: } 25,
+{ 18: } 27,
+{ 19: } 27,
+{ 20: } 39,
+{ 21: } 39,
+{ 22: } 39,
+{ 23: } 39,
+{ 24: } 39,
+{ 25: } 39,
+{ 26: } 39,
+{ 27: } 39,
+{ 28: } 39,
+{ 29: } 39,
+{ 30: } 39,
+{ 31: } 39,
+{ 32: } 39,
+{ 33: } 39,
+{ 34: } 39,
+{ 35: } 39,
+{ 36: } 40,
+{ 37: } 40,
+{ 38: } 40,
+{ 39: } 40,
+{ 40: } 40,
+{ 41: } 40,
+{ 42: } 40,
+{ 43: } 42,
+{ 44: } 53,
+{ 45: } 64,
+{ 46: } 75,
+{ 47: } 86,
+{ 48: } 97,
+{ 49: } 108,
+{ 50: } 108,
+{ 51: } 108,
+{ 52: } 108,
+{ 53: } 110,
+{ 54: } 112,
+{ 55: } 114,
+{ 56: } 114,
+{ 57: } 114,
+{ 58: } 114,
+{ 59: } 114,
+{ 60: } 114,
+{ 61: } 114,
+{ 62: } 114,
+{ 63: } 114,
+{ 64: } 114,
+{ 65: } 114,
+{ 66: } 114,
+{ 67: } 114,
+{ 68: } 114,
+{ 69: } 117,
+{ 70: } 118,
+{ 71: } 118,
+{ 72: } 118,
+{ 73: } 121,
 { 74: } 123,
 { 75: } 123,
-{ 76: } 127,
-{ 77: } 132,
-{ 78: } 132,
-{ 79: } 132
+{ 76: } 125,
+{ 77: } 125,
+{ 78: } 127,
+{ 79: } 127,
+{ 80: } 127,
+{ 81: } 127,
+{ 82: } 127,
+{ 83: } 127,
+{ 84: } 127,
+{ 85: } 127,
+{ 86: } 128,
+{ 87: } 128,
+{ 88: } 131,
+{ 89: } 131
+);
+
+yyah : array [0..yynstates-1] of Integer = (
+{ 0: } 0,
+{ 1: } 7,
+{ 2: } 7,
+{ 3: } 7,
+{ 4: } 7,
+{ 5: } 7,
+{ 6: } 7,
+{ 7: } 7,
+{ 8: } 7,
+{ 9: } 7,
+{ 10: } 24,
+{ 11: } 24,
+{ 12: } 24,
+{ 13: } 24,
+{ 14: } 24,
+{ 15: } 24,
+{ 16: } 24,
+{ 17: } 26,
+{ 18: } 26,
+{ 19: } 38,
+{ 20: } 38,
+{ 21: } 38,
+{ 22: } 38,
+{ 23: } 38,
+{ 24: } 38,
+{ 25: } 38,
+{ 26: } 38,
+{ 27: } 38,
+{ 28: } 38,
+{ 29: } 38,
+{ 30: } 38,
+{ 31: } 38,
+{ 32: } 38,
+{ 33: } 38,
+{ 34: } 38,
+{ 35: } 39,
+{ 36: } 39,
+{ 37: } 39,
+{ 38: } 39,
+{ 39: } 39,
+{ 40: } 39,
+{ 41: } 39,
+{ 42: } 41,
+{ 43: } 52,
+{ 44: } 63,
+{ 45: } 74,
+{ 46: } 85,
+{ 47: } 96,
+{ 48: } 107,
+{ 49: } 107,
+{ 50: } 107,
+{ 51: } 107,
+{ 52: } 109,
+{ 53: } 111,
+{ 54: } 113,
+{ 55: } 113,
+{ 56: } 113,
+{ 57: } 113,
+{ 58: } 113,
+{ 59: } 113,
+{ 60: } 113,
+{ 61: } 113,
+{ 62: } 113,
+{ 63: } 113,
+{ 64: } 113,
+{ 65: } 113,
+{ 66: } 113,
+{ 67: } 113,
+{ 68: } 116,
+{ 69: } 117,
+{ 70: } 117,
+{ 71: } 117,
+{ 72: } 120,
+{ 73: } 122,
+{ 74: } 122,
+{ 75: } 124,
+{ 76: } 124,
+{ 77: } 126,
+{ 78: } 126,
+{ 79: } 126,
+{ 80: } 126,
+{ 81: } 126,
+{ 82: } 126,
+{ 83: } 126,
+{ 84: } 126,
+{ 85: } 127,
+{ 86: } 127,
+{ 87: } 130,
+{ 88: } 130,
+{ 89: } 130
 );
 
 yygl : array [0..yynstates-1] of Integer = (
 { 0: } 1,
 { 1: } 2,
+{ 2: } 13,
+{ 3: } 13,
+{ 4: } 13,
+{ 5: } 13,
+{ 6: } 13,
+{ 7: } 13,
+{ 8: } 13,
+{ 9: } 13,
+{ 10: } 13,
+{ 11: } 17,
+{ 12: } 17,
+{ 13: } 17,
+{ 14: } 17,
+{ 15: } 17,
+{ 16: } 17,
+{ 17: } 17,
+{ 18: } 19,
+{ 19: } 20,
+{ 20: } 22,
+{ 21: } 22,
+{ 22: } 23,
+{ 23: } 24,
+{ 24: } 25,
+{ 25: } 25,
+{ 26: } 25,
+{ 27: } 25,
+{ 28: } 25,
+{ 29: } 25,
+{ 30: } 25,
+{ 31: } 25,
+{ 32: } 25,
+{ 33: } 25,
+{ 34: } 25,
+{ 35: } 25,
+{ 36: } 25,
+{ 37: } 26,
+{ 38: } 27,
+{ 39: } 28,
+{ 40: } 29,
+{ 41: } 30,
+{ 42: } 31,
+{ 43: } 33,
+{ 44: } 34,
+{ 45: } 35,
+{ 46: } 37,
+{ 47: } 39,
+{ 48: } 41,
+{ 49: } 43,
+{ 50: } 43,
+{ 51: } 43,
+{ 52: } 44,
+{ 53: } 46,
+{ 54: } 48,
+{ 55: } 50,
+{ 56: } 50,
+{ 57: } 50,
+{ 58: } 50,
+{ 59: } 50,
+{ 60: } 50,
+{ 61: } 50,
+{ 62: } 50,
+{ 63: } 52,
+{ 64: } 52,
+{ 65: } 52,
+{ 66: } 52,
+{ 67: } 52,
+{ 68: } 52,
+{ 69: } 54,
+{ 70: } 54,
+{ 71: } 54,
+{ 72: } 54,
+{ 73: } 57,
+{ 74: } 57,
+{ 75: } 57,
+{ 76: } 58,
+{ 77: } 58,
+{ 78: } 60,
+{ 79: } 60,
+{ 80: } 60,
+{ 81: } 60,
+{ 82: } 60,
+{ 83: } 61,
+{ 84: } 61,
+{ 85: } 61,
+{ 86: } 62,
+{ 87: } 62,
+{ 88: } 65,
+{ 89: } 65
+);
+
+yygh : array [0..yynstates-1] of Integer = (
+{ 0: } 1,
+{ 1: } 12,
 { 2: } 12,
 { 3: } 12,
 { 4: } 12,
@@ -1041,152 +1249,79 @@ yygl : array [0..yynstates-1] of Integer = (
 { 14: } 16,
 { 15: } 16,
 { 16: } 16,
-{ 17: } 16,
-{ 18: } 16,
-{ 19: } 18,
-{ 20: } 20,
-{ 21: } 20,
-{ 22: } 21,
-{ 23: } 22,
-{ 24: } 23,
-{ 25: } 23,
-{ 26: } 23,
-{ 27: } 23,
-{ 28: } 23,
-{ 29: } 23,
-{ 30: } 23,
-{ 31: } 23,
-{ 32: } 23,
-{ 33: } 23,
-{ 34: } 23,
-{ 35: } 23,
-{ 36: } 23,
-{ 37: } 24,
-{ 38: } 25,
-{ 39: } 26,
-{ 40: } 27,
-{ 41: } 28,
-{ 42: } 30,
-{ 43: } 31,
-{ 44: } 33,
-{ 45: } 35,
-{ 46: } 37,
-{ 47: } 39,
-{ 48: } 39,
-{ 49: } 39,
-{ 50: } 41,
-{ 51: } 43,
-{ 52: } 45,
-{ 53: } 47,
-{ 54: } 47,
-{ 55: } 47,
-{ 56: } 47,
-{ 57: } 47,
-{ 58: } 47,
-{ 59: } 47,
-{ 60: } 47,
-{ 61: } 47,
-{ 62: } 47,
-{ 63: } 47,
-{ 64: } 47,
-{ 65: } 47,
-{ 66: } 50,
-{ 67: } 50,
-{ 68: } 50,
-{ 69: } 50,
-{ 70: } 50,
-{ 71: } 50,
-{ 72: } 50,
-{ 73: } 50,
-{ 74: } 50,
-{ 75: } 51,
-{ 76: } 51,
-{ 77: } 53,
-{ 78: } 56,
-{ 79: } 56
-);
-
-yygh : array [0..yynstates-1] of Integer = (
-{ 0: } 1,
-{ 1: } 11,
-{ 2: } 11,
-{ 3: } 11,
-{ 4: } 11,
-{ 5: } 11,
-{ 6: } 11,
-{ 7: } 11,
-{ 8: } 11,
-{ 9: } 15,
-{ 10: } 15,
-{ 11: } 15,
-{ 12: } 15,
-{ 13: } 15,
-{ 14: } 15,
-{ 15: } 15,
-{ 16: } 15,
-{ 17: } 15,
-{ 18: } 17,
-{ 19: } 19,
-{ 20: } 19,
-{ 21: } 20,
-{ 22: } 21,
-{ 23: } 22,
-{ 24: } 22,
-{ 25: } 22,
-{ 26: } 22,
-{ 27: } 22,
-{ 28: } 22,
-{ 29: } 22,
-{ 30: } 22,
-{ 31: } 22,
-{ 32: } 22,
-{ 33: } 22,
-{ 34: } 22,
-{ 35: } 22,
-{ 36: } 23,
-{ 37: } 24,
-{ 38: } 25,
-{ 39: } 26,
-{ 40: } 27,
-{ 41: } 29,
-{ 42: } 30,
-{ 43: } 32,
+{ 17: } 18,
+{ 18: } 19,
+{ 19: } 21,
+{ 20: } 21,
+{ 21: } 22,
+{ 22: } 23,
+{ 23: } 24,
+{ 24: } 24,
+{ 25: } 24,
+{ 26: } 24,
+{ 27: } 24,
+{ 28: } 24,
+{ 29: } 24,
+{ 30: } 24,
+{ 31: } 24,
+{ 32: } 24,
+{ 33: } 24,
+{ 34: } 24,
+{ 35: } 24,
+{ 36: } 25,
+{ 37: } 26,
+{ 38: } 27,
+{ 39: } 28,
+{ 40: } 29,
+{ 41: } 30,
+{ 42: } 32,
+{ 43: } 33,
 { 44: } 34,
 { 45: } 36,
 { 46: } 38,
-{ 47: } 38,
-{ 48: } 38,
-{ 49: } 40,
+{ 47: } 40,
+{ 48: } 42,
+{ 49: } 42,
 { 50: } 42,
-{ 51: } 44,
-{ 52: } 46,
-{ 53: } 46,
-{ 54: } 46,
-{ 55: } 46,
-{ 56: } 46,
-{ 57: } 46,
-{ 58: } 46,
-{ 59: } 46,
-{ 60: } 46,
-{ 61: } 46,
-{ 62: } 46,
-{ 63: } 46,
-{ 64: } 46,
-{ 65: } 49,
-{ 66: } 49,
-{ 67: } 49,
-{ 68: } 49,
-{ 69: } 49,
-{ 70: } 49,
-{ 71: } 49,
-{ 72: } 49,
-{ 73: } 49,
-{ 74: } 50,
-{ 75: } 50,
-{ 76: } 52,
-{ 77: } 55,
-{ 78: } 55,
-{ 79: } 55
+{ 51: } 43,
+{ 52: } 45,
+{ 53: } 47,
+{ 54: } 49,
+{ 55: } 49,
+{ 56: } 49,
+{ 57: } 49,
+{ 58: } 49,
+{ 59: } 49,
+{ 60: } 49,
+{ 61: } 49,
+{ 62: } 51,
+{ 63: } 51,
+{ 64: } 51,
+{ 65: } 51,
+{ 66: } 51,
+{ 67: } 51,
+{ 68: } 53,
+{ 69: } 53,
+{ 70: } 53,
+{ 71: } 53,
+{ 72: } 56,
+{ 73: } 56,
+{ 74: } 56,
+{ 75: } 57,
+{ 76: } 57,
+{ 77: } 59,
+{ 78: } 59,
+{ 79: } 59,
+{ 80: } 59,
+{ 81: } 59,
+{ 82: } 60,
+{ 83: } 60,
+{ 84: } 60,
+{ 85: } 61,
+{ 86: } 61,
+{ 87: } 64,
+{ 88: } 64,
+{ 89: } 64
 );
 
 yyr : array [1..yynrules] of YYRRec = (
@@ -1198,57 +1333,62 @@ yyr : array [1..yynrules] of YYRRec = (
 { 6: } ( len: 1; sym: -13 ),
 { 7: } ( len: 1; sym: -13 ),
 { 8: } ( len: 1; sym: -13 ),
-{ 9: } ( len: 0; sym: -20 ),
-{ 10: } ( len: 5; sym: -15 ),
-{ 11: } ( len: 0; sym: -21 ),
-{ 12: } ( len: 5; sym: -16 ),
-{ 13: } ( len: 0; sym: -22 ),
-{ 14: } ( len: 5; sym: -17 ),
-{ 15: } ( len: 0; sym: -23 ),
-{ 16: } ( len: 5; sym: -18 ),
-{ 17: } ( len: 0; sym: -24 ),
-{ 18: } ( len: 7; sym: -18 ),
-{ 19: } ( len: 1; sym: -8 ),
-{ 20: } ( len: 1; sym: -8 ),
-{ 21: } ( len: 1; sym: -8 ),
-{ 22: } ( len: 1; sym: -8 ),
-{ 23: } ( len: 1; sym: -8 ),
-{ 24: } ( len: 1; sym: -8 ),
-{ 25: } ( len: 1; sym: -8 ),
+{ 9: } ( len: 1; sym: -13 ),
+{ 10: } ( len: 0; sym: -21 ),
+{ 11: } ( len: 5; sym: -16 ),
+{ 12: } ( len: 0; sym: -22 ),
+{ 13: } ( len: 5; sym: -17 ),
+{ 14: } ( len: 0; sym: -23 ),
+{ 15: } ( len: 5; sym: -18 ),
+{ 16: } ( len: 0; sym: -24 ),
+{ 17: } ( len: 5; sym: -19 ),
+{ 18: } ( len: 0; sym: -25 ),
+{ 19: } ( len: 7; sym: -19 ),
+{ 20: } ( len: 0; sym: -26 ),
+{ 21: } ( len: 6; sym: -15 ),
+{ 22: } ( len: 0; sym: -27 ),
+{ 23: } ( len: 2; sym: -27 ),
+{ 24: } ( len: 3; sym: -28 ),
+{ 25: } ( len: 2; sym: -28 ),
 { 26: } ( len: 1; sym: -8 ),
 { 27: } ( len: 1; sym: -8 ),
 { 28: } ( len: 1; sym: -8 ),
 { 29: } ( len: 1; sym: -8 ),
-{ 30: } ( len: 1; sym: -7 ),
-{ 31: } ( len: 1; sym: -7 ),
-{ 32: } ( len: 0; sym: -19 ),
-{ 33: } ( len: 2; sym: -19 ),
-{ 34: } ( len: 4; sym: -25 ),
-{ 35: } ( len: 2; sym: -25 ),
-{ 36: } ( len: 2; sym: -25 ),
-{ 37: } ( len: 1; sym: -25 ),
-{ 38: } ( len: 1; sym: -25 ),
-{ 39: } ( len: 1; sym: -25 ),
-{ 40: } ( len: 1; sym: -25 ),
-{ 41: } ( len: 1; sym: -25 ),
-{ 42: } ( len: 1; sym: -25 ),
-{ 43: } ( len: 1; sym: -25 ),
-{ 44: } ( len: 4; sym: -14 ),
-{ 45: } ( len: 1; sym: -2 ),
-{ 46: } ( len: 1; sym: -3 ),
-{ 47: } ( len: 1; sym: -3 ),
-{ 48: } ( len: 1; sym: -3 ),
-{ 49: } ( len: 1; sym: -3 ),
-{ 50: } ( len: 1; sym: -4 ),
-{ 51: } ( len: 1; sym: -4 ),
-{ 52: } ( len: 1; sym: -5 ),
-{ 53: } ( len: 1; sym: -6 ),
-{ 54: } ( len: 0; sym: -26 ),
-{ 55: } ( len: 2; sym: -9 ),
-{ 56: } ( len: 0; sym: -27 ),
-{ 57: } ( len: 4; sym: -9 ),
-{ 58: } ( len: 1; sym: -10 ),
-{ 59: } ( len: 1; sym: -10 )
+{ 30: } ( len: 1; sym: -8 ),
+{ 31: } ( len: 1; sym: -8 ),
+{ 32: } ( len: 1; sym: -8 ),
+{ 33: } ( len: 1; sym: -8 ),
+{ 34: } ( len: 1; sym: -8 ),
+{ 35: } ( len: 1; sym: -8 ),
+{ 36: } ( len: 1; sym: -8 ),
+{ 37: } ( len: 1; sym: -7 ),
+{ 38: } ( len: 1; sym: -7 ),
+{ 39: } ( len: 0; sym: -20 ),
+{ 40: } ( len: 2; sym: -20 ),
+{ 41: } ( len: 4; sym: -29 ),
+{ 42: } ( len: 2; sym: -29 ),
+{ 43: } ( len: 2; sym: -29 ),
+{ 44: } ( len: 1; sym: -29 ),
+{ 45: } ( len: 1; sym: -29 ),
+{ 46: } ( len: 1; sym: -29 ),
+{ 47: } ( len: 1; sym: -29 ),
+{ 48: } ( len: 1; sym: -29 ),
+{ 49: } ( len: 1; sym: -29 ),
+{ 50: } ( len: 1; sym: -29 ),
+{ 51: } ( len: 4; sym: -14 ),
+{ 52: } ( len: 1; sym: -2 ),
+{ 53: } ( len: 1; sym: -3 ),
+{ 54: } ( len: 1; sym: -3 ),
+{ 55: } ( len: 1; sym: -4 ),
+{ 56: } ( len: 1; sym: -4 ),
+{ 57: } ( len: 1; sym: -5 ),
+{ 58: } ( len: 1; sym: -6 ),
+{ 59: } ( len: 0; sym: -30 ),
+{ 60: } ( len: 2; sym: -9 ),
+{ 61: } ( len: 0; sym: -31 ),
+{ 62: } ( len: 4; sym: -9 ),
+{ 63: } ( len: 1; sym: -10 ),
+{ 64: } ( len: 1; sym: -10 )
 );
 
 

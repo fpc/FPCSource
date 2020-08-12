@@ -4,7 +4,7 @@ var
   strbuf: string;
 
 const
-  KeywordDefs: array [0..22] of TIdentMapEntry = (
+  KeywordDefs: array [0..23] of TIdentMapEntry = (
     // attribs
     (Value: _LANGUAGE;             Name: 'LANGUAGE'),
     (Value: _CHARACTERISTICS;      Name: 'CHARACTERISTICS'),
@@ -28,6 +28,7 @@ const
     (Value: _MANIFEST;             Name: 'MANIFEST'),
     (Value: _MESSAGETABLE;         Name: 'MESSAGETABLE'),
     (Value: _PLUGPLAY;             Name: 'PLUGPLAY'),
+    (Value: _STRINGTABLE;          Name: 'STRINGTABLE'),
     (Value: _RCDATA;               Name: 'RCDATA'),
     (Value: _VXD;                  Name: 'VXD')
   );
@@ -63,10 +64,8 @@ IDENT [a-zA-Z_]([a-zA-Z0-9_])*
 <INCOMMENT>"*/"         start(0);
 <INCOMMENT>\0           return(_ILLEGAL);
 
-[1-9]([0-9])*           return(_NUMDECIMAL);
-0x{H}*                  return(_NUMHEX);
-[1-9]([0-9])*L          return(_NUMDECIMALL);
-0x{H}*L                 return(_NUMHEXL);
+{D}*L?                  return(_NUMDECIMAL);
+0x{H}*L?                return(_NUMHEX);
 \"                      begin start(INSTRING); strbuf:= ''; end;
 <INSTRING>\"\"          strbuf:= strbuf + '"';
 <INSTRING>\"            begin
