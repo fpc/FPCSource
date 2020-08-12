@@ -347,7 +347,7 @@ begin
          yyval := yyv[yysp-0];
        end;
   90 : begin
-         yyval.yyTFileStream:= TFileStream.Create(yyv[yysp-0].yyrcstrtype.v^, fmOpenRead or fmShareDenyWrite); 
+         yyval.yyTFileStream:= TFileStream.Create(ExpandFileName(yyv[yysp-0].yyrcstrtype.v^), fmOpenRead or fmShareDenyWrite);
        end;
   91 : begin
          string_new_uni(yyval.yyrcstrtype, @strbuf[0], strbuflen, opt_code_page, true); 

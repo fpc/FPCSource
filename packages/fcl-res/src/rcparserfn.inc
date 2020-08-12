@@ -2,6 +2,10 @@
 
 interface
 
+{$mode objfpc}{$H+}
+{$COPERATORS ON}
+{$GOTO ON}
+
 uses
   SysUtils, Classes, StrUtils, Contnrs, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
