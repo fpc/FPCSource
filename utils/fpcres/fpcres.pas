@@ -23,12 +23,11 @@ uses
   closablefilestream, resource,
 //readers
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
-  externalreader, dfmreader, tlbreader,
+  externalreader, dfmreader, tlbreader, rcreader,
 //writers
   reswriter, coffwriter, xcoffwriter, elfwriter, machowriter, externalwriter,
 //misc
-  elfconsts, cofftypes, machotypes, externaltypes
-  ;
+  elfconsts, cofftypes, machotypes, externaltypes;
   
 const
   halt_no_err = 0;
@@ -66,6 +65,10 @@ begin
   writeln('  --version, -V        Show program version.');
   writeln('  --verbose, -v        Be verbose.');
   writeln('  --input, -i <x>      Ignored for compatibility.');
+  writeln('  --include, -I <x>    RC files: add a path for include searches');
+  writeln('  --define, -D <sym>[=<val>]');
+  writeln('                       RC files: define a symbol (and value)');
+  writeln('  --undefine, -U <sym> RC files: undefine a symbol');
   writeln('  --output, -o <x>     Set the output file name.');
   writeln('  -of <format>         Set the output file format. Supported formats:');
   writeln('                         res, elf, coff, mach-o, external');
@@ -213,6 +216,9 @@ begin
   resources:=TResources.Create;
   sourcefiles:=TSourceFiles.Create;
   sourcefiles.FileList.AddStrings(params.InputFiles);
+  sourcefiles.RCDefines.AddStrings(params.RCDefines);
+  sourcefiles.RCIncludeDirs.AddStrings(params.RCIncludeDirs);
+  sourcefiles.RCMode:=CurrentTarget.objformat=ofRes;
   try
     sourcefiles.Load(resources);
   except

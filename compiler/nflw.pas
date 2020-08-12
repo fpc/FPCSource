@@ -2179,7 +2179,7 @@ implementation
               { nested exits don't need the non local goto switch }
               (labelsym.realname='$nestedexit') then
               begin
-                if current_procinfo.procdef.parast.symtablelevel>labelsym.owner.symtablelevel then
+                if current_procinfo.procdef.parast.symtablelevel>=labelsym.owner.symtablelevel then
                   begin
                     { don't mess with the exception blocks, global gotos in/out side exception blocks are not allowed }
                     if exceptionblock>0 then
@@ -2212,7 +2212,7 @@ implementation
                       CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
                   end
                 else
-                  CGMessage(cg_e_interprocedural_goto_only_to_outer_scope_allowed);
+                  CGMessagePos(self.fileinfo,cg_e_interprocedural_goto_only_to_outer_scope_allowed);
               end
             else
               CGMessage1(cg_e_goto_label_not_found,labelsym.realname);

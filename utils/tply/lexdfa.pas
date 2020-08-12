@@ -53,7 +53,8 @@ procedure makeDFATable;
   begin
     (* initialize start states: *)
     for i := 2 to 2*n_start_states+1 do
-      setunion(first_pos_table^[i]^, first_pos_table^[i mod 2]^);
+      if not start_excl^[i div 2] then
+        setunion(first_pos_table^[i]^, first_pos_table^[i mod 2]^);
     for i := 0 to 2*n_start_states+1 do
       act_state := newState(first_pos_table^[i]);
     act_state := -1;

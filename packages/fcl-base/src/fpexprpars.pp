@@ -896,7 +896,7 @@ Resourcestring
   SErrCaseLabelNotAConst = 'Case label %d "%s" is not a constant expression';
   SErrCaseLabelType = 'Case label %d "%s" needs type %s, but has type %s';
   SErrCaseValueType = 'Case value %d "%s" needs type %s, but has type %s';
-  SErrDivisionByZero = '%d division by zero';
+  SErrDivisionByZero = '%s division by zero';
 
 { ---------------------------------------------------------------------
   Auxiliary functions

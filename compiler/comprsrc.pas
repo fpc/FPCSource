@@ -78,13 +78,14 @@ procedure CollectResourceFiles;
 Var
   ResCompiler : String;
   RCCompiler  : String;
+  RCForceFPCRes : Boolean;
 
 implementation
 
 uses
   SysUtils,
   cutils,cfileutl,cclasses,
-  Globtype,Globals,Verbose,Fmodule, comphook,cpuinfo;
+  Globtype,Globals,Verbose,Fmodule, comphook,cpuinfo,rescmn;
 
 {****************************************************************************
                               TRESOURCEFILE
@@ -126,7 +127,10 @@ var
 begin
   if output=roRES then
     begin
-      s:=target_res.rccmd;
+      if RCForceFPCRes then
+        s:=FPCResRCArgs
+      else
+        s:=target_res.rccmd;
       Replace(s,'$RES',maybequoted(OutName));
       Replace(s,'$RC',maybequoted(fname));
       ObjUsed:=False;
@@ -162,7 +166,10 @@ var
 begin
   Result:=true;
   if output=roRES then
-    Bin:=SelectBin(RCCompiler,target_res.rcbin)
+    if RCForceFPCRes then
+      Bin:=SelectBin(RCCompiler,FPCResUtil)
+    else
+      Bin:=SelectBin(RCCompiler,target_res.rcbin)
   else
     Bin:=SelectBin(ResCompiler,target_res.resbin);
   if bin='' then
@@ -265,8 +272,11 @@ begin
   srcfilepath:=ExtractFilePath(current_module.mainsource);
   if output=roRES then
     begin
-      s:=target_res.rccmd;
-      if target_res.rcbin = 'windres' then
+      if RCForceFPCRes then
+        s:=FPCResRCArgs
+      else
+        s:=target_res.rccmd;
+      if (target_res.rcbin = 'windres') and not RCForceFPCRes then
         Replace(s,'$RC',WindresFileName(fname))
       else
         Replace(s,'$RC',maybequoted(fname));
@@ -317,7 +327,7 @@ begin
   if respath='' then
     respath:='.';
   Replace(s,'$INC',maybequoted(respath));
-  if (output=roRes) and (target_res.rcbin='windres') then
+  if (output=roRes) and (target_res.rcbin='windres') and not RCForceFPCRes then
   begin
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
@@ -555,4 +565,13 @@ begin
   resourcefile.free;
 end;
 
+procedure initglobals;
+begin
+  ResCompiler:='';
+  RCCompiler:='';
+  RCForceFPCRes:=false;
+end;
+
+initialization
+  register_initdone_proc(@initglobals,nil);
 end.

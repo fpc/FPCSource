@@ -1700,6 +1700,8 @@ begin
                          frameworksearchpath.AddPath(More,true)
                      else
                        IllegalPara(opt);
+                 'F' :
+                   RCForceFPCRes:=true;
                  'i' :
                    begin
                      if ispara then

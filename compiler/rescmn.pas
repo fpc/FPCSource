@@ -65,6 +65,9 @@ uses
              resflags : [res_external_file];
           );
 
+      FPCResRCArgs = '--include $INC -of res -D FPC -o $RES $RC';
+      FPCResUtil   = 'fpcres';
+
 
 implementation
 

@@ -18,6 +18,9 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
+    P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('tplylib');
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -188,6 +191,30 @@ begin
           AddUnit('fpcrestypes');
           AddInclude('machosubwriter.inc');
           AddInclude('machodefaulttarget.inc');
+        end;
+    T:=P.Targets.AddUnit('rcparser.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('resource');
+          AddUnit('acceleratorsresource');
+          AddUnit('groupiconresource');
+          AddUnit('stringtableresource');
+          AddUnit('bitmapresource');
+          AddUnit('versionresource');
+          AddUnit('versiontypes');
+          AddUnit('groupcursorresource');
+          AddInclude('rcparserfn.inc');
+          AddInclude('rclex.inc');
+          AddInclude('yyinclude.pp');
+          AddInclude('yypreproc.pp');
+        end;
+    T:=P.Targets.AddUnit('rcreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('resource');
+          AddUnit('resdatastream');
+          AddUnit('resfactory');
+          AddUnit('rcparser');
         end;
     T:=P.Targets.AddUnit('resdatastream.pp');
       with T.Dependencies do

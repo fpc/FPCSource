@@ -105,6 +105,8 @@ FirstPosTable  = array [0..2*max_start_states+1] of IntSetPtr;
                       default, states 2..2*n_start_states+1 user-defined
                       start states) *)
 
+StartStateExclusive = array[0..max_start_states] of Boolean;
+
 StateTableEntry = record
                     state_pos : IntSetPtr;
                       (* positions covered by state *)
@@ -137,6 +139,7 @@ optimize          : Boolean;          (* status of the optimization option *)
 sym_table         : ^SymTable;        (* symbol table *)
 pos_table         : ^PosTable;        (* position table *)
 first_pos_table   : ^FirstPosTable;   (* first positions table *)
+start_excl        : ^StartStateExclusive; (* user-defined start state type *)
 state_table       : ^StateTable;      (* DFA state table *)
 trans_table       : ^TransTable;      (* DFA transition table *)
 
@@ -460,6 +463,7 @@ begin
   new(sym_table);
   new(pos_table);
   new(first_pos_table);
+  new(start_excl);
   new(state_table);
   new(trans_table);
 

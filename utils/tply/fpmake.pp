@@ -39,6 +39,8 @@ begin
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
 
+    P.Dependencies.Add('tplylib');
+
     P.Options.Add('-Sg');
 
     T:=P.Targets.AddProgram('plex.pas');
@@ -61,10 +63,6 @@ begin
     T.Dependencies.AddUnit('yaccsem');
     T.Dependencies.AddUnit('yacclr0');
     T.Dependencies.AddUnit('yacctabl');
-
-
-    P.Targets.AddUnit('lexlib.pas');
-    P.Targets.AddUnit('yacclib.pas');
 
     P.Targets.AddUnit('lexbase.pas').install:=false;
     P.Targets.AddUnit('lexopt.pas').install:=false;
