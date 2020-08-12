@@ -126,6 +126,14 @@ begin
     Result.v:= StrToInt(s);
 end;
 
+function Max(a, b: LongWord): LongWord; inline;
+begin
+  if a > b then
+    Result:= a
+  else
+    Result:= b;
+end;
+
 var
   aktresource: TAbstractResource;
   language: TLangID;
@@ -231,7 +239,7 @@ var
 %}
 
 %token _ILLEGAL
-%token _NUMDECIMAL _NUMHEX _QUOTEDSTR
+%token _NUMBER _QUOTEDSTR
 %token _STR_StringFileInfo _STR_VarFileInfo _STR_Translation
 %token _BEGIN _END _ID
 %token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
@@ -245,6 +253,13 @@ var
 %type <TResourceDesc> resid rcdataid
 %type <TMemoryStream> raw_data raw_item
 %type <TFileStream> filename_string
+
+%left '|'
+%left '^'
+%left '&'
+%left '+' '-'
+%left '*' '/' '%'
+%right '~' _NUMNEG
 
 %%
 
@@ -379,13 +394,22 @@ numpos
     ;
 
 numeral
-    : _NUMDECIMAL                                  { $$:= str_to_num(yytext); }
-    | _NUMHEX                                      { $$:= str_to_num(yytext); }
+    : _NUMBER                                      { $$:= str_to_num(yytext); }
     ;
 
 numexpr
     : numeral
     | '(' numexpr ')'                              { $$:= $2; }
+    | '~' numexpr %prec '~'                        { $$.v:= not $2.v; $$.long:= $2.long; }
+    | '-' numexpr %prec _NUMNEG                    { $$.v:= -$2.v; $$.long:= $2.long; }
+    | numexpr '*' numexpr                          { $$.v:= $1.v * $3.v; $$.long:= $1.long or $3.long; }
+    | numexpr '/' numexpr                          { $$.v:= $1.v div Max(1, $3.v); $$.long:= $1.long or $3.long; }
+    | numexpr '%' numexpr                          { $$.v:= $1.v mod Max(1, $3.v); $$.long:= $1.long or $3.long; }
+    | numexpr '+' numexpr                          { $$.v:= $1.v + $3.v; $$.long:= $1.long or $3.long; }
+    | numexpr '-' numexpr                          { $$.v:= $1.v - $3.v; $$.long:= $1.long or $3.long; }
+    | numexpr '&' numexpr                          { $$.v:= $1.v and $3.v; $$.long:= $1.long or $3.long; }
+    | numexpr '^' numexpr                          { $$.v:= $1.v xor $3.v; $$.long:= $1.long or $3.long; }
+    | numexpr '|' numexpr                          { $$.v:= $1.v or $3.v; $$.long:= $1.long or $3.long; }
     ;
 
 ident_string

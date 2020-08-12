@@ -75,8 +75,8 @@ IDENT [a-zA-Z_]([a-zA-Z0-9_])*
 <INCOMMENT>"*/"         start(0);
 <INCOMMENT>\0           return(_ILLEGAL);
 
-{D}*L?                  return(_NUMDECIMAL);
-0x{H}*L?                return(_NUMHEX);
+{D}*L?                  return(_NUMBER);
+0x{H}*L?                return(_NUMBER);
 \"                      begin start(INSTRING); strbuf:= ''; end;
 <INSTRING>\"\"          strbuf:= strbuf + '"';
 <INSTRING>\"            begin
@@ -104,7 +104,7 @@ END|}                   return(_END);
                               return(_ID);
                          end;
 [ \t\n\f]               ;
-[,()]                   returnc(yytext[1]);
+[,()|^&+-*/%~]          returnc(yytext[1]);
 .                       return(_ILLEGAL);
 %%
 
