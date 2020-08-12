@@ -36,33 +36,43 @@ type
   private
   protected
     fFileList : TStringList;
+    fRCIncludeDirs: TStringList;
+    fRCDefines: TStringList;
     fStreamList : TFPList;
   public
     constructor Create;
     destructor Destroy; override;
     procedure Load(aResources : TResources);
     property FileList : TStringList read fFileList;
+    property RCIncludeDirs: TStringList read fRCIncludeDirs;
+    property RCDefines: TStringList read fRCDefines;
   end;
   
 implementation
 
-uses msghandler, closablefilestream;
+uses msghandler, closablefilestream, rcreader;
 
 { TSourceFiles }
 
 constructor TSourceFiles.Create;
 begin
+  inherited Create;
   fFileList:=TStringList.Create;
   fStreamList:=TFPList.Create;
+  fRCDefines:= TStringList.Create;
+  fRCIncludeDirs:= TStringList.Create;
 end;
 
 destructor TSourceFiles.Destroy;
 var i : integer;
 begin
+  fRCIncludeDirs.Free;
+  fRCDefines.Free;
   fFileList.Free;
   for i:=0 to fStreamList.Count-1 do
     TStream(fStreamList[i]).Free;
   fStreamList.Free;
+  inherited;
 end;
 
 procedure TSourceFiles.Load(aResources: TResources);
@@ -90,6 +100,10 @@ begin
       Messages.DoVerbose(Format('Chosen reader: %s',[aReader.Description]));
       try
         Messages.DoVerbose('Reading resource information...');
+        if aReader is TRCResourceReader then begin
+          TRCResourceReader(aReader).RCIncludeDirs.Assign(fRCIncludeDirs);
+          TRCResourceReader(aReader).RCDefines.Assign(fRCDefines);
+        end;
         tmpres.LoadFromStream(aStream,aReader);
         aResources.MoveFrom(tmpres);
         Messages.DoVerbose('Resource information read');

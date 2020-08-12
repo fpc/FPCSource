@@ -27,7 +27,7 @@ var
 
 constructor typreproc.Create;
 begin
-  inherited;
+  inherited Create;
   Defines:= TFPStringHashTable.Create;
   level:= 0;
   cheadermode:= false;

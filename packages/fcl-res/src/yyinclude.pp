@@ -90,14 +90,20 @@ begin
         if FileExists(f) then
           Exit(f);
       end;
-      yyerror('Invalid file not found on search paths: "'+fn+'"');
+      yyerror('Include file not found on search paths: <'+fn+'>');
     end
     else if (fn[1] = '"') and (fn[length(fn)] = '"') then begin
       fn:= copy(fn, 2, Length(fn)-2);
       f:= ConcatPaths([WorkDir, fn]);
       if FileExists(f) then
         Exit(f);
-      yyerror('Invalid file not found: "'+fn+'"');
+      if fn = 'windows.h' then begin
+        // treat windows.h as an alias for windres.h
+        f:= ConcatPaths([WorkDir, 'windres.h']);
+        if FileExists(f) then
+          Exit(f);
+      end;
+      yyerror('Include file not found: "'+fn+'"');
     end;
   end;
   yyerror('Invalid include directive: "'+fn+'"');
@@ -105,7 +111,7 @@ end;
 
 constructor tyinclude.Create;
 begin
-  inherited;
+  inherited Create;
   level:= 0;
   WorkDir:= GetCurrentDir;
   SearchPaths:= TStringList.Create;

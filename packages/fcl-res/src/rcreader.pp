@@ -30,6 +30,8 @@ type
   private
     fExtensions : string;
     fDescription : string;
+    fRCIncludeDirs: TStringList;
+    fRCDefines: TStringList;
   protected
     function GetExtensions : string; override;
     function GetDescription : string; override;
@@ -39,6 +41,8 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+    property RCIncludeDirs: TStringList read fRCIncludeDirs;
+    property RCDefines: TStringList read fRCDefines;
   end;
 
 implementation
@@ -81,6 +85,8 @@ begin
 end;
 
 procedure TRCResourceReader.ReadRCFile(aResources: TResources; aLocation: String; aStream: TStream);
+var
+  i: Integer;
 begin
   AssignStream(lexlib.yyinput, aStream);
   Reset(lexlib.yyinput);
@@ -90,8 +96,11 @@ begin
     SetTextCodePage(lexlib.yyinput, rcparser.opt_code_page);
     rcparser.yinclude:= tyinclude.Create;
     rcparser.yinclude.WorkDir:= aLocation;
+    rcparser.yinclude.SearchPaths.Assign(fRCIncludeDirs);
     rcparser.ypreproc:= typreproc.Create;
     rcparser.ypreproc.Defines.Add('RC_INVOKED', '');
+    for i:= 0 to fRCDefines.Count-1 do
+      rcparser.ypreproc.Defines.Items[fRCDefines.Names[i]]:= fRCDefines.ValueFromIndex[i];
     rcparser.aktresources:= aResources;
     if rcparser.yyparse <> 0 then
       raise EReadError.Create('Parse Error');
@@ -106,11 +115,15 @@ constructor TRCResourceReader.Create;
 begin
   fExtensions:='.rc';
   fDescription:='RC script resource reader';
+  fRCDefines:= TStringList.Create;
+  fRCIncludeDirs:= TStringList.Create;
 end;
 
 destructor TRCResourceReader.Destroy;
 begin
-
+  fRCIncludeDirs.Free;
+  fRCDefines.Free;
+  inherited;
 end;
 
 initialization
