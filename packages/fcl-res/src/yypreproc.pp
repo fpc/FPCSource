@@ -7,7 +7,7 @@ type
   const
     yp_maxlevels = 16;
   var
-    Defines: TStringList;
+    Defines: TFPStringHashTable;
     skip  : array[0..yp_maxlevels-1] of boolean;
     cheadermode: boolean;
     level : longint;
@@ -27,8 +27,7 @@ var
 
 procedure typreproc.init();
 begin
-  Defines:= TStringList.Create;
-  Defines.CaseSensitive:= False;
+  Defines:= TFPStringHashTable.Create;
   level:= 0;
   cheadermode:= false;
   fillchar(skip,sizeof(skip),0);
@@ -64,12 +63,12 @@ end;
 
 function typreproc.isdefine(ident: string): boolean;
 begin
-  Result:= Defines.IndexOfName(ident) >= 0;
+  Result:= Defines.Find(ident) <> nil;
 end;
 
 function typreproc.getdefine(ident: string): string;
 begin
-  Result:= Defines.Values[ident];
+  Result:= Defines.Items[ident];
 end;
 
 function typreproc.useline(line: string): boolean;
@@ -130,10 +129,10 @@ begin
           end;
           'define': begin
             arg1:= Copy2SpaceDelTrim(w);
-            Defines.Values[arg1]:= w;
+            Defines[arg1]:= w;
           end;
           'undef': begin
-            Defines.Delete(Defines.IndexOfName(arg1));
+            Defines.Delete(w);
           end;
           'include': begin
             arg1:= yinclude.expand(w);

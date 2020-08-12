@@ -91,7 +91,7 @@ begin
     rcparser.yinclude.init();
     rcparser.yinclude.WorkDir:= aLocation;
     rcparser.ypreproc.init();
-    rcparser.ypreproc.Defines.Add('RC_INVOKED');
+    rcparser.ypreproc.Defines.Add('RC_INVOKED', '');
     rcparser.aktresources:= aResources;
     if rcparser.yyparse <> 0 then
       raise EReadError.Create('Parse Error');
