@@ -1,7 +1,6 @@
 %{
 var
   kwtmp: integer;
-  strbuf: string;
 
 const
   KeywordDefs: array [0..33] of TIdentMapEntry = (
@@ -75,18 +74,22 @@ IDENT [a-zA-Z_]([a-zA-Z0-9_])*
 <INCOMMENT>"*/"         start(0);
 <INCOMMENT>\0           return(_ILLEGAL);
 
-{D}*L?                  return(_NUMBER);
-0x{H}*L?                return(_NUMBER);
-\"                      begin start(INSTRING); strbuf:= ''; end;
-<INSTRING>\"\"          strbuf:= strbuf + '"';
-<INSTRING>\"            begin
-                          start(0);
-                          yytext:= strbuf;
-                          return(_QUOTEDSTR);
-                        end;
-<INSTRING>\\\n          ;
-<INSTRING>\n            return(_ILLEGAL);
-<INSTRING>.             strbuf:= strbuf + yytext;
+{D}+L?                  return(_NUMBER);
+0x{H}+L?                return(_NUMBER);
+L\"                               begin start(INSTRINGL); strbuf_begin(); end;
+\"                                begin start(INSTRING); strbuf_begin(); end;
+<INSTRING,INSTRINGL>\"\"          strbuf_append('"');
+<INSTRING>\"                      begin
+                                    start(0);
+                                    return(_QUOTEDSTR);
+                                  end;
+<INSTRINGL>\"                     begin
+                                    start(0);
+                                    return(_QUOTEDSTRL);
+                                  end;
+<INSTRING,INSTRINGL>\\\n          ;
+<INSTRING,INSTRINGL>\n            return(_ILLEGAL);
+<INSTRING,INSTRINGL>.             strbuf_append(yytext);
 \"StringFileInfo\"      begin yytext:= 'StringFileInfo'; return(_STR_StringFileInfo); end;
 \"VarFileInfo\"         begin yytext:= 'VarFileInfo'; return(_STR_VarFileInfo); end;
 \"Translation\"         begin yytext:= 'Translation'; return(_STR_Translation); end;

@@ -114,16 +114,146 @@ type
     long: boolean;
   end;
 
+  rcstrtype = record
+    v: PUnicodeString;
+    cp: TSystemCodePage;
+  end;
+
+function str_to_cbase(s: string): LongWord;
+begin
+  if s = '0' then
+    Exit(0);
+  if Copy(s, 1, 2) = '0x' then
+    Exit(StrToInt('$' + Copy(s, 3, Maxint)));
+  if Copy(s, 1, 1) = '0' then
+    Exit(StrToInt('&' + Copy(s, 2, Maxint)));
+  Result:= StrToInt(s);
+end;
+
 function str_to_num(s:string): rcnumtype;
 begin
   // this does not handle empty strings - should never get them from the lexer
   Result.long:= s[Length(s)] = 'L';
   if Result.long then
     setlength(s, Length(s) - 1);
-  if Copy(s, 1, 2) = '0x' then
-    Result.v:= StrToInt('$' + Copy(s, 3, Maxint))
-  else
-    Result.v:= StrToInt(s);
+  Result.v:= str_to_cbase(s);
+end;
+
+const
+  MAX_RCSTR_LEN = 4096;
+var
+  strbuf: array[0..MAX_RCSTR_LEN + 1] of char;
+  strbuflen: Integer;
+
+procedure strbuf_begin();
+begin
+  FillChar(strbuf[0], sizeof(strbuf), 0);
+  strbuflen:= 0;
+end;
+
+procedure strbuf_append(s: string);
+var
+  rem: integer;
+begin
+  rem:= MAX_RCSTR_LEN - strbuflen;
+  if Length(s) < rem then
+    rem:= Length(s);
+  Move(s[1], strbuf[strbuflen], rem);
+  inc(strbuflen, rem);
+end;
+
+procedure string_new(var str: rcstrtype; val: UnicodeString; cp: TSystemCodePage);
+begin
+  New(str.v);
+  str.v^:= val;
+  str.cp:= cp;
+end;
+
+procedure string_new_uni(var str: rcstrtype; val: PAnsiChar; len: integer; cp: TSystemCodePage; escapes: boolean);
+  function translateChar(c: AnsiChar): UnicodeChar;
+  var
+    u: UnicodeString = '';
+  begin
+    if cp = CP_UTF16 then
+      Result:= c
+    else begin
+      // TODO: there has to be a better way to translate a single codepoint
+      widestringmanager.Ansi2UnicodeMoveProc(@c, cp, u, 1);
+      Result:= u[1];
+    end;
+  end;
+
+var
+  uni: UnicodeString;
+  wc: PUnicodeChar;
+  rc, endin: PAnsiChar;
+  h: string;
+  hexlen, i: integer;
+begin
+  uni:= '';
+  if not escapes then
+    widestringmanager.Ansi2UnicodeMoveProc(val, cp, uni, len)
+  else begin
+    if cp = CP_UTF16 then
+      hexlen:= 4
+    else
+      hexlen:= 2;
+    setlength(uni, len);
+    wc:= @uni[1];
+    rc:= val;
+    endin:= @val[len];
+    while rc <= endin do begin  // val must contain the final #0!
+      // treat as null-terminated - nulls may exist *after* this proc, but not before
+      if (rc^ = '\') then begin
+        inc(rc);
+        case rc^ of
+          #0: exit {Error: End too soon};
+          '\': wc^:= '\';
+          'f': wc^:= #&14;
+          'n': wc^:= #&12;
+          'r': wc^:= #&15;
+          't': wc^:= #&11;
+          'x',
+          'X': begin
+            h:= '$';
+            for i:= 1 to hexlen do begin
+              inc(rc);
+              if rc >= endin then
+                exit {Error: End too soon};
+              h += rc^;
+            end;
+            if cp = CP_UTF16 then
+              wc^:= WideChar(StrToInt(h))
+            else
+              wc^:= translateChar(Char(StrToInt(h)));
+          end;
+          '0'..'7': begin
+            h:= '&' + rc^;
+            for i:= 2 to 3 do begin
+              inc(rc);
+              if (rc >= endin) or not (rc^ in ['0'..'7']) then begin
+                dec(rc);
+                break;
+              end;
+              h += rc^;
+            end;
+            if cp = CP_UTF16 then
+              wc^:= WideChar(StrToInt(h))
+            else
+              wc^:= translateChar(Char(StrToInt(h)));
+          end;
+        else
+          wc^:= translateChar(rc^);
+        end;
+      end else
+        wc^:= translateChar(rc^);
+      inc(wc);
+      inc(rc);
+    end;
+    i:= (PtrUInt(wc) - PtrUInt(@uni[1])) div 2; // includes final wc that was not written to
+    SetLength(uni, i - 1);
+  end;
+  string_new(str, uni, cp);
 end;
 
 function Max(a, b: LongWord): LongWord; inline;
@@ -137,7 +267,6 @@ end;
 var
   aktresource: TAbstractResource;
   language: TLangID;
-  filestream: TFileStream;
 
 procedure create_resource(aId, aType: TResourceDesc; aClass: TResourceClass);
 var
@@ -169,6 +298,30 @@ begin
   create_resource(aId, nil, cls);
 end;
 
+procedure raw_write_string(Stream: TMemoryStream; str: rcstrtype);
+var
+  i: integer;
+  u: UnicodeString;
+  r: RawByteString = '';
+begin
+  u:= str.v^;
+  if str.cp = CP_UTF16 then begin
+    for i:=1 to length(u) do
+      Stream.WriteWord(NtoLE(Word(u[i])));
+  end else begin
+    widestringmanager.Unicode2AnsiMoveProc(@u[1], r, str.cp, Length(u));
+    Stream.WriteBuffer(r[1], Length(r));
+  end;
+end;
+
+procedure raw_write_int(Stream: TMemoryStream; num: rcnumtype);
+begin
+  if num.long then
+    Stream.WriteDWord(NtoLE(num.v))
+  else
+    Stream.WriteWord(NtoLE(Word(num.v)));
+end;
+
 procedure stringtable_begin();
 begin
   // create dummy resource that we will use to capture suboptions
@@ -176,7 +329,7 @@ begin
   aktresources.Remove(aktresource);
 end;
 
-procedure stringtable_add(ident: Word; str: string);
+procedure stringtable_add(ident: Word; str: AnsiString);
 var
   table: word;
   r: TStringTableResource;
@@ -212,7 +365,7 @@ begin
   Result[3]:= d;
 end;
 
-procedure version_string_tab_begin(lcs: string);
+procedure version_string_tab_begin(lcs: AnsiString);
 var
   vst: TVersionStringTable;
 begin
@@ -220,7 +373,7 @@ begin
   TVersionResource(aktresource).StringFileInfo.Add(vst);
 end;
 
-procedure version_string_tab_add(key, value: string);
+procedure version_string_tab_add(key, value: AnsiString);
 begin
   TVersionResource(aktresource).StringFileInfo.Items[TVersionResource(aktresource).StringFileInfo.Count-1].Add(key, value);
 end;
@@ -234,12 +387,10 @@ begin
   TVersionResource(aktresource).VarFileInfo.Add(ti);
 end;
 
-var
-  yycapture: AnsiString;
 %}
 
 %token _ILLEGAL
-%token _NUMBER _QUOTEDSTR
+%token _NUMBER _QUOTEDSTR _QUOTEDSTRL
 %token _STR_StringFileInfo _STR_VarFileInfo _STR_Translation
 %token _BEGIN _END _ID
 %token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
@@ -249,7 +400,7 @@ var
 %token _ACCELERATORS _DIALOG _DIALOGEX _MENU _MENUEX
 
 %type <rcnumtype> numpos numexpr numeral
-%type <String> ident_string filename_string long_string
+%type <rcstrtype> ident_string long_string
 %type <TResourceDesc> resid rcdataid
 %type <TMemoryStream> raw_data raw_item
 %type <TFileStream> filename_string
@@ -313,13 +464,13 @@ version_blocks
 
 ver_strings_lang
     : /* empty */
-    | ver_strings_lang _BLOCK long_string _BEGIN                                              { version_string_tab_begin($3); }
+    | ver_strings_lang _BLOCK long_string _BEGIN                                              { version_string_tab_begin($3.v^); }
                                           ver_strings_data _END
     ;
 
 ver_strings_data
     : /* empty */
-    | ver_strings_data _VALUE long_string ',' long_string                                     { version_string_tab_add($3, $5); }
+    | ver_strings_data _VALUE long_string ',' long_string                                     { version_string_tab_add($3.v^, $5.v^); }
     ;
 
 ver_translation_data
@@ -345,8 +496,8 @@ stringtable_data
     ;
 
 stringtable_entry
-    : numeral ',' long_string                      { stringtable_add($1.v, $3); }
-    | numeral long_string                          { stringtable_add($1.v, $2); }
+    : numeral ',' long_string                      { stringtable_add($1.v, $3.v^); }
+    | numeral long_string                          { stringtable_add($1.v, $2.v^); }
     ;
 
 rcdataid
@@ -365,7 +516,7 @@ rcdataid
 
 resid
     : numpos                                       { $$:= TResourceDesc.Create($1.v); }
-    | ident_string                                 { $$:= TResourceDesc.Create($1); }
+    | ident_string                                 { $$:= TResourceDesc.Create($1.v^); }
     ;
 
 suboptions
@@ -413,19 +564,20 @@ numexpr
     ;
 
 ident_string
-    : _ID                                          { $$:= yytext; }
+    : _ID                                          { string_new($$, yytext, opt_code_page); }
     | long_string
     ;
 
 filename_string
-    : long_string                                   { $$:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); }
+    : long_string                                  { $$:= TFileStream.Create($1.v^, fmOpenRead or fmShareDenyWrite); }
     ;
 
 long_string
-    : _QUOTEDSTR                                   { $$:= yytext; }
-    | _STR_StringFileInfo                          { $$:= yytext; }
-    | _STR_VarFileInfo                             { $$:= yytext; }
-    | _STR_Translation                             { $$:= yytext; }
+    : _QUOTEDSTR                                   { string_new_uni($$, @strbuf[0], strbuflen, opt_code_page, true); }
+    | _QUOTEDSTRL                                  { string_new_uni($$, @strbuf[0], strbuflen, CP_UTF16, true); }
+    | _STR_StringFileInfo                          { string_new($$, yytext, opt_code_page); }
+    | _STR_VarFileInfo                             { string_new($$, yytext, opt_code_page); }
+    | _STR_Translation                             { string_new($$, yytext, opt_code_page); }
     ;
 
 raw_data
@@ -438,15 +590,12 @@ raw_item
     : long_string
       {
         $$:= $<TMemoryStream>0;
-        $$.WriteBuffer($1[1], Length($1));
+        raw_write_string($$, $1);
       }
     | numeral
       {
         $$:= $<TMemoryStream>0;
-        if $1.long then
-          $$.WriteDWord(NtoLE($1.v))
-        else
-          $$.WriteWord(NtoLE(Word($1.v)));
+        raw_write_int($$, $1);
       }
     ;
 
