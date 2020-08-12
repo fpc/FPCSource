@@ -923,7 +923,9 @@ begin
   // delphi compatible order for example: procedure foo; reintroduce; overload; static;
   if not IsImpl and AProc.IsReintroduced then
     Add(' reintroduce;');
-  if AProc.IsOverload and (Not FInImplementation) then
+  // if NamePrefix is not empty, we're writing a dummy for external class methods.
+  // In that case, we must not write the 'overload'.
+  if AProc.IsOverload and (NamePrefix='') then
     Add(' overload;');
   if not IsImpl then
     begin
