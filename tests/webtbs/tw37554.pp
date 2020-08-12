@@ -1,5 +1,3 @@
-{ %CPU=AARCH64 }
-
 program tw37554;
 
 {$mode objfpc}{$H+}
