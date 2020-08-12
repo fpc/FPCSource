@@ -3962,6 +3962,7 @@ A*2CV<x>_Set section threadvar model to <x>
 **2Fe<x>_Redirect error output to <x>
 **2FE<x>_Set exe/unit output path to <x>
 **2Ff<x>_Add <x> to framework path (Darwin only)
+**2FF_Use fpcres as RC to RES compiler instead of windres or gorc
 **2Fi<x>_Add <x> to include path
 **2Fl<x>_Add <x> to library path
 **2FL<x>_Use <x> as dynamic linker
