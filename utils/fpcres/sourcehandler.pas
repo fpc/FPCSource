@@ -83,7 +83,9 @@ var aReader : TAbstractResourceReader;
     aStream : TClosableFileStream;
     i : integer;
     tmpres : TResources;
+    olddir : String;
 begin
+  olddir:=GetCurrentDir;
   tmpres:=TResources.Create;
   try
     for i:=0 to fFileList.Count-1 do
@@ -110,11 +112,15 @@ begin
         if aReader is TRCResourceReader then begin
           TRCResourceReader(aReader).RCIncludeDirs.Assign(fRCIncludeDirs);
           TRCResourceReader(aReader).RCDefines.Assign(fRCDefines);
+          SetCurrentDir(ExtractFilePath(ExpandFileName(fFileList[i])));
         end;
         tmpres.LoadFromStream(aStream,aReader);
         aResources.MoveFrom(tmpres);
         Messages.DoVerbose('Resource information read');
       finally
+        if aReader is TRCResourceReader then begin
+          SetCurrentDir(olddir);
+        end;
         aReader.Free;
       end;
     end;
