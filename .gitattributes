@@ -3173,9 +3173,6 @@ packages/fcl-base/examples/parser.dat -text
 packages/fcl-base/examples/poolmm1.pp svneol=native#text/plain
 packages/fcl-base/examples/poolmm2.pp svneol=native#text/plain
 packages/fcl-base/examples/restest.pp svneol=native#text/plain
-packages/fcl-base/examples/showver.pp svneol=native#text/plain
-packages/fcl-base/examples/showver.rc -text
-packages/fcl-base/examples/showver.res -text
 packages/fcl-base/examples/simple.xml -text
 packages/fcl-base/examples/sitest.pp svneol=native#text/plain
 packages/fcl-base/examples/sockcli.pp svneol=native#text/plain
@@ -3237,7 +3234,6 @@ packages/fcl-base/src/csvreadwrite.pp svneol=native#text/plain
 packages/fcl-base/src/custapp.pp svneol=native#text/plain
 packages/fcl-base/src/dummy/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/eventlog.pp svneol=native#text/plain
-packages/fcl-base/src/fileinfo.pp svneol=native#text/plain
 packages/fcl-base/src/fpexprpars.pp svneol=native#text/plain
 packages/fcl-base/src/fpobserver.pp svneol=native#text/plain
 packages/fcl-base/src/fptemplate.pp svneol=native#text/plain
@@ -3590,8 +3586,12 @@ packages/fcl-extra/examples/double/daemonunit2.lfm svneol=native#text/plain
 packages/fcl-extra/examples/double/daemonunit2.pas svneol=native#text/plain
 packages/fcl-extra/examples/double/double.pp svneol=native#text/plain
 packages/fcl-extra/examples/double/resdaemonapp.pp svneol=native#text/plain
+packages/fcl-extra/examples/showver.pp svneol=native#text/pascal
+packages/fcl-extra/examples/showver.rc svneol=native#text/plain
+packages/fcl-extra/examples/showver.res -text
 packages/fcl-extra/fpmake.pp svneol=native#text/pascal
 packages/fcl-extra/src/daemonapp.pp svneol=native#text/plain
+packages/fcl-extra/src/fileinfo.pp svneol=native#text/pascal
 packages/fcl-extra/src/unix/daemonapp.inc svneol=native#text/plain
 packages/fcl-extra/src/win/ServiceManager.pas svneol=native#text/plain
 packages/fcl-extra/src/win/daemonapp.inc svneol=native#text/plain
