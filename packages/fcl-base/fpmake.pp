@@ -19,7 +19,6 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim,ios]);
-    P.Dependencies.Add('fcl-res');
     p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
