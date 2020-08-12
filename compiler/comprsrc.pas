@@ -565,4 +565,13 @@ begin
   resourcefile.free;
 end;
 
+procedure initglobals;
+begin
+  ResCompiler:='';
+  RCCompiler:='';
+  RCForceFPCRes:=false;
+end;
+
+initialization
+  register_initdone_proc(@initglobals,nil);
 end.
