@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, StrUtils, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
-  bitmapresource, versionresource, groupcursorresource;
+  bitmapresource, versionresource, versiontypes, groupcursorresource;
 
 function yyparse : Integer;
 
@@ -33,8 +33,9 @@ implementation
 
 procedure yyerror ( msg : String );
 begin
-  writeln(ErrOutput, yyfilename, '(',yylineno,':',yycolno,'): at "',yytext,'"');
-  WriteLn(ErrOutput, '  ',msg);
+  writeln(ErrOutput, yyfilename, '(',yylineno,':',yycolno,'): at "',yytext,'": ', msg);
+  WriteLn(ErrOutput, yyline);
+  WriteLn(ErrOutput, '^':yycolno);
 end(*yyerrmsg*);
 
 {$I yyinclude.pp}
@@ -117,10 +118,10 @@ function str_to_num(s:string): rcnumtype;
 begin
   // this does not handle empty strings - should never get them from the lexer
   Result.long:= s[Length(s)] = 'L';
-  if Result.Long then
+  if Result.long then
     setlength(s, Length(s) - 1);
   if Copy(s, 1, 2) = '0x' then
-    Result.v:= StrToInt('$' + Copy(s, 2, Maxint))
+    Result.v:= StrToInt('$' + Copy(s, 3, Maxint))
   else
     Result.v:= StrToInt(s);
 end;
@@ -153,6 +154,7 @@ begin
     RT_BITMAP: cls:= TBitmapResource;
     RT_ICON: cls:= TGroupIconResource;
     RT_CURSOR: cls:= TGroupCursorResource;
+    RT_VERSION: cls:= TVersionResource;
   else
     raise EResourceDescTypeException.CreateFmt('Resource type not supported: %d', [aType]);
   end;
@@ -189,10 +191,39 @@ begin
   r.Strings[ident]:= str;
 end;
 
-
 procedure stringtable_end();
 begin
   FreeAndNil(aktresource);
+end;
+
+function make_version(a, b, c, d: Word): TFileProductVersion;
+begin
+  Result[0]:= a;
+  Result[1]:= b;
+  Result[2]:= c;
+  Result[3]:= d;
+end;
+
+procedure version_string_tab_begin(lcs: string);
+var
+  vst: TVersionStringTable;
+begin
+  vst:= TVersionStringTable.Create(lcs);
+  TVersionResource(aktresource).StringFileInfo.Add(vst);
+end;
+
+procedure version_string_tab_add(key, value: string);
+begin
+  TVersionResource(aktresource).StringFileInfo.Items[TVersionResource(aktresource).StringFileInfo.Count-1].Add(key, value);
+end;
+
+procedure version_var_translation_add(langid, cpid: word);
+var
+  ti: TVerTranslationInfo;
+begin
+  ti.language:= langid;
+  ti.codepage:= cpid;
+  TVersionResource(aktresource).VarFileInfo.Add(ti);
 end;
 
 var
@@ -201,13 +232,15 @@ var
 
 %token _ILLEGAL
 %token _NUMDECIMAL _NUMHEX _QUOTEDSTR
+%token _STR_StringFileInfo _STR_VarFileInfo _STR_Translation
 %token _BEGIN _END _ID
 %token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
-%token _BITMAP _CURSOR _ICON
+%token _BITMAP _CURSOR _ICON _STRINGTABLE _VERSIONINFO
 %token _ANICURSOR _ANIICON _DLGINCLUDE _DLGINIT _HTML _MANIFEST _MESSAGETABLE _PLUGPLAY _RCDATA _VXD
-%token _ACCELERATORS _DIALOG _DIALOGEX _MENU _MENUEX _STRINGTABLE _VERSIONINFO
+%token _FILEVERSION _PRODUCTVERSION _FILEFLAGSMASK _FILEFLAGS _FILEOS _FILETYPE _FILESUBTYPE _BLOCK _VALUE
+%token _ACCELERATORS _DIALOG _DIALOGEX _MENU _MENUEX
 
-%type <rcnumtype> numpos numeral
+%type <rcnumtype> numpos numexpr numeral
 %type <String> ident_string filename_string long_string
 %type <TResourceDesc> resid rcdataid
 %type <TMemoryStream> raw_data raw_item
@@ -230,6 +263,7 @@ resourcedef
     | res_bitmap
     | res_cursor
     | res_icon
+    | res_version
     | res_rcdata
     ;
 
@@ -241,6 +275,46 @@ res_cursor
 
 res_icon
     : resid _ICON { create_resource($1, RT_ICON); } suboptions filename_string                { TGroupIconResource(aktresource).SetCustomItemDataStream($5); }
+
+res_version
+    : resid _VERSIONINFO { create_resource($1, RT_VERSION); } version_fixed _BEGIN version_blocks _END
+
+version_fixed
+    : /* empty */
+    | version_fixed _FILEVERSION numeral ',' numeral ',' numeral ',' numeral                  { TVersionResource(aktresource).FixedInfo.FileVersion:= make_version($3.v, $5.v, $7.v, $9.v); }
+    | version_fixed _PRODUCTVERSION numeral ',' numeral ',' numeral ',' numeral               { TVersionResource(aktresource).FixedInfo.ProductVersion:= make_version($3.v, $5.v, $7.v, $9.v); }
+    | version_fixed _FILEFLAGSMASK numpos                                                     { TVersionResource(aktresource).FixedInfo.FileFlagsMask:= $3.v; }
+    | version_fixed _FILEFLAGS numpos                                                         { TVersionResource(aktresource).FixedInfo.FileFlags:= $3.v; }
+    | version_fixed _FILEOS numpos                                                            { TVersionResource(aktresource).FixedInfo.FileOS:= $3.v; }
+    | version_fixed _FILETYPE numpos                                                          { TVersionResource(aktresource).FixedInfo.FileType:= $3.v; }
+    | version_fixed _FILESUBTYPE numpos                                                       { TVersionResource(aktresource).FixedInfo.FileSubType:= $3.v; }
+    ;
+
+version_blocks
+    : /* empty */
+    | version_blocks _BLOCK _STR_StringFileInfo _BEGIN ver_strings_lang _END
+    | version_blocks _BLOCK _STR_VarFileInfo _BEGIN ver_translation_data _END
+    ;
+
+ver_strings_lang
+    : /* empty */
+    | ver_strings_lang _BLOCK long_string _BEGIN                                              { version_string_tab_begin($3); }
+                                          ver_strings_data _END
+    ;
+
+ver_strings_data
+    : /* empty */
+    | ver_strings_data _VALUE long_string ',' long_string                                     { version_string_tab_add($3, $5); }
+    ;
+
+ver_translation_data
+    : _VALUE _STR_Translation ',' ver_translation_pair
+    ;
+
+ver_translation_pair
+    : numeral ',' numeral                                                                     { version_var_translation_add($1.v, $3.v); }
+    | ver_translation_pair ',' numeral ',' numeral                                            { version_var_translation_add($3.v, $5.v); }
+    ;
 
 res_rcdata
     : resid rcdataid { create_resource($1, $2); } suboptions filename_string                  { aktresource.SetCustomRawDataStream($5); }
@@ -275,7 +349,7 @@ rcdataid
     ;
 
 resid
-    : numeral                                      { $$:= TResourceDesc.Create($1.v); }
+    : numpos                                       { $$:= TResourceDesc.Create($1.v); }
     | ident_string                                 { $$:= TResourceDesc.Create($1); }
     ;
 
@@ -301,7 +375,7 @@ languagedef
     : _LANGUAGE numpos ',' numpos                  { language:= MakeLangID($2.v, $4.v); }
 
 numpos
-    : numeral
+    : numexpr
     ;
 
 numeral
@@ -309,17 +383,25 @@ numeral
     | _NUMHEX                                      { $$:= str_to_num(yytext); }
     ;
 
+numexpr
+    : numeral
+    | '(' numexpr ')'                              { $$:= $2; }
+    ;
+
 ident_string
     : _ID                                          { $$:= yytext; }
-    | _QUOTEDSTR                                   { $$:= yytext; }
+    | long_string
     ;
 
 filename_string
-    : _QUOTEDSTR                                   { $$:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); }
+    : long_string                                   { $$:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); }
     ;
 
 long_string
     : _QUOTEDSTR                                   { $$:= yytext; }
+    | _STR_StringFileInfo                          { $$:= yytext; }
+    | _STR_VarFileInfo                             { $$:= yytext; }
+    | _STR_Translation                             { $$:= yytext; }
     ;
 
 raw_data

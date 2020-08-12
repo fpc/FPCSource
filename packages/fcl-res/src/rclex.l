@@ -4,7 +4,7 @@ var
   strbuf: string;
 
 const
-  KeywordDefs: array [0..23] of TIdentMapEntry = (
+  KeywordDefs: array [0..33] of TIdentMapEntry = (
     // attribs
     (Value: _LANGUAGE;             Name: 'LANGUAGE'),
     (Value: _CHARACTERISTICS;      Name: 'CHARACTERISTICS'),
@@ -30,7 +30,18 @@ const
     (Value: _PLUGPLAY;             Name: 'PLUGPLAY'),
     (Value: _STRINGTABLE;          Name: 'STRINGTABLE'),
     (Value: _RCDATA;               Name: 'RCDATA'),
-    (Value: _VXD;                  Name: 'VXD')
+    (Value: _VERSIONINFO;          Name: 'VERSIONINFO'),
+    (Value: _VXD;                  Name: 'VXD'),
+    // file version fields names
+    (Value: _FILEVERSION;          Name: 'FILEVERSION'),
+    (Value: _PRODUCTVERSION;       Name: 'PRODUCTVERSION'),
+    (Value: _FILEFLAGSMASK;        Name: 'FILEFLAGSMASK'),
+    (Value: _FILEFLAGS;            Name: 'FILEFLAGS'),
+    (Value: _FILEOS;               Name: 'FILEOS'),
+    (Value: _FILETYPE;             Name: 'FILETYPE'),
+    (Value: _FILESUBTYPE;          Name: 'FILESUBTYPE'),
+    (Value: _BLOCK;                Name: 'BLOCK'),
+    (Value: _VALUE;                Name: 'VALUE')
   );
 
 function KeywordToInt(k: string; out kw: integer): boolean;
@@ -76,6 +87,9 @@ IDENT [a-zA-Z_]([a-zA-Z0-9_])*
 <INSTRING>\\\n          ;
 <INSTRING>\n            return(_ILLEGAL);
 <INSTRING>.             strbuf:= strbuf + yytext;
+\"StringFileInfo\"      begin yytext:= 'StringFileInfo'; return(_STR_StringFileInfo); end;
+\"VarFileInfo\"         begin yytext:= 'VarFileInfo'; return(_STR_VarFileInfo); end;
+\"Translation\"         begin yytext:= 'Translation'; return(_STR_Translation); end;
 
 BEGIN|{                 return(_BEGIN);
 END|}                   return(_END);
@@ -90,7 +104,7 @@ END|}                   return(_END);
                               return(_ID);
                          end;
 [ \t\n\f]               ;
-","                     returnc(',');
+[,()]                   returnc(yytext[1]);
 .                       return(_ILLEGAL);
 %%
 
