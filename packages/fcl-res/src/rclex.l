@@ -4,19 +4,33 @@ var
   strbuf: string;
 
 const
-  KeywordDefs: array [0..9] of TIdentMapEntry = (
-    (Value:        _LANGUAGE; Name: 'LANGUAGE'),
-    (Value: _CHARACTERISTICS; Name: 'CHARACTERISTICS'),
-    (Value:         _VERSION; Name: 'VERSION'),
-    (Value:        _MOVEABLE; Name: 'MOVEABLE'),
-    (Value:           _FIXED; Name: 'FIXED'),
-    (Value:            _PURE; Name: 'PURE'),
-    (Value:          _IMPURE; Name: 'IMPURE'),
-    (Value:         _PRELOAD; Name: 'PRELOAD'),
-    (Value:      _LOADONCALL; Name: 'LOADONCALL'),
-    (Value:     _DISCARDABLE; Name: 'DISCARDABLE')
+  KeywordDefs: array [0..22] of TIdentMapEntry = (
+    // attribs
+    (Value: _LANGUAGE;             Name: 'LANGUAGE'),
+    (Value: _CHARACTERISTICS;      Name: 'CHARACTERISTICS'),
+    (Value: _VERSION;              Name: 'VERSION'),
+    (Value: _MOVEABLE;             Name: 'MOVEABLE'),
+    (Value: _FIXED;                Name: 'FIXED'),
+    (Value: _PURE;                 Name: 'PURE'),
+    (Value: _IMPURE;               Name: 'IMPURE'),
+    (Value: _PRELOAD;              Name: 'PRELOAD'),
+    (Value: _LOADONCALL;           Name: 'LOADONCALL'),
+    (Value: _DISCARDABLE;          Name: 'DISCARDABLE'),
+    // resource names
+    (Value: _ANICURSOR;            Name: 'ANICURSOR'),
+    (Value: _ANIICON;              Name: 'ANIICON'),
+    (Value: _BITMAP;               Name: 'BITMAP'),
+    (Value: _CURSOR;               Name: 'CURSOR'),
+    (Value: _DLGINCLUDE;           Name: 'DLGINCLUDE'),
+    (Value: _DLGINIT;              Name: 'DLGINIT'),
+    (Value: _HTML;                 Name: 'HTML'),
+    (Value: _ICON;                 Name: 'ICON'),
+    (Value: _MANIFEST;             Name: 'MANIFEST'),
+    (Value: _MESSAGETABLE;         Name: 'MESSAGETABLE'),
+    (Value: _PLUGPLAY;             Name: 'PLUGPLAY'),
+    (Value: _RCDATA;               Name: 'RCDATA'),
+    (Value: _VXD;                  Name: 'VXD')
   );
-
 
 function KeywordToInt(k: string; out kw: integer): boolean;
 var

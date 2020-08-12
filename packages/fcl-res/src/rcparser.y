@@ -10,7 +10,9 @@ unit rcparser;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, lexlib, yacclib, resource;
+  SysUtils, Classes, StrUtils, lexlib, yacclib, resource,
+  acceleratorsresource, groupiconresource, stringtableresource,
+  bitmapresource, versionresource, groupcursorresource;
 
 function yyparse : Integer;
 
@@ -120,7 +122,7 @@ procedure create_resource(aId, aType: TResourceDesc; aClass: TResourceClass);
 var
   r: TAbstractResource;
 begin
-  r:= aClass.Create(aId, aType);
+  r:= aClass.Create(aType, aId);
   r.LangID:= language;
   aktresources.Add(r);
   aktresource:= r;
@@ -131,12 +133,18 @@ begin
   create_resource(aId, aType, TGenericResource);
 end;
 
-procedure assign_custom_stream(fn: string);
+procedure create_resource(aId: TResourceDesc; aType: Word); overload;
 var
-  fs: TFileStream;
+  cls: TResourceClass;
 begin
-  fs:= TFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
-  aktresource.SetCustomRawDataStream(fs);
+  case aType of
+    RT_BITMAP: cls:= TBitmapResource;
+    RT_ICON: cls:= TGroupIconResource;
+    RT_CURSOR: cls:= TGroupCursorResource;
+  else
+    raise EResourceDescTypeException.CreateFmt('Resource type not supported: %d', [aType]);
+  end;
+  create_resource(aId, nil, cls);
 end;
 
 
@@ -146,15 +154,17 @@ var
 
 %token _ILLEGAL
 %token _NUMDECIMAL _NUMHEX _NUMDECIMALL _NUMHEXL _QUOTEDSTR
-%token _BEGIN _END
+%token _BEGIN _END _ID
 %token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
-
-%token _ID
+%token _BITMAP _CURSOR _ICON
+%token _ANICURSOR _ANIICON _DLGINCLUDE _DLGINIT _HTML _MANIFEST _MESSAGETABLE _PLUGPLAY _RCDATA _VXD
+%token _ACCELERATORS _DIALOG _DIALOGEX _MENU _MENUEX _STRINGTABLE _VERSIONINFO
 
 %type <rcnumtype> numpos numeral
 %type <String> ident_string filename_string long_string
-%type <TResourceDesc> resid
+%type <TResourceDesc> resid rcdataid
 %type <TMemoryStream> raw_data raw_item
+%type <TFileStream> filename_string
 
 %%
 
@@ -169,14 +179,39 @@ defnstatement
     ;
 
 resourcedef
-    : res_user
+    : res_bitmap
+    | res_cursor
+    | res_icon
+    | res_rcdata
     ;
 
-res_user
-    : resid resid { create_resource($1, $2); } suboptions filename_string                  { assign_custom_stream($5); }
-    | resid resid { create_resource($1, $2); } suboptions _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($6); }
+res_bitmap
+    : resid _BITMAP { create_resource($1, RT_BITMAP); } suboptions filename_string            { TBitmapResource(aktresource).SetCustomBitmapDataStream($5); }
+
+res_cursor
+    : resid _CURSOR { create_resource($1, RT_CURSOR); } suboptions filename_string            { TGroupCursorResource(aktresource).SetCustomItemDataStream($5); }
+
+res_icon
+    : resid _ICON { create_resource($1, RT_ICON); } suboptions filename_string                { TGroupIconResource(aktresource).SetCustomItemDataStream($5); }
+
+res_rcdata
+    : resid rcdataid { create_resource($1, $2); } suboptions filename_string                  { aktresource.SetCustomRawDataStream($5); }
+    | resid rcdataid { create_resource($1, $2); } suboptions _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($6); }
     ;
 
+rcdataid
+    : _ANICURSOR                                   { $$:= TResourceDesc.Create(RT_ANICURSOR); }
+    | _ANIICON                                     { $$:= TResourceDesc.Create(RT_ANIICON); }
+    | _DLGINCLUDE                                  { $$:= TResourceDesc.Create(RT_DLGINCLUDE); }
+    | _DLGINIT                                     { $$:= TResourceDesc.Create(RT_DLGINIT); }
+    | _HTML                                        { $$:= TResourceDesc.Create(23); }
+    | _MANIFEST                                    { $$:= TResourceDesc.Create(RT_MANIFEST); }
+    | _MESSAGETABLE                                { $$:= TResourceDesc.Create(RT_MESSAGETABLE); }
+    | _PLUGPLAY                                    { $$:= TResourceDesc.Create(RT_PLUGPLAY); }
+    | _RCDATA                                      { $$:= TResourceDesc.Create(RT_RCDATA); }
+    | _VXD                                         { $$:= TResourceDesc.Create(RT_VXD); }
+    | resid
+    ;
 
 resid
     : numeral                                      { $$:= TResourceDesc.Create($1.v); }
@@ -184,8 +219,12 @@ resid
     ;
 
 suboptions
-    : suboptions suboptions
-    | _LANGUAGE numpos ',' numpos                  { aktresource.LangID:= MakeLangID($2.v, $4.v); }
+    : /* empty */
+    | suboptions suboption
+    ;
+
+suboption
+    : _LANGUAGE numpos ',' numpos                  { aktresource.LangID:= MakeLangID($2.v, $4.v); }
     | _CHARACTERISTICS numpos                      { aktresource.Characteristics:= $2.v; }
     | _VERSION numpos                              { aktresource.Version:= $2.v; }
     | _MOVEABLE                                    { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; }
@@ -195,7 +234,6 @@ suboptions
     | _PRELOAD                                     { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD; }
     | _LOADONCALL                                  { aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD; }
     | _DISCARDABLE                                 { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE; }
-    | /* empty */
     ;
 
 languagedef
@@ -218,7 +256,7 @@ ident_string
     ;
 
 filename_string
-    : _QUOTEDSTR                                   { $$:= yytext; }
+    : _QUOTEDSTR                                   { $$:= TFileStream.Create(yytext, fmOpenRead or fmShareDenyWrite); }
     ;
 
 long_string
