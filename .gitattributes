@@ -4124,6 +4124,7 @@ packages/fcl-res/src/rclex.inc svneol=native#text/plain
 packages/fcl-res/src/rclex.l svneol=native#text/plain
 packages/fcl-res/src/rcparser.pas svneol=native#text/pascal
 packages/fcl-res/src/rcparser.y svneol=native#text/plain
+packages/fcl-res/src/rcparserfn.inc svneol=native#text/plain
 packages/fcl-res/src/rcreader.pp svneol=native#text/pascal
 packages/fcl-res/src/resdatastream.pp svneol=native#text/plain
 packages/fcl-res/src/resfactory.pp svneol=native#text/plain
