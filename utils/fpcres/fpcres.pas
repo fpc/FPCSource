@@ -23,12 +23,11 @@ uses
   closablefilestream, resource,
 //readers
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
-  externalreader, dfmreader, tlbreader,
+  externalreader, dfmreader, tlbreader, rcreader,
 //writers
   reswriter, coffwriter, xcoffwriter, elfwriter, machowriter, externalwriter,
 //misc
-  elfconsts, cofftypes, machotypes, externaltypes
-  ;
+  elfconsts, cofftypes, machotypes, externaltypes;
   
 const
   halt_no_err = 0;
