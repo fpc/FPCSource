@@ -9081,6 +9081,10 @@ packages/tosunits/src/aes.pas svneol=native#text/plain
 packages/tosunits/src/gemdos.pas svneol=native#text/plain
 packages/tosunits/src/vdi.pas svneol=native#text/plain
 packages/tosunits/src/xbios.pas svneol=native#text/plain
+packages/tplylib/Makefile.fpc svneol=native#text/plain
+packages/tplylib/fpmake.pp svneol=native#text/pascal
+packages/tplylib/src/lexlib.pas svneol=native#text/pascal
+packages/tplylib/src/yacclib.pas svneol=native#text/pascal
 packages/univint/Makefile svneol=native#text/plain
 packages/univint/Makefile.fpc svneol=native#text/plain
 packages/univint/Makefile.fpc.fpcmake svneol=native#text/plain
@@ -19503,7 +19507,6 @@ utils/tply/README.txt svneol=native#text/plain
 utils/tply/fpmake.pp svneol=native#text/plain
 utils/tply/lexbase.pas svneol=native#text/plain
 utils/tply/lexdfa.pas svneol=native#text/plain
-utils/tply/lexlib.pas svneol=native#text/plain
 utils/tply/lexlist.pas svneol=native#text/plain
 utils/tply/lexmsgs.pas svneol=native#text/plain
 utils/tply/lexopt.pas svneol=native#text/plain
@@ -19517,7 +19520,6 @@ utils/tply/tply.doc -text
 utils/tply/tply.tex -text
 utils/tply/yaccbase.pas svneol=native#text/plain
 utils/tply/yaccclos.pas svneol=native#text/plain
-utils/tply/yacclib.pas svneol=native#text/plain
 utils/tply/yacclook.pas svneol=native#text/plain
 utils/tply/yacclr0.pas svneol=native#text/plain
 utils/tply/yaccmsgs.pas svneol=native#text/plain
