@@ -580,102 +580,165 @@ implementation
 
     procedure tcgaarch64.a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg : tregister);
       var
-        preva: tcgint;
         opc: tasmop;
-        shift,maxshift: byte;
+        shift: byte;
         so: tshifterop;
-        reginited: boolean;
-        mask: tcgint;
+        reginited,doinverted: boolean;
+        manipulated_a: tcgint;
+        leftover_a: word;
       begin
-        { if we load a value into a 32 bit register, it is automatically
-          zero-extended to 64 bit }
-        if (hi(a)=0) and
-           (size in [OS_64,OS_S64]) then
-          begin
-            size:=OS_32;
-            reg:=makeregsize(reg,size);
-          end;
-        { values <= 32 bit are stored in a 32 bit register }
-        if not(size in [OS_64,OS_S64]) then
-          a:=cardinal(a);
-
-        if size in [OS_64,OS_S64] then
-          begin
-            mask:=-1;
-            maxshift:=64;
-          end
-        else
-          begin
-            mask:=$ffffffff;
-            maxshift:=32;
-          end;
-        { single movn enough? (to be extended) }
-        shift:=16;
-        preva:=a;
-        repeat
-          if (a shr shift)=(mask shr shift) then
+        case a of
+          { Small positive number }
+          $0..$FFFF:
             begin
-              if shift=16 then
-                list.concat(taicpu.op_reg_const(A_MOVN,reg,not(word(preva))))
+              list.concat(taicpu.op_reg_const(A_MOVZ, reg, a));
+              Exit;
+            end;
+          { Small negative number }
+          -65536..-1:
+            begin
+              list.concat(taicpu.op_reg_const(A_MOVN, reg, Word(not a)));
+              Exit;
+            end;
+          { Can be represented as a negative number more compactly }
+          $FFFF0000..$FFFFFFFF:
+            begin
+              { if we load a value into a 32 bit register, it is automatically
+                zero-extended to 64 bit }
+              list.concat(taicpu.op_reg_const(A_MOVN, makeregsize(reg,OS_32), Word(not a)));
+              Exit;
+            end;
+          else
+            begin
+
+              if size in [OS_64,OS_S64] then
+                begin
+                  { Check to see if a is a valid shifter constant that can be encoded in ORR as is }
+                  if is_shifter_const(a,size) then
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ORR,reg,makeregsize(NR_XZR,size),a));
+                      Exit;
+                    end;
+
+                  { This determines whether this write can be peformed with an ORR followed by MOVK
+                    by copying the 2nd word to the 4th word for the ORR constant, then overwriting
+                    the 4th word (unless the word is.  The alternative would require 3 instructions }
+                  leftover_a := word(a shr 48);
+                  manipulated_a := (a and $0000FFFFFFFFFFFF);
+
+                  if manipulated_a = $0000FFFFFFFFFFFF then
+                    begin
+                      { This is even better, as we can just use a single MOVN on the last word }
+                      shifterop_reset(so);
+                      so.shiftmode := SM_LSL;
+                      so.shiftimm := 48;
+                      list.concat(taicpu.op_reg_const_shifterop(A_MOVN, reg, word(not leftover_a), so));
+                      Exit;
+                    end;
+
+                  manipulated_a := manipulated_a or (((a shr 16) and $FFFF) shl 48);
+                  { if manipulated_a = a, don't check, because is_shifter_const was already
+                    called for a and it returned False.  Reduces processing time. [Kit] }
+                  if (manipulated_a <> a) and is_shifter_const(manipulated_a, size) then
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ORR, reg, makeregsize(NR_XZR, size), manipulated_a));
+                      if (leftover_a <> 0) then
+                        begin
+                          shifterop_reset(so);
+                          so.shiftmode := SM_LSL;
+                          so.shiftimm := 48;
+                          list.concat(taicpu.op_reg_const_shifterop(A_MOVK, reg, leftover_a, so));
+                        end;
+                      Exit;
+                    end;
+
+                  case a of
+                    { If a is in the given negative range, it can be stored
+                      more efficiently if it is inverted.  }
+                    TCgInt($FFFF000000000000)..-65537:
+                      begin
+                        { NOTE: This excluded range can be more efficiently
+                          stored as the first 16 bits followed by a shifter constant }
+                        case a of
+                          TCgInt($FFFF0000FFFF0000)..TCgInt($FFFF0000FFFFFFFF):
+                            doinverted := False
+                          else
+                            begin
+                              doinverted := True;
+                              a := not a;
+                            end;
+                        end;
+                      end;
+
+                    else
+                      doinverted := False;
+                  end;
+                end
+              else
+                begin
+                  a:=cardinal(a);
+                  doinverted:=False;
+                end;
+            end;
+        end;
+
+        reginited:=false;
+        shift:=0;
+
+        if doinverted then
+          opc:=A_MOVN
+        else
+          opc:=A_MOVZ;
+
+        repeat
+          { leftover is shifterconst? (don't check if we can represent it just
+            as effectively with movz/movk, as this check is expensive) }
+          if (word(a)<>0) then
+            begin
+
+              if not doinverted and
+                ((shift<tcgsize2size[size]*(8 div 2)) and
+                  ((a shr 16)<>0)) and
+                 is_shifter_const(a shl shift,size) then
+                begin
+                  if reginited then
+                    list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,a shl shift))
+                  else
+                    list.concat(taicpu.op_reg_reg_const(A_ORR,reg,makeregsize(NR_XZR,size),a shl shift));
+
+                  exit;
+                end;
+
+              { set all 16 bit parts <> 0 }
+              if shift=0 then
+                begin
+                  list.concat(taicpu.op_reg_const(opc,reg,word(a)));
+                  reginited:=true;
+                end
               else
                 begin
                   shifterop_reset(so);
                   so.shiftmode:=SM_LSL;
-                  so.shiftimm:=shift-16;
-                  list.concat(taicpu.op_reg_const_shifterop(A_MOVN,reg,not(word(preva)),so));
+                  so.shiftimm:=shift;
+                  if not reginited then
+                    begin
+                      list.concat(taicpu.op_reg_const_shifterop(opc,reg,word(a),so));
+                      reginited:=true;
+                    end
+                  else
+                    begin
+                      if doinverted then
+                        list.concat(taicpu.op_reg_const_shifterop(A_MOVK,reg,word(not a),so))
+                      else
+                        list.concat(taicpu.op_reg_const_shifterop(A_MOVK,reg,word(a),so));
+                    end;
                 end;
-              exit;
             end;
-          { only try the next 16 bits if the current one is all 1 bits, since
-            the movn will set all lower bits to 1 }
-          if word(a shr (shift-16))<>$ffff then
-            break;
+
+          a:=a shr 16;
           inc(shift,16);
-        until shift=maxshift;
-        reginited:=false;
-        shift:=0;
-        { can be optimized later to use more movn }
-        repeat
-          { leftover is shifterconst? (don't check if we can represent it just
-            as effectively with movz/movk, as this check is expensive) }
-          if ((shift<tcgsize2size[size]*(8 div 2)) and
-              (word(a)<>0) and
-              ((a shr 16)<>0)) and
-             is_shifter_const(a shl shift,size) then
-            begin
-              if reginited then
-                list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,a shl shift))
-              else
-                list.concat(taicpu.op_reg_reg_const(A_ORR,reg,makeregsize(NR_XZR,size),a shl shift));
-              exit;
-            end;
-          { set all 16 bit parts <> 0 }
-          if (word(a)<>0) or
-             ((shift=0) and
-              (a=0)) then
-            if shift=0 then
-              begin
-                list.concat(taicpu.op_reg_const(A_MOVZ,reg,word(a)));
-                reginited:=true;
-              end
-            else
-              begin
-                shifterop_reset(so);
-                so.shiftmode:=SM_LSL;
-                so.shiftimm:=shift;
-                if not reginited then
-                  begin
-                    opc:=A_MOVZ;
-                    reginited:=true;
-                  end
-                else
-                  opc:=A_MOVK;
-                list.concat(taicpu.op_reg_const_shifterop(opc,reg,word(a),so));
-              end;
-            preva:=a;
-            a:=a shr 16;
-           inc(shift,16);
-        until word(preva)=preva;
+        until a = 0;
+
         if not reginited then
           internalerror(2014102702);
       end;
