@@ -127,6 +127,7 @@ begin
 end;
 
 initialization
-  TResources.RegisterReader('.rc',TRCResourceReader);
+  { don't register automatically, as this is essentially a "catch all" }
+  //TResources.RegisterReader('.rc',TRCResourceReader);
 
 end.

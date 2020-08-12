@@ -218,6 +218,7 @@ begin
   sourcefiles.FileList.AddStrings(params.InputFiles);
   sourcefiles.RCDefines.AddStrings(params.RCDefines);
   sourcefiles.RCIncludeDirs.AddStrings(params.RCIncludeDirs);
+  sourcefiles.RCMode:=CurrentTarget.objformat=ofRes;
   try
     sourcefiles.Load(resources);
   except

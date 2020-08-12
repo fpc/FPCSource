@@ -39,6 +39,7 @@ type
     fRCIncludeDirs: TStringList;
     fRCDefines: TStringList;
     fStreamList : TFPList;
+    fRCMode: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -46,6 +47,7 @@ type
     property FileList : TStringList read fFileList;
     property RCIncludeDirs: TStringList read fRCIncludeDirs;
     property RCDefines: TStringList read fRCDefines;
+    property RCMode: Boolean read fRCMode write fRCMode;
   end;
   
 implementation
@@ -61,6 +63,7 @@ begin
   fStreamList:=TFPList.Create;
   fRCDefines:= TStringList.Create;
   fRCIncludeDirs:= TStringList.Create;
+  fRCMode:=False;
 end;
 
 destructor TSourceFiles.Destroy;
@@ -92,11 +95,15 @@ begin
         raise ECantOpenFileException.Create(fFileList[i]);
       end;
       fStreamList.Add(aStream);
-      try
-        aReader:=TResources.FindReader(aStream);
-      except
-        raise EUnknownInputFormatException.Create(fFileList[i]);
-      end;
+      { the RC reader reads anything, so handle that separately }
+      if fRCMode then
+        aReader:=TRCResourceReader.Create
+      else
+        try
+          aReader:=TResources.FindReader(aStream);
+        except
+          raise EUnknownInputFormatException.Create(fFileList[i]);
+        end;
       Messages.DoVerbose(Format('Chosen reader: %s',[aReader.Description]));
       try
         Messages.DoVerbose('Reading resource information...');
