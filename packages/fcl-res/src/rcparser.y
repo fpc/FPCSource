@@ -147,7 +147,8 @@ var
 %token _ILLEGAL
 %token _NUMDECIMAL _NUMHEX _NUMDECIMALL _NUMHEXL _QUOTEDSTR
 %token _BEGIN _END
-%token _LANGUAGE _VERSION
+%token _LANGUAGE _CHARACTERISTICS _VERSION _MOVEABLE _FIXED _PURE _IMPURE _PRELOAD _LOADONCALL _DISCARDABLE
+
 %token _ID
 
 %type <rcnumtype> numpos numeral
@@ -172,14 +173,29 @@ resourcedef
     ;
 
 res_user
-    : resid resid { create_resource($1, $2); } filename_string                  { assign_custom_stream($4); }
-    | resid resid { create_resource($1, $2); } _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($5); }
+    : resid resid { create_resource($1, $2); } suboptions filename_string                  { assign_custom_stream($5); }
+    | resid resid { create_resource($1, $2); } suboptions _BEGIN raw_data _END             { aktresource.SetCustomRawDataStream($6); }
     ;
 
 
 resid
     : numeral                                      { $$:= TResourceDesc.Create($1.v); }
     | ident_string                                 { $$:= TResourceDesc.Create($1); }
+    ;
+
+suboptions
+    : suboptions suboptions
+    | _LANGUAGE numpos ',' numpos                  { aktresource.LangID:= MakeLangID($2.v, $4.v); }
+    | _CHARACTERISTICS numpos                      { aktresource.Characteristics:= $2.v; }
+    | _VERSION numpos                              { aktresource.Version:= $2.v; }
+    | _MOVEABLE                                    { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; }
+    | _FIXED                                       { aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_MOVEABLE; }
+    | _PURE                                        { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PURE; }
+    | _IMPURE                                      { aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PURE; }
+    | _PRELOAD                                     { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_PRELOAD; }
+    | _LOADONCALL                                  { aktresource.MemoryFlags:= aktresource.MemoryFlags and not MF_PRELOAD; }
+    | _DISCARDABLE                                 { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_DISCARDABLE; }
+    | /* empty */
     ;
 
 languagedef

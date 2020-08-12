@@ -7,9 +7,19 @@ var
   strbuf: string;
 
 const
-  KeywordDefs: array [0..0] of TIdentMapEntry = (
-    (Value: _LANGUAGE; Name: 'LANGUAGE')
+  KeywordDefs: array [0..9] of TIdentMapEntry = (
+    (Value:        _LANGUAGE; Name: 'LANGUAGE'),
+    (Value: _CHARACTERISTICS; Name: 'CHARACTERISTICS'),
+    (Value:         _VERSION; Name: 'VERSION'),
+    (Value:        _MOVEABLE; Name: 'MOVEABLE'),
+    (Value:           _FIXED; Name: 'FIXED'),
+    (Value:            _PURE; Name: 'PURE'),
+    (Value:          _IMPURE; Name: 'IMPURE'),
+    (Value:         _PRELOAD; Name: 'PRELOAD'),
+    (Value:      _LOADONCALL; Name: 'LOADONCALL'),
+    (Value:     _DISCARDABLE; Name: 'DISCARDABLE')
   );
+
 
 function KeywordToInt(k: string; out kw: integer): boolean;
 var
