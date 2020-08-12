@@ -145,7 +145,7 @@ suboptions
     ;
 
 suboption
-    : _LANGUAGE numpos ',' numpos                  { aktresource.LangID:= MakeLangID($2.v, $4.v); }
+    : _LANGUAGE numpos ',' numpos                  { change_lang_id(MakeLangID($2.v, $4.v)); }
     | _CHARACTERISTICS numpos                      { aktresource.Characteristics:= $2.v; }
     | _VERSION numpos                              { aktresource.Version:= $2.v; }
     | _MOVEABLE                                    { aktresource.MemoryFlags:= aktresource.MemoryFlags or MF_MOVEABLE; }

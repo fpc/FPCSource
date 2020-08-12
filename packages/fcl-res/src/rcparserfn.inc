@@ -295,6 +295,14 @@ begin
   create_resource(aId, nil, cls);
 end;
 
+procedure change_lang_id(newlang: TLangID);
+begin
+  // cannot change a language id while it is contained in a list, so remove and re-add
+  aktresources.Remove(aktresource);
+  aktresource.LangID:= newlang;
+  aktresources.Add(aktresource);
+end;
+
 procedure raw_write_string(Stream: TMemoryStream; str: rcstrtype);
 var
   i: integer;

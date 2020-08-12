@@ -266,7 +266,7 @@ begin
          yyval := yyv[yysp-1];
        end;
   63 : begin
-         aktresource.LangID:= MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v); 
+         change_lang_id(MakeLangID(yyv[yysp-2].yyrcnumtype.v, yyv[yysp-0].yyrcnumtype.v)); 
        end;
   64 : begin
          aktresource.Characteristics:= yyv[yysp-0].yyrcnumtype.v; 
