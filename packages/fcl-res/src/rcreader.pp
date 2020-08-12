@@ -86,7 +86,7 @@ begin
   Reset(lexlib.yyinput);
   try
     rcparser.yyfilename:= '#MAIN.RC';
-    rcparser.PragmaCodePage('DEFAULT');
+    rcparser.SetDefaults;
     SetTextCodePage(lexlib.yyinput, rcparser.opt_code_page);
     rcparser.yinclude.init();
     rcparser.yinclude.WorkDir:= aLocation;

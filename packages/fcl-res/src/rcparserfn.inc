@@ -17,6 +17,7 @@ var
   yyfilename: AnsiString;
   yyparseresult: YYSType;
 
+procedure SetDefaults;
 procedure PragmaCodePage(cp: string);
 
 {$DEFINE INC_HEADER}
@@ -199,8 +200,7 @@ begin
     wc:= @uni[1];
     rc:= val;
     endin:= @val[len];
-    while rc <= endin do begin  // val must contain the final #0!
-      // treat as null-terminated - nulls may exist *after* this proc, but not before
+    while rc < endin do begin
       if (rc^ = '\') then begin
         inc(rc);
         case rc^ of
@@ -247,8 +247,8 @@ begin
       inc(wc);
       inc(rc);
     end;
-    i:= (PtrUInt(wc) - PtrUInt(@uni[1])) div 2; // includes final wc that was not written to
-    SetLength(uni, i - 1);
+    i:= (PtrUInt(wc) - PtrUInt(@uni[1])) div SizeOf(WideChar);
+    SetLength(uni, i);
   end;
   string_new(str, uni, cp);
 end;
@@ -382,6 +382,12 @@ begin
   ti.language:= langid;
   ti.codepage:= cpid;
   TVersionResource(aktresource).VarFileInfo.Add(ti);
+end;
+
+procedure SetDefaults;
+begin
+  language:= $0409;                    // MS RC starts up as en-US
+  PragmaCodePage('DEFAULT');
 end;
 
 

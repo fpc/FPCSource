@@ -207,7 +207,11 @@ raw_data
     ;
 
 raw_item
-    : long_string
+    : /* empty */
+      {
+        $$:= $<TMemoryStream>0;
+      }
+    | long_string
       {
         $$:= $<TMemoryStream>0;
         raw_write_string($$, $1);
