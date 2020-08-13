@@ -60,6 +60,7 @@ interface
           procedure reorder_parameters;
           procedure freeparas;
           function is_parentfp_pushed:boolean;
+          function generate_asm_inline:boolean;
        protected
           retloc: tcgpara;
           paralocs: array of pcgpara;
@@ -127,6 +128,8 @@ interface
 implementation
 
     uses
+      aasmtai,nbas,
+      cclasses,
       systems,
       verbose,globals,
       symconst,symtable,symtype,symsym,defutil,paramgr,
@@ -134,7 +137,7 @@ implementation
       nld,ncnv,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
-      procinfo,
+      procinfo,psub,
       wpobase;
 
 
@@ -943,6 +946,75 @@ implementation
           not can_skip_para_push(tparavarsym(tprocdef(procdefinition).parentfpsym));
       end;
 
+    function tcgcallnode.generate_asm_inline: boolean;
+      var
+//        hp : tlinkedlistitem;
+        old_current_procinfo,asm_procinfo : tprocinfo;
+        old_temp_gen: ttgobj;
+        oldasmlist: TAsmList;
+        headertai:tai;
+      begin
+//        result:=(cnf_do_inline in callnodeflags);
+        result:=asminlineblock<>nil;
+        if not result then
+          exit;
+
+//        current_asmdata.CurrAsmList.concatList(tasmnode(asminlineblock).p_asm);
+        include(current_procinfo.procdef.procoptions,po_inline);
+        asminlineblock.pass_generate_code;
+        exclude(current_procinfo.procdef.procoptions,po_inline);
+
+        asminlineblock.free;
+        asminlineblock:=nil;
+
+        exit;
+//        hp:=current_asmdata.CurrAsmList.Last;
+//        asminlineblock.pass_generate_code;
+
+        old_current_procinfo:=current_procinfo;
+        asm_procinfo:=cprocinfo.create(nil);
+        asm_procinfo.procdef:=tprocdef(procdefinition);
+        asm_procinfo.flags:=asm_procinfo.procdef.inlininginfo^.flags;
+        old_temp_gen:=tg;
+        tg:=nil;
+//        oldasmlist:=current_asmdata.CurrAsmList;
+//        current_asmdata.CurrAsmList:=tasmlist.create;
+
+//        tcgprocinfo(current_procinfo).code:=asminlineblock;
+//        tcgprocinfo(current_procinfo).generate_code;
+
+        current_procinfo.generate_parameter_info;
+        hlcg.g_proc_entry(current_asmdata.CurrAsmList,current_procinfo.calc_stackframe_size,po_nostackframe in procdefinition.procoptions);
+        asminlineblock.pass_generate_code;
+        gen_proc_exit_code(current_asmdata.CurrAsmList);
+
+
+//        oldasmlist.concatList(current_asmdata.CurrAsmList);
+//        current_asmdata.CurrAsmList.Free;
+//        current_asmdata.CurrAsmList:=oldasmlist;
+        tg:=old_temp_gen;
+        //current_asmdata:=
+
+{
+//        old_procoptions:=temp_procinfo.procdef.procoptions;
+//                          include(temp_procinfo.procdef.procoptions,po_noreturn);
+
+        current_procinfo:=asm_procinfo;
+        current_procinfo.generate_parameter_info;
+        gen_proc_entry_code(current_asmdata.CurrAsmList);
+//        hlcg.g_proc_entry(current_asmdata.CurrAsmList,0,po_nostackframe in procdefinition.procoptions);
+        asminlineblock.pass_generate_code;
+//        hlcg.g_proc_exit(current_asmdata.CurrAsmList,0,po_nostackframe in procdefinition.procoptions);
+        gen_proc_exit_code(current_asmdata.CurrAsmList);
+
+}
+        current_procinfo:=old_current_procinfo;
+//        temp_procinfo.procdef.procoptions:=old_procoptions;
+
+        asm_procinfo.free;
+
+      end;
+
 
     procedure tcgcallnode.pass_generate_code;
       var
@@ -1142,17 +1214,24 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       retloc.resetiftemp;
-                      if (name_to_call='') then
-                        name_to_call:=tprocdef(procdefinition).mangledname;
-                      if cnf_inherited in callnodeflags then
-                        retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
-                      { under certain conditions, a static call (i.e. without PIC) can be generated }
-                      else if ((procdefinition.owner=current_procinfo.procdef.owner) or
-                         (procdefinition.owner.symtabletype in [localsymtable,staticsymtable])
-                        ) and ((procdefinition.procoptions*[po_weakexternal,po_external])=[]) then
-                        retloc:=hlcg.a_call_name_static(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
+                      if generate_asm_inline then
+                        begin
+                          retloc:=hlcg.get_call_result_cgpara(tprocdef(procdefinition),typedef);
+                        end
                       else
-                        retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
+                      begin
+                        if (name_to_call='') then
+                          name_to_call:=tprocdef(procdefinition).mangledname;
+                        if cnf_inherited in callnodeflags then
+                          retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
+                        { under certain conditions, a static call (i.e. without PIC) can be generated }
+                        else if ((procdefinition.owner=current_procinfo.procdef.owner) or
+                           (procdefinition.owner.symtabletype in [localsymtable,staticsymtable])
+                          ) and ((procdefinition.procoptions*[po_weakexternal,po_external])=[]) then
+                          retloc:=hlcg.a_call_name_static(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
+                        else
+                          retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
+                      end;
                       extra_post_call_code;
                     end;
                end;

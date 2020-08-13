@@ -153,6 +153,8 @@ interface
           callinitblock,
           callcleanupblock : tblocknode;
 
+          asminlineblock : tnode;
+
           { function return node for initialized types or supplied return variable.
             When the result is passed in a parameter then it is set to nil }
           funcretnode    : tnode;
@@ -4492,7 +4494,17 @@ implementation
 
            { Continue with checking a normal call or generate the inlined code }
            if cnf_do_inline in callnodeflags then
-             result:=pass1_inline
+             begin
+               if po_assembler in procdefinition.procoptions then
+                 begin
+                   mark_unregable_parameters;
+                   asminlineblock:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
+//                   asminlineblock:=tblocknode(pass1_inline);
+                   result:=pass1_normal;
+                 end
+               else
+                 result:=pass1_inline
+             end
            else
              begin
                if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) and
@@ -5144,13 +5156,17 @@ implementation
           addstatement(inlineinitstatement,callinitblock.getcopy);
 
         { replace complex parameters with temps }
-        createinlineparas;
+        if not (po_assembler in procdefinition.procoptions) then
+          createinlineparas;
 
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
-        foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
-        foreachnodestatic(pm_postprocess,body,@importglobalsyms,nil);
-        foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
+        if not (po_assembler in procdefinition.procoptions) then
+          begin
+            foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
+            foreachnodestatic(pm_postprocess,body,@importglobalsyms,nil);
+            foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
+          end;
 
         { Concat the body and finalization parts }
         addstatement(inlineinitstatement,body);
