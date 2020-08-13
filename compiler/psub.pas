@@ -181,13 +181,11 @@ implementation
           ppu file }
         if df_generic in current_procinfo.procdef.defoptions then
           exit;
-{
         if pi_has_assembler_block in current_procinfo.flags then
           begin
             _no_inline('assembler');
             exit;
           end;
-}
         if (pi_has_global_goto in current_procinfo.flags) or
            (pi_has_interproclabel in current_procinfo.flags) then
           begin
@@ -2214,19 +2212,6 @@ implementation
               current_debuginfo.insertlineinfo(aktproccode);
 
             finish_eh;
-
-            if (po_assembler in procdef.procoptions) and (po_inline in procdef.procoptions) then
-              begin
-                if procdef.inlininginfo^.code.nodetype=asmn then
-                  begin
-//                    tasmnode(procdef.inlininginfo^.code).p_asm.Clear;
-//                    tasmnode(procdef.inlininginfo^.code).p_asm.concatListcopy(aktproccode);
-                    gen_proc_entry_code(templist);
-                    tasmnode(procdef.inlininginfo^.code).p_asm.insertList(templist);
-                    gen_proc_exit_code(templist);
-                    tasmnode(procdef.inlininginfo^.code).p_asm.concatList(templist);
-                  end;
-              end;
 
             hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
 

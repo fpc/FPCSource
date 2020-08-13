@@ -633,7 +633,6 @@ implementation
          begin
            p.altsymbol:=p.getaltcopy(AsmSymbolDict,FNextAltNr);
            FAltSymbolList.Add(p);
-           inc(FNextAltNr);
          end;
       end;
 
