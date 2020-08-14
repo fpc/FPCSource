@@ -195,22 +195,37 @@ Type
     Property Identifiers[AIndex : Integer] : TSQLIdentifierName Read GetI Write SetI; default;
   end;
 
+  { TSQLIdentifierPathExpression }
+
+  TSQLIdentifierPathExpression = Class(TSQLExpression)
+  private
+    FIdentifierPath: TSQLIdentifierPath;
+  Public
+    Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    Property IdentifierPath: TSQLIdentifierPath Read FIdentifierPath Write FIdentifierPath;
+  end;
+
   { TSQLIdentifierExpression }
 
-  TSQLIdentifierExpression = Class(TSQLExpression)
+  TSQLIdentifierExpression = Class(TSQLIdentifierPathExpression)
   private
     FElementIndex: Integer;
-    FIdentifierPath: TSQLIdentifierPath;
     function GetIdentifier: TSQLIdentifierName;
     procedure SetIdentifier(const AName: TSQLIdentifierName);
   Public
     Constructor Create(AParent : TSQLElement); override;
-    Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Identifier : TSQLIdentifierName Read GetIdentifier Write SetIdentifier;
-    Property IdentifierPath: TSQLIdentifierPath Read FIdentifierPath;
     // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
+  end;
+
+  { TSQLAsteriskExpression }
+
+  TSQLAsteriskExpression = Class(TSQLIdentifierPathExpression)
+  Public
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
 
   { TSQLParameterExpression }
@@ -597,19 +612,33 @@ Type
 
   { TSelectField }
 
-  TSQLSelectElement = Class(TSQLElement);
-  TSQLSelectAsterisk = Class(TSQLSelectElement);
+  TSQLSelectElement = Class(TSQLElement)
+  private
+    FExpression: TSQLExpression;
+  Public
+    Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    Property Expression : TSQLExpression Read FExpression Write FExpression;
+  end;
+
+  { TSQLSelectAsterisk }
+
+  TSQLSelectAsterisk = Class(TSQLSelectElement)
+  private
+    function GetExpression: TSQLAsteriskExpression;
+    procedure SetExpression(const AExpression: TSQLAsteriskExpression);
+  Public
+    Property Expression : TSQLAsteriskExpression Read GetExpression Write SetExpression;
+  end;
 
   { TSQLSelectField }
 
   TSQLSelectField = Class(TSQLSelectElement)
   private
     FAliasName: TSQLIdentifierName;
-    FExpression: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property Expression : TSQLExpression Read FExpression Write FExpression;
     Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
@@ -1972,6 +2001,73 @@ begin
     Sep:=', ';
 end;
 
+{ TSQLAsteriskExpression }
+
+function TSQLAsteriskExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  Result := inherited GetAsSQL(Options, AIndent);
+  if Result<>'' then
+    Result:=Result+'.';
+  Result:=Result+'*';
+end;
+
+{ TSQLIdentifierExpression }
+
+constructor TSQLIdentifierExpression.Create(AParent: TSQLElement);
+begin
+  inherited Create(AParent);
+  FElementIndex:=-1;
+end;
+
+function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  Result := inherited GetAsSQL(Options, AIndent);
+  If (ElementIndex<>-1) then
+    Result:=Result+Format('[%d]',[Elementindex]);
+end;
+
+function TSQLIdentifierExpression.GetIdentifier: TSQLIdentifierName;
+begin
+  Result := TSQLIdentifierName(FIdentifierPath.Last);
+end;
+
+procedure TSQLIdentifierExpression.SetIdentifier(const AName: TSQLIdentifierName);
+begin
+  if Assigned(FIdentifierPath) then
+    FIdentifierPath.Clear
+  else
+    FIdentifierPath:=TSQLIdentifierPath.Create;
+  FIdentifierPath.Add(AName);
+end;
+
+{ TSQLSelectElement }
+
+destructor TSQLSelectElement.Destroy;
+begin
+  FreeAndNil(FExpression);
+  inherited Destroy;
+end;
+
+function TSQLSelectElement.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  If Assigned(FExpression) then
+    Result:=FExpression.GetAsSQL(Options)
+  Else
+    Result:='';
+end;
+
+{ TSQLSelectAsterisk }
+
+function TSQLSelectAsterisk.GetExpression: TSQLAsteriskExpression;
+begin
+  Result:=TSQLAsteriskExpression(inherited Expression)
+end;
+
+procedure TSQLSelectAsterisk.SetExpression(const AExpression: TSQLAsteriskExpression);
+begin
+  inherited Expression:=AExpression;
+end;
+
 { TSQLIdentifierPath }
 
 function TSQLIdentifierPath.Add(AName: TSQLIdentifierName): Integer;
@@ -3245,15 +3341,13 @@ end;
 
 destructor TSQLSelectField.Destroy;
 begin
-  FreeAndNil(FExpression);
   FreeAndNil(FAliasName);
   inherited Destroy;
 end;
 
 function TSQLSelectField.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
 begin
-  If Assigned(FExpression) then
-    Result:=FExpression.GetAsSQL(Options);
+  Result := inherited GetAsSQL(Options, AIndent);
   If Assigned(FAliasName) then
     Result:=Result+' AS '+FAliasName.GetAsSQL(Options);
 end;
@@ -4289,37 +4383,20 @@ begin
   Result:=Result+sp+SQLKeyWord('MODULE_NAME ',Options)+SQLFormatString(ModuleName,Options);
 end;
 
-{ TSQLIdentifierExpression }
+{ TSQLIdentifierPathExpression }
 
-constructor TSQLIdentifierExpression.Create(AParent: TSQLElement);
-begin
-  inherited Create(AParent);
-  FIdentifierPath:=TSQLIdentifierPath.Create;
-  FElementIndex:=-1;
-end;
-
-destructor TSQLIdentifierExpression.Destroy;
+destructor TSQLIdentifierPathExpression.Destroy;
 begin
   FreeAndNil(FIdentifierPath);
   inherited Destroy;
 end;
 
-function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
+function TSQLIdentifierPathExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
 begin
-  Result := FIdentifierPath.GetAsSQL(Options, AIndent);
-  If (ElementIndex<>-1) then
-    Result:=Result+Format('[%d]',[Elementindex]);
-end;
-
-function TSQLIdentifierExpression.GetIdentifier: TSQLIdentifierName;
-begin
-  Result := TSQLIdentifierName(FIdentifierPath.Last);
-end;
-
-procedure TSQLIdentifierExpression.SetIdentifier(const AName: TSQLIdentifierName);
-begin
-  FIdentifierPath.Clear;
-  FIdentifierPath.Add(AName);
+  if Assigned(FIdentifierPath) then
+    Result:=FIdentifierPath.GetAsSQL(Options, AIndent)
+  else
+    Result:='';
 end;
 
 { TSQLSelectExpression }

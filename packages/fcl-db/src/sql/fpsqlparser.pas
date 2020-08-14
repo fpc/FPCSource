@@ -435,7 +435,9 @@ procedure TSQLParser.ParseSelectFieldList(AParent: TSQLSelectStatement;
   AList: TSQLElementList; Singleton: Boolean);
 Var
   F : TSQLSelectField;
+  A : TSQLSelectAsterisk;
   B : Boolean;
+  Expression : TSQLExpression;
 
 begin
   // On entry, we're on the token preceding the field list.
@@ -479,18 +481,20 @@ begin
         end;
       B:=False;
       end;
-    If (CurrentToken=tsqlMul) then
+    Expression:=ParseExprLevel1(AParent,[eoSelectvalue]);
+    if Expression is TSQLAsteriskExpression then
       begin
       If Singleton then
         Error(SErrNoAsteriskInSingleTon);
-      AList.Add(CreateElement(TSQLSelectAsterisk,AParent));
-      GetNextToken;
+      A:=TSQLSelectAsterisk(CreateElement(TSQLSelectAsterisk,AParent));
+      AList.Add(A);
+      A.Expression:=TSQLAsteriskExpression(Expression);
       end
     else
       begin
       F:=TSQLSelectField(CreateElement(TSQLSelectField,AParent));
       AList.Add(F);
-      F.Expression:=ParseExprLevel1(AParent,[eoSelectvalue]);
+      F.Expression:=Expression;
       If CurrentToken in [tsqlAs,Tsqlidentifier] then
         begin
         If currentToken=tsqlAs then
@@ -2741,6 +2745,7 @@ Var
   N : String;
   C : TSQLElementClass;
   E : TSQLExtractElement;
+  IdentifierPath : TSQLIdentifierPath;
 
 begin
   Result:=Nil;
@@ -2852,6 +2857,11 @@ begin
         TSQLParameterExpression(Result).Identifier:=CreateIdentifier(Result,N);
         Consume(tsqlIdentifier);
         end;
+      tsqlMUL:
+        begin
+        Result:=TSQLAsteriskExpression(CreateElement(TSQLAsteriskExpression,APArent));
+        GetNextToken;
+        end;
       tsqlIdentifier:
         begin
         N:=CurrentTokenString;
@@ -2860,18 +2870,30 @@ begin
           If (eoCheckConstraint in EO) and not (eoTableConstraint in EO) then
             Error(SErrUnexpectedToken,[CurrentTokenString]);
           // Plain identifier
-          Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
-          TSQLIdentifierExpression(Result).IdentifierPath.Add(CreateIdentifier(Result,N));
+          IdentifierPath:=TSQLIdentifierPath.Create;
+          IdentifierPath.Add(CreateIdentifier(Result,N));
           while (CurrentToken=tsqlDot) do
             begin
             GetNextToken;
-            Expect(tsqlIdentifier);
-            N:=CurrentTokenString;
-            TSQLIdentifierExpression(Result).IdentifierPath.Add(CreateIdentifier(Result,N));
-            GetNextToken;
+            if CurrentToken=tsqlMUL then
+              begin
+              Result:=TSQLAsteriskExpression(CreateElement(TSQLAsteriskExpression,APArent));
+              GetNextToken;
+              break;
+              end
+            else
+              begin
+              Expect(tsqlIdentifier);
+              N:=CurrentTokenString;
+              IdentifierPath.Add(CreateIdentifier(Result,N));
+              GetNextToken;
+              end;
             end;
+          if not Assigned(Result) then
+            Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
+          TSQLIdentifierPathExpression(Result).IdentifierPath:=IdentifierPath;
           // Array access ?
-          If (CurrentToken=tsqlSquareBraceOpen) then
+          If (CurrentToken=tsqlSquareBraceOpen) and (Result is TSQLIdentifierExpression) then
             // Either something like array[5] or,
             // in procedures etc array[i:] where i is a variable
             begin

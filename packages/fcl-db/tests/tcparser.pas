@@ -400,6 +400,7 @@ type
     procedure TestSelectOneAllFieldOneTable;
     procedure TestSelectAsteriskOneTable;
     procedure TestSelectDistinctAsteriskOneTable;
+    procedure TestSelectAsteriskWithPath;
     procedure TestSelectOneFieldOneTableAlias;
     procedure TestSelectOneFieldOneTableAsAlias;
     procedure TestSelectTwoFieldsTwoTables;
@@ -3989,6 +3990,17 @@ begin
   TestSelect('SELECT * FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
   CheckClass(Select.Fields[0],TSQLSelectAsterisk);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+end;
+
+procedure TTestSelectParser.TestSelectAsteriskWithPath;
+begin
+  TestSelect('SELECT A.* FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  CheckClass(Select.Fields[0],TSQLSelectAsterisk);
+  AssertEquals('Path count = 1',1,TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath.Count);
+  AssertEquals('Path table = A','A',TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
