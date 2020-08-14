@@ -906,7 +906,7 @@ Var
 
 begin
 
-  IsImpl:=AProc.Parent is TPasSection;
+  IsImpl:=AProc.Parent is TImplementationSection;
   if IsImpl then
     PrepareDeclSection('');
   if Not IsImpl then
@@ -928,7 +928,7 @@ begin
     Add(' reintroduce;');
   // if NamePrefix is not empty, we're writing a dummy for external class methods.
   // In that case, we must not write the 'overload'.
-  if AProc.IsOverload and (NamePrefix='') then
+  if AProc.IsOverload and (NamePrefix='') and not IsImpl then
     Add(' overload;');
   if not IsImpl then
     begin
