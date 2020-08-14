@@ -604,6 +604,16 @@ implementation
                  include(init_settings.localswitches,cs_strict_var_strings);
              end;
 
+{$ifdef i8086}
+           { Do not force far calls in the TP mode by default }
+           if (m_tp7 in current_settings.modeswitches) then
+             begin
+               exclude(current_settings.localswitches,cs_force_far_calls);
+               if changeinit then
+                 exclude(init_settings.localswitches,cs_force_far_calls);
+             end;
+{$endif i8086}
+
             { Undefine old symbol }
             if (m_delphi in oldmodeswitches) then
               undef_system_macro('FPC_DELPHI')
