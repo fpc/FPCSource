@@ -235,6 +235,7 @@ type
     procedure TestIdentifier3;
     procedure TestIdentifier4;
     procedure TestIdentifier5;
+    procedure TestIdentifier6;
     procedure TestIdentifierDotIdentifier;
     procedure TestEOLN;
     procedure TestEOLN2;
@@ -1382,7 +1383,7 @@ begin
   CheckToken(tsqlSequence,'sequence');
 end;
 
-procedure TTestSQLScanner.CheckTokens(ASource : String; ATokens : Array of TSQLToken);
+procedure TTestSQLScanner.CheckTokens(ASource: String; ATokens: array of TSQLToken);
 
 Var
   I : Integer;
@@ -1438,6 +1439,13 @@ procedure TTestSQLScanner.TestIdentifier5;
 begin
   // $0 should not be parsed as an identifier but as a symbol literal
   CheckToken(tsqlSymbolString,'$0');
+end;
+
+procedure TTestSQLScanner.TestIdentifier6;
+begin
+  CreateScanner('[A]',[soSquareBracketsIdentifier]);
+  AssertEquals('Identifier is returned',tsqlIdentifier,FScanner.FetchToken);
+  AssertEquals('Correct identifier','A',FScanner.CurTokenString);
 end;
 
 procedure TTestSQLScanner.TestIdentifierDotIdentifier;
