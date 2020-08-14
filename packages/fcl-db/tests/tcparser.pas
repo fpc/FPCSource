@@ -411,6 +411,7 @@ type
     procedure TestSelectTwoFieldsThreeTablesJoin;
     procedure TestSelectTwoFieldsBracketThreeTablesJoin;
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
+    procedure TestSelectTableWithSchema;
     procedure TestAggregateCount;
     procedure TestAggregateCountAsterisk;
     procedure TestAggregateCountAll;
@@ -3809,6 +3810,17 @@ begin
   AssertField(Select.Fields[0],'A.B');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
+end;
+
+procedure TTestSelectParser.TestSelectTableWithSchema;
+begin
+  TestSelect('SELECT B,C FROM S.A');
+  AssertField(Select.Fields[0],'B');
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePathCount);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
 end;
 
 procedure TTestSelectParser.TestSelectOneDistinctFieldOneTable;
