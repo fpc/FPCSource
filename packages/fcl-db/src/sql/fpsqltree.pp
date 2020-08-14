@@ -726,11 +726,32 @@ Type
     Property OrderBy : TSQLOrderDirection Read FOrderBy write FOrderBy;
   end;
 
+  { TSQLSelectLimit }
+
+  TSQLSelectLimitStyle = (lsNone, lsFireBird, lsMSSQL, lsPostgres{lsMySQL});
+
+  TSQLSelectLimit = Class
+  private
+    FRowCount: Integer;
+    FSkip: Integer;
+    FStyle: TSQLSelectLimitStyle;
+  public
+    constructor Create;
+  public
+    property Style: TSQLSelectLimitStyle read FStyle write FStyle;
+    property First: Integer read FRowCount write FRowCount; // lsFireBird
+    property Skip: Integer read FSkip write FSkip; // lsFireBird
+    property Top: Integer read FRowCount write FRowCount; // lsMSSQL
+    property RowCount: Integer read FRowCount write FRowCount; // lsPostgres
+    property Offset: Integer read FSkip write FSkip; // lsPostgres
+  end;
+
   { TSQLSelectStatement }
 
   TSQLSelectStatement = Class(TSQLDMLStatement)
   private
     FAll: Boolean;
+    FLimit: TSQLSelectLimit;
     FDistinct: Boolean;
     FEndAt: TSQLExpression;
     FFields: TSQLElementList;
@@ -760,6 +781,7 @@ Type
     Property ForUpdate : TSQLElementList Read FForUpdate Write FForUpdate;
     Property Union : TSQLSelectStatement Read FUnion Write FUnion;
     Property Plan : TSQLSelectPlan Read FPlan Write FPlan;
+    Property Limit: TSQLSelectLimit Read FLimit;
     Property Distinct : Boolean Read FDistinct Write FDistinct;
     Property All : Boolean Read FAll Write FAll;
     Property UnionAll : Boolean Read FUnionAll Write FUnionAll;
@@ -1915,6 +1937,15 @@ begin
     Sep:=', ';
 end;
 
+{ TSQLSelectLimit }
+
+constructor TSQLSelectLimit.Create;
+begin
+  inherited Create;
+  FSkip:=-1;
+  FRowCount:=-1;
+end;
+
 { TSQLSetTermStatement }
 
 function TSQLSetTermStatement.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
@@ -1994,6 +2025,7 @@ begin
   FTables:=TSQLElementList.Create(True);
   FGroupBy:=TSQLElementList.Create(True);
   FOrderBy:=TSQLElementList.Create(True);
+  FLimit:=TSQLSelectLimit.Create;
 end;
 
 destructor TSQLSelectStatement.Destroy;
@@ -2011,6 +2043,7 @@ begin
   FreeAndNil(FForUpdate);
   FreeAndNil(FTN);
   FreeAndNil(FInto);
+  FreeAndNil(FLimit);
   inherited Destroy;
 end;
 
@@ -2078,6 +2111,15 @@ Var
 
 begin
   Result:=SQLKeyWord('SELECT',Options);
+  If Limit.Style=lsMSSQL then
+    Result:=Result+' '+SQLKeyword('TOP',Options)+' '+IntToStr(Limit.Top)
+  else
+  If Limit.Style=lsFireBird then
+    begin
+    Result:=Result+' '+SQLKeyword('FIRST',Options)+' '+IntToStr(Limit.First);
+    if Limit.Skip>=0 then
+      Result:=Result+' '+SQLKeyword('SKIP',Options)+' '+IntToStr(Limit.Skip);
+    end;
   If Distinct then
     Result:=Result+' '+SQLKeyword('DISTINCT',Options);
   NewLinePending:=(sfoOneFieldPerLine in Options);
@@ -2093,6 +2135,13 @@ begin
     NewLinePending:=NewLinePending or (sfoPlanOnSeparateLine in Options);
   AddExpression('PLAN',Plan,(sfoPlanOnSeparateLine in Options),(sfoIndentPlan in Options));
   AddList('ORDER BY',OrderBy,(sfoOneOrderByFieldPerLine in Options),(sfoIndentOrderByFields in Options));
+  If Limit.Style=lsPostgres then
+    begin
+    if Limit.RowCount>=0 then
+      Result:=Result+' '+SQLKeyword('LIMIT',Options)+' '+IntToStr(Limit.RowCount);
+    if Limit.Offset>=0 then
+      Result:=Result+' '+SQLKeyword('OFFSET',Options)+' '+IntToStr(Limit.Offset);
+    end;
 end;
 
 { TSQLInsertStatement }

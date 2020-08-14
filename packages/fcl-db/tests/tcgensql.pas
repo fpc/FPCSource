@@ -97,6 +97,7 @@ type
     procedure TestPlanExpression;
     procedure TestOrderBy;
     Procedure TestSelect;
+    Procedure TestLimit;
     procedure TestInsert;
     procedure TestUpdatePair;
     procedure TestUpdate;
@@ -993,6 +994,33 @@ begin
   J.Right:=J.Left;
   J.Left:=J2;
   AssertSQL(J,'(E JOIN F ON (G = H)) FULL OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
+end;
+
+procedure TTestGenerateSQL.TestLimit;
+
+Var
+  S : TSQLSelectStatement;
+
+begin
+  S:=CreateSelect(CreateIdentifierExpression('A'),'B');
+
+  S.Limit.Style:=lsFireBird;
+  S.Limit.First := 10;
+  AssertSQL(S,'SELECT FIRST 10 A FROM B');
+  S.Limit.Style:=lsMSSQL;
+  AssertSQL(S,'SELECT TOP 10 A FROM B');
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B LIMIT 10');
+
+  S.Limit.Skip := 20;
+  S.Limit.Style:=lsFireBird;
+  AssertSQL(S,'SELECT FIRST 10 SKIP 20 A FROM B');
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B LIMIT 10 OFFSET 20');
+
+  S.Limit.RowCount := -1;
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B OFFSET 20');
 end;
 
 procedure TTestGenerateSQL.TestPlanNatural;

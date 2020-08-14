@@ -126,6 +126,7 @@ Type
     procedure ParseFromClause(AParent: TSQLSelectStatement; AList: TSQLElementList);
     procedure ParseGroupBy(AParent: TSQLSelectStatement; AList: TSQLElementList);
     procedure ParseOrderBy(AParent: TSQLSelectStatement; AList: TSQLElementList);
+    procedure ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelectLimit);
     procedure ParseSelectFieldList(AParent: TSQLSelectStatement; AList: TSQLElementList; Singleton : Boolean);
     function ParseForUpdate(AParent: TSQLSelectStatement): TSQLElementList;
     function ParseSelectPlan(AParent: TSQLElement): TSQLSelectPlan;
@@ -436,6 +437,29 @@ begin
     GetNextToken;
     If B then
       begin
+      if (CurrentToken=tsqlTop) then
+        begin
+        GetNextToken;
+        Expect(tsqlIntegerNumber);
+        AParent.Limit.Style := lsMSSQL;
+        AParent.Limit.Top := StrToInt(CurrentTokenString);
+        GetNextToken;
+        end;
+      if (CurrentToken=tsqlFIRST) then
+        begin
+        GetNextToken;
+        Expect(tsqlIntegerNumber);
+        AParent.Limit.Style := lsFireBird;
+        AParent.Limit.First := StrToInt(CurrentTokenString);
+        GetNextToken;
+        if (CurrentToken=tsqlSKIP) then
+          begin
+          GetNextToken;
+          Expect(tsqlIntegerNumber);
+          AParent.Limit.Skip := StrToInt(CurrentTokenString);
+          GetNextToken;
+          end;
+        end;
       if (CurrentToken=tsqlDistinct) then
         begin
         AParent.Distinct:=True;
@@ -721,6 +745,8 @@ begin
       begin
       if (CurrentToken=tsqlOrder) then
         ParseOrderBy(Result,Result.OrderBy);
+      if CurrentToken in [tsqlLimit,tsqlOFFSET] then
+        ParseLimit(Result,Result.Limit);
       if (CurrentToken=tsqlFOR) then
         Result.ForUpdate:=ParseForUpdate(Result);
       end;
@@ -1317,6 +1343,46 @@ begin
     List.Add(CreateIdentifier(AParent,CurrentTokenString));
     GetNextToken;
   Until (CurrentToken<>tsqlComma);
+end;
+
+procedure TSQLParser.ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelectLimit);
+
+  procedure DoOffset;
+  begin
+    if CurrentToken=tsqlOFFSET then
+      begin
+      GetNextToken;
+      Expect(tsqlIntegerNumber);
+      ALimit.Offset := StrToInt(CurrentTokenString);
+      GetNextToken;
+      end;
+  end;
+begin
+  ALimit.Style:=lsPostgres;
+  if CurrentToken=tsqlLIMIT then
+    begin
+    GetNextToken;
+    if CurrentToken=tsqlALL then
+      ALimit.RowCount := -1
+    else
+      begin
+      Expect(tsqlIntegerNumber);
+      ALimit.RowCount := StrToInt(CurrentTokenString);
+      end;
+    GetNextToken;
+    if CurrentToken=tsqlCOMMA then
+      begin
+      GetNextToken;
+      Expect(tsqlIntegerNumber);
+      ALimit.Offset := ALimit.RowCount;
+      ALimit.RowCount := StrToInt(CurrentTokenString);
+      GetNextToken;
+      end
+    else
+      DoOffset;
+    end
+  else
+    DoOffset;
 end;
 
 function TSQLParser.ParseForStatement(AParent: TSQLElement): TSQLForStatement;
