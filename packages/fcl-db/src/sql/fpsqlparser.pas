@@ -504,8 +504,8 @@ begin
         GetNextToken;
         end;
       end;
-    Expect([tsqlComma,tsqlFrom]);
-  until (CurrentToken=tsqlFROM);
+    Expect([tsqlComma,tsqlFrom,tsqlEOF]);
+  until (CurrentToken in [tsqlFROM,tsqlEOF]);
 end;
 
 procedure TSQLParser.ParseGroupBy(AParent: TSQLSelectStatement;
@@ -719,6 +719,8 @@ begin
       Result.TransactionName:=CreateIdentifier(Result,CurrentTokenString);
       end;
     ParseSelectFieldList(Result,Result.Fields,sfSingleton in Flags);
+    If CurrentToken=tsqlEOF then
+      Exit;
     // On return, we are on the FROM keyword.
     ParseFromClause(Result,Result.Tables);
     If CurrentToken=tsqlWhere then

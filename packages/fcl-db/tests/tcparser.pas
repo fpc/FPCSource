@@ -493,6 +493,7 @@ type
     procedure TestWhereSome;
     procedure TestParam;
     procedure TestParamExpr;
+    procedure TestNoTable;
     procedure TestSourcePosition;
   end;
 
@@ -4767,6 +4768,23 @@ begin
   S:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
   AssertEquals('One',1,S.Value);
   AssertAggregateExpression(H.Left,afCount,'C',aoNone);
+end;
+
+procedure TTestSelectParser.TestNoTable;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT 1');
+  AssertEquals('0 tables in select',0,Select.Tables.Count);
+  AssertEquals('1 field in select',1,Select.Fields.Count);
+  AssertNotNull('Have field',Select.Fields[0]);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLIntegerLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLIntegerLiteral));
+  AssertEquals('SELECT 1',1,L.Value);
 end;
 
 procedure TTestSelectParser.TestUnionSimple;
