@@ -91,10 +91,18 @@ Type
 
   TSQLElementList = Class(TObjectList)
   private
+    Fline: Integer;
+    FPos: Integer;
+    FSource: String;
+
     function GetE(AIndex : Integer): TSQLElement;
     procedure SetE(AIndex : Integer; const AValue: TSQLElement);
   Public
     Property Elements[AIndex : Integer] : TSQLElement Read GetE Write SetE; default;
+
+    Property Source : String Read FSource write FSource;
+    Property SourceLine : Integer Read Fline Write Fline;
+    Property SourcePos : Integer Read FPos Write FPos;
   end;
 
   TSQLLiteral = Class(TSQLElement);

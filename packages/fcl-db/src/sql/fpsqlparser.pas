@@ -421,6 +421,9 @@ Var
 
 begin
   // On entry, we are on the FROM keyword.
+  AList.Source:=CurSource;
+  AList.SourceLine:=CurrentTokenLine;
+  AList.SourcePos:=CurrentTokenPos;
   Consume(tsqlFrom);
   Repeat
     T:=ParseTableRef(AParent);
@@ -441,6 +444,9 @@ Var
 
 begin
   // On entry, we're on the token preceding the field list.
+  AList.Source:=CurSource;
+  AList.SourceLine:=CurrentTokenLine;
+  AList.SourcePos:=CurrentTokenPos;
   B:=True;
   Repeat
     GetNextToken;
@@ -516,6 +522,9 @@ Var
 
 begin
   // On entry we're on the GROUP token.
+  AList.Source:=CurSource;
+  AList.SourceLine:=CurrentTokenLine;
+  AList.SourcePos:=CurrentTokenPos;
   Consume(tsqlGroup);
   Expect(tsqlBy);
   Repeat
@@ -565,6 +574,9 @@ Var
 
 begin
   // On entry we're on the ORDER token.
+  AList.Source:=CurSource;
+  AList.SourceLine:=CurrentTokenLine;
+  AList.SourcePos:=CurrentTokenPos;
   Consume(tsqlOrder);
   Expect(tsqlBy);
   Repeat
@@ -2629,6 +2641,9 @@ function TSQLParser.ParseIdentifierList(AParent: TSQLElement;
 
 begin
   // on entry, we're on first identifier
+  AList.Source:=CurSource;
+  AList.SourceLine:=CurrentTokenLine;
+  AList.SourcePos:=CurrentTokenPos;
   Expect(tsqlIdentifier);
   Result:=0;
   repeat

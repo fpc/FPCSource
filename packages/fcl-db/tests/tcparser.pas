@@ -4132,14 +4132,22 @@ end;
 
 procedure TTestSelectParser.TestSourcePosition;
 begin
-  TestSelect('SELECT X FROM ABC');
+  TestSelect('SELECT X FROM ABC ORDER BY Y');
   AssertEquals('One table',1,Select.Tables.Count);
-  AssertEquals('Table source position = 1', 1, Select.Tables[0].SourceLine);
+  AssertEquals('FROM source line = 1', 1, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 10', 10, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 1', 1, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 19', 19, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 1', 1, Select.Tables[0].SourceLine);
   AssertEquals('Table source position = 15', 15, Select.Tables[0].SourcePos);
 
-  TestSelect('SELECT X'+sLineBreak+'FROM ABC');
+  TestSelect('SELECT X'+sLineBreak+'FROM ABC'+sLineBreak+'ORDER BY Y');
   AssertEquals('One table',1,Select.Tables.Count);
-  AssertEquals('Table source position = 2', 2, Select.Tables[0].SourceLine);
+  AssertEquals('FROM source line = 2', 2, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 1', 1, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 3', 3, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 1', 1, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 2', 2, Select.Tables[0].SourceLine);
   AssertEquals('Table source position = 6', 6, Select.Tables[0].SourcePos);
 end;
 
