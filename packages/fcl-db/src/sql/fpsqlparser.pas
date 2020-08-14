@@ -169,8 +169,8 @@ Type
     Function ParseScript(AllowPartial : Boolean) : TSQLElementList; deprecated 'use options';
     Function ParseScript(aOptions : TParserOptions = []) : TSQLElementList;
     // Auxiliary stuff
-    Function CurrentToken : TSQLToken;
-    Function CurrentTokenString : String;
+    Property CurrentToken : TSQLToken read FCurrent;
+    Property CurrentTokenString : String read FCurrentString;
     // Gets next token; also updates current token
     Function GetNextToken : TSQLToken;
     // Looks at next token without changing current token
@@ -4060,16 +4060,6 @@ begin
       Raise;
       end;
   end;
-end;
-
-function TSQLParser.CurrentToken: TSQLToken;
-begin
-  Result:=FCurrent;
-end;
-
-function TSQLParser.CurrentTokenString: String;
-begin
-  Result:=FCurrentString;
 end;
 
 function TSQLParser.GetNextToken: TSQLToken;
