@@ -493,6 +493,7 @@ type
     procedure TestWhereSome;
     procedure TestParam;
     procedure TestParamExpr;
+    procedure TestSourcePosition;
   end;
 
   { TTestRollBackParser }
@@ -4126,6 +4127,19 @@ begin
   AssertEquals('One table',1,Select.Tables.Count);
   J:=AssertJoin(Select.Tables[0],'A','D',jtNone);
   AssertJoinOn(J.JoinClause,'E','F',boEq);
+end;
+
+procedure TTestSelectParser.TestSourcePosition;
+begin
+  TestSelect('SELECT X FROM ABC');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('Table source position = 1', 1, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 15', 15, Select.Tables[0].SourcePos);
+
+  TestSelect('SELECT X'+sLineBreak+'FROM ABC');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('Table source position = 2', 2, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 6', 6, Select.Tables[0].SourcePos);
 end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsTwoInnerTablesJoin;

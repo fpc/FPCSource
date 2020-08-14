@@ -175,6 +175,8 @@ Type
     FCurRow: Integer;
     FCurToken: TSQLToken;
     FCurTokenString: string;
+    FCurTokenRow: Integer;
+    FCurTokenColumn: Integer;
     FCurLine: string;
     TokenStr: PChar;
     FSourceStream : TStream;
@@ -219,6 +221,8 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TSQLToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    Property CurTokenRow : Integer Read FCurTokenRow;
+    Property CurTokenColumn : Integer Read FCurTokenColumn;
     Property ExcludeKeywords : TStrings Read GetExcludeKeywords Write SetExcludeKeywords;
     Property AlternateTerminator : String Read FAlternateTerminator Write FAlternateTerminator;
   end;
@@ -719,6 +723,8 @@ begin
         FCurToken := Result;
         exit;
         end;
+    FCurTokenRow:=CurRow;
+    FCurTokenColumn:=CurColumn;
     FCurTokenString := '';
     case TokenStr[0] of
       #0:         // Empty line
@@ -911,7 +917,7 @@ end;
 
 function TSQLScanner.GetCurColumn: Integer;
 begin
-  Result := TokenStr - PChar(FCurLine);
+  Result := TokenStr - PChar(FCurLine) + 1;
 end;
 
 Procedure TSQLScanner.ClearKeywords(Sender : TObject);
