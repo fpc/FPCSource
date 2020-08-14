@@ -183,25 +183,32 @@ Type
     Property Literal : TSQLLiteral Read FLiteral write FLiteral;
   end;
 
+  { TSQLIdentifierPath }
+
+  TSQLIdentifierPath = Class(TSQLElementList)
+  private
+    function GetI(AIndex : Integer): TSQLIdentifierName;
+    procedure SetI(AIndex : Integer; const AIdentifier: TSQLIdentifierName);
+  Public
+    Function Add(AName: TSQLIdentifierName): Integer;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
+    Property Identifiers[AIndex : Integer] : TSQLIdentifierName Read GetI Write SetI; default;
+  end;
+
   { TSQLIdentifierExpression }
 
   TSQLIdentifierExpression = Class(TSQLExpression)
   private
     FElementIndex: Integer;
-    FIdentifierPath: array of TSQLIdentifierName;
+    FIdentifierPath: TSQLIdentifierPath;
     function GetIdentifier: TSQLIdentifierName;
-    function GetIdentifierPath(Index: Integer): TSQLIdentifierName;
-    function GetIdentifierPathCount: Integer;
     procedure SetIdentifier(const AName: TSQLIdentifierName);
   Public
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Identifier : TSQLIdentifierName Read GetIdentifier Write SetIdentifier;
-    Property IdentifierPathCount: Integer Read GetIdentifierPathCount;
-    Procedure AddIdentifierToPath(AName: TSQLIdentifierName);
-    Procedure ClearIdentifierPath;
-    Property IdentifierPath[Index: Integer] : TSQLIdentifierName Read GetIdentifierPath;
+    Property IdentifierPath: TSQLIdentifierPath Read FIdentifierPath;
     // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
   end;
@@ -615,20 +622,16 @@ Type
   TSQLSimpleTableReference = Class(TSQLTableReference)
   private
     FAliasName: TSQLIdentifierName;
-    FObjectNamePath: array of TSQLIdentifierName;
+    FObjectNamePath: TSQLIdentifierPath;
     FParams: TSQLElementList;
     function GetObjectName: TSQLIdentifierName;
-    function GetObjectNamePath(Index: Integer): TSQLIdentifierName;
-    function GetObjectNamePathCount: Integer;
     procedure SetObjectName(const AName: TSQLIdentifierName);
   Public
+    constructor Create(AParent: TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property ObjectName : TSQLIdentifierName Read GetObjectName Write SetObjectName;
-    Property ObjectNamePathCount: Integer Read GetObjectNamePathCount;
-    Procedure AddObjectNameToPath(AName: TSQLIdentifierName);
-    Procedure ClearObjectNamePath;
-    Property ObjectNamePath[Index: Integer] : TSQLIdentifierName Read GetObjectNamePath;
+    Property ObjectNamePath : TSQLIdentifierPath Read FObjectNamePath;
     Property Params : TSQLElementList Read FParams Write FParams;
     Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
@@ -1969,6 +1972,36 @@ begin
     Sep:=', ';
 end;
 
+{ TSQLIdentifierPath }
+
+function TSQLIdentifierPath.Add(AName: TSQLIdentifierName): Integer;
+begin
+  Result := inherited Add(AName);
+end;
+
+function TSQLIdentifierPath.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+var
+  N: TSQLElement;
+begin
+  Result := '';
+  for Pointer(N) in Self do
+    begin
+    if Result<>'' then
+      Result:=Result+'.';
+    Result:=Result+N.GetAsSQL(Options);
+    end;
+end;
+
+function TSQLIdentifierPath.GetI(AIndex: Integer): TSQLIdentifierName;
+begin
+  Result := TSQLIdentifierName(inherited Items[AIndex]);
+end;
+
+procedure TSQLIdentifierPath.SetI(AIndex: Integer; const AIdentifier: TSQLIdentifierName);
+begin
+  inherited Items[AIndex] := AIdentifier;
+end;
+
 { TSQLCaseExpressionBranch }
 
 destructor TSQLCaseExpressionBranch.Destroy;
@@ -3227,24 +3260,15 @@ end;
 
 { TSQLSimpleTableReference }
 
-procedure TSQLSimpleTableReference.AddObjectNameToPath(AName: TSQLIdentifierName);
+constructor TSQLSimpleTableReference.Create(AParent: TSQLElement);
 begin
-  SetLength(FObjectNamePath, Length(FObjectNamePath)+1);
-  FObjectNamePath[High(FObjectNamePath)] := AName;
-end;
-
-procedure TSQLSimpleTableReference.ClearObjectNamePath;
-var
-  N: TSQLIdentifierName;
-begin
-  for N in FObjectNamePath do
-    N.Free;
-  FObjectNamePath := nil;
+  inherited Create(AParent);
+  FObjectNamePath:=TSQLIdentifierPath.Create;
 end;
 
 destructor TSQLSimpleTableReference.Destroy;
 begin
-  ClearObjectNamePath;
+  FreeAndNil(FObjectNamePath);
   FreeAndNil(FParams);
   FreeAndNil(FAliasName);
   inherited Destroy;
@@ -3254,8 +3278,6 @@ function TSQLSimpleTableReference.GetAsSQL(Options: TSQLFormatOptions; AIndent :
 
 Var
   I : integer;
-  TableName: TSQLStringType;
-  N: TSQLIdentifierName;
 begin
   Result:='';
   If Assigned(FParams) and (FParams.Count>0) then
@@ -3268,40 +3290,20 @@ begin
       end;
     Result:='('+Result+')';
     end;
-  TableName := '';
-  for N in FObjectNamePath do
-    begin
-    if TableName<>'' then
-      TableName:=TableName+'.';
-    TableName:=TableName+N.GetAsSQL(Options);
-    end;
-  Result:= TableName+Result;
+  Result:= FObjectNamePath.GetAsSQL(Options, AIndent)+Result;
   if Assigned(FAliasName) then
     Result:=Result+' '+FAliasName.GetAsSQL(Options);
 end;
 
 function TSQLSimpleTableReference.GetObjectName: TSQLIdentifierName;
 begin
-  if Length(FObjectNamePath)>0 then
-    Result := FObjectNamePath[High(FObjectNamePath)]
-  else
-    Result := nil;
-end;
-
-function TSQLSimpleTableReference.GetObjectNamePath(Index: Integer): TSQLIdentifierName;
-begin
-  Result := FObjectNamePath[Index];
-end;
-
-function TSQLSimpleTableReference.GetObjectNamePathCount: Integer;
-begin
-  Result := Length(FObjectNamePath);
+  Result := TSQLIdentifierName(FObjectNamePath.Last);
 end;
 
 procedure TSQLSimpleTableReference.SetObjectName(const AName: TSQLIdentifierName);
 begin
-  ClearObjectNamePath;
-  AddObjectNameToPath(AName);
+  FObjectNamePath.Clear;
+  FObjectNamePath.Add(AName);
 end;
 
 { TSQLJoinTableReference }
@@ -4292,67 +4294,32 @@ end;
 constructor TSQLIdentifierExpression.Create(AParent: TSQLElement);
 begin
   inherited Create(AParent);
+  FIdentifierPath:=TSQLIdentifierPath.Create;
   FElementIndex:=-1;
-end;
-
-procedure TSQLIdentifierExpression.AddIdentifierToPath(AName: TSQLIdentifierName);
-begin
-  SetLength(FIdentifierPath, Length(FIdentifierPath)+1);
-  FIdentifierPath[High(FIdentifierPath)] := AName;
-end;
-
-procedure TSQLIdentifierExpression.ClearIdentifierPath;
-var
-  N: TSQLIdentifierName;
-begin
-  for N in FIdentifierPath do
-    N.Free;
-  FIdentifierPath:=nil;
 end;
 
 destructor TSQLIdentifierExpression.Destroy;
 begin
-  ClearIdentifierPath;
+  FreeAndNil(FIdentifierPath);
   inherited Destroy;
 end;
 
 function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
-var
-  N: TSQLIdentifierName;
 begin
-  Result := '';
-  for N in FIdentifierPath do
-    begin
-    if Result<>'' then
-      Result:=Result+'.';
-    Result:=Result+N.GetAsSQL(Options);
-    end;
+  Result := FIdentifierPath.GetAsSQL(Options, AIndent);
   If (ElementIndex<>-1) then
     Result:=Result+Format('[%d]',[Elementindex]);
 end;
 
 function TSQLIdentifierExpression.GetIdentifier: TSQLIdentifierName;
 begin
-  if Length(FIdentifierPath)>0 then
-    Result:=FIdentifierPath[High(FIdentifierPath)]
-  else
-    Result:=nil;
-end;
-
-function TSQLIdentifierExpression.GetIdentifierPath(Index: Integer): TSQLIdentifierName;
-begin
-  Result := FIdentifierPath[Index];
-end;
-
-function TSQLIdentifierExpression.GetIdentifierPathCount: Integer;
-begin
-  Result := Length(FIdentifierPath);
+  Result := TSQLIdentifierName(FIdentifierPath.Last);
 end;
 
 procedure TSQLIdentifierExpression.SetIdentifier(const AName: TSQLIdentifierName);
 begin
-  ClearIdentifierPath;
-  AddIdentifierToPath(AName);
+  FIdentifierPath.Clear;
+  FIdentifierPath.Add(AName);
 end;
 
 { TSQLSelectExpression }
