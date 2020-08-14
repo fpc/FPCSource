@@ -2533,6 +2533,7 @@ begin
       Right:=ParseExprLevel5(AParent,EO);
       B:=TSQLBinaryExpression(CreateElement(TSQLBinaryExpression,AParent));
       B.Left:=Result;
+      Result:=B;
       B.Right:=Right;
       Case tt of
         tsqlMul : B.Operation:=boMultiply;
