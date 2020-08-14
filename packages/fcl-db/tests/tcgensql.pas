@@ -427,8 +427,8 @@ Var
 
 begin
   I:=CreateIdentifierExpression('A');
-  I.AddIdentifierToPath(CreateIdentifier('B'));
-  I.AddIdentifierToPath(CreateIdentifier('C'));
+  I.IdentifierPath.Add(CreateIdentifier('B'));
+  I.IdentifierPath.Add(CreateIdentifier('C'));
   F:=CreateSelectField(I,'');
   AssertSQL(F,'A.B.C', []);
   AssertSQL(F,'"A"."B"."C"',[sfoDoubleQuoteIdentifier]);

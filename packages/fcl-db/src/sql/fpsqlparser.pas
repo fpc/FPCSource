@@ -353,13 +353,13 @@ begin
      Expect(tsqlIdentifier);
      T:=TSQLSimpleTableReference(CreateElement(TSQLSimpleTableReference,AParent));
      Result:=T;
-     T.AddObjectNameToPath(CreateIdentifier(T,CurrentTokenString));
+     T.ObjectNamePath.Add(CreateIdentifier(T,CurrentTokenString));
      GetNextToken;
      while CurrentToken=tsqlDOT do
        begin
          GetNextToken;
          Expect(tsqlIdentifier);
-         T.AddObjectNameToPath(CreateIdentifier(T,CurrentTokenString));
+         T.ObjectNamePath.Add(CreateIdentifier(T,CurrentTokenString));
          GetNextToken;
        end;
      If CurrentToken=tsqlBraceOpen then
@@ -2861,13 +2861,13 @@ begin
             Error(SErrUnexpectedToken,[CurrentTokenString]);
           // Plain identifier
           Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
-          TSQLIdentifierExpression(Result).AddIdentifierToPath(CreateIdentifier(Result,N));
+          TSQLIdentifierExpression(Result).IdentifierPath.Add(CreateIdentifier(Result,N));
           while (CurrentToken=tsqlDot) do
             begin
             GetNextToken;
             Expect(tsqlIdentifier);
             N:=CurrentTokenString;
-            TSQLIdentifierExpression(Result).AddIdentifierToPath(CreateIdentifier(Result,N));
+            TSQLIdentifierExpression(Result).IdentifierPath.Add(CreateIdentifier(Result,N));
             GetNextToken;
             end;
           // Array access ?

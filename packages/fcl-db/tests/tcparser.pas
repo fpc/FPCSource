@@ -3787,13 +3787,13 @@ begin
   AssertEquals('Two fields',2,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
   Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
-  AssertEquals('Field[0] path has 3 identifiers',3,Expr.IdentifierPathCount);
+  AssertEquals('Field[0] path has 3 identifiers',3,Expr.IdentifierPath.Count);
   AssertEquals('Field[0] schema is S','S',Expr.IdentifierPath[0].Name);
   AssertEquals('Field[0] table is A','A',Expr.IdentifierPath[1].Name);
   AssertField(Select.Fields[1],'C');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A','');
-  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePathCount);
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
   AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
 end;
 
@@ -3938,7 +3938,7 @@ begin
   // Field supports linking/refering to a table
   AssertField(Select.Fields[0],'B');
   Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
-  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
   AssertEquals('Field has explicit table named A','A',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
@@ -3952,7 +3952,7 @@ begin
   AssertField(Select.Fields[1],'C');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A','');
-  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePathCount);
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
   AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
 end;
 
@@ -4013,7 +4013,7 @@ begin
   AssertEquals('One field',1,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
   Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
-  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
   AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
@@ -4029,7 +4029,7 @@ begin
   AssertEquals('One field',1,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
   Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
-  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
   AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
