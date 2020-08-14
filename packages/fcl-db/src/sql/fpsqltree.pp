@@ -607,12 +607,20 @@ Type
   TSQLSimpleTableReference = Class(TSQLTableReference)
   private
     FAliasName: TSQLIdentifierName;
-    FObjectName: TSQLIdentifierName;
+    FObjectNamePath: array of TSQLIdentifierName;
     FParams: TSQLElementList;
+    function GetObjectName: TSQLIdentifierName;
+    function GetObjectNamePath(Index: Integer): TSQLIdentifierName;
+    function GetObjectNamePathCount: Integer;
+    procedure SetObjectName(const AName: TSQLIdentifierName);
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property ObjectName : TSQLIdentifierName Read FObjectName Write FObjectName;
+    Property ObjectName : TSQLIdentifierName Read GetObjectName Write SetObjectName;
+    Property ObjectNamePathCount: Integer Read GetObjectNamePathCount;
+    Procedure AddObjectNameToPath(AName: TSQLIdentifierName);
+    Procedure ClearObjectNamePath;
+    Property ObjectNamePath[Index: Integer] : TSQLIdentifierName Read GetObjectNamePath;
     Property Params : TSQLElementList Read FParams Write FParams;
     Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
@@ -3073,9 +3081,24 @@ end;
 
 { TSQLSimpleTableReference }
 
+procedure TSQLSimpleTableReference.AddObjectNameToPath(AName: TSQLIdentifierName);
+begin
+  SetLength(FObjectNamePath, Length(FObjectNamePath)+1);
+  FObjectNamePath[High(FObjectNamePath)] := AName;
+end;
+
+procedure TSQLSimpleTableReference.ClearObjectNamePath;
+var
+  N: TSQLIdentifierName;
+begin
+  for N in FObjectNamePath do
+    N.Free;
+  FObjectNamePath := nil;
+end;
+
 destructor TSQLSimpleTableReference.Destroy;
 begin
-  FreeAndNil(FObjectName);
+  ClearObjectNamePath;
   FreeAndNil(FParams);
   FreeAndNil(FAliasName);
   inherited Destroy;
@@ -3085,7 +3108,8 @@ function TSQLSimpleTableReference.GetAsSQL(Options: TSQLFormatOptions; AIndent :
 
 Var
   I : integer;
-
+  TableName: TSQLStringType;
+  N: TSQLIdentifierName;
 begin
   Result:='';
   If Assigned(FParams) and (FParams.Count>0) then
@@ -3098,10 +3122,40 @@ begin
       end;
     Result:='('+Result+')';
     end;
-  If Assigned(FObjectname) then
-    Result:= FObjectName.GetAsSQL(Options)+Result;
+  TableName := '';
+  for N in FObjectNamePath do
+    begin
+    if TableName<>'' then
+      TableName:=TableName+'.';
+    TableName:=TableName+N.GetAsSQL(Options);
+    end;
+  Result:= TableName+Result;
   if Assigned(FAliasName) then
     Result:=Result+' '+FAliasName.GetAsSQL(Options);
+end;
+
+function TSQLSimpleTableReference.GetObjectName: TSQLIdentifierName;
+begin
+  if Length(FObjectNamePath)>0 then
+    Result := FObjectNamePath[High(FObjectNamePath)]
+  else
+    Result := nil;
+end;
+
+function TSQLSimpleTableReference.GetObjectNamePath(Index: Integer): TSQLIdentifierName;
+begin
+  Result := FObjectNamePath[Index];
+end;
+
+function TSQLSimpleTableReference.GetObjectNamePathCount: Integer;
+begin
+  Result := Length(FObjectNamePath);
+end;
+
+procedure TSQLSimpleTableReference.SetObjectName(const AName: TSQLIdentifierName);
+begin
+  ClearObjectNamePath;
+  AddObjectNameToPath(AName);
 end;
 
 { TSQLJoinTableReference }

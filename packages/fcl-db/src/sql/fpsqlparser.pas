@@ -345,8 +345,15 @@ begin
      Expect(tsqlIdentifier);
      T:=TSQLSimpleTableReference(CreateElement(TSQLSimpleTableReference,AParent));
      Result:=T;
-     T.ObjectName:=CreateIdentifier(T,CurrentTokenString);
+     T.AddObjectNameToPath(CreateIdentifier(T,CurrentTokenString));
      GetNextToken;
+     while CurrentToken=tsqlDOT do
+       begin
+         GetNextToken;
+         Expect(tsqlIdentifier);
+         T.AddObjectNameToPath(CreateIdentifier(T,CurrentTokenString));
+         GetNextToken;
+       end;
      If CurrentToken=tsqlBraceOpen then
        begin
        T.Params:=ParseValueList(AParent,[eoParamValue]);
