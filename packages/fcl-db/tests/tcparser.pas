@@ -231,6 +231,10 @@ type
     procedure TestOr;
     procedure TestNotOr;
     procedure TestCase;
+    procedure TestAdd;
+    procedure TestSubtract;
+    procedure TestMultiply;
+    procedure TestDivide;
   end;
 
   { TTestDomainParser }
@@ -2123,6 +2127,19 @@ begin
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestDivide;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE / 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boDivide, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotContaining;
 
 Var
@@ -2175,6 +2192,19 @@ begin
   AssertEquals('Starting operator',boStarting,B.Operation);
   AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
+end;
+
+procedure TTestCheckParser.TestSubtract;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE - 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boSubtract, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
 end;
 
 procedure TTestCheckParser.TestNotStartingWith;
@@ -2264,6 +2294,19 @@ begin
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestMultiply;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE * 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boMultiply, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotLikeEscape;
 Var
   U : TSQLUnaryExpression;
@@ -2278,6 +2321,19 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is string',T.Middle,TSQLStringLiteral);
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
+end;
+
+procedure TTestCheckParser.TestAdd;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE + 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boAdd, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
 end;
 
 procedure TTestCheckParser.TestAnd;
