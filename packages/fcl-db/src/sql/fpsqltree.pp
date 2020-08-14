@@ -1411,6 +1411,38 @@ Type
     Property FalseBranch : TSQLStatement Read FFalseBranch Write FFalseBranch;
   end;
 
+  { TSQLCaseExpressionBranch }
+
+  TSQLCaseExpressionBranch = Class
+  private
+    FCondition: TSQLExpression;
+    FExpression: TSQLExpression;
+  public
+    destructor Destroy; override;
+  public
+    property Condition: TSQLExpression read FCondition write FCondition;
+    property Expression: TSQLExpression read FExpression write FExpression;
+  end;
+
+  { TSQLCaseExpression }
+
+  TSQLCaseExpression = Class(TSQLExpression)
+  private
+    FBranches: array of TSQLCaseExpressionBranch;
+    FElseBranch: TSQLExpression;
+    function GetBranch(Index: Integer): TSQLCaseExpressionBranch;
+    function GetBranchCount: Integer;
+  Public
+    Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+
+    Property BranchCount: Integer Read GetBranchCount;
+    Procedure AddBranch(ABranch: TSQLCaseExpressionBranch);
+    Procedure ClearBranches;
+    Property Branches[Index: Integer] : TSQLCaseExpressionBranch Read GetBranch;
+    Property ElseBranch : TSQLExpression Read FElseBranch Write FElseBranch;
+  end;
+
   { TSQLForStatement }
 
   TSQLForStatement = Class(TSQLStatement)
@@ -1935,6 +1967,63 @@ begin
     end
   else
     Sep:=', ';
+end;
+
+{ TSQLCaseExpressionBranch }
+
+destructor TSQLCaseExpressionBranch.Destroy;
+begin
+  FreeAndNil(FCondition);
+  FreeAndNil(FExpression);
+  inherited Destroy;
+end;
+
+{ TSQLCaseExpression }
+
+procedure TSQLCaseExpression.AddBranch(ABranch: TSQLCaseExpressionBranch);
+begin
+  SetLength(FBranches, Length(FBranches)+1);
+  FBranches[High(FBranches)] := ABranch;
+end;
+
+procedure TSQLCaseExpression.ClearBranches;
+var
+  B: TSQLCaseExpressionBranch;
+begin
+  for B in FBranches do
+    B.Free;
+  FBranches:=nil;
+end;
+
+destructor TSQLCaseExpression.Destroy;
+begin
+  ClearBranches;
+  FreeAndNil(FElseBranch);
+  inherited Destroy;
+end;
+
+function TSQLCaseExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+var
+  B: TSQLCaseExpressionBranch;
+begin
+  Result:=SQLKeyWord('CASE',Options)+' ';
+  for B in FBranches do
+    Result:=Result+
+      SQLKeyWord('WHEN ',Options)+B.Condition.GetAsSQL(Options, AIndent)+' '+
+      SQLKeyWord('THEN ',Options)+B.Expression.GetAsSQL(Options, AIndent)+' ';
+  If Assigned(FElseBranch) then
+    Result:=Result+SQLKeyWord('ELSE ',Options)+ElseBranch.GetAsSQL(Options,AIndent)+' ';
+  Result:=Result+SQLKeyWord('END',Options);
+end;
+
+function TSQLCaseExpression.GetBranch(Index: Integer): TSQLCaseExpressionBranch;
+begin
+  Result := FBranches[Index];
+end;
+
+function TSQLCaseExpression.GetBranchCount: Integer;
+begin
+  Result := Length(FBranches);
 end;
 
 { TSQLSelectLimit }

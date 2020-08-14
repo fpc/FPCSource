@@ -230,6 +230,7 @@ type
     procedure TestAnd;
     procedure TestOr;
     procedure TestNotOr;
+    procedure TestCase;
   end;
 
   { TTestDomainParser }
@@ -2201,6 +2202,34 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is integer',T.Middle,TSQLIntegerLiteral);
   AssertLiteralExpr('Right is integer',T.Right,TSQLIntegerLiteral);
+end;
+
+procedure TTestCheckParser.TestCase;
+
+Var
+  T : TSQLCaseExpression;
+  B : TSQLBinaryExpression;
+  R : TSQLIdentifierName;
+
+begin
+  T:=TSQLCaseExpression(TestCheck('CASE WHEN A=1 THEN "a" WHEN B=2 THEN "b" ELSE "c" END',TSQLCaseExpression));
+  AssertEquals('Branch count = 2',2,T.BranchCount);
+  AssertNotNull('Else branch exists',T.ElseBranch);
+
+  B:=(T.Branches[0].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[0].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('First WHEN Identifier is A', 'A', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('First WHEN Number is 1', 1, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('First THEN result is "a"', 'a', R.Name);
+
+  B:=(T.Branches[1].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Second WHEN Identifier is B', 'B', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('Second WHEN Number is 2', 2, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('Second THEN result is "b"', 'b', R.Name);
+
+  R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;
+  AssertEquals('ELSE result is "c"', 'c', R.Name);
 end;
 
 procedure TTestCheckParser.TestNotBetween;

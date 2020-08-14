@@ -69,6 +69,7 @@ type
     Procedure TestSimpleSelect;
     Procedure TestAnyExpression;
     procedure TestAllExpression;
+    procedure TestCaseExpression;
     procedure TestExistsExpression;
     procedure TestSomeExpression;
     procedure TestSingularExpression;
@@ -816,7 +817,7 @@ begin
   AssertSQL(U,'constraint C unique (A , B)',[sfoLowercaseKeyWord]);
 end;
 
-procedure TTestGenerateSQL.TestTableprimaryKeyConstraintDef;
+procedure TTestGenerateSQL.TestTablePrimaryKeyConstraintDef;
 
 Var
   U : TSQLTablePrimaryKeyConstraintDef;
@@ -1870,6 +1871,35 @@ begin
   FtoFree:=B;
   B.Statements.Add(B2);
   AssertSQL(B,'BEGIN'+sLineBreak+'  BEGIN'+sLineBreak+'    EXIT;'+sLineBreak+'  END'+sLineBreak+'END');
+end;
+
+procedure TTestGenerateSQL.TestCaseExpression;
+
+Var
+  E : TSQLCaseExpression;
+  B : TSQLCaseExpressionBranch;
+  C : TSQLBinaryExpression;
+
+begin
+  E:=TSQLCaseExpression.Create(Nil);
+
+  B:=TSQLCaseExpressionBranch.Create;
+  C:=CreateBinaryExpression(CreateIdentifierExpression('A'),CreateIdentifierExpression('B'));
+  C.Operation:=boEQ;
+  B.Condition:=C;
+  B.Expression:=CreateLiteralExpression(CreateLiteral(1));
+  E.AddBranch(B);
+
+  B:=TSQLCaseExpressionBranch.Create;
+  C:=CreateBinaryExpression(CreateIdentifierExpression('A'),CreateIdentifierExpression('B'));
+  C.Operation:=boGT;
+  B.Condition:=C;
+  B.Expression:=CreateLiteralExpression(CreateLiteral(2));
+  E.AddBranch(B);
+
+  E.ElseBranch:=CreateLiteralExpression(CreateLiteral(3));
+  FTofree:=E;
+  AssertSQL(E,'CASE WHEN A = B THEN 1 WHEN A > B THEN 2 ELSE 3 END');
 end;
 
 procedure TTestGenerateSQL.TestAssignment;

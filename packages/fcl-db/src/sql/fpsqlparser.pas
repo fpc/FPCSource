@@ -77,6 +77,7 @@ Type
     function ParseExprLevel5(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
     function ParseExprLevel6(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
     function ParseExprPrimitive(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
+    function ParseCaseExpression(AParent: TSQLElement): TSQLCaseExpression;
     function ParseInoperand(AParent: TSQLElement): TSQLExpression;
     // Lists, primitives
     function ParseIdentifierList(AParent: TSQLElement; AList: TSQLelementList): integer;
@@ -1330,6 +1331,34 @@ begin
   end;
 end;
 
+
+function TSQLParser.ParseCaseExpression(AParent: TSQLElement): TSQLCaseExpression;
+var
+  Branch: TSQLCaseExpressionBranch;
+begin
+  Consume(tsqlCASE);
+  Result:=TSQLCaseExpression(CreateElement(TSQLCaseExpression,AParent));
+  try
+    while CurrentToken=tsqlWhen do
+      begin
+      GetNextToken;
+      Branch := TSQLCaseExpressionBranch.Create;
+      Branch.Condition:=ParseExprLevel1(AParent,[eoIF]);
+      Consume(tsqlThen);
+      Branch.Expression:=ParseExprLevel1(AParent,[eoIF]);
+      Result.AddBranch(Branch);
+      end;
+    if CurrentToken=tsqlELSE then
+      begin
+      GetNextToken;
+      Result.ElseBranch:=ParseExprLevel1(AParent,[eoIF]);
+      end;
+    Consume(tsqlEnd);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
 
 procedure TSQLParser.ParseIntoList(AParent : TSQLElement; List : TSQLElementList);
 
@@ -2733,6 +2762,7 @@ begin
         TSQLCastExpression(Result).NewType:=ParseTypeDefinition(Result,[ptfCast]);
         Consume(tsqlBraceClose);
         end;
+      tsqlCase: Result:=ParseCaseExpression(AParent);
       tsqlExtract:
         begin
         GetNextToken;
