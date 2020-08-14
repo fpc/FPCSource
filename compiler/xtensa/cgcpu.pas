@@ -742,7 +742,9 @@ implementation
               else
                 Internalerror(2020031401);
             end;
-          end;
+          end
+        else if target_info.abi=abi_xtensa_windowed then
+          list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,16));
       end;
 
 

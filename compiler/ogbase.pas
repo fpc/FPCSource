@@ -1315,12 +1315,15 @@ implementation
           {arm_attribute} [oso_data]
         );
       begin
-        if (aType in [sec_rodata,sec_rodata_norel]) then
+        if target_asm.id in asms_int_coff then
           begin
-            if (target_info.system in systems_all_windows) then
-              aType:=sec_rodata_norel
-            else
-              aType:=sec_data;
+            if (aType in [sec_rodata,sec_rodata_norel]) then
+              begin
+                if (target_info.system in systems_all_windows) then
+                  aType:=sec_rodata_norel
+                else
+                  aType:=sec_data;
+              end;
           end;
         result:=secoptions[atype];
 {$ifdef OMFOBJSUPPORT}
