@@ -47,10 +47,14 @@ Type
     FScanner : TSQLScanner;
     FCurrent : TSQLToken;
     FCurrentString : String;
+    FCurrentTokenLine : Integer;
+    FCurrentTokenPos : Integer;
     FPrevious : TSQLToken;
     FFreeScanner : Boolean;
     FPeekToken: TSQLToken;
     FPeekTokenString: String;
+    FPeekTokenLine : Integer;
+    FPeekTokenPos : Integer;
     Procedure CheckEOF;
   protected
     procedure UnexpectedToken; overload;
@@ -173,6 +177,8 @@ Type
     // Auxiliary stuff
     Property CurrentToken : TSQLToken read FCurrent;
     Property CurrentTokenString : String read FCurrentString;
+    Property CurrentTokenLine : Integer read FCurrentTokenLine;
+    Property CurrentTokenPos : Integer read FCurrentTokenPos;
     // Gets next token; also updates current token
     Function GetNextToken : TSQLToken;
     // Looks at next token without changing current token
@@ -325,8 +331,8 @@ function TSQLParser.CreateElement(AElementClass: TSQLElementClass;
 begin
   Result:=AElementClass.Create(AParent);
   Result.Source:=CurSource;
-  Result.SourceLine:=CurLine;
-  Result.SourcePos:=CurPos;
+  Result.SourceLine:=CurrentTokenLine;
+  Result.SourcePos:=CurrentTokenPos;
 end;
 
 function TSQLParser.ParseTableRef(AParent: TSQLSelectStatement
@@ -4167,6 +4173,8 @@ begin
     begin
     FCurrent:=FPeekToken;
     FCurrentString:=FPeekTokenString;
+    FCurrentTokenLine:=FPeekTokenLine;
+    FCurrentTokenPos:=FPeekTokenPos;
     FPeekToken:=tsqlUnknown;
     FPeekTokenString:='';
     end
@@ -4174,6 +4182,8 @@ begin
     begin
     FCurrent:=FScanner.FetchToken;
     FCurrentString:=FScanner.CurTokenString;
+    FCurrentTokenLine:=FScanner.CurTokenRow;
+    FCurrentTokenPos:=FScanner.CurTokenColumn;
     end;
   Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken : ',GetEnumName(TypeInfo(TSQLToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
@@ -4185,6 +4195,8 @@ begin
     begin
     FPeekToken:=FScanner.FetchToken;
     FPeekTokenString:=FScanner.CurTokenString;
+    FPeekTokenLine:=FScanner.CurTokenRow;
+    FPeekTokenPos:=FScanner.CurTokenColumn;
     end;
   {$ifdef debugparser}Writeln('PeekNextToken : ',GetEnumName(TypeInfo(TSQLToken),Ord(FPeekToken)), ' As string: ',FPeekTokenString);{$endif debugparser}
   Result:=FPeekToken;
