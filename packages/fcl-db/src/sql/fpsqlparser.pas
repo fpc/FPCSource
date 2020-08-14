@@ -2757,16 +2757,17 @@ begin
           begin
           If (eoCheckConstraint in EO) and not (eoTableConstraint in EO) then
             Error(SErrUnexpectedToken,[CurrentTokenString]);
-          If (CurrentToken=tsqlDot) then
+          // Plain identifier
+          Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
+          TSQLIdentifierExpression(Result).AddIdentifierToPath(CreateIdentifier(Result,N));
+          while (CurrentToken=tsqlDot) do
             begin
             GetNextToken;
             Expect(tsqlIdentifier);
-            N:=N+'.'+CurrentTokenString;
+            N:=CurrentTokenString;
+            TSQLIdentifierExpression(Result).AddIdentifierToPath(CreateIdentifier(Result,N));
             GetNextToken;
             end;
-          // Plain identifier
-          Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
-          TSQLIdentifierExpression(Result).Identifier:=CreateIdentifier(Result,N);
           // Array access ?
           If (CurrentToken=tsqlSquareBraceOpen) then
             // Either something like array[5] or,
