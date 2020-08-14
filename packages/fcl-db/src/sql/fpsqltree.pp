@@ -188,12 +188,20 @@ Type
   TSQLIdentifierExpression = Class(TSQLExpression)
   private
     FElementIndex: Integer;
-    FIdentifier: TSQLIdentifierName;
+    FIdentifierPath: array of TSQLIdentifierName;
+    function GetIdentifier: TSQLIdentifierName;
+    function GetIdentifierPath(Index: Integer): TSQLIdentifierName;
+    function GetIdentifierPathCount: Integer;
+    procedure SetIdentifier(const AName: TSQLIdentifierName);
   Public
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property Identifier : TSQLIdentifierName Read FIdentifier Write FIdentifier;
+    Property Identifier : TSQLIdentifierName Read GetIdentifier Write SetIdentifier;
+    Property IdentifierPathCount: Integer Read GetIdentifierPathCount;
+    Procedure AddIdentifierToPath(AName: TSQLIdentifierName);
+    Procedure ClearIdentifierPath;
+    Property IdentifierPath[Index: Integer] : TSQLIdentifierName Read GetIdentifierPath;
     // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
   end;
@@ -4149,18 +4157,64 @@ begin
   FElementIndex:=-1;
 end;
 
+procedure TSQLIdentifierExpression.AddIdentifierToPath(AName: TSQLIdentifierName);
+begin
+  SetLength(FIdentifierPath, Length(FIdentifierPath)+1);
+  FIdentifierPath[High(FIdentifierPath)] := AName;
+end;
+
+procedure TSQLIdentifierExpression.ClearIdentifierPath;
+var
+  N: TSQLIdentifierName;
+begin
+  for N in FIdentifierPath do
+    N.Free;
+  FIdentifierPath:=nil;
+end;
+
 destructor TSQLIdentifierExpression.Destroy;
 begin
-  FreeAndNil(FIdentifier);
+  ClearIdentifierPath;
   inherited Destroy;
 end;
 
 function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
+var
+  N: TSQLIdentifierName;
 begin
-  If Assigned(FIdentifier) then
-    Result:= Identifier.GetAsSQL(Options);
+  Result := '';
+  for N in FIdentifierPath do
+    begin
+    if Result<>'' then
+      Result:=Result+'.';
+    Result:=Result+N.GetAsSQL(Options);
+    end;
   If (ElementIndex<>-1) then
     Result:=Result+Format('[%d]',[Elementindex]);
+end;
+
+function TSQLIdentifierExpression.GetIdentifier: TSQLIdentifierName;
+begin
+  if Length(FIdentifierPath)>0 then
+    Result:=FIdentifierPath[High(FIdentifierPath)]
+  else
+    Result:=nil;
+end;
+
+function TSQLIdentifierExpression.GetIdentifierPath(Index: Integer): TSQLIdentifierName;
+begin
+  Result := FIdentifierPath[Index];
+end;
+
+function TSQLIdentifierExpression.GetIdentifierPathCount: Integer;
+begin
+  Result := Length(FIdentifierPath);
+end;
+
+procedure TSQLIdentifierExpression.SetIdentifier(const AName: TSQLIdentifierName);
+begin
+  ClearIdentifierPath;
+  AddIdentifierToPath(AName);
 end;
 
 { TSQLSelectExpression }

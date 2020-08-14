@@ -412,6 +412,7 @@ type
     procedure TestSelectTwoFieldsBracketThreeTablesJoin;
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
     procedure TestSelectTableWithSchema;
+    procedure TestSelectFieldWithSchema;
     procedure TestAggregateCount;
     procedure TestAggregateCountAsterisk;
     procedure TestAggregateCountAll;
@@ -3737,6 +3738,26 @@ begin
   AssertException(ESQLParser,@TestParseError);
 end;
 
+procedure TTestSelectParser.TestSelectFieldWithSchema;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
+begin
+  TestSelect('SELECT S.A.B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field[0] path has 3 identifiers',3,Expr.IdentifierPathCount);
+  AssertEquals('Field[0] schema is S','S',Expr.IdentifierPath[0].Name);
+  AssertEquals('Field[0] table is A','A',Expr.IdentifierPath[1].Name);
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePathCount);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
 procedure TTestSelectParser.TestSelectOneFieldOneTable;
 begin
   TestSelect('SELECT B FROM A');
@@ -3802,12 +3823,17 @@ end;
 
 procedure TTestSelectParser.TestSelectOneTableFieldOneTable;
 
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT A.B FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
-  // Field does not support linking/refering to a table, so the field name is
-  // assigned as A.B (instead of B with a <link to table A>)
-  AssertField(Select.Fields[0],'A.B');
+  // Field supports linking/refering to a table
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table named A','A',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
@@ -3815,6 +3841,7 @@ end;
 procedure TTestSelectParser.TestSelectTableWithSchema;
 begin
   TestSelect('SELECT B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
   AssertField(Select.Fields[1],'C');
   AssertEquals('One table',1,Select.Tables.Count);
@@ -3863,19 +3890,33 @@ begin
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAsAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A AS C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPathCount);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
