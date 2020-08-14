@@ -161,7 +161,8 @@ Type
                        soNoDoubleDelimIsChar,
                        soDoubleQuoteStringLiteral,  // Default: single quote is string literal
                        soSingleQuoteIdentifier,     // Default: double quote is identifier. Ignored if soDoubleQuoteStringLiteral is not specified
-                       soBackQuoteIdentifier        // Default: double quote is identifier
+                       soBackQuoteIdentifier,       // Default: double quote is identifier
+                       soSquareBracketsIdentifier   // Default: square brackets are not supported. (Enable for MSSQL support.)
                        );
   TSQLScannerOptions = Set of TSQLScannerOption;
 
@@ -513,6 +514,8 @@ Var
 
 begin
   Delim:=TokenStr[0];
+  if Delim='[' then
+    Delim:=']';
   Inc(TokenStr);
   TokenStart := TokenStr;
   OLen := 0;
@@ -792,8 +795,16 @@ begin
       end;
     '[':
       begin
-      Inc(TokenStr);
-      Result := tsqlSquareBraceOpen;
+      If (soSquareBracketsIdentifier in options) then
+        begin
+        Result:=DoStringLiteral;
+        Result:=tsqlIdentifier;
+        end
+      Else
+        begin
+        Inc(TokenStr);
+        Result := tsqlSquareBraceOpen;
+        end;
       end;
     ']':
       begin
