@@ -413,6 +413,15 @@ type
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
     procedure TestSelectTableWithSchema;
     procedure TestSelectFieldWithSchema;
+    procedure TestSelectFirst;
+    procedure TestSelectFirstSkip;
+    procedure TestSelectTop;
+    procedure TestSelectLimit;
+    procedure TestSelectLimitAll;
+    procedure TestSelectLimitAllOffset;
+    procedure TestSelectLimitOffset1;
+    procedure TestSelectLimitOffset2;
+    procedure TestSelectOffset;
     procedure TestAggregateCount;
     procedure TestAggregateCountAsterisk;
     procedure TestAggregateCountAll;
@@ -3758,6 +3767,73 @@ begin
   AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
 end;
 
+procedure TTestSelectParser.TestSelectFirst;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+end;
+
+procedure TTestSelectParser.TestSelectFirstSkip;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 SKIP 200 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+  AssertEquals('Limit SKIP 200',200,Select.Limit.Skip);
+end;
+
+procedure TTestSelectParser.TestSelectLimit;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAll;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount -1',-1,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAllOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset1;
+begin
+  // MySQL
+  TestSelect('SELECT A FROM B LIMIT 200, 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset2;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100 OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
 procedure TTestSelectParser.TestSelectOneFieldOneTable;
 begin
   TestSelect('SELECT B FROM A');
@@ -3848,6 +3924,14 @@ begin
   AssertTable(Select.Tables[0],'A','');
   AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePathCount);
   AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
+procedure TTestSelectParser.TestSelectTop;
+begin
+  // MSSQL
+  TestSelect('SELECT TOP 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsMSSQL),Ord(Select.Limit.Style));
+  AssertEquals('Limit TOP 100',100,Select.Limit.Top);
 end;
 
 procedure TTestSelectParser.TestSelectOneDistinctFieldOneTable;
