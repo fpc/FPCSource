@@ -64,6 +64,7 @@ type
     Procedure TestValueLiteral;
     Procedure TestLiteralExpression;
     Procedure TestSelectField;
+    Procedure TestSelectFieldWithPath;
     Procedure TestSimpleTablereference;
     Procedure TestSimpleSelect;
     Procedure TestAnyExpression;
@@ -414,6 +415,24 @@ begin
   F.AliasName:=CreateIdentifier('B');
   FTofree:=F;
   AssertSQL(F,'A AS B');
+end;
+
+procedure TTestGenerateSQL.TestSelectFieldWithPath;
+
+Var
+  I : TSQLIdentifierExpression;
+  F : TSQLSelectField;
+
+begin
+  I:=CreateIdentifierExpression('A');
+  I.AddIdentifierToPath(CreateIdentifier('B'));
+  I.AddIdentifierToPath(CreateIdentifier('C'));
+  F:=CreateSelectField(I,'');
+  AssertSQL(F,'A.B.C', []);
+  AssertSQL(F,'"A"."B"."C"',[sfoDoubleQuoteIdentifier]);
+  AssertSQL(F,'`A`.`B`.`C`',[sfoBackQuoteIdentifier]);
+  AssertSQL(F,'''A''.''B''.''C''',[sfoSingleQuoteIdentifier]);
+  FTofree:=F;
 end;
 
 procedure TTestGenerateSQL.TestSimpleTablereference;
