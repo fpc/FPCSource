@@ -62,8 +62,7 @@ Procedure ResetFPU;
 var
   l_fpucw : longint;
 begin
-  
-{$ifdef CPU68020}
+{$if defined(FPU68881) or defined(FPUCOLDFIRE)}
   asm 
     fmove.l fpcr,l_fpucw
   end;

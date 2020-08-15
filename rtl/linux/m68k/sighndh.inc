@@ -23,8 +23,8 @@ type
 
   pfpstate = ^tfpstate;
   tfpstate = record
-           pcr,psr,fpiaddr : longint;
-	   fpreg : array [0..7] of tfpreg;
+    pcr,psr,fpiaddr : longint;
+    fpreg : array [0..7] of tfpreg;
   end;
 
   { as defined in asm_m68k/signal.h }
