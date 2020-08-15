@@ -623,6 +623,18 @@ implementation
              assigned(funcretnode) then
             hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
 
+        if ((location.loc=LOC_REGISTER) and
+            not realresdef.is_intregable) or
+           ((location.loc in [LOC_FPUREGISTER,LOC_MMREGISTER]) and
+            (not realresdef.is_fpuregable or
+             ((location.loc=LOC_MMREGISTER)<>use_vectorfpu(realresdef)))) then
+          begin
+            hlcg.location_force_mem(current_asmdata.CurrAsmList,location,realresdef);
+            { may have been record returned in a floating point register (-> location.size
+              will be the size of the fpuregister instead of the int size of the record) }
+            location.size:=def_cgsize(realresdef);
+          end;
+
         { copy value to the final location if this was already provided to the
           callnode. This must be done after the call node, because the location can
           also be used as parameter and may not be finalized yet }
