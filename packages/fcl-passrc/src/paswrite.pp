@@ -853,9 +853,7 @@ end;
 procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 
 Var
-  I : Integer;
   Temp : String;
-  el : TPasElement;
 
 begin
   Temp:='record';
