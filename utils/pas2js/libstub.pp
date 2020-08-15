@@ -123,15 +123,7 @@ end;
 Function ExecuteStubCreator(P : PStubCreator) : Boolean; stdcall;
 
 begin
-  Result:=False;
-  try
-    TStubCreator(P).Execute;
-    Result:=True;
-  except
-    On E: Exception do
-      Writeln('Exception ',E.ClassName,' ',E.Message);
-    // Ignore
-  end;
+  Result:=TStubCreator(P).Execute;
 end;
 
 Procedure GetStubCreatorLastError(P : PStubCreator; AError : PAnsiChar;

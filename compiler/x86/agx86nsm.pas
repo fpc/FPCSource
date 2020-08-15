@@ -802,6 +802,7 @@ interface
                   writer.AsmWrite(tai_datablock(hp).sym.name);
                   if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_datablock(hp).sym);
+                  writer.AsmLn;
                 end;
                writer.AsmWrite(PadTabs(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name),':'));
                if SmartAsm then

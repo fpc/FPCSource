@@ -91,10 +91,18 @@ Type
 
   TSQLElementList = Class(TObjectList)
   private
+    Fline: Integer;
+    FPos: Integer;
+    FSource: String;
+
     function GetE(AIndex : Integer): TSQLElement;
     procedure SetE(AIndex : Integer; const AValue: TSQLElement);
   Public
     Property Elements[AIndex : Integer] : TSQLElement Read GetE Write SetE; default;
+
+    Property Source : String Read FSource write FSource;
+    Property SourceLine : Integer Read Fline Write Fline;
+    Property SourcePos : Integer Read FPos Write FPos;
   end;
 
   TSQLLiteral = Class(TSQLElement);
@@ -183,19 +191,49 @@ Type
     Property Literal : TSQLLiteral Read FLiteral write FLiteral;
   end;
 
-  { TSQLIdentifierExpression }
+  { TSQLIdentifierPath }
 
-  TSQLIdentifierExpression = Class(TSQLExpression)
+  TSQLIdentifierPath = Class(TSQLElementList)
   private
-    FElementIndex: Integer;
-    FIdentifier: TSQLIdentifierName;
+    function GetI(AIndex : Integer): TSQLIdentifierName;
+    procedure SetI(AIndex : Integer; const AIdentifier: TSQLIdentifierName);
   Public
-    Constructor Create(AParent : TSQLElement); override;
+    Function Add(AName: TSQLIdentifierName): Integer;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
+    Property Identifiers[AIndex : Integer] : TSQLIdentifierName Read GetI Write SetI; default;
+  end;
+
+  { TSQLIdentifierPathExpression }
+
+  TSQLIdentifierPathExpression = Class(TSQLExpression)
+  private
+    FIdentifierPath: TSQLIdentifierPath;
+  Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property Identifier : TSQLIdentifierName Read FIdentifier Write FIdentifier;
+    Property IdentifierPath: TSQLIdentifierPath Read FIdentifierPath Write FIdentifierPath;
+  end;
+
+  { TSQLIdentifierExpression }
+
+  TSQLIdentifierExpression = Class(TSQLIdentifierPathExpression)
+  private
+    FElementIndex: Integer;
+    function GetIdentifier: TSQLIdentifierName;
+    procedure SetIdentifier(const AName: TSQLIdentifierName);
+  Public
+    Constructor Create(AParent : TSQLElement); override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    Property Identifier : TSQLIdentifierName Read GetIdentifier Write SetIdentifier;
     // For array types: index of element in array
     Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
+  end;
+
+  { TSQLAsteriskExpression }
+
+  TSQLAsteriskExpression = Class(TSQLIdentifierPathExpression)
+  Public
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
 
   { TSQLParameterExpression }
@@ -582,19 +620,33 @@ Type
 
   { TSelectField }
 
-  TSQLSelectElement = Class(TSQLElement);
-  TSQLSelectAsterisk = Class(TSQLSelectElement);
+  TSQLSelectElement = Class(TSQLElement)
+  private
+    FExpression: TSQLExpression;
+  Public
+    Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+    Property Expression : TSQLExpression Read FExpression Write FExpression;
+  end;
+
+  { TSQLSelectAsterisk }
+
+  TSQLSelectAsterisk = Class(TSQLSelectElement)
+  private
+    function GetExpression: TSQLAsteriskExpression;
+    procedure SetExpression(const AExpression: TSQLAsteriskExpression);
+  Public
+    Property Expression : TSQLAsteriskExpression Read GetExpression Write SetExpression;
+  end;
 
   { TSQLSelectField }
 
   TSQLSelectField = Class(TSQLSelectElement)
   private
     FAliasName: TSQLIdentifierName;
-    FExpression: TSQLExpression;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property Expression : TSQLExpression Read FExpression Write FExpression;
     Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
 
@@ -607,12 +659,16 @@ Type
   TSQLSimpleTableReference = Class(TSQLTableReference)
   private
     FAliasName: TSQLIdentifierName;
-    FObjectName: TSQLIdentifierName;
+    FObjectNamePath: TSQLIdentifierPath;
     FParams: TSQLElementList;
+    function GetObjectName: TSQLIdentifierName;
+    procedure SetObjectName(const AName: TSQLIdentifierName);
   Public
+    constructor Create(AParent: TSQLElement); override;
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property ObjectName : TSQLIdentifierName Read FObjectName Write FObjectName;
+    Property ObjectName : TSQLIdentifierName Read GetObjectName Write SetObjectName;
+    Property ObjectNamePath : TSQLIdentifierPath Read FObjectNamePath;
     Property Params : TSQLElementList Read FParams Write FParams;
     Property AliasName : TSQLIdentifierName Read FAliasName Write FAliasName;
   end;
@@ -710,11 +766,32 @@ Type
     Property OrderBy : TSQLOrderDirection Read FOrderBy write FOrderBy;
   end;
 
+  { TSQLSelectLimit }
+
+  TSQLSelectLimitStyle = (lsNone, lsFireBird, lsMSSQL, lsPostgres{lsMySQL});
+
+  TSQLSelectLimit = Class
+  private
+    FRowCount: Integer;
+    FSkip: Integer;
+    FStyle: TSQLSelectLimitStyle;
+  public
+    constructor Create;
+  public
+    property Style: TSQLSelectLimitStyle read FStyle write FStyle;
+    property First: Integer read FRowCount write FRowCount; // lsFireBird
+    property Skip: Integer read FSkip write FSkip; // lsFireBird
+    property Top: Integer read FRowCount write FRowCount; // lsMSSQL
+    property RowCount: Integer read FRowCount write FRowCount; // lsPostgres
+    property Offset: Integer read FSkip write FSkip; // lsPostgres
+  end;
+
   { TSQLSelectStatement }
 
   TSQLSelectStatement = Class(TSQLDMLStatement)
   private
     FAll: Boolean;
+    FLimit: TSQLSelectLimit;
     FDistinct: Boolean;
     FEndAt: TSQLExpression;
     FFields: TSQLElementList;
@@ -744,6 +821,7 @@ Type
     Property ForUpdate : TSQLElementList Read FForUpdate Write FForUpdate;
     Property Union : TSQLSelectStatement Read FUnion Write FUnion;
     Property Plan : TSQLSelectPlan Read FPlan Write FPlan;
+    Property Limit: TSQLSelectLimit Read FLimit;
     Property Distinct : Boolean Read FDistinct Write FDistinct;
     Property All : Boolean Read FAll Write FAll;
     Property UnionAll : Boolean Read FUnionAll Write FUnionAll;
@@ -1373,6 +1451,38 @@ Type
     Property FalseBranch : TSQLStatement Read FFalseBranch Write FFalseBranch;
   end;
 
+  { TSQLCaseExpressionBranch }
+
+  TSQLCaseExpressionBranch = Class
+  private
+    FCondition: TSQLExpression;
+    FExpression: TSQLExpression;
+  public
+    destructor Destroy; override;
+  public
+    property Condition: TSQLExpression read FCondition write FCondition;
+    property Expression: TSQLExpression read FExpression write FExpression;
+  end;
+
+  { TSQLCaseExpression }
+
+  TSQLCaseExpression = Class(TSQLExpression)
+  private
+    FBranches: array of TSQLCaseExpressionBranch;
+    FElseBranch: TSQLExpression;
+    function GetBranch(Index: Integer): TSQLCaseExpressionBranch;
+    function GetBranchCount: Integer;
+  Public
+    Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+
+    Property BranchCount: Integer Read GetBranchCount;
+    Procedure AddBranch(ABranch: TSQLCaseExpressionBranch);
+    Procedure ClearBranches;
+    Property Branches[Index: Integer] : TSQLCaseExpressionBranch Read GetBranch;
+    Property ElseBranch : TSQLExpression Read FElseBranch Write FElseBranch;
+  end;
+
   { TSQLForStatement }
 
   TSQLForStatement = Class(TSQLStatement)
@@ -1899,6 +2009,169 @@ begin
     Sep:=', ';
 end;
 
+{ TSQLAsteriskExpression }
+
+function TSQLAsteriskExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  Result := inherited GetAsSQL(Options, AIndent);
+  if Result<>'' then
+    Result:=Result+'.';
+  Result:=Result+'*';
+end;
+
+{ TSQLIdentifierExpression }
+
+constructor TSQLIdentifierExpression.Create(AParent: TSQLElement);
+begin
+  inherited Create(AParent);
+  FElementIndex:=-1;
+end;
+
+function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  Result := inherited GetAsSQL(Options, AIndent);
+  If (ElementIndex<>-1) then
+    Result:=Result+Format('[%d]',[Elementindex]);
+end;
+
+function TSQLIdentifierExpression.GetIdentifier: TSQLIdentifierName;
+begin
+  Result := TSQLIdentifierName(FIdentifierPath.Last);
+end;
+
+procedure TSQLIdentifierExpression.SetIdentifier(const AName: TSQLIdentifierName);
+begin
+  if Assigned(FIdentifierPath) then
+    FIdentifierPath.Clear
+  else
+    FIdentifierPath:=TSQLIdentifierPath.Create;
+  FIdentifierPath.Add(AName);
+end;
+
+{ TSQLSelectElement }
+
+destructor TSQLSelectElement.Destroy;
+begin
+  FreeAndNil(FExpression);
+  inherited Destroy;
+end;
+
+function TSQLSelectElement.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+begin
+  If Assigned(FExpression) then
+    Result:=FExpression.GetAsSQL(Options)
+  Else
+    Result:='';
+end;
+
+{ TSQLSelectAsterisk }
+
+function TSQLSelectAsterisk.GetExpression: TSQLAsteriskExpression;
+begin
+  Result:=TSQLAsteriskExpression(inherited Expression)
+end;
+
+procedure TSQLSelectAsterisk.SetExpression(const AExpression: TSQLAsteriskExpression);
+begin
+  inherited Expression:=AExpression;
+end;
+
+{ TSQLIdentifierPath }
+
+function TSQLIdentifierPath.Add(AName: TSQLIdentifierName): Integer;
+begin
+  Result := inherited Add(AName);
+end;
+
+function TSQLIdentifierPath.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+var
+  N: TSQLElement;
+begin
+  Result := '';
+  for Pointer(N) in Self do
+    begin
+    if Result<>'' then
+      Result:=Result+'.';
+    Result:=Result+N.GetAsSQL(Options);
+    end;
+end;
+
+function TSQLIdentifierPath.GetI(AIndex: Integer): TSQLIdentifierName;
+begin
+  Result := TSQLIdentifierName(inherited Items[AIndex]);
+end;
+
+procedure TSQLIdentifierPath.SetI(AIndex: Integer; const AIdentifier: TSQLIdentifierName);
+begin
+  inherited Items[AIndex] := AIdentifier;
+end;
+
+{ TSQLCaseExpressionBranch }
+
+destructor TSQLCaseExpressionBranch.Destroy;
+begin
+  FreeAndNil(FCondition);
+  FreeAndNil(FExpression);
+  inherited Destroy;
+end;
+
+{ TSQLCaseExpression }
+
+procedure TSQLCaseExpression.AddBranch(ABranch: TSQLCaseExpressionBranch);
+begin
+  SetLength(FBranches, Length(FBranches)+1);
+  FBranches[High(FBranches)] := ABranch;
+end;
+
+procedure TSQLCaseExpression.ClearBranches;
+var
+  B: TSQLCaseExpressionBranch;
+begin
+  for B in FBranches do
+    B.Free;
+  FBranches:=nil;
+end;
+
+destructor TSQLCaseExpression.Destroy;
+begin
+  ClearBranches;
+  FreeAndNil(FElseBranch);
+  inherited Destroy;
+end;
+
+function TSQLCaseExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
+var
+  B: TSQLCaseExpressionBranch;
+begin
+  Result:=SQLKeyWord('CASE',Options)+' ';
+  for B in FBranches do
+    Result:=Result+
+      SQLKeyWord('WHEN ',Options)+B.Condition.GetAsSQL(Options, AIndent)+' '+
+      SQLKeyWord('THEN ',Options)+B.Expression.GetAsSQL(Options, AIndent)+' ';
+  If Assigned(FElseBranch) then
+    Result:=Result+SQLKeyWord('ELSE ',Options)+ElseBranch.GetAsSQL(Options,AIndent)+' ';
+  Result:=Result+SQLKeyWord('END',Options);
+end;
+
+function TSQLCaseExpression.GetBranch(Index: Integer): TSQLCaseExpressionBranch;
+begin
+  Result := FBranches[Index];
+end;
+
+function TSQLCaseExpression.GetBranchCount: Integer;
+begin
+  Result := Length(FBranches);
+end;
+
+{ TSQLSelectLimit }
+
+constructor TSQLSelectLimit.Create;
+begin
+  inherited Create;
+  FSkip:=-1;
+  FRowCount:=-1;
+end;
+
 { TSQLSetTermStatement }
 
 function TSQLSetTermStatement.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer): TSQLStringType;
@@ -1978,6 +2251,7 @@ begin
   FTables:=TSQLElementList.Create(True);
   FGroupBy:=TSQLElementList.Create(True);
   FOrderBy:=TSQLElementList.Create(True);
+  FLimit:=TSQLSelectLimit.Create;
 end;
 
 destructor TSQLSelectStatement.Destroy;
@@ -1995,6 +2269,7 @@ begin
   FreeAndNil(FForUpdate);
   FreeAndNil(FTN);
   FreeAndNil(FInto);
+  FreeAndNil(FLimit);
   inherited Destroy;
 end;
 
@@ -2062,6 +2337,15 @@ Var
 
 begin
   Result:=SQLKeyWord('SELECT',Options);
+  If Limit.Style=lsMSSQL then
+    Result:=Result+' '+SQLKeyword('TOP',Options)+' '+IntToStr(Limit.Top)
+  else
+  If Limit.Style=lsFireBird then
+    begin
+    Result:=Result+' '+SQLKeyword('FIRST',Options)+' '+IntToStr(Limit.First);
+    if Limit.Skip>=0 then
+      Result:=Result+' '+SQLKeyword('SKIP',Options)+' '+IntToStr(Limit.Skip);
+    end;
   If Distinct then
     Result:=Result+' '+SQLKeyword('DISTINCT',Options);
   NewLinePending:=(sfoOneFieldPerLine in Options);
@@ -2077,6 +2361,13 @@ begin
     NewLinePending:=NewLinePending or (sfoPlanOnSeparateLine in Options);
   AddExpression('PLAN',Plan,(sfoPlanOnSeparateLine in Options),(sfoIndentPlan in Options));
   AddList('ORDER BY',OrderBy,(sfoOneOrderByFieldPerLine in Options),(sfoIndentOrderByFields in Options));
+  If Limit.Style=lsPostgres then
+    begin
+    if Limit.RowCount>=0 then
+      Result:=Result+' '+SQLKeyword('LIMIT',Options)+' '+IntToStr(Limit.RowCount);
+    if Limit.Offset>=0 then
+      Result:=Result+' '+SQLKeyword('OFFSET',Options)+' '+IntToStr(Limit.Offset);
+    end;
 end;
 
 { TSQLInsertStatement }
@@ -3058,24 +3349,28 @@ end;
 
 destructor TSQLSelectField.Destroy;
 begin
-  FreeAndNil(FExpression);
   FreeAndNil(FAliasName);
   inherited Destroy;
 end;
 
 function TSQLSelectField.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
 begin
-  If Assigned(FExpression) then
-    Result:=FExpression.GetAsSQL(Options);
+  Result := inherited GetAsSQL(Options, AIndent);
   If Assigned(FAliasName) then
     Result:=Result+' AS '+FAliasName.GetAsSQL(Options);
 end;
 
 { TSQLSimpleTableReference }
 
+constructor TSQLSimpleTableReference.Create(AParent: TSQLElement);
+begin
+  inherited Create(AParent);
+  FObjectNamePath:=TSQLIdentifierPath.Create;
+end;
+
 destructor TSQLSimpleTableReference.Destroy;
 begin
-  FreeAndNil(FObjectName);
+  FreeAndNil(FObjectNamePath);
   FreeAndNil(FParams);
   FreeAndNil(FAliasName);
   inherited Destroy;
@@ -3085,7 +3380,6 @@ function TSQLSimpleTableReference.GetAsSQL(Options: TSQLFormatOptions; AIndent :
 
 Var
   I : integer;
-
 begin
   Result:='';
   If Assigned(FParams) and (FParams.Count>0) then
@@ -3098,10 +3392,20 @@ begin
       end;
     Result:='('+Result+')';
     end;
-  If Assigned(FObjectname) then
-    Result:= FObjectName.GetAsSQL(Options)+Result;
+  Result:= FObjectNamePath.GetAsSQL(Options, AIndent)+Result;
   if Assigned(FAliasName) then
     Result:=Result+' '+FAliasName.GetAsSQL(Options);
+end;
+
+function TSQLSimpleTableReference.GetObjectName: TSQLIdentifierName;
+begin
+  Result := TSQLIdentifierName(FObjectNamePath.Last);
+end;
+
+procedure TSQLSimpleTableReference.SetObjectName(const AName: TSQLIdentifierName);
+begin
+  FObjectNamePath.Clear;
+  FObjectNamePath.Add(AName);
 end;
 
 { TSQLJoinTableReference }
@@ -4087,26 +4391,20 @@ begin
   Result:=Result+sp+SQLKeyWord('MODULE_NAME ',Options)+SQLFormatString(ModuleName,Options);
 end;
 
-{ TSQLIdentifierExpression }
+{ TSQLIdentifierPathExpression }
 
-constructor TSQLIdentifierExpression.Create(AParent: TSQLElement);
+destructor TSQLIdentifierPathExpression.Destroy;
 begin
-  inherited Create(AParent);
-  FElementIndex:=-1;
-end;
-
-destructor TSQLIdentifierExpression.Destroy;
-begin
-  FreeAndNil(FIdentifier);
+  FreeAndNil(FIdentifierPath);
   inherited Destroy;
 end;
 
-function TSQLIdentifierExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
+function TSQLIdentifierPathExpression.GetAsSQL(Options: TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType;
 begin
-  If Assigned(FIdentifier) then
-    Result:= Identifier.GetAsSQL(Options);
-  If (ElementIndex<>-1) then
-    Result:=Result+Format('[%d]',[Elementindex]);
+  if Assigned(FIdentifierPath) then
+    Result:=FIdentifierPath.GetAsSQL(Options, AIndent)
+  else
+    Result:='';
 end;
 
 { TSQLSelectExpression }

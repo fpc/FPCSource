@@ -64,10 +64,12 @@ type
     Procedure TestValueLiteral;
     Procedure TestLiteralExpression;
     Procedure TestSelectField;
+    Procedure TestSelectFieldWithPath;
     Procedure TestSimpleTablereference;
     Procedure TestSimpleSelect;
     Procedure TestAnyExpression;
     procedure TestAllExpression;
+    procedure TestCaseExpression;
     procedure TestExistsExpression;
     procedure TestSomeExpression;
     procedure TestSingularExpression;
@@ -96,6 +98,7 @@ type
     procedure TestPlanExpression;
     procedure TestOrderBy;
     Procedure TestSelect;
+    Procedure TestLimit;
     procedure TestInsert;
     procedure TestUpdatePair;
     procedure TestUpdate;
@@ -414,6 +417,24 @@ begin
   F.AliasName:=CreateIdentifier('B');
   FTofree:=F;
   AssertSQL(F,'A AS B');
+end;
+
+procedure TTestGenerateSQL.TestSelectFieldWithPath;
+
+Var
+  I : TSQLIdentifierExpression;
+  F : TSQLSelectField;
+
+begin
+  I:=CreateIdentifierExpression('A');
+  I.IdentifierPath.Add(CreateIdentifier('B'));
+  I.IdentifierPath.Add(CreateIdentifier('C'));
+  F:=CreateSelectField(I,'');
+  AssertSQL(F,'A.B.C', []);
+  AssertSQL(F,'"A"."B"."C"',[sfoDoubleQuoteIdentifier]);
+  AssertSQL(F,'`A`.`B`.`C`',[sfoBackQuoteIdentifier]);
+  AssertSQL(F,'''A''.''B''.''C''',[sfoSingleQuoteIdentifier]);
+  FTofree:=F;
 end;
 
 procedure TTestGenerateSQL.TestSimpleTablereference;
@@ -796,7 +817,7 @@ begin
   AssertSQL(U,'constraint C unique (A , B)',[sfoLowercaseKeyWord]);
 end;
 
-procedure TTestGenerateSQL.TestTableprimaryKeyConstraintDef;
+procedure TTestGenerateSQL.TestTablePrimaryKeyConstraintDef;
 
 Var
   U : TSQLTablePrimaryKeyConstraintDef;
@@ -974,6 +995,33 @@ begin
   J.Right:=J.Left;
   J.Left:=J2;
   AssertSQL(J,'(E JOIN F ON (G = H)) FULL OUTER JOIN A ON (C = D)',[sfoBracketLeftJoin]);
+end;
+
+procedure TTestGenerateSQL.TestLimit;
+
+Var
+  S : TSQLSelectStatement;
+
+begin
+  S:=CreateSelect(CreateIdentifierExpression('A'),'B');
+
+  S.Limit.Style:=lsFireBird;
+  S.Limit.First := 10;
+  AssertSQL(S,'SELECT FIRST 10 A FROM B');
+  S.Limit.Style:=lsMSSQL;
+  AssertSQL(S,'SELECT TOP 10 A FROM B');
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B LIMIT 10');
+
+  S.Limit.Skip := 20;
+  S.Limit.Style:=lsFireBird;
+  AssertSQL(S,'SELECT FIRST 10 SKIP 20 A FROM B');
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B LIMIT 10 OFFSET 20');
+
+  S.Limit.RowCount := -1;
+  S.Limit.Style:=lsPostgres;
+  AssertSQL(S,'SELECT A FROM B OFFSET 20');
 end;
 
 procedure TTestGenerateSQL.TestPlanNatural;
@@ -1823,6 +1871,35 @@ begin
   FtoFree:=B;
   B.Statements.Add(B2);
   AssertSQL(B,'BEGIN'+sLineBreak+'  BEGIN'+sLineBreak+'    EXIT;'+sLineBreak+'  END'+sLineBreak+'END');
+end;
+
+procedure TTestGenerateSQL.TestCaseExpression;
+
+Var
+  E : TSQLCaseExpression;
+  B : TSQLCaseExpressionBranch;
+  C : TSQLBinaryExpression;
+
+begin
+  E:=TSQLCaseExpression.Create(Nil);
+
+  B:=TSQLCaseExpressionBranch.Create;
+  C:=CreateBinaryExpression(CreateIdentifierExpression('A'),CreateIdentifierExpression('B'));
+  C.Operation:=boEQ;
+  B.Condition:=C;
+  B.Expression:=CreateLiteralExpression(CreateLiteral(1));
+  E.AddBranch(B);
+
+  B:=TSQLCaseExpressionBranch.Create;
+  C:=CreateBinaryExpression(CreateIdentifierExpression('A'),CreateIdentifierExpression('B'));
+  C.Operation:=boGT;
+  B.Condition:=C;
+  B.Expression:=CreateLiteralExpression(CreateLiteral(2));
+  E.AddBranch(B);
+
+  E.ElseBranch:=CreateLiteralExpression(CreateLiteral(3));
+  FTofree:=E;
+  AssertSQL(E,'CASE WHEN A = B THEN 1 WHEN A > B THEN 2 ELSE 3 END');
 end;
 
 procedure TTestGenerateSQL.TestAssignment;

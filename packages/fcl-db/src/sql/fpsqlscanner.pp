@@ -51,23 +51,23 @@ type
    { Note: if adding before tsqlALL or after tsqlWHEN please update FirstKeyword/LastKeyword }
    tsqlALL, tsqlAND, tsqlANY, tsqlASC, tsqlASCENDING, tsqlAVG, tsqlALTER, tsqlAdd, tsqlActive, tsqlAction, tsqlAs,tsqlAt, tsqlAuto, tsqlAfter,tsqlAdmin,
    tsqlBETWEEN, tsqlBinary, tsqlBY, tsqlBLOB, tsqlBegin, tsqlBefore,
-   tsqlCOLLATE, tsqlCONTAINING, tsqlCOUNT, tsqlCREATE, tsqlCOLUMN, tsqlCONSTRAINT, tsqlChar,tsqlCHARACTER, tsqlCHECK, tsqlComputed,tsqlCASCADE, tsqlCast, tsqlCommit,tsqlConnect,tsqlCache,tsqlConditional,tsqlCString,
+   tsqlCASE, tsqlCOLLATE, tsqlCONTAINING, tsqlCOUNT, tsqlCREATE, tsqlCOLUMN, tsqlCONSTRAINT, tsqlChar,tsqlCHARACTER, tsqlCHECK, tsqlComputed,tsqlCASCADE, tsqlCast, tsqlCommit,tsqlConnect,tsqlCache,tsqlConditional,tsqlCString,
    tsqlDESC, tsqlDESCENDING, tsqlDISTINCT, tsqlDEFAULT, tsqlDELETE, tsqlDO, tsqlDouble, tsqlDECLARE, tsqlDROP, tsqlDomain, tsqlDecimal, tsqlDate,tsqlDatabase,
    tsqlESCAPE, tsqlEXISTS, tsqlELSE, tsqlException,   tsqlExternal, tsqlExecute, tsqlEnd,tsqlExit,tsqlEntrypoint,tsqlExtract,
-   tsqlFROM, tsqlFULL, tsqlFOREIGN, tsqlFOR, tsqlFUNCTION, tsqlFLOAT, tsqlFile,tsqlFreeIt,
+   tsqlFIRST, tsqlFROM, tsqlFULL, tsqlFOREIGN, tsqlFOR, tsqlFUNCTION, tsqlFLOAT, tsqlFile,tsqlFreeIt,
    tsqlGenerator, tsqlGROUP, tsqlGenID,tsqlGDSCODE,tsqlGrant,
    tsqlHAVING,
    tsqlIF, tsqlIN, tsqlINNER, tsqlINSERT, tsqlINT, tsqlINTEGER, tsqlINTO, tsqlIS, tsqlINDEX,  tsqlInactive,
    tsqlJOIN,
    tsqlKEY,
-   tsqlLEFT, tsqlLIKE, tsqlLength,
+   tsqlLEFT, tsqlLIKE, tsqlLIMIT, tsqlLength,
    tsqlMAX, tsqlMIN, tsqlMERGE, tsqlManual, tsqlModuleName,
    tsqlNOT, tsqlNULL, tsqlNUMERIC , tsqlNChar, tsqlNATIONAL,tsqlNO, tsqlNatural,
-   tsqlOFF {not an FB reserved word; used in isql scripts}, tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
+   tsqlOFF {not an FB reserved word; used in isql scripts}, tsqlOFFSET, tsqlON, tsqlOR, tsqlORDER, tsqlOUTER, tsqlOption,
    tsqlPrecision, tsqlPRIMARY,  tsqlProcedure, tsqlPosition, tsqlPlan, tsqlPassword, tsqlPage,tsqlPages,tsqlPageSize,tsqlPostEvent,tsqlPrivileges,tsqlPublic,
    tsqlRIGHT, tsqlROLE, tsqlReferences, tsqlRollBack, tsqlRelease,  tsqlretain,  tsqlReturningValues,tsqlReturns, tsqlrevoke,
    tsqlSELECT, tsqlSET, tsqlSINGULAR, tsqlSOME, tsqlSTARTING, tsqlSUM, tsqlSKIP,tsqlSUBTYPE,tsqlSize,tsqlSegment, tsqlSORT, tsqlSnapShot,tsqlSchema,tsqlShadow,tsqlSuspend,tsqlSQLCode,tsqlSmallint,
-   tSQLTABLE, tsqlText, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTransaction, tsqlThen,
+   tSQLTABLE, tsqlText, tsqlTrigger, tsqlTime, tsqlTimeStamp, tsqlType, tsqlTo, tsqlTop, tsqlTransaction, tsqlThen,
    tsqlUNION, tsqlUPDATE, tsqlUPPER,  tsqlUNIQUE, tsqlUSER,
    tsqlValue, tsqlVALUES, tsqlVARIABLE,  tsqlVIEW, tsqlVARCHAR,TSQLVARYING,
    tsqlWHERE, tsqlWITH, tsqlWHILE, tsqlWork, tsqlWhen,tsqlSequence,tsqlRestart,tsqlrecreate,tsqlterm
@@ -97,23 +97,23 @@ const
        // Identifiers last:
        'ALL', 'AND', 'ANY', 'ASC', 'ASCENDING', 'AVG', 'ALTER', 'ADD','ACTIVE','ACTION', 'AS', 'AT', 'AUTO', 'AFTER', 'ADMIN',
        'BETWEEN', 'BINARY', 'BY', 'BLOB','BEGIN', 'BEFORE',
-       'COLLATE', 'CONTAINING', 'COUNT', 'CREATE', 'COLUMN', 'CONSTRAINT', 'CHAR','CHARACTER','CHECK', 'COMPUTED','CASCADE','CAST', 'COMMIT', 'CONNECT', 'CACHE','CONDITIONAL', 'CSTRING',
+       'CASE', 'COLLATE', 'CONTAINING', 'COUNT', 'CREATE', 'COLUMN', 'CONSTRAINT', 'CHAR','CHARACTER','CHECK', 'COMPUTED','CASCADE','CAST', 'COMMIT', 'CONNECT', 'CACHE','CONDITIONAL', 'CSTRING',
        'DESC', 'DESCENDING', 'DISTINCT',  'DEFAULT', 'DELETE', 'DO', 'DOUBLE', 'DECLARE', 'DROP', 'DOMAIN', 'DECIMAL', 'DATE','DATABASE',
        'ESCAPE', 'EXISTS', 'ELSE', 'EXCEPTION', 'EXTERNAL','EXECUTE', 'END','EXIT','ENTRY_POINT','EXTRACT',
-       'FROM', 'FULL','FOREIGN', 'FOR', 'FUNCTION', 'FLOAT','FILE', 'FREE_IT',
+       'FIRST', 'FROM', 'FULL','FOREIGN', 'FOR', 'FUNCTION', 'FLOAT','FILE', 'FREE_IT',
        'GENERATOR', 'GROUP', 'GEN_ID','GDSCODE','GRANT',
        'HAVING',
        'IF', 'IN', 'INNER', 'INSERT', 'INT', 'INTEGER', 'INTO', 'IS', 'INDEX', 'INACTIVE',
        'JOIN',
        'KEY',
-       'LEFT', 'LIKE', 'LENGTH',
+       'LEFT', 'LIKE', 'LIMIT', 'LENGTH',
        'MAX', 'MIN', 'MERGE', 'MANUAL', 'MODULE_NAME',
        'NOT', 'NULL', 'NUMERIC','NCHAR','NATIONAL', 'NO', 'NATURAL',
-       'OFF', 'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
+       'OFF', 'OFFSET', 'ON', 'OR', 'ORDER', 'OUTER', 'OPTION',
        'PRECISION', 'PRIMARY', 'PROCEDURE','POSITION','PLAN', 'PASSWORD','PAGE','PAGES','PAGE_SIZE','POST_EVENT','PRIVILEGES','PUBLIC',
        'RIGHT', 'ROLE', 'REFERENCES', 'ROLLBACK','RELEASE', 'RETAIN', 'RETURNING_VALUES', 'RETURNS','REVOKE',
        'SELECT', 'SET', 'SINGULAR', 'SOME', 'STARTING', 'SUM', 'SKIP','SUB_TYPE', 'SIZE', 'SEGMENT', 'SORT', 'SNAPSHOT','SCHEMA','SHADOW','SUSPEND','SQLCODE','SMALLINT',
-       'TABLE', 'TEXT', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TRANSACTION', 'THEN',
+       'TABLE', 'TEXT', 'TRIGGER', 'TIME', 'TIMESTAMP', 'TYPE', 'TO', 'TOP', 'TRANSACTION', 'THEN',
        'UNION', 'UPDATE', 'UPPER', 'UNIQUE', 'USER',
        'VALUE','VALUES','VARIABLE', 'VIEW','VARCHAR','VARYING',
        'WHERE', 'WITH', 'WHILE','WORK','WHEN','SEQUENCE','RESTART','RECREATE','TERM'
@@ -161,7 +161,8 @@ Type
                        soNoDoubleDelimIsChar,
                        soDoubleQuoteStringLiteral,  // Default: single quote is string literal
                        soSingleQuoteIdentifier,     // Default: double quote is identifier. Ignored if soDoubleQuoteStringLiteral is not specified
-                       soBackQuoteIdentifier        // Default: double quote is identifier
+                       soBackQuoteIdentifier,       // Default: double quote is identifier
+                       soSquareBracketsIdentifier   // Default: square brackets are not supported. (Enable for MSSQL support.)
                        );
   TSQLScannerOptions = Set of TSQLScannerOption;
 
@@ -174,6 +175,8 @@ Type
     FCurRow: Integer;
     FCurToken: TSQLToken;
     FCurTokenString: string;
+    FCurTokenRow: Integer;
+    FCurTokenColumn: Integer;
     FCurLine: string;
     TokenStr: PChar;
     FSourceStream : TStream;
@@ -218,6 +221,8 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TSQLToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    Property CurTokenRow : Integer Read FCurTokenRow;
+    Property CurTokenColumn : Integer Read FCurTokenColumn;
     Property ExcludeKeywords : TStrings Read GetExcludeKeywords Write SetExcludeKeywords;
     Property AlternateTerminator : String Read FAlternateTerminator Write FAlternateTerminator;
   end;
@@ -513,6 +518,8 @@ Var
 
 begin
   Delim:=TokenStr[0];
+  if Delim='[' then
+    Delim:=']';
   Inc(TokenStr);
   TokenStart := TokenStr;
   OLen := 0;
@@ -716,6 +723,8 @@ begin
         FCurToken := Result;
         exit;
         end;
+    FCurTokenRow:=CurRow;
+    FCurTokenColumn:=CurColumn;
     FCurTokenString := '';
     case TokenStr[0] of
       #0:         // Empty line
@@ -792,8 +801,16 @@ begin
       end;
     '[':
       begin
-      Inc(TokenStr);
-      Result := tsqlSquareBraceOpen;
+      If (soSquareBracketsIdentifier in options) then
+        begin
+        Result:=DoStringLiteral;
+        Result:=tsqlIdentifier;
+        end
+      Else
+        begin
+        Inc(TokenStr);
+        Result := tsqlSquareBraceOpen;
+        end;
       end;
     ']':
       begin
@@ -900,7 +917,7 @@ end;
 
 function TSQLScanner.GetCurColumn: Integer;
 begin
-  Result := TokenStr - PChar(FCurLine);
+  Result := TokenStr - PChar(FCurLine) + 1;
 end;
 
 Procedure TSQLScanner.ClearKeywords(Sender : TObject);

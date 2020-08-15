@@ -230,6 +230,11 @@ type
     procedure TestAnd;
     procedure TestOr;
     procedure TestNotOr;
+    procedure TestCase;
+    procedure TestAdd;
+    procedure TestSubtract;
+    procedure TestMultiply;
+    procedure TestDivide;
   end;
 
   { TTestDomainParser }
@@ -399,6 +404,7 @@ type
     procedure TestSelectOneAllFieldOneTable;
     procedure TestSelectAsteriskOneTable;
     procedure TestSelectDistinctAsteriskOneTable;
+    procedure TestSelectAsteriskWithPath;
     procedure TestSelectOneFieldOneTableAlias;
     procedure TestSelectOneFieldOneTableAsAlias;
     procedure TestSelectTwoFieldsTwoTables;
@@ -411,6 +417,17 @@ type
     procedure TestSelectTwoFieldsThreeTablesJoin;
     procedure TestSelectTwoFieldsBracketThreeTablesJoin;
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
+    procedure TestSelectTableWithSchema;
+    procedure TestSelectFieldWithSchema;
+    procedure TestSelectFirst;
+    procedure TestSelectFirstSkip;
+    procedure TestSelectTop;
+    procedure TestSelectLimit;
+    procedure TestSelectLimitAll;
+    procedure TestSelectLimitAllOffset;
+    procedure TestSelectLimitOffset1;
+    procedure TestSelectLimitOffset2;
+    procedure TestSelectOffset;
     procedure TestAggregateCount;
     procedure TestAggregateCountAsterisk;
     procedure TestAggregateCountAll;
@@ -476,6 +493,8 @@ type
     procedure TestWhereSome;
     procedure TestParam;
     procedure TestParamExpr;
+    procedure TestNoTable;
+    procedure TestSourcePosition;
   end;
 
   { TTestRollBackParser }
@@ -2109,6 +2128,19 @@ begin
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestDivide;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE / 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boDivide, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotContaining;
 
 Var
@@ -2163,6 +2195,19 @@ begin
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestSubtract;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE - 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boSubtract, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotStartingWith;
 
 Var
@@ -2190,6 +2235,34 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is integer',T.Middle,TSQLIntegerLiteral);
   AssertLiteralExpr('Right is integer',T.Right,TSQLIntegerLiteral);
+end;
+
+procedure TTestCheckParser.TestCase;
+
+Var
+  T : TSQLCaseExpression;
+  B : TSQLBinaryExpression;
+  R : TSQLIdentifierName;
+
+begin
+  T:=TSQLCaseExpression(TestCheck('CASE WHEN A=1 THEN "a" WHEN B=2 THEN "b" ELSE "c" END',TSQLCaseExpression));
+  AssertEquals('Branch count = 2',2,T.BranchCount);
+  AssertNotNull('Else branch exists',T.ElseBranch);
+
+  B:=(T.Branches[0].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[0].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('First WHEN Identifier is A', 'A', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('First WHEN Number is 1', 1, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('First THEN result is "a"', 'a', R.Name);
+
+  B:=(T.Branches[1].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Second WHEN Identifier is B', 'B', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('Second WHEN Number is 2', 2, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('Second THEN result is "b"', 'b', R.Name);
+
+  R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;
+  AssertEquals('ELSE result is "c"', 'c', R.Name);
 end;
 
 procedure TTestCheckParser.TestNotBetween;
@@ -2222,6 +2295,19 @@ begin
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestMultiply;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE * 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boMultiply, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotLikeEscape;
 Var
   U : TSQLUnaryExpression;
@@ -2236,6 +2322,19 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is string',T.Middle,TSQLStringLiteral);
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
+end;
+
+procedure TTestCheckParser.TestAdd;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE + 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boAdd, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
 end;
 
 procedure TTestCheckParser.TestAnd;
@@ -3736,6 +3835,93 @@ begin
   AssertException(ESQLParser,@TestParseError);
 end;
 
+procedure TTestSelectParser.TestSelectFieldWithSchema;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
+begin
+  TestSelect('SELECT S.A.B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field[0] path has 3 identifiers',3,Expr.IdentifierPath.Count);
+  AssertEquals('Field[0] schema is S','S',Expr.IdentifierPath[0].Name);
+  AssertEquals('Field[0] table is A','A',Expr.IdentifierPath[1].Name);
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
+procedure TTestSelectParser.TestSelectFirst;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+end;
+
+procedure TTestSelectParser.TestSelectFirstSkip;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 SKIP 200 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+  AssertEquals('Limit SKIP 200',200,Select.Limit.Skip);
+end;
+
+procedure TTestSelectParser.TestSelectLimit;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAll;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount -1',-1,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAllOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset1;
+begin
+  // MySQL
+  TestSelect('SELECT A FROM B LIMIT 200, 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset2;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100 OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
 procedure TTestSelectParser.TestSelectOneFieldOneTable;
 begin
   TestSelect('SELECT B FROM A');
@@ -3801,14 +3987,39 @@ end;
 
 procedure TTestSelectParser.TestSelectOneTableFieldOneTable;
 
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT A.B FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
-  // Field does not support linking/refering to a table, so the field name is
-  // assigned as A.B (instead of B with a <link to table A>)
-  AssertField(Select.Fields[0],'A.B');
+  // Field supports linking/refering to a table
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named A','A',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
+end;
+
+procedure TTestSelectParser.TestSelectTableWithSchema;
+begin
+  TestSelect('SELECT B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
+procedure TTestSelectParser.TestSelectTop;
+begin
+  // MSSQL
+  TestSelect('SELECT TOP 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsMSSQL),Ord(Select.Limit.Style));
+  AssertEquals('Limit TOP 100',100,Select.Limit.Top);
 end;
 
 procedure TTestSelectParser.TestSelectOneDistinctFieldOneTable;
@@ -3840,6 +4051,17 @@ begin
   AssertTable(Select.Tables[0],'A');
 end;
 
+procedure TTestSelectParser.TestSelectAsteriskWithPath;
+begin
+  TestSelect('SELECT A.* FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  CheckClass(Select.Fields[0],TSQLSelectAsterisk);
+  AssertEquals('Path count = 1',1,TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath.Count);
+  AssertEquals('Path table = A','A',TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath[0].Name);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+end;
+
 procedure TTestSelectParser.TestSelectDistinctAsteriskOneTable;
 begin
   TestSelect('SELECT DISTINCT * FROM A');
@@ -3851,19 +4073,33 @@ begin
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAsAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A AS C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
@@ -3892,6 +4128,27 @@ begin
   AssertEquals('One table',1,Select.Tables.Count);
   J:=AssertJoin(Select.Tables[0],'A','D',jtNone);
   AssertJoinOn(J.JoinClause,'E','F',boEq);
+end;
+
+procedure TTestSelectParser.TestSourcePosition;
+begin
+  TestSelect('SELECT X FROM ABC ORDER BY Y');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('FROM source line = 1', 1, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 10', 10, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 1', 1, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 19', 19, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 1', 1, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 15', 15, Select.Tables[0].SourcePos);
+
+  TestSelect('SELECT X'+sLineBreak+'FROM ABC'+sLineBreak+'ORDER BY Y');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('FROM source line = 2', 2, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 1', 1, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 3', 3, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 1', 1, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 2', 2, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 6', 6, Select.Tables[0].SourcePos);
 end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsTwoInnerTablesJoin;
@@ -4519,6 +4776,23 @@ begin
   S:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
   AssertEquals('One',1,S.Value);
   AssertAggregateExpression(H.Left,afCount,'C',aoNone);
+end;
+
+procedure TTestSelectParser.TestNoTable;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT 1');
+  AssertEquals('0 tables in select',0,Select.Tables.Count);
+  AssertEquals('1 field in select',1,Select.Fields.Count);
+  AssertNotNull('Have field',Select.Fields[0]);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLIntegerLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLIntegerLiteral));
+  AssertEquals('SELECT 1',1,L.Value);
 end;
 
 procedure TTestSelectParser.TestUnionSimple;

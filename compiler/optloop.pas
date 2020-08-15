@@ -112,6 +112,8 @@ unit optloop;
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
           exit;
+        if ErrorCount<>0 then
+          exit;
         if not(node.nodetype in [forn]) then
           exit;
         unrolls:=number_unrolls(tfornode(node).t2);

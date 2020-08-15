@@ -3178,6 +3178,9 @@ const
                     result:=target_info.Cprefix+tprocdef(pd).procsym.realname
                   else
                     result:=pd.procsym.realname;
+                  if (target_info.system=system_i8086_msdos) and
+                    (pd.proccalloption=pocall_pascal) then
+                    result:=UpCase(result);
                 end;
             end;
           end;
