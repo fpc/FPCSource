@@ -112,6 +112,7 @@ type
 
   TCustomTestResolver = Class(TTestParser)
   Private
+    FHub: TPasResolverHub;
     {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
     FStartElementRefCount: int64;
     {$ENDIF}
@@ -173,6 +174,7 @@ type
     procedure StartUnit(NeedSystemUnit: boolean);
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
+    property Hub: TPasResolverHub read FHub;
     property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
@@ -1060,6 +1062,7 @@ begin
   FStartElementRefCount:=TPasElement.GlobalRefCount;
   {$ENDIF}
   FModules:=TObjectList.Create(true);
+  FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
   Scanner.OnDirective:=@OnScannerDirective;
@@ -1096,6 +1099,7 @@ begin
     FModules.OwnsObjects:=true;
     FreeAndNil(FModules);// free all other modules
     end;
+  FreeAndNil(FHub);
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown inherited');
   {$ENDIF}
@@ -2171,6 +2175,7 @@ begin
   Result.AddObjFPCBuiltInIdentifiers;
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
+  Result.Hub:=Hub;
   FModules.Add(Result);
 end;
 
