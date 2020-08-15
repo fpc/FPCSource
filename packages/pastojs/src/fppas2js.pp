@@ -1369,6 +1369,11 @@ type
     property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
   end;
 
+  { TPas2JSResolverHub }
+
+  TPas2JSResolverHub = class(TPasResolverHub)
+  end;
+
   { TPas2JSResolver }
 
   TPas2JSResolver = class(TPasResolver)
@@ -1473,6 +1478,7 @@ type
     // generic/specialize
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
+    function SpecializeNeedsDelay(SpecializedItem: TPRSpecializedItem): TPasElement;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -4897,6 +4903,47 @@ begin
         ClearOverloadScopes;
       end;
       end;
+    end;
+end;
+
+function TPas2JSResolver.SpecializeNeedsDelay(
+  SpecializedItem: TPRSpecializedItem): TPasElement;
+// finds first specialize param defined later than the generic
+// For example: generic in the unit interface, param in implementation
+// or param in another unit, not used by the generic
+var
+  Gen: TPasElement;
+  GenMod, ParamMod: TPasModule;
+  Params: TPasTypeArray;
+  Param: TPasType;
+  i: Integer;
+  GenSection, ParamSection: TPasSection;
+begin
+  Result:=nil;
+  Gen:=SpecializedItem.GenericEl;
+  GenSection:=GetParentSection(Gen);
+  if not (GenSection is TInterfaceSection) then
+    exit; // generic in unit implementation/program/library -> params cannot be defined a later section
+  GenMod:=GenSection.GetModule;
+
+  Params:=SpecializedItem.Params;
+  for i:=0 to length(Params)-1 do
+    begin
+    Param:=ResolveAliasType(Params[i],false);
+    if Param.ClassType=TPasUnresolvedSymbolRef then
+      continue; // built-in type
+    ParamSection:=GetParentSection(Param);
+    if ParamSection=GenSection then continue;
+    // not in same section
+    ParamMod:=ParamSection.GetModule;
+    if ParamMod=GenMod then
+      exit(Param); // generic in unit interface, specialize in implementation
+    // param in another unit
+    if ParamSection is TImplementationSection then
+      exit(Param); // generic in unit interface, specialize in another(later) implementation
+    // param in another unit interface
+
+    //xxx
     end;
 end;
 

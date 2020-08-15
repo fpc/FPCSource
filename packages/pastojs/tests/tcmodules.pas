@@ -111,6 +111,7 @@ type
     FExpectedErrorNumber: integer;
     FFilename: string;
     FFileResolver: TStreamResolver;
+    FHub: TPas2JSResolverHub;
     FJSImplementationSrc: TJSSourceElements;
     FJSImplementationUses: TJSArrayLiteral;
     FJSInitBody: TJSFunctionBody;
@@ -216,6 +217,7 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+    property Hub: TPas2JSResolverHub read FHub;
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPas2jsPasScanner read FScanner;
@@ -1310,6 +1312,8 @@ begin
   inherited SetUp;
   FSkipTests:=false;
   FSource:=TStringList.Create;
+
+  FHub:=TPas2JSResolverHub.Create(Self);
   FModules:=TObjectList.Create(true);
 
   FFilename:='test1.pp';
@@ -1404,6 +1408,7 @@ begin
     ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
     FEngine:=nil;
     end;
+  FreeAndNil(FHub);
 
   inherited TearDown;
   {$IFDEF EnablePasTreeGlobalRefCount}
@@ -1558,6 +1563,7 @@ begin
   Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
+  Result.Hub:=Hub;
   FModules.Add(Result);
 end;
 

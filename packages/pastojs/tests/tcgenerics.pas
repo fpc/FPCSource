@@ -67,6 +67,7 @@ type
     procedure TestGenProc_TypeInfo;
     procedure TestGenProc_Infer_Widen;
     procedure TestGenProc_Infer_PassAsArg;
+    // ToDo: delay create: type TRec=record end; ... r:=GenProc<TRec>();
     // ToDo: FuncName:= instead of Result:=
 
     // generic methods
