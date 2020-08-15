@@ -147,6 +147,12 @@ begin
     Move(C[1],AErrorClass^,L);
 end;
 
+Procedure SetStubCreatorUnitAliasCallBack(P : PStubCreator; ACallBack : TUnitAliasCallBack; CallBackData : Pointer); stdcall;
+begin
+  TStubCreator(P).OnUnitAlias:=ACallBack;
+  TStubCreator(P).OnUnitAliasData:=CallBackData;
+end;
+
 exports
   // Stub creator
   GetStubCreator,
@@ -160,7 +166,8 @@ exports
   GetStubCreatorLastError,
   AddStubCreatorDefine,
   AddStubCreatorForwardClass,
-  ExecuteStubCreator;
+  ExecuteStubCreator,
+  SetStubCreatorUnitAliasCallBack;
 
 end.
 
