@@ -43,6 +43,8 @@ type
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
+  TOnUnitAlias = function(const UnitName : String) : String of Object;
+
   TPasWriter = class
   private
     FCurrentLineNumber : Integer;
@@ -51,6 +53,7 @@ type
     FForwardClasses: TStrings;
     FLineEnding: String;
     FLineNumberWidth: Integer;
+    FOnUnitAlias: TOnUnitAlias;
     FOPtions: TPasWriterOptions;
     FStream: TStream;
     FIndentSize : Integer;
@@ -63,6 +66,7 @@ type
     FInImplementation : Boolean;
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
+    function CheckUnitAlias(const AUnitName : String) : String;
   protected
     procedure DisableHintsWarnings;
     procedure PrepareDeclSectionInStruct(const ADeclSection: string);
@@ -132,6 +136,7 @@ type
     procedure wrtln;overload; deprecated ;
     property Stream: TStream read FStream;
   Published
+    Property OnUnitAlias : TOnUnitAlias Read FOnUnitAlias Write FOnUnitAlias;
     Property Options : TPasWriterOptions Read FOPtions Write FOptions;
     Property IndentSize : Integer Read FIndentSize Write SetIndentSize;
     Property LineEnding : String Read FLineEnding Write FLineEnding;
@@ -478,7 +483,7 @@ end;
 procedure TPasWriter.WriteUnit(aModule: TPasModule);
 
 begin
-  AddLn('unit ' + AModule.SafeName + ';');
+  AddLn('unit ' + CheckUnitAlias(AModule.SafeName) + ';');
   if Assigned(AModule.GlobalDirectivesSection) then
     begin
     AddLn;
@@ -556,7 +561,7 @@ Var
       Add(', ')
     else
       Add('uses ');
-    Add(AName);
+    Add(CheckUnitAlias(AName));
     if (AUnitFile<>Nil) then
       Add(' in '+GetExpr(AUnitFile));
     Inc(c);
@@ -1488,6 +1493,14 @@ begin
     AValue:=0;
   FIndentSize:=AValue;
   FIndentStep:=StringOfChar(' ',aValue);
+end;
+
+function TPasWriter.CheckUnitAlias(const AUnitName: String): String;
+begin
+  if Assigned(FOnUnitAlias) then
+    Result := FOnUnitAlias(AUnitName)
+  else
+    Result := AUnitName;
 end;
 
 function TPasWriter.HasOption(aOption: TPasWriterOption): Boolean;
