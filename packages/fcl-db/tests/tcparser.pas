@@ -450,6 +450,7 @@ type
     procedure TestAggregateAvgDistinct;
     procedure TestUpperConst;
     procedure TestUpperError;
+    procedure TestLeft;
     procedure TestGenID;
     procedure TestGenIDError1;
     procedure TestGenIDError2;
@@ -4776,6 +4777,31 @@ begin
   S:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
   AssertEquals('One',1,S.Value);
   AssertAggregateExpression(H.Left,afCount,'C',aoNone);
+end;
+
+procedure TTestSelectParser.TestLeft;
+
+Var
+  E : TSQLFunctionCallExpression;
+  L : TSQLLiteralExpression;
+  S : TSQLStringLiteral;
+  I : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT LEFT(''abc'', 1) FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+  CheckClass(Select.Fields[0],TSQLSelectField);
+  E:=TSQLFunctionCallExpression(CheckClass(TSQLSelectField(Select.Fields[0]).Expression,TSQLFunctionCallExpression));
+  AssertEquals('LEFT function name','LEFT',E.Identifier);
+  AssertEquals('Two function elements',2,E.Arguments.Count);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[0],TSQLLiteralExpression));
+  S:=TSQLStringLiteral(CheckClass(L.Literal,TSQLStringLiteral));
+  AssertEquals('Correct string constant','abc',S.Value);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[1],TSQLLiteralExpression));
+  I:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
+  AssertEquals('Correct integer constant',1,I.Value);
 end;
 
 procedure TTestSelectParser.TestNoTable;
