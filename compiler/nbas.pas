@@ -140,25 +140,16 @@ interface
            even if the creator didn't mind)
          }
          ti_addr_taken,
-         { temps can get an extra node tree that contains the value to which
-           they should be initialised when they are created. this initialisation
-           has to be performed right before the first reference to the temp.
-           this flag indicates that the ttempcreatenode has been
-           processed by pass_generate_code, but that the first ttemprefnode
-           hasn't yet and hence will have to perform the initialisation
-         }
-         ti_executeinitialisation,
          { in case an expression like "inc(x[func()],1)" is translated into
            a regular addition, you have to create a temp to hold the address
            representing x[func()], since otherwise func() will be called twice
            and that can spell trouble in case it has side effects. on platforms
-           without pointers, we cannot just take the address though. this flag
-           has to be combined with ti_executeinitialisation above and will,
+           without pointers, we cannot just take the address though. This flag will,
            rather than loading the value at the calculated location and store
            it in the temp, keep a copy of the calculated location if possible
            and required (not possible for regvars, because SSA may change their
            register, but not required for them either since calculating their
-           location has no side-effects
+           location has no side-effects)
          }
          ti_reference,
          { this temp only allows reading (makes it possible to safely use as
