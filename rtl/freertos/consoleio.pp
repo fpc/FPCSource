@@ -169,7 +169,7 @@ finalization
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
-     dump_stack(pstdout^,ErrorBase);
+     dump_stack(pstdout^,ErrorBase,erroraddr);
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;

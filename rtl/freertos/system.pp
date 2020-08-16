@@ -208,6 +208,7 @@ const calculated_cmdline:Pchar=nil;
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
 var
  _stack_top: record end; external name '_stack_top';
 
@@ -215,6 +216,7 @@ function StackTop: pointer;
 begin
   StackTop:=@_stack_top;
 end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
 
 
 procedure haltproc;cdecl;external name '_haltproc';
