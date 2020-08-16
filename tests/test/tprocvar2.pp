@@ -1,7 +1,7 @@
-{$F+}
 {$ifdef fpc}
 {$mode tp}
 {$endif fpc}
+{$F+}
 
 type
   tproc = procedure;

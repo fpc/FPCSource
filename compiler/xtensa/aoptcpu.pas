@@ -43,6 +43,8 @@ Interface
         function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;override;
         function GetNextInstructionUsingReg(Current : tai; out Next : tai; reg : TRegister) : Boolean;
         procedure DebugMsg(const s : string; p : tai);
+
+        function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
       private
         function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
       End;
@@ -145,6 +147,24 @@ Implementation
       Result := false;
       if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
         exit;
+
+      if Result then
+        exit;
+
+      case p.opcode of
+        A_B,
+        A_SSI,A_SSIU,A_SSX,A_SSXU,
+        A_S16I,A_S32C1I,A_S32E,A_S32I,A_S32RI,A_S8I:
+          exit;
+        else
+          ;
+      end;
+      case p.oper[0]^.typ of
+        top_reg:
+          Result := (p.oper[0]^.reg = reg) ;
+        else
+          ;
+      end;
     end;
 
 
@@ -192,7 +212,6 @@ Implementation
     begin
       Result:=false;
       if MatchInstruction(movp, A_MOV, [PF_None,PF_N]) and
-        (taicpu(p).ops>=3) and
         { We can't optimize if there is a shiftop }
         (taicpu(movp).ops=2) and
         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
@@ -200,10 +219,10 @@ Implementation
         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
         { Take care to only do this for instructions which REALLY load to the first register.
           Otherwise
-            str reg0, [reg1]
+            s*  reg0, [reg1]
             mov reg2, reg0
           will be optimized to
-            str reg2, [reg1]
+            s*  reg2, [reg1]
         }
         RegLoadedWithNewValue(taicpu(p).oper[0]^.reg, p) then
         begin
@@ -239,24 +258,37 @@ Implementation
 
               { finally get rid of the mov }
               taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
-              { Remove preindexing and postindexing for LDR in some cases.
-                For example:
-                  ldr	reg2,[reg1, xxx]!
-                  mov reg1,reg2
-                must be translated to:
-                  ldr	reg1,[reg1, xxx]
-
-                Preindexing must be removed there, since the same register is used as the base and as the target.
-                Such case is not allowed for ARM CPU and produces crash. }
-              //if (taicpu(p).opcode = A_LDR) and (taicpu(p).oper[1]^.typ = top_ref)
-              //  and (taicpu(movp).oper[0]^.reg = taicpu(p).oper[1]^.ref^.base)
-              //then
-              //  taicpu(p).oper[1]^.ref^.addressmode:=AM_OFFSET;
               asml.remove(movp);
               movp.free;
             end;
         end;
     end;
+
+
+  function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_L32I:
+                begin
+                  if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                    RemoveSuperfluousMove(p, hp1, 'L32IMov2L32I') then
+                    Result:=true;
+                end;
+              else
+                ;
+            end;
+          end
+        else
+          ;
+      end
+    end;
+
 
 begin
   casmoptimizer:=TCpuAsmOptimizer;

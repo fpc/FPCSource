@@ -1326,7 +1326,9 @@ implementation
                    (right.nodetype in [ltn,lten,gtn,gten]) and
                    (not might_have_sideeffects(left)) and
                    (not might_have_sideeffects(right)) and
-                   is_range_test(taddnode(left),taddnode(right),vl,cl,cr) then
+                   is_range_test(taddnode(left),taddnode(right),vl,cl,cr) and
+                   { avoid optimization being applied to (<string. var > charconst1) and (<string. var < charconst2) }
+                   (vl.resultdef.typ in [orddef,enumdef]) then
                   begin
                     hdef:=get_unsigned_inttype(vl.resultdef);
                     vl:=ctypeconvnode.create_internal(vl.getcopy,hdef);
@@ -3000,7 +3002,7 @@ implementation
             end;
           end;
 
-         if not codegenerror and
+         if (errorcount=0) and
             not assigned(result) then
            result:=simplify(false);
       end;

@@ -50,6 +50,7 @@ Interface
         function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
         function OptPass1STP(var p: tai): boolean;
         function OptPass1Mov(var p: tai): boolean;
+        function OptPass1FMov(var p: tai): Boolean;
       End;
 
 Implementation
@@ -59,6 +60,16 @@ Implementation
     aoptutils,
     cgutils,
     verbose;
+
+{$ifdef DEBUG_AOPTCPU}
+    const
+      SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
+{$else DEBUG_AOPTCPU}
+    { Empty strings help the optimizer to remove string concatenations that won't
+      ever appear to the user on release builds. [Kit] }
+    const
+      SPeepholeOptimization = '';
+{$endif DEBUG_AOPTCPU}
 
   function CanBeCond(p : tai) : boolean;
     begin
@@ -490,6 +501,31 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass1FMov(var p: tai): Boolean;
+    var
+      hp1: tai;
+    begin
+      {
+        change
+        fmov reg0,reg1
+        fmov reg1,reg0
+        into
+        fmov reg0,reg1
+      }
+      Result := False;
+      while GetNextInstruction(p, hp1) and
+        MatchInstruction(hp1, A_FMOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+        MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[0]^) do
+        begin
+          asml.Remove(hp1);
+          hp1.free;
+          DebugMsg(SPeepholeOptimization + 'FMovFMov2FMov done', p);
+          Result:=true;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPostCMP(var p : tai): boolean;
     var
      hp1,hp2: tai;
@@ -580,7 +616,9 @@ Implementation
                 if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                   RemoveSuperfluousFMov(p, hp1, 'FOpFMov2FOp') then
                   Result:=true;
-              end
+              end;
+            A_FMOV:
+              Result:=OptPass1FMov(p);
             else
               ;
           end;

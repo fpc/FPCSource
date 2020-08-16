@@ -1750,7 +1750,7 @@ const
   cPasMemberHint : Array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
   cCallingConventions : Array[TCallingConvention] of string =
-      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall','MWPascal',
+      ( '', 'Register','Pascal','cdecl','stdcall','OldFPCCall','safecall','SysCall','MWPascal',
                         'HardFloat','SysV_ABI_Default','SysV_ABI_CDecl',
                         'MS_ABI_Default','MS_ABI_CDecl',
                         'VectorCall');
@@ -4208,7 +4208,7 @@ end;
 
 function TPasClassOfType.GetDeclaration (full : boolean) : string;
 begin
-  Result:='Class of '+DestType.SafeName;
+  Result:='class of '+DestType.SafeName;
   If Full then
     Result:=FixTypeDecl(Result);
 end;

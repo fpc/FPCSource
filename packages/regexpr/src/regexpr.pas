@@ -56,7 +56,8 @@ interface
 {$BOOLEVAL OFF}
 {$EXTENDEDSYNTAX ON}
 {$LONGSTRINGS ON}
-{$OPTIMIZATION ON}
+{ use optimization settings passed via fpmake/make }
+{OPTIMIZATION ON}
 
 // ======== Define options for TRegExpr engine
 {$DEFINE UseFirstCharSet} // Enable optimization, which finds possible first chars of input string

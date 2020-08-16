@@ -100,8 +100,8 @@ interface
        tarinfo = record
           id          : tar;
           addfilecmd  : string[10];
-          arfirstcmd  : string[50];
-          arcmd       : string[50];
+          arfirstcmd  : string[60];
+          arcmd       : string[60];
           arfinishcmd : string[11];
        end;
 

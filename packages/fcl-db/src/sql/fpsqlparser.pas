@@ -2880,7 +2880,10 @@ begin
         Result:=TSQLAsteriskExpression(CreateElement(TSQLAsteriskExpression,APArent));
         GetNextToken;
         end;
-      tsqlIdentifier:
+    else
+      // some keywords (FirstKeyword..LastKeyWord) can also be functions/identifiers (LEFT, RIGHT)
+      //   To-Do: remove some of them if necessary
+      if CurrentToken in [tsqlIdentifier, FirstKeyword..LastKeyWord] then
         begin
         N:=CurrentTokenString;
         If (GetNextToken<>tsqlBraceOpen) then
@@ -2941,10 +2944,10 @@ begin
           TSQLFunctionCallExpression(Result).IDentifier:=N;
           TSQLFunctionCallExpression(Result).Arguments:=L;
           end;
-        end;
+        end
       else
         UnexpectedToken;
-      end;
+    end;
   except
     FreeAndNil(Result);
     Raise;

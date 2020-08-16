@@ -1788,14 +1788,16 @@ unit aoptx86;
           InternalError(2020072501);
 
         { do not mess with the stack point as adjusting it by lea is recommend, except if we optimize for size }
-         if (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
+         if (p.oper[1]^.reg=NR_STACK_POINTER_REG) and
            not(cs_opt_size in current_settings.optimizerswitches) then
            exit;
 
          with p.oper[0]^.ref^ do
           begin
-            if (base <> p.oper[1]^.reg) or (index <> NR_NO) then
-              Exit(False);
+            if (base <> p.oper[1]^.reg) or
+               (index <> NR_NO) or
+               assigned(symbol) then
+              exit;
 
             l:=offset;
             if (l=1) and UseIncDec then

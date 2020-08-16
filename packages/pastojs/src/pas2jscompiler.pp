@@ -500,6 +500,7 @@ type
     FPostProcessorSupport: TPas2JSPostProcessorSupport;
     FPrecompileGUID: TGUID;
     FReadingModules: TFPList; // list of TPas2jsCompilerFile ordered by uses sections
+    FResolverHub: TPas2JSResolverHub;
     FRTLVersionCheck: TP2jsRTLVersionCheck;
     FSrcMapBaseDir: string;
     FSrcMapSourceRoot: string;
@@ -680,14 +681,15 @@ type
     property DefaultNamespace: String read GetDefaultNamespace;
     property Defines: TStrings read FDefines;
     property FS: TPas2jsFS read FFS write SetFS;
-    property OwnsFS: boolean read FOwnsFS write FOwnsFS;
+    property OwnsFS: boolean read FOwnsFS write FOwnsFS; // true = auto free FS when compiler is freed
     property FileCount: integer read GetFileCount;
-    property InterfaceType: TPasClassInterfaceType read FInterfaceType write FInterfaceType;
+    property InterfaceType: TPasClassInterfaceType read FInterfaceType write FInterfaceType; // default interface type
     property Log: TPas2jsLogger read FLog;
     property MainFile: TPas2jsCompilerFile read FMainFile;
     property ModeSwitches: TModeSwitches read FModeSwitches write SetModeSwitches;
     property Options: TP2jsCompilerOptions read FOptions write SetOptions;
     property ConverterGlobals: TPasToJSConverterGlobals read FConverterGlobals write SetConverterGlobals;
+    property ResolverHub: TPas2JSResolverHub read FResolverHub;
     property ParamMacros: TPas2jsMacroEngine read FParamMacros;
     property PrecompileGUID: TGUID read FPrecompileGUID write FPrecompileGUID;
     property RTLVersionCheck: TP2jsRTLVersionCheck read FRTLVersionCheck write FRTLVersionCheck;
@@ -965,6 +967,7 @@ begin
   FPasResolver.OnCheckSrcName:=@OnResolverCheckSrcName;
   FPasResolver.OnLog:=@OnPasResolverLog;
   FPasResolver.Log:=Log;
+  FPasResolver.Hub:=aCompiler.ResolverHub;
   FPasResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   FIsMainFile:=Compiler.FS.SameFileName(Compiler.MainSrcFile,PasFilename);
   for ub in TUsedBySection do
@@ -4191,6 +4194,7 @@ constructor TPas2jsCompiler.Create;
 begin
   FOptions:=DefaultP2jsCompilerOptions;
   FConverterGlobals:=TPasToJSConverterGlobals.Create(Self);
+  FResolverHub:=TPas2JSResolverHub.Create(Self);
   FNamespaces:=TStringList.Create;
   FDefines:=TStringList.Create;
   FInsertFilenames:=TStringList.Create;
@@ -4232,6 +4236,7 @@ destructor TPas2jsCompiler.Destroy;
     FreeAndNil(FPostProcessorSupport);
     FreeAndNil(FConfigSupport);
     ConverterGlobals:=nil;
+    FreeAndNil(FResolverHub);
 
     ClearDefines;
     FreeAndNil(FDefines);

@@ -623,7 +623,7 @@ implementation
           begin
             sym:=tsym(fields[i]);
             write_rtti_reference(tcb,tfieldvarsym(sym).vardef,rt);
-            tcb.emit_ord_const(tfieldvarsym(sym).fieldoffset,ptruinttype);
+            tcb.emit_ord_const(tfieldvarsym(sym).fieldoffset,sizeuinttype);
           end;
         fields.free;
       end;

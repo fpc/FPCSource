@@ -1423,9 +1423,20 @@ type
     //ToDo: proStaticArrayConcat, // concat works with static arrays, returning a dynamic array
     proProcTypeWithoutIsNested, // proc types can use nested procs without 'is nested'
     proMethodAddrAsPointer,  // can assign @method to a pointer
-    proSafecallAllowsDefault // allow assigning a default calling convetnion to a SafeCall proc
+    proSafecallAllowsDefault // allow assigning a default calling convention to a SafeCall proc
     );
   TPasResolverOptions = set of TPasResolverOption;
+
+  { TPasResolverHub }
+
+  TPasResolverHub = class
+  private
+    FOwner: TObject;
+  public
+    constructor Create(TheOwner: TObject);
+    property Owner: TObject read FOwner;
+  end;
+  TPasResolverHubClass = class of TPasResolverHub;
 
   TPasResolverStep = (
     prsInit,
@@ -1480,6 +1491,7 @@ type
     FDefaultScope: TPasDefaultScope;
     FDynArrayMaxIndex: TMaxPrecInt;
     FDynArrayMinIndex: TMaxPrecInt;
+    FHub: TPasResolverHub;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
     FLastMsg: string;
@@ -2363,10 +2375,12 @@ type
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
     function GetFirstSection(WithUnitImpl: boolean): TPasSection;
     function GetLastSection: TPasSection;
+    function GetParentSection(El: TPasElement): TPasSection;
     function FindUsedUnitInSection(aMod: TPasModule; Section: TPasSection): TPasUsesUnit;
     function GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
       isLoFunc: Boolean; out Mask: LongWord): Integer;
   public
+    property Hub: TPasResolverHub read FHub write FHub;
     // options
     property Options: TPasResolverOptions read FOptions write FOptions;
     property AnonymousElTypePostfix: String read FAnonymousElTypePostfix
@@ -2381,15 +2395,15 @@ type
     property ExprEvaluator: TResExprEvaluator read fExprEvaluator;
     property DynArrayMinIndex: TMaxPrecInt read FDynArrayMinIndex write FDynArrayMinIndex;
     property DynArrayMaxIndex: TMaxPrecInt read FDynArrayMaxIndex write FDynArrayMaxIndex;
+    property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
+       If true Line and Column is mangled together in TPasElement.SourceLineNumber.
+       Use method UnmangleSourceLineNumber to extract. }
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
     property RootElement: TPasModule read FRootElement write SetRootElement;
     property Step: TPasResolverStep read FStep;
     property ActiveHelpers: TPRHelperEntryArray read FActiveHelpers;
     // scopes
-    property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
-       If true Line and Column is mangled together in TPasElement.SourceLineNumber.
-       Use method UnmangleSourceLineNumber to extract. }
     property Scopes[Index: integer]: TPasScope read GetScopes;
     property ScopeCount: integer read FScopeCount;
     property TopScope: TPasScope read FTopScope;
@@ -3061,6 +3075,13 @@ end;
 function dbgs(const a: TPSRefAccess): string;
 begin
   str(a,Result);
+end;
+
+{ TPasResolverHub }
+
+constructor TPasResolverHub.Create(TheOwner: TObject);
+begin
+  FOwner:=TheOwner;
 end;
 
 { TPRSpecializedItem }
@@ -11780,6 +11801,8 @@ var
   C: TClass;
   ModScope: TPasModuleScope;
 begin
+  if Hub=nil then
+    RaiseNotYetImplemented(20200815182122,El);
   if TopScope<>DefaultScope then
     RaiseInvalidScopeForElement(20160922163504,El);
   ModScope:=TPasModuleScope(PushScope(El,FScopeClass_Module));
@@ -29227,6 +29250,16 @@ begin
     Result:=Module.ImplementationSection
   else
     Result:=Module.InterfaceSection;
+end;
+
+function TPasResolver.GetParentSection(El: TPasElement): TPasSection;
+begin
+  while El<>nil do
+    begin
+    if El is TPasSection then exit(TPasSection(El));
+    El:=El.Parent;
+    end;
+  Result:=nil;
 end;
 
 function TPasResolver.FindUsedUnitInSection(aMod: TPasModule;
