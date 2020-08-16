@@ -153,6 +153,7 @@ Implementation
 
       case p.opcode of
         A_B,
+        A_SSI,A_SSIU,A_SSX,A_SSXU,
         A_S16I,A_S32C1I,A_S32E,A_S32I,A_S32RI,A_S8I:
           exit;
         else
