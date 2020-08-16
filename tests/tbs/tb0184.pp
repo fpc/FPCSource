@@ -2,6 +2,7 @@
 { in tp mode can't use the procvar in writeln          OK 0.99.11 (PFV) }
 
 {$ifdef fpc}{$mode tp}{$endif}
+{$F+}
 
 type tmpproc=function:longint;
 

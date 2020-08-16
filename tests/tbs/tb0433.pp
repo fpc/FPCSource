@@ -4,6 +4,7 @@
 type
   codepointer = pointer;
 {$endif fpc}
+{$F+}
 
 function times2(x : longint) : longint;
 
