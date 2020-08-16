@@ -3178,9 +3178,14 @@ const
                     result:=target_info.Cprefix+tprocdef(pd).procsym.realname
                   else
                     result:=pd.procsym.realname;
+{$ifdef i8086}
+                  { Turbo Pascal expects names of external routines
+                    to be all uppercase }
                   if (target_info.system=system_i8086_msdos) and
+                    (m_tp7 in current_settings.modeswitches) and
                     (pd.proccalloption=pocall_pascal) then
                     result:=UpCase(result);
+{$endif i8086}
                 end;
             end;
           end;
