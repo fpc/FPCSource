@@ -460,6 +460,16 @@ implementation
                   end;
               end;
           end;
+
+{$ifdef i8086}
+        { enable cs_force_far_calls when m_nested_procvars is enabled }
+        if switch=m_nested_procvars then
+          begin
+            include(current_settings.localswitches,cs_force_far_calls);
+            if changeinit then
+              include(init_settings.localswitches,cs_force_far_calls);
+          end;
+{$endif i8086}
       end;
 
 
@@ -605,12 +615,18 @@ implementation
              end;
 
 {$ifdef i8086}
-           { Do not force far calls in the TP mode by default }
+           { Do not force far calls in the TP mode by default, force it in other modes }
            if (m_tp7 in current_settings.modeswitches) then
              begin
                exclude(current_settings.localswitches,cs_force_far_calls);
                if changeinit then
                  exclude(init_settings.localswitches,cs_force_far_calls);
+             end
+           else
+             begin
+               include(current_settings.localswitches,cs_force_far_calls);
+               if changeinit then
+                 include(init_settings.localswitches,cs_force_far_calls);
              end;
 {$endif i8086}
 
