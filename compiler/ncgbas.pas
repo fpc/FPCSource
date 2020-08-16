@@ -510,7 +510,20 @@ interface
           end;
         includetempflag(ti_valid);
         if assigned(tempinfo^.tempinitcode) then
+          includetempflag(ti_executeinitialisation);
+      end;
+
+
+{*****************************************************************************
+                             TTEMPREFNODE
+*****************************************************************************}
+
+    procedure tcgtemprefnode.pass_generate_code;
+      begin
+        if ti_executeinitialisation in tempflags then
           begin
+            { avoid recursion }
+            excludetempflag(ti_executeinitialisation);
             secondpass(tempinfo^.tempinitcode);
             if (ti_reference in tempflags) then
               begin
@@ -536,15 +549,6 @@ interface
                 hlcg.g_reference_loc(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.tempinitcode.location,tempinfo^.location);
               end;
           end;
-      end;
-
-
-{*****************************************************************************
-                             TTEMPREFNODE
-*****************************************************************************}
-
-    procedure tcgtemprefnode.pass_generate_code;
-      begin
         { check if the temp is valid }
         if not(ti_valid in tempflags) then
           internalerror(200108231);

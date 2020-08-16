@@ -1442,7 +1442,12 @@ implementation
                (vo_volatile in tabstractvarsym(tloadnode(n).symtableentry).varoptions)
              )
             )
-           ) then
+           ) or
+           { foreachonode does not recurse into the init code for temprefnode as this is done for
+             by the tempcreatenode but the considered tree might not contain the tempcreatenode so play
+             save and recurce into the init code if there is any }
+           ((n.nodetype=temprefn) and (ti_executeinitialisation in ttemprefnode(n).tempflags) and
+            might_have_sideeffects(ttemprefnode(n).tempinfo^.tempinitcode,pmhs_flags(arg)^)) then
            result:=fen_norecurse_true
       end;
 
