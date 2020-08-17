@@ -2263,10 +2263,14 @@ implementation
              else
                begin
                  { When there is a signed type or there is a minus operation
+                   or in TP mode for 16-bit CPUs
                    we convert to signed int. Otherwise (both are unsigned) we keep
                    the result also unsigned. This is compatible with Delphi (PFV) }
                  if is_signed(ld) or
                     is_signed(rd) or
+{$if defined(cpu16bitalu)}
+                    (m_tp7 in current_settings.modeswitches) or
+{$endif}
                     (nodetype=subn) then
                    begin
                      inserttypeconv(right,sinttype);

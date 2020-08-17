@@ -388,7 +388,7 @@ type
   TTestSelectParser = Class(TTestSQLParser)
   Private
     FSelect : TSQLSelectStatement;
-    function TestSelect(Const ASource : String) : TSQLSelectStatement;
+    function TestSelect(Const ASource : String; AOptions : TParserOptions = []; AScannerOptions : TSQLScannerOptions = []) : TSQLSelectStatement;
     procedure TestSelectError(Const ASource : String);
     procedure DoExtractSimple(Expected : TSQLExtractElement);
     property Select : TSQLSelectStatement Read FSelect;
@@ -419,6 +419,7 @@ type
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
     procedure TestSelectTableWithSchema;
     procedure TestSelectFieldWithSchema;
+    procedure TestSelectFieldAsStringLiteral;
     procedure TestSelectFirst;
     procedure TestSelectFirstSkip;
     procedure TestSelectTop;
@@ -451,6 +452,7 @@ type
     procedure TestUpperConst;
     procedure TestUpperError;
     procedure TestLeft;
+    procedure TestFunctionWithPath;
     procedure TestGenID;
     procedure TestGenIDError1;
     procedure TestGenIDError2;
@@ -3821,9 +3823,11 @@ end;
 
 { TTestSelectParser }
 
-function TTestSelectParser.TestSelect(const ASource : String): TSQLSelectStatement;
+function TTestSelectParser.TestSelect(const ASource: String; AOptions: TParserOptions;
+  AScannerOptions: TSQLScannerOptions): TSQLSelectStatement;
 begin
-  CreateParser(ASource);
+  CreateParser(ASource,AOptions);
+  Parser.Scanner.Options:=AScannerOptions;
   FToFree:=Parser.Parse;
   Result:=TSQLSelectStatement(CheckClass(FToFree,TSQLSelectStatement));
   FSelect:=Result;
@@ -3834,6 +3838,23 @@ procedure TTestSelectParser.TestSelectError(const ASource: String);
 begin
   FErrSource:=ASource;
   AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestSelectParser.TestSelectFieldAsStringLiteral;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLStringLiteral;
+
+begin
+  TestSelect('SELECT ''B'' ''C'''); // 'B' as 'C'
+  AssertEquals('One field',1,Select.Fields.Count);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLStringLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLStringLiteral));
+  AssertEquals('Field literal is B','B',L.Value);
+  AssertEquals('Field alias is C','C',F.AliasName.Name);
+  AssertEquals('No table',0,Select.Tables.Count);
 end;
 
 procedure TTestSelectParser.TestSelectFieldWithSchema;
@@ -4549,6 +4570,33 @@ Var
 begin
   For E:=Low(TSQLExtractElement) to High(TSQLExtractElement) do
     DoExtractSimple(E);
+end;
+
+procedure TTestSelectParser.TestFunctionWithPath;
+
+Var
+  E : TSQLFunctionCallExpression;
+  L : TSQLLiteralExpression;
+  S : TSQLStringLiteral;
+  I : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT [dbo].[myFunc] (''abc'', 1) FROM A', [], [soSquareBracketsIdentifier]);
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+  CheckClass(Select.Fields[0],TSQLSelectField);
+  E:=TSQLFunctionCallExpression(CheckClass(TSQLSelectField(Select.Fields[0]).Expression,TSQLFunctionCallExpression));
+  AssertEquals('Function two identifiers',2,E.IdentifierPath.Count);
+  AssertEquals('dbo function first identifier','dbo',E.IdentifierPath[0].Name);
+  AssertEquals('myFunc function second identifier','myFunc',E.IdentifierPath[1].Name);
+  AssertEquals('Two function elements',2,E.Arguments.Count);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[0],TSQLLiteralExpression));
+  S:=TSQLStringLiteral(CheckClass(L.Literal,TSQLStringLiteral));
+  AssertEquals('Correct string constant','abc',S.Value);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[1],TSQLLiteralExpression));
+  I:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
+  AssertEquals('Correct integer constant',1,I.Value);
 end;
 
 procedure TTestSelectParser.TestOrderByOneField;

@@ -64,15 +64,15 @@ type
     _OP_DEC,
     { special chars }
     _CARET,
-    _LECKKLAMMER,
-    _RECKKLAMMER,
+    _LECKKLAMMER, { '[' }
+    _RECKKLAMMER, { ']' }
     _POINT,
     _COMMA,
-    _LKLAMMER,
-    _RKLAMMER,
+    _LKLAMMER, { '(' }
+    _RKLAMMER, { ')' }
     _COLON,
     _SEMICOLON,
-    _KLAMMERAFFE,
+    _KLAMMERAFFE, { '@' }
     _POINTPOINT,
     _POINTPOINTPOINT,
     _PIPE,

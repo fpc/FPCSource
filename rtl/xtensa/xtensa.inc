@@ -146,16 +146,6 @@ Function Sptr : pointer;assembler;
   end;
 
 
-{$define FPC_SYSTEM_HAS_STACKTOP}
-// Interim fix for now, set to large address
-// TODO: provide more realistic value, possibly by inspecting stack pointer
-// when main or task is started
-function StackTop: pointer;
-  begin
-    StackTop:=pointer($3fffffff);
-  end;
-
-
 function InterLockedDecrement (var Target: longint) : longint;
   var
     temp_sreg : byte;

@@ -643,6 +643,12 @@ interface
          pno_mangledname, pno_noparams);
        tprocnameoptions = set of tprocnameoption;
        tproccopytyp = (pc_normal,
+{$ifdef i8086}
+                       { the address in a far format }
+                       pc_far_address,
+                       { the offset part of the far address }
+                       pc_offset,
+{$endif i8086}
                        { creates a procvardef describing only the code pointer
                          of a method/netsted function/... }
                        pc_address_only,
