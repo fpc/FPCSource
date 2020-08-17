@@ -501,11 +501,11 @@ begin
       F:=TSQLSelectField(CreateElement(TSQLSelectField,AParent));
       AList.Add(F);
       F.Expression:=Expression;
-      If CurrentToken in [tsqlAs,Tsqlidentifier] then
+      If CurrentToken in [tsqlAs,Tsqlidentifier,tsqlString] then
         begin
         If currentToken=tsqlAs then
           GetNextToken;
-        Expect(tsqlIdentifier);
+        Expect([tsqlIdentifier,tsqlString]);
         F.AliasName:=CreateIdentifier(F,CurrentTokenString);
         GetNextToken;
         end;

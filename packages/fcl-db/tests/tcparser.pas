@@ -419,6 +419,7 @@ type
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
     procedure TestSelectTableWithSchema;
     procedure TestSelectFieldWithSchema;
+    procedure TestSelectFieldAsStringLiteral;
     procedure TestSelectFirst;
     procedure TestSelectFirstSkip;
     procedure TestSelectTop;
@@ -3837,6 +3838,23 @@ procedure TTestSelectParser.TestSelectError(const ASource: String);
 begin
   FErrSource:=ASource;
   AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestSelectParser.TestSelectFieldAsStringLiteral;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLStringLiteral;
+
+begin
+  TestSelect('SELECT ''B'' ''C'''); // 'B' as 'C'
+  AssertEquals('One field',1,Select.Fields.Count);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLStringLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLStringLiteral));
+  AssertEquals('Field literal is B','B',L.Value);
+  AssertEquals('Field alias is C','C',F.AliasName.Name);
+  AssertEquals('No table',0,Select.Tables.Count);
 end;
 
 procedure TTestSelectParser.TestSelectFieldWithSchema;
