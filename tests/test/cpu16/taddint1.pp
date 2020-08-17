@@ -5,6 +5,8 @@
   This test is Turbo Pascal 7 compatible.
 }
 
+{$mode tp}
+
 { Turn range checking off, as this test causes overflows intentionally to
   test the size and signedness of the integer that's being used. }
 {$R-}
