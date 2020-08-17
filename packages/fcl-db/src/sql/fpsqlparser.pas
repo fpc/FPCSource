@@ -2885,65 +2885,65 @@ begin
       //   To-Do: remove some of them if necessary
       if CurrentToken in [tsqlIdentifier, FirstKeyword..LastKeyWord] then
         begin
+        C:=TSQLIdentifierExpression;
         N:=CurrentTokenString;
-        If (GetNextToken<>tsqlBraceOpen) then
+        If (eoCheckConstraint in EO) and not (eoTableConstraint in EO) then
+          Error(SErrUnexpectedToken,[CurrentTokenString]);
+        // Plain identifier
+        IdentifierPath:=TSQLIdentifierPath.Create;
+        IdentifierPath.Add(CreateIdentifier(nil,N));
+        GetNextToken;
+        while (CurrentToken=tsqlDot) do
           begin
-          If (eoCheckConstraint in EO) and not (eoTableConstraint in EO) then
-            Error(SErrUnexpectedToken,[CurrentTokenString]);
-          // Plain identifier
-          IdentifierPath:=TSQLIdentifierPath.Create;
-          IdentifierPath.Add(CreateIdentifier(Result,N));
-          while (CurrentToken=tsqlDot) do
+          GetNextToken;
+          if CurrentToken=tsqlMUL then
             begin
+            C:=TSQLAsteriskExpression;
             GetNextToken;
-            if CurrentToken=tsqlMUL then
-              begin
-              Result:=TSQLAsteriskExpression(CreateElement(TSQLAsteriskExpression,APArent));
-              GetNextToken;
-              break;
-              end
-            else
-              begin
-              Expect(tsqlIdentifier);
-              N:=CurrentTokenString;
-              IdentifierPath.Add(CreateIdentifier(Result,N));
-              GetNextToken;
-              end;
-            end;
-          if not Assigned(Result) then
-            Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
-          TSQLIdentifierPathExpression(Result).IdentifierPath:=IdentifierPath;
-          // Array access ?
-          If (CurrentToken=tsqlSquareBraceOpen) and (Result is TSQLIdentifierExpression) then
-            // Either something like array[5] or,
-            // in procedures etc array[i:] where i is a variable
+            break;
+            end
+          else
             begin
-            case GetNextToken of
-              tsqlIntegerNumber: TSQLIdentifierExpression(Result).ElementIndex:=StrToInt(CurrentTokenString);
-              tsqlColon:
-                begin
-                GetNextToken;
-                Expect(tsqlIdentifier);
-                // We can't set element index here, but it IS an array...
-                //todo: verify if there are repercussions/what these would be
-                TSQLIdentifierExpression(Result).ElementIndex:=maxint;
-                end;
-            else
-               Error(SErrIntegerExpected);
-            end;
+            Expect(tsqlIdentifier);
+            N:=CurrentTokenString;
+            IdentifierPath.Add(CreateIdentifier(nil,N));
             GetNextToken;
-            Consume(tsqlSquareBraceClose);
             end;
-          end
-        else
+          end;
+        If (CurrentToken=tsqlBraceOpen) and (C=TSQLIdentifierExpression) then
           begin
           L:=ParseValueList(AParent,EO);
           GetNextToken; // Consume );
           // Function call
           Result:=TSQLFunctionCallExpression(CreateElement(TSQLFunctionCallExpression,AParent));
-          TSQLFunctionCallExpression(Result).IDentifier:=N;
           TSQLFunctionCallExpression(Result).Arguments:=L;
+          end
+        Else
+        // Array access ?
+        If (CurrentToken=tsqlSquareBraceOpen) and (C=TSQLIdentifierExpression) then
+          // Either something like array[5] or,
+          // in procedures etc array[i:] where i is a variable
+          begin
+          Result:=TSQLIdentifierExpression(CreateElement(TSQLIdentifierExpression,APArent));
+          case GetNextToken of
+            tsqlIntegerNumber: TSQLIdentifierExpression(Result).ElementIndex:=StrToInt(CurrentTokenString);
+            tsqlColon:
+              begin
+              GetNextToken;
+              Expect(tsqlIdentifier);
+              // We can't set element index here, but it IS an array...
+              //todo: verify if there are repercussions/what these would be
+              TSQLIdentifierExpression(Result).ElementIndex:=maxint;
+              end;
+          else
+             Error(SErrIntegerExpected);
           end;
+          GetNextToken;
+          Consume(tsqlSquareBraceClose);
+          end;
+        if not Assigned(Result) then
+          Result:=TSQLExpression(CreateElement(C,AParent));
+        TSQLIdentifierPathExpression(Result).IdentifierPath:=IdentifierPath;
         end
       else
         UnexpectedToken;

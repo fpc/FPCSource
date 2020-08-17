@@ -382,14 +382,15 @@ Type
 
   { TSQLFunctionCallExpression }
 
-  TSQLFunctionCallExpression = Class(TSQLExpression)
+  TSQLFunctionCallExpression = Class(TSQLIdentifierPathExpression)
   private
     FArguments:TSQLElementList;
-    FIdentifier: TSQLStringType;
+    function GetIdentifier: TSQLStringType;
+    procedure SetIdentifier(const AIdentifier: TSQLStringType);
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
-    Property Identifier : TSQLStringType Read FIdentifier Write FIdentifier;
+    Property Identifier : TSQLStringType Read GetIdentifier Write SetIdentifier;
     Property Arguments : TSQLElementList Read FArguments Write Farguments;
   end;
 
@@ -2685,10 +2686,12 @@ function TSQLFunctionCallExpression.GetAsSQL(Options: TSQLFormatOptions;
 
 Var
   I : Integer;
-  Sep : String;
+  Sep,Name: String;
+  N : TSQLIdentifierName;
 
 begin
   Result:='';
+
   Sep:=SQLListSeparator(Options);
   If Assigned(FArguments) and (FArguments.Count>0) then
     For I:=0 to FArguments.Count-1 do
@@ -2697,7 +2700,40 @@ begin
         Result:=Result+Sep;
       Result:=Result+Farguments[i].GetAsSQL(Options,AIndent);
       end;
-  Result:=SQLKeyWord(Identifier,Options)+'('+Result+')';
+
+  Name:='';
+  for Pointer(N) in FIdentifierPath do
+    begin
+    if Name<>'' then
+      Name:=Name+'.';
+    Name:=Name+SQLKeyWord(N.Name,Options);
+    end;
+
+  Result:=Name+'('+Result+')';
+end;
+
+function TSQLFunctionCallExpression.GetIdentifier: TSQLStringType;
+var
+  Name: TSQLIdentifierName;
+begin
+  Name := TSQLIdentifierName(FIdentifierPath.Last);
+  if Assigned(Name) then
+    Result:=Name.Name
+  else
+    Result:='';
+end;
+
+procedure TSQLFunctionCallExpression.SetIdentifier(const AIdentifier: TSQLStringType);
+var
+  NewName: TSQLIdentifierName;
+begin
+  if Assigned(FIdentifierPath) then
+    FIdentifierPath.Clear
+  else
+    FIdentifierPath:=TSQLIdentifierPath.Create;
+  NewName:=TSQLIdentifierName.Create(Parent);
+  NewName.Name:=AIdentifier;
+  FIdentifierPath.Add(NewName);
 end;
 
 { TSQLTernaryExpression }
