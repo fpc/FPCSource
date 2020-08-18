@@ -36,7 +36,8 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,cscript,
        fmodule,i_msdos,
-       link,aasmbase,cpuinfo,
+       link,cpuinfo,
+       aasmbase,aasmcnst,symbase,symdef,
        omfbase,ogbase,ogomf,owomflib;
 
     type
@@ -85,6 +86,51 @@ implementation
         constructor create;override;
       end;
 
+      { tmsdostai_typedconstbuilder }
+
+      tmsdostai_typedconstbuilder = class(ttai_lowleveltypedconstbuilder)
+      protected
+        procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); override;
+      public
+        class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; override;
+        class function is_smartlink_vectorized_dead_strip: boolean; override;
+      end;
+
+{****************************************************************************
+                               tmsdostai_typedconstbuilder
+****************************************************************************}
+
+  procedure tmsdostai_typedconstbuilder.add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr);
+    begin
+      with current_module.linkorderedsymbols do
+        if (Last=nil) or (TCmdStrListItem(Last).Str<>secname) then
+          current_module.linkorderedsymbols.concat(secname);
+    end;
+
+  class function tmsdostai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
+    begin
+      result:=is_smartlink_vectorized_dead_strip;
+      if not result then
+        exit;
+      if tcalo_vectorized_dead_strip_start in options then
+        secname:='1_START'
+      else
+        if tcalo_vectorized_dead_strip_end in options then
+          secname:='3_END'
+        else
+          if tcalo_vectorized_dead_strip_item in options then
+            secname:='2_ITEM';
+      secname:=make_mangledname(basename,st,secname);
+    end;
+
+  class function tmsdostai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
+    begin
+{$ifdef USE_LINKER_WLINK}
+      result:=true;
+{$else}
+      result:=not (cs_link_extern in current_settings.globalswitches);
+{$endif USE_LINKER_WLINK}
+    end;
 
 {****************************************************************************
                                TExternalLinkerMsDosTLink
@@ -529,6 +575,7 @@ end;
 *****************************************************************************}
 
 initialization
+  ctai_typedconstbuilder:=tmsdostai_typedconstbuilder;
   RegisterLinker(ld_int_msdos,TInternalLinkerMsDos);
 {$if defined(USE_LINKER_TLINK)}
   RegisterLinker(ld_msdos,TExternalLinkerMsDosTLink);

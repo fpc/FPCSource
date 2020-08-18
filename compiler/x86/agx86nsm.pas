@@ -572,14 +572,14 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           writer.AsmWrite('.data')
-        else if (atype=sec_user) then
-          writer.AsmWrite(aname)
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
           writer.AsmWrite('.tls'#9'bss')
         else if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
-            if secnames[atype]='.text' then
+            if (atype=sec_user) then
+              secname:=aname
+            else if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
             else if omf_segclass(atype)='FAR_DATA' then
               secname:=current_module.modulename^ + '_DATA'
@@ -604,6 +604,8 @@ interface
                   AddSegmentToGroup(secgroup,secname);
               end;
           end
+        else if (atype=sec_user) then
+          writer.AsmWrite(aname)
         else if secnames[atype]='.text' then
           writer.AsmWrite(CodeSectionName(aname))
         else
