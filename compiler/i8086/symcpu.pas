@@ -271,6 +271,28 @@ implementation
       result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
     end;
 
+  procedure handle_procdef_copyas(src: tabstractprocdef; is_far: boolean; copytyp:tproccopytyp; var result: tabstractprocdef);
+    begin
+      if is_far then
+        include(result.procoptions,po_far)
+      else
+        exclude(result.procoptions,po_far);
+      case copytyp of
+        pc_far_address:
+          begin
+            include(result.procoptions,po_addressonly);
+            include(result.procoptions,po_far);
+          end;
+        pc_offset:
+          begin
+            include(result.procoptions,po_addressonly);
+            exclude(result.procoptions,po_far);
+          end;
+        else
+          ; {none}
+      end;
+    end;
+
 {****************************************************************************
                                tcpuclassrefdef
 ****************************************************************************}
@@ -337,10 +359,7 @@ implementation
   function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
     begin
       result:=inherited;
-      if is_far then
-        include(tabstractprocdef(result).procoptions,po_far)
-      else
-        exclude(tabstractprocdef(result).procoptions,po_far);
+      handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));
     end;
 
 
@@ -431,10 +450,7 @@ implementation
   function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
     begin
       result:=inherited;
-      if is_far then
-        include(tabstractprocdef(result).procoptions,po_far)
-      else
-        exclude(tabstractprocdef(result).procoptions,po_far);
+      handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));
     end;
 
 

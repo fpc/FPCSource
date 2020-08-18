@@ -113,7 +113,7 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
-      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean; override;
+      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; override;
 
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
@@ -845,7 +845,7 @@ implementation
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean;
+  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
     begin
       result:=inherited;
       if result then

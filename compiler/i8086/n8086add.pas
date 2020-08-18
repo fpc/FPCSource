@@ -448,7 +448,7 @@ interface
         pointernode: tnode;
       begin
         pass_left_right;
-        force_reg_left_right(false,true);
+        force_reg_left_right(true,true);
         set_result_location_reg;
 
         if (left.resultdef.typ=pointerdef) and (right.resultdef.typ<>pointerdef) then
