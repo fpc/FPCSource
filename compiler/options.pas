@@ -4309,6 +4309,14 @@ begin
     end;
   if not(option.CPUSetExplicitly) and (target_info.system=system_xtensa_linux) then
     init_settings.cputype:=cpu_lx6;
+
+  if (target_info.system in [system_xtensa_embedded,system_xtensa_freertos]) and not(option.ABISetExplicitly) then
+    begin
+      if CPUXTENSA_REGWINDOW in cpu_capabilities[init_settings.cputype] then
+        target_info.abi:=abi_xtensa_windowed
+      else
+        target_info.abi:=abi_xtensa_call0;
+    end;
 {$endif xtensa}
 
 {$ifdef arm}
@@ -4623,17 +4631,6 @@ begin
         target_info.abi:=abi_powerpc_sysv
     end;
 {$endif}
-
-{$ifdef xtensa}
-  if (target_info.system=system_xtensa_embedded) and not(option.ABISetExplicitly) then
-    begin
-      if CPUXTENSA_REGWINDOW in cpu_capabilities[init_settings.cputype] then
-        target_info.abi:=abi_xtensa_windowed
-      else
-        target_info.abi:=abi_xtensa_call0;
-    end;
-{$endif xtensa}
-
 
 {$if defined(powerpc) or defined(powerpc64)}
   { define _CALL_ELF symbol like gcc }
