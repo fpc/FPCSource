@@ -1046,7 +1046,7 @@ implementation
              indsecname:=secname
            else
              indsecname:=lower(symind.name);
-           indtcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+           indtcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
            indtcb.emit_tai(tai_const.create_sym_offset(sym,0),ptrdef);
            current_asmdata.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
              symind,
