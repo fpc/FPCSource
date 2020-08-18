@@ -839,6 +839,11 @@ Implementation
             end;
           end;
 
+        function get_wlib_record_size: integer;
+          begin
+            result:=align(align(SmartLinkOFiles.Count,128) div 128,16);
+          end;
+
       var
         binstr, firstbinstr, scriptfile : TCmdStr;
         cmdstr, firstcmd, nextcmd, smartpath : TCmdStr;
@@ -882,7 +887,7 @@ Implementation
               if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
-                writeln(script,'-q -p=16 -fo -c -b '+
+                writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
                   maybequoted(current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
@@ -910,6 +915,11 @@ Implementation
             Replace(firstcmd,'$LIB',maybequoted(current_module.staticlibfilename));
             Replace(cmdstr,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
             Replace(firstcmd,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
+            if target_ar.id=ar_watcom_wlib_omf then
+              begin
+                Replace(cmdstr,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
+                Replace(firstcmd,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
+              end;
             { create AR commands }
             success := true;
             current := TCmdStrListItem(SmartLinkOFiles.First);
@@ -1743,8 +1753,8 @@ Implementation
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
             addfilecmd  : '+';
-            arfirstcmd  : 'wlib -q -p=16 -fo -c -b -n -o=$OUTPUTLIB $LIB $FILES';
-            arcmd       : 'wlib -q -p=16 -fo -c -b -o=$OUTPUTLIB $LIB $FILES';
+            arfirstcmd  : 'wlib -q $RECSIZE -fo -c -b -n -o=$OUTPUTLIB $LIB $FILES';
+            arcmd       : 'wlib -q $RECSIZE -fo -c -b -o=$OUTPUTLIB $LIB $FILES';
             arfinishcmd : ''
           );
 
