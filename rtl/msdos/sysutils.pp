@@ -25,6 +25,7 @@ interface
 {$H+}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
+{$hugecode on}
 
 uses
   {go32,}dos;

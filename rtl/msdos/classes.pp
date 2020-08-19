@@ -25,6 +25,7 @@
 {$else}
   {$fatal Unknown i8086 memory model.}
 {$endif}
+{$hugecode on}
 
 unit Classes;
 
