@@ -149,9 +149,9 @@ implementation
               begin
                 if not(tai_symbol(hp).has_value) then
                   begin
-                    if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '::')
-                    else
+                    //if tai_symbol(hp).is_global then
+                    //  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '::')
+                    //else
                       writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
                   end
                 else

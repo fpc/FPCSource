@@ -720,22 +720,23 @@ Implementation
                       if (actasmtoken=AS_PLUS) then
                         begin
                           l:=BuildConstExpression(true,false);
-                          case oper.opr.typ of
-                            OPR_CONSTANT :
-                              inc(oper.opr.val,l);
-                            OPR_LOCAL :
-                              begin
-                                inc(oper.opr.localsymofs,l);
-                                inc(oper.opr.localconstoffset, l);
-                              end;
-                            OPR_REFERENCE :
-                              begin
-                                inc(oper.opr.ref.offset,l);
-                                inc(oper.opr.constoffset, l);
-                              end;
-                            else
-                              internalerror(200309202);
-                          end;
+                          if errorcount=0 then
+                            case oper.opr.typ of
+                              OPR_CONSTANT :
+                                inc(oper.opr.val,l);
+                              OPR_LOCAL :
+                                begin
+                                  inc(oper.opr.localsymofs,l);
+                                  inc(oper.opr.localconstoffset, l);
+                                end;
+                              OPR_REFERENCE :
+                                begin
+                                  inc(oper.opr.ref.offset,l);
+                                  inc(oper.opr.constoffset, l);
+                                end;
+                              else
+                                internalerror(200309202);
+                            end;
                         end;
                     end;
                end;

@@ -1469,6 +1469,7 @@ Type
 
   TSQLCaseExpression = Class(TSQLExpression)
   private
+    FSelector: TSQLExpression;
     FBranches: array of TSQLCaseExpressionBranch;
     FElseBranch: TSQLExpression;
     function GetBranch(Index: Integer): TSQLCaseExpressionBranch;
@@ -1477,6 +1478,7 @@ Type
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
 
+    Property Selector: TSQLExpression Read FSelector Write FSelector;
     Property BranchCount: Integer Read GetBranchCount;
     Procedure AddBranch(ABranch: TSQLCaseExpressionBranch);
     Procedure ClearBranches;
@@ -2137,6 +2139,7 @@ destructor TSQLCaseExpression.Destroy;
 begin
   ClearBranches;
   FreeAndNil(FElseBranch);
+  FreeAndNil(FSelector);
   inherited Destroy;
 end;
 
@@ -2145,6 +2148,8 @@ var
   B: TSQLCaseExpressionBranch;
 begin
   Result:=SQLKeyWord('CASE',Options)+' ';
+  if Assigned(Selector) then
+    Result:=Result+Selector.GetAsSQL(Options,AIndent)+' ';
   for B in FBranches do
     Result:=Result+
       SQLKeyWord('WHEN ',Options)+B.Condition.GetAsSQL(Options, AIndent)+' '+

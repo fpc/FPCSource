@@ -7,26 +7,26 @@ uses
 
 const
   VMT_COUNT = 100;
-
+  ITEM_COUNT = 1000;
 
 type
   TMethodNameTableEntry = packed record
       Name: PShortstring;
-      Addr: Pointer;
+      Addr: CodePointer;
     end;
 
   TMethodNameTable = packed record
     Count: DWord;
-    Entries: packed array[0..9999999] of TMethodNameTableEntry;
+    Entries: packed array[0..ITEM_COUNT-1] of TMethodNameTableEntry;
   end;
   PMethodNameTable =  ^TMethodNameTable;
 
-  TPointerArray = packed array[0..9999999] of Pointer;
+  TPointerArray = packed array[0..ITEM_COUNT-1] of Pointer;
   PPointerArray = ^TPointerArray;
 
   PFieldInfo = ^TFieldInfo;
   TFieldInfo = packed record
-    FieldOffset: LongWord;
+    FieldOffset: sizeuint;
     ClassTypeIndex: Word;
     Name: ShortString;
   end;
@@ -38,7 +38,7 @@ type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
     Count: Word;
-    Entries: array[Word] of TPersistentClass;
+    Entries: array[0..ITEM_COUNT-1] of ^TPersistentClass;
   end;
 
   PFieldTable = ^TFieldTable;
@@ -103,7 +103,7 @@ var
   Cvmt: PPointerArray;
   Cmnt: PMethodNameTable;
   Cft:  PFieldTable;
-  FieldOffset: LongWord;
+  FieldOffset: sizeuint;
   fi:  PFieldInfo;
   Indent: String;
   n, idx: Integer;
@@ -167,7 +167,7 @@ begin
       WriteLn(Indent, 'Field class count: ', Cft^.ClassTable^.Count);
       for n := 0 to Cft^.ClassTable^.Count - 1 do
       begin
-        WriteLn(Indent, ' ', n, ': ', Cft^.ClassTable^.Entries[n].ClassName);
+        WriteLn(Indent, ' ', n, ': ', Cft^.ClassTable^.Entries[n]^.ClassName);
       end;
     end;
 

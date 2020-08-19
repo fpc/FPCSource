@@ -1745,14 +1745,25 @@ unit cgcpu;
                 end;
               OS_32,OS_S32:
                 begin
-                  { Preload the ref base to reduce spilling }
-                  if (tmpref.base<>NR_NO) and
-                     (tmpref.index<>NR_NO) and
-                     (getsupreg(tmpref.base)>=first_int_imreg) then
+                  { Preload the ref base to a new register to reduce spilling
+                    Also preload if the first source reg is used as base or index
+                    to prevent overwriting }
+                  if ((tmpref.base<>NR_NO) and
+                      (tmpref.index<>NR_NO) and
+                      (getsupreg(tmpref.base)>=first_int_imreg)) or
+                     (tmpref.base=reg) or
+                     (tmpref.index=reg) then
                     begin
                       tmpreg:=getaddressregister(list);
                       a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
                       tmpref.base:=tmpreg;
+                      if tmpref.index=reg then
+                        begin
+                          list.concat(taicpu.op_ref_reg(A_LEA, S_W, tmpref, tmpref.base));
+                          tmpref.index:=NR_NO;
+                          tmpref.offset:=0;
+                          tmpref.scalefactor:=0;
+                        end;
                     end;
                   list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
                   inc(tmpref.offset, 2);
@@ -1876,14 +1887,25 @@ unit cgcpu;
                 end;
               OS_32,OS_S32:
                 begin
-                  { Preload the ref base to reduce spilling }
-                  if (tmpref.base<>NR_NO) and
-                     (tmpref.index<>NR_NO) and
-                     (getsupreg(tmpref.base)>=first_int_imreg) then
+                  { Preload the ref base to a new register to reduce spilling
+                    Also preload if the first target reg is used as base or index
+                    to prevent overwriting }
+                  if ((tmpref.base<>NR_NO) and
+                      (tmpref.index<>NR_NO) and
+                      (getsupreg(tmpref.base)>=first_int_imreg)) or
+                     (tmpref.base=reg) or
+                     (tmpref.index=reg) then
                     begin
                       tmpreg:=getaddressregister(list);
                       a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
                       tmpref.base:=tmpreg;
+                      if tmpref.index=reg then
+                        begin
+                          list.concat(taicpu.op_ref_reg(A_LEA, S_W, tmpref, tmpref.base));
+                          tmpref.index:=NR_NO;
+                          tmpref.offset:=0;
+                          tmpref.scalefactor:=0;
+                        end;
                     end;
                   list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, reg));
                   inc(tmpref.offset, 2);

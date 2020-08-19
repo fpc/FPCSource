@@ -63,7 +63,7 @@
 
     procedure RegisterTinyHeapBlock(AAddress: Pointer; ASize:{$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif}); forward;
 
-    function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
+    function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; {$ifndef FPC_TINYHEAP_HUGE} inline; {$endif}
       begin
 {$ifdef FPC_TINYHEAP_HUGE}
         EncodeTinyHeapFreeBlockSize.OfsSize := Size and 15;
@@ -73,7 +73,7 @@
 {$endif FPC_TINYHEAP_HUGE}
       end;
 
-    function DecodeTinyHeapFreeBlockSize(Size: TTinyHeapFreeBlockSize): PtrUInt; inline;
+    function DecodeTinyHeapFreeBlockSize(Size: TTinyHeapFreeBlockSize): PtrUInt; {$ifndef FPC_TINYHEAP_HUGE} inline; {$endif}
       begin
 {$ifdef FPC_TINYHEAP_HUGE}
         DecodeTinyHeapFreeBlockSize := (PtrUInt(Size.SegSize) shl 4) + Size.OfsSize;
