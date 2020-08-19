@@ -27,7 +27,35 @@ unit agllvmmc;
 
 interface
 
+  uses
+    systems,
+    assemble;
+
+  type
+
+    { TLLVMMachineCodePlaygroundAssembler }
+
+    TLLVMMachineCodePlaygroundAssembler=class(texternalassembler)
+    end;
+
 implementation
 
+  const
+    as_wasm32_llvm_mc_info : tasminfo =
+       (
+         id     : as_wasm32_llvm_mc;
+         idtxt  : 'LLVM-MC';
+         asmbin : 'llvm-mc';
+         asmcmd : '--assemble --arch=wasm32 --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         supported_targets : [system_wasm32_wasm,system_wasm32_wasi];
+         flags : [];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign : '$';
+       );
+
+initialization
+  RegisterAssembler(as_wasm32_llvm_mc_info,TLLVMMachineCodePlaygroundAssembler);
 end.
 
