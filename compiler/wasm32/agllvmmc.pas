@@ -29,6 +29,7 @@ interface
 
   uses
     systems,
+    aasmdata,
     assemble;
 
   type
@@ -36,9 +37,25 @@ interface
     { TLLVMMachineCodePlaygroundAssembler }
 
     TLLVMMachineCodePlaygroundAssembler=class(texternalassembler)
+    public
+      procedure WriteAsmList;override;
     end;
 
 implementation
+
+  { TLLVMMachineCodePlaygroundAssembler }
+
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
+    var
+      hal: TAsmListType;
+    begin
+      for hal:=low(TasmlistType) to high(TasmlistType) do
+        begin
+          writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+          writetree(current_asmdata.asmlists[hal]);
+          writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
+        end;
+    end;
 
   const
     as_wasm32_llvm_mc_info : tasminfo =
