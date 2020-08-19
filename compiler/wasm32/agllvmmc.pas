@@ -1,7 +1,8 @@
 {
-    Copyright (c)  by Dmitry Boyarintsev
+    Copyright (c) 1998-2020 by the Free Pascal team
 
-    Includes the WebAssembly dependent target units
+    This unit implements the llvm-mc ("llvm machine code playground")
+    assembler writer for WebAssembly
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,46 +20,14 @@
 
  ****************************************************************************
 }
-unit cputarg;
+
+unit agllvmmc;
 
 {$i fpcdefs.inc}
 
 interface
 
-
 implementation
 
-    uses
-      systems { prevent a syntax error when nothing is included }
-
-{$ifndef NOOPT}
-//      ,aoptcpu
-{$endif NOOPT}
-
-{**************************************
-             Targets
-**************************************}
-      ,t_wasm
-      ,t_wasi
-
-{**************************************
-             Assemblers
-**************************************}
-
-      ,agwat
-      ,agbinaryen
-      ,agllvmmc
-
-{**************************************
-        Assembler Readers
-**************************************}
-
-{**************************************
-             Debuginfo
-**************************************}
-
-      //,dbgjasm
-
-      ;
-
 end.
+

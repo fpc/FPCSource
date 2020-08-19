@@ -969,6 +969,7 @@ compiler/verbose.pas svneol=native#text/plain
 compiler/version.pas svneol=native#text/plain
 compiler/wasm32/aasmcpu.pas svneol=native#text/plain
 compiler/wasm32/agbinaryen.pas svneol=native#text/plain
+compiler/wasm32/agllvmmc.pas svneol=native#text/plain
 compiler/wasm32/agwat.pas svneol=native#text/plain
 compiler/wasm32/cgcpu.pas svneol=native#text/plain
 compiler/wasm32/cpubase.pas svneol=native#text/plain
