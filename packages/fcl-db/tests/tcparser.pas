@@ -231,6 +231,7 @@ type
     procedure TestOr;
     procedure TestNotOr;
     procedure TestCase;
+    procedure TestCaseWithSelector;
     procedure TestAdd;
     procedure TestSubtract;
     procedure TestMultiply;
@@ -2262,6 +2263,36 @@ begin
   R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
   AssertEquals('Second WHEN Identifier is B', 'B', (B.Left as TSQLIdentifierExpression).Identifier.Name);
   AssertEquals('Second WHEN Number is 2', 2, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('Second THEN result is "b"', 'b', R.Name);
+
+  R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;
+  AssertEquals('ELSE result is "c"', 'c', R.Name);
+end;
+
+procedure TTestCheckParser.TestCaseWithSelector;
+
+Var
+  T : TSQLCaseExpression;
+  L : TSQLLiteralExpression;
+  R : TSQLIdentifierName;
+
+begin
+  T:=TSQLCaseExpression(TestCheck('CASE A WHEN 1 THEN "a" WHEN 2 THEN "b" ELSE "c" END',TSQLCaseExpression));
+  AssertNotNull('Selector exists',T.Selector);
+  AssertEquals('Branch count = 2',2,T.BranchCount);
+  AssertNotNull('Else branch exists',T.ElseBranch);
+
+  R:=(T.Selector as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Selector identifier is "A"', 'A', R.Name);
+
+  L:=(T.Branches[0].Condition as TSQLLiteralExpression);
+  R:=(T.Branches[0].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('First WHEN Number is 1', 1, (L.Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('First THEN result is "a"', 'a', R.Name);
+
+  L:=(T.Branches[1].Condition as TSQLLiteralExpression);
+  R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Second WHEN Number is 2', 2, (L.Literal as TSQLIntegerLiteral).Value);
   AssertEquals('Second THEN result is "b"', 'b', R.Name);
 
   R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;

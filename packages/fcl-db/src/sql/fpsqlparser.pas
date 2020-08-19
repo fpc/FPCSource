@@ -1363,6 +1363,8 @@ begin
   Consume(tsqlCASE);
   Result:=TSQLCaseExpression(CreateElement(TSQLCaseExpression,AParent));
   try
+    if CurrentToken<>tsqlWhen then // case A when 1 the 2 when 3 then 4 else 5
+      Result.Selector:=ParseExprLevel1(AParent,[eoIF]);
     while CurrentToken=tsqlWhen do
       begin
       GetNextToken;
