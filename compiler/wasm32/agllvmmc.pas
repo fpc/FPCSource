@@ -160,20 +160,22 @@ implementation
                 Str(tai_symbol(hp).sym.bind,s);
                 writer.AsmWrite(s);
                 writer.AsmLn;
-                if not(tai_symbol(hp).has_value) then
-                  begin
-                    //if tai_symbol(hp).is_global then
-                    //  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '::')
-                    //else
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
-                  end
-                else
-                  begin
-                    if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '==' + tostr(tai_symbol(hp).value))
-                    else
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
-                  end;
+                writer.AsmWriteLn(asminfo^.comment+'TODO: implement');
+                // TODO: resolve errors such as "LLVM ERROR: data symbols must have a size set with .size: RTTI_$SYSTEM_$$_formal"
+                //if not(tai_symbol(hp).has_value) then
+                //  begin
+                //    //if tai_symbol(hp).is_global then
+                //    //  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '::')
+                //    //else
+                //      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
+                //  end
+                //else
+                //  begin
+                //    if tai_symbol(hp).is_global then
+                //      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '==' + tostr(tai_symbol(hp).value))
+                //    else
+                //      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
+                //  end;
               end;
             ait_symbol_end :
               begin
