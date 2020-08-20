@@ -865,7 +865,8 @@ implementation
                     end
                   { Unused parameters need to be kept in the original location
                     to prevent allocation of registers/resources for them. }
-                  else if not tparavarsym(vs).is_used then
+                  else if not tparavarsym(vs).is_used and
+                    (cs_opt_unused_para in current_settings.optimizerswitches) then
                     begin
                       tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc);
                     end
