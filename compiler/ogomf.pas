@@ -3546,7 +3546,13 @@ cleanup:
                 else if assigned(objreloc.symbol.group) then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.symbol.group.Name)).MemPos
                 else
-                  framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
+                  if assigned(TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment) then
+                    framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos
+                  else
+                    begin
+                      framebase:=0;
+                      Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
+                    end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
                     fixupamount:=target-framebase;
@@ -3595,7 +3601,7 @@ cleanup:
                     else
                       begin
                         framebase:=0;
-                        Comment(V_Warning,'Encountered an OMF reference to a section, that has been removed by smartlinking: '+TOmfObjSection(objreloc.objsection).Name);
+                        Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
                       end;
                   end;
                 case objreloc.typ of
