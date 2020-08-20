@@ -910,7 +910,12 @@ end;
 
 procedure TPasAnalyzer.CreateTree;
 begin
-  FUsedElements:=CreatePasElementSet;
+  FUsedElements:=TPasAnalyzerKeySet.Create(
+    {$ifdef pas2js}
+    @PAElement_ElToHashName,@PasElementToHashName
+    {$else}
+    @ComparePAElements,@CompareElementWithPAElement
+    {$endif});
 end;
 
 function TPasAnalyzer.MarkElementAsUsed(El: TPasElement; aClass: TPAElementClass
