@@ -1016,12 +1016,14 @@ cvstest:
 # This is also the case for other CPUs that don't support
 # 80bit real type.
 
+ifneq ($(findstring -dFPC_SOFT_FPUX80,$(OPT)),)
 ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 
 ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa),)
   EXCLUDE_80BIT_TARGETS=1
+endif
 endif
 
 full: fullcycle
