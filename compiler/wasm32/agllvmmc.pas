@@ -177,6 +177,16 @@ implementation
               end;
             ait_symbol_end :
               begin
+                writer.AsmWrite(asminfo^.comment);
+                writer.AsmWrite('ait_symbol_end ');
+                writer.AsmWrite(tai_symbol_end(hp).sym.name);
+                writer.AsmWrite(' sym.typ=');
+                Str(tai_symbol_end(hp).sym.typ,s);
+                writer.AsmWrite(s);
+                writer.AsmWrite(' sym.bind=');
+                Str(tai_symbol_end(hp).sym.bind,s);
+                writer.AsmWrite(s);
+                writer.AsmLn;
               end;
             ait_datablock :
               begin
