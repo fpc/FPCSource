@@ -390,7 +390,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO -L. -o $EXE';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME $MAP $LTO -shared $GCSECTIONS -L. -o $EXE';
+     DllCmd[1]:='ld '+platform_select+platformopt+' $OPT $INIT $FINI $SONAME $MAP $LTO -shared $GCSECTIONS -L. -o $EXE';
      { when we want to cross-link we need to override default library paths;
        when targeting binutils 2.19 or later, we use the "INSERT" command to
        augment the default linkerscript, which also requires -T (normally that
