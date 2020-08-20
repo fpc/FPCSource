@@ -128,13 +128,14 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,cutils,
       symconst,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
       nld,ncnv,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
       procinfo,
+      aasmtai,
       wpobase;
 
 
@@ -306,7 +307,14 @@ implementation
           exit;
         { If we can't skip loading of the parameter, load an undefined dummy value. }
         if not can_skip_para_push(parasym) then
-          hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
+          begin
+            if cs_asm_source in current_settings.globalswitches then
+              current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused, loading undefined value')));
+            hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
+          end
+        else
+          if cs_asm_source in current_settings.globalswitches then
+            current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused')));
       end;
 
 
