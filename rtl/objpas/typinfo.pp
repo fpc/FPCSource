@@ -477,12 +477,12 @@ unit TypInfo;
         case TTypeKind of
           tkRecord: (
             Terminator: Pointer;
-            Size: Integer;
+            Size: Longint;
 {$ifndef VER3_0}
             InitOffsetOp: PRecOpOffsetTable;
             ManagementOp: Pointer;
 {$endif}
-            ManagedFieldCount: Integer;
+            ManagedFieldCount: Longint;
           { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
           );
           { include for proper alignment }
@@ -710,10 +710,10 @@ unit TypInfo;
 {$ifndef VER3_0}
                 RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
 {$endif VER3_0}
-                RecSize: Integer;
+                RecSize: Longint;
                 case Boolean of
-                  False: (ManagedFldCount: Integer deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
-                  True: (TotalFieldCount: Integer);
+                  False: (ManagedFldCount: Longint deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
+                  True: (TotalFieldCount: Longint);
                 {ManagedFields: array[1..TotalFieldCount] of TManagedField}
               );
             tkHelper:
@@ -812,7 +812,7 @@ unit TypInfo;
         GetProc : CodePointer;
         SetProc : CodePointer;
         StoredProc : CodePointer;
-        Index : Integer;
+        Index : Longint;
         Default : Longint;
         NameIndex : SmallInt;
 
