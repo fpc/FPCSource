@@ -6595,6 +6595,9 @@ begin
 
       if ResolvedEl.LoTypeEl is TPasGenericTemplateType then
         begin
+        if ResolvedEl.LoTypeEl=El then
+          RaiseMsg(20200820185313,nTypeCycleFound,sTypeCycleFound,[],
+                      GetGenericConstraintErrorEl(ConEl,El));
         // ok
         if length(El.Constraints)>1 then
           RaiseXIsNotAValidConstraint(20190831213645,ResolvedEl.HiTypeEl.Name);
