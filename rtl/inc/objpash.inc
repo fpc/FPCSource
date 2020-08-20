@@ -440,7 +440,11 @@
          constructor Create;
        end;
        {$POP}
-
+       WeakAttribute = class(TCustomAttribute);
+       UnsafeAttribute = class(TCustomAttribute);
+       RefAttribute = class(TCustomAttribute);
+       VolatileAttribute = class(TCustomAttribute);
+  
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;
