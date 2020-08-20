@@ -46,8 +46,6 @@ implementation
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
-       var
-         IDF_PATH: string;
 
 {*****************************************************************************
                                   TlinkerEmbedded
@@ -73,21 +71,7 @@ const
   platform_select='';
 {$endif}
 begin
-  with Info do
-   begin
-{$ifdef xtensa}
-     if target_info.system=system_xtensa_freertos then
-       ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES '+
-         '-u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl -u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
-         '-L $IDF_PATH/components/esp_rom/esp32/ld '+
-         '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
-         '-L . -T esp32_out.ld -T esp32.project.ld '+
-         '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
-     else
-{$else}
-       ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
-{$endif xtensa}
-   end;
+  Info.ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
 end;
 
 
@@ -961,14 +945,11 @@ var
   hp: TCmdStrListItem;
   filepath: TCmdStr;
 begin
-  IDF_PATH:='';
-{$ifdef xtensa}
-  if (target_info.system=system_xtensa_freertos) then
-    if (current_settings.controllertype = ct_esp32) then
-      IDF_PATH := 'IDF_PATH'
-    else
-      IDF_PATH := 'IDF_PATH8266';
-{$endif xtensa}
+{$ifdef XTENSA}
+  { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
+  if idfpath='' then
+    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
+{$endif XTENSA}
 
   { for future use }
   StaticStr:='';
@@ -979,194 +960,250 @@ begin
   success:=true;
   Result:=false;
 
-  if target_info.system=system_xtensa_freertos then
+{$ifdef XTENSA}
+  { generate a sdkconfig.h if none is provided,
+    only a few fields are provided to far }
+  Assign(t,'sdkconfig.h');
+  {$push}{$I-}
+  Rewrite(t);
+  if ioresult<>0 then
+    exit;
+
+  if (current_settings.controllertype = ct_esp32) then
     begin
-      { generate a sdkconfig.h if none is provided,
-        only a few fields are provided to far }
-      if not(Sysutils.FileExists('sdkconfig.h')) then
-        begin
-          Assign(t,'sdkconfig.h');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-          writeln(t,'#pragma once');
-          writeln(t,'#define CONFIG_APP_BUILD_USE_FLASH_SECTIONS 1');
-          writeln(t,'#define CONFIG_BT_RESERVE_DRAM 0x0');
-          writeln(t,'#define CONFIG_ESP32_ULP_COPROC_RESERVE_MEM 0');
-          writeln(t,'#define CONFIG_ESP32_TRACEMEM_RESERVE_DRAM 0x0');
+      writeln(t,'#pragma once');
+      writeln(t,'#define CONFIG_APP_BUILD_USE_FLASH_SECTIONS 1');
+      writeln(t,'#define CONFIG_BT_RESERVE_DRAM 0x0');
+      writeln(t,'#define CONFIG_ESP32_ULP_COPROC_RESERVE_MEM 0');
+      writeln(t,'#define CONFIG_ESP32_TRACEMEM_RESERVE_DRAM 0x0');
+    end
+  else
+    begin
+      { TODO: APP_OFFSET & APP_SIZE depends on partition table
+        Default for partition table: Single factory app, no OTA }
+      writeln(t,'#define APP_OFFSET 0x10000');
+      writeln(t,'#define APP_SIZE 0xf0000');
+      { Include build version of sdkconfig.h for custom configuration, if available }
+      S:=idfpath+'/libs/sdkconfig.h';
+      if SysUtils.FileExists(S) then
+        writeln(t,'#include "'+S+'"')
+      else
+        { Assume SOC_FULL_ICACHE option not selected (default) }
+        writeln(t,'#define CONFIG_SOC_IRAM_SIZE 0xC000');
+    end;
 
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
+  Close(t);
+  if ioresult<>0 then
+    exit;
+  {$pop}
 
-      { generate an sdkconfig if none is provided,
-        this is a dummy so far }
-      if not(Sysutils.FileExists('sdkconfig')) then
-        begin
-          Assign(t,'sdkconfig');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t);
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate an Kconfig if none is provided,
-        this is a dummy so far }
-      if not(Sysutils.FileExists('Kconfig')) then
-        begin
-          Assign(t,'Kconfig');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t);
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate an Kconfig.projbuild if none is provided,
-        this is a dummy so far }
-      if not(Sysutils.FileExists('Kconfig.projbuild')) then
-        begin
-          Assign(t,'Kconfig.projbuild');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t);
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate an kconfigs.in if none is provided,
-        this is a dummy so far }
-      if not(Sysutils.FileExists('kconfigs.in')) then
-        begin
-          Assign(t,'kconfigs.in');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t);
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate an kconfigs_projbuild.in if none is provided,
-        this is a dummy so far }
-      if not(Sysutils.FileExists('kconfigs_projbuild.in')) then
-        begin
-          Assign(t,'kconfigs_projbuild.in');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t);
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate a config.env if none is provided,
-        COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
-        be needed to be filed properly }
-      if not(Sysutils.FileExists('config.env')) then
-        begin
-          Assign(t,'config.env');
-          {$push}{$I-}
-          Rewrite(t);
-          if ioresult<>0 then
-            exit;
-
-          writeln(t,'{');
-          writeln(t,'    "COMPONENT_KCONFIGS": "Kconfig",');
-          writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
-          writeln(t,'    "IDF_CMAKE": "y",');
-          writeln(t,'    "IDF_TARGET": "esp32",');
-          writeln(t,'    "IDF_PATH": "'+GetEnvironmentVariable('IDF_PATH')+'",');
-          writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "kconfigs.in",');
-          writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "kconfigs_projbuild.in"');
-          writeln(t,'}');
-
-          Close(t);
-          if ioresult<>0 then
-            exit;
-          {$pop}
-        end;
-
-      { generate ldgen_libraries }
-      Assign(t,'ldgen_libraries');
+  { generate an sdkconfig if none is provided,
+    this is a dummy so far }
+  if not(Sysutils.FileExists('sdkconfig')) then
+    begin
+      Assign(t,'sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
         exit;
 
-      hp:=TCmdStrListItem(StaticLibFiles.First);
-      while assigned(hp) do
-        begin
-          FindLibraryFile(hp.Str,target_info.staticClibprefix,target_info.staticClibext,filepath);
-          writeln(t,filepath);
-          hp:=TCmdStrListItem(hp.Next);
-        end;
+      writeln(t);
 
       Close(t);
       if ioresult<>0 then
         exit;
       {$pop}
-
-      binstr:='xtensa-esp32-elf-gcc';
-      cmdstr:='-C -P -x c -E -o esp32_out.ld -I . $IDF_PATH/components/esp32/ld/esp32.ld';
-
-      Replace(binstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
-      Replace(cmdstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
-      success:=DoExec(binstr,cmdstr,true,true);
-
-      { generate linker maps for esp32 }
-      binstr:='$IDF_PATH/tools/ldgen/ldgen.py';
-      cmdstr:='--config sdkconfig --fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
-        '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
-        '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
-        '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
-        '$IDF_PATH/components/esp_gdbstub/linker.lf '+
-        '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in --output ./esp32.project.ld --kconfig $IDF_PATH/Kconfig --env-file config.env '+
-        '--libraries-file ldgen_libraries --objdump xtensa-esp32-elf-objdump';
-      Replace(binstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
-      Replace(cmdstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
-      if success and not(cs_link_nolink in current_settings.globalswitches) then
-        success:=DoExec(binstr,cmdstr,true,false);
     end;
 
-  if IDF_PATH <> '' then
-    Replace(Info.ExeCmd[1],'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
+  { generate an Kconfig if none is provided,
+    this is a dummy so far }
+  if not(Sysutils.FileExists('Kconfig')) then
+    begin
+      Assign(t,'Kconfig');
+      {$push}{$I-}
+      Rewrite(t);
+      if ioresult<>0 then
+        exit;
+
+      writeln(t);
+
+      Close(t);
+      if ioresult<>0 then
+        exit;
+      {$pop}
+    end;
+
+  { generate an Kconfig.projbuild if none is provided,
+    this is a dummy so far }
+  if not(Sysutils.FileExists('Kconfig.projbuild')) then
+    begin
+      Assign(t,'Kconfig.projbuild');
+      {$push}{$I-}
+      Rewrite(t);
+      if ioresult<>0 then
+        exit;
+
+      writeln(t);
+
+      Close(t);
+      if ioresult<>0 then
+        exit;
+      {$pop}
+    end;
+
+  { generate an kconfigs.in if none is provided,
+    this is a dummy so far }
+  if not(Sysutils.FileExists('kconfigs.in')) then
+    begin
+      Assign(t,'kconfigs.in');
+      {$push}{$I-}
+      Rewrite(t);
+      if ioresult<>0 then
+        exit;
+
+      writeln(t);
+
+      Close(t);
+      if ioresult<>0 then
+        exit;
+      {$pop}
+    end;
+
+  { generate an kconfigs_projbuild.in if none is provided,
+    this is a dummy so far }
+  if not(Sysutils.FileExists('kconfigs_projbuild.in')) then
+    begin
+      Assign(t,'kconfigs_projbuild.in');
+      {$push}{$I-}
+      Rewrite(t);
+      if ioresult<>0 then
+        exit;
+
+      writeln(t);
+
+      Close(t);
+      if ioresult<>0 then
+        exit;
+      {$pop}
+    end;
+
+  { generate a config.env if none is provided,
+    COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
+    be needed to be filed properly }
+  Assign(t,'config.env');
+  {$push}{$I-}
+  Rewrite(t);
+  if ioresult<>0 then
+    exit;
+
+  writeln(t,'{');
+  if (current_settings.controllertype = ct_esp32) then
+    begin
+      writeln(t,'    "COMPONENT_KCONFIGS": "Kconfig",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
+      writeln(t,'    "IDF_CMAKE": "y",');
+      writeln(t,'    "IDF_TARGET": "esp32",');
+      writeln(t,'    "IDF_PATH": "'+idfpath+'",');
+      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "kconfigs.in",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "kconfigs_projbuild.in"');
+    end
+  else
+    begin
+      writeln(t,'    "IDF_PATH": "'+idfpath+'",');
+      writeln(t,'    "IDF_TARGET": "esp8266",');
+      writeln(t,'    "IDF_CMAKE": "n"');
+    end;
+  writeln(t,'}');
+
+  Close(t);
+  if ioresult<>0 then
+    exit;
+  {$pop}
+
+  { generate ldgen_libraries }
+  Assign(t,'ldgen_libraries');
+  {$push}{$I-}
+  Rewrite(t);
+  if ioresult<>0 then
+    exit;
+
+  hp:=TCmdStrListItem(StaticLibFiles.First);
+  while assigned(hp) do
+    begin
+      FindLibraryFile(hp.Str,target_info.staticClibprefix,target_info.staticClibext,filepath);
+      writeln(t,filepath);
+      hp:=TCmdStrListItem(hp.Next);
+    end;
+
+  Close(t);
+  if ioresult<>0 then
+    exit;
+  {$pop}
+
+  binstr:='gcc';
+  if (current_settings.controllertype = ct_esp32) then
+    cmdstr:='-C -P -x c -E -o esp32_out.ld -I . $IDF_PATH/components/esp32/ld/esp32.ld'
+  else
+    cmdstr:='-C -P -x c -E -o esp8266_out.ld -I . $IDF_PATH/components/esp8266/ld/esp8266.ld';
+  Replace(cmdstr,'$IDF_PATH',idfpath);
+  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
+
+  { generate linker maps }
+  binstr:='$IDF_PATH/tools/ldgen/ldgen.py';
+  if (current_settings.controllertype = ct_esp32) then
+    cmdstr:='--config sdkconfig '+
+            '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
+            '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
+            '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
+            '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
+            '$IDF_PATH/components/esp_gdbstub/linker.lf '+
+            '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in '+
+            '--output ./esp32.project.ld '+
+            '--kconfig $IDF_PATH/Kconfig '+
+            '--env-file config.env '+
+            '--libraries-file ldgen_libraries '+
+            '--objdump xtensa-esp32-elf-objdump'
+  else
+    cmdstr:='--config sdkconfig '+
+            '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
+            '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
+            '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
+            '$IDF_PATH/components/lwip/linker.lf $IDF_PATH/components/spi_flash/linker.lf '+
+            '--env "COMPONENT_KCONFIGS_PROJBUILD=  $IDF_PATH/components/bootloader/Kconfig.projbuild '+
+            '$IDF_PATH/components/esptool_py/Kconfig.projbuild  $IDF_PATH/components/partition_table/Kconfig.projbuild"'+
+            '--env "COMPONENT_KCONFIGS=$IDF_PATH/components/app_update/Kconfig '+
+            '$IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig '+
+            '$IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig" '+
+            '--input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in '+
+            '--output ./esp8266.project.ld '+
+            '--kconfig $IDF_PATH/Kconfig '+
+            '--env-file config.env '+
+            '--libraries-file ldgen_libraries '+
+            '--objdump xtensa-lx106-elf-objdump';
+
+  Replace(binstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$IDF_PATH',idfpath);
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
+    success:=DoExec(binstr,cmdstr,true,false);
+
+  if (current_settings.controllertype = ct_esp32) then
+    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
+       '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
+       '-L $IDF_PATH/components/esp_rom/esp32/ld '+
+       '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
+       '-L . -T esp32_out.ld -T esp32.project.ld '+
+       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
+  else
+    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
+      '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
+      '-L . -T esp8266_out.ld -T esp8266.project.ld'; { Project scripts }
+
+  Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
+{$endif XTENSA}
+
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
-  //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
@@ -1179,8 +1216,6 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if target_info.system=system_xtensa_freertos then
-    Replace(cmdstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
@@ -1212,32 +1247,31 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
-{$ifdef xtensa}
-  if success and (target_info.system=system_xtensa_freertos) then
-    if (current_settings.controllertype = ct_esp32) then
-      begin
-        binstr:='$'+IDF_PATH+'/components/esptool_py/esptool/esptool.py';
-        Replace(binstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
-        success:=DoExec(binstr,'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
-          '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-          '--elf-sha256-offset 0xb0 '+
-          '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-          FixedExeFileName,
-          true,false);
-      end
-    else if (current_settings.controllertype = ct_esp8266) then
-      begin
-        binstr:='$'+IDF_PATH+'/components/esptool_py/esptool/esptool.py';
-        Replace(binstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
-        success:=DoExec(binstr,'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
-          '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-          '--version=3 '+
-          '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-          FixedExeFileName,
-          true,false);
-      end
+{$ifdef XTENSA}
+  if success then
+   begin
+      binstr:=idfpath+'/components/esptool_py/esptool/esptool.py';
+      if (current_settings.controllertype = ct_esp32) then
+        begin
+          success:=DoExec(binstr,'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
+            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--elf-sha256-offset 0xb0 '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            FixedExeFileName,
+            true,false);
+        end
+      else if (current_settings.controllertype = ct_esp8266) then
+        begin
+          success:=DoExec(binstr,'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
+            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--version=3 '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            FixedExeFileName,
+            true,false);
+        end
+   end
   else
-{$endif xtensa}
+{$endif XTENSA}
     if success then
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
         FixedExeFileName+' '+
