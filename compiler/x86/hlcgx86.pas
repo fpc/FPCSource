@@ -43,6 +43,8 @@ interface
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
       procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
+     public
+      procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
     end;
 
 implementation
@@ -87,6 +89,16 @@ implementation
       else
         ref.refaddr:=addr_full;
       list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
+    end;
+
+
+  procedure thlcgx86.a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara);
+    begin
+      if not (cgpara.Location^.Loc in [LOC_REGISTER,LOC_CREGISTER]) and
+        (cgpara.size=OS_ADDR) then
+        a_load_reg_cgpara(list,size,NR_FRAME_POINTER_REG,cgpara)
+      else
+        inherited;
     end;
 
 end.
