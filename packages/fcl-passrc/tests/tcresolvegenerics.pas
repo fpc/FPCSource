@@ -34,6 +34,8 @@ type
     procedure TestGen_ConstraintSpecialize;
     procedure TestGen_ConstraintTSpecializeWithT;
     procedure TestGen_ConstraintTSpecializeAsTFail;
+    procedure TestGen_ConstraintTcolonTFail; // A<T:T>
+    // ToDo: A<T:B<T>> fail
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
@@ -42,8 +44,6 @@ type
     procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
     procedure TestGen_ConstraintClassType_ForInT;
     procedure TestGen_ConstraintClassType_IsAs;
-    // ToDo: A<T:T> fail
-    // ToDo: A<T:B<T>> fail
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -427,6 +427,20 @@ begin
   'begin',
   '']);
   CheckResolverException('identifier not found "T<>"',nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintTcolonTFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  T = TObject;',
+  '  generic TAnt<T:T> = record v: word; end;',
+  'begin',
+  '']);
+  CheckResolverException(sTypeCycleFound,nTypeCycleFound);
 end;
 
 procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;

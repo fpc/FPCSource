@@ -115,16 +115,12 @@ implementation
     var
       alt : TAsmListType;
     begin
-      if not(po_assembler in pd.procoptions) then
-        alt:=al_procedures
-      else
-        alt:=al_pure_assembler;
       { Xtensa needs the data before the subroutine }
       if assigned(data) and
          (not data.empty) then
         begin
-          data.Insert(tai_align.Create(4));
-          current_asmdata.asmlists[alt].concatlist(data);
+          data.Concat(tai_align.Create(4));
+          code.insertlist(data);
         end;
       inherited record_generated_code_for_procdef(pd,code,nil);
     end;

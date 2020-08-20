@@ -1698,6 +1698,10 @@ begin
                          ParaFrameworkPath.AddPath(More,false)
                        else
                          frameworksearchpath.AddPath(More,true)
+{$ifdef XTENSA}
+                     else if (target_info.system=system_xtensa_freertos) then
+                       idfpath:=FixPath(More,true)
+{$endif XTENSA}
                      else
                        IllegalPara(opt);
                  'F' :

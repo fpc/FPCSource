@@ -4413,6 +4413,7 @@ end;
 
 procedure TPas2jsCompiler.Reset;
 begin
+  FResolverHub.Reset;
   FreeAndNil(FWPOAnalyzer);
   FPrecompileGUID:=default(TGUID);
   FNamespaces.Clear;

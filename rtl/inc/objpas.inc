@@ -1172,6 +1172,28 @@
       inherited;
     end;
 
+{****************************************************************************
+                               TCustomStoredAttribute
+****************************************************************************}
+
+
+    constructor StoredAttribute.Create;
+    begin
+    end;
+
+
+    constructor  StoredAttribute.Create(Const aFlag : Boolean);
+    begin
+      FFlag:=aFlag;
+    end;
+
+
+
+    constructor StoredAttribute.Create(Const aName : string);
+    begin
+      FName:=aName;
+    end;
+
 
 {****************************************************************************
                              Exception Support

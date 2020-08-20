@@ -441,6 +441,7 @@ end;
 {$endif}
 
 { TJSWriter }
+{AllowWriteln}
 
 procedure TJSWriter.SetOptions(AValue: TWriteOptions);
 begin
@@ -1939,6 +1940,7 @@ begin
 //  Write('/* '+El.ClassName+' */');
   FSkipCurlyBrackets:=False;
 end;
+{AllowWriteln-}
 
 {$ifdef HasFileWriter}
 { TFileWriter }

@@ -102,14 +102,17 @@ implementation
 
   procedure tmsdostai_typedconstbuilder.add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr);
     begin
-      with current_module.linkorderedsymbols do
-        if (Last=nil) or (TCmdStrListItem(Last).Str<>secname) then
-          current_module.linkorderedsymbols.concat(secname);
+      if (tf_smartlink_library in target_info.flags) and is_smartlink_vectorized_dead_strip then
+        begin
+          with current_module.linkorderedsymbols do
+            if (Last=nil) or (TCmdStrListItem(Last).Str<>secname) then
+              current_module.linkorderedsymbols.concat(secname);
+        end;
     end;
 
   class function tmsdostai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
     begin
-      result:=is_smartlink_vectorized_dead_strip;
+      result:=(tf_smartlink_library in target_info.flags) and is_smartlink_vectorized_dead_strip;
       if not result then
         exit;
       if tcalo_vectorized_dead_strip_start in options then
@@ -126,9 +129,9 @@ implementation
   class function tmsdostai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
     begin
 {$ifdef USE_LINKER_WLINK}
-      result:=true;
+      result:=inherited or (tf_smartlink_library in target_info.flags);
 {$else}
-      result:=not (cs_link_extern in current_settings.globalswitches);
+      result:=inherited and not (cs_link_extern in current_settings.globalswitches);
 {$endif USE_LINKER_WLINK}
     end;
 

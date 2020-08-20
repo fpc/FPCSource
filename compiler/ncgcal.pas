@@ -128,13 +128,14 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,cutils,
       symconst,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
       nld,ncnv,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
       procinfo,
+      aasmtai,
       wpobase;
 
 
@@ -143,13 +144,15 @@ implementation
         { We can skip passing the parameter when:
             the parameter can be optimized as unused
             and the target does not strictly require all parameters (has_strict_proc_signature = false)
-            and fixed stack is used
+            and
+                 fixed stack is used
               or the parameter is in a register
-              or the parameter is $parentfp. }
+              or the parameter is $parentfp and po_delphi_nested_cc is set for the routine. }
         result:=paramanager.can_opt_unused_para(parasym) and
           not paramanager.has_strict_proc_signature and
           (paramanager.use_fixed_stack or
-           (vo_is_parentfp in parasym.varoptions) or
+           ((vo_is_parentfp in parasym.varoptions) and
+            (po_delphi_nested_cc in tabstractprocdef(parasym.owner.defowner).procoptions)) or
            (parasym.paraloc[callerside].Location^.Loc in [LOC_REGISTER,LOC_CREGISTER]));
       end;
 
@@ -304,7 +307,14 @@ implementation
           exit;
         { If we can't skip loading of the parameter, load an undefined dummy value. }
         if not can_skip_para_push(parasym) then
-          hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
+          begin
+            if cs_asm_source in current_settings.globalswitches then
+              current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused, loading undefined value')));
+            hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
+          end
+        else
+          if cs_asm_source in current_settings.globalswitches then
+            current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused')));
       end;
 
 

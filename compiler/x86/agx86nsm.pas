@@ -84,7 +84,7 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,
+      cutils,globals,systems,fpccrc,
       fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
@@ -306,7 +306,7 @@ interface
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT'
+              result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
           end

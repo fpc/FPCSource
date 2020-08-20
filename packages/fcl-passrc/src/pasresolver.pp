@@ -1433,7 +1433,9 @@ type
   private
     FOwner: TObject;
   public
-    constructor Create(TheOwner: TObject);
+    FinishedInterfaceCount: integer;
+    constructor Create(TheOwner: TObject); virtual;
+    procedure Reset; virtual;
     property Owner: TObject read FOwner;
   end;
   TPasResolverHubClass = class of TPasResolverHub;
@@ -1491,6 +1493,7 @@ type
     FDefaultScope: TPasDefaultScope;
     FDynArrayMaxIndex: TMaxPrecInt;
     FDynArrayMinIndex: TMaxPrecInt;
+    FFinishedInterfaceIndex: integer;
     FHub: TPasResolverHub;
     FLastCreatedData: array[TResolveDataListKind] of TResolveData;
     FLastElement: TPasElement;
@@ -2268,6 +2271,7 @@ type
       PosEl: TPasElement; RaiseIfConst: boolean = true): boolean;
     function ResolvedElIsClassOrRecordInstance(const ResolvedEl: TPasResolverResult): boolean;
     // utility functions
+    function GetResolver(El: TPasElement): TPasResolver;
     function ElHasModeSwitch(El: TPasElement; ms: TModeSwitch): boolean;
     function GetElModeSwitches(El: TPasElement): TModeSwitches;
     function ElHasBoolSwitch(El: TPasElement; bs: TBoolSwitch): boolean;
@@ -2403,6 +2407,7 @@ type
     property RootElement: TPasModule read FRootElement write SetRootElement;
     property Step: TPasResolverStep read FStep;
     property ActiveHelpers: TPRHelperEntryArray read FActiveHelpers;
+    property FinishedInterfaceIndex: integer read FFinishedInterfaceIndex;
     // scopes
     property Scopes[Index: integer]: TPasScope read GetScopes;
     property ScopeCount: integer read FScopeCount;
@@ -3082,6 +3087,11 @@ end;
 constructor TPasResolverHub.Create(TheOwner: TObject);
 begin
   FOwner:=TheOwner;
+end;
+
+procedure TPasResolverHub.Reset;
+begin
+  FinishedInterfaceCount:=0;
 end;
 
 { TPRSpecializedItem }
@@ -5844,6 +5854,8 @@ begin
   if not IsUnitIntfFinished(Section.GetModule) then
     RaiseInternalError(20171214004323,'TPasResolver.FinishInterfaceSection "'+RootElement.Name+'" "'+Section.GetModule.Name+'" IsUnitIntfFinished=false');
   {$ENDIF}
+  inc(Hub.FinishedInterfaceCount);
+  FFinishedInterfaceIndex:=Hub.FinishedInterfaceCount;
   NotifyPendingUsedInterfaces;
   if Section=nil then ;
 end;
@@ -6583,6 +6595,9 @@ begin
 
       if ResolvedEl.LoTypeEl is TPasGenericTemplateType then
         begin
+        if ResolvedEl.LoTypeEl=El then
+          RaiseMsg(20200820185313,nTypeCycleFound,sTypeCycleFound,[],
+                      GetGenericConstraintErrorEl(ConEl,El));
         // ok
         if length(El.Constraints)>1 then
           RaiseXIsNotAValidConstraint(20190831213645,ResolvedEl.HiTypeEl.Name);
@@ -24955,6 +24970,20 @@ begin
       or (ResolvedEl.IdentEl.ClassType=TPasArgument)
       or (ResolvedEl.IdentEl.ClassType=TPasResultElement) then
     exit(true);
+end;
+
+function TPasResolver.GetResolver(El: TPasElement): TPasResolver;
+var
+  Module: TPasModule;
+  Scope: TPasModuleScope;
+begin
+  Result:=nil;
+  if El=nil then exit;
+  Module:=El.GetModule;
+  if Module=nil then exit;
+  Scope:=Module.CustomData as TPasModuleScope;
+  if Scope=nil then exit;
+  Result:=Scope.Owner as TPasResolver;
 end;
 
 function TPasResolver.ElHasModeSwitch(El: TPasElement; ms: TModeSwitch

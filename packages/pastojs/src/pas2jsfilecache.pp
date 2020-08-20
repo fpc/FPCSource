@@ -1988,11 +1988,18 @@ var
 
   function SearchInDir(Dir: string; var Filename: string): boolean;
   // search in Dir for pp, pas, p times given case, lower case, upper case
+  var
+    CurFile : String;
   begin
     Dir:=IncludeTrailingPathDelimiter(Dir);
     if IndexOfFile(SearchedDirs,Dir)>=0 then exit(false);
     SearchedDirs.Add(Dir);
-    if SearchLowUpCase(Filename) then exit(true);
+    CurFile:=Dir+Filename;
+    if SearchLowUpCase(CurFile) then
+      begin
+      FileName:=CurFile;
+      exit(true);
+      end;
     Result:=false;
   end;
 

@@ -440,7 +440,24 @@
          constructor Create;
        end;
        {$POP}
-
+       WeakAttribute = class(TCustomAttribute);
+       UnsafeAttribute = class(TCustomAttribute);
+       RefAttribute = class(TCustomAttribute);
+       VolatileAttribute = class(TCustomAttribute);
+       
+       StoredAttribute = Class(TCustomAttribute)
+       Private
+          FFlag : Boolean;
+          FName : String;
+       Public
+         Constructor Create; 
+         Constructor Create(Const aFlag : Boolean); 
+         Constructor Create(Const aName : String); 
+         Property Flag : Boolean Read FFlag;
+         Property Name : String Read FName; 
+       end;
+       
+  
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;
