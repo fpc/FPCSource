@@ -465,9 +465,14 @@ unit FPPas2Js;
 interface
 
 uses
+  {$ifdef pas2js}
+  js,
+  {$else}
+  AVL_Tree,
+  {$endif}
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
-  PasTree, PScanner, PasResolveEval, PasResolver;
+  PasTree, PScanner, PasResolveEval, PasResolver, PasUseAnalyzer;
 
 // message numbers
 const
@@ -1372,6 +1377,15 @@ type
   { TPas2JSResolverHub }
 
   TPas2JSResolverHub = class(TPasResolverHub)
+  private
+    FJSSpecialized: TPasAnalyzerKeySet; // set of TPasGenericType
+  public
+    constructor Create(TheOwner: TObject); override;
+    destructor Destroy; override;
+    procedure Reset; override;
+    // delayed type specialization
+    procedure AddJSSpecialized(SpecType: TPasGenericType);
+    function IsJSSpecialized(SpecType: TPasGenericType): boolean;
   end;
 
   { TPas2JSResolver }
@@ -1908,6 +1922,7 @@ type
     Function CreateVarStatement(const aName: String; Init: TJSElement;
       El: TPasElement): TJSVariableStatement; virtual;
     Function CreateVarDecl(const aName: String; Init: TJSElement; El: TPasElement): TJSVarDeclaration; virtual;
+    Procedure InitJSSpecialization(aType: TPasType; AContext: TConvertContext; ErrorEl: TPasElement); virtual;
     // JS literals
     Function CreateLiteralNumber(El: TPasElement; const n: TJSNumber): TJSLiteral; virtual;
     Function CreateLiteralHexNumber(El: TPasElement; const n: TMaxPrecInt; Digits: byte): TJSLiteral; virtual;
@@ -2315,6 +2330,36 @@ begin
     Result:=Result+h;
     end;
   Result:='['+Result+']';
+end;
+
+{ TPas2JSResolverHub }
+
+constructor TPas2JSResolverHub.Create(TheOwner: TObject);
+begin
+  inherited Create(TheOwner);
+  FJSSpecialized:=CreatePasElementSet;
+end;
+
+destructor TPas2JSResolverHub.Destroy;
+begin
+  FreeAndNil(FJSSpecialized);
+  inherited Destroy;
+end;
+
+procedure TPas2JSResolverHub.Reset;
+begin
+  inherited Reset;
+end;
+
+procedure TPas2JSResolverHub.AddJSSpecialized(SpecType: TPasGenericType);
+begin
+  if FJSSpecialized.FindItem(SpecType)=nil then
+    FJSSpecialized.Add(SpecType,false);
+end;
+
+function TPas2JSResolverHub.IsJSSpecialized(SpecType: TPasGenericType): boolean;
+begin
+  Result:=FJSSpecialized.FindItem(SpecType)<>nil;
 end;
 
 { TPas2JSModuleScope }
@@ -4918,32 +4963,44 @@ var
   Param: TPasType;
   i: Integer;
   GenSection, ParamSection: TPasSection;
+  ParamResolver, GenResolver: TPasResolver;
 begin
   Result:=nil;
+  {$IFNDEF EnableDelaySpecialize}
+  exit;
+  {$ENDIF}
   Gen:=SpecializedItem.GenericEl;
   GenSection:=GetParentSection(Gen);
   if not (GenSection is TInterfaceSection) then
-    exit; // generic in unit implementation/program/library -> params cannot be defined a later section
-  GenMod:=GenSection.GetModule;
+    exit; // generic in unit implementation/program/library -> params cannot be defined in a later section -> no delay needed
+  GenMod:=nil;
+  GenResolver:=nil;
 
   Params:=SpecializedItem.Params;
   for i:=0 to length(Params)-1 do
     begin
     Param:=ResolveAliasType(Params[i],false);
     if Param.ClassType=TPasUnresolvedSymbolRef then
-      continue; // built-in type
+      continue; // built-in type -> no delay needed
     ParamSection:=GetParentSection(Param);
-    if ParamSection=GenSection then continue;
+    if ParamSection=GenSection then
+      continue; // same section -> no delay needed
     // not in same section
     ParamMod:=ParamSection.GetModule;
+    if GenMod=nil then
+      GenMod:=GenSection.GetModule;
     if ParamMod=GenMod then
-      exit(Param); // generic in unit interface, specialize in implementation
+      exit(Param); // generic in unit interface, param in implementation
     // param in another unit
     if ParamSection is TImplementationSection then
-      exit(Param); // generic in unit interface, specialize in another(later) implementation
+      exit(Param); // generic in unit interface, param in another implementation
     // param in another unit interface
-
-    //xxx
+    if GenResolver=nil then
+      GenResolver:=GetResolver(GenMod);
+    ParamResolver:=GetResolver(ParamMod);
+    if ParamResolver.FinishedInterfaceIndex<GenResolver.FinishedInterfaceIndex then
+      exit(Param); // param in a later unit interface
+    // generic in a later unit interface -> no delay needed
     end;
 end;
 
@@ -14422,7 +14479,7 @@ begin
         continue;
         end
       else if C=TPasAttributes then
-        // ToDo
+        continue
       else
         RaiseNotSupported(P as TPasElement,AContext,20161024191434);
       Add(E,P);
@@ -22545,6 +22602,53 @@ begin
   Result.Init:=Init;
 end;
 
+procedure TPasToJSConverter.InitJSSpecialization(aType: TPasType;
+  AContext: TConvertContext; ErrorEl: TPasElement);
+var
+  aResolver: TPas2JSResolver;
+  SpecTypeData: TPasSpecializeTypeData;
+  Hub: TPas2JSResolverHub;
+  SpecType: TPasGenericType;
+  C: TClass;
+  FuncCtx: TFunctionContext;
+  SrcEl: TJSSourceElements;
+begin
+  while aType<>nil do
+    begin
+    C:=aType.ClassType;
+    if C=TPasAliasType then
+      aType:=TPasAliasType(aType).DestType
+    else if C=TPasSpecializeType then
+      begin
+      // specialized type
+      SpecTypeData:=aType.CustomData as TPasSpecializeTypeData;
+      if SpecTypeData=nil then
+        RaiseNotSupported(aType,AContext,20200815210904);
+      aResolver:=AContext.Resolver;
+      Hub:=TPas2JSResolverHub(aResolver.Hub);
+      SpecType:=SpecTypeData.SpecializedType;
+      if Hub.IsJSSpecialized(SpecType) then exit;
+      Hub.AddJSSpecialized(SpecType);
+      FuncCtx:=AContext.GetGlobalFunc;
+      SrcEl:=FuncCtx.JSElement as TJSSourceElements;
+
+      if SrcEl=nil then ;
+
+      if SpecType is TPasRecordType then
+        begin
+        // add $mod.TAnt$G1();
+        //CreateReferencePath();
+        RaiseNotSupported(ErrorEl,AContext,20200815215652);
+        end
+      else
+        RaiseNotSupported(ErrorEl,AContext,20200815215338);
+      exit;
+      end
+    else
+      exit;
+    end;
+end;
+
 function TPasToJSConverter.CreateLiteralNumber(El: TPasElement;
   const n: TJSNumber): TJSLiteral;
 begin
@@ -24639,6 +24743,7 @@ var
   ok, IsFull: Boolean;
   VarSt: TJSVariableStatement;
   bifn: TPas2JSBuiltInName;
+  RecScope: TPas2JSRecordScope;
 begin
   Result:=nil;
   if El.Name='' then
@@ -24657,14 +24762,14 @@ begin
     // rtl.recNewT()
     Call:=CreateCallExpression(El);
     bifn:=pbifnRecordCreateType;
-    {$IFDEF EnableDelaySpecialize}
+
     RecScope:=TPas2JSRecordScope(El.CustomData);
     if RecScope.SpecializedFromItem<>nil then
       begin
-      if RecScope.SpecializedFromItem.FirstSpecialize.GetModule<>EL.GetModule then
-        bifn:=pbifnRecordCreateSpecializeType;
+      // ToDo
+      //if aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil then
+        //bifn:=pbifnRecordCreateSpecializeType;
       end;
-    {$ENDIF}
 
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(bifn)]);
 
