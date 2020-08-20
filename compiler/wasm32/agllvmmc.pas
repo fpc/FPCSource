@@ -147,6 +147,19 @@ implementation
               end;
             ait_symbol :
               begin
+                writer.AsmWrite(asminfo^.comment);
+                writer.AsmWrite('ait_symbol ');
+                writer.AsmWrite(tai_symbol(hp).sym.name);
+                writer.AsmWrite(' is_global='+tostr(Ord(tai_symbol(hp).is_global))+' has_value='+tostr(Ord(tai_symbol(hp).has_value)));
+                writer.AsmWrite(' size='+tostr(tai_symbol(hp).size));
+                writer.AsmWrite(' value='+tostr(tai_symbol(hp).value));
+                writer.AsmWrite(' sym.typ=');
+                Str(tai_symbol(hp).sym.typ,s);
+                writer.AsmWrite(s);
+                writer.AsmWrite(' sym.bind=');
+                Str(tai_symbol(hp).sym.bind,s);
+                writer.AsmWrite(s);
+                writer.AsmLn;
                 if not(tai_symbol(hp).has_value) then
                   begin
                     //if tai_symbol(hp).is_global then
