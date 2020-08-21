@@ -4729,7 +4729,6 @@ $(INSTALL_TARGETS):
 	$(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) exeinstall
 $(SYMLINKINSTALL_TARGETS):
 	$(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) compiler
-	$(ECHO) "Compiler $(subst _symlink_install,,$@) finished, starting installsymlink"
 	$(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) installsymlink
 alltargets: $(ALLTARGETS)
 .PHONY: all compiler echotime ppuclean execlean clean distclean
@@ -4994,13 +4993,18 @@ extcycle:
 	$(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG" ALLOW_WARNINGS=1
 cvstest:
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
-ifeq ($(findstring -dFPC_SOFT_FPUX80,$(OPT)),)
+ifeq ($(findstring -dFPC_SOFT_FPUX80,$(LOCALOPT)),)
 ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa),)
   EXCLUDE_80BIT_TARGETS=1
 endif
+endif
+ifndef EXCLUDE_80BIT_TARGETS
+FULL_TARGETS=$(filter-out $(PPC_TARGET),$(CYCLETARGETS))
+else
+FULL_TARGETS=$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))))
 endif
 full: fullcycle
 fullcycle:
@@ -5011,11 +5015,7 @@ ifdef DOWPOCYCLE
 	$(MAKE) rtlclean
 	$(MAKE) rtl 'FPC=$(BASEDIR)/$(EXENAMEPREFIX)$(EXENAME)'
 endif
-ifndef EXCLUDE_80BIT_TARGETS
-	$(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAMEPREFIX)$(EXENAME)'
-else
-	$(MAKE) $(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))) 'FPC=$(BASEDIR)/$(EXENAMEPREFIX)$(EXENAME)'
-endif
+	$(MAKE) $(FULL_TARGETS) 'FPC=$(BASEDIR)/$(EXENAMEPREFIX)$(EXENAME)'
 htmldocs:
 	$(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 .PHONY: quickinstall exeinstall install installsymlink fullinstall fullinstallsymlink
@@ -5041,11 +5041,7 @@ endif
 	$(INSTALLEXE) $(INSTALLEXEFILE) $(PPCCPULOCATION)/$(INSTALLEXEFILE)
 endif
 fullinstall:
-ifndef EXCLUDE_80BIT_TARGETS
-	$(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
-else
-	$(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
-endif
+	$(MAKE) $(addsuffix _exe_install,$($(FULL_TARGETS)))
 	$(MAKE) $(addsuffix _all,$(TARGET_DIRS))
 	$(MAKE) $(addsuffix _install,$(TARGET_DIRS))
 auxfilesinstall:
@@ -5069,12 +5065,7 @@ ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
 fullinstallsymlink:
-	$(ECHO) "Fullinstall finished, starting XXX_symlink_install"
-ifndef EXCLUDE_80BIT_TARGETS
-	$(MAKE) $(addsuffix _symlink_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
-else
-	$(MAKE) $(addsuffix _symlink_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
-endif
+	$(MAKE) $(addsuffix _symlink_install,$(FULL_TARGETS))
 .PHONY: rtl rtlclean rtlinstall
 rtl:
 	$(MAKE) -C $(PACKAGEDIR_RTL) 'OPT=$(RTLOPT)' all
