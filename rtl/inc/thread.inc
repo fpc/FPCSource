@@ -224,7 +224,7 @@ begin
 end;
 {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure InitCriticalSection(out cs : TRTLCriticalSection);
 
 begin
   CurrentTM.InitCriticalSection(cs);
@@ -254,14 +254,14 @@ begin
   CurrentTM.LeaveCriticalSection(cs);
 end;
 
-Function GetThreadManager(Var TM : TThreadManager) : Boolean;
+Function GetThreadManager(Out TM : TThreadManager) : Boolean;
 
 begin
   TM:=CurrentTM;
   Result:=True;
 end;
 
-Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+Function SetThreadManager(Const NewTM : TThreadManager; Out OldTM : TThreadManager) : Boolean;
 
 begin
   GetThreadManager(OldTM);

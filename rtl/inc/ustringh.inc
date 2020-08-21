@@ -156,13 +156,13 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
 function UCS4StringToWideString(const s : UCS4String) : WideString;
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
-Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetWideStringManager (Out Manager : TUnicodeStringManager);
 Procedure SetWideStringManager (Const New : TUnicodeStringManager);
-Procedure SetWideStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetWideStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 
-Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetUnicodeStringManager (Out Manager : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
-Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 
 function StringElementSize(const S : UnicodeString): Word; overload;
 function StringRefCount(const S : UnicodeString): SizeInt; overload;

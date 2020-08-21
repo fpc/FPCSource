@@ -1101,7 +1101,7 @@ function Null: Variant;       // Null standard constant
                       Variant manager functions
  **********************************************************************}
 
-procedure GetVariantManager(var VarMgr: TVariantManager);
+procedure GetVariantManager(out VarMgr: TVariantManager);
 begin
   VarMgr:=VariantManager;
 end;

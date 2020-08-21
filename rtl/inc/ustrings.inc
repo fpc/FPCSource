@@ -131,13 +131,13 @@ function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystem
       Result:=DefaultFileSystemCodePage
   end;
 
-Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetUnicodeStringManager (Out Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
 end;
 
 
-Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 begin
   Old:=widestringmanager;
   widestringmanager:=New;
@@ -150,13 +150,13 @@ begin
 end;
 
 
-Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetWideStringManager (out Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
 end;
 
 
-Procedure SetWideStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetWideStringManager (Const New : TUnicodeStringManager; Out old: TUnicodeStringManager);
 begin
   Old:=widestringmanager;
   widestringmanager:=New;

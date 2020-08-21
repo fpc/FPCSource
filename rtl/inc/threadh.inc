@@ -113,8 +113,8 @@ type
 *****************************************************************************}
 
 
-Function GetThreadManager(Var TM : TThreadManager) : Boolean;
-Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+Function GetThreadManager(Out TM : TThreadManager) : Boolean;
+Function SetThreadManager(Const NewTM : TThreadManager; Out OldTM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
@@ -165,7 +165,7 @@ procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: UnicodeS
 { this allows to do a lot of things in MT safe way }
 { it is also used to make the heap management      }
 { thread safe                                      }
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure InitCriticalSection(out cs : TRTLCriticalSection);
 procedure DoneCriticalSection(var cs : TRTLCriticalSection);
 procedure EnterCriticalSection(var cs : TRTLCriticalSection);
 procedure LeaveCriticalSection(var cs : TRTLCriticalSection);

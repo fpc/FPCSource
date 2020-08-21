@@ -214,7 +214,7 @@ type
    end;
    pvariantmanager = ^tvariantmanager;
 
-procedure GetVariantManager(var VarMgr: TVariantManager);
+procedure GetVariantManager(Out VarMgr: TVariantManager);
 procedure SetVariantManager(const VarMgr: TVariantManager);
 
 { Global constants. Needed here only for compatibility. }
