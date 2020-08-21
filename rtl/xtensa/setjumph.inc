@@ -15,8 +15,15 @@
  **********************************************************************}
 
 type
-   jmp_buf = packed record
+{$ifdef fpc_abi_call0}
+   jmp_buf = record
+     a0,a1,a8,a12,a13,a14,a15 : DWord;
    end;
+{$endif fpc_abi_call0}
+{$ifdef fpc_abi_windowed}
+   jmp_buf = record
+   end;
+{$endif fpc_abi_windowed}
    pjmp_buf = ^jmp_buf;
 
 function setjmp(var S : jmp_buf) : longint;[external name 'FPC_SETJMP'];
