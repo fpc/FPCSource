@@ -322,7 +322,6 @@ begin
               '\' : S:='\';
               '/' : S:='/';
               'u' : begin
-                    S:='0000';
                     u2:=0;
                     For I:=1 to 4 do
                       begin

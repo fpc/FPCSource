@@ -37,7 +37,6 @@ Unit racpugas;
 
        function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
-//        function is_targetdirective(const s: string): boolean; override;
         procedure handleopcode;override;
         procedure BuildReference(oper : TXtensaOperand);
         procedure BuildOperand(oper : TXtensaOperand);
@@ -141,24 +140,12 @@ Unit racpugas;
 
       procedure test_end(require_rbracket : boolean);
         begin
-          if require_rbracket then begin
-            if not(actasmtoken=AS_RBRACKET) then
-              begin
-                do_error;
-                exit;
-              end
-            else
-              Consume(AS_RBRACKET);
-          end;
           if not(actasmtoken in [AS_SEPARATOR,AS_end]) then
             do_error
           else
             begin
 {$IFDEF debugasmreader}
               writeln('TEST_end_FINAL_OK. Created the following ref:');
-              writeln('oper.opr.ref.shiftimm=',oper.opr.ref.shiftimm);
-              writeln('oper.opr.ref.shiftmode=',ord(oper.opr.ref.shiftmode));
-              writeln('oper.opr.ref.index=',ord(oper.opr.ref.index));
               writeln('oper.opr.ref.base=',ord(oper.opr.ref.base));
               writeln('oper.opr.ref.signindex=',ord(oper.opr.ref.signindex));
               writeln('oper.opr.ref.addressmode=',ord(oper.opr.ref.addressmode));
@@ -168,107 +155,20 @@ Unit racpugas;
         end;
 
 
-      procedure read_index_shift(require_rbracket : boolean);
-        var
-          shift : aint;
-        begin
-          case actasmtoken of
-            AS_COMMA :
-              begin
-                Consume(AS_COMMA);
-                if not(actasmtoken=AS_ID) then
-                  do_error;
-              end;
-            AS_RBRACKET :
-              if require_rbracket then
-                test_end(require_rbracket)
-              else
-                begin
-                  do_error;
-                  exit;
-                end;
-            AS_SEPARATOR,AS_END :
-              if not require_rbracket then
-                test_end(false)
-               else
-                 do_error;
-            else
-              begin
-                do_error;
-                exit;
-              end;
-          end;
-        end;
-
-
       procedure read_index(require_rbracket : boolean);
         var
           recname : string;
           o_int,s_int : tcgint;
         begin
           case actasmtoken of
-            AS_REGISTER :
-              begin
-                oper.opr.ref.index:=actasmregister;
-                Consume(AS_REGISTER);
-                read_index_shift(require_rbracket);
-                exit;
-              end;
-            AS_PLUS,AS_MINUS :
-              begin
-                if actasmtoken=AS_PLUS then
-                  begin
-                    Consume(AS_PLUS);
-                  end;
-                if actasmtoken=AS_REGISTER then
-                  begin
-                    oper.opr.ref.index:=actasmregister;
-                    Consume(AS_REGISTER);
-                    read_index_shift(require_rbracket);
-                    exit;
-                  end
-                else
-                  begin
-                    do_error;
-                    exit;
-                  end;
-                test_end(require_rbracket);
-                exit;
-              end;
-            AS_HASH : // constant
-              begin
-                Consume(AS_HASH);
-                o_int := BuildConstExpression(false,true);
-                if (o_int>4095) or (o_int<-4095) then
-                  begin
-                    Message(asmr_e_constant_out_of_bounds);
-                    RecoverConsume(false);
-                    exit;
-                  end
-                else
-                  begin
-                    inc(oper.opr.ref.offset,o_int);
-                    test_end(require_rbracket);
-                    exit;
-                  end;
-              end;
             AS_ID :
               begin
                 recname := actasmpattern;
                 Consume(AS_ID);
                 BuildRecordOffsetSize(recname,o_int,s_int,recname,false);
-                if (o_int>4095)or(o_int<-4095) then
-                  begin
-                    Message(asmr_e_constant_out_of_bounds);
-                    RecoverConsume(false);
-                    exit;
-                  end
-                else
-                  begin
-                    inc(oper.opr.ref.offset,o_int);
-                    test_end(require_rbracket);
-                    exit;
-                  end;
+                inc(oper.opr.ref.offset,o_int);
+                test_end(require_rbracket);
+                exit;
               end;
             AS_AT:
               begin
@@ -280,19 +180,6 @@ Unit racpugas;
                 BuildConstExpression(true,false);
                 test_end(require_rbracket);
                 exit;
-              end;
-            AS_RBRACKET :
-              begin
-                if require_rbracket then
-                  begin
-                    test_end(require_rbracket);
-                    exit;
-                  end
-                else
-                  begin
-                    do_error; // unexpected rbracket
-                    exit;
-                  end;
               end;
             AS_SEPARATOR,AS_end :
               begin
@@ -316,31 +203,6 @@ Unit racpugas;
           end; // case
         end;
 
-
-      procedure try_prepostindexed;
-        begin
-          Consume(AS_RBRACKET);
-          case actasmtoken of
-            AS_COMMA :
-              begin // post-indexed
-                Consume(AS_COMMA);
-                read_index(false);
-                exit;
-              end;
-            AS_NOT :
-              begin   // pre-indexed
-                Consume(AS_NOT);
-                test_end(false);
-                exit;
-              end;
-            else
-              begin
-                test_end(false);
-                exit;
-              end;
-          end; // case
-        end;
-
       var
         lab : TASMLABEL;
       begin
@@ -350,11 +212,6 @@ Unit racpugas;
             oper.opr.ref.base:=actasmregister;
             Consume(AS_REGISTER);
             case actasmtoken of
-              AS_RBRACKET :
-                begin
-                  try_prepostindexed;
-                  exit;
-                end;
               AS_COMMA :
                 begin
                   Consume(AS_COMMA);
@@ -369,15 +226,6 @@ Unit racpugas;
             end;
           end
         else
-{
-  if base isn't a register, r15=PC is implied base, so it must be a local label.
-  pascal constants don't make sense, because implied r15
-  record offsets probably don't make sense, too (a record offset of code?)
-
-  TODO: However, we could make the Stackpointer implied.
-
-}
-
           Begin
             case actasmtoken of
               AS_ID :
@@ -446,6 +294,7 @@ Unit racpugas;
                   if hasdot and
                      (not oper.hastype) then
                      checklocalsubscript(oper.opr.localsym);
+                  oper.opr.localforceref:=true;
                   inc(oper.opr.localsymofs,l)
                 end;
               OPR_CONSTANT :
@@ -969,15 +818,6 @@ Unit racpugas;
         symtyp  : TAsmsymtype;
       begin
         case actasmpattern of
-          '.thumb_set':
-            begin
-              consume(AS_TARGET_DIRECTIVE);
-              BuildConstSymbolExpression(true,false,false, val,symname,symtyp);
-              Consume(AS_COMMA);
-              BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
-
-              curList.concat(tai_symbolpair.create(spk_thumb_set,symname,symval));
-            end;
           '.code':
             begin
               consume(AS_TARGET_DIRECTIVE);
@@ -986,11 +826,6 @@ Unit racpugas;
                 Message(asmr_e_invalid_code_value);
               curList.concat(tai_directive.create(asd_code,tostr(val)));
             end;
-          '.thumb_func':
-            begin
-              consume(AS_TARGET_DIRECTIVE);
-              curList.concat(tai_directive.create(asd_thumb_func,''));
-            end
           else
             inherited HandleTargetDirective;
         end;
@@ -1005,15 +840,8 @@ Unit racpugas;
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);
-        {
-        instr.AddReferenceSizes;
-        instr.SetInstructionOpsize;
-        instr.CheckOperandSizes;
-        }
         instr.ConcatInstruction(curlist);
         instr.Free;
-//        actoppostfix:=PF_None;
-//        actwideformat:=false;
       end;
 
 
