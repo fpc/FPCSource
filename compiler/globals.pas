@@ -1632,6 +1632,9 @@ implementation
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
+{$ifdef XTENSA}
+        idfpath:='';
+{$endif XTENSA}
 
         { Search Paths }
         unicodepath:='';
