@@ -87,11 +87,9 @@ implementation
 
   function tx86callnode.can_call_ref(var ref: treference): boolean;
     const
-{$if defined(i8086)}
-      save_all_regs=[pocall_pascal];
-{$elseif defined(i386)}
+{$if defined(i386)}
       save_all_regs=[pocall_far16,pocall_oldfpccall];
-{$elseif defined(x86_64)}
+{$else}
       save_all_regs=[];
 {$endif}
     begin
