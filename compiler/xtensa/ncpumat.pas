@@ -26,11 +26,13 @@ unit ncpumat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      cgbase,node,nmat,ncgmat;
 
     type
-      tcpumoddivnode = class(tmoddivnode)
-        procedure pass_generate_code;override;
+      tcpumoddivnode = class(tcgmoddivnode)
+        function first_moddivint: tnode; override;
+        procedure emit_div_reg_reg(signed: boolean; denum, num: tregister); override;
+        procedure emit_mod_reg_reg(signed: boolean; denum, num: tregister); override;
       end;
 
       tcpunotnode = class(tcgnotnode)
@@ -54,7 +56,7 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       symtype,symconst,symtable,
-      cgbase,cgobj,hlcgobj,cgutils,
+      cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
       ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
@@ -65,10 +67,41 @@ implementation
                              TCPUMODDIVNODE
 *****************************************************************************}
 
-    procedure tcpumoddivnode.pass_generate_code;
+    procedure tcpumoddivnode.emit_div_reg_reg(signed: boolean; denum, num: tregister);
+      var
+        op: TAsmOp;
       begin
-        location.loc:=LOC_REGISTER;
+        if signed then
+          op:=A_QUOS
+        else
+          op:=A_QUOU;
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
       end;
+
+
+    procedure tcpumoddivnode.emit_mod_reg_reg(signed: boolean; denum, num: tregister);
+      var
+        op: TAsmOp;
+      begin
+        if signed then
+          op:=A_REMS
+        else
+          op:=A_REMU;
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
+      end;
+
+
+    function tcpumoddivnode.first_moddivint: tnode;
+      begin
+        if (not is_64bitint(resultdef)) and
+           (CPUXTENSA_HAS_DIV in cpu_capabilities[current_settings.cputype]) then
+          Result:=nil
+        else
+          result:=inherited;
+      end;
+
 
 {*****************************************************************************
                                TCPUNOTNODE
@@ -92,7 +125,7 @@ implementation
       end;
 
 {*****************************************************************************
-                               TARMUNARYMINUSNODE
+                               TXTENSAUNARYMINUSNODE
 *****************************************************************************}
 
     function tcpuunaryminusnode.pass_1: tnode;
