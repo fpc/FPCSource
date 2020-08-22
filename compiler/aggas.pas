@@ -1564,16 +1564,6 @@ implementation
 {$endif DISABLE_WIN64_SEH}
              end;
 
-           ait_varloc:
-             begin
-               if tai_varloc(hp).newlocationhi<>NR_NO then
-                 writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
-               else
-                 writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocation)));
-               writer.AsmLn;
-             end;
            ait_cfi:
              begin
                WriteCFI(tai_cfi_base(hp));

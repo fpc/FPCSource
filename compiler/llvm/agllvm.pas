@@ -1489,22 +1489,10 @@ implementation
             begin
               internalerror(2013010713);
             end;
-          ait_varloc:
+          ait_typedconst:
             begin
-              if tai_varloc(hp).newlocationhi<>NR_NO then
-                writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                  std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
-              else
-                writer.AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                  std_regname(tai_varloc(hp).newlocation)));
-              if fdecllevel<>0 then
-                internalerror(2015090603);
-              writer.AsmLn;
-            end;
-           ait_typedconst:
-             begin
-               WriteTypedConstData(tai_abstracttypedconst(hp),false);
-             end
+              WriteTypedConstData(tai_abstracttypedconst(hp),false);
+            end
           else
             internalerror(2019012010);
         end;
