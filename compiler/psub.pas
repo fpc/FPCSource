@@ -2329,7 +2329,7 @@ implementation
         if not assigned(rec_tguid) then
           Message1(cg_f_internal_type_not_found,'TGUID');
         if not assigned(rec_jmp_buf) then
-          Message1(cg_f_internal_type_not_found,'TJMPBUF');
+          Message1(cg_f_internal_type_not_found,'JMP_BUF');
 {$endif}
 
          { if the procdef is truly a generic (thus takes parameters itself) then
