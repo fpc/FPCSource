@@ -1304,6 +1304,42 @@ implementation
                     a_op64_reg_reg_reg(list,op,size,tmpreg64,regsrc,regdst);
                   end;
             end;
+          OP_SHL:
+            begin
+              if (value>0) and (value<=16) then
+                begin
+                  tmpreg:=cg.GetIntRegister(list,OS_32);
+                  list.concat(taicpu.op_reg_reg_const_const(A_EXTUI, tmpreg, regsrc.reglo, 32-value, value));
+                  list.concat(taicpu.op_reg_reg_const(A_SLLI, regdst.reglo, regsrc.reglo, value));
+                  list.concat(taicpu.op_reg_reg_const(A_SLLI, regdst.reghi, regsrc.reghi, value));
+                  list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reghi, tmpreg, regdst.reghi));
+                end
+              else if value=32 then
+                begin
+                  cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reghi);
+                  cg.a_load_const_reg(list,OS_INT,0,regdst.reglo);
+                end
+              else
+                Internalerror(2020082209);
+            end;
+          OP_SHR:
+            begin
+              if (value>0) and (value<=15) then
+                begin
+                  tmpreg:=cg.GetIntRegister(list,OS_32);
+                  list.concat(taicpu.op_reg_reg_const(A_SLLI, tmpreg, regsrc.reghi, 32-value));
+                  list.concat(taicpu.op_reg_reg_const(A_SRLI, regdst.reglo, regsrc.reglo, value));
+                  list.concat(taicpu.op_reg_reg_reg(A_OR, regdst.reglo, tmpreg, regdst.reglo));
+                  list.concat(taicpu.op_reg_reg_const(A_SRLI, regdst.reghi, regsrc.reghi, value));
+                end
+              else if value=32 then
+                begin
+                  cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reghi,regdst.reglo);
+                  cg.a_load_const_reg(list,OS_INT,0,regdst.reghi);
+                end
+              else
+                Internalerror(2020082210);
+            end;
           OP_SUB:
             begin
               { for now, we take the simple approach }

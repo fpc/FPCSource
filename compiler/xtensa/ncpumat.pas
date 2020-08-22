@@ -46,6 +46,7 @@ interface
 
       tcpushlshrnode = class(tcgshlshrnode)
         procedure second_64bit;override;
+        function pass_1: tnode;override;
       end;
 
 implementation
@@ -192,145 +193,85 @@ implementation
       end;
 
 
-    procedure tcpushlshrnode.second_64bit;
-      var
-        v : TConstExprInt;
-        lreg, resreg: TRegister64;
+    function tcpushlshrnode.pass_1 : tnode;
+      begin
+        { the xtensa code generator can handle 64 bit shifts by constants directly }
+        if is_constintnode(right) and is_64bit(resultdef) and
+          (((nodetype=shln) and (tordconstnode(right).value>=0) and (tordconstnode(right).value<=16)) or
+           ((nodetype=shrn) and (tordconstnode(right).value>0) and (tordconstnode(right).value<16)) or
+           (tordconstnode(right).value=32)) then
+          begin
+            result:=nil;
+            firstpass(left);
+            firstpass(right);
+            if codegenerror then
+              exit;
 
-      procedure emit_instr(p: tai);
-        begin
-          current_asmdata.CurrAsmList.concat(p);
-        end;
-
-      {This code is build like it gets called with sm=SM_LSR all the time, for SM_LSL dst* and src* have to be reversed
-       This will generate
-         mov   shiftval1, shiftval
-         cmp   shiftval1, #64
-         movcs shiftval1, #64
-         rsb   shiftval2, shiftval1, #32
-         mov   dstlo, srclo, lsr shiftval1
-         mov   dsthi, srchi, lsr shiftval1
-         orr   dstlo, srchi, lsl shiftval2
-         subs  shiftval2, shiftval1, #32
-         movpl dstlo, srchi, lsr shiftval2
-      }
-      procedure shift_by_variable(srchi, srclo, dsthi, dstlo, shiftval: TRegister);
-        var
-          shiftval1,shiftval2:TRegister;
-        begin
-          //shifterop_reset(so);
-          //shiftval1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          //shiftval2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          //
-          //cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, shiftval, shiftval1);
-          //
-          //{The ARM barrel shifter only considers the lower 8 bits of a register for the shift}
-          //cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-          //emit_instr(taicpu.op_reg_const(A_CMP, shiftval1, 64));
-          //emit_instr(setcondition(taicpu.op_reg_const(A_MOV, shiftval1, 64), C_CS));
-          //cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-          //
-          //{Calculate how much the upper register needs to be shifted left}
-          //emit_instr(taicpu.op_reg_reg_const(A_RSB, shiftval2, shiftval1, 32));
-          //
-          //so.shiftmode:=sm;
-          //so.rs:=shiftval1;
-          //
-          //{Shift and zerofill the hi+lo register}
-          //emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, dstlo, srclo, so));
-          //emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, dsthi, srchi, so));
-          //
-          //{Fold in the lower 32-shiftval bits}
-          //if sm = SM_LSR then so.shiftmode:=SM_LSL else so.shiftmode:=SM_LSR;
-          //so.rs:=shiftval2;
-          //emit_instr(taicpu.op_reg_reg_reg_shifterop(A_ORR, dstlo, dstlo, srchi, so));
-          //
-          //cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-          //emit_instr(setoppostfix(taicpu.op_reg_reg_const(A_SUB, shiftval2, shiftval1, 32), PF_S));
-          //
-          //so.shiftmode:=sm;
-          //emit_instr(setcondition(taicpu.op_reg_reg_shifterop(A_MOV, dstlo, srchi, so), C_PL));
-          //cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        end;
-
-      begin         
-        inherited;
-        //if GenerateThumbCode or GenerateThumb2Code then
-        //begin
-        //  inherited;
-        //  exit;
-        //end;
-        //
-        //location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        //location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        //location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-        //
-        //{ load left operator in a register }
-        //if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
-        //   (left.location.size<>OS_64) then
-        //  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-        //
-        //lreg := left.location.register64;
-        //resreg := location.register64;
-        //shifterop_reset(so);
-        //
-        //{ shifting by a constant directly coded: }
-        //if (right.nodetype=ordconstn) then
-        //  begin
-        //    v:=Tordconstnode(right).value and 63;
-        //    {Single bit shift}
-        //    if v = 1 then
-        //      if nodetype=shln then
-        //        begin
-        //          {Shift left by one by 2 simple 32bit additions}
-        //          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        //          emit_instr(setoppostfix(taicpu.op_reg_reg_reg(A_ADD, resreg.reglo, lreg.reglo, lreg.reglo), PF_S));
-        //          emit_instr(taicpu.op_reg_reg_reg(A_ADC, resreg.reghi, lreg.reghi, lreg.reghi));
-        //          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        //        end
-        //      else
-        //        begin
-        //          {Shift right by first shifting hi by one and then using RRX (rotate right extended), which rotates through the carry}
-        //          shifterop_reset(so); so.shiftmode:=SM_LSR; so.shiftimm:=1;
-        //          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        //          emit_instr(setoppostfix(taicpu.op_reg_reg_shifterop(A_MOV, resreg.reghi, lreg.reghi, so), PF_S));
-        //          so.shiftmode:=SM_RRX; so.shiftimm:=0; {RRX does NOT have a shift amount}
-        //          emit_instr(taicpu.op_reg_reg_shifterop(A_MOV, resreg.reglo, lreg.reglo, so));
-        //          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        //        end
-        //    {Clear one register and use the cg to generate a normal 32-bit shift}
-        //    else if v >= 32 then
-        //      if nodetype=shln then
-        //      begin
-        //        emit_instr(taicpu.op_reg_const(A_MOV, resreg.reglo, 0));
-        //        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v.uvalue-32,lreg.reglo,resreg.reghi);
-        //      end
-        //      else
-        //      begin
-        //        emit_instr(taicpu.op_reg_const(A_MOV, resreg.reghi, 0));
-        //        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v.uvalue-32,lreg.reghi,resreg.reglo);
-        //      end
-        //    {Shift LESS than 32, thats the tricky one}
-        //    else if (v < 32) and (v > 1) then
-        //      if nodetype=shln then
-        //        shift_less_than_32(lreg.reglo, lreg.reghi, resreg.reglo, resreg.reghi, v.uvalue, SM_LSL)
-        //      else
-        //        shift_less_than_32(lreg.reghi, lreg.reglo, resreg.reghi, resreg.reglo, v.uvalue, SM_LSR);
-        //  end
-        //else
-        //  begin
-        //    { force right operator into a register }
-        //    if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
-        //       (right.location.size<>OS_32) then
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
-        //
-        //    if nodetype = shln then
-        //      shift_by_variable(lreg.reglo, lreg.reghi, resreg.reglo, resreg.reghi, right.location.register, SM_LSL)
-        //    else
-        //      shift_by_variable(lreg.reghi, lreg.reglo, resreg.reghi, resreg.reglo, right.location.register, SM_LSR);
-        //  end;
+            expectloc:=LOC_REGISTER;
+          end
+        else
+          Result:=inherited pass_1;
       end;
 
+
+    procedure tcpushlshrnode.second_64bit;
+      var
+        op: topcg;
+        opsize: TCgSize;
+        opdef: tdef;
+        shiftval: longint;
+        hcountreg: TRegister;
+      begin
+        { determine operator }
+        case nodetype of
+          shln: op:=OP_SHL;
+          shrn: op:=OP_SHR;
+          else
+            internalerror(2020082208);
+        end;
+        opsize:=left.location.size;
+        opdef:=left.resultdef;
+
+        if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+          { location_force_reg can be also used to change the size of a register }
+          (left.location.size<>opsize) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+        location_reset(location,LOC_REGISTER,opsize);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+        location.registerhi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+
+        { shifting by a constant directly coded: }
+        if right.nodetype=ordconstn then
+          begin
+             { shl/shr must "wrap around", so use ... and 31 }
+             { In TP, "byte/word shl 16 = 0", so no "and 15" in case of
+               a 16 bit ALU }
+             if tcgsize2size[opsize]<=4 then
+               shiftval:=tordconstnode(right).value.uvalue and 31
+             else
+               shiftval:=tordconstnode(right).value.uvalue and 63;
+             cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+               shiftval,left.location.register64,location.register64)
+          end
+        else
+          begin
+            internalerror(2020082209);
+            { load right operators in a register - this
+               is done since most target cpu which will use this
+               node do not support a shift count in a mem. location (cec)
+             }
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,sinttype,true);
+             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
+          end;
+        { shl/shr nodes return the same type as left, which can be different
+          from opdef }
+        if opdef<>resultdef then
+          begin
+            hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+            location.register:=hcountreg;
+          end;
+      end;
 
 begin
   cmoddivnode:=tcpumoddivnode;
