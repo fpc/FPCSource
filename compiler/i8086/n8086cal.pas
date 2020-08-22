@@ -37,6 +37,7 @@ interface
        protected
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
+          procedure extra_call_ref_code(var ref: treference);override;
           function do_call_ref(ref: treference): tcgpara;override;
           function can_call_ref(var ref: treference): boolean; override;
         public
@@ -112,24 +113,43 @@ implementation
       end;
 
 
+    procedure ti8086callnode.extra_call_ref_code(var ref: treference);
+      begin
+        { Preload ref base and index to BX and SI to help the register allocator }
+        if getsupreg(ref.base)>=first_int_imreg then
+          begin
+            if procdefinition.proccalloption=pocall_register then
+              begin
+                { BX can't be used as ref base in case of the register calling convention }
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_SI);
+                if ref.index<>NR_NO then
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,ref.index,NR_SI);
+                ref.base:=NR_NO;
+                ref.index:=NR_SI;
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+              end
+            else
+              begin
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_BX);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.base,NR_BX);
+                ref.base:=NR_BX;
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_BX);
+              end;
+          end;
+        if getsupreg(ref.index)>=first_int_imreg then
+          begin
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_SI);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,ref.index,NR_SI);
+            ref.index:=NR_SI;
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_SI);
+          end;
+      end;
+
+
     function ti8086callnode.can_call_ref(var ref: treference): boolean;
-      var
-        reg,seg: tregister;
       begin
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-        if (procdefinition.proccalloption=pocall_register) and
-           (getsupreg(ref.base)>=first_int_imreg) and
-           (getsupreg(ref.index)>=first_int_imreg) then
-          begin
-            { Precalculate the ref address in case both ref base and index are
-              imm registers and the register calling convention is used.
-              Otherwise register allocation will fail if BX is used for a parameter. }
-            reg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_LEA,S_W,ref,reg));
-            seg:=ref.segment;
-            reference_reset_base(ref,reg,0,ref.temppos,ref.alignment,[]);
-            ref.segment:=seg;
-          end;
         result:=true;
       end;
 
