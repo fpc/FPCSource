@@ -26,12 +26,14 @@ unit ncpuadd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       cgbase,node,ncgadd,cpubase;
 
     type
        TCPUAddNode = class(tcgaddnode)
        private
          procedure pass_left_and_right;
+         procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean);
+         procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean);
        protected
          function pass_1 : tnode;override;
          function first_addfloat: tnode;override;
@@ -52,7 +54,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cgutils,cgcpu,
+      cgutils,cgcpu,
       cpuinfo,pass_1,pass_2,procinfo,
       cpupara,
       ncon,nset,nadd,
@@ -179,9 +181,91 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmp64bit;
+    const
+      cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
+
+    procedure TCPUAddNode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
       begin
-        second_cmp;
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,location.truelabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+      end;
+
+
+    procedure TCPUAddNode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
+      begin
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,location.falselabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+      end;
+
+
+    procedure TCPUAddNode.second_cmp64bit;
+      var
+        truelabel,
+        falselabel: tasmlabel;
+        unsigned: boolean;
+        left_reg,right_reg: TRegister64;
+      begin
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
+
+        pass_left_right;
+        force_reg_left_right(true,true);
+
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        left_reg:=left.location.register64;
+        { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
+        if right.location.loc=LOC_CONSTANT then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+        right_reg:=right.location.register64;
+
+        case NodeType of
+          equaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.falselabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+            end;
+          unequaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.truelabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+            end;
+        else
+          if nf_swapped in flags then
+            case NodeType of
+              ltn:
+                cmp64_lt(right_reg, left_reg,unsigned);
+              lten:
+                cmp64_le(right_reg, left_reg,unsigned);
+              gtn:
+                cmp64_lt(left_reg, right_reg,unsigned);
+              gten:
+                cmp64_le(left_reg, right_reg,unsigned);
+              else
+                internalerror(2020082202);
+            end
+          else
+            case NodeType of
+              ltn:
+                cmp64_lt(left_reg, right_reg,unsigned);
+              lten:
+                cmp64_le(left_reg, right_reg,unsigned);
+              gtn:
+                cmp64_lt(right_reg, left_reg,unsigned);
+              gten:
+                cmp64_le(right_reg, left_reg,unsigned);
+              else
+                internalerror(2020082203);
+            end;
+        end;
       end;
 
 
