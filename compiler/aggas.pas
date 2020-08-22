@@ -837,38 +837,6 @@ implementation
 
          case hp.typ of
 
-           ait_comment :
-             Begin
-               writer.AsmWrite(asminfo^.comment);
-               writer.AsmWritePChar(tai_comment(hp).str);
-               writer.AsmLn;
-             End;
-
-           ait_regalloc :
-             begin
-               if (cs_asm_regalloc in current_settings.globalswitches) then
-                 begin
-                   writer.AsmWrite(#9+asminfo^.comment+'Register ');
-                   repeat
-                     writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
-                     if (hp.next=nil) or
-                        (tai(hp.next).typ<>ait_regalloc) or
-                        (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
-                       break;
-                     hp:=tai(hp.next);
-                     writer.AsmWrite(',');
-                   until false;
-                   writer.AsmWrite(' ');
-                   writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
-                 end;
-             end;
-
-           ait_tempalloc :
-             begin
-               if (cs_asm_tempalloc in current_settings.globalswitches) then
-                 WriteTempalloc(tai_tempalloc(hp));
-             end;
-
            ait_align :
              begin
                doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,tai_align_abstract(hp).maxbytes,last_align,lasthp);
@@ -1581,7 +1549,8 @@ implementation
                writer.AsmLn;
              end;
            else
-             internalerror(2006012201);
+             if not WriteComments(hp) then
+               internalerror(2006012201);
          end;
          lasthp:=hp;
          hp:=tai(hp.next);

@@ -621,23 +621,6 @@ unit agz80vasm;
                 end;*)
             end;
           case hp.typ of
-            ait_comment :
-              begin
-                writer.AsmWrite(asminfo^.comment);
-                writer.AsmWritePChar(tai_comment(hp).str);
-                writer.AsmLn;
-              end;
-            ait_regalloc :
-              begin
-                if (cs_asm_regalloc in current_settings.globalswitches) then
-                  writer.AsmWriteLn(#9#9+asminfo^.comment+'Register '+std_regname(tai_regalloc(hp).reg)+' '+
-                    regallocstr[tai_regalloc(hp).ratype]);
-              end;
-            ait_tempalloc :
-              begin
-                if (cs_asm_tempalloc in current_settings.globalswitches) then
-                  WriteTempalloc(tai_tempalloc(hp));
-              end;
             ait_section :
               begin
                 if tai_section(hp).sectype<>sec_none then
@@ -893,12 +876,13 @@ unit agz80vasm;
             ait_force_line,
             ait_function_name : ;
             else
-              begin
-                writer.AsmWrite(asminfo^.comment);
-                writer.AsmWrite('WARNING: not yet implemented in assembler output: ');
-                Str(hp.typ,s);
-                writer.AsmWriteLn(s);
-              end;
+              if not WriteComments(hp) then
+                begin
+                  writer.AsmWrite(asminfo^.comment);
+                  writer.AsmWrite('WARNING: not yet implemented in assembler output: ');
+                  Str(hp.typ,s);
+                  writer.AsmWriteLn(s);
+                end;
           end;
           lasthp:=hp;
           hp:=tai(hp.next);

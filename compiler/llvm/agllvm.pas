@@ -1166,40 +1166,6 @@ implementation
         ch: ansichar;
       begin
         case hp.typ of
-          ait_comment :
-            begin
-              writer.AsmWrite(asminfo^.comment);
-              writer.AsmWritePChar(tai_comment(hp).str);
-              if fdecllevel<>0 then
-                internalerror(2015090601);
-              writer.AsmLn;
-            end;
-
-          ait_regalloc :
-            begin
-              if (cs_asm_regalloc in current_settings.globalswitches) then
-                begin
-                  writer.AsmWrite(#9+asminfo^.comment+'Register ');
-                  repeat
-                    writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
-                     if (hp.next=nil) or
-                       (tai(hp.next).typ<>ait_regalloc) or
-                       (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
-                      break;
-                    hp:=tai(hp.next);
-                    writer.AsmWrite(',');
-                  until false;
-                  writer.AsmWrite(' ');
-                  writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
-                end;
-            end;
-
-          ait_tempalloc :
-            begin
-              if (cs_asm_tempalloc in current_settings.globalswitches) then
-                WriteTempalloc(tai_tempalloc(hp));
-            end;
-
           ait_align,
           ait_section :
             begin
@@ -1494,7 +1460,8 @@ implementation
               WriteTypedConstData(tai_abstracttypedconst(hp),false);
             end
           else
-            internalerror(2019012010);
+            if not WriteComments(hp) then
+              internalerror(2019012010);
         end;
       end;
 

@@ -362,47 +362,6 @@ implementation
 
            case hp.typ of
 
-             ait_comment :
-               Begin
-                 writer.AsmWrite(asminfo^.comment);
-                 writer.AsmWritePChar(tai_comment(hp).str);
-                 writer.AsmLn;
-               End;
-
-             ait_regalloc :
-               begin
-                 if (cs_asm_regalloc in current_settings.globalswitches) then
-                   begin
-                     writer.AsmWrite(#9+asminfo^.comment+'Register ');
-                     repeat
-                       writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
-                       if (hp.next=nil) or
-                          (tai(hp.next).typ<>ait_regalloc) or
-                          (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
-                         break;
-                       hp:=tai(hp.next);
-                       writer.AsmWrite(',');
-                     until false;
-                     writer.AsmWrite(' ');
-                     writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
-                   end;
-               end;
-
-             ait_tempalloc :
-               begin
-                 if (cs_asm_tempalloc in current_settings.globalswitches) then
-                   begin
-  {$ifdef EXTDEBUG}
-                     if assigned(tai_tempalloc(hp).problem) then
-                       writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                         tostr(tai_tempalloc(hp).tempsize)+' '+tai_tempalloc(hp).problem^)
-                     else
-  {$endif EXTDEBUG}
-                       writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                         tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
-                   end;
-               end;
-
              ait_align :
                begin
 
@@ -538,7 +497,8 @@ implementation
                  writer.AsmWriteLn(tai_jcatch(hp).handlerlab.name);
                end;
              else
-               internalerror(2010122707);
+               if not WriteComments(hp) then
+                 internalerror(2010122707);
            end;
            hp:=tai(hp.next);
          end;
