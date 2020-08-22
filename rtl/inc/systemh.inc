@@ -383,7 +383,7 @@ Type
 
 
 { By default enable a simple implementation of Random for 8/16 bit CPUs }
-{$if (defined(CPU16) or defined(CPU8) or defined(CPUXTENSA)) and not defined(FPC_NO_SIMPLE_RANDOM)}
+{$if (defined(CPU16) or defined(CPU8)) and not defined(FPC_NO_SIMPLE_RANDOM)}
   {$define FPC_USE_SIMPLE_RANDOM}
 {$endif}
 
