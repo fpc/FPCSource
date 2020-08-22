@@ -38,10 +38,12 @@ interface
          function pass_1 : tnode;override;
          function first_addfloat: tnode;override;
          function use_generic_mul32to64: boolean;override;
+         function use_generic_mul64bit: boolean;override;
          procedure second_addordinal;override;
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
+         procedure second_add64bit;override;
          procedure second_cmpfloat;override;
          procedure second_addfloat;override;
          procedure second_cmp;
@@ -343,6 +345,14 @@ interface
       end;
 
 
+    function TCPUAddNode.use_generic_mul64bit: boolean;
+      begin
+        result:=needoverflowcheck or
+          (cs_opt_size in current_settings.optimizerswitches) or
+          not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
     procedure TCPUAddNode.second_addfloat;
       var
         op    : TAsmOp;
@@ -442,6 +452,41 @@ interface
       begin
         second_addfloat;
       end;
+
+
+    procedure TCPUAddNode.second_add64bit;
+      var
+        unsigned: Boolean;
+        tmpreg: tregister;
+      begin
+        if nodetype=muln then
+          begin
+            pass_left_right;
+            unsigned:=((left.resultdef.typ=orddef) and
+                       (torddef(left.resultdef).ordtype=u64bit)) or
+                      ((right.resultdef.typ=orddef) and
+                       (torddef(right.resultdef).ordtype=u64bit));
+            force_reg_left_right(true,true);
+
+            { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
+            if right.location.loc=LOC_CONSTANT then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register64.reglo,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULUH,location.register64.reghi,left.location.register64.reglo,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reglo,right.location.register64.reghi));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reghi,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+          end
+        else
+          Inherited;
+      end;
+
 
 begin
   caddnode:=tcpuaddnode;
