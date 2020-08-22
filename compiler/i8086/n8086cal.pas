@@ -28,6 +28,7 @@ interface
 { $define AnsiStrRef}
 
     uses
+      node,
       parabase,
       nx86cal,cgutils;
 
@@ -38,6 +39,8 @@ interface
           procedure extra_interrupt_code;override;
           procedure extra_call_ref_code(var ref: treference);override;
           function do_call_ref(ref: treference): tcgpara;override;
+        public
+          function pass_typecheck: tnode; override;
        end;
 
 
@@ -46,6 +49,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
+      htypechk,
       cgbase,
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
@@ -126,6 +130,19 @@ implementation
         result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
       end;
 
+
+    function ti8086callnode.pass_typecheck: tnode;
+      begin
+        Result:=inherited pass_typecheck;
+        { If calling a procvar allow the procvar address to be in a register only for
+          the register calling convention and near code memory models.
+          In other cases there are no available registers to perform the call.
+          Additionally there is no CALL reg1:reg2 instruction. }
+        if (right<>nil) then
+          if is_proc_far(procdefinition) or
+             (procdefinition.proccalloption<>pocall_register) then
+            make_not_regable(right,[]);
+      end;
 
 begin
    ccallnode:=ti8086callnode;
