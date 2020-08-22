@@ -216,14 +216,6 @@ begin
 end;
 
 
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-  TerminatedSet;
-  ThreadSwitch;
-end;
-
-
 function TThread.WaitFor: Integer;
 begin
   Result := WaitForThreadTerminate (FHandle,0);

@@ -361,12 +361,6 @@ begin
 end;
 
 
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-  TerminatedSet;
-end;
-
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',FHandle);

@@ -97,13 +97,6 @@ begin
 end;
 
 
-procedure TThread.Terminate;
-begin
-  FTerminated := true;
-  TerminatedSet;
-end;
-
-
 function TThread.WaitFor: Integer;
 begin
   result := -1;
