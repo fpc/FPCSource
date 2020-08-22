@@ -3502,10 +3502,10 @@ unit cgx86;
                   fardataseg.refaddr:=addr_fardataseg;
                   if current_procinfo.procdef.proccalloption=pocall_register then
                     begin
-                      { Use BX register if using register convention
+                      { Use CX register if using register convention
                         as it is not a register used to store parameters }
-                      list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_BX));
-                      list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_BX,NR_DS));
+                      list.concat(Taicpu.Op_ref_reg(A_MOV,S_W,fardataseg,NR_CX));
+                      list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_CX,NR_DS));
                     end
                   else
                     begin
