@@ -35,6 +35,8 @@ interface
        protected
          function pass_1 : tnode;override;
          function first_addfloat: tnode;override;
+         function use_generic_mul32to64: boolean;override;
+         procedure second_addordinal;override;
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
@@ -60,6 +62,40 @@ interface
 {*****************************************************************************
                                TCPUAddNode
 *****************************************************************************}
+
+    procedure TCPUAddNode.second_addordinal;
+      var
+        ophigh: tasmop;
+      begin
+        { this is only true, if the CPU supports 32x32 -> 64 bit MUL, see the relevant method }
+        if (nodetype=muln) and is_64bit(resultdef) then
+          begin
+            if not(is_signed(left.resultdef)) or
+               not(is_signed(right.resultdef)) then
+              ophigh:=A_MULUH
+            else
+              ophigh:=A_MULSH;
+
+            pass_left_right;
+
+            if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+            { initialize the result }
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register,right.location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ophigh,location.register64.reghi,left.location.register,right.location.register));
+          end
+        else
+          Inherited;
+      end;
+
 
    procedure TCPUAddNode.second_cmpsmallset;
       var
@@ -214,6 +250,12 @@ interface
           end
         else
           result:=first_addfloat_soft;
+      end;
+
+
+    function TCPUAddNode.use_generic_mul32to64: boolean;
+      begin
+        result:=not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]) or needoverflowcheck;
       end;
 
 
