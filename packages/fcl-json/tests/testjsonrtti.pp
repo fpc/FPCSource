@@ -122,6 +122,7 @@ type
     procedure DeStream(JSON: TJSONStringType; AObject: TObject);
     procedure DeStream(JSON: TJSONObject; AObject: TObject);
     procedure DoDateTimeFormat;
+    Procedure DoNullError;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -138,6 +139,8 @@ type
     Procedure TestVariantString;
     Procedure TestVariantArray;
     procedure TestEmpty;
+    procedure TestNullError;
+    procedure TestNull;
     procedure TestBoolean;
     procedure TestInteger;
     procedure TestIntegerCaseInsensitive;
@@ -284,6 +287,23 @@ begin
   AssertEquals('Empty Tag',0,TComponent(FToFree).Tag);
 end;
 
+procedure TTestJSONDeStreamer.TestNullError;
+
+begin
+  AssertException('Null error',EJSON, @DoNullError);
+end;
+
+procedure TTestJSONDeStreamer.TestNull;
+Var
+  B : TBooleanComponent;
+
+begin
+  B:=TBooleanComponent.Create(Nil);
+  DS.Options:=DS.Options+[jdoIgnoreNulls];
+  DeStream('{ "BooleanProp" : null }',B);
+  AssertEquals('Correct boolean value',False,B.BooleanProp);
+end;
+
 procedure TTestJSONDeStreamer.DeStream(JSON : TJSONStringType; AObject : TObject);
 
 begin
@@ -426,6 +446,15 @@ procedure TTestJSONDeStreamer.DoDateTimeFormat;
 
 begin
   DeStream('{"DateTimeProp" : "'+DateTimeToStr(RecodeMillisecond(Now,0))+'"}',FToFree);
+end;
+
+procedure TTestJSONDeStreamer.DoNullError;
+Var
+  B : TBooleanComponent;
+
+begin
+  B:=TBooleanComponent.Create(Nil);
+  Destream('{ "BooleanProp" : null }',B);
 end;
 
 procedure TTestJSONDeStreamer.TestDateTimeFormat;
