@@ -322,7 +322,9 @@ begin
     begin
     Addln('{$HINTS OFF}');
     Addln('{$WARNINGS OFF}');
+    Addln('{$IFDEF FPC}');
     Addln('{$NOTES OFF}');
+    Addln('{$ENDIF FPC}');
     end;
   if Assigned(aModule.ProgramSection) then
     WriteSection(aModule.ProgramSection);
