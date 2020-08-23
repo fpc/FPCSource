@@ -38,7 +38,8 @@ type
                       woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
                       woNoAsm,         // Do not allow asm block
                       woSkipPrivateExternals,  // Skip generation of external procedure declaration in implementation section
-                      woAlwaysRecordHelper     // Force use of record helper for type helper
+                      woAlwaysRecordHelper,     // Force use of record helper for type helper
+                      woSkipHints          // Do not add identifier hints
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -717,9 +718,54 @@ end;
 
 procedure TPasWriter.WriteConst(AConst: TPasConst);
 
+Const
+  Seps : Array[Boolean] of Char = ('=',':');
+
+Var
+  Vart,Decl : String;
+
 begin
   PrepareDeclSection('const');
-  AddLn(AConst.GetDeclaration(True)+';');
+  Decl:='';
+  With AConst do
+    begin
+    If Assigned(VarType) then
+      begin
+      If VarType.Name='' then
+        Vart:=VarType.GetDeclaration(False)
+      else
+        Vart:=VarType.SafeName;
+      Decl:=Vart+Modifiers;
+      Vart:=LowerCase(Vart);
+      if (Value<>'') then
+         Decl:=Decl+' = '+Value
+      else if (ExportName<>Nil) or ((Parent is TPasClassType) and (TPasClassType(Parent).ExternalName<>'')) then // external name
+        case VarT of
+          'integer',
+          'byte',
+          'word',
+          'smallint',
+          'int64',
+          'nativeint',
+          'shortint',
+          'longint' : Decl:=Decl+' = 0';
+          'double',
+          'single',
+          'extended' : Decl:=Decl+' = 0.0';
+          'string' : Decl:=Decl+' = ''''';
+        else
+          if Pos('array',Vart)>0 then
+            Decl:=Decl+' = []';
+        end;
+      end
+    else
+      Decl:=Value;
+
+    Decl:=SafeName+' '+Seps[Assigned(VarType)]+' '+Decl;
+    if NotOption(woSkipHints) then
+      Decl:=Decl+HintsString;
+    end;
+  AddLn(Decl+';');
 end;
 
 procedure TPasWriter.WriteVariable(aVar: TPasVariable);
@@ -821,7 +867,9 @@ begin
     end;
   AddLn(Temp);
   IncIndent;
+  IncDeclSectionLevel;
   WriteMembers(AType.Members,visPublic);
+  DecDeclSectionLevel;
   DecIndent;
   Add('end');
 end;
@@ -861,7 +909,7 @@ begin
     PrepareDeclSection('');
   if Not IsImpl then
     IsImpl:=FInImplementation;
-  if FInImplementation and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
+  if FInImplementation and not forcebody and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
     Exit;
   Add(AProc.TypeName + ' ' + NamePrefix+AProc.SafeName);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
@@ -876,7 +924,9 @@ begin
   // delphi compatible order for example: procedure foo; reintroduce; overload; static;
   if not IsImpl and AProc.IsReintroduced then
     Add(' reintroduce;');
-  if AProc.IsOverload then
+  // if NamePrefix is not empty, we're writing a dummy for external class methods.
+  // In that case, we must not write the 'overload'.
+  if AProc.IsOverload and (NamePrefix='') and not IsImpl then
     Add(' overload;');
   if not IsImpl then
     begin
