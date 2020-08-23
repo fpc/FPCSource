@@ -1067,10 +1067,10 @@ implementation
                end;
 {$endif vtentry}
 
-             name_to_call:=forcedprocname;
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
-             if (name_to_call='') and
+             name_to_call:='';
+             if not assigned(overrideprocnamedef) and
                 (po_virtualmethod in procdefinition.procoptions) and
                 not is_objectpascal_helper(tprocdef(procdefinition).struct) and
                 assigned(methodpointer) and
@@ -1164,8 +1164,13 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       retloc.resetiftemp;
-                      if (name_to_call='') then
-                        name_to_call:=tprocdef(procdefinition).mangledname;
+                      if name_to_call='' then
+                        begin
+                          if not assigned(overrideprocnamedef) then
+                            name_to_call:=tprocdef(procdefinition).mangledname
+                          else
+                            name_to_call:=overrideprocnamedef.mangledname;
+                        end;
                       if cnf_inherited in callnodeflags then
                         retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
                       { under certain conditions, a static call (i.e. without PIC) can be generated }
