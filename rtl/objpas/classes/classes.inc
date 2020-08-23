@@ -274,6 +274,12 @@ begin
   GetSuspended:=FSuspended;
 end;
 
+procedure TThread.Terminate;
+begin
+  FTerminated := True;
+  TerminatedSet;
+end;
+
 Procedure TThread.TerminatedSet;
 
 begin

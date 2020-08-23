@@ -250,7 +250,7 @@ unit cpupara;
             if side=callerside then
               case target_info.abi of
                 abi_xtensa_call0:
-              paraloc^.register:=NR_A3;
+                  paraloc^.register:=NR_A3;
                 abi_xtensa_windowed:
                   { only call8 used/supported so far }
                   paraloc^.register:=newreg(R_INTREGISTER,RS_A11,cgsize2subreg(R_INTREGISTER,retcgsize));

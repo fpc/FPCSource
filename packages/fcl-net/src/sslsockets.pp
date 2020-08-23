@@ -27,7 +27,7 @@ Const
 Type
   ESSLSocketError = Class(ESocketError);
   TSSLSocketHandler = class;
-  TVerifyCertificateEvent = Procedure(Sender : TObject; Allow : Boolean) of object;
+  TVerifyCertificateEvent = Procedure(Sender : TObject; var Allow : Boolean) of object;
   TSSLSocketHandlerClass = class of TSSLSocketHandler;
 
   { TSSLSocketHandler }
@@ -50,7 +50,7 @@ Type
     Class Var FDefaultHandlerClass : TSSLSocketHandlerClass;
   protected
     Procedure SetSSLActive(aValue : Boolean);
-    function DoVerifyCert: boolean;
+    function DoVerifyCert: boolean; virtual;  // if event define's change not accceptable, suggest to set virtual
   public
     constructor Create; override;
     Destructor Destroy; override;

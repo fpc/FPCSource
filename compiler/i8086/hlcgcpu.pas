@@ -71,6 +71,7 @@ interface
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
       function a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
+      function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
 
       procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
@@ -248,14 +249,16 @@ implementation
          (size.typ=classrefdef) then
         size:=voidpointertype;
 
-      { procvars follow the default code pointer size for the current memory model }
       if size.typ=procvardef then
         if ((po_methodpointer in tprocvardef(size).procoptions) or
             is_nested_pd(tprocvardef(size))) and
            not(po_addressonly in tprocvardef(size).procoptions) then
           internalerror(2015120101)
         else
-          size:=voidcodepointertype;
+          if is_proc_far(tabstractprocdef(size)) then
+            size:=voidfarpointertype
+          else
+            size:=voidnearpointertype;
 
       if is_farpointer(size) or is_hugepointer(size) then
         Result:=cg.getintregister(list,OS_32)
@@ -329,6 +332,14 @@ implementation
   function thlcgcpu.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       Result:=a_call_name(list,pd,s,paras,forceresdef,false);
+    end;
+
+
+  function thlcgcpu.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
+    begin
+      if is_proc_far(pd) then
+        Internalerror(2020082201);
+      Result:=inherited a_call_reg(list, pd, reg, paras);
     end;
 
 

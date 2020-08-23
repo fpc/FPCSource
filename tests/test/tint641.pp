@@ -37,28 +37,36 @@ begin
    q3:=1;
    q4:=1;
    if not((q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3)) then
-     writeln('Error :(');
+     begin
+       writeln('Error :(');
+       halt(1);
+     end;
    q:=q-q;
    q:=q-(q*q);
    q:=(q*q)-(q*q);
    { first test the comparisation }
+   i:=f2;
    if q<>q then
      begin
-        writeln('Error :(');
+       writeln('Error :(');
+       halt(2);
      end;
 
    if q>q then
      begin
-        writeln('Error :(');
+       writeln('Error :(');
+       halt(3);
      end;
 
    if i>f2 then
      begin
-        writeln('Error :(');
+       writeln('Error :(');
+       halt(4);
      end;
    if l1>l2 then
      begin
-        writeln('Error :(');
+       writeln('Error :(');
+       halt(5);
      end;
    p1(q,i);
    q:=f1;

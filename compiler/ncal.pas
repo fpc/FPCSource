@@ -92,6 +92,7 @@ interface
           function get_expect_loc: tcgloc;
        protected
           function safe_call_self_node: tnode;
+          procedure load_in_temp(var p:tnode);
           procedure gen_vmt_entry_load; virtual;
           procedure gen_syscall_para(para: tcallparanode); virtual;
           procedure objc_convert_to_message_send;virtual;
@@ -2109,6 +2110,16 @@ implementation
       end;
 
     procedure tcallnode.maybe_load_in_temp(var p:tnode);
+      begin
+        { Load all complex loads into a temp to prevent
+          double calls to a function. We can't simply check for a hp.nodetype=calln }
+        if assigned(p) and
+           foreachnodestatic(p,@look_for_call,nil) then
+          load_in_temp(p);
+      end;
+
+
+    procedure tcallnode.load_in_temp(var p:tnode);
       var
         loadp,
         refp  : tnode;
@@ -2116,10 +2127,7 @@ implementation
         ptemp : ttempcreatenode;
         usederef : boolean;
       begin
-        { Load all complex loads into a temp to prevent
-          double calls to a function. We can't simply check for a hp.nodetype=calln }
-        if assigned(p) and
-           foreachnodestatic(p,@look_for_call,nil) then
+        if assigned(p) then
           begin
             { temp create }
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
@@ -4734,6 +4742,11 @@ implementation
 
     function tcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
       begin
+        { if it's an assignable call-by-reference parameter, we cannot pass a
+          temp since then the modified valua will be lost }
+        if para.parasym.varspez in [vs_var,vs_out] then
+          exit(false);
+
         { We don't need temps for parameters that are already temps, except if
           the passed temp could be put in a regvar while the parameter inside
           the routine cannot be (e.g., because its address is taken in the

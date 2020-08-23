@@ -39,6 +39,7 @@ Type
     // Result of last CheckSSL call.
     Function SSLLastError: integer;
     property SSLLastErrorString: string read FSSLLastErrorString write SetSSLLastErrorString;
+    property SSL: TSSL read FSSL; // allow more lower level info and control
   end;
 
 implementation
@@ -78,8 +79,10 @@ begin
      if SendHostAsSNI  and (Socket is TInetSocket) then
        FSSL.Ctrl(SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,PAnsiChar(AnsiString((Socket as TInetSocket).Host)));
      Result:=CheckSSL(FSSL.Connect);
-     if Result and VerifyPeerCert then
-       Result:=(FSSL.VerifyResult<>0) or (not DoVerifyCert);
+     //if Result and VerifyPeerCert then
+     //  Result:=(FSSL.VerifyResult<>0) or (not DoVerifyCert);
+     if Result then
+       Result:= DoVerifyCert;
      if Result then
        SetSSLActive(True);
      end;

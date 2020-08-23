@@ -153,6 +153,7 @@ interface
         procedure WriteSourceLine(hp: tailineinfo);
         procedure WriteTempalloc(hp: tai_tempalloc);
         procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+        function WriteComments(var hp: tai): boolean;
         function single2str(d : single) : string; virtual;
         function double2str(d : double) : string; virtual;
         function extended2str(e : extended) : string; virtual;
@@ -264,7 +265,7 @@ Implementation
 {$endif FPC_SOFT_FPUX80}
 {$endif}
       cscript,fmodule,verbose,
-      cpuinfo,triplet,
+      cpubase,cpuinfo,triplet,
       aasmcpu;
 
     var
@@ -1192,6 +1193,58 @@ Implementation
         for count:=tai_realconst(hp).datasize+1 to tai_realconst(hp).savesize do
           writer.AsmWrite(',0');
         writer.AsmLn;
+      end;
+
+
+    function TExternalAssembler.WriteComments(var hp: tai): boolean;
+      begin
+        result:=true;
+        case hp.typ of
+          ait_comment :
+            Begin
+              writer.AsmWrite(asminfo^.comment);
+              writer.AsmWritePChar(tai_comment(hp).str);
+              writer.AsmLn;
+            End;
+
+          ait_regalloc :
+            begin
+              if (cs_asm_regalloc in current_settings.globalswitches) then
+                begin
+                  writer.AsmWrite(#9+asminfo^.comment+'Register ');
+                  repeat
+                    writer.AsmWrite(std_regname(Tai_regalloc(hp).reg));
+                    if (hp.next=nil) or
+                       (tai(hp.next).typ<>ait_regalloc) or
+                       (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then
+                      break;
+                    hp:=tai(hp.next);
+                    writer.AsmWrite(',');
+                  until false;
+                  writer.AsmWrite(' ');
+                  writer.AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
+                end;
+            end;
+
+          ait_tempalloc :
+            begin
+              if (cs_asm_tempalloc in current_settings.globalswitches) then
+                WriteTempalloc(tai_tempalloc(hp));
+            end;
+
+          ait_varloc:
+            begin
+              { ait_varloc is present here only when register allocation is not done ( -sr option ) }
+              if tai_varloc(hp).newlocationhi<>NR_NO then
+                writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                  std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation))
+              else
+                writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                  std_regname(tai_varloc(hp).newlocation));
+            end;
+          else
+            result:=false;
+        end;
       end;
 
 

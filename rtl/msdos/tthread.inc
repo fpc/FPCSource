@@ -71,13 +71,6 @@ begin
 end;
 
 
-procedure TThread.Terminate;
-
-begin
-  TerminatedSet;
-end;
-
-
 function TThread.WaitFor: Integer;
 
 begin

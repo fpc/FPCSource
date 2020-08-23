@@ -26,18 +26,24 @@ unit ncpuadd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       cgbase,node,ncgadd,cpubase;
 
     type
        TCPUAddNode = class(tcgaddnode)
        private
          procedure pass_left_and_right;
+         procedure cmp64_le(left_reg, right_reg: TRegister64; unsigned: boolean);
+         procedure cmp64_lt(left_reg, right_reg: TRegister64; unsigned: boolean);
        protected
          function pass_1 : tnode;override;
          function first_addfloat: tnode;override;
+         function use_generic_mul32to64: boolean;override;
+         function use_generic_mul64bit: boolean;override;
+         procedure second_addordinal;override;
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
+         procedure second_add64bit;override;
          procedure second_cmpfloat;override;
          procedure second_addfloat;override;
          procedure second_cmp;
@@ -50,7 +56,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cgutils,cgcpu,
+      cgutils,cgcpu,
       cpuinfo,pass_1,pass_2,procinfo,
       cpupara,
       ncon,nset,nadd,
@@ -60,6 +66,40 @@ interface
 {*****************************************************************************
                                TCPUAddNode
 *****************************************************************************}
+
+    procedure TCPUAddNode.second_addordinal;
+      var
+        ophigh: tasmop;
+      begin
+        { this is only true, if the CPU supports 32x32 -> 64 bit MUL, see the relevant method }
+        if (nodetype=muln) and is_64bit(resultdef) then
+          begin
+            if not(is_signed(left.resultdef)) or
+               not(is_signed(right.resultdef)) then
+              ophigh:=A_MULUH
+            else
+              ophigh:=A_MULSH;
+
+            pass_left_right;
+
+            if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+            { initialize the result }
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register,right.location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(ophigh,location.register64.reghi,left.location.register,right.location.register));
+          end
+        else
+          Inherited;
+      end;
+
 
    procedure TCPUAddNode.second_cmpsmallset;
       var
@@ -143,9 +183,91 @@ interface
       end;
 
 
-    procedure TCPUAddNode.second_cmp64bit;
+    const
+      cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
+
+    procedure TCPUAddNode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
       begin
-        second_cmp;
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,location.truelabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+      end;
+
+
+    procedure TCPUAddNode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
+      begin
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,location.falselabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+      end;
+
+
+    procedure TCPUAddNode.second_cmp64bit;
+      var
+        truelabel,
+        falselabel: tasmlabel;
+        unsigned: boolean;
+        left_reg,right_reg: TRegister64;
+      begin
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
+
+        pass_left_right;
+        force_reg_left_right(true,true);
+
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        left_reg:=left.location.register64;
+        { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
+        if right.location.loc=LOC_CONSTANT then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+        right_reg:=right.location.register64;
+
+        case NodeType of
+          equaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.falselabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
+            end;
+          unequaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.truelabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+            end;
+        else
+          if nf_swapped in flags then
+            case NodeType of
+              ltn:
+                cmp64_lt(right_reg, left_reg,unsigned);
+              lten:
+                cmp64_le(right_reg, left_reg,unsigned);
+              gtn:
+                cmp64_lt(left_reg, right_reg,unsigned);
+              gten:
+                cmp64_le(left_reg, right_reg,unsigned);
+              else
+                internalerror(2020082202);
+            end
+          else
+            case NodeType of
+              ltn:
+                cmp64_lt(left_reg, right_reg,unsigned);
+              lten:
+                cmp64_le(left_reg, right_reg,unsigned);
+              gtn:
+                cmp64_lt(right_reg, left_reg,unsigned);
+              gten:
+                cmp64_le(right_reg, left_reg,unsigned);
+              else
+                internalerror(2020082203);
+            end;
+        end;
       end;
 
 
@@ -214,6 +336,20 @@ interface
           end
         else
           result:=first_addfloat_soft;
+      end;
+
+
+    function TCPUAddNode.use_generic_mul32to64: boolean;
+      begin
+        result:=not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]) or needoverflowcheck;
+      end;
+
+
+    function TCPUAddNode.use_generic_mul64bit: boolean;
+      begin
+        result:=needoverflowcheck or
+          (cs_opt_size in current_settings.optimizerswitches) or
+          not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]);
       end;
 
 
@@ -316,6 +452,41 @@ interface
       begin
         second_addfloat;
       end;
+
+
+    procedure TCPUAddNode.second_add64bit;
+      var
+        unsigned: Boolean;
+        tmpreg: tregister;
+      begin
+        if nodetype=muln then
+          begin
+            pass_left_right;
+            unsigned:=((left.resultdef.typ=orddef) and
+                       (torddef(left.resultdef).ordtype=u64bit)) or
+                      ((right.resultdef.typ=orddef) and
+                       (torddef(right.resultdef).ordtype=u64bit));
+            force_reg_left_right(true,true);
+
+            { force_reg_left_right might leave right as LOC_CONSTANT, however, we cannot take advantage of this yet }
+            if right.location.loc=LOC_CONSTANT then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,location.register64.reglo,left.location.register64.reglo,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULUH,location.register64.reghi,left.location.register64.reglo,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reglo,right.location.register64.reghi));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULL,tmpreg,left.location.register64.reghi,right.location.register64.reglo));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register64.reghi,location.register64.reghi,tmpreg));
+          end
+        else
+          Inherited;
+      end;
+
 
 begin
   caddnode:=tcpuaddnode;
