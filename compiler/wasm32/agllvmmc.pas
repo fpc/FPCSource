@@ -37,7 +37,7 @@ interface
 
     { TLLVMMachineCodePlaygroundAssembler }
 
-    TLLVMMachineCodePlaygroundAssembler=class({texternalassembler}TGNUassembler)
+    TLLVMMachineCodePlaygroundAssembler=class(TGNUassembler)
     protected
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     end;
