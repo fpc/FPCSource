@@ -752,9 +752,7 @@ end;
 function TRegistry.ReadTime(const Name: UnicodeString): TDateTime;
 
 begin
-  Result:=Default(TDateTime);
-  ReadBinaryData(Name, Result, SizeOf(TDateTime));
-  Result:=Frac(Result);
+  Result:=Frac(ReadDateTime(Name));
 end;
 
 function TRegistry.ReadTime(const Name: String): TDateTime;
