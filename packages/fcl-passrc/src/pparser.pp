@@ -6525,14 +6525,14 @@ var
   end;
 
 var
-  N,Name: String;
+  OperatorTypeName,Name: String;
   PC : TPTreeElement;
   Ot : TOperatorType;
   IsTokenBased , ok: Boolean;
   j, i: Integer;
 
 begin
-  N:='';
+  OperatorTypeName:='';
   NameParts:=nil;
   Result:=nil;
   ok:=false;
@@ -6549,13 +6549,13 @@ begin
       else
         begin
         OT:=TPasOperator.NameToOperatorType(CurTokenString);
-        N:=CurTokenString;
+        OperatorTypeName:=CurTokenString;
         // Case Class operator TMyRecord.+
         if (OT=otUnknown) then
           begin
           NextToken;
           if CurToken<>tkDot then
-            ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[N]);
+            ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[OperatorTypeName]);
           NextToken;
           IsTokenBased:=CurToken<>tkIdentifier;
           if IsTokenBased then
@@ -6567,8 +6567,8 @@ begin
       if (ot=otUnknown) then
         ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
       Name:=OperatorNames[Ot];
-      if N<>'' then
-        Name:=N+'.'+Name;
+      if OperatorTypeName<>'' then
+        Name:=OperatorTypeName+'.'+Name;
       NamePos:=CurTokenPos;
       end;
     ptAnonymousProcedure,ptAnonymousFunction:
