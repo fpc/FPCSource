@@ -289,9 +289,10 @@ begin
     WriteAliasType(TPasAliasType(AType))
   else if AType is TPasPointerType then
     Add(AType.GetDeclaration(true))
+  else if AType is TPasSetType then
+    Add(AType.GetDeclaration(true))
   else
-    raise EPasWriter.Create('Writing not implemented for ' +
-      AType.ElementTypeName + ' nodes');
+    raise EPasWriter.CreateFmt('Writing not implemented for %s type nodes',[aType.ElementTypeName]);
   if Full then
     AddLn(';');
 end;
