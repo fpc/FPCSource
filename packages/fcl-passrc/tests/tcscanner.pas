@@ -55,7 +55,10 @@ type
     FLI: String;
     FScanner : TPascalScanner;
     FResolver : TStreamResolver;
+    FDoCommentCalled : Boolean;
+    FComment: string;
   protected
+    procedure DoComment(Sender: TObject; aComment: String);
     procedure SetUp; override;
     procedure TearDown; override;
     Function TokenToString(tk : TToken) : string;
@@ -82,6 +85,7 @@ type
     procedure TestNestedComment3;
     procedure TestNestedComment4;
     procedure TestNestedComment5;
+    procedure TestonComment;
     procedure TestIdentifier;
     procedure TestSelf;
     procedure TestSelfNoToken;
@@ -369,8 +373,15 @@ end;
   TTestScanner
   ---------------------------------------------------------------------}
 
+procedure TTestScanner.DoComment(Sender: TObject; aComment: String);
+begin
+  FDoCommentCalled:=True;
+  FComment:=aComment;
+end;
+
 procedure TTestScanner.SetUp;
 begin
+  FDoCommentCalled:=False;
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
   FScanner:=TTestingPascalScanner.Create(FResolver);
@@ -569,6 +580,15 @@ end;
 procedure TTestScanner.TestNestedComment5;
 begin
   TestToken(tkComment,'(* (* comment *) *)');
+end;
+
+procedure TTestScanner.TestonComment;
+begin
+  FScanner.OnComment:=@DoComment;
+  DoTestToken(tkComment,'(* abc *)',False);
+  assertTrue('Comment called',FDoCommentCalled);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+  AssertEquals('Correct comment token',' abc ',FComment);
 end;
 
 
