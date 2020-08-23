@@ -153,6 +153,11 @@ begin
   TStubCreator(P).OnUnitAliasData:=CallBackData;
 end;
 
+Procedure AddStubCreatorExtraUnit(P : PStubCreator; AUnitName : PAnsiChar); stdcall;
+begin
+  TStubCreator(P).ExtraUnits:=AUnitName;
+end;
+
 exports
   // Stub creator
   GetStubCreator,
@@ -166,6 +171,7 @@ exports
   GetStubCreatorLastError,
   AddStubCreatorDefine,
   AddStubCreatorForwardClass,
+  AddStubCreatorExtraUnit,
   ExecuteStubCreator,
   SetStubCreatorUnitAliasCallBack;
 

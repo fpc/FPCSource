@@ -19,9 +19,6 @@ interface
 uses
   Classes, SysUtils, strutils, inifiles, pscanner, pparser, pastree, iostream, paswrite;
 
-Const
-  DTypesUnit = 'jsdelphisystem';
-
 type
   { We have to override abstract TPasTreeContainer methods  }
 
@@ -90,6 +87,7 @@ type
     Property OnUnitAliasData : Pointer Read FOnUnitAliasData Write FOnUnitAliasData;
     Property OnWriteCallBack : TWriteCallBack Read FOnWriteCallBack Write SetWriteCallback;
     Property CallbackData : Pointer Read FCallBackData Write FCallBackData;
+    Property ExtraUnits : String Read FExtraUnits write FExtraUnits;
   Published
     Property Defines : TStrings Read FDefines Write SetDefines;
     Property ConfigFileName : String Read FConfigFile Write FConfigFile;
@@ -390,7 +388,6 @@ procedure TStubCreator.WriteModule(M: TPasModule);
 Var
   F,H : TStream;
   W : TPasWriter;
-  U : String;
 
 begin
   W:=Nil;
@@ -411,18 +408,11 @@ begin
        end;
      W:=TPasWriter.Create(F);
      W.Options:=FOptions;
-     U:=FExtraUnits;
+     W.ExtraUnits:=FExtraUnits;
 
      if Assigned(FOnUnitAlias) then
        W.OnUnitAlias:=@CheckUnitAlias;
 
-     if Pos(LowerCase(DTypesUnit),LowerCase(U)) = 0 then
-       begin
-       if (U<>'') then
-         U:=','+U;
-       U:=DTypesUnit+U;
-       end;
-     W.ExtraUnits:=U;
      if FIndentSize<>-1 then
        W.IndentSize:=FIndentSize;
      if FLineNumberWidth>0 then
