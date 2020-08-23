@@ -4,7 +4,7 @@
 ; layout
 ; <name>,<type>,<subtype>,<value>,<stdname>
 ;
-; The JVM does not have any registers, since it is stack-based.
+; WebAssembly does not have any registers, since it is stack-based.
 ; We do define a few artificial registers to make integration
 ; with the rest of the compiler easier though.
 
