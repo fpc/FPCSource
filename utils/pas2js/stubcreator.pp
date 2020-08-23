@@ -75,7 +75,7 @@ type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-    Procedure Execute;
+    Function Execute: Boolean;
     Procedure GetLastError(Out AError,AErrorClass : String);
     // Streams take precedence over filenames. They will be freed on destroy!
     // OutputStream can be used combined with write callbacks.
@@ -202,19 +202,22 @@ begin
     Include(O,woForwardClasses);
 end;
 
-procedure TStubCreator.Execute;
-
+function TStubCreator.Execute: Boolean;
 begin
   FLastErrorClass:='';
   FLastError:='';
+  Result := False;
+  if Defines.IndexOf('MakeStub')=-1 then
+
   Try
     DoExecute;
+
+    Result := True;
   except
     On E : Exception do
       begin
       FLastErrorClass:=E.Classname;
       FLastError:=E.Message;
-      Raise;
       end;
   end;
 end;
@@ -307,6 +310,8 @@ begin
     SCanner.OnLog:=SE.Onlog;
     For S in FDefines do
       Scanner.AddDefine(S);
+    if FDefines.IndexOf('MAKESTUB')=-1 then
+      Scanner.AddDefine('MAKESTUB');
     Scanner.OpenFile(InputFilename);
     // Parser
     Parser:=TPasParser.Create(Scanner, FileResolver, SE);
@@ -340,7 +345,7 @@ begin
   FLineNumberWidth:=4;
   FIndentSize:=2;
   FExtraUnits:='';
-  FOptions:=[woNoImplementation,woNoExternalClass,woNoExternalVar,woNoExternalFunc,woNoAsm,woSkipPrivateExternals,woAlwaysRecordHelper];
+  FOptions:=[woNoImplementation,woNoExternalClass,woNoExternalVar,woNoExternalFunc,woNoAsm,woSkipPrivateExternals,woAlwaysRecordHelper,woSkipHints];
 end;
 
 destructor TStubCreator.Destroy;
