@@ -246,6 +246,8 @@ begin
         DoError(SErrUnexpectedToken);
     tkIdentifier :
         DoError(SErrUnexpectedToken);
+  else
+    // Do nothing
   end;
 end;
 

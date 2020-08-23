@@ -33,6 +33,7 @@ type
   private
     FOptions : TJSONOptions;
     procedure CallNoHandlerStream;
+    procedure DoDuplicate;
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
@@ -75,6 +76,8 @@ type
     Procedure TestCommentLine;
     Procedure TestFirstLineComment;
     Procedure TestMultiLineComment;
+    Procedure TestIgnoreDuplicates;
+    Procedure TestNoIgnoreDuplicates;
   end;
 
 implementation
@@ -714,6 +717,52 @@ begin
     Finally
       Free;
     end;
+end;
+
+procedure TTestParser.TestIgnoreDuplicates;
+
+Const
+  MyJSON =
+        '{ "a":100, "b": 20, "a":300} ';
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joIgnoreDuplicates]) do
+    Try
+      J:=Parse;
+      AssertEquals('Correct class',TJSONObject,J.ClassType);
+      AssertEquals('Correct value',100,TJSONObject(J).Get('a',0));
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.DoDuplicate;
+
+Const
+  MyJSON =
+        '{ "a":100, "b": 20, "a":300} ';
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestNoIgnoreDuplicates;
+
+begin
+  AssertException('No duplicates allowed',EJSON,@DoDuplicate);
 end;
 
 procedure TTestParser.DoTestError(S : String; Options : TJSONOptions = DefaultOpts);
