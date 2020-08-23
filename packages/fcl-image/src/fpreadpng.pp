@@ -1,5 +1,4 @@
 {
-    $Id: fpreadpng.pp,v 1.10 2003/10/19 21:09:51 luk Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
