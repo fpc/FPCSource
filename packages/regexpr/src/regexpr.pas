@@ -280,7 +280,8 @@ type
     {$IFDEF UnicodeWordDetection}
     FUseUnicodeWordDetection: boolean;
     {$ENDIF}
-
+    FEmptyImputRaisesError : Boolean;
+    
     CharCheckers: TRegExprCharCheckerArray;
     CharCheckerInfos: TRegExprCharCheckerInfos;
     CheckerIndex_Word: byte;
@@ -616,6 +617,9 @@ type
     property UseOsLineEndOnReplace: boolean read FUseOsLineEndOnReplace write SetUseOsLineEndOnReplace;
 
     property SlowChecksSizeMax: integer read fSlowChecksSizeMax write fSlowChecksSizeMax;
+
+     // Raise error when input string is empty
+    Property EmptyImputRaisesError : Boolean Read FEmptyImputRaisesError Write FEmptyImputRaisesError;
   end;
 
 type
@@ -4176,7 +4180,8 @@ begin
   // Check InputString presence
   if fInputString = '' then
   begin
-    Error(reeNoInputStringSpecified);
+    if EmptyImputRaisesError then
+      Error(reeNoInputStringSpecified);
     Exit;
   end;
 
@@ -4288,7 +4293,7 @@ begin
   end;
 end; { of procedure TRegExpr.SetLineSeparators
   -------------------------------------------------------------- }
-
+  
 procedure TRegExpr.SetLinePairedSeparator(const AStr: RegExprString);
 begin
   if Length(AStr) = 2 then
@@ -4389,7 +4394,8 @@ begin
     Exit;
   if fInputString = '' then
   begin
-    Error(reeNoInputStringSpecified);
+    if EmptyImputRaisesError then
+      Error(reeNoInputStringSpecified);
     Exit;
   end;
   // Prepare for working
