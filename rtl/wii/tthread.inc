@@ -100,6 +100,7 @@ end;
 procedure TThread.Terminate;
 begin
  FTerminated := true;
+ TerminatedSet;
 end;
 
 
