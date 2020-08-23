@@ -11,6 +11,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$ModeSwitch out}
 unit Sockets;
 
 Interface
