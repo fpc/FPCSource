@@ -146,9 +146,9 @@ Type
     Procedure InitSession(AResponse : TResponse);
     Procedure UpdateSession(AResponse : TResponse);
     Procedure DoneSession; virtual;
+    Procedure Notification(AComponent : TComponent;Operation : TOperation); override;
   Public
     destructor destroy; override;
-    Procedure Notification(AComponent : TComponent;Operation : TOperation); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property CreateSession : Boolean Read FCreateSession Write FCreateSession;
     Property Session : TCustomSession Read GetSession Write SetSession;
