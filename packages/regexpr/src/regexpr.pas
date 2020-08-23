@@ -412,7 +412,7 @@ type
     function MatchAtOnePos(APos: PRegExprChar): boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
 
     // Exec for stored InputString
-    function ExecPrim(AOffset: integer; ATryOnce, ASlowChecks: boolean): boolean;
+    function ExecPrim(AOffset: integer; ATryOnce, ASlowChecks, ABackward: boolean): boolean;
 
     {$IFDEF RegExpPCodeDump}
     function DumpOp(op: TREOp): RegExprString;
@@ -454,12 +454,14 @@ type
     // Raises exception if used without preceeding SUCCESSFUL call to
     // Exec* (Exec, ExecPos, ExecNext). So You always must use something like
     // if Exec (InputString) then repeat { proceed results} until not ExecNext;
-    function ExecNext: boolean;
+    function ExecNext: boolean; overload;
+    function ExecNext(ABackward: boolean): boolean; overload;
 
     // find match for InputString starting from AOffset position
     // (AOffset=1 - first char of InputString)
     function ExecPos(AOffset: integer = 1): boolean; overload;
     function ExecPos(AOffset: integer; ATryOnce: boolean): boolean; overload;
+    function ExecPos(AOffset: integer; ATryOnce, ABackward: boolean): boolean; overload;
 
     // Returns ATemplate with '$&' or '$0' replaced by whole r.e.
     // occurence and '$1'...'$nn' replaced by subexpression with given index.
@@ -2950,6 +2952,7 @@ var
   Len: integer;
   SavedPtr: PRegExprChar;
   EnderChar, TempChar: REChar;
+  DashForRange: Boolean;
 begin
   Result := nil;
   flags := 0;
@@ -3007,8 +3010,18 @@ begin
 
         while (regparse < fRegexEnd) and (regparse^ <> ']') do
         begin
-          if (regparse^ = '-') and ((regparse + 1) < fRegexEnd) and
-            ((regparse + 1)^ <> ']') and CanBeRange then
+          // last '-' inside [] treated as simple dash
+          if (regparse^ = '-') and
+            ((regparse + 1) < fRegexEnd) and
+            ((regparse + 1)^ = ']') then
+          begin
+            EmitRangeChar('-', False);
+            Inc(regparse);
+            Break;
+          end;
+
+          // char '-' which (maybe) makes a range
+          if (regparse^ = '-') and ((regparse + 1) < fRegexEnd) and CanBeRange then
           begin
             Inc(regparse);
             RangeEnd := regparse^;
@@ -3084,12 +3097,22 @@ begin
               else
               begin
                 TempChar := UnQuoteChar(regparse);
-                EmitRangeChar(TempChar, (regparse + 1)^ = '-');
+                // False if '-' is last char in []
+                DashForRange :=
+                  (regparse + 2 < fRegexEnd) and
+                  ((regparse + 1)^ = '-') and
+                  ((regparse + 2)^ <> ']');
+                EmitRangeChar(TempChar, DashForRange);
               end;
             end
             else
             begin
-              EmitRangeChar(regparse^, (regparse + 1)^ = '-');
+              // False if '-' is last char in []
+              DashForRange :=
+                (regparse + 2 < fRegexEnd) and
+                ((regparse + 1)^ = '-') and
+                ((regparse + 2)^ <> ']');
+              EmitRangeChar(regparse^, DashForRange);
             end;
             Inc(regparse);
           end;
@@ -4102,7 +4125,7 @@ end; { of function TRegExpr.MatchPrim
 function TRegExpr.Exec(const AInputString: RegExprString): boolean;
 begin
   InputString := AInputString;
-  Result := ExecPrim(1, False, False);
+  Result := ExecPrim(1, False, False, False);
 end; { of function TRegExpr.Exec
   -------------------------------------------------------------- }
 
@@ -4112,27 +4135,33 @@ var
   SlowChecks: boolean;
 begin
   SlowChecks := Length(fInputString) < fSlowChecksSizeMax;
-  Result := ExecPrim(1, False, SlowChecks);
+  Result := ExecPrim(1, False, SlowChecks, False);
 end; { of function TRegExpr.Exec
   -------------------------------------------------------------- }
 
 function TRegExpr.Exec(AOffset: integer): boolean;
 begin
-  Result := ExecPrim(AOffset, False, False);
+  Result := ExecPrim(AOffset, False, False, False);
 end; { of function TRegExpr.Exec
   -------------------------------------------------------------- }
 
 
 function TRegExpr.ExecPos(AOffset: integer = 1): boolean;
 begin
-  Result := ExecPrim(AOffset, False, False);
+  Result := ExecPrim(AOffset, False, False, False);
 end; { of function TRegExpr.ExecPos
   -------------------------------------------------------------- }
 
 
 function TRegExpr.ExecPos(AOffset: integer; ATryOnce: boolean): boolean;
 begin
-  Result := ExecPrim(AOffset, ATryOnce, False);
+  Result := ExecPrim(AOffset, ATryOnce, False, False);
+end;
+
+
+function TRegExpr.ExecPos(AOffset: integer; ATryOnce, aBackward: boolean): boolean;
+begin
+  Result := ExecPrim(AOffset, ATryOnce, False, ABackward);
 end;
 
 
@@ -4165,7 +4194,8 @@ begin
   GrpCount := 0;
 end;
 
-function TRegExpr.ExecPrim(AOffset: integer; ATryOnce, ASlowChecks: boolean): boolean;
+function TRegExpr.ExecPrim(AOffset: integer;
+  ATryOnce, ASlowChecks, ABackward: boolean): boolean;
 var
   Ptr: PRegExprChar;
 begin
@@ -4233,11 +4263,23 @@ begin
   end;
 
   // Messy cases: unanchored match.
-  Dec(Ptr);
+  if ABackward then
+    Inc(Ptr, 2)
+  else
+    Dec(Ptr);
   repeat
-    Inc(Ptr);
-    if Ptr > fInputEnd then
-      Exit;
+    if ABackward then
+    begin
+      Dec(Ptr);
+      if Ptr < fInputStart then
+        Exit;
+    end
+    else
+    begin
+      Inc(Ptr);
+      if Ptr > fInputEnd then
+        Exit;
+    end;
 
     {$IFDEF UseFirstCharSet}
     {$IFDEF UniCode}
@@ -4255,7 +4297,13 @@ begin
 end; { of function TRegExpr.ExecPrim
   -------------------------------------------------------------- }
 
+
 function TRegExpr.ExecNext: boolean;
+begin
+  Result:=ExecNext(False);
+end;
+
+function TRegExpr.ExecNext(ABackward: boolean): boolean;
 var
   PtrBegin, PtrEnd: PRegExprChar;
   Offset: PtrInt;
@@ -4274,8 +4322,9 @@ begin
   if PtrBegin = PtrEnd then
     Inc(Offset);
 
-  Result := ExecPrim(Offset, False, False);
+  Result := ExecPrim(Offset, False, False, ABackward);
 end; { of function TRegExpr.ExecNext
+
   -------------------------------------------------------------- }
 
 procedure TRegExpr.SetInputString(const AInputString: RegExprString);
@@ -4420,10 +4469,13 @@ begin
   begin
     Ch := p^;
     Inc(p);
+    n := -1;
     if Ch = '$' then
-      n := GrpIndexes[ParseVarName(p)]
-    else
-      n := -1;
+    begin
+      n := ParseVarName(p);
+      if (n >= 0) and (n <= High(GrpIndexes)) then
+        n := GrpIndexes[n];
+    end;
     if n >= 0 then
     begin
       Inc(ResultLen, endp[n] - startp[n]);
@@ -4467,7 +4519,7 @@ begin
   end;
   SetLength(Result, ResultLen);
   // Fill Result
-  ResultPtr := Pointer(Result);
+  ResultPtr := PRegExprChar(Result);
   p := TemplateBeg;
   Mode := smodeNormal;
   while p < TemplateEnd do
@@ -4476,10 +4528,13 @@ begin
     p0 := p;
     Inc(p);
     p1 := p;
+    n := -1;
     if Ch = '$' then
-      n := GrpIndexes[ParseVarName(p)]
-    else
-      n := -1;
+    begin
+      n := ParseVarName(p);
+      if (n >= 0) and (n <= High(GrpIndexes)) then
+        n := GrpIndexes[n];
+    end;
     if (n >= 0) then
     begin
       p0 := startp[n];
