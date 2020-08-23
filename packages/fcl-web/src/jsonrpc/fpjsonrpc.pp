@@ -195,6 +195,7 @@ Type
                             jdoStrictNotifications, // Error if notification returned result. Default is to discard result.
                             jdoAllowAPI, // Allow client to get API description
                             jdoCacheAPI // Cache the API description
+
                             );
   TJSONRPCDispatchOptions = set of TJSONRPCDispatchOption;
 
