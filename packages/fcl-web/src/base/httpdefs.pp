@@ -97,6 +97,7 @@ const
   SCookiePath     = httpProtocol.SCookiePath;
   SCookieSecure   = httpProtocol.SCookieSecure;
   SCookieHttpOnly = httpProtocol.SCookieHttpOnly;
+  SCookieSameSite = httpProtocol.SCookieSameSite;
 
   HTTPMonths : array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -148,11 +149,13 @@ type
   TRequest = Class;
 
   { TCookie }
+  TSameSite = (ssEmpty,ssNone,ssStrict,ssLax);
 
   TCookie = class(TCollectionItem)
   private
     FHttpOnly: Boolean;
     FName: string;
+    FSameSite: TSameSite;
     FValue: string;
     FPath: string;
     FDomain: string;
@@ -171,6 +174,7 @@ type
     property Expires: TDateTime read FExpires write FExpires;
     property Secure: Boolean read FSecure write FSecure;
     property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
+    property SameSite: TSameSite Read FSameSite Write FSameSite;
     Property AsString : String Read GetAsString;
   end;
 
@@ -2317,6 +2321,10 @@ function TCookie.GetAsString: string;
     Result:=Result+';'+S;
   end;
 
+Const
+  SSameSiteValues : Array[TSameSite] of string
+                  = ('','None','Strict','Lax');
+
 Var
   Y,M,D : Word;
 
@@ -2338,6 +2346,8 @@ begin
       AddToResult(SCookieHttpOnly);
     if FSecure then
       AddToResult(SCookieSecure);
+    if FSameSite<>ssEmpty then
+      AddToResult(SSameSiteValues[FSameSite]);
   except
 {$ifdef cgidebug}
     On E : Exception do
