@@ -20,6 +20,7 @@ type
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_SameNameSameParamCountFail;
     procedure TestGen_TypeAliasWithoutSpecializeFail;
+    procedure TestGen_TemplNameEqTypeNameFail; // type T<T>
 
     // constraints
     procedure TestGen_ConstraintStringFail;
@@ -33,10 +34,9 @@ type
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_ConstraintSpecialize;
     procedure TestGen_ConstraintTSpecializeWithT;
-    procedure TestGen_ConstraintTSpecializeAsTFail;
-    procedure TestGen_ConstraintTcolonTFail; // A<T:T>
-    // ToDo: A<T:B<T>> fail
-    procedure TestGen_TemplNameEqTypeNameFail;
+    procedure TestGen_ConstraintTSpecializeAsTFail; // TBird<T; U: T<word>>  and no T<>
+    procedure TestGen_ConstraintTSpecializeWithTFail; // TBird<T: TAnt<T>>
+    procedure TestGen_ConstraintSameNameFail; // TAnt<T:T>
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
     procedure TestGen_ConstraintMultiParam;
@@ -259,6 +259,20 @@ begin
     nXExpectedButYFound);
 end;
 
+procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<TBird> = record v: T; end;',
+  'var r: specialize TBird<word>;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,16)',
+    nDuplicateIdentifier);
+end;
+
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
 begin
   StartProgram(false);
@@ -422,14 +436,30 @@ begin
   Add([
   '{$mode objfpc}',
   'type',
-  '  generic TAnt<S> = record v: S; end;',
+  '  TObject = class end;',
+  // Note: would work if  generic T<S>  exists
   '  generic TBird<T; U: specialize T<word>> = record v: T; end;',
   'begin',
   '']);
   CheckResolverException('identifier not found "T<>"',nIdentifierNotFound);
 end;
 
-procedure TTestResolveGenerics.TestGen_ConstraintTcolonTFail;
+procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeWithTFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TAnt<S> = class v: S; end;',
+  '  generic TBird<T: specialize TAnt<T>> = class v: T; end;',
+  '  TEagle = specialize TBird<specialize TAnt<word>>;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "T"',nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintSameNameFail;
 begin
   StartProgram(false);
   Add([
@@ -441,20 +471,6 @@ begin
   'begin',
   '']);
   CheckResolverException(sTypeCycleFound,nTypeCycleFound);
-end;
-
-procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  generic TBird<TBird> = record v: T; end;',
-  'var r: specialize TBird<word>;',
-  'begin',
-  '']);
-  CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,16)',
-    nDuplicateIdentifier);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintInheritedMissingRecordFail;
