@@ -89,7 +89,7 @@ const
   FieldCookie = HeaderCookie deprecated;
   FieldSetCookie = HeaderSetCookie deprecated;
 
-  NoHTTPFields    = 27;
+  NoHTTPFields    = 28;
 
   HTTPDateFmt     = httpProtocol.HTTPDateFmt;
   SCookieExpire   = httpProtocol.SCookieExpire;
@@ -129,7 +129,7 @@ Const
                  fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
                  fieldPragma, fieldReferer, fieldRetryAfter, fieldServer,
                  fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
-                  fieldHost, fieldCacheControl,fieldXRequestedWith) deprecated;
+                  fieldHost, fieldCacheControl,fieldXRequestedWith,fieldIfNoneMatch) deprecated;
 
   // Map header names on indexes in property getter/setter. 0 means not mapped !
   HTTPFieldIndexes : THTTPIndexes
@@ -140,7 +140,7 @@ Const
                        14,15,16,17,
                        18,19,20,21,
                        22,23,24,
-                       34,0,36) deprecated;
+                       34,0,36,26) deprecated;
 
 
 
@@ -553,6 +553,8 @@ type
     Procedure RemoveVariable(VariableName : String); virtual; abstract;
     // Terminate session
     Procedure Terminate; virtual; abstract;
+    // checks if session variable exists
+    Function SessionVariableExists(VarName : String) : Boolean; Virtual; abstract;
     // Session timeout in minutes
     Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
     // ID of this session.
@@ -595,6 +597,7 @@ type
 
   THandleCORSOption = (hcDetect, // Detect OPTIONS request, send full headers
                        hcFull,   // Force sending full headers
+                       hcHumanReadable, // Human readable result
                        hcSend    // In case of full headers, send response
                        );
   THandleCORSOptions = set of THandleCORSOption;
@@ -1092,7 +1095,7 @@ Const
        6,7,8,
        9,-1,-1,-1,
        10,12,-1,13,-1,
-       14,34,-1,15,-1,
+       14,34,-1,15,26,
        -1,-1,16,17,-1,
        18,-1,-1,-1,19,
        20,21,-1,-1,
