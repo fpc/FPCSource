@@ -30,6 +30,7 @@ type
     procedure TestGen_ConstraintRecordClassFail;
     procedure TestGen_ConstraintArrayFail;
     procedure TestGen_ConstraintConstructor;
+    procedure TestGen_ConstraintUnit;
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_ConstraintSpecialize;
@@ -375,6 +376,36 @@ begin
   '  o:=T.Create;',
   'end;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintUnit;
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    'type',
+    '  TBird = class b1: word; end;',
+    '  generic TAnt<T> = class a1: T; end;',
+    '']),
+    LinesToStr([
+    '']));
+  StartProgram(true,[supTObject]);
+  Add([
+  'uses unit1;',
+  'type',
+  '  generic TCat<T: unit1.TBird> = class v: T; end;',
+  '  generic TFish<T: specialize TAnt<word>> = class v: T; end;',
+  '  TEagle = class(unit1.TBird);',
+  '  TRedAnt = specialize TAnt<word>;',
+  'var',
+  '  eagle: TEagle;',
+  '  redant: TRedAnt;',
+  '  cat: specialize TCat<TEagle>;',
+  '  fish: specialize TFish<TRedAnt>;',
+  'begin',
+  '  cat.v:=eagle;',
+  '  fish.v:=redant;',
   '']);
   ParseProgram;
 end;
