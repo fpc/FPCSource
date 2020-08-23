@@ -743,7 +743,7 @@ begin
   AddLn('');
   AddLn('begin');
   Indent;
-  AddLn('For I:=0 to Length(anArray) do');
+  AddLn('For I:=0 to Length(anArray)-1 do');
   Indent;
   if IM.JSONType=jtObject then
     AddLn('FreeAndNil(anArray[I]);')
