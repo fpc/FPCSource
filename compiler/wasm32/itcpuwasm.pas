@@ -29,7 +29,7 @@ interface
       cpubase,cgbase;
 
     const
-      wasm_op2str : array[tasmop] of string[31] = ( '<none>',
+      wasm_op2str : op2strtable = ( '<none>',
         // control flow
         'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end',
         'return', 'unreachable',

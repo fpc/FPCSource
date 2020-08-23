@@ -88,7 +88,7 @@ uses
       TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
 
       {# This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[8];
+      op2strtable=array[tasmop] of string[31];
 
     Const
       {# First value of opcode enumeration }
