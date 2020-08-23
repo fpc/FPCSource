@@ -41,6 +41,7 @@ Type
        llvmver_7_0,
        llvmver_7_1,
        llvmver_8_0,
+       llvmver_xc_11,
        llvmver_9_0,
        llvmver_10_0
       );
@@ -63,6 +64,7 @@ Const
      '7.0',
      '7.1',
      '8.0',
+     'Xcode-11.0',
      '9.0',
      '10.0'
    );
@@ -75,6 +77,7 @@ Const
        { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
+       { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
        { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp]
      );
