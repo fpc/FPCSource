@@ -373,7 +373,7 @@ Type
     procedure InstallDaemons;
     procedure RunDaemons;
     procedure UnInstallDaemons;
-    procedure ShowHelp;
+    procedure ShowHelp; virtual;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
     Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property EventLog : TEventLog Read GetEventLog;
