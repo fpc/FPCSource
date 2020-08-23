@@ -905,7 +905,7 @@ begin
     begin
     Sleep(100);
     if (FConnectionCount=FLastCount) then
-      Dec(ACount)
+      Inc(ACount)
     else
       FLastCount:=FConnectionCount;
     end;
