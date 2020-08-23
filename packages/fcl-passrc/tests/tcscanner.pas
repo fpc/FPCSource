@@ -249,6 +249,7 @@ type
     Procedure TestModeSwitch;
     Procedure TestOperatorIdentifier;
     Procedure TestUTF8BOM;
+    Procedure TestBooleanSwitch;
   end;
 
 implementation
@@ -1769,6 +1770,16 @@ procedure TTestScanner.TestUTF8BOM;
 
 begin
   DoTestToken(tkLineEnding,#$EF+#$BB+#$BF);
+end;
+
+Procedure TTestScanner.TestBooleanSwitch;
+
+begin
+  Scanner.CurrentBoolSwitches:=[bsHints];
+  // end space intentional.
+  NewSource('{$HINTS OFF }');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertFalse('Hints off',bshints in Scanner.CurrentBoolSwitches);
 end;
 
 initialization

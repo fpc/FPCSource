@@ -3970,6 +3970,7 @@ begin
     if not Handled then
       begin
       Handled:=true;
+      Param:=Trim(Param);
       Case UpperCase(Directive) of
         'ASSERTIONS':
           DoBoolDirective(bsAssertions);
@@ -4084,6 +4085,7 @@ procedure TPascalScanner.HandleBoolDirective(bs: TBoolSwitch;
   const Param: String);
 var
   NewValue: Boolean;
+  
 begin
   if CompareText(Param,'on')=0 then
     NewValue:=true
