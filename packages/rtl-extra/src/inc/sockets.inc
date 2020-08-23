@@ -398,7 +398,7 @@ end;
 
 const digittab : shortstring = ('0123456789ABCDEF');
 
-function lclinttohex (i:integer;digits:longint): ansistring;
+function lclinttohex (i:longint;digits:longint): ansistring;
 
 begin
   SetLength(lclinttohex,4);
@@ -734,7 +734,7 @@ begin
     // NOTE: optimization note: memmove/memcpy equivalent could help here.
     if hextet_idx < 8 then exit;
     for tmpByte := 0 to 7 do
-      ip6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
+      ip6.u6_addr16[tmpByte] := hextet_arr[tmpByte];
   end;
   TryStrToHostAddr6 := True;
 end;
