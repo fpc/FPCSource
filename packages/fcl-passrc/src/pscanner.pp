@@ -3632,7 +3632,7 @@ begin
     DoLog(mtWarning,nMisplacedGlobalCompilerSwitch,SMisplacedGlobalCompilerSwitch,[]);
     exit;
     end;
-  P:=UpperCase(Param);
+  P:=Trim(UpperCase(Param));
   Case P of
   'FPC','DEFAULT':
     SetMode(msFpc,FPCModeSwitches,false,bsFPCMode);
