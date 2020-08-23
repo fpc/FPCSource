@@ -177,6 +177,7 @@ end;
 function TFieldDef.GetCharSize: Word;
 begin
   case FDataType of
+   ftGUID: Result:=1;
    ftString, ftFixedChar:
      case FCodePage of
        CP_UTF8: Result := 4;
