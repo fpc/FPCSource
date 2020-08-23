@@ -529,7 +529,10 @@ end;
 Procedure THandleStream.SetSize(const NewSize: Int64);
 
 begin
-  FileTruncate(FHandle,NewSize);
+  // We set the position afterwards, because the size can also be larger.
+  if not FileTruncate(FHandle,NewSize) then
+    Raise EInOutError.Create(SStreamSetSize);
+  Position:=NewSize;
 end;
 
 
