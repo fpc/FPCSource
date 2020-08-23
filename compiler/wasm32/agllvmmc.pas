@@ -40,6 +40,14 @@ interface
     TLLVMMachineCodePlaygroundAssembler=class(TGNUassembler)
     protected
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+    public
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+    end;
+
+    { TWASM32InstrWriter }
+
+    TWASM32InstrWriter = class(TCPUInstrWriter)
+      procedure WriteInstruction(hp : tai);override;
     end;
 
 implementation
@@ -51,9 +59,26 @@ implementation
 
   { TLLVMMachineCodePlaygroundAssembler }
 
+
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
       Result:=inherited sectionname(atype, aname, aorder)+',"",@';
+    end;
+
+
+  constructor TLLVMMachineCodePlaygroundAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    begin
+      inherited;
+      InstrWriter:=TWASM32InstrWriter.create(self);
+    end;
+
+
+  { TWASM32InstrWriter }
+
+
+  procedure TWASM32InstrWriter.WriteInstruction(hp: tai);
+    begin
+      owner.writer.AsmWriteLn('# TODO: implement TWASM32InstrWriter.WriteInstruction');
     end;
 
 
