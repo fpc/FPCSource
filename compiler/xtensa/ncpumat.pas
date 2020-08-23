@@ -110,19 +110,71 @@ implementation
 
     procedure tcpunotnode.second_boolean;
       var
-        tmpreg : TRegister;
+        tmpreg, hreg1, hreg2, hreg3: TRegister;
+        instr: taicpu;
       begin
         secondpass(left);
 
-        location:=left.location;
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
-        { not supported yet }
         if is_64bit(resultdef) then
-          Internalerror(2020031701);
-        if is_cbool(resultdef) then
-          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef), location.register, location.register)
+          begin
+            if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+            hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,left.location.register64.reglo,left.location.register64.reghi,hreg1);
+            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg2);
+            hreg3:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            if is_cbool(resultdef) then
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,-1,hreg3)
+            else
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg3);
+            location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            if is_cbool(resultdef) then
+              begin
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reglo,hreg3,hreg1);
+                instr.condition:=C_EQZ;
+                current_asmdata.CurrAsmList.concat(instr);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reghi,hreg3,hreg1);
+                instr.condition:=C_EQZ;
+                current_asmdata.CurrAsmList.concat(instr);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reglo,hreg2,hreg1);
+                instr.condition:=C_NEZ;
+                current_asmdata.CurrAsmList.concat(instr);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reghi,hreg2,hreg1);
+                instr.condition:=C_NEZ;
+                current_asmdata.CurrAsmList.concat(instr);
+              end
+            else
+              begin
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,location.register64.reghi);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reglo,hreg3,hreg1);
+                instr.condition:=C_EQZ;
+                current_asmdata.CurrAsmList.concat(instr);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register64.reglo,hreg2,hreg1);
+                instr.condition:=C_NEZ;
+                current_asmdata.CurrAsmList.concat(instr);
+              end
+          end
         else
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),1, location.register, location.register)
+          begin
+            location:=left.location;
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+            if is_cbool(resultdef) then
+              begin
+                { normalize }
+                hreg3:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),-1,hreg3);
+                instr:=taicpu.op_reg_reg_reg(A_MOV,location.register,hreg3,location.register);
+                instr.condition:=C_NEZ;
+                current_asmdata.CurrAsmList.concat(instr);
+
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef), location.register, location.register)
+              end
+            else
+              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),1, location.register, location.register)
+          end;
       end;
 
 {*****************************************************************************
