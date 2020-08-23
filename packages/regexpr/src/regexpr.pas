@@ -50,7 +50,7 @@ interface
 
 {$MODE DELPHI} // Delphi-compatible mode in FreePascal
 // Disabling for now, seems to cause bug in Lazarus (bug ID 36603)
-{ $INLINE ON}
+{$INLINE ON}
 
 // ======== Define base compiler options
 {$BOOLEVAL OFF}
@@ -280,7 +280,7 @@ type
     {$IFDEF UnicodeWordDetection}
     FUseUnicodeWordDetection: boolean;
     {$ENDIF}
-    FEmptyImputRaisesError : Boolean;
+    FEmptyInputRaisesError : Boolean;
     
     CharCheckers: TRegExprCharCheckerArray;
     CharCheckerInfos: TRegExprCharCheckerInfos;
@@ -621,7 +621,7 @@ type
     property SlowChecksSizeMax: integer read fSlowChecksSizeMax write fSlowChecksSizeMax;
 
      // Raise error when input string is empty
-    Property EmptyImputRaisesError : Boolean Read FEmptyImputRaisesError Write FEmptyImputRaisesError;
+    Property EmptyInputRaisesError : Boolean Read FEmptyInputRaisesError Write FEmptyInputRaisesError;
   end;
 
 type
@@ -1440,6 +1440,7 @@ begin
   programm := nil;
   fExpression := '';
   fInputString := '';
+  FEmptyInputRaisesError := False;
 
   regexpBegin := nil;
   regexpIsCompiled := False;
@@ -4217,7 +4218,7 @@ begin
   // Check InputString presence
   if fInputString = '' then
   begin
-    if EmptyImputRaisesError then
+    if EmptyInputRaisesError then
       Error(reeNoInputStringSpecified);
     Exit;
   end;
@@ -4450,7 +4451,7 @@ begin
     Exit;
   if fInputString = '' then
   begin
-    if EmptyImputRaisesError then
+    if EmptyInputRaisesError then
       Error(reeNoInputStringSpecified);
     Exit;
   end;
