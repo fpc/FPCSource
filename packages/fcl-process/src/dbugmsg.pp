@@ -22,7 +22,7 @@ interface
 uses Classes;
 
 Const
-  DebugServerID  : String = 'fpcdebugserver';
+  DebugServerID = 'fpcdebugserver'; { compiled IPC server's IDentifiant-name. Should be the same as the compiled IPC client dbugintf.DefaultDebugServer }
 
   lctStop        = -1;
   lctInformation = 0;

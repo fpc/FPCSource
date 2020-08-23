@@ -19,8 +19,11 @@ unit dbugintf;
 
 interface
 
+uses dbugmsg;
+
 Type
   TDebugLevel = (dlInformation,dlWarning,dlError);
+  TErrorLevel = Array[TDebugLevel] of integer;
 
 procedure SendBoolean(const Identifier: string; const Value: Boolean);
 procedure SendDateTime(const Identifier: string; const Value: TDateTime);
@@ -39,34 +42,33 @@ function GetDebuggingEnabled : Boolean;
 
 { low-level routines }
 
-Function  StartDebugServer : integer;
+Function StartDebugServer(const aLogFilename : String = '') : integer;
 Function InitDebugClient : Boolean;
-Function InitDebugClient(const ShowOrNotPID: Boolean) : Boolean; overload;
+function InitDebugClient(const ShowPID: Boolean; const ServerLogFilename: String = ''): Boolean;
+procedure FreeDebugClient;
 
-Const
-  SendError       : String = '';
-  DefaultDebugServer = 'debugserver';
- 
 ResourceString
-  SProcessID = 'Process %s (PID=%d)';
+  SProcessID = '%d Process %s (PID=%d)';
   SEntering = '> Entering ';
   SExiting  = '< Exiting ';
   SSeparator = '>-=-=-=-=-=-=-=-=-=-=-=-=-=-=-<';
   SServerStartFailed = 'Failed to start debugserver. (%s)';
 
 Var
-  DebugServerExe : String = DefaultDebugServer;
+  DebugServerExe     : String = ''; { We can override this global var. in our compiled IPC client, with DefaultDebugServer a.k.a. dbugmsg.DebugServerID, or something else  }
+  DefaultDebugServer : String = DebugServerID ; { A "last ressort" simplier compiled IPC server's name, called in command line by your client a.k.a. the compiler's target file "-o" }
+  SendError          : String = '';
 
 implementation
 
 Uses 
-  SysUtils, classes,dbugmsg, process, simpleipc;
+  SysUtils, classes, process, simpleipc, strutils;
 
 Const
   DmtInformation = lctInformation;
   DmtWarning     = lctWarning;
   DmtError       = lctError;
-  ErrorLevel     : Array[TDebugLevel] of integer
+  ErrorLevel     : TErrorLevel
                  = (dmtInformation,dmtWarning,dmtError);
   IndentChars    = 2;
   
@@ -224,21 +226,23 @@ begin
   Result := not DebugDisabled;
 end;
 
-function StartDebugServer : Integer;
+function StartDebugServer(Const aLogFileName : string = '') : Integer;
 
 Var
   Cmd : string;
 
 begin
-  Cmd:=DebugServerExe;
+  Cmd := DebugServerExe;
   if Cmd='' then
-    Cmd:=DefaultDebugServer;
+    Cmd := DefaultDebugServer;
   With TProcess.Create(Nil) do
     begin
     Try
-      CommandLine:=Cmd;
+      Executable := Cmd;
+      If aLogFileName<>'' Then
+        Parameters.Add(aLogFileName);
       Execute;
-      Result:=ProcessID;
+      Result := ProcessID;
     Except On E: Exception do
       begin
       SendError := Format(SServerStartFailed,[E.Message]);
@@ -261,7 +265,7 @@ begin
       begin
       Msg.MsgType:=lctStop;
       Msg.MsgTimeStamp:=Now;
-      Msg.Msg:=Format(SProcessID,[ApplicationName, GetProcessID]);
+      Msg.Msg:=Format(SProcessID,[GetProcessID, ApplicationName, GetProcessID]);
       WriteMessage(Msg);
       end;
     if assigned(MsgBuffer) then FreeAndNil(MsgBuffer);
@@ -272,17 +276,25 @@ end;
 
 Function InitDebugClient : Boolean;
 
+begin
+  InitDebugClient(False,'');
+end;
+
+
+function InitDebugClient(const ShowPID: Boolean; const ServerLogFilename: String = ''): Boolean;
+
 Var
   msg : TDebugMessage;
   I : Integer;
 
 begin
   Result := False;
+  AlwaysDisplayPID:= ShowPID;
   DebugClient:=TSimpleIPCClient.Create(Nil);
   DebugClient.ServerID:=DebugServerID;
   If not DebugClient.ServerRunning then
     begin
-    ServerID:=StartDebugServer;
+    ServerID:=StartDebugServer(ServerLogFileName);
     if ServerID = 0 then
       begin
       DebugDisabled := True;
@@ -308,15 +320,9 @@ begin
   MsgBuffer:=TMemoryStream.Create;
   Msg.MsgType:=lctIdentify;
   Msg.MsgTimeStamp:=Now;
-  Msg.Msg:=Format(SProcessID,[ApplicationName, GetProcessID]);
+  Msg.Msg:=Format(SProcessID,[GetProcessID, ApplicationName, GetProcessID]);
   WriteMessage(Msg);
   Result := True;
-end;
-
-function InitDebugClient(const ShowOrNotPID: Boolean): Boolean;
-begin
-  AlwaysDisplayPID:= ShowOrNotPID;
-  Result:= InitDebugClient;
 end;
 
 Finalization

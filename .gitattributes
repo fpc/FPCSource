@@ -2918,7 +2918,6 @@ packages/fcl-base/examples/contit.pp svneol=native#text/plain
 packages/fcl-base/examples/crittest.pp svneol=native#text/plain
 packages/fcl-base/examples/csvbom.pp svneol=native#text/plain
 packages/fcl-base/examples/databom.txt svneol=native#text/plain
-packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
 packages/fcl-base/examples/decodeascii85.pp svneol=native#text/plain
 packages/fcl-base/examples/demoio.pp svneol=native#text/plain
@@ -3684,6 +3683,7 @@ packages/fcl-process/Makefile.fpc svneol=native#text/plain
 packages/fcl-process/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/fcl-process/examples/checkipcserver.lpi svneol=native#text/plain
 packages/fcl-process/examples/checkipcserver.lpr svneol=native#text/plain
+packages/fcl-process/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-process/examples/demoproject.ico -text
 packages/fcl-process/examples/demoproject.lpi svneol=native#text/plain
 packages/fcl-process/examples/demoproject.pp svneol=native#text/plain
