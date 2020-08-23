@@ -597,7 +597,7 @@ begin
           begin
             // if we saw a collapsed sequence before, or if we've already
             // seen 8 hextets.
-            if (coll_zero_seen = True) or (hextet_idx > 7) then exit;
+            if coll_zero_seen or (hextet_idx > 7) then exit;
             coll_zero_seen := True;
             coll_start_idx := hextet_idx;
             Inc(hextet_idx);
@@ -670,7 +670,7 @@ begin
 
   // finish line is in sight. if we have a collapsed-zeroes sequence
   // then we must fill that in now.
-  if coll_zero_seen = True then
+  if coll_zero_seen then
   begin
     for tmpByte := 0 to coll_start_idx do
       StrToHostAddr6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
