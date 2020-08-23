@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2016 by Karoly Balogh
+    Copyright (c) 1998-2012 by Florian Klaempfl and others
 
-    This unit contains the WebAssembly instruction tables
+    This unit contains the WebAssembly GAS instruction tables
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,18 +19,33 @@
 
  ****************************************************************************
 }
-unit itcpuwasm;
+unit itcpugas;
 
 {$i fpcdefs.inc}
 
 interface
 
-    uses
-      cpubase,cgbase;
+  uses
+    cpubase,cgbase,
+    itcpuwasm;
 
-    const
-      wasm_op2str : op2strtable = ({$i strinst.inc});
+
+  const
+    { Standard opcode string table (for each tasmop enumeration). The
+      opcode strings should conform to the names as defined by the
+      processor manufacturer.
+    }
+    gas_op2str : op2strtable = ({$i strinst.inc});
+
+    function gas_regname(r:Tregister):string;
+
 
 implementation
+
+
+    function gas_regname(r:Tregister):string;
+      begin
+        result:=generic_regname(r);
+      end;
 
 end.
