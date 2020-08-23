@@ -23,6 +23,9 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <CommandLineParams Value="--input=&quot;$HOME/source/pas2js/src/rtl/web.pas -S2h&quot; --no-externalclass --no-implementation --no-externalvar --no-externalfunction -x jstypes -o web.pp"/>
+      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
