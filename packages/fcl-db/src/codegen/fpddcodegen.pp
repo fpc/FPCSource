@@ -443,7 +443,7 @@ Resourcestring
 
 Function MakeIdentifier (S : String) : String;
 Function CreateString(S : String) : String;
-Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True);
+Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True; AllowDots : Boolean = False);
 
 implementation
 
@@ -454,10 +454,10 @@ begin
   Result:=''''+Result+'''';
 end;
 
-Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True);
+Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True; AllowDots : Boolean = False);
 
 begin
-  If ((AValue='') and Not AllowEmpty) or Not IsValidIdent(AValue) then
+  If ((AValue='') and Not AllowEmpty) or Not IsValidIdent(AValue,AllowDots) then
     Raise ECodeGenerator.CreateFmt(SErrInvalidIdentifier,[AValue]);
 end;
 
@@ -1686,7 +1686,7 @@ end;
 procedure TCodeGeneratorOptions.SetUnitname(const AValue: String);
 begin
   if FUnitName=AValue then exit;
-  CheckIdentifier(AValue,False);
+  CheckIdentifier(AValue,False,True);
   FUnitName:=AValue;
 end;
 
