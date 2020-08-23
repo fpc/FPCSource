@@ -284,6 +284,8 @@ end;
 
 procedure THTTPCompilerApplication.LoadDefaultMimeTypes;
 begin
+  MimeTypes.LoadKnownTypes;
+  // To be sure
   MimeTypes.AddType('application/xhtml+xml','xhtml;xht');
   MimeTypes.AddType('text/html','html;htm');
   MimeTypes.AddType('text/plain','txt');
@@ -296,6 +298,7 @@ begin
   MimeTypes.AddType('image/jp2','jp2');
   MimeTypes.AddType('image/tiff','tiff;tif');
   MimeTypes.AddType('application/pdf','pdf');
+  MimeTypes.AddType('text/css','css');
 end;
 
 constructor THTTPCompilerApplication.Create(AOWner: TComponent);
@@ -366,7 +369,7 @@ end;
 
 procedure THTTPCompilerApplication.AddToStatus(AEntry: TDirectoryEntry; AEvents: TFileEvents);
 
-Var
+Var  
   O : TJSONObject;
   FN : String;
 
