@@ -35,7 +35,10 @@ type
                       woAddLineNumber,    // Prefix line with generated line numbers in comment
                       woAddSourceLineNumber,    // Prefix line with original source line numbers (when available) in comment
                       woForwardClasses,   // Add forward definitions for all classes
-                      woForceOverload     // Force 'overload;' on overloads that are not marked as such.
+                      woForceOverload,     // Force 'overload;' on overloads that are not marked as such.
+                      woNoAsm,         // Do not allow asm block
+                      woSkipPrivateExternals,  // Skip generation of external procedure declaration in implementation section
+                      woAlwaysRecordHelper     // Force use of record helper for type helper
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -60,6 +63,7 @@ type
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
   protected
+    procedure DisableHintsWarnings;
     procedure PrepareDeclSectionInStruct(const ADeclSection: string);
     procedure MaybeSetLineElement(AElement: TPasElement);
     function GetExpr(E: TPasExpr): String; virtual;
@@ -82,10 +86,11 @@ type
   public
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
+    procedure WriteMembers(aMembers: TFPList; aDefaultVisibility: TPasMemberVisibility=visDefault); virtual;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
     procedure WriteResourceString(aStr: TPasResString); virtual;
     procedure WriteEnumType(AType: TPasEnumType); virtual;
-    procedure WriteElement(AElement: TPasElement);virtual;
+    procedure WriteElement(AElement: TPasElement;SkipSection : Boolean = False);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
     procedure WriteProgram(aModule : TPasProgram); virtual;
     Procedure WriteLibrary(aModule : TPasLibrary); virtual;
@@ -220,10 +225,11 @@ begin
     FLineElement:=AElement;
 end;
 
-procedure TPasWriter.WriteElement(AElement: TPasElement);
+procedure TPasWriter.WriteElement(AElement: TPasElement;SkipSection : Boolean = False);
 
 begin
-  MaybeSetLineElement(AElement);
+  if not SkipSection then
+    MaybeSetLineElement(AElement);
   if AElement.InheritsFrom(TPasModule) then
     WriteModule(TPasModule(AElement))
   else if AElement.InheritsFrom(TPasSection) then
@@ -299,6 +305,16 @@ begin
     AddLn(';');
 end;
 
+procedure TPasWriter.DisableHintsWarnings;
+
+begin
+  Addln('{$HINTS OFF}');
+  Addln('{$WARNINGS OFF}');
+  Addln('{$IFDEF FPC}');
+  Addln('{$NOTES OFF}');
+  Addln('{$ENDIF FPC}');
+end;
+
 procedure TPasWriter.WriteProgram(aModule: TPasProgram);
 
 Var
@@ -321,13 +337,7 @@ begin
     AddLn;
     end;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$IFDEF FPC}');
-    Addln('{$NOTES OFF}');
-    Addln('{$ENDIF FPC}');
-    end;
+    DisableHintsWarnings;
   if Assigned(aModule.ProgramSection) then
     WriteSection(aModule.ProgramSection);
   if Assigned(AModule.InitializationSection) then
@@ -364,11 +374,7 @@ begin
     AddLn;
     end;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$NOTES OFF}');
-    end;
+    DisableHintsWarnings;
   if Assigned(AModule.InitializationSection) then
     begin
     PrepareDeclSection('');
@@ -484,18 +490,14 @@ begin
   AddLn('implementation');
   FInImplementation:=True;
   if HasOption(woNoImplementation) then
-    begin
-    Addln('{$HINTS OFF}');
-    Addln('{$WARNINGS OFF}');
-    Addln('{$NOTES OFF}');
-    end;
+    DisableHintsWarnings;
   if hasOption(woNoExternalFunc) then
     WriteDummyExternalFunctions(AModule.InterfaceSection);
   if Assigned(AModule.ImplementationSection) then
-  begin
+    begin
     AddLn;
     WriteSection(AModule.ImplementationSection);
-  end;
+    end;
   AddLn;
   if NotOption(woNoImplementation) then
     begin
@@ -564,12 +566,13 @@ begin
   C:=0;
   if ASection.UsesList.Count>0 then
     begin
-    For I:=1 to WordCount(ExtraUnits,UnitSeps) do
-      begin
-      u:=Trim(ExtractWord(1,ExtraUnits,UnitSeps));
-      if (U<>'') then
-        AddUnit(U,Nil);
-      end;
+    if not (aSection is TImplementationSection) then
+      For I:=1 to WordCount(ExtraUnits,UnitSeps) do
+        begin
+        u:=Trim(ExtractWord(1,ExtraUnits,UnitSeps));
+        if (U<>'') then
+          AddUnit(U,Nil);
+        end;
     if length(ASection.UsesClause)=ASection.UsesList.Count then
       begin
       for i := 0 to length(ASection.UsesClause)-1 do
@@ -609,17 +612,7 @@ procedure TPasWriter.WriteClass(AClass: TPasClassType);
 
 var
   i: Integer;
-  Member, LastMember: TPasElement;
   InterfacesListPrefix: string;
-  LastVisibility, CurVisibility: TPasMemberVisibility;
-
-  function ForceVisibility: boolean;
-  begin
-    Result := (LastMember <> nil) and
-      // variables can't be declared directly after methods nor properties
-      // (visibility section or var keyword is required)
-      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
-  end;
 
 begin
   PrepareDeclSection('type');
@@ -632,9 +625,22 @@ begin
     okObject: Add('object');
     okClass: Add('class');
     okInterface: Add('interface');
+    okTypeHelper :
+      if HasOption(woAlwaysRecordHelper) then
+        Add('record helper')
+      else
+        Add('type helper');
     okRecordHelper: Add('record helper');
     okClassHelper: Add('class helper');
   end;
+  if (AClass.ObjKind in [okTypeHelper,okRecordHelper,okClassHelper]) then
+    begin
+    if not Assigned(AClass.HelperForType) then
+      Add(' for unknowntype')
+    else
+      Add(' for '+AClass.HelperForType.SafeName)
+    end;
+
   if AClass.IsForward then
     exit;
   if (AClass.ObjKind=okClass) and (ACLass.ExternalName<>'') and NotOption(woNoExternalClass) then
@@ -660,11 +666,35 @@ begin
       AddLn('['+AClass.InterfaceGUID+']');
   IncIndent;
   IncDeclSectionLevel;
-  LastVisibility := visDefault;
+  WriteMembers(AClass.Members);
+  DecDeclSectionLevel;
+  DecIndent;
+  Add('end');
+end;
+
+procedure TPasWriter.WriteMembers(aMembers : TFPList; aDefaultVisibility : TPasMemberVisibility = visDefault);
+
+Var
+  Member, LastMember: TPasElement;
+  LastVisibility, CurVisibility: TPasMemberVisibility;
+
+  function ForceVisibility: boolean;
+  begin
+    Result := (LastMember <> nil) and
+      // variables can't be declared directly after methods nor properties
+      // (visibility section or var keyword is required)
+      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
+  end;
+
+Var
+  I : integer;
+
+begin
+  LastVisibility:=aDefaultVisibility;
   LastMember := nil;
-  for i := 0 to AClass.Members.Count - 1 do
+  for i := 0 to aMembers.Count - 1 do
     begin
-    Member := TPasElement(AClass.Members[i]);
+    Member := TPasElement(aMembers[i]);
     CurVisibility := Member.Visibility;
     if (CurVisibility <> LastVisibility) or ForceVisibility then
       begin
@@ -683,9 +713,6 @@ begin
     WriteElement(Member);
     LastMember := Member;
     end;
-  DecDeclSectionLevel;
-  DecIndent;
-  Add('end');
 end;
 
 procedure TPasWriter.WriteConst(AConst: TPasConst);
@@ -708,7 +735,7 @@ begin
   // handle variables in classes/records
   else if vmClass in aVar.VarModifiers then
     PrepareDeclSectionInStruct('class var')
-  else if CurDeclSection<>'' then
+  else if (CurDeclSection<>'') and not (aVar.Parent.ClassType = TPasRecordType) then
     PrepareDeclSectionInStruct('var');
   Add(aVar.SafeName + ': ');
   if Not Assigned(aVar.VarType) then
@@ -720,11 +747,13 @@ begin
     begin
     if LParentIsClassOrRecord then
       begin
+      Writeln('a');
       if NotOption(woNoExternalClass) then
         Add('; external name ''%s''',[aVar.ExportName.GetDeclaration(true)]);
       end
     else if NotOption(woNoExternalVar) then
       begin
+      Writeln('b');
       Add('; external ');
       if (aVar.LibraryName<>Nil) then
         Add('%s ',[aVar.LibraryName.GetDeclaration(true)]);
@@ -772,19 +801,29 @@ end;
 procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 
 Var
-  S : TStrings;
   I : Integer;
+  Temp : String;
+  el : TPasElement;
 
 begin
-  S:=TStringList.Create;
-  try
-    S.Text:=AType.GetDeclaration(true);
-    For I:=0 to S.Count-2 do
-      AddLn(S[i]);
-    Add(S[S.Count-1]);
-  finally
-    S.Free;
-  end;
+  Temp:='record';
+  If aType.IsPacked then
+    if Atype.IsBitPacked then
+      Temp:='bitpacked '+Temp
+    else
+      Temp:='packed '+Temp;
+  If (Atype.Name<>'') then
+    begin
+    if AType.GenericTemplateTypes.Count>0 then
+      Temp:=AType.SafeName+GenericTemplateTypesAsString(AType.GenericTemplateTypes)+' = '+Temp
+    else
+      Temp:=AType.SafeName+' = '+Temp;
+    end;
+  AddLn(Temp);
+  IncIndent;
+  WriteMembers(AType.Members,visPublic);
+  DecIndent;
+  Add('end');
 end;
 
 procedure TPasWriter.WriteArrayType(AType: TPasArrayType; Full : Boolean = True);
@@ -803,16 +842,27 @@ end;
 
 procedure TPasWriter.WriteProcDecl(AProc: TPasProcedure; ForceBody : Boolean = False; NamePrefix : String = '');
 
+  Procedure EmptyBody;
+
+  begin
+    Addln('');
+    Addln('begin');
+    AddLn('end;');
+    Addln('');
+  end;
 Var
   AddExternal : boolean;
   IsImpl : Boolean;
 
 begin
+
   IsImpl:=AProc.Parent is TPasSection;
   if IsImpl then
     PrepareDeclSection('');
   if Not IsImpl then
     IsImpl:=FInImplementation;
+  if FInImplementation and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
+    Exit;
   Add(AProc.TypeName + ' ' + NamePrefix+AProc.SafeName);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
     AddProcArgs(AProc.ProcType.Args) ;
@@ -841,7 +891,7 @@ begin
     if AProc.IsStatic then
       Add(' static;');
     end;
-  if pmAssembler in AProc.Modifiers then
+  if (pmAssembler in AProc.Modifiers) and Not (woNoAsm in OPtions) then
     Add(' assembler;');
   if AProc.CallingConvention<>ccDefault then
     Add(' '+cCallingConventions[AProc.CallingConvention]+';');
@@ -863,16 +913,15 @@ begin
     end;
   AddLn;
 
-  if Assigned(AProc.Body) then
-    WriteProcImpl(AProc.Body,pmAssembler in AProc.Modifiers)
-  else if ForceBody then
+  if Assigned(AProc.Body)  then
     begin
-    Addln('');
-    Addln('begin');
-    AddLn('end;');
-    Addln('');
-    end;
-
+    if (pmAssembler in AProc.Modifiers) and (woNoAsm in Options) then
+      EmptyBody
+    else
+      WriteProcImpl(AProc.Body,pmAssembler in AProc.Modifiers)
+    end
+  else if ForceBody then
+    EmptyBody;
 end;
 
 
