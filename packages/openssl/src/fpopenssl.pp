@@ -102,7 +102,7 @@ Type
     function PeerSubject : String;
     Function PeerIssuer : String;
     Function PeerSerialNo : Integer;
-    Function PeerFingerprint : String;
+    Function PeerFingerprint(const name: string = 'MD5') : String;
     Function CertInfo : String;
     function CipherName: string;
     function CipherBits: integer;
@@ -737,7 +737,7 @@ begin
   end;
 end;
 
-Function TSSL.PeerFingerprint: String;
+Function TSSL.PeerFingerprint(const name: string): String;
 var
   C : PX509;
   L : integer;
@@ -750,7 +750,7 @@ begin
   try
     Result:=StringOfChar(#0,EVP_MAX_MD_SIZE);
     L:=0;
-    X509Digest(C,EvpGetDigestByName('MD5'),Result,L);
+    X509Digest(C,EvpGetDigestByName(name),Result,L);
     SetLength(Result,L);
   finally
     X509Free(C);
