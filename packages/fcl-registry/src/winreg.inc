@@ -222,8 +222,12 @@ begin
     end;                     
   If Result then begin
     if RelativeKey(Key) then
-      S:=CurrentPath + Key
-    else
+        begin
+          if (Key>'') and (CurrentPath>'') and (CurrentPath[Length(CurrentPath)]<>'\') then
+            S:=CurrentPath + '\' + Key
+          else
+            S:=CurrentPath + Key;
+        end  else
       S:=u;
     ChangeKey(Handle, S);
   end;
@@ -320,7 +324,7 @@ procedure TRegistry.ChangeKey(Value: HKey; const Path: UnicodeString);
 begin
   CloseKey;
   FCurrentKey:=Value;
-  FCurrentPath:=Path;
+  FCurrentPath:=FixPath(Path);
 end;
 
 

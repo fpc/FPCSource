@@ -57,6 +57,7 @@ type
     fRootKey: HKEY;
     fLazyWrite: Boolean;
     fCurrentPath: UnicodeString;
+    function FixPath(APath: UnicodeString): UnicodeString;
     function GetLastErrorMsg: string;
     function RegMultiSzDataToUnicodeStringArray(U: UnicodeString): TUnicodeStringArray;
     function ListToArray(List: TStrings; IsUtf8: Boolean): TUnicodeStringArray;
@@ -630,6 +631,19 @@ end;
 procedure TRegistry.ReadStringList(const Name: String; AList: TStrings);
 begin
   ReadStringList(UnicodeString(Name), AList);
+end;
+
+function TRegistry.FixPath(APath: UnicodeString): UnicodeString;
+const
+  Delim={$ifdef XMLREG}'/'{$else}'\'{$endif};
+begin
+  //At this point we know the path is valid, since this is only called after OpenKey succeeded
+  //Just sanitize it
+  while (Pos(Delim+Delim,APath) > 0) do
+    APath := UnicodeStringReplace(APath, Delim+Delim,Delim,[rfReplaceAll]);
+  if (Length(APath) > 1) and (APath[Length(APath)] = Delim) then
+    System.Delete(APath, Length(APath), 1);
+  Result := APath;
 end;
 
 function TRegistry.RegMultiSzDataToUnicodeStringArray(U: UnicodeString): TUnicodeStringArray;
