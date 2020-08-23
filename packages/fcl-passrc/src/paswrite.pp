@@ -907,7 +907,7 @@ Var
 
 begin
 
-  IsImpl:=AProc.Parent is TPasSection;
+  IsImpl:=AProc.Parent is TImplementationSection;
   if IsImpl then
     PrepareDeclSection('');
   if Not IsImpl then
