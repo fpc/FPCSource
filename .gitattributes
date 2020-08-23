@@ -16010,6 +16010,7 @@ tests/webtbf/uw8738b.pas svneol=native#text/plain
 tests/webtbs/Integer.ns.pp svneol=native#text/pascal
 tests/webtbs/Integer.pp svneol=native#text/pascal
 tests/webtbs/tu2002.pp svneol=native#text/plain
+tests/webtbs/tw0035022.pp svneol=native#text/plain
 tests/webtbs/tw0555.pp svneol=native#text/plain
 tests/webtbs/tw0630.pp svneol=native#text/plain
 tests/webtbs/tw0701a.pp svneol=native#text/plain
