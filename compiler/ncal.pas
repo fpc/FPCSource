@@ -4742,6 +4742,11 @@ implementation
 
     function tcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
       begin
+        { if it's an assignable call-by-reference parameter, we cannot pass a
+          temp since then the modified valua will be lost }
+        if para.parasym.varspez in [vs_var,vs_out] then
+          exit(false);
+
         { We don't need temps for parameters that are already temps, except if
           the passed temp could be put in a regvar while the parameter inside
           the routine cannot be (e.g., because its address is taken in the
