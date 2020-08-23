@@ -198,11 +198,14 @@ procedure TPasWriter.AddLn(const s: string);
 
 Var
   L : String;
+  len : Integer;
 
 begin
   Add(s);
   L:=PostProcessLine(FCurrentLine);
-  Stream.Write(L[1],Length(L));
+  Len:=Length(L);
+  if Len>0 then
+    Stream.Write(L[1],Len);
   Stream.Write(FLineEnding[1],Length(FLineEnding));
   IsStartOfLine:=True;
   FCurrentLine:='';
