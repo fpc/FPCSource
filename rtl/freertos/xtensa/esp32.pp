@@ -75,11 +75,16 @@ unit esp32;
 
     procedure _FPC_haltproc; public name '_haltproc';noreturn;
       begin
-        printpchar('_haltproc called, going to deep sleep, exit code: $');
-        printdword(operatingsystem_result);
-        printpchar(#10);
-        while true do
-           esp_deep_sleep_start;
+        if operatingsystem_result <> 0 then
+          writeln('Runtime error ', operatingsystem_result);
+
+        writeln('_haltproc called, exit code: ',operatingsystem_result);
+        flushOutput(TextRec(Output));
+        repeat
+          // Allow other tasks to run
+          // Do not enter deep sleep, can lead to problems with flashing
+          vTaskDelay(1000);
+        until false;
       end;
 
 

@@ -56,7 +56,7 @@ unit esp8266;
         if operatingsystem_result <> 0 then
           writeln('Runtime error ', operatingsystem_result);
 
-        writeln('_haltproc called...');
+        writeln('_haltproc called, exit code: ',operatingsystem_result);
         flushOutput(TextRec(Output));
         repeat
           // Allow other tasks to run
