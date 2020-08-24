@@ -101,14 +101,19 @@ interface
       end;
 
 
-   procedure TCPUAddNode.second_cmpsmallset;
+    procedure TCPUAddNode.second_cmpsmallset;
       var
         tmpreg : tregister;
-        cond: TOpCmp;
-        instr: taicpu;
         truelab, falselab: TAsmLabel;
       begin
         pass_left_right;
+
+        if (not(nf_swapped in flags) and
+            (nodetype = lten)) or
+           ((nf_swapped in flags) and
+            (nodetype = gten)) then
+          swapleftright;
+
         current_asmdata.getjumplabel(truelab);
         current_asmdata.getjumplabel(falselab);
 
@@ -116,18 +121,27 @@ interface
         force_reg_left_right(false,false);
 
         case nodetype of
-          equaln:   cond:=OC_EQ;
-          unequaln: cond:=OC_NE;
-          ltn:      cond:=OC_LT;
-          lten:     cond:=OC_LT;
-          gtn:      cond:=OC_GT;
-          gten:     cond:=OC_GTE;
-        else
-          internalerror(2020030801);
+          equaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,left.location.register,right.location.register,location.truelabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+            end;
+          unequaln:
+            begin
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left.location.register,right.location.register,location.truelabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+            end;
+          lten,
+          gten:
+            begin
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+              cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,tmpreg,right.location.register,location.truelabel);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+            end;
+          else
+            internalerror(2020082401);
         end;
-
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
-        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
 
