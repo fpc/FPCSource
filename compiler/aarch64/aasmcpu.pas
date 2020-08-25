@@ -999,13 +999,11 @@ implementation
            A_SDIV,
            A_SMULL,
            A_SUB,
-           A_SXT,
            A_UBFIZ,
            A_UBFX,
            A_UCVTF,
            A_UDIV,
-           A_UMULL,
-           A_UXT:
+           A_UMULL:
              if opnr=0 then
                result:=operand_write
              else
