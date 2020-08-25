@@ -118,7 +118,7 @@ implementation
         if is_64bit(resultdef) then
           begin
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,resultdef,resultdef,false);
             hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,left.location.register64.reglo,left.location.register64.reghi,hreg1);
             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
