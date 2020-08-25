@@ -2444,8 +2444,10 @@ begin
   'var',
   '  Ant: TAnt;',
   '  Bird: TBird<TObject>;',
+  '  BirdOfBird: TBird<TBird<TObject>>;',
   'begin',
   '  Ant.Func<TObject>(Bird);',
+  '  Ant.Func<TBird<TObject>>(BirdOfBird);',
   '']);
   ParseProgram;
 end;
