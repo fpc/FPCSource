@@ -2212,8 +2212,7 @@ type
     procedure CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
       ErrorEl: TPasElement);
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
-      Params: TParamsExpr; RaiseOnError: boolean;
-      SetReferenceFlags: boolean = false): integer;
+      Params: TParamsExpr; RaiseOnError: boolean; SetReferenceFlags: boolean = false): integer;
     function CheckCallPropertyCompatibility(PropEl: TPasProperty;
       Params: TParamsExpr; RaiseOnError: boolean): integer;
     function CheckCallArrayCompatibility(ArrayEl: TPasArrayType;
@@ -10864,6 +10863,11 @@ begin
         [GetElementTypeName(FoundEl)+' '+FoundEl.Name],NameExpr);
     CheckTemplParams(GenTemplates,TemplParams);
     FoundEl:=GetSpecializedEl(NameExpr,FoundEl,TemplParams);
+    if FoundEl is TPasProcedure then
+      begin
+      // check if params fit the implicit specialized function
+      CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
+      end;
     end
   else if (GenTemplates<>nil) and (GenTemplates.Count>0) then
     begin
@@ -10875,12 +10879,12 @@ begin
       try
         CheckTemplParams(GenTemplates,InferenceParams);
         FoundEl:=GetSpecializedEl(NameExpr,FoundEl,InferenceParams);
+        // check if params fit the implicit specialized function
+        CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
       finally
         ReleaseElementList(InferenceParams{$IFDEF CheckPasTreeRefCount},RefIdInferenceParamsExpr{$ENDIF});
         FreeAndNil(InferenceParams);
       end;
-      // check if params fit the implicit specialized function
-      CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
       end
     else
       // GenericType()  -> missing type params
@@ -23065,11 +23069,11 @@ begin
 
   Value:=Params.Value;
   if Value is TBinaryExpr then
-    Value:=TBinaryExpr(Value).right;
+    Value:=TBinaryExpr(Value).right; // Note: parser guarantees that this is the rightmost
 
   // check args
   ParamCnt:=length(Params.Params);
-  ArgResolved.BaseType:=btNone;;
+  ArgResolved.BaseType:=btNone;
   i:=0;
   while i<ParamCnt do
     begin
@@ -29350,9 +29354,47 @@ end;
 
 function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
 // check if Src is equal or descends from Dest
+// Generics: TBird<T> is both directions a TBird<word>
+//       and TBird<TMap<T>> is both directions a TBird<TMap<word>>
+
+  function CheckSpecialized(SrcScope, DestScope: TPasGenericScope): boolean;
+  var
+    SrcParams, DestParams: TPasTypeArray;
+    i: Integer;
+    SrcParam, DestParam: TPasType;
+    SrcParamScope, DestParamScope: TPasGenericScope;
+  begin
+    if SrcScope.SpecializedFromItem.GenericEl<>DestScope.SpecializedFromItem.GenericEl then
+      exit(false);
+    // specialized from same generic -> check params
+    SrcParams:=SrcScope.SpecializedFromItem.Params;
+    DestParams:=DestScope.SpecializedFromItem.Params;
+    for i:=0 to length(SrcParams)-1 do
+      begin
+      SrcParam:=SrcParams[i];
+      DestParam:=DestParams[i];
+      if (SrcParam is TPasGenericTemplateType)
+          or (DestParam is TPasGenericTemplateType)
+          or (SrcParam=DestParam)
+      then
+        // ok
+      else if (SrcParam is TPasGenericType) and (DestParam is TPasGenericType) then
+        begin
+        // e.g. TList<Src<...>> and TList<Dest<...>>
+        SrcParamScope:=SrcParam.CustomData as TPasGenericScope;
+        DestParamScope:=DestParam.CustomData as TPasGenericScope;
+        if not CheckSpecialized(SrcParamScope,DestParamScope) then
+          exit(false);
+        end
+      else
+        exit(false); // specialized with different params -> incompatible
+      end;
+    Result:=true;
+  end;
+
 var
-  ClassEl: TPasClassType;
-  DestScope: TPasClassScope;
+  SrcClassEl: TPasClassType;
+  SrcScope, DestScope: TPasClassScope;
   GenericType: TPasGenericType;
 begin
   {$IFDEF VerbosePasResolver}
@@ -29362,6 +29404,7 @@ begin
   DestType:=ResolveAliasType(DestType);
   if DestType.ClassType<>TPasClassType then
     exit(cIncompatible);
+  DestScope:=DestType.CustomData as TPasClassScope;
 
   Result:=cExact;
   while SrcType<>nil do
@@ -29390,16 +29433,15 @@ begin
       end
     else if SrcType.ClassType=TPasClassType then
       begin
-      ClassEl:=TPasClassType(SrcType);
-      if ClassEl.IsForward then
+      SrcClassEl:=TPasClassType(SrcType);
+      if SrcClassEl.IsForward then
         // class forward -> skip
-        SrcType:=(ClassEl.CustomData as TResolvedReference).Declaration as TPasType
+        SrcType:=(SrcClassEl.CustomData as TResolvedReference).Declaration as TPasType
       else
         begin
-        if (ClassEl.GenericTemplateTypes<>nil) and (ClassEl.GenericTemplateTypes.Count>0) then
+        if (SrcClassEl.GenericTemplateTypes<>nil) and (SrcClassEl.GenericTemplateTypes.Count>0) then
           begin
           // SrcType is a generic
-          DestScope:=DestType.CustomData as TPasClassScope;
           if DestScope.SpecializedFromItem<>nil then
             begin
             // DestType is specialized
@@ -29411,8 +29453,14 @@ begin
               exit; // DestType is a specialized SrcType
             end;
           end;
+        SrcScope:=SrcClassEl.CustomData as TPasClassScope;
+        if (SrcScope.SpecializedFromItem<>nil)
+            and (DestScope.SpecializedFromItem<>nil)
+            and CheckSpecialized(SrcScope,DestScope) then
+          exit;
+
         // class ancestor -> increase distance
-        SrcType:=(ClassEl.CustomData as TPasClassScope).DirectAncestor;
+        SrcType:=SrcScope.DirectAncestor;
         inc(Result);
         end;
       end

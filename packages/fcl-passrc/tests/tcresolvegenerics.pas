@@ -31,8 +31,7 @@ type
     procedure TestGen_ConstraintArrayFail;
     procedure TestGen_ConstraintConstructor;
     procedure TestGen_ConstraintUnit;
-    // ToDo: constraint T:Unit2.TBird
-    // ToDo: constraint T:Unit2.TGen<word>
+    // ToDo: constraint T:Unit2.specialize TGen<word>
     procedure TestGen_ConstraintSpecialize;
     procedure TestGen_ConstraintTSpecializeWithT;
     procedure TestGen_ConstraintTSpecializeAsTFail; // TBird<T; U: T<word>>  and no T<>
@@ -54,7 +53,7 @@ type
     procedure TestGen_Record_SpecializeSelfInsideFail;
     procedure TestGen_Record_ReferGenericSelfFail;
     procedure TestGen_RecordAnoArray;
-    // ToDo: unitname.specialize TBird<word>.specialize
+    // ToDo: unitname.specialize TBird<word>.specialize TAnt<word>
     procedure TestGen_RecordNestedSpecialize;
 
     // generic class
@@ -151,6 +150,7 @@ type
     procedure TestGenProc_TypeParamCntOverload;
     procedure TestGenProc_TypeParamCntOverloadNoParams;
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
+    procedure TestGenProc_ParamSpecWithT; // ToDo: Func<T>(Bird: TBird<T>)
     // ToDo: NestedResultAssign
 
     // generic function infer types
@@ -2425,6 +2425,29 @@ begin
   'begin',
   '']);
   CheckResolverException(sParamOfThisTypeCannotHaveDefVal,nParamOfThisTypeCannotHaveDefVal);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_ParamSpecWithT;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class v: T; end;',
+  '  TAnt = class',
+  '    procedure Func<T: class>(Bird: TBird<T>);',
+  '  end;',
+  'procedure TAnt.Func<T>(Bird: TBird<T>);',
+  'begin',
+  'end;',
+  'var',
+  '  Ant: TAnt;',
+  '  Bird: TBird<TObject>;',
+  'begin',
+  '  Ant.Func<TObject>(Bird);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGenProc_Infer_NeedExplicitFail;
