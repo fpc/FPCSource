@@ -8204,7 +8204,7 @@ procedure TBuildEngine.Compile(Packages: TPackages);
 Var
   I : integer;
 {$ifndef NO_THREADING}
-  Thr : Integer;
+  Thr, ThreadCount : Integer;
   Finished : boolean;
   ErrorState: boolean;
   ErrorMessage: string;
@@ -8299,34 +8299,71 @@ begin
       ErrorState := False;
       Finished := False;
       I := 0;
+      ThreadCount:=0;
       // This event is set by the worker-threads to notify the main/this thread
       // that a package finished it's task.
       NotifyThreadWaiting := RTLEventCreate;
       SetLength(Threads,Defaults.ThreadsAmount);
-      // Create all worker-threads
-      for Thr:=0 to Defaults.ThreadsAmount-1 do
-        Threads[Thr] := TCompileWorkerThread.Create(self,NotifyThreadWaiting);
-      try
-        // When a thread notifies this thread that it is ready, loop on all
-        // threads to check their state and if possible assign a new package
-        // to them to compile.
-        while not Finished do
-          begin
-            RTLeventWaitFor(NotifyThreadWaiting);
-            for Thr:=0 to Defaults.ThreadsAmount-1 do if not Finished then
-              ProcessThreadResult(Threads[Thr]);
-          end;
-        // Compilation finished or aborted. Wait for all threads to end.
-        for thr:=0 to Defaults.ThreadsAmount-1 do
-          begin
-            Threads[Thr].Terminate;
-            RTLeventSetEvent(Threads[Thr].NotifyStartTask);
-            Threads[Thr].WaitFor;
-          end;
+      try 
+        // Create all worker-threads
+        try
+          for Thr:=0 to Defaults.ThreadsAmount-1 do
+            begin
+              Threads[Thr] := TCompileWorkerThread.Create(self,NotifyThreadWaiting);
+              if assigned(Threads[Thr]) then
+                inc(ThreadCount);
+            end;
+        except
+          on E: Exception do
+            begin
+              ErrorMessage := E.Message;
+              ErrorState:=true;
+            end;
+        end;
+        try
+          // When a thread notifies this thread that it is ready, loop on all
+          // threads to check their state and if possible assign a new package
+          // to them to compile.
+          while not Finished do
+            begin
+              RTLeventWaitFor(NotifyThreadWaiting);
+              for Thr:=0 to Defaults.ThreadsAmount-1 do
+                if assigned(Threads[Thr]) and not Finished then
+                  ProcessThreadResult(Threads[Thr]);
+            end;
+        except
+          on E: Exception do
+            begin
+              if not ErrorState then
+                ErrorMessage := E.Message;
+              ErrorState:=true;
+            end;
+        end;
+        try
+          // Compilation finished or aborted. Wait for all threads to end.
+          for thr:=0 to Defaults.ThreadsAmount-1 do
+            if assigned(Threads[Thr]) then
+              begin
+                Threads[Thr].Terminate;
+                RTLeventSetEvent(Threads[Thr].NotifyStartTask);
+                Threads[Thr].WaitFor;
+              end;
+        except
+          on E: Exception do
+            begin
+              if not ErrorState then
+                ErrorMessage := E.Message;
+              ErrorState:=true;
+            end;
+        end;
       finally
         RTLeventdestroy(NotifyThreadWaiting);
         for thr:=0 to Defaults.ThreadsAmount-1 do
-          Threads[Thr].Free;
+          if assigned(Threads[Thr]) then
+            begin
+              Threads[Thr].Free;
+              dec(ThreadCount);
+            end;
       end;
     if ErrorState then
       raise Exception.Create(ErrorMessage);
