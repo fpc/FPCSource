@@ -600,10 +600,10 @@ implementation
           result:=inherited pass_1;
           if assigned(result) then
             exit;
-          { set fforcedprocname so that even virtual method calls will be
+          { set foverrideprocnamedef so that even virtual method calls will be
             name-based (instead of based on VMT entry numbers) }
           if procdefinition.typ=procdef then
-            fforcedprocname:=tprocdef(procdefinition).mangledname
+            foverrideprocnamedef:=tprocdef(procdefinition)
         end;
     end;
 

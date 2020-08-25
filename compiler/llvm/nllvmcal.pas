@@ -39,6 +39,7 @@ interface
         function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; override;
         function can_call_ref(var ref: treference): boolean; override;
         procedure pushparas; override;
+        procedure pass_generate_code; override;
       end;
 
 
@@ -46,6 +47,7 @@ implementation
 
      uses
        verbose,
+       aasmbase,aasmdata,aasmllvm,
        symconst,symdef;
 
 {*****************************************************************************
@@ -102,6 +104,30 @@ implementation
             paralocs[paraindex]:=@n.tempcgpara;
             n:=tcgcallparanode(n.right);
          end;
+      end;
+
+
+    procedure tllvmcallnode.pass_generate_code;
+      var
+        asmsym: tasmsymbol;
+      begin
+        inherited;
+        if assigned(overrideprocnamedef) and
+           not overrideprocnamedef.in_currentunit then
+          begin
+            { insert an llvm declaration for this def if it's not defined in
+              the current unit, because otherwise we will define it in the
+              LLVM IR using the def for which this procdef's name is used
+              first, which may be something completely different from the original
+              def. LLVM can take the original def into account to load certain
+              registers, so if we use a wrong def this can result in wrong code
+              generation. }
+           asmsym:=current_asmdata.RefAsmSymbol(overrideprocnamedef.mangledname,AT_FUNCTION);
+           if not asmsym.declared then
+             begin
+               current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.createdecl(asmsym,overrideprocnamedef,nil,sec_code,overrideprocnamedef.alignment));
+             end;
+          end;
       end;
 
 begin

@@ -670,6 +670,7 @@ implementation
           extdbgcmdstr:=maybequoted(current_module.sharedlibfilename);
         end;
 
+      LinkSymsFileName:='';
       if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
           LinkSymsFileName:=UniqueName('linksyms')+'.fpc';
@@ -721,7 +722,7 @@ implementation
             DeleteFile(ordersymfile);
           DeleteFile(linkscript.fn);
           linkscript.free;
-           if not texportlibunix(exportlib).exportedsymnames.empty then
+           if LinkSymsFileName<>'' then
              DeleteFile(outputexedir+LinkSymsFileName);
            DeleteFile(outputexedir+LinkFilesFileName);
         end;
