@@ -284,7 +284,7 @@ begin
       ltn, lten, gtn, gten, equaln, unequaln:
         begin
           {$ifdef extdebug}
-          current_asmdata.CurrAsmList.concat(tai_comment.create('tppcaddnode.pass2'));
+          current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
           {$endif extdebug}
 
           emit_compare(unsigned);
