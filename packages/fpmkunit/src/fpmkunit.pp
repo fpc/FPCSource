@@ -8234,7 +8234,7 @@ Var
             else // A problem occurred, stop the compilation
               begin
               ErrorState:=true;
-              ErrorMessage:=AThread.ErrorMessage;
+              ErrorMessage:='Error inside worker thread for package '+Athread.APackage.Name+': '+AThread.ErrorMessage;
               Finished:=true;
               end;
             AThread.APackage := nil;
