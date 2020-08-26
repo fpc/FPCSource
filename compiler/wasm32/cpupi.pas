@@ -28,7 +28,7 @@ interface
   uses
     cutils,
     procinfo,cpuinfo, symtype,
-    psub;
+    psub, cclasses;
 
   type
 
@@ -44,10 +44,30 @@ interface
 implementation
 
     uses
-      systems,globals, tgcpu, aasmdata, aasmcpu,
+      systems,globals, tgcpu,aasmdata,aasmcpu,aasmtai,
       tgobj,paramgr,symconst;
 
     procedure tcpuprocinfo.postprocess_code;
+
+      function findfirst_tai_local(asmlist: TAsmList): tai_local;
+        var
+          hp: tai;
+        begin
+          result:=nil;
+          if not assigned(asmlist) then
+            exit;
+          hp:=tai(asmlist.first);
+          while assigned(hp) do
+            begin
+              if hp.typ=ait_local then
+                begin
+                  result:=tai_local(hp);
+                  exit;
+                end;
+              hp:=tai(hp.Next);
+            end;
+        end;
+
       var
        templist : TAsmList;
        l : TWasmLocal;
@@ -58,7 +78,7 @@ implementation
           templist.Concat( tai_local.create(l.typ));
           l := l.nextseq;
         end;
-        aktproccode.insertListBefore(nil, templist);
+        aktproccode.insertListBefore(findfirst_tai_local(aktproccode),templist);
         templist.Free;
 
         inherited postprocess_code;
