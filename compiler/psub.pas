@@ -1165,6 +1165,23 @@ implementation
               end;
           end;
 {$endif defined(x86) or defined(arm)}
+{$if defined(xtensa)}
+        { On xtensa, the stack frame size can be estimated to avoid using an extra frame pointer,
+          in case parameters are passed on the stack.
+
+          However, the draw back is, if the estimation fails, compilation will break later on
+          with an internal error, so this switch is not enabled by default yet. To overcome this,
+          multipass compilation of subroutines must be supported
+        }
+        if (target_info.abi=abi_xtensa_windowed) and (procdef.stack_tainting_parameter(calleeside)) then
+          begin
+            include(flags,pi_estimatestacksize);
+            set_first_temp_offset;
+            procdef.has_paraloc_info:=callnoside;
+            generate_parameter_info;
+            exit;
+          end;
+{$endif defined(xtensa)}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;

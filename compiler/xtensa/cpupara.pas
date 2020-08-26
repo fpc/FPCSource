@@ -43,7 +43,7 @@ unit cpupara;
        private
          { the max. register depends on the used call instruction }
          maxintreg : TSuperRegister;
-         procedure init_values(side: tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
+         procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
          function create_paraloc_info_intern(p : tabstractprocdef; side : tcallercallee;
            paras : tparalist; var curintreg : tsuperregister;
            var cur_stack_offset : aword; varargsparas : boolean) : longint;
@@ -54,7 +54,8 @@ unit cpupara;
     uses
        cpuinfo,globals,
        verbose,systems,
-       defutil,symtable,
+       defutil,
+       symtable,symcpu,
        procinfo,cpupi;
 
 
@@ -95,17 +96,14 @@ unit cpupara;
             classrefdef:
               result:=LOC_REGISTER;
             procvardef:
-              if (p.size = sizeof(pint)) then
-                result:=LOC_REGISTER
-              else
-                result:=LOC_REFERENCE;
+              result:=LOC_REGISTER;
             recorddef:
-              if (p.size > 4) then
+              if p.size>24 then
                 result:=LOC_REFERENCE
               else
                 result:=LOC_REGISTER;
             objectdef:
-              if is_object(p) then
+              if is_object(p) and (p.size>24) then
                 result:=LOC_REFERENCE
               else
                 result:=LOC_REGISTER;
@@ -117,7 +115,7 @@ unit cpupara;
             filedef:
               result:=LOC_REGISTER;
             arraydef:
-              if is_dynamic_array(p) then
+              if is_dynamic_array(p) or (p.size<=24) then
                 getparaloc:=LOC_REGISTER
               else
                 result:=LOC_REFERENCE;
@@ -127,12 +125,12 @@ unit cpupara;
               else
                 result:=LOC_REFERENCE;
             variantdef:
-              result:=LOC_REFERENCE;
+              result:=LOC_REGISTER;
             { avoid problems with errornous definitions }
             errordef:
               result:=LOC_REGISTER;
             else
-              internalerror(2002071001);
+              internalerror(2020082501);
          end;
       end;
 
@@ -150,33 +148,17 @@ unit cpupara;
           variantdef,
           formaldef :
             result:=true;
-          { regular procvars must be passed by value, because you cannot pass
-            the address of a local stack location when calling e.g.
-            pthread_create with the address of a function (first of all it
-            expects the address of the function to execute and not the address
-            of a memory location containing that address, and secondly if you
-            first store the address on the stack and then pass the address of
-            this stack location, then this stack location may no longer be
-            valid when the newly started thread accesses it.
-
-            However, for "procedure of object" we must use the same calling
-            convention as for "8 byte record" due to the need for
-            interchangeability with the TMethod record type.
-          }
-          procvardef :
-            result:=
-              (def.size <> sizeof(pint));
           recorddef :
-            result := (def.size > 8) or (varspez = vs_const);
+            result:=(varspez = vs_const);
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
           objectdef :
-            result:=is_object(def);
+            result:=is_object(def) and (varspez = vs_const);
           setdef :
-            result:=not is_smallset(def);
+            result:=(varspez = vs_const);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           else
@@ -185,7 +167,7 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.init_values(side : tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(p : tabstractprocdef; side : tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
       begin
         cur_stack_offset:=0;
         case target_info.abi of
@@ -195,6 +177,8 @@ unit cpupara;
                 begin
                   curintreg:=RS_A2;
                   maxintreg:=RS_A7;
+                  if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                    cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size;
                 end
               else
                 begin
@@ -287,7 +271,7 @@ unit cpupara;
         cur_stack_offset: aword;
         curintreg: tsuperregister;
       begin
-        init_values(side,curintreg,cur_stack_offset);
+        init_values(p,side,curintreg,cur_stack_offset);
 
         result := create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset,false);
 
@@ -363,13 +347,19 @@ unit cpupara;
                     end;
                 end;
 
-              loc := getparaloc(paradef);
+              loc:=getparaloc(paradef);
+
+              if (loc=LOC_REGISTER) and ((maxintreg-nextintreg+1)*4<paradef.size) then
+                begin
+                  loc:=LOC_REFERENCE;
+                  nextintreg:=maxintreg+1;
+                end;
 
               hp.paraloc[side].alignment:=std_param_align;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
               hp.paraloc[side].def:=paradef;
-              if (is_64bit(paradef)) and
+              if (loc=LOC_REGISTER) and (is_64bit(paradef)) and
                  odd(nextintreg-RS_A2) then
                 inc(nextintreg);
               if (paralen = 0) then
@@ -410,16 +400,6 @@ unit cpupara;
                           paraloc^.size:=paracgsize;
                           paraloc^.def:=locdef;
                         end;
-                      { aix requires that record data stored in parameter
-                        registers is left-aligned }
-                      if (target_info.system in systems_aix) and
-                         (paradef.typ = recorddef) and
-                         (paralen < sizeof(aint)) then
-                        begin
-                          paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
-                          paraloc^.size := OS_INT;
-                          paraloc^.def := u32inttype;
-                        end;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);
                       dec(paralen,tcgsize2size[paraloc^.size]);
@@ -440,17 +420,10 @@ unit cpupara;
                          else
                            internalerror(2020031405);
                        end;
-                       if (side = callerside) then
+                       if side = callerside then
                          paraloc^.reference.index:=NR_STACK_POINTER_REG
                        else
-                         begin
-                           paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-
-                           { create_paraloc_info_intern might be also called when being outside of
-                             code generation so current_procinfo might be not set }
-                           if assigned(current_procinfo) then
-                             txtensaprocinfo(current_procinfo).needs_frame_pointer := true;
-                         end;
+                         paraloc^.reference.index:=current_procinfo.framepointer;
 
                        paraloc^.reference.offset:=stack_offset;
 
@@ -481,7 +454,7 @@ unit cpupara;
         hp: tparavarsym;
         paraloc: pcgparalocation;
       begin
-        init_values(side,curintreg,cur_stack_offset);
+        init_values(p,side,curintreg,cur_stack_offset);
 
         result:=create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset, false);
         if (p.proccalloption in cstylearrayofconst) then

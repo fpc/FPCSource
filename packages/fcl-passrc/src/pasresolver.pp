@@ -563,6 +563,7 @@ type
     bfInsertArray,
     bfDeleteArray,
     bfTypeInfo,
+    bfGetTypeKind,
     bfAssert,
     bfNew,
     bfDispose,
@@ -600,6 +601,7 @@ const
     'Insert',
     'Delete',
     'TypeInfo',
+    'GetTypeKind',
     'Assert',
     'New',
     'Dispose',
@@ -1772,6 +1774,8 @@ type
     function FindUsedUnitname(const aName: string; aMod: TPasModule): TPasModule;
     procedure FinishAssertCall(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
+    function FindSystemIdentifier(const aUnitName, aName: string;
+      ErrorEl: TPasElement): TPasElement; virtual;
     function FindSystemClassType(const aUnitName, aClassName: string;
       ErrorEl: TPasElement): TPasClassType; virtual;
     function FindSystemClassTypeAndConstructor(const aUnitName, aClassName: string;
@@ -1782,6 +1786,8 @@ type
     function FindTVarRec(ErrorEl: TPasElement): TPasRecordType; virtual;
     function GetTVarRec(El: TPasArrayType): TPasRecordType; virtual;
     function FindDefaultConstructor(aClass: TPasClassType): TPasConstructor; virtual;
+    function GetTypeInfoParamType(Param: TPasExpr;
+      out ParamResolved: TPasResolverResult; LoType: boolean): TPasType; virtual;
   protected
     // constant evaluation
     fExprEvaluator: TResExprEvaluator;
@@ -2027,6 +2033,12 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_GetTypeKind_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_GetTypeKind_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_GetTypeKind_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_Assert_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Assert_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
@@ -14890,13 +14902,12 @@ begin
   CreateReference(aConstructor,Params,rraRead);
 end;
 
-function TPasResolver.FindSystemClassType(const aUnitName, aClassName: string;
-  ErrorEl: TPasElement): TPasClassType;
+function TPasResolver.FindSystemIdentifier(const aUnitName, aName: string;
+  ErrorEl: TPasElement): TPasElement;
 var
   aMod, UtilsMod: TPasModule;
   SectionScope: TPasSectionScope;
   Identifier: TPasIdentifier;
-  El: TPasElement;
 begin
   Result:=nil;
 
@@ -14912,17 +14923,27 @@ begin
   // find class in interface
   if UtilsMod.InterfaceSection=nil then
     if ErrorEl<>nil then
-      RaiseIdentifierNotFound(20200523224831,aUnitName+'.'+aClassName,ErrorEl)
+      RaiseIdentifierNotFound(20200523224831,aUnitName+'.'+aName,ErrorEl)
     else
       exit;
   SectionScope:=NoNil(UtilsMod.InterfaceSection.CustomData) as TPasSectionScope;
-  Identifier:=SectionScope.FindLocalIdentifier(aClassName);
+  Identifier:=SectionScope.FindLocalIdentifier(aName);
   if Identifier=nil then
     if ErrorEl<>nil then
-      RaiseIdentifierNotFound(20200523224841,aUnitName+'.'+aClassName,ErrorEl)
+      RaiseIdentifierNotFound(20200523224841,aUnitName+'.'+aName,ErrorEl)
     else
       exit;
-  El:=Identifier.Element;
+  Result:=Identifier.Element;
+end;
+
+function TPasResolver.FindSystemClassType(const aUnitName, aClassName: string;
+  ErrorEl: TPasElement): TPasClassType;
+var
+  El: TPasElement;
+begin
+  Result:=nil;
+
+  El:=FindSystemIdentifier(aUnitName,aClassName,ErrorEl);
   if not (El is TPasClassType) then
     if ErrorEl<>nil then
       RaiseXExpectedButYFound(20180119172517,'class '+aClassName,GetElementTypeName(El),ErrorEl)
@@ -15126,6 +15147,37 @@ begin
       end;
     ClassScope:=ClassScope.AncestorScope;
   until false;
+end;
+
+function TPasResolver.GetTypeInfoParamType(Param: TPasExpr; out
+  ParamResolved: TPasResolverResult; LoType: boolean): TPasType;
+var
+  Decl: TPasElement;
+begin
+  Result:=nil;
+  // check type or var
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  Decl:=ParamResolved.IdentEl;
+  if Decl=nil then exit;
+  if Decl is TPasType then
+    Result:=TPasType(Decl)
+  else if Decl is TPasVariable then
+    Result:=TPasVariable(Decl).VarType
+  else if Decl.ClassType=TPasArgument then
+    Result:=TPasArgument(Decl).ArgType
+  else if Decl.ClassType=TPasResultElement then
+    Result:=TPasResultElement(Decl).ResultType
+  else if (Decl is TPasProcedure)
+      and (TPasProcedure(Decl).ProcType is TPasFunctionType) then
+    Result:=TPasFunctionType(TPasProcedure(Decl).ProcType).ResultEl.ResultType;
+  {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
+  if Result=nil then
+    writeln('TPasResolver.GetTypeInfoParamType Decl=',GetObjName(Decl),' ParamResolved=',GetResolverResultDbg(ParamResolved));
+  {AllowWriteln-}
+  {$ENDIF}
+  if LoType then
+    Result:=ResolveAliasType(Result);
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
@@ -19974,47 +20026,18 @@ function TPasResolver.BI_TypeInfo_OnGetCallCompatibility(
 var
   Params: TParamsExpr;
   Param: TPasExpr;
-  Decl: TPasElement;
-  ParamResolved: TPasResolverResult;
   aType: TPasType;
+  ParamResolved: TPasResolverResult;
 begin
   Result:=cIncompatible;
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit;
   Params:=TParamsExpr(Expr);
 
-  // check type or var
   Param:=Params.Params[0];
-  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
-  Decl:=ParamResolved.IdentEl;
-  aType:=nil;
-  if (Decl<>nil) then
-    begin
-    if Decl is TPasType then
-      aType:=TPasType(Decl)
-    else if Decl is TPasVariable then
-      aType:=TPasVariable(Decl).VarType
-    else if Decl.ClassType=TPasArgument then
-      aType:=TPasArgument(Decl).ArgType
-    else if Decl.ClassType=TPasResultElement then
-      aType:=TPasResultElement(Decl).ResultType
-    else if (Decl is TPasProcedure)
-        and (TPasProcedure(Decl).ProcType is TPasFunctionType) then
-      aType:=TPasFunctionType(TPasProcedure(Decl).ProcType).ResultEl.ResultType;
-    {$IFDEF VerbosePasResolver}
-    {AllowWriteln}
-    if aType=nil then
-      writeln('TPasResolver.BI_TypeInfo_OnGetCallCompatibility Decl=',GetObjName(Decl));
-    {AllowWriteln-}
-    {$ENDIF}
-    end;
+  aType:=GetTypeInfoParamType(Param,ParamResolved,true);
   if aType=nil then
-    begin
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.BI_TypeInfo_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
-    {$ENDIF}
     RaiseMsg(20170411100259,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
-    end;
   aType:=ResolveAliasType(aType);
   if not HasTypeInfo(aType) then
     RaiseMsg(20170413200118,nSymbolCannotBePublished,sSymbolCannotBePublished,[],Param);
@@ -20029,6 +20052,138 @@ begin
   if Params=nil then ;
   SetResolverTypeExpr(ResolvedEl,btPointer,
     FBaseTypes[btPointer],FBaseTypes[btPointer],[rrfReadable]);
+end;
+
+function TPasResolver.BI_GetTypeKind_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  aType: TPasType;
+  ParamResolved: TPasResolverResult;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+  Param:=Params.Params[0];
+  aType:=GetTypeInfoParamType(Param,ParamResolved,true);
+  if aType=nil then
+    RaiseMsg(20200826205441,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_GetTypeKind_OnGetCallResult(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr; out
+  ResolvedEl: TPasResolverResult);
+var
+  El: TPasElement;
+  EnumType: TPasEnumType;
+begin
+  El:=FindSystemIdentifier('system','ttypekind',Params);
+  if not (El is TPasEnumType) then
+    RaiseXExpectedButYFound(20200826211458,'enum type System.TTypeKind',GetElementTypeName(El),Params);
+  EnumType:=TPasEnumType(El);
+  SetResolverTypeExpr(ResolvedEl,btContext,EnumType,EnumType,[rrfReadable]);
+
+  if Proc=nil then ;
+end;
+
+procedure TPasResolver.BI_GetTypeKind_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  aType: TPasType;
+  El: TPasElement;
+  TypeKindType: TPasEnumType;
+  C: TClass;
+  aClass: TPasClassType;
+  bt: TResolverBaseType;
+  Value: TPasEnumValue;
+  aName: String;
+  i: Integer;
+  ParamResolved: TPasResolverResult;
+begin
+  Evaluated:=nil;
+
+  aType:=GetTypeInfoParamType(Params.Params[0],ParamResolved,true);
+  C:=aType.ClassType;
+  aName:='tkUnknown';
+  if C=TPasEnumType then
+    aName:='tkEnumeration'
+  else if C=TPasSetType then
+    aName:='tkSet'
+  else if C=TPasRecordType then
+    aName:='tkRecord'
+  else if C=TPasClassType then
+    begin
+    aClass:=TPasClassType(aType);
+    case aClass.ObjKind of
+    okObject:  aName:='tkObject';
+    okInterface:
+      case aClass.InterfaceType of
+      citCom: aName:='tkInterface';
+      else aName:='tkInterfaceRaw';
+      end;
+    okClassHelper, okRecordHelper, okTypeHelper: aName:='tkHelper';
+    else
+      aName:='tkClass';
+    end;
+    end
+  else if C=TPasClassOfType then
+    aName:='tkClassRef'
+  else if C.InheritsFrom(TPasProcedure) then
+    aName:='tkMethod'
+  else if C.InheritsFrom(TPasProcedureType) then
+    aName:='tkProcVar'
+  else
+    begin
+    bt:=ParamResolved.BaseType;
+    case bt of
+    btChar: if BaseTypeChar=btAnsiChar then aName:='tkChar' else aName:='tkWChar';
+    {$ifdef FPC_HAS_CPSTRING}
+    btAnsiChar: aName:='tkChar';
+    {$endif}
+    btWideChar: aName:='tkWideChar';
+    btString: if BaseTypeString=btAnsiString then aName:='tkAString' else aName:='tkUString';
+    {$ifdef FPC_HAS_CPSTRING}
+    btAnsiString,
+    btShortString,
+    btRawByteString: aName:='tkAString';
+    {$endif}
+    btWideString: aName:='tkWString';
+    btUnicodeString: aName:='tkUString';
+    btPointer: aName:='tkPointer';
+    {$ifdef HasInt64}
+    btQWord,
+    btInt64,
+    btComp: aName:='tkInt64';
+    {$endif}
+    else
+      if bt in btAllBooleans then
+        aName:='tkBool'
+      else if bt in btAllInteger then
+        aName:='tkInteger'
+      else if bt in btAllFloats then
+        aName:='tkFloat';
+    end;
+    end;
+
+  El:=FindSystemIdentifier('system','ttypekind',Params);
+  TypeKindType:=El as TPasEnumType;
+
+  for i:=0 to TypeKindType.Values.Count-1 do
+    begin
+    Value:=TPasEnumValue(TypeKindType.Values[i]);
+    if SameText(aName,Value.Name) then
+      begin
+      Evaluated:=TResEvalEnum.CreateValue(i,Value);
+      exit;
+      end;
+    end;
+
+  if Proc=nil then ;
+  if Flags=[] then ;
 end;
 
 function TPasResolver.BI_Assert_OnGetCallCompatibility(
@@ -21684,6 +21839,10 @@ begin
     AddBuiltInProc('TypeInfo','function TypeInfo(type or var identifier): Pointer',
         @BI_TypeInfo_OnGetCallCompatibility,@BI_TypeInfo_OnGetCallResult,
         nil,nil,bfTypeInfo);
+  if bfGetTypeKind in TheBaseProcs then
+    AddBuiltInProc('GetTypeKind','function GetTypeKind(type or var identifier): System.TTypeKind',
+        @BI_GetTypeKind_OnGetCallCompatibility,@BI_GetTypeKind_OnGetCallResult,
+        @BI_GetTypeKind_OnEval,nil,bfGetTypeKind);
   if bfAssert in TheBaseProcs then
     AddBuiltInProc('Assert','procedure Assert(bool[,string])',
         @BI_Assert_OnGetCallCompatibility,nil,nil,

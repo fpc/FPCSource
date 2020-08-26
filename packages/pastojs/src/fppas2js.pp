@@ -2122,6 +2122,7 @@ type
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_GetTypeKind(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -4975,6 +4976,8 @@ begin
     exit; // generic in unit implementation/program/library -> params cannot be defined in a later section -> no delay needed
   GenMod:=nil;
   GenResolver:=nil;
+
+  // ToDo: delay only, if either RTTI or class var using a param
 
   Params:=SpecializedItem.Params;
   for i:=0 to length(Params)-1 do
@@ -10949,6 +10952,7 @@ begin
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
           bfDeleteArray: Result:=ConvertBuiltIn_DeleteArray(El,AContext);
           bfTypeInfo: Result:=ConvertBuiltIn_TypeInfo(El,AContext);
+          bfGetTypeKind: Result:=ConvertBuiltIn_GetTypeKind(El,AContext);
           bfAssert:
             begin
             Result:=ConvertBuiltIn_Assert(El,AContext);
@@ -13527,6 +13531,24 @@ begin
     end
   else
     Result:=CreateTypeInfoRef(TypeEl,AContext,Param);
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_GetTypeKind(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  aResolver: TPas2JSResolver;
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  aResolver.BI_GetTypeKind_OnEval(aResolver.BuiltInProcs[bfGetTypeKind],El,[refConst],Value);
+  try
+    if not (Value is TResEvalEnum) then
+      RaiseNotSupported(El,AContext,20200826222729,GetObjName(Value));
+    Result:=CreateLiteralNumber(El,TResEvalEnum(Value).Index);
+  finally
+    ReleaseEvalValue(Value);
+  end;
 end;
 
 function TPasToJSConverter.ConvertBuiltIn_Assert(El: TParamsExpr;

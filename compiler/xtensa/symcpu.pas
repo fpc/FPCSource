@@ -26,6 +26,7 @@ unit symcpu;
 interface
 
 uses
+  globtype,
   symconst,symtype,symdef,symsym;
 
 type
@@ -91,6 +92,10 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
+    { the xtensa paramanager might need to know the total size of the stackframe
+      to avoid cyclic unit dependencies or global variables, this information is
+      stored in total_stackframe_size }
+    total_stackframe_size : aint;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 

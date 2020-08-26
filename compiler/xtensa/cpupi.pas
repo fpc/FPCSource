@@ -35,19 +35,20 @@ unit cpupi;
 
     type
       txtensaprocinfo = class(tcgprocinfo)
-          callins,callxins : TAsmOp;
-          stackframesize,
-          stackpaddingreg: TSuperRegister;
+        callins,callxins : TAsmOp;
+        stackframesize,
+        stackpaddingreg: TSuperRegister;
 
-          needs_frame_pointer: boolean;
-          { highest N used in a call instruction }
-          maxcall : Byte;
-          // procedure handle_body_start;override;
-          // procedure after_pass1;override;            
-          constructor create(aparent: tprocinfo); override;
-          procedure set_first_temp_offset;override;
-          function calc_stackframe_size:longint;override;
-          procedure init_framepointer;override;
+        needs_frame_pointer: boolean;
+        { highest N used in a call instruction }
+        maxcall : Byte;
+        // procedure handle_body_start;override;
+        // procedure after_pass1;override;
+        constructor create(aparent: tprocinfo); override;
+        procedure set_first_temp_offset;override;
+        function calc_stackframe_size:longint;override;
+        procedure init_framepointer;override;
+        procedure generate_parameter_info;override;
       end;
 
 
@@ -152,6 +153,13 @@ unit cpupi;
       end;
 
 
+    procedure txtensaprocinfo.generate_parameter_info;
+      begin
+       tcpuprocdef(procdef).total_stackframe_size:=stackframesize;
+       inherited generate_parameter_info;
+      end;
+
+
     procedure txtensaprocinfo.init_framepointer;
       begin
         if target_info.abi=abi_xtensa_call0 then
@@ -161,8 +169,9 @@ unit cpupi;
           end
         else
           begin
-            RS_FRAME_POINTER_REG:=RS_A7;
-            NR_FRAME_POINTER_REG:=NR_A7;
+            { a frame pointer would be only needed if we do an " alloca" }
+            RS_FRAME_POINTER_REG:=RS_A15;
+            NR_FRAME_POINTER_REG:=NR_A15;
           end;
       end;
 
