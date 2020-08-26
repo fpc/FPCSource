@@ -1548,6 +1548,18 @@ implementation
                end;
                writer.AsmLn;
              end;
+
+{$ifdef WASM}
+           ait_local:
+             begin
+               writer.AsmWriteLn(asminfo^.comment+'TODO: ait_local');
+             end;
+           ait_importexport:
+             begin
+               writer.AsmWriteLn(asminfo^.comment+'TODO: ait_importexport');
+             end;
+{$endif WASM}
+
            else
              if not WriteComments(hp) then
                internalerror(2006012201);

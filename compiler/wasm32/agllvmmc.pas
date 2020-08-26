@@ -30,6 +30,7 @@ interface
   uses
     systems,
     globtype,globals,
+    symbase,symdef,symtype,symconst,symcpu,
     aasmbase,aasmtai,aasmdata,
     assemble,aggas;
 
@@ -39,9 +40,13 @@ interface
 
     TLLVMMachineCodePlaygroundAssembler=class(TGNUassembler)
     protected
+      procedure WriteProcDef(pd: tprocdef);
+      procedure WriteSymtableProcdefs(st: TSymtable);
+
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      procedure WriteAsmList;override;
     end;
 
     { TWASM32InstrWriter }
@@ -54,10 +59,55 @@ implementation
 
   uses
     cutils,
-    finput,
+    fmodule,finput,
     cpubase;
 
   { TLLVMMachineCodePlaygroundAssembler }
+
+
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteProcDef(pd: tprocdef);
+    begin
+      if not assigned(tcpuprocdef(pd).exprasmlist) and
+         not(po_abstractmethod in pd.procoptions) and
+         (pd.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+        exit;
+
+      writer.AsmWriteLn(asminfo^.comment+'WriteProcDef('+pd.mangledname+')');
+      WriteTree(tcpuprocdef(pd).exprasmlist);
+      writer.AsmWriteLn(asminfo^.comment+'WriteProcDef('+pd.mangledname+') done');
+    end;
+
+
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteSymtableProcdefs(st: TSymtable);
+    var
+      i   : longint;
+      def : tdef;
+    begin
+      if not assigned(st) then
+        exit;
+      for i:=0 to st.DefList.Count-1 do
+        begin
+          def:=tdef(st.DefList[i]);
+          case def.typ of
+            procdef :
+              begin
+                { methods are also in the static/globalsymtable of the unit
+                  -> make sure they are only written for the objectdefs that
+                  own them }
+                if (not(st.symtabletype in [staticsymtable,globalsymtable]) or
+                    (def.owner=st)) and
+                   not(df_generic in def.defoptions) then
+                  begin
+                    WriteProcDef(tprocdef(def));
+                    if assigned(tprocdef(def).localst) then
+                      WriteSymtableProcdefs(tprocdef(def).localst);
+                  end;
+              end;
+            else
+              ;
+          end;
+        end;
+    end;
 
 
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
@@ -70,6 +120,15 @@ implementation
     begin
       inherited;
       InstrWriter:=TWASM32InstrWriter.create(self);
+    end;
+
+
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
+    begin
+      inherited;
+      { print all global procedures/functions }
+      WriteSymtableProcdefs(current_module.globalsymtable);
+      WriteSymtableProcdefs(current_module.localsymtable);
     end;
 
 
