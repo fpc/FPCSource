@@ -1587,14 +1587,13 @@ implementation
 {$ifdef WASM}
            ait_local:
              begin
-               writer.AsmWrite(#9'.local'#9);
+               if tai_local(hp).first then
+                 writer.AsmWrite(#9'.local'#9)
+               else
+                 writer.AsmWrite(', ');
                writer.AsmWrite(gas_wasm_basic_type_str[tai_local(hp).bastyp]);
-               if tai_local(hp).name<>'' then
-                 begin
-                   writer.AsmWrite(#9+asminfo^.comment);
-                   writer.AsmWrite(tai_local(hp).name);
-                 end;
-               writer.AsmLn;
+               if tai_local(hp).last then
+                 writer.AsmLn;
              end;
            ait_functype:
              WriteFuncType(tai_functype(hp));

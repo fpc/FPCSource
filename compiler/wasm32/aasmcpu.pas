@@ -105,6 +105,8 @@ uses
       tai_local = class(tai)
         bastyp: TWasmBasicType;
         name : string;
+        first: boolean;
+        last: boolean;
         constructor create(abasictype: TWasmBasicType; const aname: string = '');
       end;
 

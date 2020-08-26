@@ -71,6 +71,7 @@ implementation
       var
        templist : TAsmList;
        l : TWasmLocal;
+       first_tai_local, last_tai_local: tai_local;
       begin
         templist := TAsmList.create;
         l := ttgwasm(tg).localvars.first;
@@ -80,6 +81,17 @@ implementation
         end;
         aktproccode.insertListBefore(findfirst_tai_local(aktproccode),templist);
         templist.Free;
+
+        first_tai_local:=findfirst_tai_local(aktproccode);
+        if assigned(first_tai_local) then
+          begin
+            first_tai_local.first:=true;
+            { also find the last tai_local in the group }
+            last_tai_local:=first_tai_local;
+            while assigned(last_tai_local.Next) and (tai(last_tai_local.Next).typ=ait_local) do
+              last_tai_local:=tai_local(last_tai_local.Next);
+            last_tai_local.last:=true;
+          end;
 
         inherited postprocess_code;
       end;
