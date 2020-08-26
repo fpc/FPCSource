@@ -42,7 +42,7 @@ interface
       'return', 'unreachable',
       // basic
       'nop', 'drop', 'i32.const', 'i64.const', 'f32.const', 'f64.const',
-      'get_local', 'set_local', 'tee_local', 'get_global', 'set_global',
+      'local.get', 'local.set', 'local.tee', 'global.get', 'global.set',
       'select', 'call', 'call_indirect',
       // integer
       'i32.add', 'i64.add', 'i32.sub', 'i64.sub', 'i32.mul', 'i64.mul',
