@@ -108,6 +108,17 @@ uses
         constructor create(abasictype: TWasmBasicType; const aname: string = '');
       end;
 
+      { tai_functype }
+
+      tai_functype = class(tai)
+        funcname: string;
+        params: array of TWasmBasicType;
+        results: array of TWasmBasicType;
+        constructor create(const afuncname: string = '');
+        procedure add_param(param: TWasmBasicType);
+        procedure add_result(res: TWasmBasicType);
+      end;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -115,6 +126,29 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
+
+    { tai_functype }
+
+    constructor tai_functype.create(const afuncname: string = '');
+      begin
+        inherited Create;
+        typ:=ait_functype;
+        funcname:=afuncname;
+      end;
+
+
+    procedure tai_functype.add_param(param: TWasmBasicType);
+      begin
+        SetLength(params,Length(params)+1);
+        params[High(params)]:=param;
+      end;
+
+
+    procedure tai_functype.add_result(res: TWasmBasicType);
+      begin
+       SetLength(results,Length(results)+1);
+       results[High(results)]:=res;
+      end;
 
     { tai_local }
 

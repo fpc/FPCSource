@@ -94,6 +94,7 @@ interface
 {$ifdef wasm}
           ait_importexport,
           ait_local,
+          ait_functype,
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive,
@@ -240,6 +241,7 @@ interface
 {$ifdef wasm}
           'importexport',
           'local',
+          'functype',
 {$endif}
           'cfi',
           'seh_directive',
@@ -351,7 +353,7 @@ interface
                      ait_llvmmetadatarefoperand,
 {$endif llvm}
 {$ifdef wasm}
-                     ait_importexport, ait_local,
+                     ait_importexport,ait_local,ait_functype,
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,

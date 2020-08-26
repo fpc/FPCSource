@@ -254,7 +254,7 @@ implementation
     defutil,
     aasmtai,aasmcpu,
     symtable,symcpu,
-    procinfo,cpuinfo,cgcpu,tgobj;
+    procinfo,cpuinfo,cgcpu,tgobj,tgcpu;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
@@ -1624,7 +1624,52 @@ implementation
     end;
 
   procedure thlcgwasm.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
+    var
+      functype: tai_functype;
+      pd: tprocdef;
+      i: integer;
+      prm: tcpuparavarsym;
+      bt: TWasmBasicType;
     begin
+      pd:=current_procinfo.procdef;
+      functype:=tai_functype.create(pd.mangledname);
+      if Assigned(pd.paras) and (pd.paras.Count>0) then
+        begin
+          for i:=0 to pd.paras.Count-1 do
+            begin
+              prm := tcpuparavarsym(pd.paras[i]);
+              case prm.paraloc[callerside].Size of
+                OS_8..OS_32, OS_S8..OS_S32:
+                  functype.add_param(wbt_i32);
+                OS_64, OS_S64:
+                  functype.add_param(wbt_i64);
+                OS_F32:
+                  functype.add_param(wbt_f32);
+                OS_F64:
+                  functype.add_param(wbt_f64);
+              else
+                // unsupported calleeside parameter type
+                Internalerror(2019093001);
+              end;
+            end;
+        end;
+      if Assigned(pd.returndef) and (pd.returndef.size>0) then
+        begin
+          if not defToWasmBasic(pd.returndef,bt) then
+            bt:=wbt_i32;
+          case bt of
+            wbt_i64:
+              functype.add_result(wbt_i64);
+            wbt_f32:
+              functype.add_result(wbt_f32);
+            wbt_f64:
+              functype.add_result(wbt_f64);
+          else
+            functype.add_result(wbt_i32);
+          end;
+        end;
+      list.Concat(functype);
+
       { the localsize is based on tg.lasttemp -> already in terms of stack
         slots rather than bytes }
       //list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
