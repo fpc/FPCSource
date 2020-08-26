@@ -58,7 +58,7 @@ implementation
       tmpreg : TRegister;
     begin
 {$ifdef extdebug}
-      list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(def_cgsize(tosubsetsize)) + ' startbit = ' + ToStr(sreg.startbit) + ' a = ' + ToStr(a))));
+      list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + tcgsize2str(sreg.subsetregsize) + ' subsetsize = ' + tcgsize2str(def_cgsize(tosubsetsize)) + ' startbit = ' + ToStr(sreg.startbit) + ' a = ' + ToStr(a))));
 {$endif}
       { loading the constant into the lowest bits of a temp register and then inserting is
         better than loading some usually large constants and do some masking and shifting on riscv64 }

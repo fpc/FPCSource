@@ -545,7 +545,7 @@ var
   bytesize : byte;
 begin
   {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize))));
+  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + tcgsize2str(fromsize) + ' to ' + tcgsize2str(tosize))));
   {$endif}
 
   if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
@@ -891,7 +891,7 @@ var
   op : TAsmOp;
 begin
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + cgsize2string(size) + ' ' + booltostr(cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE]) + ' ' + inttostr(a) )));
+  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + tcgsize2str(size) + ' ' + booltostr(cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE]) + ' ' + inttostr(a) )));
   {$ENDIF EXTDEBUG}
 
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
@@ -936,7 +936,7 @@ var
   op: tasmop;
 begin
   {$IFDEF extdebug}
-  list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + cgsize2string(size) + ' op ' + inttostr(ord(cmp_op)))));
+  list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + tcgsize2str(size) + ' op ' + inttostr(ord(cmp_op)))));
   {$ENDIF extdebug}
 
   {$note Commented out below check because of compiler weirdness}
@@ -1666,7 +1666,7 @@ const
   overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
 begin
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('maybeadjustresult op = ' + cgop2string(op) + ' size = ' + cgsize2string(size))));
+  list.concat(tai_comment.create(strpnew('maybeadjustresult op = ' + cgop2string(op) + ' size = ' + tcgsize2str(size))));
   {$ENDIF EXTDEBUG}
 
   if (op in overflowops) and (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32]) then

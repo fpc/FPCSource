@@ -15,8 +15,8 @@
  **********************************************************************}
 
 
-function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; nostackframe;
 {$ifdef fpc_abi_call0}
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; nostackframe;
   asm
     s32i.n a0,S.a0
     s32i.n a1,S.a1
@@ -27,16 +27,9 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
     s32i.n a15,S.a15
     movi.n a2,0
   end;
-{$endif fpc_abi_call0}
-{$ifdef fpc_abi_windowed}
-  asm
-    movi a2,0
-  end;
-{$endif fpc_abi_windowed}
 
 
 procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc; nostackframe;
-{$ifdef fpc_abi_call0}
   asm
     l32i.n a0,S.a0
     l32i.n a1,S.a1
@@ -48,9 +41,30 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     movi.n a2,1
     movnez a2,value,value
   end;
-{$endif fpc_abi_call0}
-{$ifdef fpc_abi_windowed}
+{$elseif defined(freertos) and defined(fpc_abi_windowed)}
+
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; nostackframe;
   asm
+    j.l setjmp,a15
   end;
-{$endif fpc_abi_windowed}
+
+
+procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc; nostackframe;
+  asm
+    j.l longjmp,a15
+  end;
+
+{$else}
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; external;
+  asm
+    entry a1,16
+    movi.n a2,0
+  end;
+
+
+procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc; external;
+  asm
+    entry a1,16
+  end;
+{$endif}
 

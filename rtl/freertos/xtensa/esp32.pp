@@ -46,29 +46,10 @@ unit esp32;
     function getchar : char;external;
     function __getreent : pointer;external;
     procedure fflush(f : pointer);external;
+    procedure vTaskDelay(xTicksToDelay: uint32); external;
 
-    procedure printpchar(p : pchar);
+    procedure flushOutput(var t : TextRec);
       begin
-        while p^<>#0 do
-           begin
-             putchar(p^);
-             inc(p);
-           end;
-        fflush(ppointer(__getreent+8)^);
-      end;
-
-
-    procedure printdword(d : dword);
-      const
-        s = '0123456789ABCDEF';
-      var
-        i : longint;
-      begin
-        for i:=1 to 8 do
-           begin
-             putchar(s[(d and $f)+1]);
-             d:=d shr 4;
-           end;
         fflush(ppointer(__getreent+8)^);
       end;
 
@@ -93,6 +74,7 @@ unit esp32;
         PASCALMAIN;
         _FPC_haltproc;
       end;
+
 
     function WriteChar(ACh: char; AUserData: pointer): boolean;
       begin
