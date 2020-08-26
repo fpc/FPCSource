@@ -28,10 +28,10 @@ unit agllvmmc;
 interface
 
   uses
-    systems,
+    systems,cgutils,
     globtype,globals,
     symbase,symdef,symtype,symconst,symcpu,
-    aasmbase,aasmtai,aasmdata,
+    aasmbase,aasmtai,aasmdata,aasmcpu,
     assemble,aggas;
 
   type
@@ -60,7 +60,9 @@ implementation
   uses
     cutils,
     fmodule,finput,
-    cpubase;
+    itcpugas,
+    cpubase,
+    verbose;
 
   { TLLVMMachineCodePlaygroundAssembler }
 
@@ -136,8 +138,143 @@ implementation
 
 
   procedure TWASM32InstrWriter.WriteInstruction(hp: tai);
+
+    function getreferencestring(var ref : treference) : ansistring;
+      begin
+        if (ref.index<>NR_NO) then
+          internalerror(2010122809);
+        if assigned(ref.symbol) then
+          begin
+            // global symbol or field -> full type and name
+            // ref.base can be <> NR_NO in case an instance field is loaded.
+            // This register is not part of this instruction, it will have
+            // been placed on the stack by the previous one.
+            result:=ref.symbol.name;
+          end
+        else
+          begin
+            // local symbol -> stack slot, stored in offset
+            if ref.base<>NR_STACK_POINTER_REG then
+              internalerror(2010122810);
+            result:=tostr(ref.offset);
+          end;
+      end;
+
+    function constsingle(s: single): ansistring;
+      begin
+        // wat2wasm is using strtof() internally
+        str(s, result); //'0x'+hexstr(longint(t32bitarray(s)),8);
+      end;
+
+    function constdouble(d: double): ansistring;
+       begin
+         // force interpretation as double (since we write it out as an
+         // integer, we never have to swap the endianess). We have to
+         // include the sign separately because of the way Java parses
+         // hex numbers (0x8000000000000000 is not a valid long)
+         //result:=hexstr(abs(int64(t64bitarray(d))),16);
+         //if int64(t64bitarray(d))<0 then
+         //  result:='-'+result;
+         //result:='0dx'+result;
+         str(d, result);
+       end;
+
+    function getopstr(const o:toper) : ansistring;
+      var
+        d: double;
+        s: single;
+      begin
+        case o.typ of
+          top_reg:
+            // should have been translated into a memory location by the
+            // register allocator)
+            if (cs_no_regalloc in current_settings.globalswitches) then
+              getopstr:=std_regname(o.reg)
+            else
+              internalerror(2010122803);
+          top_const:
+            str(o.val,result);
+          top_ref:
+            getopstr:=getreferencestring(o.ref^);
+          top_single:
+            begin
+              result:=constsingle(o.sval);
+            end;
+          top_double:
+            begin
+              result:=constdouble(o.dval);
+            end;
+          {top_string:
+            begin
+              result:=constastr(o.pcval,o.pcvallen);
+            end;
+          top_wstring:
+            begin
+              result:=constwstr(o.pwstrval^.data,getlengthwidestring(o.pwstrval));
+            end}
+          else
+            internalerror(2010122802);
+        end;
+      end;
+
+    var
+      cpu : taicpu;
+      i   : integer;
+      isprm : boolean;
+      writer: TExternalAssemblerOutputFile;
     begin
-      owner.writer.AsmWriteLn('# TODO: implement TWASM32InstrWriter.WriteInstruction');
+      writer:=owner.writer;
+      cpu := taicpu(hp);
+      writer.AsmWrite(#9#9);
+      writer.AsmWrite(gas_op2str[cpu.opcode]);
+
+      if (cpu.opcode = a_call_indirect) then begin
+        // special wat2wasm syntax "call_indirect (type x)"
+        writer.AsmWrite(#9);
+        isprm := true;
+        for i:=1 to length(cpu.typecode) do
+          if cpu.typecode[i]=':' then
+             isprm:=false
+          else begin
+            if isprm then writer.AsmWrite('(param ')
+            else writer.AsmWrite('(result ');
+            case cpu.typecode[i] of
+              'i': writer.AsmWrite('i32');
+              'I': writer.AsmWrite('i64');
+              'f': writer.AsmWrite('f32');
+              'F': writer.AsmWrite('f64');
+            end;
+            writer.AsmWrite(')');
+          end;
+        writer.AsmLn;
+        exit;
+      end;
+
+
+      if (cpu.opcode = a_if)  then
+        writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
+      else
+
+      cpu := taicpu(hp);
+      if cpu.ops<>0 then
+        begin
+          for i:=0 to cpu.ops-1 do
+            begin
+              writer.AsmWrite(#9);
+
+              if (cpu.opcode in AsmOp_LoadStore) and (cpu.oper[i]^.typ = top_ref) then
+                writer.AsmWrite('offset='+tostr( cpu.oper[i]^.ref^.offset))
+              else
+                writer.AsmWrite(getopstr(cpu.oper[i]^));
+
+            end;
+        end;
+
+      if (cpu.opcode = a_call_indirect) then
+        // special wat2wasm syntax "call_indirect (type x)"
+        writer.AsmWrite(')');
+
+      writer.AsmLn;
     end;
 
 
