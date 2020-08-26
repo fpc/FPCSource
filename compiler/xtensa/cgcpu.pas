@@ -1243,7 +1243,7 @@ implementation
               list.concat(taicpu.op_reg_reg(A_NEG,regdst.reghi,regsrc.reghi));
               list.concat(taicpu.op_reg_reg_const(A_ADDI,tmpreg,regdst.reghi,-1));
               instr:=taicpu.op_reg_reg_reg(A_MOV,regdst.reghi,tmpreg,regdst.reglo);
-              instr.condition:=C_EQZ;
+              instr.condition:=C_NEZ;
               list.concat(instr);
             end;
           OP_NOT:
