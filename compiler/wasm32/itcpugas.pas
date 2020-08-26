@@ -84,6 +84,8 @@ interface
       'grow_memory', 'current_memory'
     );
 
+    gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64');
+
     function gas_regname(r:Tregister):string;
 
 

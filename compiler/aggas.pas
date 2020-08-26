@@ -118,6 +118,9 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
+{$ifdef wasm}
+      aasmcpu,
+{$endif wasm}
       cpubase,objcasm;
 
     const
@@ -1552,7 +1555,14 @@ implementation
 {$ifdef WASM}
            ait_local:
              begin
-               writer.AsmWriteLn(asminfo^.comment+'TODO: ait_local');
+               writer.AsmWrite(#9'.local'#9);
+               writer.AsmWrite(gas_wasm_basic_type_str[tai_local(hp).bastyp]);
+               if tai_local(hp).name<>'' then
+                 begin
+                   writer.AsmWrite(#9+asminfo^.comment);
+                   writer.AsmWrite(tai_local(hp).name);
+                 end;
+               writer.AsmLn;
              end;
            ait_importexport:
              begin
