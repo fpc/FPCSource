@@ -1691,8 +1691,6 @@ ResourceString
   SWarnStartCompilingPackage = 'Start compiling package %s for target %s.';
   SWarnCompilingPackagecompleteProgress = '[%3.0f%%] Compiled package %s';
   SWarnCompilingPackagecomplete = 'Compiled package %s';
-  SWarnSkipPackageTargetProgress = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
-  SWarnSkipPackageTarget = 'Skipped package %s which has been disabled for target %s';
   SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
   SWarnCanNotGetAccessRights = 'Warning: Failed to copy access-rights from file %s';
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
@@ -1708,6 +1706,8 @@ ResourceString
   SWarnRemovedNonEmptyDirectory = 'Warning: Removed non empty directory "%s"';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
+  SInfoSkipPackageTargetProgress = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
+  SInfoSkipPackageTarget = 'Skipped package %s which has been disabled for target %s';
   SInfoCompilingTarget    = 'Compiling target %s';
   SInfoExecutingCommand   = 'Executing command "%s %s"';
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
@@ -8195,7 +8195,7 @@ procedure TBuildEngine.Compile(Packages: TPackages);
         else
           begin
             inc(FProgressCount);
-            log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, APackage.Name, Defaults.Target]);
+            log(vlInfo,SInfoSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, APackage.Name, Defaults.Target]);
             APackage.FTargetState:=tsNoCompile;
           end;
       end;
@@ -8288,7 +8288,7 @@ begin
           else
             begin
             inc(FProgressCount);
-            log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
+            log(vlInfo,SInfoSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
             end;
         end;
     end
@@ -8388,7 +8388,7 @@ begin
           log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
         end
       else
-        log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
+        log(vlInfo,SInfoSkipPackageTarget,[P.Name, Defaults.Target]);
     end;
   NotifyEventCollection.CallEvents(neaAfterInstall, Self);
 end;
@@ -8417,7 +8417,7 @@ begin
             log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
           end
         else
-          log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
+          log(vlInfo,SInfoSkipPackageTarget,[P.Name, Defaults.Target]);
       end;
   finally
     FinishArchive(P);

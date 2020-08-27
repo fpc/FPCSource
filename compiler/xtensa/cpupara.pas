@@ -338,12 +338,19 @@ unit cpupara;
                     paralen := paradef.size
                   else
                     paralen := tcgsize2size[def_cgsize(paradef)];
-                  paracgsize:=def_cgsize(paradef);
-                  { for things like formaldef }
-                  if (paracgsize=OS_NO) then
+                  if (paradef.typ in [objectdef,arraydef,recorddef,setdef,stringdef]) and
+                     not is_special_array(paradef) and
+                     (hp.varspez in [vs_value,vs_const]) then
+                    paracgsize:=int_cgsize(paralen)
+                  else
                     begin
-                      paracgsize:=OS_ADDR;
-                      paralen := tcgsize2size[OS_ADDR];
+                      paracgsize:=def_cgsize(paradef);
+                      if (paracgsize=OS_NO) then
+                        begin
+                          paracgsize:=OS_ADDR;
+                          paralen := tcgsize2size[OS_ADDR];
+                          paradef:=voidpointertype;
+                        end;
                     end;
                 end;
 
