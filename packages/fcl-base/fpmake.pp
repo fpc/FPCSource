@@ -146,7 +146,6 @@ begin
       T:=P.Targets.AddExampleProgram('base64decodingtestcase.pas');
       T:=P.Targets.AddExampleProgram('cachetest.pp');
       T:=P.Targets.AddExampleProgram('cfgtest.pp');
-      T:=P.Targets.AddExampleProgram('dbugsrv.pp');
       T:=P.Targets.AddExampleProgram('debugtest.pp');
       T:=P.Targets.AddExampleProgram('doecho.pp');
       T:=P.Targets.AddExampleProgram('dparser.pp');

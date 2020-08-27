@@ -69,6 +69,7 @@ begin
     P.ExamplePath.Add('examples');
       T:=P.Targets.AddExampleProgram('ipcclient.pp');
       T:=P.Targets.AddExampleProgram('ipcserver.pp');
+      T:=P.Targets.AddExampleProgram('dbugsrv.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
