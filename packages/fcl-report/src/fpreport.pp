@@ -5331,15 +5331,41 @@ begin
   Changed;
 end;
 
+function TryVarByteArrayToStream(var AValue : Variant; Stream : TMemoryStream) : boolean;
+var
+  p : Pointer;
+  c : Integer;
+begin
+  Result := False;
+  if not VarIsArray(AValue) then
+    exit;
+  c := VarArrayHighBound(AValue,1) - VarArrayLowBound(AValue,1) + 1;
+  Result := (c > 0) and VarIsType(AValue[VarArrayLowBound(AValue,1)],varByte);
+  if not Result then
+    exit;
+  p := VarArrayLock(AValue);
+  try
+    Stream.SetSize(c);
+    Move(p^,Stream.Memory^,c);
+  finally
+    VarArrayUnlock(AValue);
+  end;
+end;
+
 procedure TFPReportCustomImage.LoadDBData(AData: TFPReportData);
 var
+  v : Variant;
   s: string;
   lStream: TMemoryStream;
 begin
-  s := AData.FieldValues[FFieldName];
+  v := AData.FieldValues[FFieldName];
   lStream := TMemoryStream.Create;
   try
-    FPReportMIMEEncodeStringToStream(s, lStream);
+    if not TryVarByteArrayToStream(v,lStream) then
+    begin
+      s := v;
+      FPReportMIMEEncodeStringToStream(s, lStream);
+    end;
     LoadPNGFromStream(lStream)
   finally
     lStream.Free;
@@ -5402,15 +5428,25 @@ function TFPReportCustomImage.PrepareObject(aRTParent: TFPReportElement): TFPRep
 Var
   Img : TFPReportCustomImage;
   B : TFPReportCustomBand;
+  D : TFPReportData;
 
 begin
   Result:=inherited PrepareObject(aRTParent);
   if Result=Nil then
     exit;
   img := TFPReportCustomImage(Result);
-  B:=artParent as TFPReportCustomBand;
-  if (img.FieldName <> '') and Assigned(B.GetData) then
-    img.LoadDBData(B.GetData);
+  if Assigned(Band) then
+    B := Band
+  else
+    B := artParent as TFPReportCustomBand;
+  if (img.FieldName <> '') then
+  begin
+    D := B.GetData;
+    if not(Assigned(D)) and Assigned(B.Page.Data) then
+      D := B.Page.Data;
+    if Assigned(D) then
+      img.LoadDBData(D);
+  end;
 end;
 
 constructor TFPReportCustomImage.Create(AOwner: TComponent);
