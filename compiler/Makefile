@@ -4062,7 +4062,6 @@ release: fpc_release
 units: fpc_units $(addsuffix _units,$(TARGET_DIRS))
 examples: $(addsuffix _examples,$(TARGET_DIRS))
 shared: fpc_shared
-install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
 distinstall: fpc_distinstall
@@ -4073,7 +4072,7 @@ zipdistinstall: fpc_zipdistinstall
 cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall info makefiles
+.PHONY: debug smart release units examples shared sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -4128,13 +4127,11 @@ INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)$(SYMLINKINSTALL_TARGETS)
 $(PPC_TARGETS):
-	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ compiler
+	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
 $(INSTALL_TARGETS):
-	$(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) compiler
-	$(MAKE) PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@) exeinstall
+	$(MAKE) all install PPC_TARGET=$(subst _exe_install,,$@) CPU_UNITDIR=$(subst _exe_install,,$@)
 $(SYMLINKINSTALL_TARGETS):
-	$(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) compiler
-	$(MAKE) PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@) installsymlink
+	$(MAKE) all installsymlink PPC_TARGET=$(subst _symlink_install,,$@) CPU_UNITDIR=$(subst _symlink_install,,$@)
 alltargets: $(ALLTARGETS)
 .NOTPARALLEL:
 .PHONY: all compiler echotime ppuclean execlean clean distclean
@@ -4355,18 +4352,11 @@ extcycle:
 	$(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG" ALLOW_WARNINGS=1
 cvstest:
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
-ifeq ($(findstring -dFPC_SOFT_FPUX80,$(LOCALOPT)),)
 ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64),)
   EXCLUDE_80BIT_TARGETS=1
-endif
-endif
-ifndef EXCLUDE_80BIT_TARGETS
-FULL_TARGETS=$(filter-out $(PPC_TARGET),$(CYCLETARGETS))
-else
-FULL_TARGETS=$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))))
 endif
 full: fullcycle
 fullcycle:
@@ -4376,7 +4366,11 @@ ifdef DOWPOCYCLE
 	$(MAKE) rtlclean
 	$(MAKE) rtl 'FPC=$(BASEDIR)/$(EXENAME)'
 endif
-	$(MAKE) $(FULL_TARGETS) 'FPC=$(BASEDIR)/$(EXENAMEPREFIX)$(EXENAME)'
+ifndef EXCLUDE_80BIT_TARGETS
+	$(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+else
+	$(MAKE) $(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))) 'FPC=$(BASEDIR)/$(EXENAME)'
+endif
 htmldocs:
 	$(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 .PHONY: quickinstall exeinstall install installsymlink fullinstall fullinstallsymlink
@@ -4402,10 +4396,12 @@ endif
 	$(INSTALLEXE) $(INSTALLEXEFILE) $(PPCCPULOCATION)/$(INSTALLEXEFILE)
 endif
 fullinstall:
-	$(MAKE) $(addsuffix _exe_install,$($(FULL_TARGETS)))
-	$(MAKE) $(addsuffix _all,$(TARGET_DIRS))
-	$(MAKE) $(addsuffix _install,$(TARGET_DIRS))
-auxfilesinstall:
+ifndef EXCLUDE_80BIT_TARGETS
+	$(MAKE) $(addsuffix _exe_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
+else
+	$(MAKE) $(addsuffix _exe_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
+endif
+install: quickinstall
 ifndef CROSSINSTALL
 ifdef UNIXHier
 	$(MKDIR) $(INSTALL_BASEDIR)
@@ -4414,13 +4410,17 @@ endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 endif
-installsymlink: exeinstall
+installsymlink: install
 ifneq ($(PPCCPULOCATION),$(INSTALL_BINDIR))
 	$(MKDIR) $(INSTALL_BINDIR)
 	ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
-fullinstallsymlink:
-	$(MAKE) $(addsuffix _symlink_install,$(FULL_TARGETS))
+fullinstallsymlink: fullinstall
+ifndef EXCLUDE_80BIT_TARGETS
+	$(MAKE) $(addsuffix _symlink_install,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))
+else
+	$(MAKE) $(addsuffix _symlink_install,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
+endif
 .PHONY: rtl rtlclean rtlinstall
 rtl:
 	$(MAKE) -C $(PACKAGEDIR_RTL) 'OPT=$(RTLOPT)' all
