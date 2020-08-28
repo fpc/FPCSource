@@ -473,13 +473,6 @@ var rtl = {
     return t;
   },
 
-  recNewS: function(parent,name,initfn,full){
-    // register specialized record type
-    parent[name] = function(){
-      rtl.recNewT(parent,name,initfn,full);
-    }
-  },
-
   is: function(instance,type){
     return type.isPrototypeOf(instance) || (instance===type);
   },
@@ -1006,7 +999,7 @@ var rtl = {
 
   arrayConcatN: function(){
     var a = null;
-    for (var i=0; i<arguments.length; i++){
+    for (var i=1; i<arguments.length; i++){
       var src = arguments[i];
       if (src === null) continue;
       if (a===null){
