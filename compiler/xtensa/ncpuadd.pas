@@ -390,7 +390,12 @@ interface
             op:=A_MUL;
           subn :
             op:=A_SUB;
-          unequaln,
+          unequaln:
+            begin
+              op:=A_OEQ;
+              cmpop:=true;
+              inv:=true;
+            end;
           equaln:
             begin
               op:=A_OEQ;
