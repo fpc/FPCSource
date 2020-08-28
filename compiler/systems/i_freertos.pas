@@ -708,8 +708,8 @@ unit i_freertos;
                 localalignmin   : 4;
                 localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
             first_parm_offset : 8;
             stacksize    : 65536;
