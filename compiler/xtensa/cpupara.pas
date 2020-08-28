@@ -40,6 +40,7 @@ unit cpupara;
          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+         function ret_in_param(def: tdef; pd: tabstractprocdef): boolean;override;
        private
          { the max. register depends on the used call instruction }
          maxintreg : TSuperRegister;
@@ -145,7 +146,6 @@ unit cpupara;
             exit;
           end;
         case def.typ of
-          variantdef,
           formaldef :
             result:=true;
           recorddef :
@@ -157,6 +157,7 @@ unit cpupara;
                              is_array_constructor(def);
           objectdef :
             result:=is_object(def) and (varspez = vs_const);
+          variantdef,
           setdef :
             result:=(varspez = vs_const);
           stringdef :
@@ -262,6 +263,31 @@ unit cpupara;
             paraloc^.size:=OS_32;
             paraloc^.def:=result.def;
           end;
+      end;
+
+
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+      var
+        i: longint;
+        sym: tsym;
+        basedef: tdef;
+      begin
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
+        case def.typ of
+          arraydef,
+          objectdef,
+          stringdef,
+          setdef,
+          recorddef:
+            result:=def.size>16;
+          floatdef,
+          variantdef,
+          procvardef:
+            result:=false
+          else
+            result:=inherited ret_in_param(def,pd);
+        end;
       end;
 
 
