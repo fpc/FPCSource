@@ -13781,6 +13781,7 @@ tests/test/cg/tcalcst5.pp svneol=native#text/plain
 tests/test/cg/tcalcst6.pp svneol=native#text/plain
 tests/test/cg/tcalcst7.pp svneol=native#text/plain
 tests/test/cg/tcalcst8.pp svneol=native#text/plain
+tests/test/cg/tcaldefs.inc svneol=native#text/plain
 tests/test/cg/tcalext.pp svneol=native#text/plain
 tests/test/cg/tcalext3.pp svneol=native#text/plain
 tests/test/cg/tcalext4.pp svneol=native#text/plain
