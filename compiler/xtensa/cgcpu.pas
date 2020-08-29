@@ -80,6 +80,8 @@ interface
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
         procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef);override;
+
+        function create_data_entry(symbol: TAsmSymbol; offset: asizeint): TAsmLabel;
       end;
 
       tcg64fxtensa = class(tcg64f32)
@@ -314,11 +316,7 @@ implementation
           begin
             reference_reset(hr,4,[]);
 
-            current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
-
-            hr.symbol:=l;
+            hr.symbol:=create_data_entry(nil,longint(a));
             list.concat(taicpu.op_reg_ref(A_L32R,reg,hr));
           end;
       end;
@@ -334,18 +332,11 @@ implementation
         if assigned(ref.symbol) or (ref.offset<-2048) or (ref.offset>2047) then
           begin
             reference_reset(tmpref,4,[]);
-            current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
             tmpreg:=NR_NO;
-
-            if assigned(ref.symbol) then
-              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
-            else if ref.offset<>0 then
-              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
             { load consts entry }
             tmpreg:=getintregister(list,OS_INT);
-            tmpref.symbol:=l;
+            tmpref.symbol:=create_data_entry(ref.symbol,ref.offset);
             list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
 
             if ref.base<>NR_NO then
@@ -729,10 +720,7 @@ implementation
                       list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
 
                       reference_reset(ref,4,[]);
-                      current_asmdata.getjumplabel(l);
-                      cg.a_label(current_procinfo.aktlocaldata,l);
-                      current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(localsize-32)));
-                      ref.symbol:=l;
+                      ref.symbol:=create_data_entry(nil,longint(localsize-32));
                       list.concat(taicpu.op_reg_ref(A_L32R,NR_A8,ref));
 
                       list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_A8,NR_STACK_POINTER_REG,NR_A8));
@@ -1173,6 +1161,38 @@ implementation
     procedure tcgcpu.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
       begin
         { no overflow checking yet }
+      end;
+
+
+    function tcgcpu.create_data_entry(symbol: TAsmSymbol;offset: asizeint): TAsmLabel;
+      var
+        hp: tai;
+      begin
+        hp:=tai(current_procinfo.aktlocaldata.first);
+        while assigned(hp) do
+          begin
+            if (hp.typ=ait_label) and assigned(hp.Next) and
+              (tai(hp.Next).typ=ait_const) and
+              (tai_const(hp.Next).consttype=aitconst_ptr) and
+              (tai_const(hp.Next).sym=symbol) and
+              (tai_const(hp.Next).endsym=nil) and
+              ((assigned(symbol) and (tai_const(hp.Next).symofs=offset)) or
+               (not(assigned(symbol)) and (tai_const(hp.Next).value=offset))
+              ) then
+              begin
+                Result:=tai_label(hp).labsym;
+                exit;
+              end;
+            hp:=tai(hp.Next);
+          end;
+
+        current_asmdata.getjumplabel(Result);
+        cg.a_label(current_procinfo.aktlocaldata,Result);
+
+        if assigned(symbol) then
+          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
+        else
+          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(offset));
       end;
 
 
