@@ -30362,7 +30362,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses2',
     LinesToStr([ // statements
-    '  $mod.$rtti.$StaticArray("TStaticArr", {',
+    '$mod.$rtti.$StaticArray("TStaticArr", {',
     '  dims: [2],',
     '  eltype: rtl.string',
     '});',

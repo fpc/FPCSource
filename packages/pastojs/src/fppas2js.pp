@@ -472,7 +472,7 @@ uses
   {$endif}
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
-  PasTree, PScanner, PasResolveEval, PasResolver, PasUseAnalyzer;
+  PasTree, PScanner, PasResolveEval, PasResolver;
 
 // message numbers
 const
@@ -621,7 +621,6 @@ type
     pbifnRecordAssign,
     pbifnRecordClone,
     pbifnRecordCreateType,
-    pbifnRecordCreateSpecializeType,
     pbifnRecordEqual,
     pbifnRecordNew,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
@@ -802,7 +801,6 @@ const
     '$assign', // pbifnRecordAssign
     '$clone', // pbifnRecordClone
     'recNewT', // pbifnRecordCreateType
-    'recNewS', // pbifnRecordCreateSpecializeType
     '$eq', // pbifnRecordEqual
     '$new', // pbifnRecordNew
     'addField', // pbifnRTTIAddField
@@ -1378,14 +1376,17 @@ type
 
   TPas2JSResolverHub = class(TPasResolverHub)
   private
-    FJSSpecialized: TPasAnalyzerKeySet; // set of TPasGenericType
+    FJSDelaySpecialize: TFPList;// list of TPasGenericType
+    function GetJSDelaySpecializes(Index: integer): TPasGenericType;
   public
     constructor Create(TheOwner: TObject); override;
     destructor Destroy; override;
     procedure Reset; override;
     // delayed type specialization
-    procedure AddJSSpecialized(SpecType: TPasGenericType);
-    function IsJSSpecialized(SpecType: TPasGenericType): boolean;
+    procedure AddJSDelaySpecialize(SpecType: TPasGenericType);
+    function IsJSDelaySpecialize(SpecType: TPasGenericType): boolean;
+    function JSDelaySpecializeCount: integer;
+    property JSDelaySpecializes[Index: integer]: TPasGenericType read GetJSDelaySpecializes;
   end;
 
   { TPas2JSResolver }
@@ -1922,7 +1923,6 @@ type
     Function CreateVarStatement(const aName: String; Init: TJSElement;
       El: TPasElement): TJSVariableStatement; virtual;
     Function CreateVarDecl(const aName: String; Init: TJSElement; El: TPasElement): TJSVarDeclaration; virtual;
-    Procedure InitJSSpecialization(aType: TPasType; AContext: TConvertContext; ErrorEl: TPasElement); virtual;
     // JS literals
     Function CreateLiteralNumber(El: TPasElement; const n: TJSNumber): TJSLiteral; virtual;
     Function CreateLiteralHexNumber(El: TPasElement; const n: TMaxPrecInt; Digits: byte): TJSLiteral; virtual;
@@ -2335,32 +2335,45 @@ end;
 
 { TPas2JSResolverHub }
 
+function TPas2JSResolverHub.GetJSDelaySpecializes(Index: integer
+  ): TPasGenericType;
+begin
+  Result:=TPasGenericType(FJSDelaySpecialize[Index]);
+end;
+
 constructor TPas2JSResolverHub.Create(TheOwner: TObject);
 begin
   inherited Create(TheOwner);
-  FJSSpecialized:=CreatePasElementSet;
+  FJSDelaySpecialize:=TFPList.Create;
 end;
 
 destructor TPas2JSResolverHub.Destroy;
 begin
-  FreeAndNil(FJSSpecialized);
+  FreeAndNil(FJSDelaySpecialize);
   inherited Destroy;
 end;
 
 procedure TPas2JSResolverHub.Reset;
 begin
   inherited Reset;
+  FJSDelaySpecialize.Clear;
 end;
 
-procedure TPas2JSResolverHub.AddJSSpecialized(SpecType: TPasGenericType);
+procedure TPas2JSResolverHub.AddJSDelaySpecialize(SpecType: TPasGenericType);
 begin
-  if FJSSpecialized.FindItem(SpecType)=nil then
-    FJSSpecialized.Add(SpecType,false);
+  if FJSDelaySpecialize.IndexOf(SpecType)>=0 then
+    raise EPas2JS.Create('TPas2JSResolverHub.AddJSDelaySpecialize '+GetObjPath(SpecType));
+  FJSDelaySpecialize.Add(SpecType);
 end;
 
-function TPas2JSResolverHub.IsJSSpecialized(SpecType: TPasGenericType): boolean;
+function TPas2JSResolverHub.IsJSDelaySpecialize(SpecType: TPasGenericType): boolean;
 begin
-  Result:=FJSSpecialized.FindItem(SpecType)<>nil;
+  Result:=FJSDelaySpecialize.IndexOf(SpecType)>=0;
+end;
+
+function TPas2JSResolverHub.JSDelaySpecializeCount: integer;
+begin
+  Result:=FJSDelaySpecialize.Count;
 end;
 
 { TPas2JSModuleScope }
@@ -22624,53 +22637,6 @@ begin
   Result.Init:=Init;
 end;
 
-procedure TPasToJSConverter.InitJSSpecialization(aType: TPasType;
-  AContext: TConvertContext; ErrorEl: TPasElement);
-var
-  aResolver: TPas2JSResolver;
-  SpecTypeData: TPasSpecializeTypeData;
-  Hub: TPas2JSResolverHub;
-  SpecType: TPasGenericType;
-  C: TClass;
-  FuncCtx: TFunctionContext;
-  SrcEl: TJSSourceElements;
-begin
-  while aType<>nil do
-    begin
-    C:=aType.ClassType;
-    if C=TPasAliasType then
-      aType:=TPasAliasType(aType).DestType
-    else if C=TPasSpecializeType then
-      begin
-      // specialized type
-      SpecTypeData:=aType.CustomData as TPasSpecializeTypeData;
-      if SpecTypeData=nil then
-        RaiseNotSupported(aType,AContext,20200815210904);
-      aResolver:=AContext.Resolver;
-      Hub:=TPas2JSResolverHub(aResolver.Hub);
-      SpecType:=SpecTypeData.SpecializedType;
-      if Hub.IsJSSpecialized(SpecType) then exit;
-      Hub.AddJSSpecialized(SpecType);
-      FuncCtx:=AContext.GetGlobalFunc;
-      SrcEl:=FuncCtx.JSElement as TJSSourceElements;
-
-      if SrcEl=nil then ;
-
-      if SpecType is TPasRecordType then
-        begin
-        // add $mod.TAnt$G1();
-        //CreateReferencePath();
-        RaiseNotSupported(ErrorEl,AContext,20200815215652);
-        end
-      else
-        RaiseNotSupported(ErrorEl,AContext,20200815215338);
-      exit;
-      end
-    else
-      exit;
-    end;
-end;
-
 function TPasToJSConverter.CreateLiteralNumber(El: TPasElement;
   const n: TJSNumber): TJSLiteral;
 begin
@@ -24789,8 +24755,8 @@ begin
     if RecScope.SpecializedFromItem<>nil then
       begin
       // ToDo
-      //if aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil then
-        //bifn:=pbifnRecordCreateSpecializeType;
+      if aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil then
+        ;//bifn:=pbifnRecordCreateSpecializeType;
       end;
 
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(bifn)]);

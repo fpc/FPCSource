@@ -13561,6 +13561,13 @@ tests/test/cg/obj/freebsd/x86_64/tcext3.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext4.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext5.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext6.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/cpptcl1.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/cpptcl2.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/ctest.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/tcext3.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/tcext4.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/tcext5.o -text
+tests/test/cg/obj/freertos/xtensa-windowed/tcext6.o -text
 tests/test/cg/obj/go32v2/i386/cpptcl1.o -text
 tests/test/cg/obj/go32v2/i386/cpptcl2.o -text
 tests/test/cg/obj/go32v2/i386/ctest.o -text
