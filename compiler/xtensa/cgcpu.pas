@@ -699,21 +699,20 @@ implementation
                 begin
                   if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
                     begin
+                      list.concat(tai_comment.Create(strpnew('Stackframe size was estimated before code generation due to stack parameters')));
+                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(current_procinfo).stackframesize))));
+                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(current_procinfo).maxpushedparasize))));
+                      list.concat(tai_comment.Create(strpnew('  End of last temporary location: '+tostr(tg.lasttemp))));
+                      list.concat(tai_comment.Create(strpnew('  Max. window rotation in bytes: '+tostr(txtensaprocinfo(current_procinfo).maxcall*4))));
+
+                      { should never happen as localsize is derived from
+                        txtensaprocinfo(current_procinfo).stackframesize }
                       if localsize>txtensaprocinfo(current_procinfo).stackframesize then
-                        internalerror(2020031402)
-                      else
-                        localsize:=txtensaprocinfo(current_procinfo).stackframesize-registerarea;
+                        internalerror(2020031402);
+                      localsize:=txtensaprocinfo(current_procinfo).stackframesize;
                     end
                   else
-                    begin
-                      { default spill area }
-                      inc(localsize,4*4);
-                      { additional spill area? }
-                      if pi_do_call in current_procinfo.flags then
-                        inc(localsize,txtensaprocinfo(current_procinfo).maxcall*4);
-
-                      localsize:=align(localsize,current_settings.alignment.localalignmax);
-                    end;
+                    localsize:=align(localsize,current_settings.alignment.localalignmax);
 
                   if localsize>32760 then
                     begin
