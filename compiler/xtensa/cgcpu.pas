@@ -704,6 +704,7 @@ implementation
                       list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(current_procinfo).maxpushedparasize))));
                       list.concat(tai_comment.Create(strpnew('  End of last temporary location: '+tostr(tg.lasttemp))));
                       list.concat(tai_comment.Create(strpnew('  Max. window rotation in bytes: '+tostr(txtensaprocinfo(current_procinfo).maxcall*4))));
+                      list.concat(tai_comment.Create(strpnew('  Required size after code generation: '+tostr(localsize))));
 
                       { should never happen as localsize is derived from
                         txtensaprocinfo(current_procinfo).stackframesize }
@@ -712,8 +713,15 @@ implementation
                       localsize:=txtensaprocinfo(current_procinfo).stackframesize;
                     end
                   else
-                    localsize:=align(localsize,current_settings.alignment.localalignmax);
+                    begin
+                      localsize:=align(localsize,current_settings.alignment.localalignmax);
+                      inc(localsize,4*4);
+                      if pi_do_call in current_procinfo.flags then
+                        inc(localsize,txtensaprocinfo(current_procinfo).maxcall*4);
+                    end;
 
+                  if localsize<0 then
+                    Internalerror(2020083001);
                   if localsize>32760 then
                     begin
                       list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));

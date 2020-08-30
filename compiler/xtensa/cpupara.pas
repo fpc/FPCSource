@@ -151,7 +151,7 @@ unit cpupara;
           recorddef :
             result:=(varspez = vs_const);
           arraydef:
-            result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+            result:=((varspez = vs_const) and (tarraydef(def).highrange>=tarraydef(def).lowrange)) or
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
@@ -299,7 +299,9 @@ unit cpupara;
       begin
         init_values(p,side,curintreg,cur_stack_offset);
 
-        result := create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset,false);
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset,false);
+        if result<cur_stack_offset then
+          Internalerror(2020083001);
 
         create_funcretloc_info(p,side);
       end;
@@ -327,6 +329,20 @@ unit cpupara;
          if po_explicitparaloc in p.procoptions then
            internalerror(200411141);
 {$endif extdebug}
+        loc.reset;
+        { currently only support C-style array of const }
+        if (p.proccalloption in cstylearrayofconst) and
+           is_array_of_const(paradef) then
+          begin
+            paraloc:=loc.add_location;
+            { hack: the paraloc must be valid, but is not actually used }
+            paraloc^.loc := LOC_REGISTER;
+            paraloc^.register := NR_A2;
+            paraloc^.size := OS_ADDR;
+            paraloc^.def:=voidpointertype;
+            result:=cur_stack_offset;
+            exit;
+          end;
 
          result:=0;
          nextintreg := curintreg;
@@ -469,12 +485,32 @@ unit cpupara;
                           end;
                        paralen := 0;
                     end;
+<<<<<<< HEAD
                   firstparaloc:=false;
                 end;
             end;
          curintreg:=nextintreg;
          cur_stack_offset:=stack_offset;
          result:=stack_offset;
+=======
+                 paralen := 0;
+              end;
+            firstparaloc:=false;
+          end;
+         result:=cur_stack_offset;
+      end;
+
+
+    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
+      var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
+      var
+        i : integer;
+      begin
+        result:=0;
+        for i:=0 to paras.count-1 do
+          result:=create_paraloc1_info_intern(p,side,tparavarsym(paras[i]).vardef,tparavarsym(paras[i]).paraloc[side],tparavarsym(paras[i]).varspez,
+            tparavarsym(paras[i]).varoptions,curintreg,cur_stack_offset,false);
+>>>>>>> 7962bf60e6... * squash stack frame size
       end;
 
 

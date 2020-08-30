@@ -76,7 +76,6 @@ unit cpupi;
             maxcall:=8;
 
             { we do not use a frame pointer for the windowed abi }
-            include(flags,pi_estimatestacksize);
             framepointer:=NR_STACK_POINTER_REG;
           end
         else
@@ -94,7 +93,7 @@ unit cpupi;
         localsize : aint;
         i : longint;
       begin
-        maxpushedparasize:=Align(maxpushedparasize,4);
+        maxpushedparasize:=Align(maxpushedparasize,target_info.alignment.localalignmax);
         tg.setfirsttemp(maxpushedparasize);
 
         if po_nostackframe in procdef.procoptions then
@@ -127,13 +126,16 @@ unit cpupi;
                     inc(localsize,256)
                   else
                     begin
-                      localsize:=align(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).vardef.alignment);
+                      localsize:=align(localsize,tparavarsym(procdef.parast.SymList[i]).paraloc[calleeside].alignment);
                       inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
                     end;
                 end;
             inc(stackframesize,localsize);
-            stackframesize:=align(stackframesize,4);
 
+            stackframesize:=align(stackframesize,target_info.alignment.localalignmax);
+            inc(stackframesize,estimatedtempsize);
+
+            stackframesize:=align(stackframesize,4);
             if pi_needs_implicit_finally in flags then
               inc(stackframesize,40);
 
@@ -150,8 +152,6 @@ unit cpupi;
             if pi_do_call in current_procinfo.flags then
               inc(stackframesize,maxcall*4);
 
-            inc(stackframesize,estimatedtempsize);
-
             stackframesize:=Align(stackframesize,target_info.alignment.localalignmax);
           end;
       end;
@@ -159,13 +159,17 @@ unit cpupi;
 
     function txtensaprocinfo.calc_stackframe_size:longint;
       var
-         r : byte;
+         r, extra: byte;
          regs: tcpuregisterset;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
+//        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
         if pi_estimatestacksize in flags then
           begin
-            if Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+4*4+maxcall*4>stackframesize then
+            if pi_do_call in current_procinfo.flags then
+              extra:=4*4+maxcall*4
+            else
+              extra:=0;
+            if Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+extra>stackframesize then
               InternalError(2020082801);
             result:=stackframesize
           end
