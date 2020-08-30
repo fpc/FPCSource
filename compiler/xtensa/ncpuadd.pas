@@ -158,7 +158,7 @@ interface
 
         location_reset_jump(location,truelab,falselab);
 
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
                                             
         if is_signed(left.resultdef) then
           case nodetype of
@@ -187,7 +187,9 @@ interface
           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.value,left.location.register,location.truelabel)
         else
           begin
-            force_reg_left_right(false,false);
+            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(OS_INT),true);
+
             if nf_swapped in flags then
                cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel)
              else
