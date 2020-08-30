@@ -4446,6 +4446,10 @@ implementation
               not tabstractprocdef(right.resultdef).is_addressonly then
              maybe_load_in_temp(right);
 
+           { the return value might be stored on the current stack by allocating a temp. }
+           if not(paramanager.ret_in_param(procdefinition.returndef,procdefinition)) then
+             inc(current_procinfo.estimatedtempsize,procdefinition.returndef.size);
+
            { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
            maybe_create_funcret_node;
 

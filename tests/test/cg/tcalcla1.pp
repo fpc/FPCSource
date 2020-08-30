@@ -24,15 +24,7 @@ program tcalcla1;
 {$mode objfpc}
 {$R+}
 
-{$ifdef cpu68k}
-  {$define cpusmall}
-{$endif}
-{$ifdef cpui8086}
-  {$define cpusmall}
-  {$if defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
-    {$hugecode on}
-  {$endif}
-{$endif}
+{$i tcaldefs.inc}
 
  const
  { should be defined depending on CPU target }

@@ -1253,6 +1253,8 @@ implementation
         if do_variant then
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
+
+        inc(current_procinfo.estimatedtempsize,(tarraydef(resultdef).highrange+1)*tarraydef(resultdef).elementdef.size);
       end;
 
 

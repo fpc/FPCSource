@@ -56,6 +56,7 @@ unit cpupi;
 
     uses
        globals,systems,
+       verbose,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
        cgutils,
@@ -75,7 +76,6 @@ unit cpupi;
             maxcall:=8;
 
             { we do not use a frame pointer for the windowed abi }
-            include(flags,pi_estimatestacksize);
             framepointer:=NR_STACK_POINTER_REG;
           end
         else
@@ -93,7 +93,7 @@ unit cpupi;
         localsize : aint;
         i : longint;
       begin
-        maxpushedparasize:=Align(maxpushedparasize,4);
+        maxpushedparasize:=Align(maxpushedparasize,target_info.alignment.localalignmax);
         tg.setfirsttemp(maxpushedparasize);
 
         if po_nostackframe in procdef.procoptions then
@@ -102,26 +102,40 @@ unit cpupi;
         { estimate stack frame size }
         if pi_estimatestacksize in flags then
           begin
-            stackframesize:=maxpushedparasize;
+            stackframesize:=align(maxpushedparasize,target_info.alignment.localalignmax);
             localsize:=0;
             for i:=0 to procdef.localst.SymList.Count-1 do
               if tsym(procdef.localst.SymList[i]).typ=localvarsym then
-                inc(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).getsize);
+                begin
+                  localsize:=align(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).vardef.alignment);
+                  inc(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).getsize);
+                end;
             inc(stackframesize,localsize);
+            stackframesize:=align(stackframesize,target_info.alignment.localalignmax);
 
             localsize:=0;
             for i:=0 to procdef.parast.SymList.Count-1 do
               if tsym(procdef.parast.SymList[i]).typ=paravarsym then
                 begin
                   if tabstractnormalvarsym(procdef.parast.SymList[i]).varspez in [vs_var,vs_out,vs_constref] then
-                    inc(localsize,4)
+                    begin
+                      localsize:=align(localsize,4);
+                      inc(localsize,4)
+                    end
                   else if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
                     inc(localsize,256)
                   else
-                    inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                    begin
+                      localsize:=align(localsize,tparavarsym(procdef.parast.SymList[i]).paraloc[calleeside].alignment);
+                      inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                    end;
                 end;
             inc(stackframesize,localsize);
 
+            stackframesize:=align(stackframesize,target_info.alignment.localalignmax);
+            inc(stackframesize,estimatedtempsize);
+
+            stackframesize:=align(stackframesize,4);
             if pi_needs_implicit_finally in flags then
               inc(stackframesize,40);
 
@@ -131,7 +145,12 @@ unit cpupi;
             if procdef.proctypeoption in [potype_constructor] then
               inc(stackframesize,40*2);
 
-            inc(stackframesize,estimatedtempsize);
+            { default spill area }
+            inc(stackframesize,4*4);
+
+            { additional spill area? }
+            if pi_do_call in current_procinfo.flags then
+              inc(stackframesize,maxcall*4);
 
             stackframesize:=Align(stackframesize,target_info.alignment.localalignmax);
           end;
@@ -140,16 +159,21 @@ unit cpupi;
 
     function txtensaprocinfo.calc_stackframe_size:longint;
       var
-         r : byte;
+         r, extra: byte;
          regs: tcpuregisterset;
       begin
         if pi_estimatestacksize in flags then
-          result:=stackframesize
-        else
           begin
-            maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-            result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
-          end;
+            if pi_do_call in current_procinfo.flags then
+              extra:=4*4+maxcall*4
+            else
+              extra:=0;
+            if Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+extra>stackframesize then
+              InternalError(2020082801);
+            result:=stackframesize
+          end
+        else
+          result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
       end;
 
 
