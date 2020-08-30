@@ -48,6 +48,8 @@ unit cpupara;
          function create_paraloc_info_intern(p : tabstractprocdef; side : tcallercallee;
            paras : tparalist; var curintreg : tsuperregister;
            var cur_stack_offset : aword; varargsparas : boolean) : longint;
+         function create_paraloc1_info_intern(p: tabstractprocdef; side: tcallercallee; paradef: tdef; var loc: TCGPara; varspez: tvarspez; varoptions: tvaroptions;
+           var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean): longint;
        end;
 
   implementation
@@ -203,6 +205,8 @@ unit cpupara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
+        cur_stack_offset: aword;
+        curintreg: tsuperregister;
       begin
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
@@ -244,6 +248,15 @@ unit cpupara;
               end
             else
               paraloc^.register:=NR_A3;
+          end
+        else if (result.def.size>4) and (result.def.size<=16) then
+          begin
+            init_values(p,side,curintreg,cur_stack_offset);
+            create_paraloc1_info_intern(p,side,result.def,result,vs_value,[],curintreg,cur_stack_offset,false);
+
+            { check if everything is ok }
+            if result.location^.loc=LOC_INVALID then
+              Internalerror(2020082901);
           end
         else
           begin
@@ -292,7 +305,6 @@ unit cpupara;
 
 
     function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
-
       var
         cur_stack_offset: aword;
         curintreg: tsuperregister;
@@ -307,23 +319,16 @@ unit cpupara;
       end;
 
 
-
-    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
+    function tcpuparamanager.create_paraloc1_info_intern(p : tabstractprocdef; side: tcallercallee; paradef:tdef;var loc : TCGPara;varspez : tvarspez;varoptions : tvaroptions;
       var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
       var
-         stack_offset: longint;
-         paralen: aint;
-         nextintreg : tsuperregister;
-         locdef,
-         fdef,
-         paradef : tdef;
-         paraloc : pcgparalocation;
-         i  : integer;
-         hp : tparavarsym;
-         loc : tcgloc;
-         paracgsize: tcgsize;
-         firstparaloc: boolean;
-
+        paralen: aint;
+        locdef,
+        fdef : tdef;
+        paraloc : pcgparalocation;
+        paracgsize: tcgsize;
+        firstparaloc: boolean;
+        locpara: TCGLoc;
       begin
 {$ifdef extdebug}
          if po_explicitparaloc in p.procoptions then
@@ -344,155 +349,122 @@ unit cpupara;
             exit;
           end;
 
-         result:=0;
-         nextintreg := curintreg;
-         stack_offset := cur_stack_offset;
-
-          for i:=0 to paras.count-1 do
-            begin
-              hp:=tparavarsym(paras[i]);
-              paradef := hp.vardef;
-
-              hp.paraloc[side].reset;
-              { currently only support C-style array of const }
-              if (p.proccalloption in cstylearrayofconst) and
-                 is_array_of_const(paradef) then
-                begin
-                  paraloc:=hp.paraloc[side].add_location;
-                  { hack: the paraloc must be valid, but is not actually used }
-                  paraloc^.loc := LOC_REGISTER;
-                  paraloc^.register := NR_A2;
-                  paraloc^.size := OS_ADDR;
-                  paraloc^.def:=voidpointertype;
-                  break;
-                end;
-
-              if push_addr_param(hp.varspez,paradef,p.proccalloption) then
-                begin
-                  paradef:=cpointerdef.getreusable_no_free(paradef);
-                  loc:=LOC_REGISTER;
-                  paracgsize := OS_ADDR;
-                  paralen := tcgsize2size[OS_ADDR];
-                end
-              else
-                begin
-                  if not is_special_array(paradef) then
-                    paralen := paradef.size
-                  else
-                    paralen := tcgsize2size[def_cgsize(paradef)];
-                  if (paradef.typ in [objectdef,arraydef,recorddef,setdef,stringdef]) and
-                     not is_special_array(paradef) and
-                     (hp.varspez in [vs_value,vs_const]) then
-                    paracgsize:=int_cgsize(paralen)
-                  else
-                    begin
-                      paracgsize:=def_cgsize(paradef);
-                      if (paracgsize=OS_NO) then
-                        begin
-                          paracgsize:=OS_ADDR;
-                          paralen := tcgsize2size[OS_ADDR];
-                          paradef:=voidpointertype;
-                        end;
-                    end;
-                end;
-
-              loc:=getparaloc(paradef);
-
-              if (loc=LOC_REGISTER) and ((maxintreg-nextintreg+1)*4<paradef.size) then
-                begin
-                  loc:=LOC_REFERENCE;
-                  nextintreg:=maxintreg+1;
-                end;
-
-              hp.paraloc[side].alignment:=std_param_align;
-              hp.paraloc[side].size:=paracgsize;
-              hp.paraloc[side].intsize:=paralen;
-              hp.paraloc[side].def:=paradef;
-              if (loc=LOC_REGISTER) and (is_64bit(paradef)) and
-                 odd(nextintreg-RS_A2) then
-                inc(nextintreg);
-              if (paralen = 0) then
-                if (paradef.typ = recorddef) then
+        if push_addr_param(varspez,paradef,p.proccalloption) then
+          begin
+            paradef:=cpointerdef.getreusable_no_free(paradef);
+            locpara:=LOC_REGISTER;
+            paracgsize := OS_ADDR;
+            paralen := tcgsize2size[OS_ADDR];
+          end
+        else
+          begin
+            if not is_special_array(paradef) then
+              paralen := paradef.size
+            else
+              paralen := tcgsize2size[def_cgsize(paradef)];
+            if (paradef.typ in [objectdef,arraydef,recorddef,setdef,stringdef]) and
+               not is_special_array(paradef) and
+               (varspez in [vs_value,vs_const]) then
+              paracgsize:=int_cgsize(paralen)
+            else
+              begin
+                paracgsize:=def_cgsize(paradef);
+                if (paracgsize=OS_NO) then
                   begin
-                    paraloc:=hp.paraloc[side].add_location;
-                    paraloc^.loc := LOC_VOID;
+                    paracgsize:=OS_ADDR;
+                    paralen := tcgsize2size[OS_ADDR];
+                    paradef:=voidpointertype;
+                  end;
+              end;
+          end;
+
+        locpara:=getparaloc(paradef);
+
+        if (locpara=LOC_REGISTER) and ((maxintreg-curintreg+1)*4<paradef.size) then
+          begin
+            locpara:=LOC_REFERENCE;
+            curintreg:=maxintreg+1;
+          end;
+
+        loc.alignment:=std_param_align;
+        loc.size:=paracgsize;
+        loc.intsize:=paralen;
+        loc.def:=paradef;
+        if (locpara=LOC_REGISTER) and (is_64bit(paradef)) and
+           odd(curintreg-RS_A2) then
+          inc(curintreg);
+        if (paralen = 0) then
+          if (paradef.typ = recorddef) then
+            begin
+              paraloc:=loc.add_location;
+              paraloc^.loc := LOC_VOID;
+            end
+          else
+            internalerror(2020031407);
+        locdef:=paradef;
+        firstparaloc:=true;
+        { can become < 0 for e.g. 3-byte records }
+        while paralen>0 do
+          begin
+            paraloc:=loc.add_location;
+            { In case of po_delphi_nested_cc, the parent frame pointer
+              is always passed on the stack. }
+            if (locpara=LOC_REGISTER) and
+               (curintreg<=maxintreg) and
+               (not(vo_is_parentfp in varoptions) or
+                not(po_delphi_nested_cc in p.procoptions)) then
+              begin
+                paraloc^.loc:=locpara;
+                { make sure we don't lose whether or not the type is signed }
+                if (paradef.typ<>orddef) then
+                  begin
+                    paracgsize:=int_cgsize(paralen);
+                    locdef:=get_paraloc_def(paradef,paralen,firstparaloc);
+                  end;
+                if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
+                  begin
+                    paraloc^.size:=OS_INT;
+                    paraloc^.def:=u32inttype;
                   end
                 else
-                  internalerror(2020031407);
-              locdef:=paradef;
-              firstparaloc:=true;
-              { can become < 0 for e.g. 3-byte records }
-              while (paralen > 0) do
-                begin
-                  paraloc:=hp.paraloc[side].add_location;
-                  { In case of po_delphi_nested_cc, the parent frame pointer
-                    is always passed on the stack. }
-                  if (loc = LOC_REGISTER) and
-                     (nextintreg <= maxintreg) and
-                     (not(vo_is_parentfp in hp.varoptions) or
-                      not(po_delphi_nested_cc in p.procoptions)) then
-                    begin
-                      paraloc^.loc := loc;
-                      { make sure we don't lose whether or not the type is signed }
-                      if (paradef.typ<>orddef) then
-                        begin
-                          paracgsize:=int_cgsize(paralen);
-                          locdef:=get_paraloc_def(paradef,paralen,firstparaloc);
-                        end;
-                      if (paracgsize in [OS_NO,OS_64,OS_S64,OS_128,OS_S128]) then
-                        begin
-                          paraloc^.size:=OS_INT;
-                          paraloc^.def:=u32inttype;
-                        end
-                      else
-                        begin
-                          paraloc^.size:=paracgsize;
-                          paraloc^.def:=locdef;
-                        end;
-                      paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                      inc(nextintreg);
-                      dec(paralen,tcgsize2size[paraloc^.size]);
-                    end
-                  else { LOC_REFERENCE }
-                    begin
-                       paraloc^.loc:=LOC_REFERENCE;
-                       case loc of
-                         LOC_REGISTER,
-                         LOC_REFERENCE:
-                           begin
-                             paraloc^.size:=int_cgsize(paralen);
-                             if paraloc^.size<>OS_NO then
-                               paraloc^.def:=cgsize_orddef(paraloc^.size)
-                             else
-                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
-                           end;
-                         else
-                           internalerror(2020031405);
-                       end;
-                       if side = callerside then
-                         paraloc^.reference.index:=NR_STACK_POINTER_REG
+                  begin
+                    paraloc^.size:=paracgsize;
+                    paraloc^.def:=locdef;
+                  end;
+                paraloc^.register:=newreg(R_INTREGISTER,curintreg,R_SUBNONE);
+                inc(curintreg);
+                dec(paralen,tcgsize2size[paraloc^.size]);
+              end
+            else { LOC_REFERENCE }
+              begin
+                 paraloc^.loc:=LOC_REFERENCE;
+                 case locpara of
+                   LOC_REGISTER,
+                   LOC_REFERENCE:
+                     begin
+                       paraloc^.size:=int_cgsize(paralen);
+                       if paraloc^.size<>OS_NO then
+                         paraloc^.def:=cgsize_orddef(paraloc^.size)
                        else
-                         paraloc^.reference.index:=current_procinfo.framepointer;
+                         paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
+                     end;
+                   else
+                     internalerror(2020031405);
+                 end;
+                 if side = callerside then
+                   paraloc^.reference.index:=NR_STACK_POINTER_REG
+                 else
+                   paraloc^.reference.index:=current_procinfo.framepointer;
 
-                       paraloc^.reference.offset:=stack_offset;
+                 paraloc^.reference.offset:=cur_stack_offset;
 
-                       inc(stack_offset,align(paralen,4));
-                       while (paralen > 0) and
-                             (nextintreg < maxintreg) do
-                          begin
-                            inc(nextintreg);
-                            dec(paralen,sizeof(pint));
-                          end;
-                       paralen := 0;
+                 inc(cur_stack_offset,align(paralen,4));
+                 while (paralen > 0) and
+                       (curintreg < maxintreg) do
+                    begin
+                      inc(curintreg);
+                      dec(paralen,sizeof(pint));
                     end;
-<<<<<<< HEAD
-                  firstparaloc:=false;
-                end;
-            end;
-         curintreg:=nextintreg;
-         cur_stack_offset:=stack_offset;
-         result:=stack_offset;
-=======
                  paralen := 0;
               end;
             firstparaloc:=false;
@@ -510,7 +482,6 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           result:=create_paraloc1_info_intern(p,side,tparavarsym(paras[i]).vardef,tparavarsym(paras[i]).paraloc[side],tparavarsym(paras[i]).varspez,
             tparavarsym(paras[i]).varoptions,curintreg,cur_stack_offset,false);
->>>>>>> 7962bf60e6... * squash stack frame size
       end;
 
 

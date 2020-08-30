@@ -162,7 +162,6 @@ unit cpupi;
          r, extra: byte;
          regs: tcpuregisterset;
       begin
-//        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
         if pi_estimatestacksize in flags then
           begin
             if pi_do_call in current_procinfo.flags then
