@@ -897,7 +897,7 @@ begin
         Result := tsqlGT;
       end;
    'a'..'z',
-   'A'..'Z':
+   'A'..'Z', '_':
      Result:=DoIdentifier;
    else
      // Symbol of some sort
