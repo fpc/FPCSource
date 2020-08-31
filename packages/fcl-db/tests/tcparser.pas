@@ -4010,10 +4010,10 @@ end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsOneTable;
 begin
-  TestSelect('SELECT B,C FROM A');
+  TestSelect('SELECT B,_C FROM A');
   AssertEquals('Two fields',2,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
-  AssertField(Select.Fields[1],'C');
+  AssertField(Select.Fields[1],'_C');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
