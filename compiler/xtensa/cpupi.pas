@@ -58,7 +58,8 @@ unit cpupi;
        globals,systems,
        verbose,
        tgobj,
-       symconst,symtype,symsym,symcpu,paramgr,
+       symconst,symtype,symsym,symcpu,symdef,
+       paramgr,
        cgutils,
        cgobj,
        defutil,
@@ -127,7 +128,12 @@ unit cpupi;
                   else
                     begin
                       localsize:=align(localsize,tparavarsym(procdef.parast.SymList[i]).paraloc[calleeside].alignment);
-                      inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                      { getsize returns 0 for e.g. open arrays, however, they require a pointer at the stack, so
+                        allocate one pointer }
+                      if tabstractnormalvarsym(procdef.parast.SymList[i]).getsize=0 then
+                        inc(localsize,voidpointertype.size)
+                      else
+                        inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
                     end;
                 end;
             inc(stackframesize,localsize);
@@ -165,9 +171,9 @@ unit cpupi;
         if pi_estimatestacksize in flags then
           begin
             if pi_do_call in current_procinfo.flags then
-              extra:=4*4+maxcall*4
+              extra:=maxcall*4+4*4
             else
-              extra:=0;
+              extra:=4*4;
             if Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+extra>stackframesize then
               InternalError(2020082801);
             result:=stackframesize
