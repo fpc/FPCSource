@@ -295,8 +295,8 @@ begin
     programs this does not matter because in the main thread, the variables are located
     in bss
 
-    SysInitExceptions;
   }
+  SysInitExceptions;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
@@ -304,12 +304,12 @@ begin
   InOutRes:=0;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
-{$ifdef FPC_HAS_FEATURE_THREADING}
+{ $ifdef FPC_HAS_FEATURE_THREADING}
   { threading }
-  //InitSystemThreads; // Empty call for embedded anyway
-{$endif FPC_HAS_FEATURE_THREADING}
+  InitSystemThreads;
+{ $endif FPC_HAS_FEATURE_THREADING}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-//  initunicodestringmanager;
+  initunicodestringmanager;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 end.
