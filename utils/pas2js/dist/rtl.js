@@ -1003,7 +1003,7 @@ var rtl = {
       var src = arguments[i];
       if (src === null) continue;
       if (a===null){
-        a=src; // Note: concat(a) does not clone
+        a=rtl.arrayRef(src); // Note: concat(a) does not clone
       } else {
         a=a.concat(src);
       }
