@@ -999,11 +999,11 @@ var rtl = {
 
   arrayConcatN: function(){
     var a = null;
-    for (var i=1; i<arguments.length; i++){
+    for (var i=0; i<arguments.length; i++){
       var src = arguments[i];
       if (src === null) continue;
       if (a===null){
-        a=src; // Note: concat(a) does not clone
+        a=rtl.arrayRef(src); // Note: concat(a) does not clone
       } else {
         a=a.concat(src);
       }

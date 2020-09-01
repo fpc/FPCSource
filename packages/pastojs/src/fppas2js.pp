@@ -13312,7 +13312,7 @@ begin
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.ConvertBuiltInConcatArray Count=',length(El.Params));
     {$ENDIF}
-    Result:=ConvertExpression(Param0,AContext);
+    Result:=CreateArrayRef(El,ConvertExpression(Param0,AContext));
     end
   else
     begin
@@ -17431,6 +17431,8 @@ function TPasToJSConverter.CreateArrayRef(El: TPasElement; ArrayExpr: TJSElement
 var
   Call: TJSCallExpression;
 begin
+  if ArrayExpr is TJSArrayLiteral then
+    exit(ArrayExpr);
   Call:=CreateCallExpression(El);
   Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnArray_Reference)]);
   Call.AddArg(ArrayExpr);
