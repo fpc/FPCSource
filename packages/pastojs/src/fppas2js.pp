@@ -15531,6 +15531,9 @@ var
   end;
 
 var
+  aResolver: TPas2JSResolver;
+  Scope: TPasArrayScope;
+  SpecializeNeedsDelay: Boolean;
   AssignSt: TJSSimpleAssignStatement;
   CallName, ArrName: String;
   Obj: TJSObjectLiteral;
@@ -15538,7 +15541,7 @@ var
   ArrLit: TJSArrayLiteral;
   Arr: TPasArrayType;
   Index: Integer;
-  ElType: TPasType;
+  ElTypeHi, ElTypeLo: TPasType;
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
   RgLen, RangeEnd: TMaxPrecInt;
@@ -15552,7 +15555,6 @@ var
   BracketEx: TJSBracketMemberExpression;
   ArraySt, CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
-  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -15563,6 +15565,10 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
+
+  Scope:=El.CustomData as TPasArrayScope;
+  SpecializeNeedsDelay:=(Scope<>nil)
+           and (aResolver.SpecializeNeedsDelay(Scope.SpecializedFromItem)<>nil);
 
   ProcScope:=nil;
   Src:=nil;
@@ -15615,20 +15621,20 @@ begin
       BracketEx.MExpr:=CreatePrimitiveDotExpr(CloneArrName,El);
       BracketEx.Name:=CreatePrimitiveDotExpr(CloneRunName,El);
       // clone a[i]
-      ElType:=aResolver.ResolveAliasType(El.ElType);
+      ElTypeLo:=aResolver.ResolveAliasType(El.ElType);
       CloneEl:=nil;
-      if ElType is TPasArrayType then
+      if ElTypeLo is TPasArrayType then
         begin
-        if length(TPasArrayType(ElType).Ranges)=0 then
-          RaiseNotSupported(El,AContext,20180218223414,GetObjName(ElType));
-        CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElType),BracketEx,AContext);
+        if length(TPasArrayType(ElTypeLo).Ranges)=0 then
+          RaiseNotSupported(El,AContext,20180218223414,GetObjName(ElTypeLo));
+        CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElTypeLo),BracketEx,AContext);
         end
-      else if ElType is TPasRecordType then
-        CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElType),BracketEx,AContext)
-      else if ElType is TPasSetType then
+      else if ElTypeLo is TPasRecordType then
+        CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElTypeLo),BracketEx,AContext)
+      else if ElTypeLo is TPasSetType then
         CloneEl:=CreateReferencedSet(El,BracketEx)
       else
-        RaiseNotSupported(El,AContext,20180218223618,GetObjName(ElType));
+        RaiseNotSupported(El,AContext,20180218223618,GetObjName(ElTypeLo));
       Call.AddArg(CloneEl);
       BracketEx:=nil;
       // return r;
@@ -15679,7 +15685,8 @@ begin
       CallName:=GetBIName(pbifnRTTINewDynArray);
     Call:=CreateRTTINewType(El,CallName,false,AContext,Obj);
     try
-      ElType:=aResolver.ResolveAliasType(El.ElType);
+      ElTypeHi:=aResolver.ResolveAliasType(El.ElType,false);
+      ElTypeLo:=aResolver.ResolveAliasType(ElTypeHi);
       if length(El.Ranges)>0 then
         begin
         // static array
@@ -15697,20 +15704,24 @@ begin
           inc(Index);
           if Index=length(Arr.Ranges) then
             begin
-            if ElType.ClassType<>TPasArrayType then
+            if ElTypeLo.ClassType<>TPasArrayType then
               break;
-            Arr:=TPasArrayType(ElType);
+            Arr:=TPasArrayType(ElTypeLo);
             if length(Arr.Ranges)=0 then
               RaiseNotSupported(Arr,AContext,20170411222315,'static array of anonymous array');
-            ElType:=aResolver.ResolveAliasType(Arr.ElType);
+            ElTypeHi:=aResolver.ResolveAliasType(Arr.ElType,false);
+            ElTypeLo:=aResolver.ResolveAliasType(ElTypeHi);
             Index:=0;
             end;
         until false;
         end;
       // eltype: ref
-      Prop:=Obj.Elements.AddElement;
-      Prop.Name:=TJSString(GetBIName(pbivnRTTIArray_ElType));
-      Prop.Expr:=CreateTypeInfoRef(ElType,AContext,El);
+      if not SpecializeNeedsDelay then
+        begin
+        Prop:=Obj.Elements.AddElement;
+        Prop.Name:=TJSString(GetBIName(pbivnRTTIArray_ElType));
+        Prop.Expr:=CreateTypeInfoRef(ElTypeHi,AContext,El);
+        end;
 
       if Src<>nil then
         begin
@@ -16729,6 +16740,10 @@ var
   Path: String;
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
+  AssignSt: TJSSimpleAssignStatement;
+  Arr: TPasArrayType;
+  ElTypeHi, ElTypeLo: TPasType;
+  aResolver: TPas2JSResolver;
 begin
   if not IsElementUsed(El) then exit;
   C:=El.ClassType;
@@ -16752,6 +16767,31 @@ begin
     Call:=CreateCallExpression(El);
     Call.Expr:=DotExpr;
     AddToSourceElements(Src,Call);
+    end
+  else if (C=TPasArrayType) then
+    begin
+    // pas.unitname.$rtti.TArr.eltype=$mod.$rtti.TBird;
+    aResolver:=AContext.Resolver;
+    Arr:=TPasArrayType(El);
+    ElTypeHi:=aResolver.ResolveAliasType(Arr.ElType,false);
+    ElTypeLo:=aResolver.ResolveAliasType(ElTypeHi);
+    if length(Arr.Ranges)>0 then
+      begin
+      // static array
+      while ElTypeLo.ClassType=TPasArrayType do
+        begin
+        Arr:=TPasArrayType(ElTypeLo);
+        if length(Arr.Ranges)=0 then
+          RaiseNotSupported(Arr,AContext,20200902155418,'static array of anonymous array');
+        ElTypeHi:=aResolver.ResolveAliasType(Arr.ElType,false);
+        ElTypeLo:=aResolver.ResolveAliasType(ElTypeHi);
+        end;
+      end;
+    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+    AssignSt.LHS:=CreateDotNameExpr(El,CreateTypeInfoRef(El,AContext,El),
+                                   TJSString(GetBIName(pbivnRTTIArray_ElType)));
+    AssignSt.Expr:=CreateTypeInfoRef(ElTypeHi,AContext,El);
+    AddToSourceElements(Src,AssignSt);
     end
   else
     RaiseNotSupported(El,AContext,20200831115251);
