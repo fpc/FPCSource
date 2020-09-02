@@ -1924,7 +1924,7 @@ end;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 begin
   If (Value<MinDateTime) or (Value>MaxDateTime) then
-    Raise EConvertError.CreateFmt (SInvalidDateTime,[Value]);
+    Raise EConvertError.CreateFmt (SInvalidDateTimeFloat,[Value]);
   Result:=Value;
 end;
 
