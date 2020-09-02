@@ -16770,6 +16770,8 @@ begin
     end
   else if (C=TPasArrayType) then
     begin
+    if not HasTypeInfo(El,AContext) then
+      exit; // no RTTI needed
     // pas.unitname.$rtti.TArr.eltype=$mod.$rtti.TBird;
     aResolver:=AContext.Resolver;
     Arr:=TPasArrayType(El);
