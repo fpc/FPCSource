@@ -460,6 +460,7 @@ var rtl = {
       h(t,'$name');
       h(t,'$parent');
       h(t,'$module');
+      h(t,'$initSpec');
     }
     initfn.call(t);
     if (!t.$new){

@@ -49,12 +49,12 @@ type
     procedure TestGen_RecordLocalNameDuplicateFail;
     procedure TestGen_Record;
     procedure TestGen_RecordDelphi;
-    procedure TestGen_RecordNestedSpecialized;
+    procedure TestGen_RecordNestedSpecialize_ClassRecord;
+    procedure TestGen_RecordNestedSpecialize_Self;
     procedure TestGen_Record_SpecializeSelfInsideFail;
     procedure TestGen_Record_ReferGenericSelfFail;
     procedure TestGen_RecordAnoArray;
     // ToDo: unitname.specialize TBird<word>.specialize TAnt<word>
-    procedure TestGen_RecordNestedSpecialize;
 
     // generic class
     procedure TestGen_Class;
@@ -78,6 +78,7 @@ type
     procedure TestGen_Class_MethodImplConstraintFail;
     procedure TestGen_Class_MethodImplTypeParamNameMismatch;
     procedure TestGen_Class_SpecializeSelfInside;
+    procedure TestGen_Class_AncestorTFail;
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
     procedure TestGen_ClassOfSpecializeFail;
@@ -729,7 +730,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGen_RecordNestedSpecialized;
+procedure TTestResolveGenerics.TestGen_RecordNestedSpecialize_ClassRecord;
 begin
   StartProgram(false);
   Add([
@@ -740,6 +741,21 @@ begin
   '  generic TFish<T:class> = record v: T; end;',
   'var f: specialize TFish<specialize TBird<word>>;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_RecordNestedSpecialize_Self;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T> = record v: T; end;',
+  'var',
+  '  a: specialize TBird<specialize TBird<word>>;',
+  'begin',
+  '  a.v.v:=3;',
   '']);
   ParseProgram;
 end;
@@ -786,21 +802,6 @@ begin
   '  b: specialize TBird<array of word>;',
   'begin',
   '  a:=b;',
-  '']);
-  ParseProgram;
-end;
-
-procedure TTestResolveGenerics.TestGen_RecordNestedSpecialize;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  generic TBird<T> = record v: T; end;',
-  'var',
-  '  a: specialize TBird<specialize TBird<word>>;',
-  'begin',
-  '  a.v.v:=3;',
   '']);
   ParseProgram;
 end;
@@ -1259,6 +1260,22 @@ begin
   '  if b.v.e then ;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AncestorTFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class end;',
+  '  generic TFish<T: TBird> = class(T)',
+  '    v: T;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('class type expected, but T found',nXExpectedButYFound);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_GenAncestor;
