@@ -373,6 +373,7 @@ type
     Procedure TestUnit_DottedPrg;
     Procedure TestUnit_DottedUnit;
     Procedure TestUnit_DottedExpr;
+    Procedure TestUnit_DottedSystem;
     Procedure TestUnit_DuplicateDottedUsesFail;
     Procedure TestUnit_DuplicateUsesDiffName;
     Procedure TestUnit_Unit1DotUnit2Fail;
@@ -5972,6 +5973,31 @@ begin
   'begin',
   '  unitdots3.sub3.unit3.dosome;',
   '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_DottedSystem;
+begin
+  AddModuleWithIntfImplSrc('System.SysUtils.pas',
+    LinesToStr([
+    'type TFlag = word;'
+    ]),
+    ''
+    );
+  AddModuleWithIntfImplSrc('UnitA.pas',
+    LinesToStr([
+    ''
+    ]),
+    LinesToStr([
+    'uses System.SysUtils;',
+    'type TSize = TFlag;',
+    'type TWidth = System.SysUtils.TFlag;',
+    'type TBird = System.integer;',
+    'type TEagle = integer;',
+    '']) );
+  StartProgram(true);
+  Add('uses UnitA;');
+  Add('begin');
   ParseProgram;
 end;
 

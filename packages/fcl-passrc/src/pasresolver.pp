@@ -5672,17 +5672,21 @@ begin
     ParentScope:=Scopes[ScopeCount-2];
     if ParentScope is TPasSectionScope then
       begin
+      // check unit interface and implementation duplicates
       OlderIdentifier:=TPasSectionScope(ParentScope).FindLocalIdentifier(aName);
-      if IsGeneric then
-        OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
-      if OlderIdentifier<>nil then
-        begin
+      repeat
+        if IsGeneric then
+          OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
+        if OlderIdentifier=nil then break;
         OlderEl:=OlderIdentifier.Element;
-        if (Identifier.Kind=pikSimple)
+        if (Identifier.Kind=pikNamespace)
+            or (OlderIdentifier.Kind=pikNamespace) then
+        else if (Identifier.Kind=pikSimple)
             or (OlderIdentifier.Kind=pikSimple) then
           RaiseMsg(20190818141630,nDuplicateIdentifier,sDuplicateIdentifier,
                    [aName,GetElementSourcePosStr(OlderEl)],El);
-        end;
+        OlderIdentifier:=OlderIdentifier.NextSameIdentifier;
+      until OlderIdentifier=nil;
       end;
     end;
 

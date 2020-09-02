@@ -21,8 +21,14 @@ begin
 end;
 
 function test_rtl_function(a, b: integer): integer;
+var
+  tempvar: integer;
+  tempvar2: integer;
+  pv: pbyte;
 begin
-  test_rtl_function := 0;
+  tempvar := a - b;
+  test_rtl_function := a + b;
+{  pv := @tempvar2;}
 end;
 
 end.

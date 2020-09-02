@@ -37,6 +37,7 @@ interface
 
       tcpunotnode = class(tcgnotnode)
         procedure second_boolean;override;
+        function pass_1: tnode;override;
       end;
 
       tcpuunaryminusnode = class(tcgunaryminusnode)
@@ -107,6 +108,14 @@ implementation
 {*****************************************************************************
                                TCPUNOTNODE
 *****************************************************************************}
+
+    function tcpunotnode.pass_1 : tnode;
+      begin
+        result:=nil;
+        firstpass(left);
+        expectloc:=LOC_REGISTER;
+      end;
+
 
     procedure tcpunotnode.second_boolean;
       var
