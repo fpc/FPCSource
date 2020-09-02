@@ -571,6 +571,7 @@ type
     pbifnClassAncestorFunc,
     pbifnClassInstanceFree,
     pbifnClassInstanceNew,
+    pbifnClassInitSpecialize,
     pbifnCreateClass,
     pbifnCreateClassExt,
     pbifnCreateHelper,
@@ -695,6 +696,7 @@ type
     pbivnRTTIMethodKind, // tTypeInfoMethodVar has methodkind
     pbivnRTTIPointer_RefType, // reftype
     pbivnRTTIProcFlags, // flags
+    pbivnRTTIProc_InitSpec, // init
     pbivnRTTIProcVar_ProcSig, // procsig
     pbivnRTTIPropDefault, // Default
     pbivnRTTIPropIndex, // index
@@ -751,6 +753,7 @@ const
     '$ancestorfunc', // pbifnClassAncestorFunc
     '$destroy', // pbifnClassInstanceFree
     '$create', // pbifnClassInstanceNew
+    '$initSpec', // pbifnClassInitSpecialize
     'createClass', // pbifnCreateClass   rtl.createClass
     'createClassExt', // pbifnCreateClassExt  rtl.createClassExt
     'createHelper', // pbifnCreateHelper  rtl.createHelper
@@ -874,6 +877,7 @@ const
     'methodkind', // pbivnRTTIMethodKind
     'reftype', // pbivnRTTIPointer_RefType
     'flags', // pbivnRTTIProcFlags
+    'init', // pbivnRTTIProc_InitSpec
     'procsig', // pbivnRTTIProcVar_ProcSig
     'Default', // pbivnRTTIPropDefault
     'index', // pbivnRTTIPropIndex
@@ -1493,7 +1497,7 @@ type
     // generic/specialize
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
-    function SpecializeNeedsDelay(SpecializedItem: TPRSpecializedItem): TPasElement;
+    function SpecializeNeedsDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -1960,6 +1964,8 @@ type
     Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
+    Procedure AddDelayedInits(El: TPasProgram; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Procedure AddDelaySpecializeInit(El: TPasGenericType; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     // set
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
     // record
@@ -1977,6 +1983,8 @@ type
       Fields: TFPList): TJSElement; virtual;
     Procedure CreateRecordRTTI(El: TPasRecordType; Src: TJSSourceElements;
       FuncContext: TFunctionContext); virtual;
+    Function CreateDelayedInitFunction(PosEl: TPasElement; Src: TJSSourceElements;
+      FuncContext: TFunctionContext; out DelaySrc: TJSSourceElements): TFunctionContext; virtual;
     // array
     Function CreateArrayConcat(ElTypeResolved: TPasResolverResult; PosEl: TPasElement;
       AContext: TConvertContext): TJSCallExpression; overload; virtual;
@@ -4949,15 +4957,23 @@ end;
 
 procedure TPas2JSResolver.SpecializeGenericImpl(
   SpecializedItem: TPRSpecializedItem);
+var
+  El: TPasElement;
 begin
   inherited SpecializeGenericImpl(SpecializedItem);
-  if SpecializedItem.SpecializedEl is TPasMembersType then
+
+  El:=SpecializedItem.SpecializedEl;
+  if (El is TPasGenericType)
+      and (SpecializeNeedsDelay(SpecializedItem)<>nil) then
+    TPas2JSResolverHub(Hub).AddJSDelaySpecialize(TPasGenericType(El));
+
+  if El is TPasMembersType then
     begin
     if FOverloadScopes=nil then
       begin
       FOverloadScopes:=TFPList.Create;
       try
-        RenameMembers(TPasMembersType(SpecializedItem.SpecializedEl));
+        RenameMembers(TPasMembersType(El));
       finally
         ClearOverloadScopes;
       end;
@@ -4980,9 +4996,7 @@ var
   ParamResolver, GenResolver: TPasResolver;
 begin
   Result:=nil;
-  {$IFNDEF EnableDelaySpecialize}
-  exit;
-  {$ENDIF}
+  if SpecializedItem=nil then exit;
   Gen:=SpecializedItem.GenericEl;
   GenSection:=GetParentSection(Gen);
   if not (GenSection is TInterfaceSection) then
@@ -4998,6 +5012,9 @@ begin
     Param:=ResolveAliasType(Params[i],false);
     if Param.ClassType=TPasUnresolvedSymbolRef then
       continue; // built-in type -> no delay needed
+    if (Param.CustomData is TPasGenericScope)
+        and (TPasGenericScope(Param.CustomData).GenericStep<psgsInterfaceParsed) then
+      exit(Param); // specialization is within param itself -> needs delay
     ParamSection:=GetParentSection(Param);
     if ParamSection=GenSection then
       continue; // same section -> no delay needed
@@ -7531,6 +7548,8 @@ Var
   ImplVarSt: TJSVariableStatement;
   HasImplUsesClause, ok, NeedRTLCheckVersion: Boolean;
   UsesClause: TPasUsesClause;
+  Prg: TPasProgram;
+  Lib: TPasLibrary;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -7594,15 +7613,18 @@ begin
 
       if (El is TPasProgram) then
         begin // program
-        if Assigned(TPasProgram(El).ProgramSection) then
-          AddToSourceElements(Src,ConvertDeclarations(TPasProgram(El).ProgramSection,IntfContext));
-        CreateInitSection(El,Src,IntfContext);
+        Prg:=TPasProgram(El);
+        if Assigned(Prg.ProgramSection) then
+          AddToSourceElements(Src,ConvertDeclarations(Prg.ProgramSection,IntfContext));
+        AddDelayedInits(Prg,Src,IntfContext);
+        CreateInitSection(Prg,Src,IntfContext);
         end
       else if El is TPasLibrary then
         begin // library
-        if Assigned(TPasLibrary(El).LibrarySection) then
-          AddToSourceElements(Src,ConvertDeclarations(TPasLibrary(El).LibrarySection,IntfContext));
-        CreateInitSection(El,Src,IntfContext);
+        Lib:=TPasLibrary(El);
+        if Assigned(Lib.LibrarySection) then
+          AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
+        CreateInitSection(Lib,Src,IntfContext);
         end
       else
         begin // unit
@@ -14607,6 +14629,9 @@ var
   end;
 
 var
+  aResolver: TPas2JSResolver;
+  DelaySrc: TJSSourceElements;
+  DelayFuncContext: TFunctionContext;
   Call: TJSCallExpression;
   FunDecl: TJSFunctionDeclarationStatement;
   Src: TJSSourceElements;
@@ -14620,9 +14645,9 @@ var
   AncestorPath, OwnerName, DestructorName, FnName, IntfKind: String;
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
-  NeedInitFunction, HasConstructor, IsJSFunction, NeedClassExt: Boolean;
+  NeedInitFunction, HasConstructor, IsJSFunction, NeedClassExt,
+    SpecializeNeedsDelay: Boolean;
   Proc: TPasProcedure;
-  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -14652,16 +14677,20 @@ begin
       end;
     FreeAndNil(Scope.MsgIntToProc);
     FreeAndNil(Scope.MsgStrToProc);
+    SpecializeNeedsDelay:=aResolver.SpecializeNeedsDelay(Scope.SpecializedFromItem)<>nil;
     end
   else
     begin
     Scope:=nil;
     IsTObject:=(El.AncestorType=nil) and (El.ObjKind=okClass) and SameText(El.Name,'TObject');
     Ancestor:=El.AncestorType;
+    SpecializeNeedsDelay:=false;
     end;
 
   // create call 'rtl.createClass(' or 'rtl.createInterface('
   FuncContext:=nil;
+  DelaySrc:=nil;
+  DelayFuncContext:=nil;
   Call:=CreateCallExpression(El);
   try
     AncestorIsExternal:=(Ancestor is TPasClassType) and TPasClassType(Ancestor).IsExternal;
@@ -14797,7 +14826,16 @@ begin
           else
             RaiseNotSupported(P,FuncContext,20161221233338);
           if NewEl<>nil then
-            AddToSourceElements(Src,NewEl);
+            begin
+            if SpecializeNeedsDelay and not (P is TPasProcedure) then
+              begin
+              if DelayFuncContext=nil then
+                DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
+              AddToSourceElements(DelaySrc,NewEl);
+              end
+            else
+              AddToSourceElements(Src,NewEl);
+            end;
           end;
         end;
 
@@ -14861,7 +14899,14 @@ begin
         AddClassMessageIds(El,Src,FuncContext,pbivnMessageInt);
         AddClassMessageIds(El,Src,FuncContext,pbivnMessageStr);
         // add RTTI init function
-        AddClassRTTI(El,Src,FuncContext);
+        if SpecializeNeedsDelay then
+          begin
+          if DelayFuncContext=nil then
+            DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
+          AddClassRTTI(El,DelaySrc,DelayFuncContext);
+          end
+        else
+          AddClassRTTI(El,Src,FuncContext);
         end;
 
       end;// end of init function
@@ -15335,8 +15380,14 @@ function TPasToJSConverter.ConvertProcedureType(El: TPasProcedureType;
 //   module.$rtti.$ProcVar("name",{
 //       procsig: rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags)
 //     })
+// "of object":
 //   module.$rtti.$MethodVar("name",{
 //       procsig: rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags),
+//       methodkind: 1
+//     })
+// delayed specialization:
+//   module.$rtti.$MethodVar("name",{
+//       init: function()}{ this.procsig = rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags)},
 //       methodkind: 1
 //     })
 var
@@ -15349,6 +15400,10 @@ var
   Obj: TJSObjectLiteral;
   Prop: TJSObjectLiteralElement;
   aResolver: TPas2JSResolver;
+  Scope: TPasProcTypeScope;
+  SpecializeNeedsDelay: Boolean;
+  FuncSt: TJSFunctionDeclarationStatement;
+  AssignSt: TJSSimpleAssignStatement;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -15359,10 +15414,15 @@ begin
   if not (El.CallingConvention in [ccDefault,ccSafeCall]) then
     DoError(20170222231532,nPasElementNotSupported,sPasElementNotSupported,
         ['calling convention '+cCallingConventions[El.CallingConvention]],El);
-  if not HasTypeInfo(El,AContext) then exit;
+  if not HasTypeInfo(El,AContext) then
+    exit; // no RTTI needed
 
   if El.Parent is TProcedureBody then
     RaiseNotSupported(El,AContext,20181231112029);
+
+  Scope:=El.CustomData as TPasProcTypeScope;
+  SpecializeNeedsDelay:=(Scope<>nil)
+           and (aResolver.SpecializeNeedsDelay(Scope.SpecializedFromItem)<>nil);
 
   // module.$rtti.$ProcVar("name",function(){})
   if El.IsReferenceTo then
@@ -15375,9 +15435,25 @@ begin
   try
     // add "procsig: rtl.newTIProcSignature()"
     Prop:=Obj.Elements.AddElement;
-    Prop.Name:=TJSString(GetBIName(pbivnRTTIProcVar_ProcSig));
     InnerCall:=CreateCallExpression(El);
-    Prop.Expr:=InnerCall;
+
+    if SpecializeNeedsDelay then
+      begin
+      Prop.Name:=TJSString(GetBIName(pbivnRTTIProc_InitSpec));
+      // init: function(){ this.procsig = rtl.newTIProcSignature(...) }
+      FuncSt:=CreateFunctionSt(El);
+      Prop.Expr:=FuncSt;
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=CreatePrimitiveDotExpr('this.'+GetBIName(pbivnRTTIProcVar_ProcSig),El);
+      AssignSt.Expr:=InnerCall;
+      FuncSt.AFunction.Body.A:=AssignSt;
+      end
+    else
+      begin
+      Prop.Name:=TJSString(GetBIName(pbivnRTTIProcVar_ProcSig));
+      Prop.Expr:=InnerCall;
+      end;
+
     InnerCall.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnRTTINewProcSig)]);
     // add array of arguments
     InnerCall.AddArg(CreateRTTIArgList(El,El.Args,AContext));
@@ -16628,6 +16704,59 @@ begin
   inc(SectionCtx.HeaderIndex);
 end;
 
+procedure TPasToJSConverter.AddDelayedInits(El: TPasProgram;
+  Src: TJSSourceElements; AContext: TConvertContext);
+var
+  aResolver: TPas2JSResolver;
+  Hub: TPas2JSResolverHub;
+  i: Integer;
+begin
+  aResolver:=AContext.Resolver;
+  if aResolver=nil then exit;
+  if El=nil then ;
+  Hub:=aResolver.Hub as TPas2JSResolverHub;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.AddDelayedInits Hub.JSDelaySpecializeCount=',Hub.JSDelaySpecializeCount);
+  {$ENDIF}
+  for i:=0 to Hub.JSDelaySpecializeCount-1 do
+    AddDelaySpecializeInit(Hub.JSDelaySpecializes[i],Src,AContext);
+end;
+
+procedure TPasToJSConverter.AddDelaySpecializeInit(El: TPasGenericType;
+  Src: TJSSourceElements; AContext: TConvertContext);
+var
+  C: TClass;
+  Path: String;
+  Call: TJSCallExpression;
+  DotExpr: TJSDotMemberExpression;
+begin
+  if not IsElementUsed(El) then exit;
+  C:=El.ClassType;
+  if (C=TPasRecordType)
+      or (C=TPasClassType) then
+    begin
+    // pas.unitname.recordtype.$initSpec();
+    Path:=CreateReferencePath(El,AContext,rpkPathAndName)+'.'+GetBIName(pbifnClassInitSpecialize);
+    Call:=CreateCallExpression(El);
+    Call.Expr:=CreatePrimitiveDotExpr(Path,El);
+    AddToSourceElements(Src,Call);
+    end
+  else if (C=TPasProcedureType) or (C=TPasFunctionType) then
+    begin
+    if not HasTypeInfo(El,AContext) then
+      exit; // no RTTI needed
+    // pas.unitname.$rtti.TProcF.init();
+    DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+    DotExpr.MExpr:=CreateTypeInfoRef(El,AContext,El);
+    DotExpr.Name:=TJSString(GetBIName(pbivnRTTIProc_InitSpec));
+    Call:=CreateCallExpression(El);
+    Call.Expr:=DotExpr;
+    AddToSourceElements(Src,Call);
+    end
+  else
+    RaiseNotSupported(El,AContext,20200831115251);
+end;
+
 function TPasToJSConverter.CreateReferencedSet(El: TPasElement; SetExpr: TJSElement
   ): TJSElement;
 var
@@ -17039,6 +17168,25 @@ begin
   finally
       Call.Free;
   end;
+end;
+
+function TPasToJSConverter.CreateDelayedInitFunction(PosEl: TPasElement;
+  Src: TJSSourceElements; FuncContext: TFunctionContext; out
+  DelaySrc: TJSSourceElements): TFunctionContext;
+var
+  AssignSt: TJSSimpleAssignStatement;
+  FunDecl: TJSFunctionDeclarationStatement;
+begin
+  // this.$initSpec = function(){ DelaySrc }
+  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+  AddToSourceElements(Src,AssignSt);
+  AssignSt.LHS:=CreatePrimitiveDotExpr('this.'+GetBIName(pbifnClassInitSpecialize),PosEl);
+  FunDecl:=CreateFunctionSt(PosEl,true,true);
+  AssignSt.Expr:=FunDecl;
+  DelaySrc:=TJSSourceElements(FunDecl.AFunction.Body.A);
+  Result:=TFunctionContext.Create(PosEl,DelaySrc,FuncContext);
+  Result.IsGlobal:=true;
+  Result.ThisPas:=PosEl;
 end;
 
 function TPasToJSConverter.CreateArrayConcat(
@@ -23595,8 +23743,8 @@ begin
     // element is in foreign unit -> use pas.unitname
     CurModule:=Parent.GetModule;
     Result:=TransformModuleName(CurModule,true,AContext);
-    if (CurModule<>AContext.GetRootContext.PasElement.GetModule)
-        and (Parent is TImplementationSection) then
+    if (Parent.ClassType=TImplementationSection)
+        and (CurModule<>AContext.GetRootContext.PasElement.GetModule) then
       begin
       // element is in foreign implementation section (not program/library section)
       // -> use pas.unitname.$impl
@@ -24717,6 +24865,10 @@ end;
 function TPasToJSConverter.ConvertRecordType(El: TPasRecordType;
   AContext: TConvertContext): TJSElement;
 var
+  aResolver: TPas2JSResolver;
+  RecScope: TPas2JSRecordScope;
+  DelaySrc: TJSSourceElements;
+  DelayFuncContext: TFunctionContext;
   Call: TJSCallExpression;
   JSParentName: String;
   FunDecl: TJSFunctionDeclarationStatement;
@@ -24726,14 +24878,11 @@ var
   P: TPasElement;
   C: TClass;
   NewEl: TJSElement;
-  aResolver: TPas2JSResolver;
   PasVar: TPasVariable;
   PasVarType: TPasType;
   NewFields, Vars, Methods: TFPList;
-  ok, IsFull: Boolean;
+  ok, IsComplex, SpecializeNeedsDelay: Boolean;
   VarSt: TJSVariableStatement;
-  bifn: TPas2JSBuiltInName;
-  RecScope: TPas2JSRecordScope;
 begin
   Result:=nil;
   if El.Name='' then
@@ -24747,21 +24896,16 @@ begin
   NewFields:=nil;
   Vars:=nil;
   Methods:=nil;
+  DelaySrc:=nil;
+  DelayFuncContext:=nil;
   ok:=false;
   try
+    RecScope:=TPas2JSRecordScope(El.CustomData);
+    SpecializeNeedsDelay:=aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil;
+
     // rtl.recNewT()
     Call:=CreateCallExpression(El);
-    bifn:=pbifnRecordCreateType;
-
-    RecScope:=TPas2JSRecordScope(El.CustomData);
-    if RecScope.SpecializedFromItem<>nil then
-      begin
-      // ToDo
-      if aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil then
-        ;//bifn:=pbifnRecordCreateSpecializeType;
-      end;
-
-    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(bifn)]);
+    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnRecordCreateType)]);
 
     // types are stored in interface/implementation
     if El.Parent is TProcedureBody then
@@ -24811,7 +24955,7 @@ begin
     NewFields:=TFPList.Create;
     Vars:=TFPList.Create;
     Methods:=TFPList.Create;
-    IsFull:=false;
+    IsComplex:=false;
     for i:=0 to El.Members.Count-1 do
       begin
       P:=TPasElement(El.Members[i]);
@@ -24822,8 +24966,8 @@ begin
       if C=TPasVariable then
         begin
         PasVar:=TPasVariable(P);
-        if ClassVarModifiersType*TPasVariable(P).VarModifiers*[vmClass, vmStatic]<>[] then
-          IsFull:=true
+        if ClassVarModifiersType*PasVar.VarModifiers*[vmClass, vmStatic]<>[] then
+          IsComplex:=true
         else if aResolver<>nil then
           begin
           Vars.Add(PasVar);
@@ -24845,14 +24989,18 @@ begin
             // sub set
             NewFields.Add(PasVar);
             continue;
+            end
+          else
+            begin
+            // simple vars are initialized in the record type, no need to initialize them for each instance
             end;
           end;
-        NewEl:=CreateVarDecl(TPasVariable(P),FuncContext); // can be nil
+        NewEl:=CreateVarDecl(PasVar,FuncContext); // can be nil
         end
       else if C=TPasConst then
         begin
         NewEl:=ConvertConst(TPasConst(P),aContext);
-        IsFull:=true;
+        IsComplex:=true;
         end
       else if C=TPasProperty then
         NewEl:=ConvertProperty(TPasProperty(P),AContext)
@@ -24860,7 +25008,7 @@ begin
         begin
         NewEl:=CreateTypeDecl(TPasType(P),aContext);
         if (C=TPasRecordType) or (C=TPasClassType) then
-          IsFull:=true;
+          IsComplex:=true;
         end
       else if C.InheritsFrom(TPasProcedure) then
         begin
@@ -24873,18 +25021,26 @@ begin
           if (C=TPasConstructor)
               or ((aResolver<>nil) and aResolver.IsClassMethod(P)
                 and not aResolver.MethodIsStatic(TPasProcedure(P))) then
-            IsFull:=true; // needs $record
+            IsComplex:=true; // needs $record
           end;
         end
       else if C=TPasAttributes then
-        // ToDo
       else
         RaiseNotSupported(P,FuncContext,20190105105436);
       if NewEl<>nil then
-        AddToSourceElements(Src,NewEl);
+        begin
+        if SpecializeNeedsDelay and not (P is TPasProcedure) then
+          begin
+          if DelayFuncContext=nil then
+            DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
+          AddToSourceElements(DelaySrc,NewEl);
+          end
+        else
+          AddToSourceElements(Src,NewEl);
+        end;
       end;
-    if IsFull then
-      Call.AddArg(CreateLiteralBoolean(El,true));
+    if IsComplex then
+      Call.AddArg(CreateLiteralBoolean(El,true)); // needs $record
 
     // add $new function if needed
     if NewFields.Count>0 then
@@ -24903,13 +25059,23 @@ begin
 
     // add RTTI init function
     if (aResolver<>nil) and HasTypeInfo(El,FuncContext) then
-      CreateRecordRTTI(El,Src,FuncContext);
+      begin
+      if SpecializeNeedsDelay then
+        begin
+        if DelayFuncContext=nil then
+          DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
+        CreateRecordRTTI(El,DelaySrc,DelayFuncContext);
+        end
+      else
+        CreateRecordRTTI(El,Src,FuncContext);
+      end;
 
     ok:=true;
   finally
     NewFields.Free;
     Vars.Free;
     Methods.Free;
+    DelayFuncContext.Free;
     FuncContext.Free;
     if not ok then
       FreeAndNil(Result);
