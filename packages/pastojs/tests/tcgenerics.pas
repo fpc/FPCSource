@@ -76,7 +76,7 @@ type
     procedure TestGenMethod_ObjFPC;
 
     // generic array
-    // procedure TestGen_ArrayOfUnitImplRec;  ToDo dynamic + static + RTTI
+    procedure TestGen_ArrayOfUnitImplRec;
 
     // generic procedure type
     procedure TestGen_ProcType_ParamUnitImpl;
@@ -1971,6 +1971,76 @@ begin
     '$mod.o.Run$s0(1, true);',
     '$mod.o.Run$1s0(2, 3);',
     '$mod.o.Run$2s0("foo", "bar");',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ArrayOfUnitImplRec;
+begin
+  WithTypeInfo:=true;
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+  'type',
+  '  generic TDyn<T> = array of T;',
+  '  generic TStatic<T> = array[1..2] of T;',
+  '']),
+  LinesToStr([
+  'type',
+  '  TBird = record',
+  '    b: word;',
+  '  end;',
+  'var',
+  '  d: specialize TDyn<TBird>;',
+  '  s: specialize TStatic<TBird>;',
+  'begin',
+  '  d[0].b:=s[1].b;',
+  '']));
+  Add([
+  'uses UnitA;',
+  'begin',
+  'end.']);
+  ConvertProgram;
+  CheckUnit('UnitA.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  var $impl = $mod.$impl;',
+    '  $mod.$rtti.$DynArray("TDyn$G1", {});',
+    '  this.TStatic$G1$clone = function (a) {',
+    '    var r = [];',
+    '    for (var i = 0; i < 2; i++) r.push($impl.TBird.$clone(a[i]));',
+    '    return r;',
+    '  };',
+    '  $mod.$rtti.$StaticArray("TStatic$G1", {',
+    '    dims: [2]',
+    '  });',
+    '  $mod.$init = function () {',
+    '    $impl.d[0].b = $impl.s[0].b;',
+    '  };',
+    '}, null, function () {',
+    '  var $mod = this;',
+    '  var $impl = $mod.$impl;',
+    '  rtl.recNewT($impl, "TBird", function () {',
+    '    this.b = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.b === b.b;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.b = s.b;',
+    '      return this;',
+    '    };',
+    '    var $r = $mod.$rtti.$Record("TBird", {});',
+    '    $r.addField("b", rtl.word);',
+    '  });',
+    '  $impl.d = [];',
+    '  $impl.s = rtl.arraySetLength(null, $impl.TBird, 2);',
+    '});']));
+  CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
+    LinesToStr([ // statements
+    'pas.UnitA.$rtti["TDyn$G1"].eltype = pas.UnitA.$rtti["TBird"];',
+    'pas.UnitA.$rtti["TStatic$G1"].eltype = pas.UnitA.$rtti["TBird"];',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
