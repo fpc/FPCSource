@@ -175,9 +175,10 @@ Resourcestring
   SErrExpectedColon   = 'Expected colon (:), got token "%s".';
   //SErrEmptyElement = 'Empty element encountered.';
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
-  SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
+  SExpectedCommaorBraceClose = 'Expected comma (,) or square bracket (]), got token "%s".';
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
   SErrNoScanner = 'No scanner. No source specified ?';
+  SErrorAt = 'Error at line %d, Pos %d: ';
   
 { TBaseJSONReader }
 
@@ -408,7 +409,7 @@ Var
 
 begin
   S:=Format(Msg,[CurrentTokenString]);
-  S:=Format('Error at line %d, Pos %d:',[FScanner.CurRow,FSCanner.CurColumn])+S;
+  S:=Format(SErrorAt,[FScanner.CurRow,FSCanner.CurColumn])+S;
   Raise EJSONParser.Create(S);
 end;
 
