@@ -39,19 +39,21 @@ const
  min_small_array = 0;
  max_small_array = 255;
 
-{$IFDEF CPU16}
+{$i cpudefs.inc}
+
+{$ifdef cpusmall}
  min_big_neg_array = -770;
  max_big_neg_array = 770;
 
  min_big_array = 0;
  max_big_array = 770;
-{$ELSE CPU16}
+{$else cpusmall}
  min_big_neg_array = -77000;
  max_big_neg_array = 77000;
 
  min_big_array = 0;
  max_big_array = 77000;
-{$ENDIF CPU16}
+{$endif cpusmall}
 
  min_big_odd_array = 0;
  max_big_odd_array = 255;

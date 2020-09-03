@@ -28,7 +28,7 @@ program tcalval2;
   {$define tp}
 {$endif}
 
-{$i tcaldefs.inc}
+{$i cpudefs.inc}
 
  { REAL should map to single or double }
  { so it is not checked, since single  }

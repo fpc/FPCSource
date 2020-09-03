@@ -20,7 +20,7 @@
 program tcalobj6;
 {$R+}
 
-{$i tcaldefs.inc}
+{$i cpudefs.inc}
 
  const
  { should be defined depending on CPU target }
