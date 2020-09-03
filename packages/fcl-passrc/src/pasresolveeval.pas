@@ -1027,20 +1027,27 @@ var
 begin
   if o=nil then
     Result:='nil'
-  else if o is TPasElement then
+  else if o is TPasArrayType then
     begin
-    Result:=TPasElement(o).Name;
-    if o is TPasGenericType then
-      begin
-      GenType:=TPasGenericType(o);
-      if (GenType.GenericTemplateTypes<>nil)
-          and (GenType.GenericTemplateTypes.Count>0) then
-        Result:=Result+GetGenericParamCommas(GenType.GenericTemplateTypes.Count);
-      end;
-    Result:=Result+':'+o.ClassName;
+      if TPasArrayType(o).ElType = nil then
+          Result:='array of const'
+      else
+        Result:=Format('TArray<%s>', [TPasArrayType(o).ElType.Name]);
     end
-  else
-    Result:=o.ClassName;
+    else if o is TPasElement then
+      begin
+      Result:=TPasElement(o).Name;
+      if o is TPasGenericType then
+        begin
+        GenType:=TPasGenericType(o);
+        if (GenType.GenericTemplateTypes<>nil)
+            and (GenType.GenericTemplateTypes.Count>0) then
+          Result:=Result+GetGenericParamCommas(GenType.GenericTemplateTypes.Count);
+        end;
+      Result:=Result+':'+o.ClassName;
+      end
+    else
+      Result:=o.ClassName;
 end;
 
 function GetObjPath(o: TObject): string;
