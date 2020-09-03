@@ -62,6 +62,7 @@ type
     procedure TestMacros;
     Procedure TestPrepareCount;
     Procedure TestPrepareCount2;
+    Procedure TestNullTypeParam;
   end;
 
   { TTestTSQLConnection }
@@ -834,6 +835,30 @@ begin
       AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
       end;
     AssertEquals('Prepare called only once ',1,FPrepareCount);
+  finally
+    SQLDBConnector.Connection.OnLog:=Nil;
+  end;
+end;
+
+procedure TTestTSQLQuery.TestNullTypeParam;
+begin
+  if not (SQLServerType in [ssSQLite, ssFirebird]) then
+    Ignore(STestNotApplicable);
+  CreateAndFillIDField;
+  try
+    With SQLDBConnector.Query do
+      begin
+      UsePrimaryKeyAsKey:=False; // Disable server index defs etc
+      SQL.Text:='Select ID from FPDEV2 where (:ID IS NULL or ID = :ID)';
+      Open;
+      AssertEquals('Correct record count param NULL',10,RecordCount);
+      Close;
+      ParamByname('ID').AsInteger:=1;
+      Open;
+      AssertEquals('Correct record count param 1',1,RecordCount);
+      AssertEquals('Correct field value: ',1,Fields[0].AsInteger);
+      Close;
+      end;
   finally
     SQLDBConnector.Connection.OnLog:=Nil;
   end;

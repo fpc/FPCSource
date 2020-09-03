@@ -31,7 +31,7 @@
   {$define tp}
 {$endif}
 
-{$i tcaldefs.inc}
+{$i cpudefs.inc}
 
 
   { REAL should map to single or double }

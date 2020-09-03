@@ -22,7 +22,7 @@
 program tcalobj4;
 {$R+}
 
-{$i tcaldefs.inc}
+{$i cpudefs.inc}
 
  const
  { should be defined depending on CPU target }

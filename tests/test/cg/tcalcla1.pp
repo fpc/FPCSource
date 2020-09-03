@@ -24,7 +24,7 @@ program tcalcla1;
 {$mode objfpc}
 {$R+}
 
-{$i tcaldefs.inc}
+{$i cpudefs.inc}
 
  const
  { should be defined depending on CPU target }

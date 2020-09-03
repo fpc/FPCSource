@@ -164,6 +164,7 @@ uses
 const
   SQL_BOOLEAN_INTERBASE = 590;
   SQL_BOOLEAN_FIREBIRD = 32764;
+  SQL_NULL = 32767;
   INVALID_DATA = -1;
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
@@ -834,7 +835,7 @@ begin
         begin
         if ((SQLType and not 1) = SQL_VARYING) then
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen+2)
-        else
+        else if SQLType <> SQL_NULL then
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
         // Always force the creation of slqind for parameters. It could be
         // that a database trigger takes care of inserting null values, so
@@ -1211,7 +1212,8 @@ begin
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParam.AsBoolean);
       else
-        DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
+        if (VSQLVar^.sqltype <> SQL_NULL) then
+          DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
       end {case}
       end;
     end;
