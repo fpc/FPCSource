@@ -476,16 +476,19 @@ begin
             end;
           end;
 
-          Handle := FindFirstFileExW(PUnicodeChar(SymLinkRec.TargetName), FindExInfoDefaults , @SymLinkRec.FindData,
-                      FindExSearchNameMatch, Nil, 0);
-          if Handle <> INVALID_HANDLE_VALUE then begin
-            Windows.FindClose(Handle);
-            SymLinkRec.Attr := SymLinkRec.FindData.dwFileAttributes;
-            SymLinkRec.Size := QWord(SymLinkRec.FindData.nFileSizeHigh) shl 32 + QWord(SymLinkRec.FindData.nFileSizeLow);
-          end else if RaiseErrorOnMissing then
-            raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError))
-          else
-            SymLinkRec.TargetName := '';
+          if SymLinkRec.TargetName <> '' then begin
+            Handle := FindFirstFileExW(PUnicodeChar(SymLinkRec.TargetName), FindExInfoDefaults , @SymLinkRec.FindData,
+                        FindExSearchNameMatch, Nil, 0);
+            if Handle <> INVALID_HANDLE_VALUE then begin
+              Windows.FindClose(Handle);
+              SymLinkRec.Attr := SymLinkRec.FindData.dwFileAttributes;
+              SymLinkRec.Size := QWord(SymLinkRec.FindData.nFileSizeHigh) shl 32 + QWord(SymLinkRec.FindData.nFileSizeLow);
+            end else if RaiseErrorOnMissing then
+              raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError))
+            else
+              SymLinkRec.TargetName := '';
+          end else
+            SetLastError(ERROR_REPARSE_TAG_INVALID);
         end else
           SetLastError(ERROR_REPARSE_TAG_INVALID);
       finally
