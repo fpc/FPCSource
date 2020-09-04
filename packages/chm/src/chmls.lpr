@@ -482,7 +482,7 @@ begin
    s:=r.readstringsentry(cnt);
 end;
 
-
+var dx : dword;
 begin
   setlength(s,4);
   for i:=1 to 4 do
@@ -529,7 +529,8 @@ begin
   Writeln('Unknown. Often 1. Also 0, 3.                  :',leton(m.readdword));
   cnt2:=m.ReadDWordLE;
   Writeln('Number of files in the [MERGE FILES] list     :',cnt2);
-  Writeln('Unknown. Often 0.                             :',leton(m.readdword),'(Non-zero mostly in files with some files in the merge files list)');
+  dx:=leton(m.readdword);
+  Writeln('Unknown. Often 0.                             :',dx,' =$',inttohex(dx,8),'(Non-zero mostly in files with some files in the merge files list)');
   if cnt2>0 then
     for i:=0 to cnt2-1 do
       begin
@@ -805,7 +806,7 @@ begin
   writeln(' Non zero if there are ALinks      : ',m.readdwordLE );
   ts.dwlowdatetime:=m.readdwordLE;
   ts.dwhighdatetime:=m.readdwordLE;
-  writeln(' Timestamp                         : ',ts.dwhighdatetime,':', ts.dwlowdatetime );
+  writeln(' Timestamp                         : ',ts.dwhighdatetime,':', ts.dwlowdatetime, ' = $',inttohex(ts.dwhighdatetime,8),': $', inttohex(ts.dwlowdatetime,8));
   writeln(' 0/1 except in dsmsdn.chi has 1    : ',m.readdwordLE );
   writeln(' 0 (unknown)                       : ',m.readdwordLE );
 end;
@@ -831,6 +832,7 @@ begin
     writeln('   x size is larger than 16');
   m.position:=m.position+chsz-16;
 end;
+var dx : dword;
 
 begin
   symbolname:='helpid';
@@ -878,7 +880,8 @@ begin
             8 : printentry8(m,chunksize);
             9 : Writeln('(9)  CHM compiler version          :',printnulterminated(chunksize));
             10: begin
-                  writeln('(10) Timestamp (32-bit?)           :',m.readdwordle);
+                  dx:=m.readdwordle;
+                  writeln('(10) Timestamp (32-bit?)           :',dx,' , = $',inttohex(dx,8));
                   m.position:=m.position+chunksize-4;
                 end;
             11: Writeln('(11)  DWord when Binary TOC is on   :',m.readdwordle, '(= entry in #urltbl has same first dword');
