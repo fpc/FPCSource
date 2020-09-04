@@ -986,12 +986,14 @@ type
   TPasArrayScope = Class(TPasGenericScope)
   public
   end;
+  TPasArrayScopeClass = class of TPasArrayScope;
 
   { TPasProcTypeScope }
 
   TPasProcTypeScope = Class(TPasGenericScope)
   public
   end;
+  TPasProcTypeScopeClass = class of TPasProcTypeScope;
 
   { TPasClassOrRecordScope }
 
@@ -1510,10 +1512,12 @@ type
     FOptions: TPasResolverOptions;
     FPendingForwardProcs: TFPList; // list of TPasElement needed to check for forward procs
     FRootElement: TPasModule;
+    FScopeClass_Array: TPasArrayScopeClass;
     FScopeClass_Class: TPasClassScopeClass;
     FScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass;
     FScopeClass_Module: TPasModuleScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
+    FScopeClass_ProcType: TPasProcTypeScopeClass;
     FScopeClass_Record: TPasRecordScopeClass;
     FScopeClass_Section: TPasSectionScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
@@ -2424,10 +2428,12 @@ type
     property ScopeCount: integer read FScopeCount;
     property TopScope: TPasScope read FTopScope;
     property DefaultScope: TPasDefaultScope read FDefaultScope write FDefaultScope;
+    property ScopeClass_Array: TPasArrayScopeClass read FScopeClass_Array write FScopeClass_Array;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
     property ScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass read FScopeClass_InitialFinalization write FScopeClass_InitialFinalization;
     property ScopeClass_Module: TPasModuleScopeClass read FScopeClass_Module write FScopeClass_Module;
     property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
+    property ScopeClass_ProcType: TPasProcTypeScopeClass read FScopeClass_ProcType write FScopeClass_ProcType;
     property ScopeClass_Record: TPasRecordScopeClass read FScopeClass_Record write FScopeClass_Record;
     property ScopeClass_Section: TPasSectionScopeClass read FScopeClass_Section write FScopeClass_Section;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
@@ -11910,7 +11916,7 @@ begin
 
     if TypeParams<>nil then
       begin
-      Scope:=TPasArrayScope(PushScope(El,TPasArrayScope));
+      Scope:=TPasArrayScope(PushScope(El,ScopeClass_Array));
       AddGenericTemplateIdentifiers(TypeParams,Scope);
       end;
   end else if TypeParams<>nil then
@@ -12239,7 +12245,7 @@ begin
 
     if TypeParams<>nil then
       begin
-      Scope:=TPasProcTypeScope(PushScope(El,TPasProcTypeScope));
+      Scope:=TPasProcTypeScope(PushScope(El,ScopeClass_ProcType));
       AddGenericTemplateIdentifiers(TypeParams,Scope);
       end;
   end else if TypeParams<>nil then
@@ -17664,7 +17670,7 @@ var
 begin
   if GenEl.GenericTemplateTypes<>nil then
     begin
-    GenScope:=TPasGenericScope(PushScope(SpecEl,TPasProcTypeScope));
+    GenScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_ProcType));
     if SpecializedItem<>nil then
       begin
       // specialized procedure type
@@ -18148,7 +18154,7 @@ begin
   SpecEl.PackMode:=GenEl.PackMode;
   if GenEl.GenericTemplateTypes<>nil then
     begin
-    GenScope:=TPasGenericScope(PushScope(SpecEl,TPasArrayScope));
+    GenScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_Array));
     if SpecializedItem<>nil then
       begin
       // specialized generic array
@@ -20525,10 +20531,12 @@ begin
   cInterfaceToTGUID:=cTypeConversion+1;
   cInterfaceToString:=cTypeConversion+2;
 
+  FScopeClass_Array:=TPasArrayScope;
   FScopeClass_Class:=TPasClassScope;
   FScopeClass_InitialFinalization:=TPasInitialFinalizationScope;
   FScopeClass_Module:=TPasModuleScope;
   FScopeClass_Proc:=TPasProcedureScope;
+  FScopeClass_ProcType:=TPasProcTypeScope;
   FScopeClass_Record:=TPasRecordScope;
   FScopeClass_Section:=TPasSectionScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
