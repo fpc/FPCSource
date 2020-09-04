@@ -1166,6 +1166,7 @@ type
 
   TPas2JSClassScope = class(TPasClassScope)
   public
+    LongName: string;
     NewInstanceFunction: TPasClassFunction;
     GUID: string;
     ElevatedLocals: TPas2jsElevatedLocals;
@@ -1183,6 +1184,7 @@ type
 
   TPas2JSRecordScope = class(TPasRecordScope)
   public
+    LongName: string;
     MemberOverloadsRenamed: boolean;
   end;
 
@@ -1191,6 +1193,7 @@ type
   TPas2JSProcedureScope = class(TPasProcedureScope)
   public
     OverloadName: string;
+    LongName: string;
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     BodyOverloadsRenamed: boolean;
     BodyJS: string; // Option coStoreProcJS: stored in ImplScope
@@ -1198,6 +1201,20 @@ type
     EmptyJS: boolean; // Option coStoreProcJS: stored in ImplScope, true if Body.Body=nil
     procedure AddGlobalJS(const JS: string);
     destructor Destroy; override;
+  end;
+
+  { TPas2JSArrayScope }
+
+  TPas2JSArrayScope = Class(TPasArrayScope)
+  public
+    LongName: string;
+  end;
+
+  { TPas2JSProcTypeScope }
+
+  TPas2JSProcTypeScope = Class(TPasProcTypeScope)
+  public
+    LongName: string;
   end;
 
   { TPas2JSWithExprScope }
@@ -1495,9 +1512,12 @@ type
     function GenerateGUID(El: TPasClassType): string; virtual;
   protected
     // generic/specialize
+    procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem);
+      override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
     function SpecializeNeedsDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
+    function CreateLongName(SpecializedItem: TPRSpecializedItem): string; virtual;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -4955,6 +4975,49 @@ begin
   Result:=Result+'}';
 end;
 
+procedure TPas2JSResolver.SpecializeGenericIntf(
+  SpecializedItem: TPRSpecializedItem);
+{$IFDEF EnableLongNames}
+var
+  El: TPasElement;
+  C: TClass;
+  RecScope: TPas2JSRecordScope;
+  ClassScope: TPas2JSClassScope;
+  ArrayScope: TPas2JSArrayScope;
+  ProcTypeScope: TPas2JSProcTypeScope;
+  LongName: String;
+{$ENDIF}
+begin
+  {$IFDEF EnableLongNames}
+  El:=SpecializedItem.SpecializedEl;
+  C:=El.ClassType;
+  LongName:=CreateLongName(SpecializedItem);
+  if C=TPasRecordType then
+    begin
+    RecScope:=TPas2JSRecordScope(El.CustomData);
+    RecScope.LongName:=LongName;
+    end
+  else if C=TPasClassType then
+    begin
+    ClassScope:=TPas2JSClassScope(El.CustomData);
+    ClassScope.LongName:=LongName;
+    end
+  else if C=TPasArrayType then
+    begin
+    ArrayScope:=TPas2JSArrayScope(El.CustomData);
+    ArrayScope.LongName:=LongName;
+    end
+  else if (C=TPasProcedureType) or (C=TPasFunctionType) then
+    begin
+    ProcTypeScope:=TPas2JSProcTypeScope(El.CustomData);
+    ProcTypeScope.LongName:=LongName;
+    end
+  else
+    RaiseNotYetImplemented(20200904132908,El);
+  {$ENDIF}
+  inherited SpecializeGenericIntf(SpecializedItem);
+end;
+
 procedure TPas2JSResolver.SpecializeGenericImpl(
   SpecializedItem: TPRSpecializedItem);
 var
@@ -5035,6 +5098,24 @@ begin
       exit(Param); // param in a later unit interface
     // generic in a later unit interface -> no delay needed
     end;
+end;
+
+function TPas2JSResolver.CreateLongName(SpecializedItem: TPRSpecializedItem
+  ): string;
+var
+  GenEl: TPasElement;
+  i: Integer;
+  Param: TPasType;
+begin
+  GenEl:=SpecializedItem.GenericEl;
+  Result:=GenEl.Name+'<';
+  for i:=0 to length(SpecializedItem.Params)-1 do
+    begin
+    Param:=ResolveAliasType(SpecializedItem.Params[i],false);
+    // ToDo  move to resolver
+    if Param=nil then ;
+    end;
+  Result:=Result+'>';
 end;
 
 function TPas2JSResolver.AddJSBaseType(const aName: string; Typ: TPas2jsBaseType
@@ -5827,6 +5908,8 @@ begin
   ScopeClass_Module:=TPas2JSModuleScope;
   ScopeClass_Procedure:=TPas2JSProcedureScope;
   ScopeClass_Record:=TPas2JSRecordScope;
+  ScopeClass_Array:=TPas2JSArrayScope;
+  ScopeClass_ProcType:=TPas2JSProcTypeScope;
   ScopeClass_Section:=TPas2JSSectionScope;
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
@@ -15400,7 +15483,7 @@ var
   Obj: TJSObjectLiteral;
   Prop: TJSObjectLiteralElement;
   aResolver: TPas2JSResolver;
-  Scope: TPasProcTypeScope;
+  Scope: TPas2JSProcTypeScope;
   SpecializeNeedsDelay: Boolean;
   FuncSt: TJSFunctionDeclarationStatement;
   AssignSt: TJSSimpleAssignStatement;
@@ -15420,7 +15503,7 @@ begin
   if El.Parent is TProcedureBody then
     RaiseNotSupported(El,AContext,20181231112029);
 
-  Scope:=El.CustomData as TPasProcTypeScope;
+  Scope:=El.CustomData as TPas2JSProcTypeScope;
   SpecializeNeedsDelay:=(Scope<>nil)
            and (aResolver.SpecializeNeedsDelay(Scope.SpecializedFromItem)<>nil);
 
@@ -15532,7 +15615,7 @@ var
 
 var
   aResolver: TPas2JSResolver;
-  Scope: TPasArrayScope;
+  Scope: TPas2JSArrayScope;
   SpecializeNeedsDelay: Boolean;
   AssignSt: TJSSimpleAssignStatement;
   CallName, ArrName: String;
@@ -15566,7 +15649,7 @@ begin
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
 
-  Scope:=El.CustomData as TPasArrayScope;
+  Scope:=El.CustomData as TPas2JSArrayScope;
   SpecializeNeedsDelay:=(Scope<>nil)
            and (aResolver.SpecializeNeedsDelay(Scope.SpecializedFromItem)<>nil);
 
@@ -16750,6 +16833,7 @@ begin
   if (C=TPasRecordType)
       or (C=TPasClassType) then
     begin
+    if (C=TPasClassType) and TPasClassType(El).IsExternal then exit;
     // pas.unitname.recordtype.$initSpec();
     Path:=CreateReferencePath(El,AContext,rpkPathAndName)+'.'+GetBIName(pbifnClassInitSpecialize);
     Call:=CreateCallExpression(El);
