@@ -114,7 +114,12 @@ implementation
                end
              else
                begin
-                if (tordconstnode(p).value<=0) then
+                { the node is a generic param while parsing a generic def
+                  so disable the range checking for the string }
+                if parse_generic and
+                  (nf_generic_para in p.flags) then
+                  tordconstnode(p).value:=255;
+                if tordconstnode(p).value<=0 then
                   begin
                      Message(parser_e_invalid_string_size);
                      tordconstnode(p).value:=255;

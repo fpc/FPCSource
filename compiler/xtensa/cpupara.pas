@@ -49,7 +49,7 @@ unit cpupara;
            paras : tparalist; var curintreg : tsuperregister;
            var cur_stack_offset : aword; varargsparas : boolean) : longint;
          function create_paraloc1_info_intern(p: tabstractprocdef; side: tcallercallee; paradef: tdef; var loc: TCGPara; varspez: tvarspez; varoptions: tvaroptions;
-           var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean): longint;
+           var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas, funcret: boolean): longint;
        end;
 
   implementation
@@ -153,10 +153,7 @@ unit cpupara;
           recorddef :
             result:=(varspez = vs_const);
           arraydef:
-            result:=((varspez = vs_const) and (tarraydef(def).highrange>=tarraydef(def).lowrange)) or
-                             is_open_array(def) or
-                             is_array_of_const(def) or
-                             is_array_constructor(def);
+            result:=true;
           objectdef :
             result:=is_object(def) and (varspez = vs_const);
           variantdef,
@@ -252,7 +249,7 @@ unit cpupara;
         else if (result.def.size>4) and (result.def.size<=16) then
           begin
             init_values(p,side,curintreg,cur_stack_offset);
-            create_paraloc1_info_intern(p,side,result.def,result,vs_value,[],curintreg,cur_stack_offset,false);
+            create_paraloc1_info_intern(p,side,result.def,result,vs_value,[],curintreg,cur_stack_offset,false,true);
 
             { check if everything is ok }
             if result.location^.loc=LOC_INVALID then
@@ -320,7 +317,7 @@ unit cpupara;
 
 
     function tcpuparamanager.create_paraloc1_info_intern(p : tabstractprocdef; side: tcallercallee; paradef:tdef;var loc : TCGPara;varspez : tvarspez;varoptions : tvaroptions;
-      var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
+      var curintreg: tsuperregister; var cur_stack_offset: aword; varargsparas, funcret: boolean):longint;
       var
         paralen: aint;
         locdef,
@@ -349,19 +346,21 @@ unit cpupara;
             exit;
           end;
 
-        if push_addr_param(varspez,paradef,p.proccalloption) then
+        if not is_special_array(paradef) then
+          paralen:=paradef.size
+        else
+          paralen:=tcgsize2size[def_cgsize(paradef)];
+
+        if (not(funcret) and push_addr_param(varspez,paradef,p.proccalloption)) or
+          (funcret and (paralen>24)) then
           begin
             paradef:=cpointerdef.getreusable_no_free(paradef);
             locpara:=LOC_REGISTER;
-            paracgsize := OS_ADDR;
-            paralen := tcgsize2size[OS_ADDR];
+            paracgsize:=OS_ADDR;
+            paralen:=tcgsize2size[OS_ADDR];
           end
         else
           begin
-            if not is_special_array(paradef) then
-              paralen := paradef.size
-            else
-              paralen := tcgsize2size[def_cgsize(paradef)];
             if (paradef.typ in [objectdef,arraydef,recorddef,setdef,stringdef]) and
                not is_special_array(paradef) and
                (varspez in [vs_value,vs_const]) then
@@ -369,10 +368,10 @@ unit cpupara;
             else
               begin
                 paracgsize:=def_cgsize(paradef);
-                if (paracgsize=OS_NO) then
+                if paracgsize=OS_NO then
                   begin
                     paracgsize:=OS_ADDR;
-                    paralen := tcgsize2size[OS_ADDR];
+                    paralen:=tcgsize2size[OS_ADDR];
                     paradef:=voidpointertype;
                   end;
               end;
@@ -481,7 +480,7 @@ unit cpupara;
         result:=0;
         for i:=0 to paras.count-1 do
           result:=create_paraloc1_info_intern(p,side,tparavarsym(paras[i]).vardef,tparavarsym(paras[i]).paraloc[side],tparavarsym(paras[i]).varspez,
-            tparavarsym(paras[i]).varoptions,curintreg,cur_stack_offset,false);
+            tparavarsym(paras[i]).varoptions,curintreg,cur_stack_offset,false,false);
       end;
 
 

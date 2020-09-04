@@ -13449,6 +13449,7 @@ tests/test/cg/cdecl/taoc3.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc4.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc5.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
+tests/test/cg/cpudefs.inc svneol=native#text/plain
 tests/test/cg/obj/aix/powerpc/cpptcl1.o -text
 tests/test/cg/obj/aix/powerpc/cpptcl2.o -text
 tests/test/cg/obj/aix/powerpc/ctest.o -text
@@ -13821,7 +13822,6 @@ tests/test/cg/tcalcst5.pp svneol=native#text/plain
 tests/test/cg/tcalcst6.pp svneol=native#text/plain
 tests/test/cg/tcalcst7.pp svneol=native#text/plain
 tests/test/cg/tcalcst8.pp svneol=native#text/plain
-tests/test/cg/tcaldefs.inc svneol=native#text/plain
 tests/test/cg/tcalext.pp svneol=native#text/plain
 tests/test/cg/tcalext3.pp svneol=native#text/plain
 tests/test/cg/tcalext4.pp svneol=native#text/plain
@@ -18484,6 +18484,7 @@ tests/webtbs/tw37554.pp svneol=native#text/pascal
 tests/webtbs/tw3758.pp svneol=native#text/plain
 tests/webtbs/tw3764.pp svneol=native#text/plain
 tests/webtbs/tw3765.pp svneol=native#text/plain
+tests/webtbs/tw37650.pp svneol=native#text/pascal
 tests/webtbs/tw3768.pp svneol=native#text/plain
 tests/webtbs/tw3774.pp svneol=native#text/plain
 tests/webtbs/tw3777.pp svneol=native#text/plain
