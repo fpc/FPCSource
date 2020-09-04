@@ -13409,6 +13409,7 @@ tests/test/cg/cdecl/taoc3.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc4.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc5.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
+tests/test/cg/cpudefs.inc svneol=native#text/plain
 tests/test/cg/obj/aix/powerpc/cpptcl1.o -text
 tests/test/cg/obj/aix/powerpc/cpptcl2.o -text
 tests/test/cg/obj/aix/powerpc/ctest.o -text
