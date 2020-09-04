@@ -47,6 +47,7 @@ type
     procedure TestGen_ExtClass_GenJSValueAssign;
     procedure TestGen_ExtClass_AliasMemberType;
     Procedure TestGen_ExtClass_RTTI;
+    procedure TestGen_ExtClass_UnitImplRec;
 
     // class interfaces
     procedure TestGen_ClassInterface_Corba;
@@ -79,6 +80,8 @@ type
     procedure TestGen_ArrayOfUnitImplRec;
 
     // generic procedure type
+    procedure TestGen_ProcType_ProcLocal;
+    procedure TestGen_ProcType_ProcLocal_RTTI;
     procedure TestGen_ProcType_ParamUnitImpl;
   end;
 
@@ -1324,6 +1327,70 @@ begin
     '']));
 end;
 
+procedure TTestGenerics.TestGen_ExtClass_UnitImplRec;
+begin
+  WithTypeInfo:=true;
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  generic TAnt<T> = class external name ''SET''',
+  '    x: T;',
+  '  end;',
+  '']),
+  LinesToStr([
+  'type',
+  '  TBird = record',
+  '    b: word;',
+  '  end;',
+  'var',
+  '  f: specialize TAnt<TBird>;',
+  'begin',
+  '  f.x.b:=f.x.b+10;',
+  '']));
+  Add([
+  'uses UnitA;',
+  'begin',
+  'end.']);
+  ConvertProgram;
+  CheckUnit('UnitA.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  var $impl = $mod.$impl;',
+    '  $mod.$rtti.$ExtClass("TAnt$G1", {',
+    '    jsclass: "SET"',
+    '  });',
+    '  $mod.$init = function () {',
+    '    $impl.f.x.b = $impl.f.x.b + 10;',
+    '  };',
+    '}, null, function () {',
+    '  var $mod = this;',
+    '  var $impl = $mod.$impl;',
+    '  rtl.recNewT($impl, "TBird", function () {',
+    '    this.b = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.b === b.b;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.b = s.b;',
+    '      return this;',
+    '    };',
+    '    var $r = $mod.$rtti.$Record("TBird", {});',
+    '    $r.addField("b", rtl.word);',
+    '  });',
+    '  $impl.f = null;',
+    '});']));
+  CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
+    LinesToStr([ // statements
+    //'pas.UnitA.TAnt$G1.$initSpec();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestGenerics.TestGen_ClassInterface_Corba;
 begin
   StartProgram(false);
@@ -2042,6 +2109,61 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestGenerics.TestGen_ProcType_ProcLocal;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(w: word);',
+  'begin',
+  'end;',
+  'procedure Run(w: word);',
+  'type generic TProc<T> = procedure(a: T);',
+  'var p: specialize TProc<word>;',
+  'begin',
+  '  p:=@Fly;',
+  '  p(w);',
+  'end;',
+  'begin',
+  'end.']);
+  ConvertProgram;
+  CheckSource('TestGen_ProcType_ProcLocal',
+    LinesToStr([ // statements
+    'this.Fly = function (w) {',
+    '};',
+    'this.Run = function (w) {',
+    '  var p = null;',
+    '  p = $mod.Fly;',
+    '  p(w);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ProcType_ProcLocal_RTTI;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  'procedure Fly(w: word);',
+  'begin',
+  'end;',
+  'procedure Run(w: word);',
+  'type generic TProc<T> = procedure(a: T);',
+  'var',
+  '  p: specialize TProc<word>;',
+  '  t: Pointer;',
+  'begin',
+  '  p:=@Fly;',
+  '  p(w);',
+  '  t:=typeinfo(p);',
+  'end;',
+  'begin',
+  'end.']);
+  SetExpectedPasResolverError(sSymbolCannotBePublished,nSymbolCannotBePublished);
+  ConvertProgram;
 end;
 
 procedure TTestGenerics.TestGen_ProcType_ParamUnitImpl;
