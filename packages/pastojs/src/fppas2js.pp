@@ -14874,6 +14874,8 @@ begin
         end;
 
       // add class members: types and class vars
+      if SpecializeNeedsDelay then
+        DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
       if El.ObjKind in ([okClass]+okAllHelpers) then
         begin
         For i:=0 to El.Members.Count-1 do
@@ -14911,11 +14913,7 @@ begin
           if NewEl<>nil then
             begin
             if SpecializeNeedsDelay and not (P is TPasProcedure) then
-              begin
-              if DelayFuncContext=nil then
-                DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
-              AddToSourceElements(DelaySrc,NewEl);
-              end
+              AddToSourceElements(DelaySrc,NewEl)
             else
               AddToSourceElements(Src,NewEl);
             end;
@@ -14983,11 +14981,7 @@ begin
         AddClassMessageIds(El,Src,FuncContext,pbivnMessageStr);
         // add RTTI init function
         if SpecializeNeedsDelay then
-          begin
-          if DelayFuncContext=nil then
-            DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
-          AddClassRTTI(El,DelaySrc,DelayFuncContext);
-          end
+          AddClassRTTI(El,DelaySrc,DelayFuncContext)
         else
           AddClassRTTI(El,Src,FuncContext);
         end;
@@ -25082,6 +25076,8 @@ begin
     Vars:=TFPList.Create;
     Methods:=TFPList.Create;
     IsComplex:=false;
+    if SpecializeNeedsDelay then
+      DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
     for i:=0 to El.Members.Count-1 do
       begin
       P:=TPasElement(El.Members[i]);
@@ -25156,11 +25152,7 @@ begin
       if NewEl<>nil then
         begin
         if SpecializeNeedsDelay and not (P is TPasProcedure) then
-          begin
-          if DelayFuncContext=nil then
-            DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
-          AddToSourceElements(DelaySrc,NewEl);
-          end
+          AddToSourceElements(DelaySrc,NewEl)
         else
           AddToSourceElements(Src,NewEl);
         end;
@@ -25187,11 +25179,7 @@ begin
     if (aResolver<>nil) and HasTypeInfo(El,FuncContext) then
       begin
       if SpecializeNeedsDelay then
-        begin
-        if DelayFuncContext=nil then
-          DelayFuncContext:=CreateDelayedInitFunction(El,Src,FuncContext,DelaySrc);
-        CreateRecordRTTI(El,DelaySrc,DelayFuncContext);
-        end
+        CreateRecordRTTI(El,DelaySrc,DelayFuncContext)
       else
         CreateRecordRTTI(El,Src,FuncContext);
       end;
