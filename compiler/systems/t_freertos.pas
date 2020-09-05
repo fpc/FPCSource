@@ -96,10 +96,10 @@ begin
   prtobj:='';
 {$else}
   prtobj:='prt0';
-{$endif}
   cprtobj:='cprt0';
   if linklibc then
     prtobj:=cprtobj;
+{$endif}
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
@@ -132,14 +132,18 @@ begin
       LinkRes.AddFileName(s);
     end;
 
-  { try to add crti and crtbegin if linking to C }
-  if linklibc then
-   begin
-     if librarysearchpath.FindFile('crtbegin.o',false,s) then
-      LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crti.o',false,s) then
-      LinkRes.AddFileName(s);
-   end;
+  { xtensa FreeRTOS links always against libc, the runtime needs it }
+  if not(target_info.system in [system_xtensa_freertos]) then
+    begin
+      { try to add crti and crtbegin if linking to C }
+      if linklibc then
+       begin
+         if librarysearchpath.FindFile('crtbegin.o',false,s) then
+          LinkRes.AddFileName(s);
+         if librarysearchpath.FindFile('crti.o',false,s) then
+          LinkRes.AddFileName(s);
+       end;
+    end;
 
   while not ObjectFiles.Empty do
    begin
@@ -165,49 +169,57 @@ begin
         end;
     end;
 
-   LinkRes.Add(')');
-
-   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-   linklibc:=false;
-   while not SharedLibFiles.Empty do
+  { xtensa FreeRTOS links always against libc, the runtime needs it }
+  if not(target_info.system in [system_xtensa_freertos]) then
     begin
-     S:=SharedLibFiles.GetFirst;
-     if s<>'c' then
+     { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+       here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+     linklibc:=false;
+     while not SharedLibFiles.Empty do
       begin
-       i:=Pos(target_info.sharedlibext,S);
-       if i>0 then
-        Delete(S,i,255);
-       LinkRes.Add('-l'+s);
-      end
-     else
+       S:=SharedLibFiles.GetFirst;
+       if s<>'c' then
+        begin
+         i:=Pos(target_info.sharedlibext,S);
+         if i>0 then
+          Delete(S,i,255);
+         LinkRes.Add('-l'+s);
+        end
+       else
+        begin
+         LinkRes.Add('-l'+s);
+         linklibc:=true;
+        end;
+      end;
+     { be sure that libc&libgcc is the last lib }
+     if linklibc then
       begin
-       LinkRes.Add('-l'+s);
-       linklibc:=true;
+       LinkRes.Add('-lc');
+       LinkRes.Add('-lgcc');
       end;
     end;
-   { be sure that libc&libgcc is the last lib }
-   if linklibc then
-    begin
-     LinkRes.Add('-lc');
-     LinkRes.Add('-lgcc');
-    end;
 
-  { objects which must be at the end }
-  if linklibc then
-   begin
-     found1:=librarysearchpath.FindFile('crtend.o',false,s1);
-     found2:=librarysearchpath.FindFile('crtn.o',false,s2);
-     if found1 or found2 then
-      begin
-        LinkRes.Add('INPUT(');
-        if found1 then
-         LinkRes.AddFileName(s1);
-        if found2 then
-         LinkRes.AddFileName(s2);
-        LinkRes.Add(')');
-      end;
-   end;
+  LinkRes.Add(')');
+
+  { xtensa FreeRTOS links always against libc }
+  if not(target_info.system in [system_xtensa_freertos]) then
+    begin
+      { objects which must be at the end }
+      if linklibc then
+       begin
+         found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+         found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+         if found1 or found2 then
+          begin
+            LinkRes.Add('INPUT(');
+            if found1 then
+             LinkRes.AddFileName(s1);
+            if found2 then
+             LinkRes.AddFileName(s2);
+            LinkRes.Add(')');
+          end;
+       end;
+    end;
 
 {$ifdef ARM}
   with embedded_controllers[current_settings.controllertype] do
