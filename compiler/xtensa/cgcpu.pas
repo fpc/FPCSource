@@ -286,7 +286,8 @@ implementation
           (href.index<>NR_NO) or
           ((op=A_L8UI) and ((href.offset<0) or (href.offset>255))) or
           ((op in [A_L16SI,A_L16UI]) and ((href.offset<0) or (href.offset>510) or (href.offset mod 2<>0))) or
-          ((op=A_L32I) and ((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) then
+          ((op=A_L32I) and ((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) or
+          ((href.base=NR_NO) and (href.index=NR_NO)) then
           fixref(list,href);
 
         list.concat(taicpu.op_reg_ref(op,reg,href));
@@ -329,15 +330,21 @@ implementation
         l : tasmlabel;
       begin
         { create consts entry }
-        if assigned(ref.symbol) or (ref.offset<-2048) or (ref.offset>2047) then
+        if assigned(ref.symbol) or (ref.offset<-2048) or (ref.offset>2047) or
+          ((ref.base=NR_NO) and (ref.index=NR_NO)) then
           begin
             reference_reset(tmpref,4,[]);
             tmpreg:=NR_NO;
 
             { load consts entry }
             tmpreg:=getintregister(list,OS_INT);
-            tmpref.symbol:=create_data_entry(ref.symbol,ref.offset);
-            list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
+            if ref.symbol=nil then
+              a_load_const_reg(list,OS_ADDR,ref.offset,tmpreg)
+            else
+              begin
+                tmpref.symbol:=create_data_entry(ref.symbol,ref.offset);
+                list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
+              end;
 
             if ref.base<>NR_NO then
               begin
