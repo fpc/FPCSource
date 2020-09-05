@@ -2403,7 +2403,9 @@ unit rgobj;
                 interfere but are connected by a move instruction
 
                 doing so might save some mem->mem moves }
-              if (cs_opt_level3 in current_settings.optimizerswitches) and assigned(reginfo[t].movelist) then
+              if (cs_opt_level3 in current_settings.optimizerswitches) and
+                 getnewspillloc and
+                 assigned(reginfo[t].movelist) then
                 for j:=0 to reginfo[t].movelist^.header.count-1 do
                   begin
                     x:=Tmoveins(reginfo[t].movelist^.data[j]).x;
