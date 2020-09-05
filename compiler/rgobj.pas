@@ -2872,7 +2872,7 @@ unit rgobj;
         all_weight,spill_weight,d: double;
       begin
         max_weight:=1;
-        for i:=0 to high(spillinfo) do
+        for i:=first_imaginary to maxreg-1 do
           with reginfo[i] do
             if weight>max_weight then
               max_weight:=weight;
@@ -2880,12 +2880,14 @@ unit rgobj;
         spillingcounter:=0;
         spill_weight:=0;
         all_weight:=0;
-        for i:=0 to high(spillinfo) do
+        for i:=first_imaginary to maxreg-1 do
           with reginfo[i] do
             begin
-              d:=weight/max_weight*count_uses;
+              d:=weight/max_weight;
               all_weight:=all_weight+d;
-              if spillinfo[i].spilled then
+              if (weight>100) and
+                 (i<=high(spillinfo)) and
+                 spillinfo[i].spilled then
                 begin
                   inc(spillingcounter);
                   spill_weight:=spill_weight+d;
