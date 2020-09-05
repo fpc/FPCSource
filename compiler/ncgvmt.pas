@@ -699,11 +699,16 @@ implementation
 
     function CreateWrapperName(_class : tobjectdef;AImplIntf : TImplementedInterface;i : longint;pd : tprocdef) : string;
       var
+        realintfdef: tobjectdef;
         tmpstr : AnsiString;
         hs : string;
         crc : DWord;
       begin
-        tmpstr:=_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
+        realintfdef:=AImplIntf.IntfDef;
+        while realintfdef.is_unique_objpasdef do
+          realintfdef:=realintfdef.childof;
+
+        tmpstr:=_class.objname^+'_$_'+realintfdef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
         if length(tmpstr)>100 then
           begin
             crc:=0;
@@ -749,14 +754,18 @@ implementation
         pd: tprocdef;
         siid,
         siidstr: tsymstr;
+        nonuniqueintf: tobjectdef;
       begin
+        nonuniqueintf:=AImplIntf.IntfDef;
+        while nonuniqueintf.is_unique_objpasdef do
+          nonuniqueintf:=nonuniqueintf.childof;
         tcb.maybe_begin_aggregate(interfaceentrydef);
         { GUID (or nil for Corba interfaces) }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDREF') as tfieldvarsym;
         siid:='';
-        if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
+        if nonuniqueintf.objecttype in [odt_interfacecom] then
           begin
-            siid:=make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^);
+            siid:=make_mangledname('IID',nonuniqueintf.owner,nonuniqueintf.objname^);
             tcb.emit_tai(Tai_const.Create_sym_offset(
               current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid));
           end
@@ -766,7 +775,7 @@ implementation
         { VTable }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
         tcb.queue_init(voidpointertype);
-        tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],AImplIntf.VtblImplIntf.IntfDef);
+        tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],nonuniqueintf);
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
           etFieldValue, etFieldValueClass,
@@ -792,20 +801,20 @@ implementation
 
         { IIDStr }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDSTRREF') as tfieldvarsym;
-        siidstr:=make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^);
+        siidstr:=make_mangledname('IIDSTR',nonuniqueintf.owner,nonuniqueintf.objname^);
         tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
         tcb.queue_emit_asmsym(
           current_asmdata.RefAsmSymbol(
             siidstr,
             AT_DATA,
             true),
-          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
+          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(nonuniqueintf.iidstr^)+1)));
         { IType }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
 
-        if findunitsymtable(AImplIntf.IntfDef.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then
+        if findunitsymtable(nonuniqueintf.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then
           begin
             if siid<>'' then
               current_module.add_extern_asmsym(siid,AB_EXTERNAL,AT_DATA);
@@ -1299,6 +1308,8 @@ implementation
                   { Skip generics and forward defs }
                   if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
+                    continue;
+                  if tobjectdef(def).is_unique_objpasdef then
                     continue;
                   do_write_vmts(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }

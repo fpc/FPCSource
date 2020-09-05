@@ -3607,6 +3607,10 @@ implementation
         formalnameptr,
         foundnameptr: pshortstring;
       begin
+        while pd.is_unique_objpasdef do
+          begin
+            pd:=pd.childof;
+          end;
         { not a formal definition -> return it }
         if not(oo_is_formal in pd.objectoptions) then
           begin

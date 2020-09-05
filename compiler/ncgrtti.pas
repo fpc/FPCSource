@@ -133,6 +133,9 @@ implementation
                   { Skip forward defs }
                   if (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
+                  { skip unique type aliases, they use the RTTI from the parent class }
+                  if tobjectdef(def).is_unique_objpasdef then
+                    continue;
                   write_persistent_type_info(tobjectdef(def).symtable,is_global);
                 end;
               procdef :
