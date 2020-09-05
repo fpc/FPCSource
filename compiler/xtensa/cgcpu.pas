@@ -1053,15 +1053,28 @@ implementation
             tmpreg1  := GetIntRegister(list, OS_INT);
             a_load_const_reg(list, OS_INT, Count, countreg);
             current_asmdata.getjumplabel(lab);
-            a_label(list, lab);
-            list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));
-            list.concat(taicpu.op_reg_ref(A_S32I, tmpreg1, dst));
-            list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 4));
-            list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
-            list.concat(taicpu.op_reg_reg_const(A_ADDI, countreg, countreg, -1));
-            a_cmp_const_reg_label(list,OS_INT,OC_NE,0,countreg,lab);
+            if CPUXTENSA_HAS_LOOPS in cpu_capabilities[current_settings.cputype] then
+              begin
+                list.concat(taicpu.op_reg_sym(A_LOOP, countreg, lab));
+                list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));
+                list.concat(taicpu.op_reg_ref(A_S32I, tmpreg1, dst));
+                list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 4));
+                list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
+                a_label(list, lab);
+              end
+            else
+              begin
+                a_label(list, lab);
+                list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));
+                list.concat(taicpu.op_reg_ref(A_S32I, tmpreg1, dst));
+                list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 4));
+                list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
+                list.concat(taicpu.op_reg_reg_const(A_ADDI, countreg, countreg, -1));
+                a_cmp_const_reg_label(list,OS_INT,OC_NE,0,countreg,lab);
+                { keep the registers alive }
+                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
+              end;
             { keep the registers alive }
-            list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
             list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
             list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
             len := len mod 4;
