@@ -588,6 +588,34 @@ implementation
 
 
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
+
+      procedure set_para_regvar_initial_location;
+        var
+          paraloc: PCGParalocation;
+          loc: tlocation;
+          regtype: tregistertype;
+          reg: tregister;
+          size: tcgint;
+        begin
+          tparavarsym(sym).paraloc[calleeside].get_location(loc);
+          size:=tparavarsym(sym).paraloc[calleeside].IntSize;
+          paraloc:=tparavarsym(sym).paraloc[calleeside].Location;
+          reg:=sym.initialloc.register;
+          regtype:=getregtype(reg);
+          repeat
+            loc.reference.offset:=paraloc^.reference.offset;
+            cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
+            dec(size,tcgsize2size[paraloc^.Size]);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+            if cg.has_next_reg[getsupreg(reg)] then
+              reg:=cg.GetNextReg(reg)
+            else
+{$endif}
+              reg:=sym.initialloc.registerhi;
+            paraloc:=paraloc^.Next;
+          until size=0;
+        end;
+
       var
         usedef: tdef;
         varloc: tai_varloc;
@@ -674,6 +702,11 @@ implementation
 {$endif cpu64bitalu and not cpuhighleveltarget}
           varloc:=tai_varloc.create(sym,sym.initialloc.register);
         list.concat(varloc);
+        { Notify the register allocator about memory location of
+          the register which holds a value of a stack parameter }
+        if (sym.typ=paravarsym) and
+          (tparavarsym(sym).paraloc[calleeside].Location^.Loc=LOC_REFERENCE) then
+          set_para_regvar_initial_location;
       end;
 
 

@@ -93,9 +93,10 @@ unit rgobj;
       end;
 
       Treginfoflag=(
-        ri_coalesced,   { the register is coalesced with other register }
-        ri_selected,    { the register is put to selectstack }
-        ri_spill_read   { the register contains a value loaded from a spilled register }
+        ri_coalesced,       { the register is coalesced with other register }
+        ri_selected,        { the register is put to selectstack }
+        ri_spill_read,      { the register contains a value loaded from a spilled register }
+        ri_has_initial_loc  { the register has the initial memory location (e.g. a parameter in the stack) }
       );
       Treginfoflagset=set of Treginfoflag;
 
@@ -189,6 +190,8 @@ unit rgobj;
         procedure add_edge(u,v:Tsuperregister);
         { translates a single given imaginary register to it's real register }
         procedure translate_register(var reg : tregister);
+        { sets the initial memory location of the register }
+        procedure set_reg_initial_location(reg: tregister; const ref: treference);
       protected
         maxreginfo,
         maxreginfoinc,
@@ -293,6 +296,7 @@ unit rgobj;
         function get_live_start(reg : tsuperregister) : tai;
         procedure set_live_end(reg : tsuperregister;t : tai);
         function get_live_end(reg : tsuperregister) : tai;
+        procedure alloc_spillinfo(max_reg: Tsuperregister);
 {$ifdef DEBUG_SPILLCOALESCE}
         procedure write_spill_stats;
 {$endif DEBUG_SPILLCOALESCE}
@@ -637,10 +641,18 @@ unit rgobj;
           i8086 where indexed memory access instructions allow only
           few registers as arguments and additionally the calling convention
           provides no general purpose volatile registers.
+          
+          Also spill registers which have the initial memory location
+          and are used only once. This allows to access the memory location
+          directly, without preloading it to a register.
         }
         for i:=first_imaginary to maxreg-1 do
-          if reginfo[i].real_reg_interferences>=usable_registers_cnt then
-            spillednodes.add(i);
+          with reginfo[i] do
+            if (real_reg_interferences>=usable_registers_cnt) or
+               { also spill registers which have the initial memory location
+                 and are used only once }
+               ((ri_has_initial_loc in flags) and (weight<=200)) then
+              spillednodes.add(i);
         if spillednodes.length<>0 then
           begin
             spill_registers(list,headertai);
@@ -856,6 +868,19 @@ unit rgobj;
     function trgobj.get_live_end(reg: tsuperregister): tai;
       begin
         result:=reginfo[reg].live_end;
+      end;
+
+
+    procedure trgobj.alloc_spillinfo(max_reg: Tsuperregister);
+      var
+        j: longint;
+      begin
+        if Length(spillinfo)<max_reg then
+          begin
+            j:=Length(spillinfo);
+            SetLength(spillinfo,max_reg);
+            fillchar(spillinfo[j],sizeof(spillinfo[0])*(Length(spillinfo)-j),0);
+          end;
       end;
 
 
@@ -2106,7 +2131,20 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.translate_registers(list:TAsmList);
+    procedure trgobj.set_reg_initial_location(reg: tregister; const ref: treference);
+      var
+        supreg: TSuperRegister;
+      begin
+        supreg:=getsupreg(reg);
+        if supreg>=maxreg then
+          internalerror(2020090501);
+        alloc_spillinfo(supreg+1);
+        spillinfo[supreg].spilllocation:=ref;
+        include(reginfo[supreg].flags,ri_has_initial_loc);
+      end;
+
+
+    procedure trgobj.translate_registers(list: TAsmList);
 
       function get_reg_name_full(r: tregister): string;
         var
@@ -2332,13 +2370,7 @@ unit rgobj;
         writeln('trgobj.spill_registers: Spilling ',spillednodes.length,' nodes');
 {$endif DEBUG_SPILLCOALESCE}
         { after each round of spilling, more registers could be used due to allocations for spilling }
-        if Length(spillinfo)<maxreg then
-          begin
-            j:=Length(spillinfo);
-            SetLength(spillinfo,maxreg);
-            fillchar(spillinfo[j],sizeof(spillinfo[0])*(Length(spillinfo)-j),0);
-          end;
-
+        alloc_spillinfo(maxreg);
         { Allocate temps and insert in front of the list }
         templist:=TAsmList.create;
         { Safe: this procedure is only called if there are spilled nodes. }
@@ -2363,7 +2395,9 @@ unit rgobj;
               { Clear all interferences of the spilled register. }
               clear_interferences(t);
 
-              getnewspillloc:=true;
+              getnewspillloc:=not (ri_has_initial_loc in reginfo[t].flags);
+              if not getnewspillloc then
+                spill_temps^[t]:=spillinfo[t].spilllocation;
 
               { check if we can "coalesce" spilled nodes. To do so, it is required that they do not
                 interfere but are connected by a move instruction
@@ -2427,6 +2461,17 @@ unit rgobj;
                         supreg:=getsupreg(reg);
                         if supregset_in(regs_to_spill_set,supreg) then
                           begin
+                            { Remove loading of the register from its initial memory location
+                              (e.g. load of a stack parameter to the register). }
+                            if (ratype=ra_alloc) and
+                               (ri_has_initial_loc in reginfo[supreg].flags) and
+                               (instr<>nil) then
+                              begin
+                                list.remove(instr);
+                                FreeAndNil(instr);
+                                dec(reginfo[supreg].weight,100);
+                              end;
+                            { Remove the regalloc }
                             q:=Tai(p.next);
                             list.remove(p);
                             p.free;
@@ -2466,7 +2511,7 @@ unit rgobj;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do
-            tg.ungettemp(list,spill_temps^[buf^[i]]);
+            tg.ungetiftemp(list,spill_temps^[buf^[i]]);
         freemem(spill_temps);
       end;
 
