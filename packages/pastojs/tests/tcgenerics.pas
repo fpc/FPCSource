@@ -870,7 +870,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.w = $mod.c;',
     '']));
-  CheckHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird$G2<Char>" and "TBird$G1<Word>" are not related');
+  CheckHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird$G2" and "TBird$G1" are not related');
   CheckResolverUnexpectedHints();
 end;
 
