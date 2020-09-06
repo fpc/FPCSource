@@ -1512,6 +1512,7 @@ type
     function GenerateGUID(El: TPasClassType): string; virtual;
   protected
     // generic/specialize
+    function CreateSpecializedTypeName(Item: TPRSpecializedItem): string; override;
     procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem);
       override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
@@ -4974,6 +4975,11 @@ begin
   Result:=Result+'-';
   for i:=10 to 15 do Result:=Result+HexStr(Bytes[i],2);
   Result:=Result+'}';
+end;
+
+function TPas2JSResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): string;
+begin
+  Result:=Item.GenericEl.Name+'$G'+IntToStr(Item.Index+1);
 end;
 
 procedure TPas2JSResolver.SpecializeGenericIntf(
