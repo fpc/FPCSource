@@ -511,6 +511,7 @@ interface
           function  needs_separate_initrtti : boolean;override;
           function  has_non_trivial_init_child(check_parent:boolean):boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
+          function  is_unique_objpasdef: boolean;
           function  vmt_mangledname : TSymStr;
           function  vmt_def: trecorddef;
           procedure check_forwards; override;
@@ -3900,6 +3901,8 @@ implementation
 
     constructor tclassrefdef.create(def:tdef);
       begin
+         while tobjectdef(def).is_unique_objpasdef do
+           def:=tobjectdef(def).childof;
          inherited create(classrefdef,def);
          if df_specialization in tstoreddef(def).defoptions then
            genericdef:=cclassrefdef.create(tstoreddef(def).genericdef);
@@ -7890,7 +7893,10 @@ implementation
       begin
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_n_object_has_no_vmt,objrealname^);
-        vmt_mangledname:=make_mangledname('VMT',owner,objname^);
+        if not is_unique_objpasdef then
+          vmt_mangledname:=make_mangledname('VMT',owner,objname^)
+        else
+          vmt_mangledname:=childof.vmt_mangledname;
       end;
 
 
@@ -7899,13 +7905,18 @@ implementation
         where: tsymtable;
         vmttypesym: tsymentry;
       begin
-        where:=get_top_level_symtable(true);
-        vmttypesym:=where.Find('vmtdef$'+mangledparaname);
-        if not assigned(vmttypesym) or
-           (vmttypesym.typ<>symconst.typesym) or
-           (ttypesym(vmttypesym).typedef.typ<>recorddef) then
-          internalerror(2015052501);
-        result:=trecorddef(ttypesym(vmttypesym).typedef);
+        if not is_unique_objpasdef then
+          begin
+            where:=get_top_level_symtable(true);
+            vmttypesym:=where.Find('vmtdef$'+mangledparaname);
+            if not assigned(vmttypesym) or
+               (vmttypesym.typ<>symconst.typesym) or
+               (ttypesym(vmttypesym).typedef.typ<>recorddef) then
+              internalerror(2015052501);
+            result:=trecorddef(ttypesym(vmttypesym).typedef);
+          end
+        else
+          result:=childof.vmt_def;
       end;
 
 
@@ -7971,7 +7982,12 @@ implementation
     function tobjectdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
-          result:=inherited rtti_mangledname(rt)
+          begin
+            if not is_unique_objpasdef then
+              result:=inherited rtti_mangledname(rt)
+            else
+              result:=childof.rtti_mangledname(rt)
+          end
         else
           begin
             { necessary in case of a dynamic array of nsobject, or
@@ -8053,6 +8069,13 @@ implementation
             result:=result+objextname^;
           end;
       end;
+
+    function tobjectdef.is_unique_objpasdef: boolean;
+        begin
+          result:=
+            (df_unique in defoptions) and
+            is_class_or_interface_or_dispinterface(self)
+        end;
 
 
     function tobjectdef.members_need_inittable : boolean;

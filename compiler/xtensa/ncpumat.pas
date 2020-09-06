@@ -236,7 +236,10 @@ implementation
               OS_32:
                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),left.location.register,location.register);
               OS_64:
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),left.location.registerhi,location.registerhi);
+                begin
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),left.location.registerhi,location.registerhi);
+                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,location.register64.reglo);
+                end;
             else
               internalerror(2014033101);
             end;

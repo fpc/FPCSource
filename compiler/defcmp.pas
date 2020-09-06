@@ -59,7 +59,8 @@ interface
           cdo_allow_variant,
           cdo_parameter,
           cdo_warn_incompatible_univ,
-          cdo_strict_undefined_check  // undefined defs are incompatible to everything except other undefined defs
+          cdo_strict_undefined_check,  // undefined defs are incompatible to everything except other undefined defs
+          cdo_equal_check              // this call is only to check equality -> shortcut some expensive checks
        );
        tcompare_defs_options = set of tcompare_defs_option;
 
@@ -1703,7 +1704,13 @@ implementation
            objectdef :
              begin
                { object pascal objects }
-               if (def_from.typ=objectdef) and
+               { don't call def_is_related if we came here from equal_defs, because
+                   1) this can never result in an "equal result", and
+                   2) def_is_related itself calls equal_defs again for each class in
+                      the hierarchy, which will call compare_defs_ext, which will again
+                      call def_is_related -> quadratic complexity explosion }
+               if not(cdo_equal_check in cdoptions) and
+                  (def_from.typ=objectdef) and
                   (def_is_related(tobjectdef(def_from),tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
@@ -2001,7 +2008,7 @@ implementation
       begin
         { Compare defs with nothingn and no explicit typecasts and
           searching for overloaded operators is not needed }
-        equal_defs:=(compare_defs_ext(def_from,def_to,nothingn,convtyp,pd,[])>=te_equal);
+        equal_defs:=(compare_defs_ext(def_from,def_to,nothingn,convtyp,pd,[cdo_equal_check])>=te_equal);
       end;
 
 

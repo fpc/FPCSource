@@ -674,7 +674,8 @@ implementation
          gentypename,genorgtypename : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
-         hdef     : tdef;
+         hdef,
+         hdef2    : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
@@ -927,9 +928,11 @@ implementation
                       if is_object(hdef) or
                          is_class_or_interface_or_dispinterface(hdef) then
                         begin
-                          { just create a child class type; this is
+                          { just create a copy that is a child of the original class class type; this is
                             Delphi-compatible }
-                          hdef:=cobjectdef.create(tobjectdef(hdef).objecttype,genorgtypename,tobjectdef(hdef),true);
+                          hdef2:=tstoreddef(hdef).getcopy;
+                          tobjectdef(hdef2).childof:=tobjectdef(hdef);
+                          hdef:=hdef2;
                         end
                       else
                         begin
@@ -959,6 +962,7 @@ implementation
                              (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
                             current_module.checkforwarddefs.add(hdef);
                         end;
+
                       include(hdef.defoptions,df_unique);
                     end;
                   if not assigned(hdef.typesym) then
@@ -1114,7 +1118,7 @@ implementation
                       finalize_class_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
-                    if (hdef.typesym=newtype) and
+                    if not istyperenaming and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) then
                       build_vmt(tobjectdef(hdef));
 
