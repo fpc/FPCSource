@@ -594,26 +594,59 @@ implementation
           paraloc: PCGParalocation;
           loc: tlocation;
           regtype: tregistertype;
-          reg: tregister;
-          size: tcgint;
+          reg,reg2: tregister;
+          size,regsize: tcgint;
         begin
           tparavarsym(sym).paraloc[calleeside].get_location(loc);
           size:=tparavarsym(sym).paraloc[calleeside].IntSize;
           paraloc:=tparavarsym(sym).paraloc[calleeside].Location;
-          reg:=sym.initialloc.register;
+{$if defined(cpu64bitalu)}
+          if sym.initialloc.size in [OS_128,OS_S128] then
+{$else}
+          if sym.initialloc.size in [OS_64,OS_S64] then
+{$endif defined(cpu64bitalu)}
+            begin
+              if target_info.endian=endian_little then
+                begin
+                  reg:=sym.initialloc.register;
+                  reg2:=sym.initialloc.registerhi;
+                end
+              else
+                begin
+                  reg:=sym.initialloc.registerhi;
+                  reg2:=sym.initialloc.register;
+                end;
+            end
+          else
+            begin
+              reg:=sym.initialloc.register;
+              reg2:=NR_NO;
+            end;
           regtype:=getregtype(reg);
-          repeat
-            loc.reference.offset:=paraloc^.reference.offset;
-            cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
-            dec(size,tcgsize2size[paraloc^.Size]);
+          while true do
+            begin
+              cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
+              regsize:=tcgsize2size[reg_cgsize(reg)];
+              dec(size,regsize);
+              if size<=0 then
+                break;
+              if paraloc<>nil then
+                paraloc:=paraloc^.Next;
+              if paraloc<>nil then
+                loc.reference.offset:=paraloc^.reference.offset
+              else
+                inc(loc.reference.offset,regsize);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-            if cg.has_next_reg[getsupreg(reg)] then
-              reg:=cg.GetNextReg(reg)
-            else
+              if cg.has_next_reg[getsupreg(reg)] then
+                reg:=cg.GetNextReg(reg)
+              else
 {$endif}
-              reg:=sym.initialloc.registerhi;
-            paraloc:=paraloc^.Next;
-          until size=0;
+                begin
+                  if reg=reg2 then
+                    internalerror(2020090502);
+                  reg:=reg2;
+                end;
+            end;
         end;
 
       var
@@ -705,7 +738,7 @@ implementation
         { Notify the register allocator about memory location of
           the register which holds a value of a stack parameter }
         if (sym.typ=paravarsym) and
-          (tparavarsym(sym).paraloc[calleeside].Location^.Loc=LOC_REFERENCE) then
+           paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
           set_para_regvar_initial_location;
       end;
 

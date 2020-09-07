@@ -2136,7 +2136,7 @@ unit rgobj;
         supreg: TSuperRegister;
       begin
         supreg:=getsupreg(reg);
-        if supreg>=maxreg then
+        if (supreg<first_imaginary) or (supreg>=maxreg) then
           internalerror(2020090501);
         alloc_spillinfo(supreg+1);
         spillinfo[supreg].spilllocation:=ref;
