@@ -1514,6 +1514,8 @@ type
   protected
     // generic/specialize
     function CreateSpecializedTypeName(Item: TPRSpecializedItem): string; override;
+    procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem);
+      override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
     function SpecializeParamsNeedDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
@@ -1842,7 +1844,7 @@ type
     Function CreatePrimitiveDotExpr(Path: string; PosEl: TPasElement): TJSElement;
     Function CreateSubDeclJSNameExpr(El: TPasElement; JSName: string;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement;
-    Function CreateSubDeclNameExpr(El: TPasElement; const PasName: string;
+    Function CreateSubDeclPasNameExpr(El: TPasElement; const PasName: string;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
     Function CreateSubDeclNameExpr(El: TPasElement;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
@@ -3361,7 +3363,6 @@ var
   NewName: String;
   Duplicate: TPasElement;
   ProcScope: TPas2JSProcedureScope;
-  SpecItem: TPRSpecializedItem;
 begin
   // => count overloads in this section
   OverloadIndex:=GetOverloadIndex(El);
@@ -3397,17 +3398,12 @@ begin
         RaiseInternalError(20180322233222,GetElementDbgPath(El));
       if ProcScope.ImplProc<>nil then
         TPas2JSProcedureScope(ProcScope.ImplProc.CustomData).OverloadName:=NewName;
+      if ProcScope.SpecializedFromItem<>nil then
+        RenameSpecialized(ProcScope.SpecializedFromItem);
       end
     else
       El.Name:=NewName;
     Result:=true;
-    end;
-
-  if El.CustomData is TPasGenericScope then
-    begin
-    SpecItem:=TPasGenericScope(El.CustomData).SpecializedFromItem;
-    if SpecItem<>nil then
-      RenameSpecialized(SpecItem);
     end;
 end;
 
@@ -3460,6 +3456,7 @@ begin
       ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
       //writeln('TPas2JSResolver.RenameOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassOrRecordScope));
       if ProcScope.DeclarationProc<>nil then
+        // DeclarationProc already propagates to ImplProc
         continue
       else if Proc.IsOverride then
         begin
@@ -3474,6 +3471,7 @@ begin
             begin
             ImplProcScope:=TPas2JSProcedureScope(ProcScope.ImplProc.CustomData);
             ImplProcScope.OverloadName:=ProcScope.OverloadName;
+            ImplProcScope.JSName:=ProcScope.JSName;
             end;
           end;
         continue;
@@ -3483,9 +3481,12 @@ begin
         // Note: Pascal names of external procs are not in the generated JS,
         // so no need to rename them
         continue;
+        end
+      else
+        begin
+        // proc declaration (header, not body)
+        RenameOverload(Proc);
         end;
-      // proc declaration (header, not body)
-      RenameOverload(Proc);
       end
     else if C.InheritsFrom(TPasType) then
       begin
@@ -3608,6 +3609,7 @@ var
   NewName: String;
   ProcScope: TPas2JSProcedureScope;
 begin
+  if SpecializedItem=nil then exit;
   NewName:=SpecializedItem.GenericEl.Name+'$G'+IntToStr(SpecializedItem.Index+1);
   GenScope:=TPasGenericScope(SpecializedItem.SpecializedEl.CustomData);
   if GenScope is TPas2JSClassScope then
@@ -3630,6 +3632,9 @@ begin
     end
   else
     RaiseNotYetImplemented(20200906203342,SpecializedItem.SpecializedEl,GetObjName(GenScope));
+  {$IFDEF VerbosePas2JS}
+  //writeln('TPas2JSResolver.RenameSpecialized GenericEl=',GetObjPath(SpecializedItem.GenericEl),' Spec=',GetObjPath(SpecializedItem.SpecializedEl),' JSName="',NewName,'"');
+  {$ENDIF}
 end;
 
 procedure TPas2JSResolver.PushOverloadScopeSkip;
@@ -5021,10 +5026,20 @@ var
   C: TClass;
 begin
   C:=Item.GenericEl.ClassType;
-  if (C=TPasProcedureType) or (C=TPasFunctionType) then
+  if (C=TPasProcedureType)
+      or (C=TPasFunctionType)
+      or (C=TPasArrayType)
+      then
     Result:=inherited CreateSpecializedTypeName(Item)
   else
     Result:=Item.GenericEl.Name+'$G'+IntToStr(Item.Index+1);
+end;
+
+procedure TPas2JSResolver.SpecializeGenericIntf(
+  SpecializedItem: TPRSpecializedItem);
+begin
+  inherited SpecializeGenericIntf(SpecializedItem);
+  RenameSpecialized(SpecializedItem);
 end;
 
 procedure TPas2JSResolver.SpecializeGenericImpl(
@@ -6761,18 +6776,15 @@ begin
         Result:=Result+'s'+IntToStr(ProcScope.SpecializedFromItem.Index);
         end
       else
-        begin
         Result:=ProcScope.OverloadName;
-        if Result='' then
-          Result:=El.Name;
-        end;
-      exit;
       end
+    else if Data is TPas2JSArrayScope then
+      Result:=TPas2JSArrayScope(Data).JSName
     else if Data is TPas2JSProcTypeScope then
-      begin
-      Result:=TPas2JSProcTypeScope(Data).JSName;
-      if Result<>'' then exit;
-      end;
+      Result:=TPas2JSProcTypeScope(Data).JSName
+    else
+      Result:='';
+    if Result<>'' then exit;
     end;
   Result:=El.Name;
 end;
@@ -9335,7 +9347,7 @@ begin
   Result:=CreatePrimitiveDotExpr(JSName,PosEl);
 end;
 
-function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
+function TPasToJSConverter.CreateSubDeclPasNameExpr(El: TPasElement;
   const PasName: string; AContext: TConvertContext; PosEl: TPasElement
   ): TJSElement;
 var
@@ -15394,7 +15406,7 @@ begin
       // add  enumtype: this.TypeName
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(GetBIName(pbivnRTTIEnum_EnumType));
-      TIProp.Expr:=CreateSubDeclNameExpr(El,TResEvalEnum(MinVal).ElType.Name,AContext);
+      TIProp.Expr:=CreateSubDeclPasNameExpr(El,TResEvalEnum(MinVal).ElType.Name,AContext); // use Pascal name
       end;
     Result:=Call;
   finally
@@ -15723,7 +15735,7 @@ begin
       AddToSourceElements(BodySrc,ReturnSt);
       ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
 
-      ArrName:=El.Name+GetBIName(pbifnArray_Static_Clone);
+      ArrName:=GetOverloadName(El,AContext)+GetBIName(pbifnArray_Static_Clone);
       if El.Parent is TProcedureBody then
         begin
         // local array type (elevated to global)
@@ -15736,7 +15748,7 @@ begin
         // -> add 'this.TypeName = function(){}'
         AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
         ArraySt:=AssignSt;
-        AssignSt.LHS:=CreateSubDeclNameExpr(El,ArrName,AContext);
+        AssignSt.LHS:=CreateSubDeclPasNameExpr(El,ArrName,AContext);
         AssignSt.Expr:=Func;
         end;
       Func:=nil;
@@ -18755,7 +18767,7 @@ begin
   Param:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Arg));
   TargetParams.Elements.AddElement.Expr:=Param;
   // add "argname"
-  ArgName:=TransformToJSName(Arg,Arg.Name,true,AContext);
+  ArgName:=TransformToJSName(Arg,Arg.Name,true,AContext); // use Pascal name
   Param.Elements.AddElement.Expr:=CreateLiteralString(Arg,ArgName);
   Flags:=0;
   // add "argtype"
@@ -19203,7 +19215,7 @@ begin
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTTILocal),GetBIName(pbifnRTTIAddProperty)]);
 
     // param "propname"
-    PropName:=TransformToJSName(Prop,Prop.Name,false,AContext);
+    PropName:=TransformToJSName(Prop,Prop.Name,false,AContext); // use Pascal name
     Call.AddArg(CreateLiteralString(Prop,PropName));
 
     // add flags
@@ -24892,7 +24904,7 @@ begin
       ListFirst:=TJSStatementList(CreateElement(TJSStatementList,El.Body));
       ListLast:=ListFirst;
       IfSt.BTrue:=ListFirst;
-      V:=CreateVarStatement(TransformToJSName(El,El.VariableName,true,AContext),
+      V:=CreateVarStatement(TransformElToJSName(El.VarEl,AContext),
         CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El),El);
       ListFirst.A:=V;
       // add statements
