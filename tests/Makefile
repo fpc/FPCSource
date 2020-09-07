@@ -2458,6 +2458,7 @@ CPP_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .cpp,.o, $(CPP_SOURCES)))
 TASM_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .asm,.obj, $(TASM_SOURCES)))
 create_c_objects:
 ifneq ($(TEST_CCOMPILER),)
+		$(MKDIRTREE) $(C_OBJECTS_DIR)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(C_SOURCES)) $(C_OBJECTS_DIR)
 		$(MAKE) $(C_OBJECTS)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(CPP_SOURCES)) $(C_OBJECTS_DIR)

@@ -286,15 +286,16 @@ var rtl = {
     return parent;
   },
 
-  initClass: function(c,parent,name,initfn){
+  initClass: function(c,parent,name,initfn,rttiname){
+    if (!rttiname) rttiname = name;
     parent[name] = c;
     c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
-    c.$classname = name;
+    c.$classname = rttiname;
     parent = rtl.initStruct(c,parent,name);
     c.$fullname = parent.$name+'.'+name;
     // rtti
     if (rtl.debug_rtti) rtl.debug('initClass '+c.$fullname);
-    var t = c.$module.$rtti.$Class(c.$name,{ "class": c });
+    var t = c.$module.$rtti.$Class(rttiname,{ "class": c });
     c.$rtti = t;
     if (rtl.isObject(c.$ancestor)) t.ancestor = c.$ancestor.$rtti;
     if (!t.ancestor) t.ancestor = null;
@@ -302,7 +303,7 @@ var rtl = {
     initfn.call(c);
   },
 
-  createClass: function(parent,name,ancestor,initfn){
+  createClass: function(parent,name,ancestor,initfn,rttiname){
     // create a normal class,
     // ancestor must be null or a normal class,
     // the root ancestor can be an external class
@@ -340,10 +341,10 @@ var rtl = {
         this.$final();
       };
     };
-    rtl.initClass(c,parent,name,initfn);
+    rtl.initClass(c,parent,name,initfn,rttiname);
   },
 
-  createClassExt: function(parent,name,ancestor,newinstancefnname,initfn){
+  createClassExt: function(parent,name,ancestor,newinstancefnname,initfn,rttiname){
     // Create a class using an external ancestor.
     // If newinstancefnname is given, use that function to create the new object.
     // If exist call BeforeDestruction and AfterConstruction.
@@ -391,7 +392,7 @@ var rtl = {
       if (this[fnname]) this[fnname]();
       if (this.$final) this.$final();
     };
-    rtl.initClass(c,parent,name,initfn);
+    rtl.initClass(c,parent,name,initfn,rttiname);
     if (isFunc){
       function f(){}
       f.prototype = c;

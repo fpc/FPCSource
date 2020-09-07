@@ -255,6 +255,7 @@ TASM_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .asm,.obj, $(TASM_SOURCES)))
 
 create_c_objects:
 ifneq ($(TEST_CCOMPILER),)
+		$(MKDIRTREE) $(C_OBJECTS_DIR)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(C_SOURCES)) $(C_OBJECTS_DIR)
 		$(MAKE) $(C_OBJECTS)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(CPP_SOURCES)) $(C_OBJECTS_DIR)
@@ -278,7 +279,7 @@ $(C_OBJECTS) : %.o: %.c
 
 $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
-		
+
 copyfiles:
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
@@ -460,7 +461,7 @@ test_c_objects: testprep
 	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcalext*.pp))
 	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcppcl*.pp))
 	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcppcl*.pp))
-	
+
 ################################
 # Compile and Run tests
 #

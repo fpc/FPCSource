@@ -5,7 +5,8 @@ unit tcresolvegenerics;
 interface
 
 uses
-  Classes, SysUtils, testregistry, tcresolver, PasResolveEval, PParser;
+  Classes, SysUtils, testregistry, tcresolver, PasResolveEval, PParser,
+  PScanner;
 
 type
 
@@ -91,7 +92,8 @@ type
     procedure TestGen_Class_MemberTypeConstructor;
     procedure TestGen_Class_AliasMemberType;
     procedure TestGen_Class_AccessGenericMemberTypeFail;
-    procedure TestGen_Class_ReferenceTo; // ToDo
+    procedure TestGen_Class_ReferenceTo;
+    procedure TestGen_Class_TwoSpecsAreNotRelatedWarn;
     procedure TestGen_Class_List;
     // ToDo: different modeswitches at parse time and specialize time
 
@@ -1566,6 +1568,26 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_TwoSpecsAreNotRelatedWarn;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class F: T; end;',
+  '  TBirdWord = TBird<Word>;',
+  '  TBirdChar = TBird<Char>;',
+  'var',
+  '  w: TBirdWord;',
+  '  c: TBirdChar;',
+  'begin',
+  '  w:=TBirdWord(c);',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird<System.Char>" and "TBird<System.Word>" are not related');
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_List;

@@ -1173,7 +1173,7 @@ implementation
           with an internal error, so this switch is not enabled by default yet. To overcome this,
           multipass compilation of subroutines must be supported
         }
-        if (target_info.abi=abi_xtensa_windowed) and (procdef.stack_tainting_parameter(calleeside)) then
+        if procdef.stack_tainting_parameter(calleeside) then
           begin
             include(flags,pi_estimatestacksize);
             set_first_temp_offset;

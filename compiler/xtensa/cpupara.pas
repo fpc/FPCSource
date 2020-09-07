@@ -158,6 +158,8 @@ unit cpupara;
             begin
               curintreg:=RS_A2;
               maxintreg:=RS_A7;
+              if (side=calleeside) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+                cur_stack_offset:=(p as tcpuprocdef).total_stackframe_size;
             end;
           else
             Internalerror(2020031404);

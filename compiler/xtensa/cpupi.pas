@@ -84,7 +84,8 @@ unit cpupi;
             callins:=A_CALL0;
             callxins:=A_CALLX0;
             maxcall:=0;
-            framepointer:=NR_FRAME_POINTER_REG;
+            { we do not use a frame pointer }
+            framepointer:=NR_STACK_POINTER_REG;
           end;
       end;
 
