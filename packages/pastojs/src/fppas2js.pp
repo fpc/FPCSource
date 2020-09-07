@@ -1166,7 +1166,7 @@ type
 
   TPas2JSClassScope = class(TPasClassScope)
   public
-    LongName: string;
+    JSName: string;
     NewInstanceFunction: TPasClassFunction;
     GUID: string;
     ElevatedLocals: TPas2jsElevatedLocals;
@@ -1184,7 +1184,7 @@ type
 
   TPas2JSRecordScope = class(TPasRecordScope)
   public
-    LongName: string;
+    JSName: string;
     MemberOverloadsRenamed: boolean;
   end;
 
@@ -1193,7 +1193,7 @@ type
   TPas2JSProcedureScope = class(TPasProcedureScope)
   public
     OverloadName: string;
-    LongName: string;
+    JSName: string;
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     BodyOverloadsRenamed: boolean;
     BodyJS: string; // Option coStoreProcJS: stored in ImplScope
@@ -1207,14 +1207,14 @@ type
 
   TPas2JSArrayScope = Class(TPasArrayScope)
   public
-    LongName: string;
+    JSName: string;
   end;
 
   { TPas2JSProcTypeScope }
 
   TPas2JSProcTypeScope = Class(TPasProcTypeScope)
   public
-    LongName: string;
+    JSName: string;
   end;
 
   { TPas2JSWithExprScope }
@@ -1462,6 +1462,7 @@ type
     procedure RenameOverloads(DeclEl: TPasElement; Declarations: TFPList);
     procedure RenameSubOverloads(Declarations: TFPList);
     procedure RenameMembers(El: TPasMembersType);
+    procedure RenameSpecialized(SpecializedItem: TPRSpecializedItem);
     procedure PushOverloadScopeSkip;
     procedure PushOverloadScope(Scope: TPasIdentifierScope);
     function PushOverloadClassOrRecScopes(Scope: TPasClassOrRecordScope; WithParents: boolean): integer;
@@ -1513,12 +1514,9 @@ type
   protected
     // generic/specialize
     function CreateSpecializedTypeName(Item: TPRSpecializedItem): string; override;
-    procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem);
-      override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
     function SpecializeParamsNeedDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
-    function CreateLongName(SpecializedItem: TPRSpecializedItem): string; virtual;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -3363,44 +3361,54 @@ var
   NewName: String;
   Duplicate: TPasElement;
   ProcScope: TPas2JSProcedureScope;
+  SpecItem: TPRSpecializedItem;
 begin
   // => count overloads in this section
   OverloadIndex:=GetOverloadIndex(El);
   //if SameText(El.Name,'ci') then writeln('TPas2JSResolver.RenameOverload ',GetObjPath(El),' ',OverloadIndex);
   if OverloadIndex=0 then
-    exit(false); // there is no overload
-
-  if (El.ClassType=TPasClassFunction)
-      and (El.Parent.ClassType=TPasClassType)
-      and (TPas2JSClassScope(TPasClassType(El.Parent).CustomData).NewInstanceFunction=El) then
-    begin
-    Duplicate:=GetDuplicate;
-    RaiseMsg(20170324234324,nNewInstanceFunctionMustNotHaveOverloadAtX,
-      sNewInstanceFunctionMustNotHaveOverloadAtX,[GetElementSourcePosStr(Duplicate)],El);
-    end;
-  if El.Visibility=visPublished then
-    begin
-    Duplicate:=GetDuplicate;
-    RaiseMsg(20170413220924,nDuplicateIdentifier,sDuplicateIdentifier,
-      [Duplicate.Name,GetElementSourcePosStr(Duplicate)],El);
-    end;
-
-  NewName:=El.Name+'$'+IntToStr(OverloadIndex);
-  {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.RenameOverload "',El.Name,'" has overload. NewName="',NewName,'"');
-  {$ENDIF}
-  if (El.CustomData is TPas2JSProcedureScope) then
-    begin
-    ProcScope:=TPas2JSProcedureScope(El.CustomData);
-    ProcScope.OverloadName:=NewName;
-    if ProcScope.DeclarationProc<>nil then
-      RaiseInternalError(20180322233222,GetElementDbgPath(El));
-    if ProcScope.ImplProc<>nil then
-      TPas2JSProcedureScope(ProcScope.ImplProc.CustomData).OverloadName:=NewName;
-    end
+    Result:=false // there is no overload
   else
-    El.Name:=NewName;
-  Result:=true;
+    begin
+    if (El.ClassType=TPasClassFunction)
+        and (El.Parent.ClassType=TPasClassType)
+        and (TPas2JSClassScope(TPasClassType(El.Parent).CustomData).NewInstanceFunction=El) then
+      begin
+      Duplicate:=GetDuplicate;
+      RaiseMsg(20170324234324,nNewInstanceFunctionMustNotHaveOverloadAtX,
+        sNewInstanceFunctionMustNotHaveOverloadAtX,[GetElementSourcePosStr(Duplicate)],El);
+      end;
+    if El.Visibility=visPublished then
+      begin
+      Duplicate:=GetDuplicate;
+      RaiseMsg(20170413220924,nDuplicateIdentifier,sDuplicateIdentifier,
+        [Duplicate.Name,GetElementSourcePosStr(Duplicate)],El);
+      end;
+
+    NewName:=El.Name+'$'+IntToStr(OverloadIndex);
+    {$IFDEF VerbosePas2JS}
+    writeln('TPas2JSResolver.RenameOverload "',El.Name,'" has overload. NewName="',NewName,'"');
+    {$ENDIF}
+    if (El.CustomData is TPas2JSProcedureScope) then
+      begin
+      ProcScope:=TPas2JSProcedureScope(El.CustomData);
+      ProcScope.OverloadName:=NewName;
+      if ProcScope.DeclarationProc<>nil then
+        RaiseInternalError(20180322233222,GetElementDbgPath(El));
+      if ProcScope.ImplProc<>nil then
+        TPas2JSProcedureScope(ProcScope.ImplProc.CustomData).OverloadName:=NewName;
+      end
+    else
+      El.Name:=NewName;
+    Result:=true;
+    end;
+
+  if El.CustomData is TPasGenericScope then
+    begin
+    SpecItem:=TPasGenericScope(El.CustomData).SpecializedFromItem;
+    if SpecItem<>nil then
+      RenameSpecialized(SpecItem);
+    end;
 end;
 
 procedure TPas2JSResolver.RenameOverloadsInSection(aSection: TPasSection);
@@ -3591,6 +3599,37 @@ begin
 
   // restore scope
   RestoreOverloadScopeLvl(OldScopeCount);
+end;
+
+procedure TPas2JSResolver.RenameSpecialized(SpecializedItem: TPRSpecializedItem
+  );
+var
+  GenScope: TPasGenericScope;
+  NewName: String;
+  ProcScope: TPas2JSProcedureScope;
+begin
+  NewName:=SpecializedItem.GenericEl.Name+'$G'+IntToStr(SpecializedItem.Index+1);
+  GenScope:=TPasGenericScope(SpecializedItem.SpecializedEl.CustomData);
+  if GenScope is TPas2JSClassScope then
+    TPas2JSClassScope(GenScope).JSName:=NewName
+  else if GenScope is TPas2JSRecordScope then
+    TPas2JSRecordScope(GenScope).JSName:=NewName
+  else if GenScope is TPas2JSArrayScope then
+    TPas2JSArrayScope(GenScope).JSName:=NewName
+  else if GenScope is TPas2JSProcTypeScope then
+    TPas2JSProcTypeScope(GenScope).JSName:=NewName
+  else if GenScope is TPas2JSProcedureScope then
+    begin
+    ProcScope:=TPas2JSProcedureScope(GenScope);
+    if ProcScope.OverloadName<>'' then
+      NewName:=ProcScope.OverloadName
+    else
+      NewName:=SpecializedItem.GenericEl.Name;
+    NewName:=LastDottedIdentifier(NewName);
+    ProcScope.JSName:=NewName+'$G'+IntToStr(SpecializedItem.Index+1);
+    end
+  else
+    RaiseNotYetImplemented(20200906203342,SpecializedItem.SpecializedEl,GetObjName(GenScope));
 end;
 
 procedure TPas2JSResolver.PushOverloadScopeSkip;
@@ -4982,49 +5021,6 @@ begin
   Result:=Item.GenericEl.Name+'$G'+IntToStr(Item.Index+1);
 end;
 
-procedure TPas2JSResolver.SpecializeGenericIntf(
-  SpecializedItem: TPRSpecializedItem);
-{$IFDEF EnableLongNames}
-var
-  El: TPasElement;
-  C: TClass;
-  RecScope: TPas2JSRecordScope;
-  ClassScope: TPas2JSClassScope;
-  ArrayScope: TPas2JSArrayScope;
-  ProcTypeScope: TPas2JSProcTypeScope;
-  LongName: String;
-{$ENDIF}
-begin
-  {$IFDEF EnableLongNames}
-  El:=SpecializedItem.SpecializedEl;
-  C:=El.ClassType;
-  LongName:=CreateLongName(SpecializedItem);
-  if C=TPasRecordType then
-    begin
-    RecScope:=TPas2JSRecordScope(El.CustomData);
-    RecScope.LongName:=LongName;
-    end
-  else if C=TPasClassType then
-    begin
-    ClassScope:=TPas2JSClassScope(El.CustomData);
-    ClassScope.LongName:=LongName;
-    end
-  else if C=TPasArrayType then
-    begin
-    ArrayScope:=TPas2JSArrayScope(El.CustomData);
-    ArrayScope.LongName:=LongName;
-    end
-  else if (C=TPasProcedureType) or (C=TPasFunctionType) then
-    begin
-    ProcTypeScope:=TPas2JSProcTypeScope(El.CustomData);
-    ProcTypeScope.LongName:=LongName;
-    end
-  else
-    RaiseNotYetImplemented(20200904132908,El);
-  {$ENDIF}
-  inherited SpecializeGenericIntf(SpecializedItem);
-end;
-
 procedure TPas2JSResolver.SpecializeGenericImpl(
   SpecializedItem: TPRSpecializedItem);
 var
@@ -5105,24 +5101,6 @@ begin
       exit(Param); // param in a later unit interface
     // generic in a later unit interface -> no delay needed
     end;
-end;
-
-function TPas2JSResolver.CreateLongName(SpecializedItem: TPRSpecializedItem
-  ): string;
-var
-  GenEl: TPasElement;
-  i: Integer;
-  Param: TPasType;
-begin
-  GenEl:=SpecializedItem.GenericEl;
-  Result:=GenEl.Name+'<';
-  for i:=0 to length(SpecializedItem.Params)-1 do
-    begin
-    Param:=ResolveAliasType(SpecializedItem.Params[i],false);
-    // ToDo  move to resolver
-    if Param=nil then ;
-    end;
-  Result:=Result+'>';
 end;
 
 function TPas2JSResolver.AddJSBaseType(const aName: string; Typ: TPas2jsBaseType
@@ -8130,6 +8108,8 @@ begin
 end;
 
 function TPasToJSConverter.CanClashWithGlobal(El: TPasElement): boolean;
+// returns true for JS variables accessed directly, i.e. without dot prefix
+// which therefore must be checked if they clash with global JS identifiers.
 var
   C: TClass;
 begin
@@ -15461,16 +15441,21 @@ end;
 function TPasToJSConverter.ConvertProcedureType(El: TPasProcedureType;
   AContext: TConvertContext): TJSElement;
 // create
-//   module.$rtti.$ProcVar("name",{
+// "reference to":
+//   module.$rtti.$RefToProcVar("longname",{
 //       procsig: rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags)
 //     })
 // "of object":
-//   module.$rtti.$MethodVar("name",{
+//   module.$rtti.$MethodVar("longname",{
 //       procsig: rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags),
 //       methodkind: 1
 //     })
+// "normal":
+//   module.$rtti.$ProcVar("longname",{
+//       procsig: rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags)
+//     })
 // delayed specialization:
-//   module.$rtti.$MethodVar("name",{
+//   module.$rtti.$MethodVar("longname",{
 //       init: function()}{ this.procsig = rtl.newTIProcSignature([[arg1name,arg1type,arg1flags],[arg2name...],...],resulttype,flags)},
 //       methodkind: 1
 //     })
@@ -25639,22 +25624,17 @@ begin
       or (C=TPasRangeType)
       then
     begin
-    // user type  ->  module.$rtti[typename]
+    // user type  ->  module.$rtti["pascalname"]
     // Notes:
     // a nested type gets the parent types prepended: classnameA.ElName
     // an anonymous type gets for each level '$a' prepended
     // an anonymous type of a variable/argument gets the variable name prepended
-    CurEl:=El;
+    CurEl:=ResolveSimpleAliasType(TPasType(El));
     repeat
       if CurEl.Name<>'' then
         begin
-        if CurEl.ClassType=TPasTypeAliasType then
-          aName:=TransformVariableName(CurEl,CurEl.Name,true,AContext)
-        else
-          aName:=TransformVariableName(CurEl,AContext);
-        if aName='' then
-          RaiseNotSupported(CurEl,AContext,20170905144902,'name conversion failed');
-        Result:=aName+Result;
+        // RTTI uses Pascal name
+        Result:=CurEl.Name+Result;
         end
       else
         begin
