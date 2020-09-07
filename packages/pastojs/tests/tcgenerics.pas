@@ -81,7 +81,7 @@ type
 
     // generic procedure type
     procedure TestGen_ProcType_ProcLocal;
-    procedure TestGen_ProcType_ProcLocal_RTTI;
+    procedure TestGen_ProcType_Local_RTTI_Fail;
     procedure TestGen_ProcType_ParamUnitImpl;
   end;
 
@@ -2142,7 +2142,7 @@ begin
     '']));
 end;
 
-procedure TTestGenerics.TestGen_ProcType_ProcLocal_RTTI;
+procedure TTestGenerics.TestGen_ProcType_Local_RTTI_Fail;
 begin
   WithTypeInfo:=true;
   StartProgram(false);
@@ -2183,8 +2183,10 @@ begin
   'var',
   '  f: specialize TAnt<TBird>;',
   '  b: TBird;',
+  '  p: pointer;',
   'begin',
   '  b:=f(b);',
+  '  p:=typeinfo(f);',
   '']));
   Add([
   'uses UnitA;',
@@ -2196,13 +2198,14 @@ begin
     'rtl.module("UnitA", ["system"], function () {',
     '  var $mod = this;',
     '  var $impl = $mod.$impl;',
-    '  $mod.$rtti.$ProcVar("TAnt$G1", {',
+    '  $mod.$rtti.$ProcVar("TAnt<UnitA.TBird>", {',
     '    init: function () {',
     '      this.procsig = rtl.newTIProcSig([["a", $mod.$rtti["TBird"], 2]], $mod.$rtti["TBird"]);',
     '    }',
     '  });',
     '  $mod.$init = function () {',
     '    $impl.b.$assign($impl.f($impl.b));',
+    '    $impl.p = $mod.$rtti["TAnt<UnitA.TBird>"];',
     '  };',
     '}, null, function () {',
     '  var $mod = this;',
@@ -2221,10 +2224,11 @@ begin
     '  });',
     '  $impl.f = null;',
     '  $impl.b = $impl.TBird.$new();',
+    '  $impl.p = null;',
     '});']));
   CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
     LinesToStr([ // statements
-    'pas.UnitA.$rtti["TAnt$G1"].init();',
+    'pas.UnitA.$rtti["TAnt<UnitA.TBird>"].init();',
     '']),
     LinesToStr([ // $mod.$main
     '']));
