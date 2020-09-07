@@ -2004,7 +2004,8 @@ type
     Function CreateRecordFunctionAssign(El: TPasRecordType; AContext: TConvertContext;
       Fields: TFPList): TJSElement; virtual;
     Procedure CreateRecordRTTI(El: TPasRecordType; Src: TJSSourceElements;
-      FuncContext: TFunctionContext); virtual;
+      FuncContext: TFunctionContext; MembersSrc: TJSSourceElements;
+      MembersFuncContext: TFunctionContext); virtual;
     Function CreateDelayedInitFunction(PosEl: TPasElement; Src: TJSSourceElements;
       FuncContext: TFunctionContext; out DelaySrc: TJSSourceElements): TFunctionContext; virtual;
     // array
@@ -2022,12 +2023,12 @@ type
     // class
     Procedure AddClassConDestructorFunction(El: TPasClassType; Src: TJSSourceElements;
       ClassContext: TConvertContext; IsTObject: boolean; Ancestor: TPasType;
-      Kind: TMemberFunc);
+      Kind: TMemberFunc); virtual;
     Procedure AddClassRTTI(El: TPasClassType; Src: TJSSourceElements;
-      FuncContext: TFunctionContext);
-    Procedure AddClassConstructors(FuncContext: TFunctionContext; PosEl: TPasElement);
+      FuncContext: TFunctionContext); virtual;
+    Procedure AddClassConstructors(FuncContext: TFunctionContext; PosEl: TPasElement); virtual;
     Procedure AddClassMessageIds(El: TPasClassType; Src: TJSSourceElements;
-      FuncContext: TFunctionContext; pbivn: TPas2JSBuiltInName);
+      FuncContext: TFunctionContext; pbivn: TPas2JSBuiltInName); virtual;
     // misc
     Function CreateCallback(Expr: TPasExpr; ResolvedEl: TPasResolverResult;
       aSafeCall: boolean; AContext: TConvertContext): TJSElement; virtual;
@@ -2066,7 +2067,9 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext); virtual;
     Function CreateRTTIMembers(El: TPasMembersType; Src: TJSSourceElements;
-      FuncContext: TFunctionContext; RTTIExpr: TJSElement; NeedLocalVar: boolean): boolean; virtual;
+      FuncContext: TFunctionContext; MembersSrc: TJSSourceElements;
+      MembersFuncContext: TFunctionContext; RTTIExpr: TJSElement;
+      NeedLocalVar: boolean): boolean; virtual;
     // create elements for interfaces
     Procedure AddIntfDelegations(ClassEl: TPasElement; Prop: TPasProperty;
       FinishedGUIDs: TStringList; ObjLit: TJSObjectLiteral; aContext: TFunctionContext);
@@ -5029,6 +5032,8 @@ begin
   if (C=TPasProcedureType)
       or (C=TPasFunctionType)
       or (C=TPasArrayType)
+      or (C=TPasRecordType)
+      or (C=TPasClassType)
       then
     Result:=inherited CreateSpecializedTypeName(Item)
   else
@@ -6782,6 +6787,10 @@ begin
       Result:=TPas2JSArrayScope(Data).JSName
     else if Data is TPas2JSProcTypeScope then
       Result:=TPas2JSProcTypeScope(Data).JSName
+    else if Data is TPas2JSRecordScope then
+      Result:=TPas2JSRecordScope(Data).JSName
+    else if Data is TPas2JSClassScope then
+      Result:=TPas2JSClassScope(Data).JSName
     else
       Result:='';
     if Result<>'' then exit;
@@ -14839,9 +14848,9 @@ begin
       AncestorPath:=CreateReferencePath(Ancestor,AContext,rpkPathAndName);
     Call.AddArg(CreatePrimitiveDotExpr(AncestorPath,El));
 
+    // for external class: add name of NewInstance function
     if NeedClassExt then
       begin
-      // add the name of the NewInstance function
       if Scope.NewInstanceFunction<>nil then
         Call.AddArg(CreateLiteralString(
           Scope.NewInstanceFunction,Scope.NewInstanceFunction.Name))
@@ -14919,7 +14928,6 @@ begin
           else if C=TPasMethodResolution then
             continue
           else if C=TPasAttributes then
-            // ToDo
             continue
           else
             RaiseNotSupported(P,FuncContext,20161221233338);
@@ -15000,6 +15008,12 @@ begin
         end;
 
       end;// end of init function
+
+    // for specialization: add RTTI name
+    if (Scope.JSName<>'') and (Scope.JSName<>El.Name) and HasTypeInfo(El,AContext) then
+      begin
+      Call.AddArg(CreateLiteralString(El,GetTypeInfoName(El,AContext,El)));
+      end;
 
     Result:=Call;
   finally
@@ -17281,7 +17295,8 @@ begin
 end;
 
 procedure TPasToJSConverter.CreateRecordRTTI(El: TPasRecordType;
-  Src: TJSSourceElements; FuncContext: TFunctionContext);
+  Src: TJSSourceElements; FuncContext: TFunctionContext;
+  MembersSrc: TJSSourceElements; MembersFuncContext: TFunctionContext);
 var
   ObjLit: TJSObjectLiteral;
   Call: TJSCallExpression;
@@ -17294,11 +17309,14 @@ begin
     if ObjLit=nil then
       RaiseInconsistency(20190105141430,El);
 
-    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,Call,false);
+    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,MembersSrc,MembersFuncContext,Call,false);
     if not HasRTTIMembers then
       begin
       // no published members, add "module.$rtti.$Record..."
-      AddToSourceElements(Src,Call);
+      if Src=MembersSrc then
+        AddToSourceElements(Src,Call)
+      else
+        Src.Statements.InsertNode(0).Node:=Call;
       end;
 
     Call:=nil;
@@ -17942,29 +17960,30 @@ var
   ObjLit: TJSObjectLiteral;
   Call: TJSCallExpression;
 begin
-  ClassScope:=El.CustomData as TPas2JSClassScope;
-  if (ClassScope.SpecializedFromItem<>nil)
-      and not (coNoTypeInfo in Options)
-      and FuncContext.Resolver.HasTypeInfo(El) then
-    begin
-    // specialized class -> init RTTI
-    // module.$rtti.$Class("classname");
-    Creator:=GetClassBIName(El,FuncContext);
-    Call:=CreateRTTINewType(El,Creator,true,FuncContext,ObjLit);
-    if ObjLit<>nil then
-      RaiseInconsistency(20200606134834,El);
-    AddHeaderStatement(Call,El,FuncContext);
-    end;
-
   AttrJS:=nil;
-  // this.$rtti
-  RTTIExpr:=CreateMemberExpression(['this',GetBIName(pbivnRTTI)]);
+  RTTIExpr:=nil;
   try
+    ClassScope:=El.CustomData as TPas2JSClassScope;
+    if (ClassScope.SpecializedFromItem<>nil)
+        and not (coNoTypeInfo in Options)
+        and FuncContext.Resolver.HasTypeInfo(El) then
+      begin
+      // specialized class -> init RTTI
+      // add header:  module.$rtti.$Class("classname");
+      Creator:=GetClassBIName(El,FuncContext);
+      Call:=CreateRTTINewType(El,Creator,true,FuncContext,ObjLit);
+      if ObjLit<>nil then
+        RaiseInconsistency(20200606134834,El);
+      AddHeaderStatement(Call,El,FuncContext);
+      end;
+
+    // this.$rtti
+    RTTIExpr:=CreateMemberExpression(['this',GetBIName(pbivnRTTI)]);
     Attr:=FuncContext.Resolver.GetAttributeCallsEl(El);
     AttrJS:=CreateRTTIAttributes(Attr,El,FuncContext);
-    NeedLocalVar:=AttrJS<>nil;
+    NeedLocalVar:=(AttrJS<>nil);
 
-    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,RTTIExpr,NeedLocalVar);
+    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,Src,FuncContext,RTTIExpr,NeedLocalVar);
     if HasRTTIMembers then
       RTTIExpr:=nil;
 
@@ -19368,8 +19387,9 @@ begin
 end;
 
 function TPasToJSConverter.CreateRTTIMembers(El: TPasMembersType;
-  Src: TJSSourceElements; FuncContext: TFunctionContext; RTTIExpr: TJSElement;
-  NeedLocalVar: boolean): boolean;
+  Src: TJSSourceElements; FuncContext: TFunctionContext;
+  MembersSrc: TJSSourceElements; MembersFuncContext: TFunctionContext;
+  RTTIExpr: TJSElement; NeedLocalVar: boolean): boolean;
 type
   TMemberType = (
     mtClass,
@@ -19385,7 +19405,10 @@ type
     // add "var $r = module.$rtti.$Record..."
     Result:=true;
     VarSt:=CreateVarStatement(GetBIName(pbivnRTTILocal),RTTIExpr,El);
-    AddToSourceElements(Src,VarSt);
+    if Src=MembersSrc then
+      AddToSourceElements(Src,VarSt)
+    else
+      Src.Statements.InsertNode(0).Node:=VarSt;
   end;
 
 var
@@ -19432,11 +19455,11 @@ begin
 
     NewEl:=nil;
     if C=TPasVariable then
-      NewEl:=CreateRTTIMemberField(Members,i,FuncContext)
+      NewEl:=CreateRTTIMemberField(Members,i,MembersFuncContext)
     else if C.InheritsFrom(TPasProcedure) then
-      NewEl:=CreateRTTIMemberMethod(Members,i,FuncContext)
+      NewEl:=CreateRTTIMemberMethod(Members,i,MembersFuncContext)
     else if C=TPasProperty then
-      NewEl:=CreateRTTIMemberProperty(Members,i,FuncContext)
+      NewEl:=CreateRTTIMemberProperty(Members,i,MembersFuncContext)
     else if C.InheritsFrom(TPasType)
         or (C=TPasAttributes) then
     else
@@ -19446,7 +19469,7 @@ begin
     // add RTTI element
     if not Result then
       CreateLocalvar;
-    AddToSourceElements(Src,NewEl);
+    AddToSourceElements(MembersSrc,NewEl);
     end;
 end;
 
@@ -25272,9 +25295,9 @@ begin
     if (aResolver<>nil) and HasTypeInfo(El,FuncContext) then
       begin
       if SpecializeDelay then
-        CreateRecordRTTI(El,DelaySrc,DelayFuncContext)
+        CreateRecordRTTI(El,Src,FuncContext,DelaySrc,DelayFuncContext)
       else
-        CreateRecordRTTI(El,Src,FuncContext);
+        CreateRecordRTTI(El,Src,FuncContext,Src,FuncContext);
       end;
 
     ok:=true;
