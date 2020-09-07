@@ -1513,7 +1513,6 @@ type
     function GenerateGUID(El: TPasClassType): string; virtual;
   protected
     // generic/specialize
-    function CreateSpecializedTypeName(Item: TPRSpecializedItem): string; override;
     procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem);
       override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
@@ -5022,22 +5021,6 @@ begin
   Result:=Result+'-';
   for i:=10 to 15 do Result:=Result+HexStr(Bytes[i],2);
   Result:=Result+'}';
-end;
-
-function TPas2JSResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): string;
-var
-  C: TClass;
-begin
-  C:=Item.GenericEl.ClassType;
-  if (C=TPasProcedureType)
-      or (C=TPasFunctionType)
-      or (C=TPasArrayType)
-      or (C=TPasRecordType)
-      or (C=TPasClassType)
-      then
-    Result:=inherited CreateSpecializedTypeName(Item)
-  else
-    Result:=Item.GenericEl.Name+'$G'+IntToStr(Item.Index+1);
 end;
 
 procedure TPas2JSResolver.SpecializeGenericIntf(
@@ -19418,8 +19401,10 @@ var
   C: TClass;
   NewEl: TJSElement;
   Members: TFPList;
+  aResolver: TPas2JSResolver;
 begin
   Result:=false;
+  aResolver:=FuncContext.Resolver;
   if El.ClassType=TPasRecordType then
     mt:=mtRecord
   else if El.ClassType=TPasClassType then
@@ -19457,7 +19442,11 @@ begin
     if C=TPasVariable then
       NewEl:=CreateRTTIMemberField(Members,i,MembersFuncContext)
     else if C.InheritsFrom(TPasProcedure) then
-      NewEl:=CreateRTTIMemberMethod(Members,i,MembersFuncContext)
+      begin
+      if aResolver.GetProcTemplateTypes(TPasProcedure(P))<>nil then
+        continue; // parametrized functions cannot be published
+      NewEl:=CreateRTTIMemberMethod(Members,i,MembersFuncContext);
+      end
     else if C=TPasProperty then
       NewEl:=CreateRTTIMemberProperty(Members,i,MembersFuncContext)
     else if C.InheritsFrom(TPasType)
