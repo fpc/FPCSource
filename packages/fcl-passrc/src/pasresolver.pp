@@ -11986,7 +11986,7 @@ begin
       AddGenericTemplateIdentifiers(TypeParams,Scope);
       end;
   end else if TypeParams<>nil then
-    RaiseNotYetImplemented(20190812215851,El);
+    RaiseNotYetImplemented(20190812215851,El); // anonymous generic array type
 end;
 
 procedure TPasResolver.AddRecordType(El: TPasRecordType; TypeParams: TFPList);
@@ -17775,17 +17775,17 @@ var
   GenResultEl, NewResultEl: TPasResultElement;
   NewClass: TPTreeElement;
   i: Integer;
-  GenScope: TPasGenericScope;
+  SpecScope: TPasGenericScope;
 begin
   if GenEl.GenericTemplateTypes<>nil then
     begin
-    GenScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_ProcType));
+    SpecScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_ProcType));
     if SpecializedItem<>nil then
       begin
       // specialized procedure type
-      GenScope.SpecializedFromItem:=SpecializedItem;
+      SpecScope.SpecializedFromItem:=SpecializedItem;
       AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
-        SpecializedItem,GenScope,true);
+        SpecializedItem,SpecScope,true);
       end
     else
       begin
@@ -18257,19 +18257,19 @@ end;
 procedure TPasResolver.SpecializeArrayType(GenEl, SpecEl: TPasArrayType;
   SpecializedItem: TPRSpecializedTypeItem);
 var
-  GenScope: TPasGenericScope;
+  SpecScope: TPasGenericScope;
 begin
   SpecEl.IndexRange:=GenEl.IndexRange;
   SpecEl.PackMode:=GenEl.PackMode;
   if GenEl.GenericTemplateTypes<>nil then
     begin
-    GenScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_Array));
+    SpecScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_Array));
     if SpecializedItem<>nil then
       begin
       // specialized generic array
-      GenScope.SpecializedFromItem:=SpecializedItem;
+      SpecScope.SpecializedFromItem:=SpecializedItem;
       AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
-                                        SpecializedItem,GenScope,true);
+                                        SpecializedItem,SpecScope,true);
       end
     else
       begin

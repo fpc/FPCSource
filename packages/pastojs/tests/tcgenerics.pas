@@ -2061,28 +2061,30 @@ begin
   '  s: specialize TStatic<TBird>;',
   'begin',
   '  d[0].b:=s[1].b;',
+  '  s:=s;',
   '']));
   Add([
   'uses UnitA;',
   'begin',
-  'end.']);
+  '']);
   ConvertProgram;
   CheckUnit('UnitA.pas',
     LinesToStr([ // statements
     'rtl.module("UnitA", ["system"], function () {',
     '  var $mod = this;',
     '  var $impl = $mod.$impl;',
-    '  $mod.$rtti.$DynArray("TDyn$G1", {});',
+    '  $mod.$rtti.$DynArray("TDyn<UnitA.TBird>", {});',
     '  this.TStatic$G1$clone = function (a) {',
     '    var r = [];',
     '    for (var i = 0; i < 2; i++) r.push($impl.TBird.$clone(a[i]));',
     '    return r;',
     '  };',
-    '  $mod.$rtti.$StaticArray("TStatic$G1", {',
+    '  $mod.$rtti.$StaticArray("TStatic<UnitA.TBird>", {',
     '    dims: [2]',
     '  });',
     '  $mod.$init = function () {',
     '    $impl.d[0].b = $impl.s[0].b;',
+    '    $impl.s = $mod.TStatic$G1$clone($impl.s);',
     '  };',
     '}, null, function () {',
     '  var $mod = this;',
@@ -2104,8 +2106,8 @@ begin
     '});']));
   CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
     LinesToStr([ // statements
-    'pas.UnitA.$rtti["TDyn$G1"].eltype = pas.UnitA.$rtti["TBird"];',
-    'pas.UnitA.$rtti["TStatic$G1"].eltype = pas.UnitA.$rtti["TBird"];',
+    'pas.UnitA.$rtti["TDyn<UnitA.TBird>"].eltype = pas.UnitA.$rtti["TBird"];',
+    'pas.UnitA.$rtti["TStatic<UnitA.TBird>"].eltype = pas.UnitA.$rtti["TBird"];',
     '']),
     LinesToStr([ // $mod.$main
     '']));
