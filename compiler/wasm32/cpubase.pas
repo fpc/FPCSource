@@ -273,6 +273,7 @@ uses
       maxfpuregs = 0;
       FRAME_POINTER_SYM = '$fp';
       BASE_POINTER_SYM = '$bp';
+      STACK_POINTER_SYM = '__stack_top';
 
 {*****************************************************************************
                                   Helpers
