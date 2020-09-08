@@ -633,7 +633,7 @@ implementation
                 
                 Spilling of sub registers is supported for x86.
               }
-              if regsize>tcgsize2size[paraloc^.Size] then
+              if (paraloc<>nil) and (regsize>tcgsize2size[paraloc^.Size]) then
                 break;
 {$endif x86}
               cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
