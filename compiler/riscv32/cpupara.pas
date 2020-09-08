@@ -93,7 +93,7 @@ unit cpupara;
                if nr=0 then
                  internalerror(200309271);
                loc:=LOC_REGISTER;
-               register:=newreg(R_INTREGISTER,RS_X10+nr,R_SUBWHOLE);
+               register:=newreg(R_INTREGISTER,RS_X10+nr-1,R_SUBWHOLE);
              end
            else
              begin
@@ -418,16 +418,6 @@ unit cpupara;
                         begin
                           paraloc^.size:=paracgsize;
                           paraloc^.def:=locdef;
-                        end;
-                      { aix requires that record data stored in parameter
-                        registers is left-aligned }
-                      if (target_info.system in systems_aix) and
-                         (paradef.typ = recorddef) and
-                         (paralen < sizeof(aint)) then
-                        begin
-                          paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
-                          paraloc^.size := OS_INT;
-                          paraloc^.def := u32inttype;
                         end;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);
