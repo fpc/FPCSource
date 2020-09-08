@@ -625,8 +625,18 @@ implementation
           regtype:=getregtype(reg);
           while true do
             begin
-              cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
               regsize:=tcgsize2size[reg_cgsize(reg)];
+{$ifndef x86}
+              { The size of the stack parameter must be not less than
+                the size of the register because the spilling code for
+                most CPU targets spills whole registers.
+                
+                Spilling of sub registers is supported for x86.
+              }
+              if regsize>tcgsize2size[paraloc^.Size] then
+                break;
+{$endif x86}
+              cg.rg[regtype].set_reg_initial_location(reg,loc.reference);
               dec(size,regsize);
               if size<=0 then
                 break;
