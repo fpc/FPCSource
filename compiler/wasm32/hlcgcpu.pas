@@ -1057,7 +1057,7 @@ implementation
               end
             else // if (ref.base = NR_FRAME_POINTER_REG) then
               begin
-                list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_ADDR) ));
+                list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
               end;
           end
         else
@@ -1147,7 +1147,7 @@ implementation
         // reading back to the register
         a_load_stack_reg(list, tosize, r);
       end else if (ref.base = NR_FRAME_POINTER_REG) then begin
-        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_ADDR) ));
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
         list.Concat(taicpu.op_const(a_i32_const, ref.offset));
         // todo: index?
         list.Concat(taicpu.op_none(a_i32_add));
@@ -1677,18 +1677,18 @@ implementation
         and it uses one stack slot }
       //if (current_procinfo.procdef.proctypeoption=potype_proginit) then
         //fmaxevalstackheight:=max(1,fmaxevalstackheight);
-      list.Concat(tai_local.create(wbt_i32, '$fp')); //TWasmBasicType
-      list.Concat(tai_local.create(wbt_i32, '$bp')); //TWasmBasicType
+      list.Concat(tai_local.create(wbt_i32, FRAME_POINTER_SYM)); //TWasmBasicType
+      list.Concat(tai_local.create(wbt_i32, BASE_POINTER_SYM)); //TWasmBasicType
 
       list.Concat(taicpu.op_sym(a_get_global , current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
-      list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol(BASE_POINTER_SYM,AT_LABEL)));
 
       if (localsize>0) then begin
-        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(BASE_POINTER_SYM,AT_LABEL)));
         list.concat(taicpu.op_const(a_i32_const, localsize ));
         list.concat(taicpu.op_none(a_i32_sub));
-        list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol('fp',AT_LABEL)));
-        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_LABEL)));
         list.Concat(taicpu.op_sym(a_set_global, current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
       end;
 
@@ -1697,7 +1697,7 @@ implementation
 
   procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     begin
-      list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(BASE_POINTER_SYM,AT_LABEL)));
       list.Concat(taicpu.op_sym(a_set_global , current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
 
       list.concat(taicpu.op_none(a_return));
