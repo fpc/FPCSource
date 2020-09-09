@@ -146,7 +146,7 @@ Var
 
 begin
   S:='';
-  SetLength(S,Source.Size);
+  SetLength(S,Source.Size-Source.Position);
   if Length(S)>0 then
     Source.ReadBuffer(S[1],Length(S));
   Create(S,AOptions)

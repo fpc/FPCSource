@@ -12,9 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-{$h+}
 unit fpjson;
+
+{$i fcl-json.inc}
 
 interface
 
@@ -1014,14 +1014,10 @@ begin
                 if (U1<>0) then
                   begin
                   App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1)+WideChar(U2){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
-                  writeln('app a:  ',L,': ',App);
                   U2:=0;
                   end
                 else
-                  begin
-                  writeln('app b: ',L,': ',WideChar(U2));
                   U1:=U2;
-                  end;
                 end;
         end;
         if App<>'' then

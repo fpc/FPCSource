@@ -249,8 +249,10 @@ begin
   resp := Default(HTTP_RESPONSE);
   resp.Version := fRequestVersion;
   resp.StatusCode := Code;
-  if CodeText <> '' then
+  if CodeText <> '' then begin
     resp.pReason := PChar(CodeText);
+    resp.ReasonLength := Length(CodeText);
+  end;
 
   flags := 0;
   if (Assigned(ContentStream) and (ContentStream.Size > 0)) or (Contents.Count > 0) then
@@ -291,7 +293,7 @@ begin
 
       headerstrs.Add(headerval);
 
-      resp.Headers.KnownHeaders[Ord(headerid)].RawValueLength := Length(headerval) + 1;
+      resp.Headers.KnownHeaders[Ord(headerid)].RawValueLength := Length(headerval);
       resp.Headers.KnownHeaders[Ord(headerid)].pRawValue := PAnsiChar(headerstrs[headerstrs.Count - 1]);
     end;
 
@@ -301,11 +303,11 @@ begin
       headerval := unknownheaders.ValueFromIndex[i];
 
       headerstrs.Add(headerstr);
-      unknownheadersarr[i].NameLength := Length(headerstr) + 1;
+      unknownheadersarr[i].NameLength := Length(headerstr);
       unknownheadersarr[i].pName := PAnsiChar(headerstrs[headerstrs.Count - 1]);
 
       headerstrs.Add(headerval);
-      unknownheadersarr[i].RawValueLength := Length(headerval) + 1;
+      unknownheadersarr[i].RawValueLength := Length(headerval);
       unknownheadersarr[i].pRawValue := PAnsiChar(headerstrs[headerstrs.Count - 1]);
     end;
 
