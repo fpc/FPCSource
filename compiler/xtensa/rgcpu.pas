@@ -41,7 +41,6 @@ unit rgcpu;
       end;
 
       trgintcpu=class(trgcpu)
-        procedure add_cpu_interferences(p: tai); override;
       end;
 
 
@@ -117,9 +116,9 @@ implementation
             tmpref.offset:=spilltemp.offset mod 256;
 
             helpins:=taicpu.op_reg_ref(op,tempreg,tmpref);
-            if getregtype(tempreg)=R_INTREGISTER then
-              ungetregisterinline(helplist,hreg);
             helplist.concat(helpins);
+            if (getregtype(tempreg)=R_INTREGISTER) and not(isload) then
+              ungetregisterinline(helplist,hreg);
             list.insertlistafter(pos,helplist);
             helplist.free;
           end
@@ -129,14 +128,5 @@ implementation
           inherited do_spill_written(list,pos,spilltemp,tempreg,orgsupreg);
       end;
 
-
-    procedure trgintcpu.add_cpu_interferences(p: tai);
-     var
-       i, j: longint;
-     begin
-       if p.typ=ait_instruction then
-         begin
-         end;
-     end;
 
 end.

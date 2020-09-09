@@ -200,7 +200,7 @@ unit cpupi;
           end
         else
           begin
-            { a frame pointer would be only needed if we do an " alloca" }
+            { a frame pointer would be only needed if we do an "alloca" }
             RS_FRAME_POINTER_REG:=RS_A15;
             NR_FRAME_POINTER_REG:=NR_A15;
           end;
