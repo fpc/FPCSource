@@ -109,20 +109,20 @@ var rtl = {
       rtl.error('module "'+module_name+'" is already registered');
 
     var r = Object.create(rtl.tSectionRTTI);
-    var module = pas[module_name] = {
+    var module = r.$module = pas[module_name] = {
       $name: module_name,
       $intfuseslist: intfuseslist,
       $impluseslist: impluseslist,
       $state: rtl.m_loading,
       $intfcode: intfcode,
       $implcode: null,
-      $impl: impluseslist?{
-          $module: module,
-          $rtti: r
-        }:null,
+      $impl: null,
       $rtti: r
     };
-    module.$rtti.$module = module;
+    if (impluseslist) module.$impl = {
+          $module: module,
+          $rtti: r
+        };
   },
 
   exitcode: 0,
