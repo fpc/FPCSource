@@ -441,10 +441,20 @@ uses cutils, cclasses;
         else
           result := operand_read;
         case opcode of
+          A_CALL0,
+          A_CALL4,
+          A_CALL8,
+          A_CALL12,
+          A_CALLX0,
+          A_CALLX4,
+          A_CALLX8,
+          A_CALLX12,
           A_S8I,
           A_S16I,
           A_S32I,
           A_SSI,
+          A_J,
+          A_JX,
           A_B:
             result := operand_read;
           else
