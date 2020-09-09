@@ -7756,7 +7756,7 @@ begin
         begin
         // add param
         if not HasImplUsesClause then
-          ArgArray.AddElement(CreateLiteralNull(El));
+          ArgArray.AddElement(CreateElement(TJSArrayLiteral,El));
         ArgArray.AddElement(ImplFunc);
         end;
       end;
