@@ -58,7 +58,7 @@ type
   published
     // unit optimization: jsaliasglobals
     procedure TestOptAliasGlobals_Program;
-    procedure TestOptAliasGlobals_Unit; // ToDo
+    procedure TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
     // ToDo: external var, const, class
     // ToDo: RTTI
     // ToDo: typeinfo(var), typeinfo(type)
@@ -251,42 +251,39 @@ begin
   ConvertProgram;
   CheckSource('TestOptAliasGlobals_Program',
     LinesToStr([
-    'var $lmr = pas.UnitA;',
-    'var $ltr = $lmr.TBird;',
-    'var $ltr1 = $lmr.TRec;',
-    'rtl.createClass($mod, "TEagle", $ltr, function () {',
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TBird;',
+    'var $lt1 = $lm.TRec;',
+    'rtl.createClass($mod, "TEagle", $lt, function () {',
     '  this.Run = function (w) {',
     '    var Result = 0;',
     '    return Result;',
     '  };',
     '});',
     'this.e = null;',
-    'this.r = $ltr1.$new();',
+    'this.r = $lt1.$new();',
     'this.c = {};',
     '']),
     LinesToStr([
     '$mod.e = $mod.TEagle.$create("Create");',
-    '$lmr.b = $ltr.$create("Create");',
-    '$ltr.c = $mod.e.c + 1;',
-    '$mod.r.x = $ltr.c;',
-    '$mod.r.x = $lmr.b.c;',
+    '$lm.b = $lt.$create("Create");',
+    '$lt.c = $mod.e.c + 1;',
+    '$mod.r.x = $lt.c;',
+    '$mod.r.x = $lm.b.c;',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(4);',
-    '$mod.c = rtl.refSet($lmr.cRedBlue);',
+    '$mod.c = rtl.refSet($lm.cRedBlue);',
     '']));
 end;
 
-procedure TTestOptimizations.TestOptAliasGlobals_Unit;
+procedure TTestOptimizations.TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
 begin
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
     'type',
     '  TBird = class',
-    '  public',
-    '    class var Span: word;',
-    '    class procedure Fly(w: word); virtual; abstract;',
-    '    class procedure Swim; static;',
+    '  public Speed: word;',
     '  end;',
     '  TRecA = record',
     '    x: word;',
@@ -294,24 +291,21 @@ begin
     'var Bird: TBird;',
     '']),
   LinesToStr([
-    'class procedure TBird.Swim; begin end;',
     '']));
   AddModuleWithIntfImplSrc('UnitB.pas',
   LinesToStr([
     'type',
     '  TAnt = class',
-    '  public',
-    '    class var Legs: word;',
-    '    class procedure Run(w: word); virtual; abstract;',
-    '    class procedure Walk; static;',
+    '  public Size: word;',
     '  end;',
     '  TRecB = record',
     '    y: word;',
     '  end;',
+    '  TBear = class',
+    '  end;',
     'var Ant: TAnt;',
     '']),
   LinesToStr([
-    'class procedure TAnt.Walk; begin end;',
     '']));
   StartUnit(true,[supTObject]);
   Add([
@@ -319,76 +313,83 @@ begin
   'interface',
   'uses unita;',
   'type',
-  '  TEagle = class(TBird)',
-  '    class var EagleRec: TRecA;',
-  '    class procedure Fly(w: word = 5); override;',
+  '  TEagle = class(TBird)', // intf-JS to intf-uses
+  '    procedure Fly;',
   '  end;',
   'implementation',
   'uses unitb;',
   'type',
-  '  TRedAnt = class(TAnt)',
-  '    class var RedAntRecA: TRecA;',
-  '    class var RedAntRecB: TRecB;',
-  '    class procedure Run(w: word = 6); override;',
+  '  TRedAnt = class(TAnt)', // impl-JS to impl-uses
+  '    procedure Run;',
   '  end;',
-  'class procedure TEagle.Fly(w: word);',
+  'procedure TEagle.Fly;',
   'begin',
+  '  TRedAnt.Create;', // intf-JS to impl-JS
+  '  TAnt.Create;', // intf-JS to impl-uses
+  '  TBird.Create;', // intf-JS to intf-uses
+  '  TEagle.Create;', // intf-JS to intf-JS
   'end;',
-  'class procedure TRedAnt.Run(w: word);',
+  'procedure TRedAnt.Run;',
   'begin',
+  '  TRedAnt.Create;', // impl-JS to impl-JS
+  '  TAnt.Create;', // impl-JS to impl-uses
+  '  TBird.Create;', // impl-JS to intf-uses
+  '  TEagle.Create;', // impl-JS to intf-JS
+  '  TBear.Create', // only in impl-JS to impl-uses
   'end;',
   'var',
-  '  Eagle: TEagle;',
   '  RedAnt: TRedAnt;',
+  '  Ant: TAnt;',
+  '  Bird: TBird;',
+  '  Eagle: TEagle;',
   'initialization',
-  '  Eagle:=TEagle.Create;',
-  '  RedAnt:=TRedAnt.Create;',
-  '  Bird:=TBird.Create;',
-  '  Ant:=TAnt.Create;',
-  '  TRedAnt.RedAntRecA.x:=TRedAnt.RedAntRecB.y;',
-  '  Ant.Walk;',
-  '  RedAnt.Walk;',
-  '  RedAnt.Run(17);',
+  '  RedAnt:=TRedAnt.Create;', // init to impl-JS
+  '  Ant:=TAnt.Create;', // init to impl-uses
+  '  Bird:=TBird.Create;', // init to intf-uses
+  '  Eagle:=TEagle.Create;', // init to intf-JS
+  '  Eagle.Fly;',
+  '  RedAnt.Run;',
   '']);
   ConvertUnit;
-  CheckSource('TestOptAliasGlobals_Unit',
+  CheckSource('TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl',
     LinesToStr([
     'var $impl = $mod.$impl;',
-    'var $lmr = pas.UnitA;',
-    'var $ltr = $lmr.TBird;',
-    'var $ltr1 = $lmr.TRecA;',
-    'var $lmr1 = pas.UnitB;',
-    'var $ltr2 = $lmr1.TAnt;',
-    'rtl.createClass($mod, "TEagle", $ltr, function () {',
-    '  this.EagleRec = $ltr1.$new();',
-    '  this.Fly = function (w) {',
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TBird;',
+    'var $lm1 = pas.UnitB;',
+    'var $lt1 = $lm1.TAnt;',
+    'var $lt2 = $lm1.TBear;',
+    'rtl.createClass($mod, "TEagle", $lt, function () {',
+    '  this.Fly = function () {',
+    '    $impl.TRedAnt.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $mod.TEagle.$create("Create");',
     '  };',
     '});',
     '']),
     LinesToStr([
-    '$impl.Eagle = $mod.TEagle.$create("Create");',
     '$impl.RedAnt = $impl.TRedAnt.$create("Create");',
-    '$lmr.Bird = $ltr.$create("Create");',
-    '$lmr1.Ant = $ltr2.$create("Create");',
-    '$impl.TRedAnt.RedAntRecA.x = $impl.TRedAnt.RedAntRecB.y;',
-    '$lmr1.Ant.Walk();',
-    '$impl.RedAnt.Walk();',
-    '$impl.RedAnt.$class.Run(17);',
+    '$impl.Ant = $lt1.$create("Create");',
+    '$impl.Bird = $lt.$create("Create");',
+    '$impl.Eagle = $mod.TEagle.$create("Create");',
+    '$impl.Eagle.Fly();',
+    '$impl.RedAnt.Run();',
     '']),
     LinesToStr([
-    'var $lmr = pas.UnitB;',
-    'var $ltr = $lmr.TAnt;',
-    'var $lmr1 = pas.UnitA;',
-    'var $ltr1 = $lmr1.TRecA;',
-    'var $ltr2 = $lmr.TRecB;',
-    'rtl.createClass($impl, "TRedAnt", $ltr, function () {',
-    '  this.RedAntRecA = $ltr1.$new();',
-    '  this.RedAntRecB = $ltr2.$new();',
-    '  this.Run = function (w) {',
+    'rtl.createClass($impl, "TRedAnt", $lt1, function () {',
+    '  this.Run = function () {',
+    '    $impl.TRedAnt.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $mod.TEagle.$create("Create");',
+    '    $lt2.$create("Create");',
     '  };',
     '});',
-    '$impl.Eagle = null;',
     '$impl.RedAnt = null;',
+    '$impl.Ant = null;',
+    '$impl.Bird = null;',
+    '$impl.Eagle = null;',
     '']));
 end;
 
