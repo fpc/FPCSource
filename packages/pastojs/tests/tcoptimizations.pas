@@ -56,7 +56,7 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
-    // unit optimization: aliasglobals
+    // unit optimization: jsaliasglobals
     procedure TestOptAliasGlobals_Program;
     procedure TestOptAliasGlobals_Unit; // ToDo
     // ToDo: external var, const, class
@@ -203,8 +203,11 @@ procedure TTestOptimizations.TestOptAliasGlobals_Program;
 begin
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
+    'type',
+    '  TColor = (red,green,blue);',
+    '  TColors = set of TColor;',
     'const',
-    '  cWidth = 17;',
+    '  cRedBlue = [red,blue];',
     'type',
     '  TBird = class',
     '  public',
@@ -221,7 +224,7 @@ begin
 
   StartProgram(true,[supTObject]);
   Add([
-  '{$optimization AliasGlobals}',
+  '{$optimization JSAliasGlobals}',
   'uses unita;',
   'type',
   '  TEagle = class(TBird)',
@@ -233,6 +236,7 @@ begin
   'var',
   '  e: TEagle;',
   '  r: TRec;',
+  '  c: TColors;',
   'begin',
   '  e:=TEagle.Create;',
   '  b:=TBird.Create;',
@@ -242,6 +246,7 @@ begin
   '  r.x:=e.Run;',
   '  r.x:=e.Run();',
   '  r.x:=e.Run(4);',
+  '  c:=cRedBlue;',
   '']);
   ConvertProgram;
   CheckSource('TestOptAliasGlobals_Program',
@@ -257,6 +262,7 @@ begin
     '});',
     'this.e = null;',
     'this.r = $ltr1.$new();',
+    'this.c = {};',
     '']),
     LinesToStr([
     '$mod.e = $mod.TEagle.$create("Create");',
@@ -267,22 +273,20 @@ begin
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(4);',
+    '$mod.c = rtl.refSet($lmr.cRedBlue);',
     '']));
 end;
 
 procedure TTestOptimizations.TestOptAliasGlobals_Unit;
 begin
-  exit;
-
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
-    'const',
-    '  cWidth = 17;',
     'type',
     '  TBird = class',
     '  public',
     '    class var Span: word;',
     '    class procedure Fly(w: word); virtual; abstract;',
+    '    class procedure Swim; static;',
     '  end;',
     '  TRecA = record',
     '    x: word;',
@@ -290,16 +294,16 @@ begin
     'var Bird: TBird;',
     '']),
   LinesToStr([
+    'class procedure TBird.Swim; begin end;',
     '']));
   AddModuleWithIntfImplSrc('UnitB.pas',
   LinesToStr([
-    'const',
-    '  cHeight = 23;',
     'type',
     '  TAnt = class',
     '  public',
     '    class var Legs: word;',
     '    class procedure Run(w: word); virtual; abstract;',
+    '    class procedure Walk; static;',
     '  end;',
     '  TRecB = record',
     '    y: word;',
@@ -307,10 +311,11 @@ begin
     'var Ant: TAnt;',
     '']),
   LinesToStr([
+    'class procedure TAnt.Walk; begin end;',
     '']));
   StartUnit(true,[supTObject]);
   Add([
-  '{$optimization AliasGlobals}',
+  '{$optimization JSAliasGlobals}',
   'interface',
   'uses unita;',
   'type',
@@ -341,12 +346,49 @@ begin
   '  Bird:=TBird.Create;',
   '  Ant:=TAnt.Create;',
   '  TRedAnt.RedAntRecA.x:=TRedAnt.RedAntRecB.y;',
+  '  Ant.Walk;',
+  '  RedAnt.Walk;',
+  '  RedAnt.Run(17);',
   '']);
   ConvertUnit;
   CheckSource('TestOptAliasGlobals_Unit',
     LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lmr = pas.UnitA;',
+    'var $ltr = $lmr.TBird;',
+    'var $ltr1 = $lmr.TRecA;',
+    'var $lmr1 = pas.UnitB;',
+    'var $ltr2 = $lmr1.TAnt;',
+    'rtl.createClass($mod, "TEagle", $ltr, function () {',
+    '  this.EagleRec = $ltr1.$new();',
+    '  this.Fly = function (w) {',
+    '  };',
+    '});',
     '']),
     LinesToStr([
+    '$impl.Eagle = $mod.TEagle.$create("Create");',
+    '$impl.RedAnt = $impl.TRedAnt.$create("Create");',
+    '$lmr.Bird = $ltr.$create("Create");',
+    '$lmr1.Ant = $ltr2.$create("Create");',
+    '$impl.TRedAnt.RedAntRecA.x = $impl.TRedAnt.RedAntRecB.y;',
+    '$lmr1.Ant.Walk();',
+    '$impl.RedAnt.Walk();',
+    '$impl.RedAnt.$class.Run(17);',
+    '']),
+    LinesToStr([
+    'var $lmr = pas.UnitB;',
+    'var $ltr = $lmr.TAnt;',
+    'var $lmr1 = pas.UnitA;',
+    'var $ltr1 = $lmr1.TRecA;',
+    'var $ltr2 = $lmr.TRecB;',
+    'rtl.createClass($impl, "TRedAnt", $ltr, function () {',
+    '  this.RedAntRecA = $ltr1.$new();',
+    '  this.RedAntRecB = $ltr2.$new();',
+    '  this.Run = function (w) {',
+    '  };',
+    '});',
+    '$impl.Eagle = null;',
+    '$impl.RedAnt = null;',
     '']));
 end;
 
