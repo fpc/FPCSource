@@ -20264,7 +20264,7 @@ begin
     btAnsiChar: aName:='tkChar';
     {$endif}
     btWideChar: aName:='tkWChar';
-    btString: if BaseTypeString=btAnsiString then aName:='tkAString' else aName:='tkUString';
+    btString: {$ifdef FPC_HAS_CPSTRING}if BaseTypeString=btAnsiString then aName:='tkAString' else {$ENDIF}aName:='tkUString';
     {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,
     btShortString,
