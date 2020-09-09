@@ -2797,7 +2797,7 @@ procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: string);
 
 begin
   case lowercase(OptName) of
-  'aliasglobals':
+  'jsaliasglobals':
     HandleBoolean(coAliasGlobals,true);
   else
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization '+OptName]);
