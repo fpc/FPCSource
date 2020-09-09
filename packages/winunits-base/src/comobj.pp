@@ -325,6 +325,7 @@ unit ComObj;
       CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
       CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
       CoInitFlags : Longint = -1;
+      CoInitDisable : Boolean = False;
 
   {$ifdef DEBUG_COM}
      var printcom : boolean=true;
@@ -1877,6 +1878,20 @@ const
   Initialized : boolean = false;
 var
   Ole32Dll : HModule;
+  SaveInitProc : CodePointer;
+
+procedure InitComObj;
+begin
+  if SaveInitProc<>nil then
+    TProcedure(SaveInitProc)();
+  if not CoInitDisable then
+{$ifndef wince}
+    if (CoInitFlags=-1) or not(assigned(ComObj.CoInitializeEx)) then
+      Initialized:=Succeeded(CoInitialize(nil))
+    else
+{$endif wince}
+      Initialized:=Succeeded(ComObj.CoInitializeEx(nil, CoInitFlags));
+end;
 
 initialization
   Uninitializing:=false;
@@ -1893,12 +1908,10 @@ initialization
     end;
 
   if not(IsLibrary) then
-{$ifndef wince}
-    if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
-      Initialized:=Succeeded(CoInitialize(nil))
-    else
-{$endif wince}
-      Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
+    begin
+      SaveInitProc:=InitProc;
+      InitProc:=@InitComObj;
+    end;
 
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
