@@ -70,15 +70,15 @@ yyleng            : Byte         (* length of matched text *)
    put_char by another suitable set of routines, e.g. if you want to read
    from/write to memory, etc. *)
 
-function get_char : Char;
+var get_char: function  : Char;
   (* obtain one character from the input file (null character at end-of-
      file) *)
 
-procedure unget_char ( c : Char );
+var unget_char : procedure ( c : Char );
   (* return one character to the input file to be reread in subsequent calls
      to get_char *)
 
-procedure put_char ( c : Char );
+var put_char: procedure ( c : Char );
   (* write one character to the output file *)
 
 (* Utility routines: *)
@@ -185,7 +185,7 @@ var
 bufptr : Integer;
 buf    : array [1..max_chars] of Char;
 
-function get_char : Char;
+function lexlib_get_char : Char;
   var i : Integer;
   begin
     if (bufptr=0) and not eof(yyinput) then
@@ -199,15 +199,15 @@ function get_char : Char;
       end;
     if bufptr>0 then
       begin
-        get_char := buf[bufptr];
+        lexlib_get_char := buf[bufptr];
         dec(bufptr);
         inc(yycolno);
       end
     else
-      get_char := #0;
+      lexlib_get_char := #0;
   end(*get_char*);
 
-procedure unget_char ( c : Char );
+procedure lexlib_unget_char ( c : Char );
   begin
     if bufptr=max_chars then fatal('input buffer overflow');
     inc(bufptr);
@@ -215,7 +215,7 @@ procedure unget_char ( c : Char );
     buf[bufptr] := c;
   end(*unget_char*);
 
-procedure put_char ( c : Char );
+procedure lexlib_put_char ( c : Char );
   begin
     if c=#0 then
       { ignore }
@@ -285,7 +285,7 @@ procedure reject;
   begin
     yyreject := true;
     for i := yyleng+1 to yysleng do
-      yytext := yytext+get_char;
+      yytext := yytext+get_char();
     dec(yymatches);
   end(*reject*);
 
@@ -334,7 +334,7 @@ procedure yynew;
 procedure yyscan;
   begin
     if yyleng=255 then fatal('yytext overflow');
-    yyactchar := get_char;
+    yyactchar := get_char();
     inc(yyleng);
     yytext[yyleng] := yyactchar;
   end(*yyscan*);
@@ -380,7 +380,7 @@ function yyfind ( var n : Integer ) : Boolean;
 function yydefault : Boolean;
   begin
     yyreject := false;
-    yyactchar := get_char;
+    yyactchar := get_char();
     if yyactchar<>#0 then
       begin
         put_char(yyactchar);
@@ -406,6 +406,9 @@ procedure yyclear;
 
 begin
   yywrap := @lexlib_yywrap;
+  get_char:= @lexlib_get_char;
+  unget_char:= @lexlib_unget_char;
+  put_char:= @lexlib_put_char;
   assign(yyinput, '');
   assign(yyoutput, '');
   reset(yyinput); rewrite(yyoutput);

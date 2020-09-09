@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.2.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-res');
     P.OSes:=[Win32,Win64]+AllUnixOSes;
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
@@ -46,9 +47,20 @@ begin
         end;
       T.ResourceStrings:=true;
 
+    T:=P.Targets.AddUnit('fileinfo.pp');
+      T.ResourceStrings:=true;
+
     // Windows units
     T:=P.Targets.AddUnit('ServiceManager.pas',[Win32,Win64]);
       T.ResourceStrings:=true;
+
+    // Examples
+    P.ExamplePath.Add('examples');
+      T:=P.Targets.AddExampleProgram('showver.pp');
+
+    // example data files.
+    // showver.rc
+    // showver.res
 
 {$ifndef ALLPACKAGES}
     Run;

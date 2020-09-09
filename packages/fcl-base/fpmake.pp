@@ -19,7 +19,6 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.2.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
-    P.Dependencies.Add('fcl-res');
     p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
@@ -120,8 +119,6 @@ begin
     T:=P.Targets.AddUnit('fpexprpars.pp');
       T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('fileinfo.pp');
-      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('csvreadwrite.pp');
     T:=P.Targets.addUnit('csvdocument.pp');
     With T.Dependencies do
@@ -166,7 +163,6 @@ begin
       T:=P.Targets.AddExampleProgram('poolmm1.pp');
       T:=P.Targets.AddExampleProgram('poolmm2.pp');
       T:=P.Targets.AddExampleProgram('restest.pp');
-      T:=P.Targets.AddExampleProgram('showver.pp');
       T:=P.Targets.AddExampleProgram('sockcli.pp');
       T:=P.Targets.AddExampleProgram('socksvr.pp');
       T:=P.Targets.AddExampleProgram('sstream.pp');
@@ -208,8 +204,6 @@ begin
       // README
       // kword.xml
       // overview.rtf
-      // showver.rc
-      // showver.res
       // simple.xml
       // parser.dat
       // testcgi.html
