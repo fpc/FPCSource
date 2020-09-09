@@ -668,6 +668,7 @@ type
     pbivnIntfKind,
     pbivnIntfMaps,
     pbivnImplementation,
+    pbivnImplCode,
     pbivnMessageInt,
     pbivnMessageStr,
     pbivnLocalModuleRef,
@@ -849,10 +850,11 @@ const
     '$kind', // pbivnIntfKind
     '$intfmaps', // pbivnIntfMaps
     '$impl', // pbivnImplementation
+    '$implcode', // pbivnImplCode
     '$msgint', // pbivnMessageInt
     '$msgstr', // pbivnMessageStr
-    '$lmr', // pbivnLocalModuleRef
-    '$ltr', // pbivnLocalTypeRef
+    '$lm', // pbivnLocalModuleRef
+    '$lt', // pbivnLocalTypeRef
     '$l', // pbivnLoop
     '$end', // pbivnLoopEnd
     '$in', // pbivnLoopIn
@@ -7600,28 +7602,40 @@ Program:
  rtl.module('program',
     [<uses1>,<uses2>, ...],
     function(){
+      var $mod = this;
       <programsection>
       this.$main=function(){
         <initialization>
         };
     });
 
-Unit:
+Unit without implementation:
  rtl.module('<unitname>',
     [<interface uses1>,<uses2>, ...],
     function(){
-      var $impl = {};
+      var $mod = this;
       this.$impl = $impl;
       <interface>
       this.$init=function(){
         <initialization>
         };
+    });
+
+Unit with implementation:
+ rtl.module('<unitname>',
+    [<interface uses1>,<uses2>, ...],
+    function(){
+      var $mod = this;
+      var $impl = $mod.$impl;
+      <interface>
+      $impl.$code=function(){
+        };
+      this.$init=function(){
+        <initialization>
+        };
     },
     [<implementation uses1>,<uses2>, ...],
-    function(){
-      var $impl = this.$impl;
-      <implementation>
-    });
+    );
 *)
 Var
   OuterSrc , Src: TJSSourceElements;
@@ -7633,9 +7647,9 @@ Var
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
   HasImplUsesClause, ok, NeedRTLCheckVersion: Boolean;
-  UsesClause: TPasUsesClause;
   Prg: TPasProgram;
   Lib: TPasLibrary;
+  AssignSt: TJSSimpleAssignStatement;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -7683,8 +7697,6 @@ begin
       end;
 
     ImplVarSt:=nil;
-    HasImplUsesClause:=false;
-
     IntfContext:=TSectionContext.Create(El,Src,AContext);
     try
       // add "var $mod = this;"
@@ -7725,18 +7737,28 @@ begin
           end;
         if Assigned(El.InterfaceSection) then
           AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
-        CreateInitSection(El,Src,IntfContext);
 
-        // add optional implementation uses list: [<implementation uses1>,<uses2>, ...]
-        if Assigned(El.ImplementationSection) then
+        ImplFunc:=CreateImplementationSection(El,IntfContext);
+        if ImplFunc=nil then
           begin
-          UsesClause:=El.ImplementationSection.UsesClause;
-          if length(UsesClause)>0 then
-            begin
-            ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
-            HasImplUsesClause:=true;
-            end;
+          // remove unneeded $impl from interface
+          RemoveFromSourceElements(Src,ImplVarSt);
+          HasImplUsesClause:=length(El.ImplementationSection.UsesClause)>0;
+          end
+        else
+          begin
+          // add $mod.$implcode = ImplFunc;
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          AssignSt.LHS:=CreateMemberExpression([ModVarName,GetBIName(pbivnImplCode)]);
+          AssignSt.Expr:=ImplFunc;
+          AddToSourceElements(Src,AssignSt);
+          HasImplUsesClause:=true;
           end;
+        if HasImplUsesClause then
+          // add implementation uses list: [<implementation uses1>,<uses2>, ...]
+          ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
+
+        CreateInitSection(El,Src,IntfContext);
 
         end;
     finally
@@ -7746,19 +7768,6 @@ begin
     // add implementation function
     if ImplVarSt<>nil then
       begin
-      ImplFunc:=CreateImplementationSection(El,AContext);
-      if ImplFunc=nil then
-        begin
-        // remove unneeded $impl from interface
-        RemoveFromSourceElements(Src,ImplVarSt);
-        end
-      else
-        begin
-        // add param
-        if not HasImplUsesClause then
-          ArgArray.AddElement(CreateElement(TJSArrayLiteral,El));
-        ArgArray.AddElement(ImplFunc);
-        end;
       end;
     ok:=true;
   finally
@@ -16731,43 +16740,23 @@ var
   Src: TJSSourceElements;
   ImplContext: TSectionContext;
   ImplDecl: TJSElement;
-  ImplVarSt: TJSVariableStatement;
   FunDecl: TJSFunctionDeclarationStatement;
-  ModVarName, ImplVarName: String;
 begin
   Result:=nil;
   // create function(){}
-  FunDecl:=CreateFunctionSt(El,true,true);
+  FunDecl:=CreateFunctionSt(El.ImplementationSection,true,true);
   Src:=TJSSourceElements(FunDecl.AFunction.Body.A);
 
   // create section context (a function)
-  ImplContext:=TSectionContext.Create(El,Src,AContext);
+  ImplContext:=TSectionContext.Create(El.ImplementationSection,Src,AContext);
   try
-    if coUseStrict in Options then
-      AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
-
-    // add "var $mod = this;"
-    ImplContext.ThisPas:=El;
-    ModVarName:=GetBIName(pbivnModule);
-    AddToSourceElements(Src,CreateVarStatement(ModVarName,
-      CreatePrimitiveDotExpr('this',El),El));
-    ImplContext.AddLocalVar(ModVarName,El,false);
-
-    // add var $impl = $mod.$impl
-    ImplVarName:=GetBIName(pbivnImplementation);
-    ImplVarSt:=CreateVarStatement(ImplVarName,
-      CreateMemberExpression([ModVarName,ImplVarName]),El.ImplementationSection);
-    AddToSourceElements(Src,ImplVarSt);
-    ImplContext.AddLocalVar(ImplVarName,El.ImplementationSection,false);
-
+    // ToDo: ImplContext.ThisPas:=El;
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
     if ImplDecl<>nil then
       RaiseInconsistency(20170910175032,El); // elements should have been added directly
-    if Src.Statements[Src.Statements.Count-1].Node=ImplVarSt then
+    if Src.Statements.Count=0 then
       exit; // no implementation
-    // add impl declarations
-    AddToSourceElements(Src,ImplDecl);
     Result:=FunDecl;
   finally
     ImplContext.Free;
@@ -23956,9 +23945,9 @@ var
 begin
   aType:=AContext.Resolver.ResolveAliasType(El);
   Result:=AContext.GetLocalName(aType,true);
-  AliasGlobals:=coAliasGlobals in Options;
   if Result<>'' then
     exit; // already exists
+  AliasGlobals:=coAliasGlobals in Options;
 
   Parent:=El.Parent;
   Result:=AContext.GetLocalName(Parent,AliasGlobals);
@@ -25484,7 +25473,7 @@ begin
     else
       Result:=GetBIName(pbivnModules)+'.'+Result;
 
-    if (coAliasGlobals in Options) and (Result<>'this') then
+    if coAliasGlobals in Options then
       Result:=CreateGlobalAlias(El,Result,AContext);
     end;
 end;
@@ -25752,11 +25741,8 @@ begin
     begin
     // El is from another unit
     SectionContext:=TSectionContext(AContext.GetContextOfType(TSectionContext));
-    if SectionContext.PasElement is TInterfaceSection then
-      begin
-      // check if from impl uses clause
-
-      end;
+    if SectionContext.Parent is TSectionContext then
+      SectionContext:=TSectionContext(SectionContext.Parent);
 
     FuncContext:=AContext.GetFunctionContext;
     if El is TPasModule then
@@ -25770,7 +25756,7 @@ begin
     // insert var $lmr = JSPath;
     Expr:=CreatePrimitiveDotExpr(JSPath,El);
     V:=CreateVarStatement(Result,Expr,El);
-    AddHeaderStatement(V,El,AContext);
+    AddHeaderStatement(V,El,SectionContext);
     // ToDo: check if from impl uses section and separate "var $lmr = null;" and "$lmr = JSPath";
     end;
 end;

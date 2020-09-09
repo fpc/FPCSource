@@ -112,7 +112,6 @@ type
     FFilename: string;
     FFileResolver: TStreamResolver;
     FHub: TPas2JSResolverHub;
-    FJSImplementationSrc: TJSSourceElements;
     FJSImplementationUses: TJSArrayLiteral;
     FJSInitBody: TJSFunctionBody;
     FJSImplentationUses: TJSArrayLiteral;
@@ -211,7 +210,6 @@ type
     property JSInterfaceUses: TJSArrayLiteral read FJSInterfaceUses;
     property JSModuleSrc: TJSSourceElements read FJSModuleSrc;
     property JSInitBody: TJSFunctionBody read FJSInitBody;
-    property JSImplementationSrc: TJSSourceElements read FJSImplementationSrc;
     property ExpectedErrorClass: ExceptClass read FExpectedErrorClass write FExpectedErrorClass;
     property ExpectedErrorMsg: string read FExpectedErrorMsg write FExpectedErrorMsg;
     property ExpectedErrorNumber: integer read FExpectedErrorNumber write FExpectedErrorNumber;
@@ -1978,12 +1976,6 @@ begin
     exit;
   Arg:=JSModuleCallArgs.Elements.Elements[3];
   CheckUsesList('implementation',Arg,FJSImplentationUses);
-
-  // optional: implementation function()
-  if JSModuleCallArgs.Elements.Count<5 then
-    exit;
-  Arg:=JSModuleCallArgs.Elements.Elements[4];
-  CheckFunctionParam('module impl-function',Arg,FJSImplementationSrc);
 end;
 
 procedure TCustomTestModule.ConvertProgram;
@@ -2037,40 +2029,35 @@ var
   ActualSrc, ExpectedSrc, InitName: String;
 begin
   ActualSrc:=JSToStr(JSModuleSrc);
-  ExpectedSrc:=
-    'var $mod = this;'+LineEnding
-   +Statements;
   if coUseStrict in Converter.Options then
-    ExpectedSrc:='"use strict";'+LineEnding+ExpectedSrc;
-  if Module is TPasProgram then
-    InitName:='$main'
+    ExpectedSrc:='"use strict";'+LineEnding
   else
-    InitName:='$init';
+    ExpectedSrc:='';
+  ExpectedSrc:=ExpectedSrc+'var $mod = this;'+LineEnding;
+  ExpectedSrc:=ExpectedSrc+Statements;
+
+  // unit implementation
+  if (Trim(ImplStatements)<>'') then
+    ExpectedSrc:=ExpectedSrc+LineEnding
+      +'$mod.$implcode = function () {'+LineEnding
+      +ImplStatements
+      +'};'+LineEnding;
+
+  // program main or unit initialization
   if (Module is TPasProgram) or (Trim(InitStatements)<>'') then
+    begin
+    if Module is TPasProgram then
+      InitName:='$main'
+    else
+      InitName:='$init';
     ExpectedSrc:=ExpectedSrc+LineEnding
       +'$mod.'+InitName+' = function () {'+LineEnding
       +InitStatements
       +'};'+LineEnding;
+    end;
+
   //writeln('TCustomTestModule.CheckSource ExpectedIntf="',ExpectedSrc,'"');
   //writeln('TTestModule.CheckSource InitStatements="',Trim(InitStatements),'"');
-  CheckDiff(Msg,ExpectedSrc,ActualSrc);
-
-  if (JSImplementationSrc<>nil) then
-    begin
-    ActualSrc:=JSToStr(JSImplementationSrc);
-    ExpectedSrc:=
-      'var $mod = this;'+LineEnding
-     +'var $impl = $mod.$impl;'+LineEnding
-     +ImplStatements;
-    end
-  else
-    begin
-    ActualSrc:='';
-    ExpectedSrc:=ImplStatements;
-    end;
-  //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
-  //writeln('TCustomTestModule.CheckSource Expected: ',ExpectedSrc);
-
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
