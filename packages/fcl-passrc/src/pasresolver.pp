@@ -20259,12 +20259,12 @@ begin
     begin
     bt:=ParamResolved.BaseType;
     case bt of
-    btChar: if BaseTypeChar=btAnsiChar then aName:='tkChar' else aName:='tkWChar';
+    btChar: {$ifdef FPC_HAS_CPSTRING}if BaseTypeChar=btAnsiChar then aName:='tkChar' else {$ENDIF}aName:='tkWChar';
     {$ifdef FPC_HAS_CPSTRING}
     btAnsiChar: aName:='tkChar';
     {$endif}
-    btWideChar: aName:='tkWideChar';
-    btString: if BaseTypeString=btAnsiString then aName:='tkAString' else aName:='tkUString';
+    btWideChar: aName:='tkWChar';
+    btString: {$ifdef FPC_HAS_CPSTRING}if BaseTypeString=btAnsiString then aName:='tkAString' else {$ENDIF}aName:='tkUString';
     {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,
     btShortString,

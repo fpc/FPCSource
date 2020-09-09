@@ -98,32 +98,31 @@ var rtl = {
   m_initializing: 4, // running initialization
   m_initialized: 5,
 
-  module: function(module_name, intfuseslist, intfcode, impluseslist, implcode){
-    if (rtl.debug_load_units) rtl.debug('rtl.module name="'+module_name+'" intfuses='+intfuseslist+' impluses='+impluseslist+' hasimplcode='+rtl.isFunction(implcode));
+  module: function(module_name, intfuseslist, intfcode, impluseslist){
+    if (rtl.debug_load_units) rtl.debug('rtl.module name="'+module_name+'" intfuses='+intfuseslist+' impluses='+impluseslist);
     if (!rtl.hasString(module_name)) rtl.error('invalid module name "'+module_name+'"');
     if (!rtl.isArray(intfuseslist)) rtl.error('invalid interface useslist of "'+module_name+'"');
     if (!rtl.isFunction(intfcode)) rtl.error('invalid interface code of "'+module_name+'"');
     if (!(impluseslist==undefined) && !rtl.isArray(impluseslist)) rtl.error('invalid implementation useslist of "'+module_name+'"');
-    if (!(implcode==undefined) && !rtl.isFunction(implcode)) rtl.error('invalid implementation code of "'+module_name+'"');
 
     if (pas[module_name])
       rtl.error('module "'+module_name+'" is already registered');
 
-    var module = pas[module_name] = {
+    var r = Object.create(rtl.tSectionRTTI);
+    var module = r.$module = pas[module_name] = {
       $name: module_name,
       $intfuseslist: intfuseslist,
       $impluseslist: impluseslist,
       $state: rtl.m_loading,
       $intfcode: intfcode,
-      $implcode: implcode,
+      $implcode: null,
       $impl: null,
-      $rtti: Object.create(rtl.tSectionRTTI)
+      $rtti: r
     };
-    module.$rtti.$module = module;
-    if (implcode) module.$impl = {
-      $module: module,
-      $rtti: module.$rtti
-    };
+    if (impluseslist) module.$impl = {
+          $module: module,
+          $rtti: r
+        };
   },
 
   exitcode: 0,
@@ -353,6 +352,7 @@ var rtl = {
     if (isFunc){
       // create pascal class descendent from JS function
       c = Object.create(ancestor.prototype);
+      c.$ancestorfunc = ancestor;
     } else if (ancestor.$func){
       // create pascal class descendent from a pascal class descendent of a JS function
       isFunc = true;
@@ -397,7 +397,6 @@ var rtl = {
       function f(){}
       f.prototype = c;
       c.$func = f;
-      c.$ancestorfunc = ancestor;
     }
   },
 

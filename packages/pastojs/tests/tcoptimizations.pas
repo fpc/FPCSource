@@ -56,9 +56,9 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
-    // unit optimization: aliasglobals
+    // unit optimization: jsaliasglobals
     procedure TestOptAliasGlobals_Program;
-    procedure TestOptAliasGlobals_Unit; // ToDo
+    procedure TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
     // ToDo: external var, const, class
     // ToDo: RTTI
     // ToDo: typeinfo(var), typeinfo(type)
@@ -203,8 +203,11 @@ procedure TTestOptimizations.TestOptAliasGlobals_Program;
 begin
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
+    'type',
+    '  TColor = (red,green,blue);',
+    '  TColors = set of TColor;',
     'const',
-    '  cWidth = 17;',
+    '  cRedBlue = [red,blue];',
     'type',
     '  TBird = class',
     '  public',
@@ -221,7 +224,7 @@ begin
 
   StartProgram(true,[supTObject]);
   Add([
-  '{$optimization AliasGlobals}',
+  '{$optimization JSAliasGlobals}',
   'uses unita;',
   'type',
   '  TEagle = class(TBird)',
@@ -233,6 +236,7 @@ begin
   'var',
   '  e: TEagle;',
   '  r: TRec;',
+  '  c: TColors;',
   'begin',
   '  e:=TEagle.Create;',
   '  b:=TBird.Create;',
@@ -242,47 +246,44 @@ begin
   '  r.x:=e.Run;',
   '  r.x:=e.Run();',
   '  r.x:=e.Run(4);',
+  '  c:=cRedBlue;',
   '']);
   ConvertProgram;
   CheckSource('TestOptAliasGlobals_Program',
     LinesToStr([
-    'var $lmr = pas.UnitA;',
-    'var $ltr = $lmr.TBird;',
-    'var $ltr1 = $lmr.TRec;',
-    'rtl.createClass($mod, "TEagle", $ltr, function () {',
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TBird;',
+    'var $lt1 = $lm.TRec;',
+    'rtl.createClass($mod, "TEagle", $lt, function () {',
     '  this.Run = function (w) {',
     '    var Result = 0;',
     '    return Result;',
     '  };',
     '});',
     'this.e = null;',
-    'this.r = $ltr1.$new();',
+    'this.r = $lt1.$new();',
+    'this.c = {};',
     '']),
     LinesToStr([
     '$mod.e = $mod.TEagle.$create("Create");',
-    '$lmr.b = $ltr.$create("Create");',
-    '$ltr.c = $mod.e.c + 1;',
-    '$mod.r.x = $ltr.c;',
-    '$mod.r.x = $lmr.b.c;',
+    '$lm.b = $lt.$create("Create");',
+    '$lt.c = $mod.e.c + 1;',
+    '$mod.r.x = $lt.c;',
+    '$mod.r.x = $lm.b.c;',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(4);',
+    '$mod.c = rtl.refSet($lm.cRedBlue);',
     '']));
 end;
 
-procedure TTestOptimizations.TestOptAliasGlobals_Unit;
+procedure TTestOptimizations.TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
 begin
-  exit;
-
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
-    'const',
-    '  cWidth = 17;',
     'type',
     '  TBird = class',
-    '  public',
-    '    class var Span: word;',
-    '    class procedure Fly(w: word); virtual; abstract;',
+    '  public Speed: word;',
     '  end;',
     '  TRecA = record',
     '    x: word;',
@@ -293,16 +294,14 @@ begin
     '']));
   AddModuleWithIntfImplSrc('UnitB.pas',
   LinesToStr([
-    'const',
-    '  cHeight = 23;',
     'type',
     '  TAnt = class',
-    '  public',
-    '    class var Legs: word;',
-    '    class procedure Run(w: word); virtual; abstract;',
+    '  public Size: word;',
     '  end;',
     '  TRecB = record',
     '    y: word;',
+    '  end;',
+    '  TBear = class',
     '  end;',
     'var Ant: TAnt;',
     '']),
@@ -310,43 +309,87 @@ begin
     '']));
   StartUnit(true,[supTObject]);
   Add([
-  '{$optimization AliasGlobals}',
+  '{$optimization JSAliasGlobals}',
   'interface',
   'uses unita;',
   'type',
-  '  TEagle = class(TBird)',
-  '    class var EagleRec: TRecA;',
-  '    class procedure Fly(w: word = 5); override;',
+  '  TEagle = class(TBird)', // intf-JS to intf-uses
+  '    procedure Fly;',
   '  end;',
   'implementation',
   'uses unitb;',
   'type',
-  '  TRedAnt = class(TAnt)',
-  '    class var RedAntRecA: TRecA;',
-  '    class var RedAntRecB: TRecB;',
-  '    class procedure Run(w: word = 6); override;',
+  '  TRedAnt = class(TAnt)', // impl-JS to impl-uses
+  '    procedure Run;',
   '  end;',
-  'class procedure TEagle.Fly(w: word);',
+  'procedure TEagle.Fly;',
   'begin',
+  '  TRedAnt.Create;', // intf-JS to impl-JS
+  '  TAnt.Create;', // intf-JS to impl-uses
+  '  TBird.Create;', // intf-JS to intf-uses
+  '  TEagle.Create;', // intf-JS to intf-JS
   'end;',
-  'class procedure TRedAnt.Run(w: word);',
+  'procedure TRedAnt.Run;',
   'begin',
+  '  TRedAnt.Create;', // impl-JS to impl-JS
+  '  TAnt.Create;', // impl-JS to impl-uses
+  '  TBird.Create;', // impl-JS to intf-uses
+  '  TEagle.Create;', // impl-JS to intf-JS
+  '  TBear.Create', // only in impl-JS to impl-uses
   'end;',
   'var',
-  '  Eagle: TEagle;',
   '  RedAnt: TRedAnt;',
+  '  Ant: TAnt;',
+  '  Bird: TBird;',
+  '  Eagle: TEagle;',
   'initialization',
-  '  Eagle:=TEagle.Create;',
-  '  RedAnt:=TRedAnt.Create;',
-  '  Bird:=TBird.Create;',
-  '  Ant:=TAnt.Create;',
-  '  TRedAnt.RedAntRecA.x:=TRedAnt.RedAntRecB.y;',
+  '  RedAnt:=TRedAnt.Create;', // init to impl-JS
+  '  Ant:=TAnt.Create;', // init to impl-uses
+  '  Bird:=TBird.Create;', // init to intf-uses
+  '  Eagle:=TEagle.Create;', // init to intf-JS
+  '  Eagle.Fly;',
+  '  RedAnt.Run;',
   '']);
   ConvertUnit;
-  CheckSource('TestOptAliasGlobals_Unit',
+  CheckSource('TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl',
     LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TBird;',
+    'var $lm1 = pas.UnitB;',
+    'var $lt1 = $lm1.TAnt;',
+    'var $lt2 = $lm1.TBear;',
+    'rtl.createClass($mod, "TEagle", $lt, function () {',
+    '  this.Fly = function () {',
+    '    $impl.TRedAnt.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $mod.TEagle.$create("Create");',
+    '  };',
+    '});',
     '']),
     LinesToStr([
+    '$impl.RedAnt = $impl.TRedAnt.$create("Create");',
+    '$impl.Ant = $lt1.$create("Create");',
+    '$impl.Bird = $lt.$create("Create");',
+    '$impl.Eagle = $mod.TEagle.$create("Create");',
+    '$impl.Eagle.Fly();',
+    '$impl.RedAnt.Run();',
+    '']),
+    LinesToStr([
+    'rtl.createClass($impl, "TRedAnt", $lt1, function () {',
+    '  this.Run = function () {',
+    '    $impl.TRedAnt.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $mod.TEagle.$create("Create");',
+    '    $lt2.$create("Create");',
+    '  };',
+    '});',
+    '$impl.RedAnt = null;',
+    '$impl.Ant = null;',
+    '$impl.Bird = null;',
+    '$impl.Eagle = null;',
     '']));
 end;
 
