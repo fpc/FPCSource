@@ -247,6 +247,8 @@ const
        bmOncePerDataloop,bmOncePerPage,bmOncePerPage,bmOncePerPage,
        bmUnrestricted);
 
+  DefaultImageType = 'png';
+
 const
   cMMperInch = 25.4;
   cCMperInch = 2.54;
@@ -2090,10 +2092,12 @@ type
     FImage: TFPCustomImage;
     FStretched: boolean;
     FFieldName: TFPReportString;
+    FDBImageType : TFPReportString;
     FImageID: integer;
     procedure   SetImage(AValue: TFPCustomImage);
     procedure   SetStretched(AValue: boolean);
-    procedure   SetFieldName(AValue: TFPReportString);
+    procedure   SetFieldName(AValue: TFPReportString); 
+    procedure   SetDBImageType(AValue: TFPReportString);
     procedure   LoadDBData(AData: TFPReportData);
     procedure   SetImageID(AValue: integer);
     function    GetImage: TFPCustomImage;
@@ -2105,6 +2109,7 @@ type
     property    ImageID: integer read FImageID write SetImageID;
     property    Stretched: boolean read FStretched write SetStretched;
     property    FieldName: TFPReportString read FFieldName write SetFieldName;
+    property    DBImageType : TFPReportString read FDBImageType write SetDBImageType;
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
@@ -2126,6 +2131,7 @@ type
     property    ImageID;
     property    Stretched;
     property    FieldName;
+    property    DBImageType;
     property    OnBeforePrint;
   end;
 
@@ -5331,16 +5337,55 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomImage.SetDBImageType(AValue: TFPReportString);
+begin
+  if FDBImageType = AValue then
+    exit;
+  FDBImageType := AValue;
+  Changed;
+end;
+
+function TryVarByteArrayToStream(var AValue : Variant; Stream : TMemoryStream) : boolean;
+var
+  p : Pointer;
+  c : Integer;
+begin
+  Result := False;
+  if not VarIsArray(AValue) then
+    exit;
+  c := VarArrayHighBound(AValue,1) - VarArrayLowBound(AValue,1) + 1;
+  Result := (c > 0) and VarIsType(AValue[VarArrayLowBound(AValue,1)],varByte);
+  if not Result then
+    exit;
+  p := VarArrayLock(AValue);
+  try
+    Stream.SetSize(c);
+    Move(p^,Stream.Memory^,c);
+  finally
+    VarArrayUnlock(AValue);
+  end;
+end;
+
 procedure TFPReportCustomImage.LoadDBData(AData: TFPReportData);
 var
+  v : Variant;
   s: string;
   lStream: TMemoryStream;
+  irc : TFPCustomImageReaderClass;
 begin
-  s := AData.FieldValues[FFieldName];
+  v := AData.FieldValues[FFieldName];
   lStream := TMemoryStream.Create;
   try
-    FPReportMIMEEncodeStringToStream(s, lStream);
-    LoadPNGFromStream(lStream)
+    if not TryVarByteArrayToStream(v,lStream) then
+    begin
+      s := v;
+      FPReportMIMEEncodeStringToStream(s, lStream);
+    end;
+    s := Trim(DBImageType);
+    if (s = '') then
+      s := DefaultImageType;
+    irc := TFPCustomImage.FindReaderFromExtension(s);
+    LoadFromStream(lStream,irc);
   finally
     lStream.Free;
   end;
@@ -5389,7 +5434,8 @@ begin
   idx := TFPReportCustomBand(Parent).Page.Report.Images.GetIndexFromID(ImageID);
   AWriter.WriteInteger('ImageIndex', idx);
   AWriter.WriteBoolean('Stretched', Stretched);
-  AWriter.WriteString('FieldName', FieldName);
+  AWriter.WriteString('FieldName', FieldName);  
+  AWriter.WriteString('DBImageType', DBImageType);
 end;
 
 procedure TFPReportCustomImage.RecalcLayout;
@@ -5402,15 +5448,25 @@ function TFPReportCustomImage.PrepareObject(aRTParent: TFPReportElement): TFPRep
 Var
   Img : TFPReportCustomImage;
   B : TFPReportCustomBand;
+  D : TFPReportData;
 
 begin
   Result:=inherited PrepareObject(aRTParent);
   if Result=Nil then
     exit;
   img := TFPReportCustomImage(Result);
-  B:=artParent as TFPReportCustomBand;
-  if (img.FieldName <> '') and Assigned(B.GetData) then
-    img.LoadDBData(B.GetData);
+  if Assigned(Band) then
+    B := Band
+  else
+    B := artParent as TFPReportCustomBand;
+  if (img.FieldName <> '') then
+  begin
+    D := B.GetData;
+    if not(Assigned(D)) and Assigned(B.Page.Data) then
+      D := B.Page.Data;
+    if Assigned(D) then
+      img.LoadDBData(D);
+  end;
 end;
 
 constructor TFPReportCustomImage.Create(AOwner: TComponent);
@@ -5419,6 +5475,7 @@ begin
   FImage := nil;
   FStretched := False;
   FImageID := -1;
+  FDBImageType := DefaultImageType;
 end;
 
 destructor TFPReportCustomImage.Destroy;
@@ -5458,6 +5515,7 @@ begin
     end;
     FStretched := i.Stretched;
     FFieldName := i.FieldName;
+    FDBImageType := i.DBImageType;
     FImageID := i.ImageID;
   end;
 end;
@@ -5468,7 +5526,8 @@ begin
   { See code comments in DoWriteLocalProperties() }
   ImageID := AReader.ReadInteger('ImageIndex', -1);
   Stretched := AReader.ReadBoolean('Stretched', Stretched);
-  FieldName := AReader.ReadString('FieldName', FieldName);
+  FieldName := AReader.ReadString('FieldName', FieldName);  
+  DBImageType := AReader.ReadString('DBImageType', DBImageType);
 end;
 
 procedure TFPReportCustomImage.LoadFromFile(const AFileName: string);

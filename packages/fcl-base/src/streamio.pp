@@ -99,12 +99,15 @@ begin
         begin
         InOutFunc:=@StreamWrite;
         FlushFunc:=@StreamWrite;
-        if mode=fmAppend then
-          Try
-            GetStream(F).Seek(0,soFromEnd);
-          except
-            InOutRes:=156;
-          end;
+        if Mode=fmAppend then
+          begin 
+            Mode:=fmOutput; // see comments in text.inc  
+            Try
+              GetStream(F).Seek(0,soFromEnd);
+            except
+              InOutRes:=156;
+            end;
+          end;  
         end;
     end;
     end;
