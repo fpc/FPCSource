@@ -370,15 +370,18 @@ End.
 <pre>rtl.module('&lt;unitname&gt;',
   ['system',...other used units of the interface section...],
   function(){
+    var $mod = this;
+    var $impl = $mod.$impl;
     [interface section]
-    this.$init=function(){
+    $mod.$implcode = function(){
+      [implementation section]
+    }
+    $mod.$init = function(){
       [initialization section]
     };
   },
-  [...used units of the implementation section],
-  function(){
-    [implementation section]
-  }};
+  [...used units of the implementation section]
+  };
 </pre>
           </td>
         </tr>
@@ -429,18 +432,16 @@ function(){
   this.MyIntfProc = function(){
     $impl.dImpl = $mod.dIntf;
   };
-  this.$init = function() {
+  $mod.$implcode = function(){
+    $impl.dImpl = 0.0;
+    $impl.MyImplProc = function() {
+      $impl.dImpl = $mod.dIntf;
+    };
+  }
+  $mod.$init = function() {
   };
 },
-["Classes"],
-function(){
-  var $mod = this;
-  var $impl = $mod.$impl;
-  $impl.dImpl = 0.0;
-  $impl.MyImplProc = function() {
-    $impl.dImpl = $mod.dIntf;
-  };
-});
+["Classes"]);
 </pre>
           </td>
         </tr>
