@@ -660,10 +660,27 @@ implementation
                            inc(registerarea,4);
                      end;
 
-                  inc(localsize,registerarea);
+                  if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                    begin
+                      list.concat(tai_comment.Create(strpnew('Stackframe size was estimated before code generation due to stack parameters')));
+                      list.concat(tai_comment.Create(strpnew('  Calculated stackframe size: '+tostr(txtensaprocinfo(current_procinfo).stackframesize))));
+                      list.concat(tai_comment.Create(strpnew('  Max. outgoing parameter size: '+tostr(txtensaprocinfo(current_procinfo).maxpushedparasize))));
+                      list.concat(tai_comment.Create(strpnew('  End of last temporary location: '+tostr(tg.lasttemp))));
+                      list.concat(tai_comment.Create(strpnew('  Size of register area: '+tostr(registerarea))));
+                      list.concat(tai_comment.Create(strpnew('  Required size after code generation: '+tostr(localsize))));
+
+                      if localsize>txtensaprocinfo(current_procinfo).stackframesize then
+                        internalerror(2020091001);
+                      localsize:=txtensaprocinfo(current_procinfo).stackframesize;
+                    end
+                  else
+                    begin
+                      inc(localsize,registerarea);
+                      localsize:=align(localsize,current_settings.alignment.localalignmax);
+                    end;
+
                   if LocalSize<>0 then
                     begin
-                      localsize:=align(localsize,current_settings.alignment.localalignmax);
                       a_reg_alloc(list,NR_STACK_POINTER_REG);
                       list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-localsize));
                     end;
@@ -785,11 +802,16 @@ implementation
                          if r in regs then
                            inc(registerarea,4);
                      end;
-                  inc(localsize,registerarea);
+
+                  { do we use then estimated stack size? }
+                  if not(stack_parameters and (pi_estimatestacksize in current_procinfo.flags)) then
+                    begin
+                      inc(localsize,registerarea);
+                      localsize:=align(localsize,current_settings.alignment.localalignmax);
+                    end;
 
                   if LocalSize<>0 then
                     begin
-                      localsize:=align(localsize,current_settings.alignment.localalignmax);
                       // Determine reference mode required to access stack
                       reference_reset(ref,4,[]);
                       ref.base:=NR_STACK_POINTER_REG;
@@ -798,8 +820,7 @@ implementation
                         begin
                           if ref.offset<=1024+32512 then
                             begin
-                              // allocation done in proc_entry
-                              //list.concat(taicpu.op_reg_reg_const(A_ADDMI,NR_A8,NR_STACK_POINTER_REG,ref.offset and $fffffc00));
+                              list.concat(taicpu.op_reg_reg_const(A_ADDMI,NR_A8,NR_STACK_POINTER_REG,ref.offset and $fffffc00));
                               ref.offset:=ref.offset and $3ff;
                               ref.base:=NR_A8;
                             end

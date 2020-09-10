@@ -41,6 +41,7 @@ unit cpupara;
          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          function ret_in_param(def: tdef; pd: tabstractprocdef): boolean;override;
+         function param_use_paraloc(const cgpara: tcgpara): boolean;override;
        private
          { the max. register depends on the used call instruction }
          maxintreg : TSuperRegister;
@@ -102,6 +103,16 @@ unit cpupara;
           else
             internalerror(2020082501);
         end;
+      end;
+
+
+    function tcpuparamanager.param_use_paraloc(const cgpara: tcgpara): boolean;
+      begin
+        { we always set up a stack frame -> we can always access the parameters
+          this way }
+        result:=
+          (cgpara.location^.loc=LOC_REFERENCE) and
+          not assigned(cgpara.location^.next);
       end;
 
 
