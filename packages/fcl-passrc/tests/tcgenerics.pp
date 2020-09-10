@@ -9,7 +9,7 @@ uses
 
 Type
 
-  { TTestGenerics }
+  { TTestGenerics - for resolver see unit tcresolvegenerics }
 
   TTestGenerics = Class(TBaseTestTypeParser)
   Published

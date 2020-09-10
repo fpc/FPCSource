@@ -1758,8 +1758,8 @@ type
       MaxCount: integer; RaiseOnError: boolean; Signature: string = ''): integer;
     function CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
-    function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
-    function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
+    function FindUsedUnitnameInSection(const aName: string; Section: TPasSection): TPasModule;
+    function FindUsedUnitname(const aName: string; aMod: TPasModule): TPasModule;
     procedure FinishAssertCall(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
     function FindSystemClassType(const aUnitName, aClassName: string;
@@ -2366,7 +2366,9 @@ type
     function GetCombinedBaseType(const A, B: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
+    function GetFirstSection(WithUnitImpl: boolean): TPasSection;
     function GetLastSection: TPasSection;
+    function FindUsedUnitInSection(aMod: TPasModule; Section: TPasSection): TPasUsesUnit;
     function GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
       isLoFunc: Boolean; out Mask: LongWord): Integer;
   public
@@ -14792,7 +14794,7 @@ begin
   Result:=cIncompatible;
 end;
 
-function TPasResolver.FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
+function TPasResolver.FindUsedUnitnameInSection(const aName: string; Section: TPasSection): TPasModule;
 var
   Clause: TPasUsesClause;
   i: Integer;
@@ -14812,20 +14814,20 @@ begin
     end;
 end;
 
-function TPasResolver.FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
+function TPasResolver.FindUsedUnitname(const aName: string; aMod: TPasModule): TPasModule;
 var
   C: TClass;
 begin
   C:=aMod.ClassType;
   if C.InheritsFrom(TPasProgram) then
-    Result:=FindUsedUnitInSection(aName,TPasProgram(aMod).ProgramSection)
+    Result:=FindUsedUnitnameInSection(aName,TPasProgram(aMod).ProgramSection)
   else if C.InheritsFrom(TPasLibrary) then
-    Result:=FindUsedUnitInSection(aName,TPasLibrary(aMod).LibrarySection)
+    Result:=FindUsedUnitnameInSection(aName,TPasLibrary(aMod).LibrarySection)
   else
     begin
-    Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
+    Result:=FindUsedUnitnameInSection(aName,aMod.InterfaceSection);
     if Result<>nil then exit;
-    Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
+    Result:=FindUsedUnitnameInSection(aName,aMod.ImplementationSection);
     end
 end;
 
@@ -14862,7 +14864,7 @@ begin
 
   // find unit in uses clauses
   aMod:=RootElement;
-  UtilsMod:=FindUsedUnit(aUnitName,aMod);
+  UtilsMod:=FindUsedUnitname(aUnitName,aMod);
   if UtilsMod=nil then
     if ErrorEl<>nil then
       RaiseIdentifierNotFound(20200523224738,'unit '+aUnitName,ErrorEl)
@@ -15020,7 +15022,7 @@ begin
   if Result<>nil then exit;
 
   // find unit in uses clauses
-  UtilsMod:=FindUsedUnit('system',aMod);
+  UtilsMod:=FindUsedUnitname('system',aMod);
   if UtilsMod=nil then
     RaiseIdentifierNotFound(20190215101210,'System.TVarRec',ErrorEl);
 
@@ -16411,10 +16413,7 @@ var
       writeln('InsertBehind Generic=',GetObjName(GenericEl),' Last=',GetObjName(Last));
       //for i:=0 to List.Count-1 do writeln('  ',GetObjName(TObject(List[i])));
       {$ENDIF}
-      if GenericEl is TPasProcedure then
-        i:=List.Count-1
-      else
-        RaiseNotYetImplemented(20190826150507,El);
+      i:=List.Count-1;
       end;
     List.Insert(i+1,NewEl);
   end;
@@ -25130,7 +25129,7 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
           Result:=Result+'<';
           for i:=0 to length(Params)-1 do
             begin
-            Result:=Result+GetTypeDescription(Params[i]);
+            Result:=Result+GetTypeDescription(Params[i],AddPath);
             if i>0 then
               Result:=Result+',';
             end;
@@ -28035,7 +28034,7 @@ var
 begin
   Result:=false;
   if aClass=nil then exit;
-  while (aClass<>nil) and aClass.IsExternal do
+  while aClass<>nil do
     begin
     if aClass.ExternalName=ExtName then exit(true);
     AncestorScope:=(aClass.CustomData as TPasClassScope).AncestorScope;
@@ -29156,6 +29155,25 @@ begin
     Result:=nil;
 end;
 
+function TPasResolver.GetFirstSection(WithUnitImpl: boolean): TPasSection;
+var
+  Module: TPasModule;
+begin
+  Result:=nil;
+  Module:=RootElement;
+  if Module=nil then exit;
+  if Module is TPasProgram then
+    Result:=TPasProgram(Module).ProgramSection
+  else if Module is TPasLibrary then
+    Result:=TPasLibrary(Module).LibrarySection
+  else
+    begin
+    Result:=Module.InterfaceSection;
+    if WithUnitImpl and (Result=nil) then
+      Result:=Module.ImplementationSection;
+    end;
+end;
+
 function TPasResolver.GetLastSection: TPasSection;
 var
   Module: TPasModule;
@@ -29171,6 +29189,19 @@ begin
     Result:=Module.ImplementationSection
   else
     Result:=Module.InterfaceSection;
+end;
+
+function TPasResolver.FindUsedUnitInSection(aMod: TPasModule;
+  Section: TPasSection): TPasUsesUnit;
+var
+  Clause: TPasUsesClause;
+  i: Integer;
+begin
+  Result:=nil;
+  if Section=nil then exit;
+  Clause:=Section.UsesClause;
+  for i:=0 to length(Clause)-1 do
+    if Clause[i].Module=aMod then exit(Clause[i]);
 end;
 
 function TPasResolver.GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;

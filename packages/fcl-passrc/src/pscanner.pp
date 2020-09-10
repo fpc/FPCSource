@@ -821,6 +821,8 @@ type
     procedure HandleMessageDirective(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleResource(Param : string); virtual;
+    procedure HandleOptimizations(Param : string); virtual;
+    procedure DoHandleOptimization(OptName, OptValue: string); virtual;
 
     procedure HandleUnDefine(Param: String); virtual;
 
@@ -3416,6 +3418,47 @@ begin
   end;
 end;
 
+procedure TPascalScanner.HandleOptimizations(Param: string);
+// $optimization A,B-,C+
+var
+  p, StartP, l: Integer;
+  OptName, Value: String;
+begin
+  p:=1;
+  l:=length(Param);
+  while p<=l do
+    begin
+    // read next flag
+    // skip whitespace
+    while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
+      inc(p);
+    // read name
+    StartP:=p;
+    while (p<=l) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
+      inc(p);
+    if p=StartP then
+      Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization']);
+    OptName:=copy(Param,StartP,p-StartP);
+    // skip whitespace
+    while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
+      inc(p);
+    // read value
+    StartP:=p;
+    while (p<=l) and (Param[p]<>',') do
+      inc(p);
+    Value:=TrimRight(copy(Param,StartP,p-StartP));
+    DoHandleOptimization(OptName,Value);
+    inc(p);
+    end;
+end;
+
+procedure TPascalScanner.DoHandleOptimization(OptName, OptValue: string);
+begin
+  // default: skip any optimization directive
+  if OptName='' then ;
+  if OptValue='' then ;
+end;
+
 function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
 
 Var
@@ -4010,66 +4053,68 @@ begin
       Handled:=true;
       Param:=Trim(Param);
       Case UpperCase(Directive) of
-        'ASSERTIONS':
-          DoBoolDirective(bsAssertions);
-        'DEFINE':
-          HandleDefine(Param);
-        'GOTO':
-          DoBoolDirective(bsGoto);
-        'DIRECTIVEFIELD':
-          HandleDispatchField(Param,vsDispatchField);
-        'DIRECTIVESTRFIELD':
-          HandleDispatchField(Param,vsDispatchStrField);
-        'ERROR':
-          HandleError(Param);
-        'HINT':
-          DoLog(mtHint,nUserDefined,SUserDefined,[Param]);
-        'HINTS':
-          DoBoolDirective(bsHints);
-        'I','INCLUDE':
-          Result:=HandleInclude(Param);
-        'INTERFACES':
-          HandleInterfaces(Param);
-        'LONGSTRINGS':
-          DoBoolDirective(bsLongStrings);
-        'MACRO':
-          DoBoolDirective(bsMacro);
-        'MESSAGE':
-          HandleMessageDirective(Param);
-        'MODE':
-          HandleMode(Param);
-        'MODESWITCH':
-          HandleModeSwitch(Param);
-        'NOTE':
-          DoLog(mtNote,nUserDefined,SUserDefined,[Param]);
-        'NOTES':
-          DoBoolDirective(bsNotes);
-        'OBJECTCHECKS':
-          DoBoolDirective(bsObjectChecks);
-        'OVERFLOWCHECKS','OV':
-          DoBoolDirective(bsOverflowChecks);
-        'POINTERMATH':
-          DoBoolDirective(bsPointerMath);
-        'R' :
-          HandleResource(Param);
-        'RANGECHECKS':
-          DoBoolDirective(bsRangeChecks);
-        'SCOPEDENUMS':
-          DoBoolDirective(bsScopedEnums);
-        'TYPEDADDRESS':
-          DoBoolDirective(bsTypedAddress);
-        'TYPEINFO':
-          DoBoolDirective(bsTypeInfo);
-        'UNDEF':
-          HandleUnDefine(Param);
-        'WARN':
-          HandleWarn(Param);
-        'WARNING':
-          DoLog(mtWarning,nUserDefined,SUserDefined,[Param]);
-        'WARNINGS':
-          DoBoolDirective(bsWarnings);
-        'WRITEABLECONST':
-          DoBoolDirective(bsWriteableConst);
+      'ASSERTIONS':
+        DoBoolDirective(bsAssertions);
+      'DEFINE':
+        HandleDefine(Param);
+      'GOTO':
+        DoBoolDirective(bsGoto);
+      'DIRECTIVEFIELD':
+        HandleDispatchField(Param,vsDispatchField);
+      'DIRECTIVESTRFIELD':
+        HandleDispatchField(Param,vsDispatchStrField);
+      'ERROR':
+        HandleError(Param);
+      'HINT':
+        DoLog(mtHint,nUserDefined,SUserDefined,[Param]);
+      'HINTS':
+        DoBoolDirective(bsHints);
+      'I','INCLUDE':
+        Result:=HandleInclude(Param);
+      'INTERFACES':
+        HandleInterfaces(Param);
+      'LONGSTRINGS':
+        DoBoolDirective(bsLongStrings);
+      'MACRO':
+        DoBoolDirective(bsMacro);
+      'MESSAGE':
+        HandleMessageDirective(Param);
+      'MODE':
+        HandleMode(Param);
+      'MODESWITCH':
+        HandleModeSwitch(Param);
+      'NOTE':
+        DoLog(mtNote,nUserDefined,SUserDefined,[Param]);
+      'NOTES':
+        DoBoolDirective(bsNotes);
+      'OBJECTCHECKS':
+        DoBoolDirective(bsObjectChecks);
+      'OPTIMIZATION':
+        HandleOptimizations(Param);
+      'OVERFLOWCHECKS','OV':
+        DoBoolDirective(bsOverflowChecks);
+      'POINTERMATH':
+        DoBoolDirective(bsPointerMath);
+      'R' :
+        HandleResource(Param);
+      'RANGECHECKS':
+        DoBoolDirective(bsRangeChecks);
+      'SCOPEDENUMS':
+        DoBoolDirective(bsScopedEnums);
+      'TYPEDADDRESS':
+        DoBoolDirective(bsTypedAddress);
+      'TYPEINFO':
+        DoBoolDirective(bsTypeInfo);
+      'UNDEF':
+        HandleUnDefine(Param);
+      'WARN':
+        HandleWarn(Param);
+      'WARNING':
+        DoLog(mtWarning,nUserDefined,SUserDefined,[Param]);
+      'WARNINGS':
+        DoBoolDirective(bsWarnings);
+      'WRITEABLECONST':
+        DoBoolDirective(bsWriteableConst);
       else
         Handled:=false;
       end;

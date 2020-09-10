@@ -267,6 +267,7 @@ type
     Procedure TestIntegerTypecasts;
     Procedure TestInteger_BitwiseShrNativeInt;
     Procedure TestInteger_BitwiseShlNativeInt;
+    Procedure TestInteger_SystemFunc;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -475,8 +476,6 @@ type
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
     Procedure TestRecord_AnonymousFail;
-    // ToDo: RTTI of local record
-    // ToDo: pcu local record, name clash and rtti
 
     // advanced record
     Procedure TestAdvRecord_Function;
@@ -610,6 +609,7 @@ type
     Procedure TestExternalClass_NewInstance_NonVirtualFail;
     Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
+    Procedure TestExternalClass_JSFunctionPasDescendant;
     Procedure TestExternalClass_PascalProperty;
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastToJSObject;
@@ -3645,12 +3645,12 @@ begin
     LinesToStr([ // statements
     'this.Func1 = function (a) {',
     '  var Result = 0;',
-    '  for (var $l1 = rtl.length(a) - 1; $l1 >= 0; $l1--) {',
-    '    Result = $l1;',
+    '  for (var $l = rtl.length(a) - 1; $l >= 0; $l--) {',
+    '    Result = $l;',
     '    if (a[Result] === 0) return Result;',
     '  };',
-    '  for (var $in2 = a, $l3 = 0, $end4 = rtl.length($in2) - 1; $l3 <= $end4; $l3++) {',
-    '    Result = $in2[$l3];',
+    '  for (var $in = a, $l1 = 0, $end = rtl.length($in) - 1; $l1 <= $end; $l1++) {',
+    '    Result = $in[$l1];',
     '    if (a[Result] === 0) return Result;',
     '  };',
     '  return Result;',
@@ -4865,9 +4865,9 @@ begin
     'this.bird = null;',
     '']),
     LinesToStr([
-    'var $with1 = $mod.bird;',
+    'var $with = $mod.bird;',
     '$mod.p = function (w) {',
-    '  $with1.b = w > 2;',
+    '  $with.b = w > 2;',
     '};',
     '']));
 end;
@@ -5460,8 +5460,8 @@ begin
     '  for ($mod.e = 1; $mod.e <= 2; $mod.e++) ;',
     '  for ($mod.e = 0; $mod.e <= 2; $mod.e++) ;',
     '  for ($mod.e = 1; $mod.e <= 2; $mod.e++) ;',
-    '  for (var $in1 = $mod.a1, $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.b = $in1[$l2];',
-    '  for (var $in4 = $mod.a2, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.b = $in4[$l5];',
+    '  for (var $in = $mod.a1, $l = 0, $end = rtl.length($in) - 1; $l <= $end; $l++) $mod.b = $in[$l];',
+    '  for (var $in1 = $mod.a2, $l1 = 0, $end1 = rtl.length($in1) - 1; $l1 <= $end1; $l1++) $mod.b = $in1[$l1];',
     '']));
 end;
 
@@ -6315,8 +6315,8 @@ begin
     'for ($mod.e = 0; $mod.e <= 1; $mod.e++) $mod.e2 = $mod.e;',
     'for ($mod.e = 1; $mod.e <= 2; $mod.e++) $mod.e2 = $mod.e;',
     'for ($mod.e in rtl.createSet($mod.TEnum.Red, $mod.TEnum.Blue)) $mod.e2 = $mod.e;',
-    'for (var $l1 in $mod.s){',
-    '  $mod.e = +$l1;',
+    'for (var $l in $mod.s){',
+    '  $mod.e = +$l;',
     '  $mod.e2 = $mod.e;',
     '};',
     'for ($mod.er = 1; $mod.er <= 2; $mod.er++) ;',
@@ -6893,6 +6893,40 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestInteger_SystemFunc;
+begin
+  StartProgram(true);
+  Add([
+  'var',
+  '  i: byte;',
+  '  s: string;',
+  'begin',
+  '  system.inc(i);',
+  '  system.str(i,s);',
+  '  s:=system.str(i);',
+  '  i:=system.low(i);',
+  '  i:=system.high(i);',
+  '  i:=system.pred(i);',
+  '  i:=system.succ(i);',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints;
+  CheckSource('TestInteger_SystemFunc',
+    LinesToStr([
+    'this.i = 0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    '$mod.i += 1;',
+    '$mod.s = "" + $mod.i;',
+    '$mod.s = "" + $mod.i;',
+    '$mod.i = 0;',
+    '$mod.i = 255;',
+    '$mod.i = $mod.i - 1;',
+    '$mod.i = $mod.i + 1;',
+    '']));
+end;
+
 procedure TTestModule.TestCurrency;
 begin
   StartProgram(false);
@@ -7046,9 +7080,9 @@ begin
     LinesToStr([ // statements
     'this.b = false;']),
     LinesToStr([ // this.$main
-    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 !== 0;',
-    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 !== 0;',
-    'for (var $l3 = 0; $l3 <= 1; $l3++) $mod.b = $l3 !== 0;',
+    'for (var $l = 0; $l <= 1; $l++) $mod.b = $l !== 0;',
+    'for (var $l1 = +$mod.b; $l1 >= 0; $l1--) $mod.b = $l1 !== 0;',
+    'for (var $l2 = 0; $l2 <= 1; $l2++) $mod.b = $l2 !== 0;',
     '']));
 end;
 
@@ -7068,8 +7102,8 @@ begin
     'this.i = 0;']),
     LinesToStr([ // this.$main
     'for ($mod.i = 3; $mod.i <= 5; $mod.i++) ;',
-    'for (var $l1 = $mod.i; $l1 >= 2; $l1--) $mod.i = $l1;',
-    'for (var $l2 = 0; $l2 <= 255; $l2++) $mod.i = $l2;',
+    'for (var $l = $mod.i; $l >= 2; $l--) $mod.i = $l;',
+    'for (var $l1 = 0; $l1 <= 255; $l1++) $mod.i = $l1;',
     '']));
 end;
 
@@ -7114,21 +7148,21 @@ begin
     'this.ir = 0;',
     '']),
     LinesToStr([ // this.$main
-    'for (var $l1 = 0; $l1 <= 255; $l1++) $mod.i = $l1;',
-    'for (var $in2 = $mod.a1, $l3 = 0, $end4 = rtl.length($in2) - 1; $l3 <= $end4; $l3++) $mod.i = $in2[$l3];',
-    'for (var $in5 = $mod.a2, $l6 = 0, $end7 = rtl.length($in5) - 1; $l6 <= $end7; $l6++) $mod.i = $in5[$l6];',
-    'for (var $l8 = 11; $l8 <= 13; $l8++) $mod.i = $l8;',
-    'for (var $l9 = 0; $l9 <= 255; $l9++) $mod.i = $l9;',
-    'for (var $l10 = 3; $l10 <= 7; $l10++) $mod.i = $l10;',
-    'for (var $l11 in $mod.soi) {',
-    '  $mod.i = +$l11;',
+    'for (var $l = 0; $l <= 255; $l++) $mod.i = $l;',
+    'for (var $in = $mod.a1, $l1 = 0, $end = rtl.length($in) - 1; $l1 <= $end; $l1++) $mod.i = $in[$l1];',
+    'for (var $in1 = $mod.a2, $l2 = 0, $end1 = rtl.length($in1) - 1; $l2 <= $end1; $l2++) $mod.i = $in1[$l2];',
+    'for (var $l3 = 11; $l3 <= 13; $l3++) $mod.i = $l3;',
+    'for (var $l4 = 0; $l4 <= 255; $l4++) $mod.i = $l4;',
+    'for (var $l5 = 3; $l5 <= 7; $l5++) $mod.i = $l5;',
+    'for (var $l6 in $mod.soi) {',
+    '  $mod.i = +$l6;',
     '  $mod.i2 = $mod.i;',
     '};',
-    'for (var $l12 = 3; $l12 <= 7; $l12++) $mod.i = $l12;',
-    'for (var $l13 in $mod.soir) $mod.i = +$l13;',
-    'for (var $l14 = 3; $l14 <= 7; $l14++) $mod.ir = $l14;',
-    'for (var $l15 = 3; $l15 <= 7; $l15++) $mod.ir = $l15;',
-    'for (var $l16 in $mod.soir) $mod.ir = +$l16;',
+    'for (var $l7 = 3; $l7 <= 7; $l7++) $mod.i = $l7;',
+    'for (var $l8 in $mod.soir) $mod.i = +$l8;',
+    'for (var $l9 = 3; $l9 <= 7; $l9++) $mod.ir = $l9;',
+    'for (var $l10 = 3; $l10 <= 7; $l10++) $mod.ir = $l10;',
+    'for (var $l11 in $mod.soir) $mod.ir = +$l11;',
     '']));
 end;
 
@@ -7640,9 +7674,9 @@ begin
     LinesToStr([ // statements
     'this.c = "";']),
     LinesToStr([ // this.$main
-    'for (var $l1 = 97; $l1 <= 99; $l1++) $mod.c = String.fromCharCode($l1);',
-    'for (var $l2 = $mod.c.charCodeAt(); $l2 >= 97; $l2--) $mod.c = String.fromCharCode($l2);',
-    'for (var $l3 = 1041; $l3 <= 1071; $l3++) $mod.c = String.fromCharCode($l3);',
+    'for (var $l = 97; $l <= 99; $l++) $mod.c = String.fromCharCode($l);',
+    'for (var $l1 = $mod.c.charCodeAt(); $l1 >= 97; $l1--) $mod.c = String.fromCharCode($l1);',
+    'for (var $l2 = 1041; $l2 <= 1071; $l2++) $mod.c = String.fromCharCode($l2);',
     '']));
 end;
 
@@ -7693,23 +7727,23 @@ begin
     'this.cr = "a";',
     '']),
     LinesToStr([ // this.$main
-    'for (var $in1 = $mod.Foo, $l2 = 0, $end3 = $in1.length - 1; $l2 <= $end3; $l2++) $mod.c = $in1.charAt($l2);',
-    'for (var $in4 = $mod.s, $l5 = 0, $end6 = $in4.length - 1; $l5 <= $end6; $l5++) $mod.c = $in4.charAt($l5);',
-    'for (var $l7 = 0; $l7 <= 65535; $l7++) $mod.c = String.fromCharCode($l7);',
-    'for (var $in8 = $mod.a1, $l9 = 0, $end10 = rtl.length($in8) - 1; $l9 <= $end10; $l9++) $mod.c = $in8[$l9];',
-    'for (var $in11 = $mod.a2, $l12 = 0, $end13 = rtl.length($in11) - 1; $l12 <= $end13; $l12++) $mod.c = $in11[$l12];',
-    'for (var $l14 = 49; $l14 <= 51; $l14++) $mod.c = String.fromCharCode($l14);',
-    'for (var $l15 = 0; $l15 <= 65535; $l15++) $mod.c = String.fromCharCode($l15);',
-    'for (var $l16 = 97; $l16 <= 122; $l16++) $mod.c = String.fromCharCode($l16);',
-    'for (var $l17 in $mod.soc) {',
-    '  $mod.c = String.fromCharCode($l17);',
+    'for (var $in = $mod.Foo, $l = 0, $end = $in.length - 1; $l <= $end; $l++) $mod.c = $in.charAt($l);',
+    'for (var $in1 = $mod.s, $l1 = 0, $end1 = $in1.length - 1; $l1 <= $end1; $l1++) $mod.c = $in1.charAt($l1);',
+    'for (var $l2 = 0; $l2 <= 65535; $l2++) $mod.c = String.fromCharCode($l2);',
+    'for (var $in2 = $mod.a1, $l3 = 0, $end2 = rtl.length($in2) - 1; $l3 <= $end2; $l3++) $mod.c = $in2[$l3];',
+    'for (var $in3 = $mod.a2, $l4 = 0, $end3 = rtl.length($in3) - 1; $l4 <= $end3; $l4++) $mod.c = $in3[$l4];',
+    'for (var $l5 = 49; $l5 <= 51; $l5++) $mod.c = String.fromCharCode($l5);',
+    'for (var $l6 = 0; $l6 <= 65535; $l6++) $mod.c = String.fromCharCode($l6);',
+    'for (var $l7 = 97; $l7 <= 122; $l7++) $mod.c = String.fromCharCode($l7);',
+    'for (var $l8 in $mod.soc) {',
+    '  $mod.c = String.fromCharCode($l8);',
     '  $mod.c2 = $mod.c;',
     '};',
-    'for (var $l18 = 97; $l18 <= 122; $l18++) $mod.c = String.fromCharCode($l18);',
-    'for (var $l19 in $mod.socr) $mod.c = String.fromCharCode($l19);',
-    'for (var $l20 = 97; $l20 <= 122; $l20++) $mod.cr = String.fromCharCode($l20);',
-    'for (var $l21 = 97; $l21 <= 122; $l21++) $mod.cr = String.fromCharCode($l21);',
-    'for (var $l22 in $mod.socr) $mod.cr = String.fromCharCode($l22);',
+    'for (var $l9 = 97; $l9 <= 122; $l9++) $mod.c = String.fromCharCode($l9);',
+    'for (var $l10 in $mod.socr) $mod.c = String.fromCharCode($l10);',
+    'for (var $l11 = 97; $l11 <= 122; $l11++) $mod.cr = String.fromCharCode($l11);',
+    'for (var $l12 = 97; $l12 <= 122; $l12++) $mod.cr = String.fromCharCode($l12);',
+    'for (var $l13 in $mod.socr) $mod.cr = String.fromCharCode($l13);',
     '']));
 end;
 
@@ -7859,8 +7893,8 @@ begin
     LinesToStr([ // this.$main
     '  $mod.vJ = 0;',
     '  $mod.vN = 3;',
-    '  for (var $l1 = 1, $end2 = $mod.vN; $l1 <= $end2; $l1++) {',
-    '    $mod.vI = $l1;',
+    '  for (var $l = 1, $end = $mod.vN; $l <= $end; $l++) {',
+    '    $mod.vI = $l;',
     '    $mod.vJ = $mod.vJ + $mod.vI;',
     '  };',
     '']));
@@ -7889,8 +7923,8 @@ begin
     '  var vI = 0;',
     '  var vJ = 0;',
     '  vJ = 0;',
-    '  for (var $l1 = 1, $end2 = Count; $l1 <= $end2; $l1++) {',
-    '    vI = $l1;',
+    '  for (var $l = 1, $end = Count; $l <= $end; $l++) {',
+    '    vI = $l;',
     '    vJ = vJ + vI;',
     '  };',
     '  return Result;',
@@ -7947,10 +7981,10 @@ begin
     '  var vJ = 0;',
     '  var vK = 0;',
     '  vK = 0;',
-    '  for (var $l1 = 1, $end2 = Count; $l1 <= $end2; $l1++) {',
-    '    vI = $l1;',
-    '    for (var $l3 = 1, $end4 = vI; $l3 <= $end4; $l3++) {',
-    '      vJ = $l3;',
+    '  for (var $l = 1, $end = Count; $l <= $end; $l++) {',
+    '    vI = $l;',
+    '    for (var $l1 = 1, $end1 = vI; $l1 <= $end1; $l1++) {',
+    '      vJ = $l1;',
     '      vK = vK + vI;',
     '    };',
     '  };',
@@ -8282,11 +8316,11 @@ begin
     'this.vI = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.vI;',
-    'if ($tmp1 === 1) {}',
-    'else if ($tmp1 === 2) {',
+    'var $tmp = $mod.vI;',
+    'if ($tmp === 1) {}',
+    'else if ($tmp === 2) {',
     '  $mod.vI = 3}',
-    ' else if ($tmp1 === $e) {}',
+    ' else if ($tmp === $e) {}',
     'else {',
     '  $mod.vI = 4;',
     '};'
@@ -8337,8 +8371,8 @@ begin
     'this.Vi = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.Vi;',
-    'if ($tmp1 === 1) {',
+    'var $tmp = $mod.Vi;',
+    'if ($tmp === 1) {',
     '  $mod.Vi = 2;',
     '  $mod.Vi = 3;',
     '};'
@@ -8386,12 +8420,12 @@ begin
     'this.vI = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.vI;',
-    'if (($tmp1 >= 1) && ($tmp1 <= 3)){',
+    'var $tmp = $mod.vI;',
+    'if (($tmp >= 1) && ($tmp <= 3)){',
     '  $mod.vI = 14',
-    '} else if (($tmp1 === 4) || ($tmp1 === 5)){',
+    '} else if (($tmp === 4) || ($tmp === 5)){',
     '  $mod.vI = 16',
-    '} else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
+    '} else if ((($tmp >= 6) && ($tmp <= 7)) || (($tmp >= 9) && ($tmp <= 10))) ;'
     ]));
 end;
 
@@ -8415,13 +8449,13 @@ begin
     'this.h = "";',
     '']),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.s;',
-    'if ($tmp1 === "foo") {',
+    'var $tmp = $mod.s;',
+    'if ($tmp === "foo") {',
     '  $mod.s = $mod.h}',
-    ' else if (($tmp1.length === 1) && ($tmp1 >= "a") && ($tmp1 <= "z")) {',
+    ' else if (($tmp.length === 1) && ($tmp >= "a") && ($tmp <= "z")) {',
     '  $mod.h = $mod.s}',
-    ' else if (($tmp1 === "ў") || ($tmp1 === "ё")) {}',
-    ' else if (($tmp1.length === 1) && ($tmp1 >= "Б") && ($tmp1 <= "Я")) ;',
+    ' else if (($tmp === "ў") || ($tmp === "ё")) {}',
+    ' else if (($tmp.length === 1) && ($tmp >= "Б") && ($tmp <= "Я")) ;',
     '']));
 end;
 
@@ -8445,12 +8479,12 @@ begin
     'this.h = "";',
     '']),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.s;',
-    'if (($tmp1 >= "a") && ($tmp1 <= "z")) {',
+    'var $tmp = $mod.s;',
+    'if (($tmp >= "a") && ($tmp <= "z")) {',
     '  $mod.h = $mod.s}',
-    ' else if ($tmp1 === "ä") {}',
-    ' else if (($tmp1 === "ў") || ($tmp1 === "ё")) {}',
-    ' else if (($tmp1 >= "Б") && ($tmp1 <= "Я")) ;',
+    ' else if ($tmp === "ä") {}',
+    ' else if (($tmp === "ў") || ($tmp === "ё")) {}',
+    ' else if (($tmp >= "Б") && ($tmp <= "Я")) ;',
     '']));
 end;
 
@@ -8475,10 +8509,10 @@ begin
     'this.vI = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $tmp1 = $mod.vI;',
-    'if ($tmp1 === 1) {',
+    'var $tmp = $mod.vI;',
+    'if ($tmp === 1) {',
     '  $mod.vI = 3}',
-    ' else if ($tmp1 === Bird.e) ;'
+    ' else if ($tmp === Bird.e) ;'
     ]));
 end;
 
@@ -9547,8 +9581,8 @@ begin
     'this.DoIt = function (a) {',
     '  var i = 0;',
     '  var s = "";',
-    '  for (var $l1 = 0, $end2 = rtl.length(a) - 1; $l1 <= $end2; $l1++) {',
-    '    i = $l1;',
+    '  for (var $l = 0, $end = rtl.length(a) - 1; $l <= $end; $l++) {',
+    '    i = $l;',
     '    s = a[rtl.length(a) - i - 1];',
     '  };',
     '};',
@@ -10208,9 +10242,9 @@ begin
     'this.i = 0;',
     '']),
     LinesToStr([ // $mod.$main
-    'for (var $in1 = $mod.f.GetLongMonthNames(), $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.Month = $in1[$l2];',
-    'for (var $in4 = $mod.Names, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.Month = $in4[$l5];',
-    'for (var $l7 = 0, $end8 = rtl.length($mod.Names) - 1; $l7 <= $end8; $l7++) $mod.i = $l7;',
+    'for (var $in = $mod.f.GetLongMonthNames(), $l = 0, $end = rtl.length($in) - 1; $l <= $end; $l++) $mod.Month = $in[$l];',
+    'for (var $in1 = $mod.Names, $l1 = 0, $end1 = rtl.length($in1) - 1; $l1 <= $end1; $l1++) $mod.Month = $in1[$l1];',
+    'for (var $l2 = 0, $end2 = rtl.length($mod.Names) - 1; $l2 <= $end2; $l2++) $mod.i = $l2;',
     '']));
 end;
 
@@ -10308,13 +10342,13 @@ begin
     'this.Say = function (args) {',
     '  var i = 0;',
     '  var v = pas.system.TVarRec.$new();',
-    '  for (var $l1 = 0, $end2 = rtl.length(args) - 1; $l1 <= $end2; $l1++) {',
-    '    i = $l1;',
+    '  for (var $l = 0, $end = rtl.length(args) - 1; $l <= $end; $l++) {',
+    '    i = $l;',
     '    v.$assign(args[i]);',
-    '    var $tmp3 = v.VType;',
-    '    if ($tmp3 === 0) if (rtl.length(args) === args[i].VJSValue) ;',
+    '    var $tmp = v.VType;',
+    '    if ($tmp === 0) if (rtl.length(args) === args[i].VJSValue) ;',
     '  };',
-    '  for (var $in4 = args, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) v = $in4[$l5];',
+    '  for (var $in = args, $l1 = 0, $end1 = rtl.length($in) - 1; $l1 <= $end1; $l1++) v = $in[$l1];',
     '  args = [];',
     '  args = rtl.arraySetLength(args, pas.system.TVarRec, 2);',
     '};',
@@ -10553,11 +10587,11 @@ begin
     'this.r = $mod.TRec.$new();',
     '']),
     LinesToStr([ // $mod.$main
+    'var $with = $mod.r;',
+    '$mod.Int = $with.vI;',
     'var $with1 = $mod.r;',
     '$mod.Int = $with1.vI;',
-    'var $with2 = $mod.r;',
-    '$mod.Int = $with2.vI;',
-    '$with2.vI = $mod.Int;'
+    '$with1.vI = $mod.Int;'
     ]));
 end;
 
@@ -10895,9 +10929,9 @@ begin
     'this.r = $mod.TRecord.$new();'
     ]),
     LinesToStr([
-    'var $with1 = $mod.r;',
-    '$mod.DoIt($with1.i,$with1.i,{',
-    '  p: $with1,',
+    'var $with = $mod.r;',
+    '$mod.DoIt($with.i,$with.i,{',
+    '  p: $with,',
     '  get: function () {',
     '      return this.p.i;',
     '    },',
@@ -11652,10 +11686,10 @@ begin
     '$mod.Rec.$Intern = $mod.Rec.$Intern + 1;',
     '$mod.Rec.$Intern2 = $mod.Rec.$Intern2 + 2;',
     '$mod.Rec["A B"] = $mod.Rec["A B"] + 3;',
-    'var $with1 = $mod.Rec;',
-    '$with1.$Intern = $with1.$Intern + 1;',
-    '$with1.$Intern2 = $with1.$Intern2 + 2;',
-    '$with1["A B"] = $with1["A B"] + 3;',
+    'var $with = $mod.Rec;',
+    '$with.$Intern = $with.$Intern + 1;',
+    '$with.$Intern2 = $with.$Intern2 + 2;',
+    '$with["A B"] = $with["A B"] + 3;',
     '']));
 end;
 
@@ -11888,8 +11922,8 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.r.$assign($mod.TPoint.$new().Create(1, 2));',
-    'var $with1 = $mod.TPoint;',
-    '$mod.r.$assign($with1.$new().Create(1, 2));',
+    'var $with = $mod.TPoint;',
+    '$mod.r.$assign($with.$new().Create(1, 2));',
     '$mod.r.Create(3, -1);',
     '$mod.r.$assign($mod.r.Create(4, -1));',
     '']));
@@ -13038,14 +13072,14 @@ begin
     'if ($mod.Obj.$class.GetInt() === 2);',
     '$mod.Obj.$class.SetInt($mod.Obj.$class.GetInt() + 2);',
     '$mod.Obj.$class.SetInt($mod.Obj.Fx);',
-    'var $with1 = $mod.TBird;',
+    'var $with = $mod.TBird;',
+    '$mod.TObject.Fx = $with.Fy + 1;',
+    '$mod.TObject.Fy = $with.Fx + 2;',
+    '$with.SetInt($with.GetInt() + 3);',
+    'var $with1 = $mod.Obj;',
     '$mod.TObject.Fx = $with1.Fy + 1;',
     '$mod.TObject.Fy = $with1.Fx + 2;',
-    '$with1.SetInt($with1.GetInt() + 3);',
-    'var $with2 = $mod.Obj;',
-    '$mod.TObject.Fx = $with2.Fy + 1;',
-    '$mod.TObject.Fy = $with2.Fx + 2;',
-    '$with2.$class.SetInt($with2.$class.GetInt() + 3);',
+    '$with1.$class.SetInt($with1.$class.GetInt() + 3);',
     '']));
 end;
 
@@ -13547,19 +13581,19 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $with1 = $mod.TObject.$create("Create");',
-    '$mod.b = $with1.aBool;',
-    '$with1.aBool = $mod.b;',
-    '$mod.b = $with1.Arr[1];',
-    '$with1.Arr[2] = $mod.b;',
-    'var $with2 = $mod.TObject;',
-    '$mod.Obj = $with2.$create("Create");',
-    'var $with3 = $mod.Obj;',
-    '$with3.Create();',
-    '$mod.b = $with3.aBool;',
-    '$with3.aBool = $mod.b;',
-    '$mod.b = $with3.Arr[3];',
-    '$with3.Arr[4] = $mod.b;',
+    'var $with = $mod.TObject.$create("Create");',
+    '$mod.b = $with.aBool;',
+    '$with.aBool = $mod.b;',
+    '$mod.b = $with.Arr[1];',
+    '$with.Arr[2] = $mod.b;',
+    'var $with1 = $mod.TObject;',
+    '$mod.Obj = $with1.$create("Create");',
+    'var $with2 = $mod.Obj;',
+    '$with2.Create();',
+    '$mod.b = $with2.aBool;',
+    '$with2.aBool = $mod.b;',
+    '$mod.b = $with2.Arr[3];',
+    '$with2.Arr[4] = $mod.b;',
     '']));
 end;
 
@@ -13617,16 +13651,16 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $with1 = $mod.TObject.$create("Create");',
+    'var $with = $mod.TObject.$create("Create");',
+    '$mod.i = $with.FInt;',
+    '$with.FInt = $mod.i;',
+    '$mod.i = $with.GetSize();',
+    '$with.SetSize($mod.i);',
+    'var $with1 = $mod.Obj;',
     '$mod.i = $with1.FInt;',
     '$with1.FInt = $mod.i;',
     '$mod.i = $with1.GetSize();',
     '$with1.SetSize($mod.i);',
-    'var $with2 = $mod.Obj;',
-    '$mod.i = $with2.FInt;',
-    '$with2.FInt = $mod.i;',
-    '$mod.i = $with2.GetSize();',
-    '$with2.SetSize($mod.i);',
     '']));
 end;
 
@@ -13677,12 +13711,12 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $with1 = $mod.TObject.$create("Create");',
-    '$mod.i = $with1.GetItems(1);',
-    '$with1.SetItems(2, $mod.i);',
-    'var $with2 = $mod.Obj;',
-    '$mod.i = $with2.GetItems(3);',
-    '$with2.SetItems(4, $mod.i);',
+    'var $with = $mod.TObject.$create("Create");',
+    '$mod.i = $with.GetItems(1);',
+    '$with.SetItems(2, $mod.i);',
+    'var $with1 = $mod.Obj;',
+    '$mod.i = $with1.GetItems(3);',
+    '$with1.SetItems(4, $mod.i);',
     '']));
 end;
 
@@ -13734,14 +13768,14 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $with1 = $mod.TObject.$create("Create");',
+    'var $with = $mod.TObject.$create("Create");',
+    '$mod.i = $with.GetSize();',
+    '$mod.i = $with.GetSize();',
+    '$with.SetSize($mod.i);',
+    'var $with1 = $mod.Obj;',
     '$mod.i = $with1.GetSize();',
     '$mod.i = $with1.GetSize();',
     '$with1.SetSize($mod.i);',
-    'var $with2 = $mod.Obj;',
-    '$mod.i = $with2.GetSize();',
-    '$mod.i = $with2.GetSize();',
-    '$with2.SetSize($mod.i);',
     '']));
 end;
 
@@ -14388,11 +14422,11 @@ begin
     '$impl.Obj.$DoIntern2();',
     '$impl.Obj.DoIt();',
     '$impl.Obj.DoIt();',
-    'var $with1 = $impl.Obj;',
-    '$with1.$DoIntern();',
-    '$with1.$DoIntern();',
-    '$with1.$DoIntern2();',
-    '$with1.$DoIntern2();',
+    'var $with = $impl.Obj;',
+    '$with.$DoIntern();',
+    '$with.$DoIntern();',
+    '$with.$DoIntern2();',
+    '$with.$DoIntern2();',
     '']),
     LinesToStr([ // implementation
     '$impl.Obj = null;',
@@ -14487,10 +14521,10 @@ begin
     '$impl.Obj.$Intern = $impl.Obj.$Intern + 1;',
     '$impl.Obj.$Intern2 = $impl.Obj.$Intern2 + 2;',
     '$impl.Obj["A B"] = $impl.Obj["A B"] + 3;',
-    'var $with1 = $impl.Obj;',
-    '$with1.$Intern = $with1.$Intern + 1;',
-    '$with1.$Intern2 = $with1.$Intern2 + 2;',
-    '$with1["A B"] = $with1["A B"] + 3;',
+    'var $with = $impl.Obj;',
+    '$with.$Intern = $with.$Intern + 1;',
+    '$with.$Intern2 = $with.$Intern2 + 2;',
+    '$with["A B"] = $with["A B"] + 3;',
     '']),
     LinesToStr([ // implementation
     '$impl.Obj = null;',
@@ -14574,12 +14608,12 @@ begin
     'if ($mod.TObject.cI === 21) ;',
     'if ($mod.Obj.cI === 22) ;',
     'if ($mod.Cla.cI === 23) ;',
-    'var $with1 = $mod.Obj;',
-    'if ($with1.cI === 24) ;',
-    'var $with2 = $mod.TObject;',
-    'if ($with2.cI === 25) ;',
-    'var $with3 = $mod.Cla;',
-    'if ($with3.cI === 26) ;',
+    'var $with = $mod.Obj;',
+    'if ($with.cI === 24) ;',
+    'var $with1 = $mod.TObject;',
+    'if ($with1.cI === 25) ;',
+    'var $with2 = $mod.Cla;',
+    'if ($with2.cI === 26) ;',
     '']));
 end;
 
@@ -15162,8 +15196,8 @@ begin
     '});',
     '']),
     LinesToStr([ // $mod.$main
-    'var $with1 = $mod.TObject.$create("Create");',
-    '$with1=rtl.freeLoc($with1);',
+    'var $with = $mod.TObject.$create("Create");',
+    '$with=rtl.freeLoc($with);',
     '']));
 end;
 
@@ -15305,14 +15339,14 @@ begin
     'this.i2 = null;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $in1 = $mod.b.GetEnumerator();',
+    'var $in = $mod.b.GetEnumerator();',
     'try {',
-    '  while ($in1.MoveNext()){',
-    '    $mod.i = $in1.FCurrent;',
+    '  while ($in.MoveNext()){',
+    '    $mod.i = $in.FCurrent;',
     '    $mod.i2 = $mod.i;',
     '  }',
     '} finally {',
-    '  $in1 = rtl.freeLoc($in1)',
+    '  $in = rtl.freeLoc($in)',
     '};',
     '']));
 end;
@@ -15460,8 +15494,8 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.C.$create("Create");',
-    'var $with1 = $mod.C;',
-    '$mod.Obj = $with1.$create("Create");',
+    'var $with = $mod.C;',
+    '$mod.Obj = $with.$create("Create");',
     '']));
 end;
 
@@ -15494,8 +15528,8 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     '$mod.C.DoIt();',
-    'var $with1 = $mod.C;',
-    '$with1.DoIt();',
+    'var $with = $mod.C;',
+    '$with.DoIt();',
     '']));
 end;
 
@@ -16315,10 +16349,10 @@ begin
     '$mod.Obj.$Execute(1);',
     '$mod.Obj.$Execute(1);',
     '$mod.Obj.$Execute(2);',
-    'var $with1 = $mod.Obj;',
-    '$with1.$Execute(1);',
-    '$with1.$Execute(1);',
-    '$with1.$Execute(3);',
+    'var $with = $mod.Obj;',
+    '$with.$Execute(1);',
+    '$with.$Execute(1);',
+    '$with.$Execute(3);',
     '']));
 end;
 
@@ -17009,9 +17043,9 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.A = new $mod.C();',
     '$mod.A = new $mod.C();',
-    'var $with1 = $mod.C;',
-    '$mod.A = new $with1();',
-    '$mod.A = new $with1();',
+    'var $with = $mod.C;',
+    '$mod.A = new $with();',
+    '$mod.A = new $with();',
     '$mod.A = new $mod.C();',
     '$mod.A = new $mod.C();',
     '$mod.A = new $mod.A.C();',
@@ -17058,9 +17092,9 @@ begin
     '$mod.A = new ($mod.GetCreator())();',
     '$mod.A = new ($mod.GetCreator())();',
     '$mod.A = new ($mod.GetCreator())();',
-    'var $with1 = $mod.GetCreator();',
-    '$mod.A = new $with1();',
-    '$mod.A = new $with1();',
+    'var $with = $mod.GetCreator();',
+    '$mod.A = new $with();',
+    '$mod.A = new $with();',
     '']));
 end;
 
@@ -17446,6 +17480,77 @@ begin
   SetExpectedPasResolverError('Incompatible type arg no. 2: Got "type", expected "untyped"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_JSFunctionPasDescendant;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSFunction = class external name ''Function''',
+  '  end;',
+  '  TExtA = class external name ''ExtA''(TJSFunction)',
+  '  end;',
+  '  TBird = class (TExtA)',
+  '  public',
+  '    Size: word;',
+  '    class var Legs: word;',
+  '    constructor Create(a: word);',
+  '  end;',
+  '  TEagle = class (TBird)',
+  '  public',
+  '    constructor Create(b: word); reintroduce;',
+  '  end;',
+  'constructor TBird.Create(a: word);',
+  'begin',
+  'end;',
+  'constructor TEagle.Create(b: word);',
+  'begin',
+  '  inherited Create(b);',
+  'end;',
+  'var',
+  '  Bird: TBird;',
+  '  Eagle: TEagle;',
+  'begin',
+  '  Bird:=TBird.Create(3);',
+  '  Eagle:=TEagle.Create(4);',
+  '  Bird.Size:=Bird.Size+5;',
+  '  Bird.Legs:=Bird.Legs+6;',
+  '  Eagle.Size:=Eagle.Size+5;',
+  '  Eagle.Legs:=Eagle.Legs+6;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_JSFunctionPasDescendant',
+    LinesToStr([ // statements
+    'rtl.createClassExt($mod, "TBird", ExtA, "", function () {',
+    '  this.Legs = 0;',
+    '  this.$init = function () {',
+    '    this.Size = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function (a) {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClassExt($mod, "TEagle", $mod.TBird, "", function () {',
+    '  this.Create$1 = function (b) {',
+    '    $mod.TBird.Create.call(this, b);',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Bird = null;',
+    'this.Eagle = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Bird = $mod.TBird.$create("Create", [3]);',
+    '$mod.Eagle = $mod.TEagle.$create("Create$1", [4]);',
+    '$mod.Bird.Size = $mod.Bird.Size + 5;',
+    '$mod.TBird.Legs = $mod.Bird.Legs + 6;',
+    '$mod.Eagle.Size = $mod.Eagle.Size + 5;',
+    '$mod.TBird.Legs = $mod.Eagle.Legs + 6;',
+    '']));
 end;
 
 procedure TTestModule.TestExternalClass_PascalProperty;
@@ -17859,8 +17964,8 @@ begin
     '$mod.Arr[4] = $mod.i;',
     '$mod.Arr[5] = $mod.Arr[6];',
     '$mod.Arr[7] = $mod.Arr[8];',
-    'var $with1 = $mod.Arr;',
-    '$with1[9] = $with1[10];',
+    'var $with = $mod.Arr;',
+    '$with[9] = $with[10];',
     '$mod.DoIt($mod.Arr[7], $mod.Arr[8], {',
     '  a: 9,',
     '  p: $mod.Arr,',
@@ -17880,9 +17985,9 @@ begin
     '      this.p[this.a] = v;',
     '    }',
     '});',
-    'var $with2 = $mod.Arr;',
-    '$mod.v = $with2[14];',
-    '$with2[15] = 16;',
+    'var $with1 = $mod.Arr;',
+    '$mod.v = $with1[14];',
+    '$with1[15] = 16;',
     '$mod.v = $mod.Arr[17];',
     '$mod.Arr[18] = $mod.v;',
     '']));
@@ -17952,11 +18057,11 @@ begin
     '$mod.Arr[4] = $mod.i;',
     '$mod.Arr[5] = $mod.Arr[6];',
     '$mod.Arr[7] = $mod.Arr[8];',
+    'var $with = $mod.Arr;',
+    '$with[9] = $with[10];',
     'var $with1 = $mod.Arr;',
-    '$with1[9] = $with1[10];',
-    'var $with2 = $mod.Arr;',
-    '$mod.v = $with2[14];',
-    '$with2[15] = 16;',
+    '$mod.v = $with1[14];',
+    '$with1[15] = 16;',
     '']));
 end;
 
@@ -18006,8 +18111,8 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.v = $mod.Arr[0];',
     '$mod.v = $mod.Arr[1];',
-    'var $with1 = $mod.Arr;',
-    '$mod.v = $with1[2];',
+    'var $with = $mod.Arr;',
+    '$mod.v = $with[2];',
     '$mod.DoIt($mod.Arr[3], $mod.Arr[4]);',
     '']));
 end;
@@ -18043,8 +18148,8 @@ begin
     '$mod.Arr[2] = $mod.s;',
     '$mod.Arr[3] = $mod.s;',
     '$mod.Arr[4] = $mod.i;',
-    'var $with1 = $mod.Arr;',
-    '$with1[5] = $mod.i;',
+    'var $with = $mod.Arr;',
+    '$with[5] = $mod.i;',
     '']));
 end;
 
@@ -18082,10 +18187,10 @@ begin
     '$mod.Arr[2] = $mod.s;',
     '$mod.Arr[3] = $mod.s;',
     '$mod.Arr[4] = $mod.i;',
+    'var $with = $mod.Arr;',
+    '$with[5] = $mod.i;',
     'var $with1 = $mod.Arr;',
-    '$with1[5] = $mod.i;',
-    'var $with2 = $mod.Arr;',
-    '$with2[6] = $mod.i;',
+    '$with1[6] = $mod.i;',
     '']));
 end;
 
@@ -18177,8 +18282,8 @@ begin
     'this.value = 0;',
     '']),
     LinesToStr([ // $mod.$main
-    'for (var $in1 = $mod.a, $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) {',
-    '  $mod.value = $in1[$l2];',
+    'for (var $in = $mod.a, $l = 0, $end = rtl.length($in) - 1; $l <= $end; $l++) {',
+    '  $mod.value = $in[$l];',
     '  if ($mod.value === 3) ;',
     '};',
     '']));
@@ -19049,9 +19154,9 @@ begin
     'this.i = null;',
     '']),
     LinesToStr([ // $mod.$main
-    'var $in1 = $mod.i.GetEnumerator();',
-    'while ($in1.MoveNext()) {',
-    '  $mod.o = $in1.GetCurrent();',
+    'var $in = $mod.i.GetEnumerator();',
+    'while ($in.MoveNext()) {',
+    '  $mod.o = $in.GetCurrent();',
     '  $mod.o.Id = 3;',
     '};',
     '']));
@@ -19946,9 +20051,9 @@ begin
     '  var $ir = rtl.createIntfRefs();',
     '  try {',
     '    $ir.ref(1, i.GetAnt());',
-    '    var $with1 = $ir.ref(2, i.GetAnt());',
-    '    var $with2 = $ir.ref(3, $with1.GetAnt());',
-    '    $ir.ref(4, $with2.GetAnt());',
+    '    var $with = $ir.ref(2, i.GetAnt());',
+    '    var $with1 = $ir.ref(3, $with.GetAnt());',
+    '    $ir.ref(4, $with1.GetAnt());',
     '  } finally {',
     '    $ir.free();',
     '  };',
@@ -19999,14 +20104,14 @@ begin
     'this.i = null;',
     '']),
     LinesToStr([ // $mod.$main
-    'var $in1 = $mod.i.GetEnumerator();',
+    'var $in = $mod.i.GetEnumerator();',
     'try {',
-    '  while ($in1.MoveNext()) {',
-    '    $mod.o = $in1.GetCurrent();',
+    '  while ($in.MoveNext()) {',
+    '    $mod.o = $in.GetCurrent();',
     '    $mod.o.Id = 3;',
     '  }',
     '} finally {',
-    '  rtl._Release($in1)',
+    '  rtl._Release($in)',
     '};',
     '']));
 end;
@@ -20415,12 +20520,12 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with1 = $mod.TObject;',
+    'var $with = $mod.TObject;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with2 = $mod.o;',
+    'var $with1 = $mod.o;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '']));
@@ -20583,10 +20688,10 @@ begin
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 1);',
     '$mod.THelper.Foo.call($mod.Obj, 21);',
-    'var $with1 = $mod.Obj;',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 22);',
+    'var $with = $mod.Obj;',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 22);',
     '']));
 end;
 
@@ -20762,12 +20867,12 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.THelper.Foo.call($mod.Obj.$class, 1);',
     '$mod.THelper.Foo.call($mod.Obj.$class, 1);',
-    'var $with1 = $mod.Obj;',
-    '$mod.THelper.Foo.call($with1.$class, 1);',
-    '$mod.THelper.Foo.call($with1.$class, 1);',
+    'var $with = $mod.Obj;',
+    '$mod.THelper.Foo.call($with.$class, 1);',
+    '$mod.THelper.Foo.call($with.$class, 1);',
     '$mod.THelper.Foo.call($mod.TObject, 1);',
     '$mod.THelper.Foo.call($mod.TObject, 1);',
-    'var $with2 = $mod.TObject;',
+    'var $with1 = $mod.TObject;',
     '$mod.THelper.Foo.call($mod.TObject, 1);',
     '$mod.THelper.Foo.call($mod.TObject, 1);',
     '']));
@@ -20817,9 +20922,9 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.THelper.Foo.call($mod.c, 1);',
     '$mod.THelper.Foo.call($mod.c, 1);',
-    'var $with1 = $mod.c;',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 1);',
+    'var $with = $mod.c;',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 1);',
     '']));
 end;
 
@@ -20936,14 +21041,14 @@ begin
     '$mod.f = rtl.createCallback($mod.Obj, $mod.THelper.Fly);',
     '$mod.g = rtl.createCallback($mod.Obj.$class, $mod.THelper.Glide);',
     '$mod.r = $mod.THelper.Run;',
-    'var $with1 = $mod.Obj;',
-    '$mod.f = rtl.createCallback($with1, $mod.THelper.Fly);',
-    '$mod.g = rtl.createCallback($with1.$class, $mod.THelper.Glide);',
+    'var $with = $mod.Obj;',
+    '$mod.f = rtl.createCallback($with, $mod.THelper.Fly);',
+    '$mod.g = rtl.createCallback($with.$class, $mod.THelper.Glide);',
     '$mod.r = $mod.THelper.Run;',
     '$mod.g = rtl.createCallback($mod.TObject, $mod.THelper.Glide);',
     '$mod.r = $mod.THelper.Run;',
-    'var $with2 = $mod.TObject;',
-    '$mod.g = rtl.createCallback($with2, $mod.THelper.Glide);',
+    'var $with1 = $mod.TObject;',
+    '$mod.g = rtl.createCallback($with1, $mod.THelper.Glide);',
     '$mod.r = $mod.THelper.Run;',
     '']));
 end;
@@ -21015,14 +21120,14 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.THelper.NewHlp.call($mod.obj, 2);',
-    'var $with1 = $mod.obj;',
-    '$mod.THelper.NewHlp.call($with1, 12);',
+    'var $with = $mod.obj;',
+    '$mod.THelper.NewHlp.call($with, 12);',
     '$mod.TObject.$create($mod.THelper.NewHlp, [3]);',
-    'var $with2 = $mod.TObject;',
-    '$with2.$create($mod.THelper.NewHlp, [13]);',
+    'var $with1 = $mod.TObject;',
+    '$with1.$create($mod.THelper.NewHlp, [13]);',
     '$mod.c.$create($mod.THelper.NewHlp, [4]);',
-    'var $with3 = $mod.c;',
-    '$with3.$create($mod.THelper.NewHlp, [14]);',
+    'var $with2 = $mod.c;',
+    '$with2.$create($mod.THelper.NewHlp, [14]);',
     '']));
 end;
 
@@ -21265,11 +21370,11 @@ begin
     '$mod.b.SetSpeed($mod.b.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft.call($mod.b, $mod.TObjHelper.GetLeft.call($mod.b) + 13);',
     '$mod.TObjHelper.SetLeft.call($mod.b, $mod.TObjHelper.GetLeft.call($mod.b) + 14);',
-    'var $with1 = $mod.b;',
-    '$with1.FSize = $with1.FSize + 31;',
-    '$with1.SetSpeed($with1.GetSpeed() + 32);',
-    '$mod.TObjHelper.SetLeft.call($with1, $mod.TObjHelper.GetLeft.call($with1) + 33);',
-    '$mod.TObjHelper.SetLeft.call($with1, $mod.TObjHelper.GetLeft.call($with1) + 34);',
+    'var $with = $mod.b;',
+    '$with.FSize = $with.FSize + 31;',
+    '$with.SetSpeed($with.GetSpeed() + 32);',
+    '$mod.TObjHelper.SetLeft.call($with, $mod.TObjHelper.GetLeft.call($with) + 33);',
+    '$mod.TObjHelper.SetLeft.call($with, $mod.TObjHelper.GetLeft.call($with) + 34);',
     '']));
 end;
 
@@ -21388,10 +21493,10 @@ begin
     '$mod.TObjHelper.SetSize.call($mod.b, true, $mod.TObjHelper.GetSize.call($mod.b, false) + 11);',
     '$mod.b.SetSpeed(true, $mod.b.GetSpeed(false) + 12);',
     '$mod.TObjHelper.SetSize.call($mod.b, true, $mod.TObjHelper.GetSize.call($mod.b, false) + 13);',
-    'var $with1 = $mod.b;',
-    '$mod.TObjHelper.SetSize.call($with1, true, $mod.TObjHelper.GetSize.call($with1, false) + 21);',
-    '$with1.SetSpeed(true, $with1.GetSpeed(false) + 22);',
-    '$mod.TObjHelper.SetSize.call($with1, true, $mod.TObjHelper.GetSize.call($with1, false) + 23);',
+    'var $with = $mod.b;',
+    '$mod.TObjHelper.SetSize.call($with, true, $mod.TObjHelper.GetSize.call($with, false) + 21);',
+    '$with.SetSpeed(true, $with.GetSpeed(false) + 22);',
+    '$mod.TObjHelper.SetSize.call($with, true, $mod.TObjHelper.GetSize.call($with, false) + 23);',
     '']));
 end;
 
@@ -21671,27 +21776,27 @@ begin
     '$mod.b.$class.SetSpeed($mod.b.$class.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft.call($mod.b.$class, $mod.TObjHelper.GetLeft.call($mod.b.$class) + 13);',
     '$mod.TObjHelper.SetLeft.call($mod.b.$class, $mod.TObjHelper.GetLeft.call($mod.b.$class) + 14);',
-    'var $with1 = $mod.b;',
-    '$mod.TObject.FSize = $with1.FSize + 31;',
-    '$with1.$class.SetSpeed($with1.$class.GetSpeed() + 32);',
-    '$mod.TObjHelper.SetLeft.call($with1.$class, $mod.TObjHelper.GetLeft.call($with1.$class) + 33);',
-    '$mod.TObjHelper.SetLeft.call($with1.$class, $mod.TObjHelper.GetLeft.call($with1.$class) + 34);',
+    'var $with = $mod.b;',
+    '$mod.TObject.FSize = $with.FSize + 31;',
+    '$with.$class.SetSpeed($with.$class.GetSpeed() + 32);',
+    '$mod.TObjHelper.SetLeft.call($with.$class, $mod.TObjHelper.GetLeft.call($with.$class) + 33);',
+    '$mod.TObjHelper.SetLeft.call($with.$class, $mod.TObjHelper.GetLeft.call($with.$class) + 34);',
     '$mod.TObject.FSize = $mod.c.FSize + 11;',
     '$mod.c.SetSpeed($mod.c.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft.call($mod.c, $mod.TObjHelper.GetLeft.call($mod.c) + 13);',
     '$mod.TObjHelper.SetLeft.call($mod.c, $mod.TObjHelper.GetLeft.call($mod.c) + 14);',
-    'var $with2 = $mod.c;',
-    '$mod.TObject.FSize = $with2.FSize + 31;',
-    '$with2.SetSpeed($with2.GetSpeed() + 32);',
-    '$mod.TObjHelper.SetLeft.call($with2, $mod.TObjHelper.GetLeft.call($with2) + 33);',
-    '$mod.TObjHelper.SetLeft.call($with2, $mod.TObjHelper.GetLeft.call($with2) + 34);',
+    'var $with1 = $mod.c;',
+    '$mod.TObject.FSize = $with1.FSize + 31;',
+    '$with1.SetSpeed($with1.GetSpeed() + 32);',
+    '$mod.TObjHelper.SetLeft.call($with1, $mod.TObjHelper.GetLeft.call($with1) + 33);',
+    '$mod.TObjHelper.SetLeft.call($with1, $mod.TObjHelper.GetLeft.call($with1) + 34);',
     '$mod.TObject.FSize = $mod.TBird.FSize + 11;',
     '$mod.TBird.SetSpeed($mod.TBird.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft.call($mod.TBird, $mod.TObjHelper.GetLeft.call($mod.TBird) + 13);',
     '$mod.TObjHelper.SetLeft.call($mod.TBird, $mod.TObjHelper.GetLeft.call($mod.TBird) + 14);',
-    'var $with3 = $mod.TBird;',
-    '$mod.TObject.FSize = $with3.FSize + 31;',
-    '$with3.SetSpeed($with3.GetSpeed() + 32);',
+    'var $with2 = $mod.TBird;',
+    '$mod.TObject.FSize = $with2.FSize + 31;',
+    '$with2.SetSpeed($with2.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft.call($mod.TBird, $mod.TObjHelper.GetLeft.call($mod.TBird) + 33);',
     '$mod.TObjHelper.SetLeft.call($mod.TBird, $mod.TObjHelper.GetLeft.call($mod.TBird) + 34);',
     '']));
@@ -21831,22 +21936,22 @@ begin
     '$mod.b.SetSpeed($mod.b.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
-    'var $with1 = $mod.b;',
-    '$with1.SetSpeed($with1.GetSpeed() + 32);',
+    'var $with = $mod.b;',
+    '$with.SetSpeed($with.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 33);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 34);',
     '$mod.c.SetSpeed($mod.c.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
-    'var $with2 = $mod.c;',
-    '$with2.SetSpeed($with2.GetSpeed() + 32);',
+    'var $with1 = $mod.c;',
+    '$with1.SetSpeed($with1.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 33);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 34);',
     '$mod.TBird.SetSpeed($mod.TBird.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
-    'var $with3 = $mod.TBird;',
-    '$with3.SetSpeed($with3.GetSpeed() + 32);',
+    'var $with2 = $mod.TBird;',
+    '$with2.SetSpeed($with2.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 33);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 34);',
     '']));
@@ -21979,23 +22084,23 @@ begin
     '$mod.TObjHelper.SetSize.call($mod.b.$class, true, $mod.TObjHelper.GetSize.call($mod.b.$class, false) + 11);',
     '$mod.b.$class.SetSpeed(true, $mod.b.$class.GetSpeed(false) + 12);',
     '$mod.TObjHelper.SetSize.call($mod.b.$class, true, $mod.TObjHelper.GetSize.call($mod.b.$class, false) + 13);',
-    'var $with1 = $mod.b;',
-    '$mod.TObjHelper.SetSize.call($with1.$class, true, $mod.TObjHelper.GetSize.call($with1.$class, false) + 21);',
-    '$with1.$class.SetSpeed(true, $with1.$class.GetSpeed(false) + 22);',
-    '$mod.TObjHelper.SetSize.call($with1.$class, true, $mod.TObjHelper.GetSize.call($with1.$class, false) + 23);',
+    'var $with = $mod.b;',
+    '$mod.TObjHelper.SetSize.call($with.$class, true, $mod.TObjHelper.GetSize.call($with.$class, false) + 21);',
+    '$with.$class.SetSpeed(true, $with.$class.GetSpeed(false) + 22);',
+    '$mod.TObjHelper.SetSize.call($with.$class, true, $mod.TObjHelper.GetSize.call($with.$class, false) + 23);',
     '$mod.TObjHelper.SetSize.call($mod.c, true, $mod.TObjHelper.GetSize.call($mod.c, false) + 11);',
     '$mod.c.SetSpeed(true, $mod.c.GetSpeed(false) + 12);',
     '$mod.TObjHelper.SetSize.call($mod.c, true, $mod.TObjHelper.GetSize.call($mod.c, false) + 13);',
-    'var $with2 = $mod.c;',
-    '$mod.TObjHelper.SetSize.call($with2, true, $mod.TObjHelper.GetSize.call($with2, false) + 21);',
-    '$with2.SetSpeed(true, $with2.GetSpeed(false) + 22);',
-    '$mod.TObjHelper.SetSize.call($with2, true, $mod.TObjHelper.GetSize.call($with2, false) + 23);',
+    'var $with1 = $mod.c;',
+    '$mod.TObjHelper.SetSize.call($with1, true, $mod.TObjHelper.GetSize.call($with1, false) + 21);',
+    '$with1.SetSpeed(true, $with1.GetSpeed(false) + 22);',
+    '$mod.TObjHelper.SetSize.call($with1, true, $mod.TObjHelper.GetSize.call($with1, false) + 23);',
     '$mod.TObjHelper.SetSize.call($mod.TBird, true, $mod.TObjHelper.GetSize.call($mod.TBird, false) + 11);',
     '$mod.TBird.SetSpeed(true, $mod.TBird.GetSpeed(false) + 12);',
     '$mod.TObjHelper.SetSize.call($mod.TBird, true, $mod.TObjHelper.GetSize.call($mod.TBird, false) + 13);',
-    'var $with3 = $mod.TBird;',
+    'var $with2 = $mod.TBird;',
     '$mod.TObjHelper.SetSize.call($mod.TBird, true, $mod.TObjHelper.GetSize.call($mod.TBird, false) + 21);',
-    '$with3.SetSpeed(true, $with3.GetSpeed(false) + 22);',
+    '$with2.SetSpeed(true, $with2.GetSpeed(false) + 22);',
     '$mod.TObjHelper.SetSize.call($mod.TBird, true, $mod.TObjHelper.GetSize.call($mod.TBird, false) + 23);',
     '']));
 end;
@@ -22064,14 +22169,14 @@ begin
     'this.i2 = null;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $in1 = $mod.TBirdHelper.GetEnumerator.call($mod.b);',
+    'var $in = $mod.TBirdHelper.GetEnumerator.call($mod.b);',
     'try {',
-    '  while ($in1.MoveNext()){',
-    '    $mod.i = $in1.FCurrent;',
+    '  while ($in.MoveNext()){',
+    '    $mod.i = $in.FCurrent;',
     '    $mod.i2 = $mod.i;',
     '  }',
     '} finally {',
-    '  $in1 = rtl.freeLoc($in1)',
+    '  $in = rtl.freeLoc($in)',
     '};',
     '']));
 end;
@@ -22140,9 +22245,9 @@ begin
     '    $mod.THelper.Fly.call(this.FField);',
     '    $mod.THelper.Run.call(this.FField.$class);',
     '    $mod.THelper.Jump();',
-    '    var $with1 = this.FField;',
-    '    $mod.THelper.Fly.call($with1);',
-    '    $mod.THelper.Run.call($with1.$class);',
+    '    var $with = this.FField;',
+    '    $mod.THelper.Fly.call($with);',
+    '    $mod.THelper.Run.call($with.$class);',
     '    $mod.THelper.Jump();',
     '  };',
     '  this.Run = function () {',
@@ -22156,13 +22261,13 @@ begin
     '$mod.THelper.Fly.call($mod.b.FField);',
     '$mod.THelper.Run.call($mod.b.FField.$class);',
     '$mod.THelper.Jump();',
-    'var $with1 = $mod.b;',
-    '$mod.THelper.Run.call($with1.FField.$class);',
-    '$mod.THelper.Fly.call($with1.FField);',
+    'var $with = $mod.b;',
+    '$mod.THelper.Run.call($with.FField.$class);',
+    '$mod.THelper.Fly.call($with.FField);',
     '$mod.THelper.Jump();',
-    'var $with2 = $mod.b.FField;',
-    '$mod.THelper.Run.call($with2.$class);',
-    '$mod.THelper.Fly.call($with2);',
+    'var $with1 = $mod.b.FField;',
+    '$mod.THelper.Run.call($with1.$class);',
+    '$mod.THelper.Fly.call($with1);',
     '$mod.THelper.Jump();',
     '']));
 end;
@@ -22248,7 +22353,7 @@ begin
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '']));
@@ -22342,12 +22447,12 @@ begin
     '$mod.THelper.Foo.call($mod.Obj, 21);',
     '$mod.Obj.Fly(2);',
     '$mod.Obj.Fly(2);',
-    'var $with1 = $mod.Obj;',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 22);',
-    '$with1.Fly(2);',
-    '$with1.Fly(2);',
+    'var $with = $mod.Obj;',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 22);',
+    '$with.Fly(2);',
+    '$with.Fly(2);',
     '$mod.p = rtl.createCallback($mod.Obj, "Fly");',
     '']));
 end;
@@ -22459,12 +22564,12 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with1 = $mod.TRec;',
+    'var $with = $mod.TRec;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with2 = $mod.r;',
+    'var $with1 = $mod.r;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '']));
@@ -22570,10 +22675,10 @@ begin
     '$mod.THelper.Foo.call($mod.Rec, 1);',
     '$mod.THelper.Foo.call($mod.Rec, 1);',
     '$mod.THelper.Foo.call($mod.Rec, 21);',
-    'var $with1 = $mod.Rec;',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 1);',
-    '$mod.THelper.Foo.call($with1, 22);',
+    'var $with = $mod.Rec;',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 1);',
+    '$mod.THelper.Foo.call($with, 22);',
     '']));
 end;
 
@@ -22641,10 +22746,10 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.THelper.NewHlp.call($mod.Rec, 2);',
-    'var $with1 = $mod.Rec;',
-    '$mod.THelper.NewHlp.call($with1, 12);',
+    'var $with = $mod.Rec;',
+    '$mod.THelper.NewHlp.call($with, 12);',
     '$mod.THelper.$new("NewHlp", [3]);',
-    'var $with2 = $mod.TRec;',
+    'var $with1 = $mod.TRec;',
     '$mod.THelper.$new("NewHlp", [13]);',
     '']));
 end;
@@ -22708,7 +22813,7 @@ begin
     '    $mod.THelper.Glob = $mod.THelper.Glob;',
     '    Result = $mod.THelper.Glob;',
     '    $mod.THelper.Glob = $mod.THelper.Glob;',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    $mod.THelper.Glob = $mod.THelper.Glob;',
     '    return Result;',
     '  };',
@@ -22729,7 +22834,7 @@ begin
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
-    'var $with1 = $mod.b;',
+    'var $with = $mod.b;',
     '$mod.THelper.Two = 1;',
     '$mod.THelper.Glob = $mod.THelper.Glob;',
     '']));
@@ -22894,7 +22999,7 @@ begin
     '};',
     'this.FooVar = function (a) {',
     '  $mod.THelper.DoIt.call(a, 123);',
-    '  var $with1 = a.get();',
+    '  var $with = a.get();',
     '  $mod.THelper.DoIt.call(a, 123);',
     '};',
     '']),
@@ -22947,13 +23052,13 @@ begin
     '      this.p.a = v;',
     '    }',
     '}, 123);',
-    'var $with1 = $mod.a;',
+    'var $with = $mod.a;',
     '$mod.THelper.DoIt.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, 123);',
     '$mod.THelper.DoIt.call({',
@@ -22965,13 +23070,13 @@ begin
     '      this.p.c = v;',
     '    }',
     '}, 123);',
-    'var $with2 = $mod.c;',
+    'var $with1 = $mod.c;',
     '$mod.THelper.DoIt.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '}, 123);',
     '$mod.THelper.DoIt.call({',
@@ -22982,10 +23087,10 @@ begin
     '      rtl.raiseE("EPropReadOnly");',
     '    }',
     '}, 123);',
-    'var $with3 = 3;',
+    'var $with2 = 3;',
     '  $mod.THelper.DoIt.call({',
     '    get: function () {',
-    '        return $with3;',
+    '        return $with2;',
     '      },',
     '    set: function () {',
     '        rtl.raiseE("EPropReadOnly");',
@@ -23046,6 +23151,15 @@ begin
     '      this.a = v;',
     '    }',
     '}, 123);',
+    'var $with = $mod.Foo(1);',
+    '$mod.THelper.DoIt.call({',
+    '  get: function () {',
+    '      return $with;',
+    '    },',
+    '  set: function (v) {',
+    '      $with = v;',
+    '    }',
+    '}, 123);',
     'var $with1 = $mod.Foo(1);',
     '$mod.THelper.DoIt.call({',
     '  get: function () {',
@@ -23053,15 +23167,6 @@ begin
     '    },',
     '  set: function (v) {',
     '      $with1 = v;',
-    '    }',
-    '}, 123);',
-    'var $with2 = $mod.Foo(1);',
-    '$mod.THelper.DoIt.call({',
-    '  get: function () {',
-    '      return $with2;',
-    '    },',
-    '  set: function (v) {',
-    '      $with2 = v;',
     '    }',
     '}, 123);',
     '']));
@@ -23157,13 +23262,13 @@ begin
     '        }',
     '    });',
     '    $mod.THelper.Run();',
-    '    var $with1 = this.FField;',
+    '    var $with = this.FField;',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with1;',
+    '          return $with;',
     '        },',
     '      set: function (v) {',
-    '          $with1 = v;',
+    '          $with = v;',
     '        }',
     '    });',
     '    $mod.THelper.Run();',
@@ -23188,9 +23293,9 @@ begin
     '    }',
     '});',
     '$mod.THelper.Run();',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Fly.call({',
-    '  p: $with1,',
+    '  p: $with,',
     '  get: function () {',
     '      return this.p.FField;',
     '    },',
@@ -23199,13 +23304,13 @@ begin
     '    }',
     '});',
     '$mod.THelper.Run();',
-    'var $with2 = $mod.o.FField;',
+    'var $with1 = $mod.o.FField;',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '});',
     '$mod.THelper.Run();',
@@ -23303,13 +23408,13 @@ begin
     '        }',
     '    });',
     '    $mod.THelper.Run();',
-    '    var $with1 = this.GetField();',
+    '    var $with = this.GetField();',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with1;',
+    '          return $with;',
     '        },',
     '      set: function (v) {',
-    '          $with1 = v;',
+    '          $with = v;',
     '        }',
     '    });',
     '    $mod.THelper.Run();',
@@ -23335,9 +23440,9 @@ begin
     '    }',
     '});',
     '$mod.THelper.Run();',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Fly.call({',
-    '  p: $with1.GetField(),',
+    '  p: $with.GetField(),',
     '  get: function () {',
     '      return this.p;',
     '    },',
@@ -23346,13 +23451,13 @@ begin
     '    }',
     '});',
     '$mod.THelper.Run();',
-    'var $with2 = $mod.o.GetField();',
+    'var $with1 = $mod.o.GetField();',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '});',
     '$mod.THelper.Run();',
@@ -23433,13 +23538,13 @@ begin
     '          $mod.TObject.FField = v;',
     '        }',
     '    }, 3);',
-    '    var $with1 = this.FField;',
+    '    var $with = this.FField;',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with1;',
+    '          return $with;',
     '        },',
     '      set: function (v) {',
-    '          $with1 = v;',
+    '          $with = v;',
     '        }',
     '    }, 4);',
     '    $mod.THelper.Fly.call({',
@@ -23451,9 +23556,9 @@ begin
     '          $mod.TObject.FField = v;',
     '        }',
     '    }, 5);',
-    '    var $with2 = $mod.TObject;',
+    '    var $with1 = $mod.TObject;',
     '    $mod.THelper.Fly.call({',
-    '      p: $with2,',
+    '      p: $with1,',
     '      get: function () {',
     '          return this.p.FField;',
     '        },',
@@ -23461,13 +23566,13 @@ begin
     '          $mod.TObject.FField = v;',
     '        }',
     '    }, 6);',
-    '    var $with3 = $mod.TObject.FField;',
+    '    var $with2 = $mod.TObject.FField;',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with3;',
+    '          return $with2;',
     '        },',
     '      set: function (v) {',
-    '          $with3 = v;',
+    '          $with2 = v;',
     '        }',
     '    }, 7);',
     '  };',
@@ -23488,9 +23593,9 @@ begin
     '      $mod.TObject.FField = v;',
     '    }',
     '}, 11);',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Fly.call({',
-    '  p: $with1,',
+    '  p: $with,',
     '  get: function () {',
     '      return this.p.FField;',
     '    },',
@@ -23498,13 +23603,13 @@ begin
     '      $mod.TObject.FField = v;',
     '    }',
     '}, 12);',
-    'var $with2 = $mod.o.FField;',
+    'var $with1 = $mod.o.FField;',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '}, 13);',
     '$mod.THelper.Fly.call({',
@@ -23516,9 +23621,9 @@ begin
     '      $mod.TObject.FField = v;',
     '    }',
     '}, 14);',
-    'var $with3 = $mod.TObject;',
+    'var $with2 = $mod.TObject;',
     '$mod.THelper.Fly.call({',
-    '  p: $with3,',
+    '  p: $with2,',
     '  get: function () {',
     '      return this.p.FField;',
     '    },',
@@ -23526,13 +23631,13 @@ begin
     '      $mod.TObject.FField = v;',
     '    }',
     '}, 15);',
-    'var $with4 = $mod.TObject.FField;',
+    'var $with3 = $mod.TObject.FField;',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with4;',
+    '      return $with3;',
     '    },',
     '  set: function (v) {',
-    '      $with4 = v;',
+    '      $with3 = v;',
     '    }',
     '}, 16);',
     '']));
@@ -23598,9 +23703,9 @@ begin
     '          this.p = v;',
     '        }',
     '    }, 5);',
-    '    var $with1 = $mod.TObject;',
+    '    var $with = $mod.TObject;',
     '    $mod.THelper.Fly.call({',
-    '      p: $with1.GetField(),',
+    '      p: $with.GetField(),',
     '      get: function () {',
     '          return this.p;',
     '        },',
@@ -23608,13 +23713,13 @@ begin
     '          this.p = v;',
     '        }',
     '    }, 6);',
-    '    var $with2 = $mod.TObject.GetField();',
+    '    var $with1 = $mod.TObject.GetField();',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with2;',
+    '          return $with1;',
     '        },',
     '      set: function (v) {',
-    '          $with2 = v;',
+    '          $with1 = v;',
     '        }',
     '    }, 7);',
     '    return Result;',
@@ -23636,9 +23741,9 @@ begin
     '      this.p = v;',
     '    }',
     '}, 11);',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Fly.call({',
-    '  p: $with1.GetField(),',
+    '  p: $with.GetField(),',
     '  get: function () {',
     '      return this.p;',
     '    },',
@@ -23646,13 +23751,13 @@ begin
     '      this.p = v;',
     '    }',
     '}, 12);',
-    'var $with2 = $mod.o.GetField();',
+    'var $with1 = $mod.o.GetField();',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '}, 13);',
     '']));
@@ -23732,13 +23837,13 @@ begin
     '          this.p = v;',
     '        }',
     '    }, 6);',
-    '    var $with1 = this.GetField();',
+    '    var $with = this.GetField();',
     '    $mod.THelper.Fly.call({',
     '      get: function () {',
-    '          return $with1;',
+    '          return $with;',
     '        },',
     '      set: function (v) {',
-    '          $with1 = v;',
+    '          $with = v;',
     '        }',
     '    }, 7);',
     '    return Result;',
@@ -23761,9 +23866,9 @@ begin
     '      this.p = v;',
     '    }',
     '}, 11);',
-    'var $with1 = $mod.o;',
+    'var $with = $mod.o;',
     '$mod.THelper.Fly.call({',
-    '  p: $with1.$class.GetField(),',
+    '  p: $with.$class.GetField(),',
     '  get: function () {',
     '      return this.p;',
     '    },',
@@ -23771,13 +23876,13 @@ begin
     '      this.p = v;',
     '    }',
     '}, 12);',
-    'var $with2 = $mod.o.$class.GetField();',
+    'var $with1 = $mod.o.$class.GetField();',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with2;',
+    '      return $with1;',
     '    },',
     '  set: function (v) {',
-    '      $with2 = v;',
+    '      $with1 = v;',
     '    }',
     '}, 13);',
     '$mod.THelper.Fly.call({',
@@ -23789,9 +23894,9 @@ begin
     '      this.p = v;',
     '    }',
     '}, 14);',
-    'var $with3 = $mod.c;',
+    'var $with2 = $mod.c;',
     '$mod.THelper.Fly.call({',
-    '  p: $with3.GetField(),',
+    '  p: $with2.GetField(),',
     '  get: function () {',
     '      return this.p;',
     '    },',
@@ -23799,13 +23904,13 @@ begin
     '      this.p = v;',
     '    }',
     '}, 15);',
-    'var $with4 = $mod.c.GetField();',
+    'var $with3 = $mod.c.GetField();',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
-    '      return $with4;',
+    '      return $with3;',
     '    },',
     '  set: function (v) {',
-    '      $with4 = v;',
+    '      $with3 = v;',
     '    }',
     '}, 16);',
     '']));
@@ -23855,7 +23960,7 @@ begin
     '    $mod.THelper.SetSize.call(this, 2);',
     '    Result = $mod.THelper.GetSize.call(this) + 3;',
     '    $mod.THelper.SetSize.call(this, 4);',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    Result = $mod.THelper.GetSize.call(this) + 5;',
     '    $mod.THelper.SetSize.call(this, 6);',
     '    return Result;',
@@ -23884,21 +23989,21 @@ begin
     '      this.p.w = v;',
     '    }',
     '}, $mod.w + 8);',
-    'var $with1 = $mod.w;',
+    'var $with = $mod.w;',
     '$mod.w = $mod.THelper.GetSize.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}) + 9;',
     '$mod.THelper.SetSize.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, $mod.w + 10);',
     '']));
@@ -23950,7 +24055,7 @@ begin
     '    $mod.THelper.SetItems.call(this, 2, false);',
     '    Result = $mod.THelper.GetItems.call(this, 3);',
     '    $mod.THelper.SetItems.call(this, 4, true);',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    Result = $mod.THelper.GetItems.call(this, 5);',
     '    $mod.THelper.SetItems.call(this, 6, false);',
     '    return Result;',
@@ -23980,21 +24085,21 @@ begin
     '      this.p.w = v;',
     '    }',
     '}, 2, $mod.b);',
-    'var $with1 = $mod.w;',
+    'var $with = $mod.w;',
     '$mod.b = $mod.THelper.GetItems.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, 3);',
     '$mod.THelper.SetItems.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, 4, $mod.b);',
     '']));
@@ -24088,7 +24193,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.b = $mod.THelper.GetItems(1);',
     '$mod.THelper.SetItems(2, $mod.b);',
-    'var $with1 = $mod.w;',
+    'var $with = $mod.w;',
     '$mod.b = $mod.THelper.GetItems(3);',
     '$mod.THelper.SetItems(4, $mod.b);',
     '']));
@@ -24203,13 +24308,13 @@ begin
     '    }',
     '}, 3);',
     '$mod.w = $mod.THelper.$new("Init", [4]);',
-    'var $with1 = $mod.w;',
+    'var $with = $mod.w;',
     '$mod.w = $mod.THelper.Init.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, 5);',
     '']));
@@ -24240,7 +24345,7 @@ begin
     '  this.DoIt = function (e) {',
     '    this.set(e);',
     '    this.set(this.get() + 1);',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    $mod.THelper.DoIt.call(this, 123);',
     '  };',
     '});',
@@ -24284,7 +24389,7 @@ begin
     '  this.Run = function (e) {',
     '    this.set(e);',
     '    this.set(!this.get());',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    $mod.THelper.Run.call(this, true);',
     '    if ((this.get() ? 1 : 0) === 0) ;',
     '  };',
@@ -24760,7 +24865,7 @@ begin
     '  this.DoIt = function (e) {',
     '    this.set($mod.TEnum.red);',
     '    this.set(this.get() + 1);',
-    '    var $with1 = this.get();',
+    '    var $with = this.get();',
     '    $mod.THelper.DoIt.call(this, 123);',
     '  };',
     '  this.Swing = function (w) {',
@@ -24974,7 +25079,7 @@ begin
     '      this.set(null);',
     '      this.set($mod.i);',
     '      this.set($ir.ref(1, rtl.queryIntfT($mod.o, $mod.IUnknown)));',
-    '      var $with1 = this.get();',
+    '      var $with = this.get();',
     '      $mod.THelper.Fly.call(this, 123);',
     '      $mod.THelper.Fly.call(this, 123);',
     '    } finally {',
@@ -25954,46 +26059,46 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([
-    'var $with1 = $mod.Obj;',
-    '$with1.FOnFoo = null;',
-    '$with1.FOnFoo = null;',
-    '$with1.SetFoo(null);',
-    '$with1.FOnFoo = $with1.FOnFoo;',
-    '$with1.FOnFoo = $with1.FOnFoo;',
-    '$with1.SetFoo($with1.GetFoo());',
-    '$with1.FOnFoo = rtl.createCallback($with1, "DoIt");',
-    '$with1.FOnFoo = rtl.createCallback($with1, "DoIt");',
-    '$with1.SetFoo(rtl.createCallback($with1, "DoIt"));',
-    '$with1.FOnFoo(1);',
-    '$with1.FOnFoo(1);',
-    '$with1.GetFoo();',
-    '$with1.FOnFoo(1);',
-    '$with1.FOnFoo(1);',
-    '$with1.GetFoo()(1);',
-    '$mod.b = $with1.FOnFoo === null;',
-    '$mod.b = $with1.FOnFoo === null;',
-    '$mod.b = $with1.GetFoo() === null;',
-    '$mod.b = $with1.FOnFoo !== null;',
-    '$mod.b = $with1.FOnFoo !== null;',
-    '$mod.b = $with1.GetFoo() !== null;',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, $mod.vP);',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, $mod.vP);',
-    '$mod.b = rtl.eqCallback($with1.GetFoo(), $mod.vP);',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    '$mod.b = rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
-    '$mod.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    '$mod.b = !rtl.eqCallback($with1.FOnFoo, $with1.FOnFoo);',
-    '$mod.b = !rtl.eqCallback($with1.GetFoo(), $with1.FOnFoo);',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = $with1.FOnFoo != null;',
-    '$mod.b = $with1.FOnFoo != null;',
-    '$mod.b = $with1.GetFoo() != null;',
+    'var $with = $mod.Obj;',
+    '$with.FOnFoo = null;',
+    '$with.FOnFoo = null;',
+    '$with.SetFoo(null);',
+    '$with.FOnFoo = $with.FOnFoo;',
+    '$with.FOnFoo = $with.FOnFoo;',
+    '$with.SetFoo($with.GetFoo());',
+    '$with.FOnFoo = rtl.createCallback($with, "DoIt");',
+    '$with.FOnFoo = rtl.createCallback($with, "DoIt");',
+    '$with.SetFoo(rtl.createCallback($with, "DoIt"));',
+    '$with.FOnFoo(1);',
+    '$with.FOnFoo(1);',
+    '$with.GetFoo();',
+    '$with.FOnFoo(1);',
+    '$with.FOnFoo(1);',
+    '$with.GetFoo()(1);',
+    '$mod.b = $with.FOnFoo === null;',
+    '$mod.b = $with.FOnFoo === null;',
+    '$mod.b = $with.GetFoo() === null;',
+    '$mod.b = $with.FOnFoo !== null;',
+    '$mod.b = $with.FOnFoo !== null;',
+    '$mod.b = $with.GetFoo() !== null;',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, $mod.vP);',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, $mod.vP);',
+    '$mod.b = rtl.eqCallback($with.GetFoo(), $mod.vP);',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, $with.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, $with.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with.GetFoo(), $with.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with.FOnFoo, $with.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with.FOnFoo, $with.FOnFoo);',
+    '$mod.b = !rtl.eqCallback($with.GetFoo(), $with.FOnFoo);',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, rtl.createCallback($with, "DoIt"));',
+    '$mod.b = rtl.eqCallback($with.FOnFoo, rtl.createCallback($with, "DoIt"));',
+    '$mod.b = rtl.eqCallback($with.GetFoo(), rtl.createCallback($with, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with.FOnFoo, rtl.createCallback($with, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with.FOnFoo, rtl.createCallback($with, "DoIt"));',
+    '$mod.b = !rtl.eqCallback($with.GetFoo(), rtl.createCallback($with, "DoIt"));',
+    '$mod.b = $with.FOnFoo != null;',
+    '$mod.b = $with.FOnFoo != null;',
+    '$mod.b = $with.GetFoo() != null;',
     '']));
 end;
 
@@ -26471,15 +26576,15 @@ begin
     '$mod.Obj.SetOnShow(rtl.createSafeCallback(ExtObj, "Fly"));',
     '$mod.Obj.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
     '$mod.Obj.SetOnShow(rtl.createSafeCallback(ExtObj, "Fly"));',
-    'var $with1 = $mod.Obj;',
-    '$mod.e = rtl.createSafeCallback($with1, "$Execute");',
-    '$mod.e = rtl.createSafeCallback($with1, "DoSome");',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
-    '$with1.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
-    '$with1.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
+    'var $with = $mod.Obj;',
+    '$mod.e = rtl.createSafeCallback($with, "$Execute");',
+    '$mod.e = rtl.createSafeCallback($with, "DoSome");',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "$Execute"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "DoSome"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "$Execute"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "DoSome"));',
+    '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
+    '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
     '']));
 end;
 
@@ -26557,15 +26662,15 @@ begin
     '$mod.Obj.SetOnShow(rtl.createSafeCallback(ExtObj, "Fly"));',
     '$mod.Obj.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
     '$mod.Obj.SetOnShow(rtl.createSafeCallback(ExtObj, "Fly"));',
-    'var $with1 = $mod.Obj;',
-    '$mod.e = rtl.createSafeCallback($with1, "$Execute");',
-    '$mod.e = rtl.createSafeCallback($with1, "DoSome");',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
-    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
-    '$with1.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
-    '$with1.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
+    'var $with = $mod.Obj;',
+    '$mod.e = rtl.createSafeCallback($with, "$Execute");',
+    '$mod.e = rtl.createSafeCallback($with, "DoSome");',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "$Execute"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "DoSome"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "$Execute"));',
+    '$with.SetOnClick(rtl.createSafeCallback($with, "DoSome"));',
+    '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
+    '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
     '']));
 end;
 
@@ -28690,6 +28795,7 @@ begin
   Add('    VarShI: shortint;');
   Add('    VarBy: byte;');
   Add('    VarExt: longint external name ''VarExt'';');
+  Add('    ArrA, ArrB: array of byte;');
   Add('  end;');
   Add('var p: pointer;');
   Add('  Obj: tobject;');
@@ -28713,8 +28819,12 @@ begin
     '    this.VarW = 0;',
     '    this.VarShI = 0;',
     '    this.VarBy = 0;',
+    '    this.ArrA = [];',
+    '    this.ArrB = [];',
     '  };',
     '  this.$final = function () {',
+    '    this.ArrA = undefined;',
+    '    this.ArrB = undefined;',
     '  };',
     '  var $r = this.$rtti;',
     '  $r.addField("VarLI", rtl.longint);',
@@ -28728,6 +28838,11 @@ begin
     '  $r.addField("VarShI", rtl.shortint);',
     '  $r.addField("VarBy", rtl.byte);',
     '  $r.addField("VarExt", rtl.longint);',
+    '  $mod.$rtti.$DynArray("TObject.ArrB$a", {',
+    '    eltype: rtl.byte',
+    '  });',
+    '  $r.addField("ArrA", $mod.$rtti["TObject.ArrB$a"]);',
+    '  $r.addField("ArrB", $mod.$rtti["TObject.ArrB$a"]);',
     '});',
     'this.p = null;',
     'this.Obj = null;',
@@ -29747,7 +29862,7 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TFloatRec = record');
-  Add('    d: array of char;');
+  Add('    c,d: array of char;');
   // Add('    i: array of array of longint;');
   Add('  end;');
   Add('var p: pointer;');
@@ -29760,11 +29875,13 @@ begin
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
     'rtl.recNewT($mod, "TFloatRec", function () {',
+    '  this.c = [];',
     '  this.d = [];',
     '  this.$eq = function (b) {',
-    '    return this.d === b.d;',
+    '    return (this.c === b.c) && (this.d === b.d);',
     '  };',
     '  this.$assign = function (s) {',
+    '    this.c = s.c;',
     '    this.d = s.d;',
     '    return this;',
     '  };',
@@ -29772,6 +29889,7 @@ begin
     '    eltype: rtl.char',
     '  });',
     '  var $r = $mod.$rtti.$Record("TFloatRec", {});',
+    '  $r.addField("c", $mod.$rtti["TFloatRec.d$a"]);',
     '  $r.addField("d", $mod.$rtti["TFloatRec.d$a"]);',
     '});',
     'this.p = null;',
@@ -30560,8 +30678,14 @@ end;
 
 procedure TTestModule.TestResourcestringProgram;
 begin
-  StartProgram(false);
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'resourcestring Title = ''Nice'';',
+    '']),
+    '');
+  StartProgram(true);
   Add([
+  'uses unit2;',
   'const Bar = ''bar'';',
   'resourcestring',
   '  Red = ''red'';',
@@ -30571,6 +30695,7 @@ begin
   'begin',
   '  s:=red;',
   '  s:=test1.red;',
+  '  s:=Title;',
   '  c:=red[1];',
   '  c:=test1.red[2];',
   '  if red=foobar then ;',
@@ -30591,20 +30716,27 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.s = rtl.getResStr(pas.program, "Red");',
-    '$mod.s = rtl.getResStr(pas.program, "Red");',
-    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(0);',
-    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(1);',
-    'if (rtl.getResStr(pas.program, "Red") === rtl.getResStr(pas.program, "Foobar")) ;',
-    'if (rtl.getResStr(pas.program, "Red").charAt(2) === rtl.getResStr(pas.program, "Red").charAt(3)) ;',
+    '$mod.s = rtl.getResStr($mod, "Red");',
+    '$mod.s = rtl.getResStr($mod, "Red");',
+    '$mod.s = rtl.getResStr(pas.unit2, "Title");',
+    '$mod.c = rtl.getResStr($mod, "Red").charAt(0);',
+    '$mod.c = rtl.getResStr($mod, "Red").charAt(1);',
+    'if (rtl.getResStr($mod, "Red") === rtl.getResStr($mod, "Foobar")) ;',
+    'if (rtl.getResStr($mod, "Red").charAt(2) === rtl.getResStr($mod, "Red").charAt(3)) ;',
     '']));
 end;
 
 procedure TTestModule.TestResourcestringUnit;
 begin
-  StartUnit(false);
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'resourcestring Title = ''Nice'';',
+    '']),
+    '');
+  StartUnit(true);
   Add([
   'interface',
+  'uses unit2;',
   'const Red = ''rEd'';',
   'resourcestring',
   '  Blue = ''blue'';',
@@ -30616,7 +30748,9 @@ begin
   'initialization',
   '  s:=blue+ImplGreen;',
   '  s:=test1.blue+test1.implgreen;',
-  '  s:=blue[1]+implgreen[2];']);
+  '  s:=blue[1]+implgreen[2];',
+  '  s:=Title;',
+  '']);
   ConvertUnit;
   CheckSource('TestResourcestringUnit',
     LinesToStr([ // statements
@@ -30635,9 +30769,10 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue").charAt(0) + rtl.getResStr(pas.Test1, "ImplGreen").charAt(1);',
+    '$mod.s = rtl.getResStr($mod, "Blue") + rtl.getResStr($mod, "ImplGreen");',
+    '$mod.s = rtl.getResStr($mod, "Blue") + rtl.getResStr($mod, "ImplGreen");',
+    '$mod.s = rtl.getResStr($mod, "Blue").charAt(0) + rtl.getResStr($mod, "ImplGreen").charAt(1);',
+    '$mod.s = rtl.getResStr(pas.unit2, "Title");',
     '']));
 end;
 
@@ -31623,14 +31758,14 @@ begin
     '      this.p.b = v;',
     '    }',
     '}, 14);',
-    'var $with1 = $mod.b;',
+    'var $with = $mod.b;',
     '$mod.THelper.SetIt.call({',
     '  get: function () {',
-    '      return $with1;',
+    '      return $with;',
     '    },',
     '  set: function (v) {',
     '      rtl.rc(v, 0, 255);',
-    '      $with1 = v;',
+    '      $with = v;',
     '    }',
     '}, 15);',
     '$mod.THelper.SetIt.call({',
@@ -31768,11 +31903,11 @@ begin
     '$mod.p = $mod.o.Fly();',
     'if ($mod.o.Fly() === $mod.p) ;',
     'if ($mod.o.Fly() === $mod.p) ;',
-    'var $with1 = $mod.o;',
-    '$mod.p = $with1.Fly();',
-    '$mod.p = $with1.Fly();',
-    'if ($with1.Fly() === $mod.p) ;',
-    'if ($with1.Fly() === $mod.p) ;',
+    'var $with = $mod.o;',
+    '$mod.p = $with.Fly();',
+    '$mod.p = $with.Fly();',
+    'if ($with.Fly() === $mod.p) ;',
+    'if ($with.Fly() === $mod.p) ;',
     '']));
 end;
 

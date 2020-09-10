@@ -347,19 +347,33 @@ var rtl = {
     // Create a class using an external ancestor.
     // If newinstancefnname is given, use that function to create the new object.
     // If exist call BeforeDestruction and AfterConstruction.
-    var c = Object.create(ancestor);
+    var isFunc = rtl.isFunction(ancestor);
+    var c = null;
+    if (isFunc){
+      // create pascal class descendent from JS function
+      c = Object.create(ancestor.prototype);
+    } else if (ancestor.$func){
+      // create pascal class descendent from a pascal class descendent of a JS function
+      isFunc = true;
+      c = Object.create(ancestor);
+      c.$ancestor = ancestor;
+    } else {
+      c = Object.create(ancestor);
+    }
     c.$create = function(fn,args){
       if (args == undefined) args = [];
       var o = null;
       if (newinstancefnname.length>0){
         o = this[newinstancefnname](fn,args);
+      } else if(isFunc) {
+        o = new this.$func(args);
       } else {
-        o = Object.create(this);
+        o = Object.create(c);
       }
       if (o.$init) o.$init();
       try{
         if (typeof(fn)==="string"){
-          o[fn].apply(o,args);
+          this[fn].apply(o,args);
         } else {
           fn.apply(o,args);
         };
@@ -367,7 +381,7 @@ var rtl = {
       } catch($e){
         // do not call BeforeDestruction
         if (o.Destroy) o.Destroy();
-        if (o.$final) this.$final();
+        if (o.$final) o.$final();
         throw $e;
       }
       return o;
@@ -378,6 +392,11 @@ var rtl = {
       if (this.$final) this.$final();
     };
     rtl.initClass(c,parent,name,initfn);
+    if (isFunc){
+      function f(){}
+      f.prototype = c;
+      c.$func = f;
+    }
   },
 
   createHelper: function(parent,name,ancestor,initfn){
@@ -432,27 +451,32 @@ var rtl = {
     // create new record type
     var t = {};
     if (parent) parent[name] = t;
-    function hide(prop){
-      Object.defineProperty(t,prop,{enumerable:false});
-    }
+    var h = rtl.hideProp;
     if (full){
       rtl.initStruct(t,parent,name);
       t.$record = t;
-      hide('$record');
-      hide('$name');
-      hide('$parent');
-      hide('$module');
+      h(t,'$record');
+      h(t,'$name');
+      h(t,'$parent');
+      h(t,'$module');
     }
     initfn.call(t);
     if (!t.$new){
-      t.$new = function(){ return Object.create(this); };
+      t.$new = function(){ return Object.create(t); };
     }
-    t.$clone = function(r){ return this.$new().$assign(r); };
-    hide('$new');
-    hide('$clone');
-    hide('$eq');
-    hide('$assign');
+    t.$clone = function(r){ return t.$new().$assign(r); };
+    h(t,'$new');
+    h(t,'$clone');
+    h(t,'$eq');
+    h(t,'$assign');
     return t;
+  },
+
+  recNewS: function(parent,name,initfn,full){
+    // register specialized record type
+    parent[name] = function(){
+      rtl.recNewT(parent,name,initfn,full);
+    }
   },
 
   is: function(instance,type){

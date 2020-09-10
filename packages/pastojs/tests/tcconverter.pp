@@ -385,14 +385,14 @@ begin
   F.Body:=CreateAssignStatement();
   ForSt:=TJSForStatement(Convert(F,TJSForStatement));
   // Should be
-  //   for(var $l1=1, $le2=100; $l1<=$le2; $l1++){
-  //     I=$l1;
+  //   for(var $l=1, $end=100; $l<=$end2; $l++){
+  //     I=$l;
   //     a=b;
   //   }
-  LoopVar:=Pas2JSBuiltInNames[pbivnLoop]+'1';
-  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd]+'2';
+  LoopVar:=Pas2JSBuiltInNames[pbivnLoop];
+  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd];
 
-  // "var $l1=1, $le2=100"
+  // "var $l=1, $end=100"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
   VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
@@ -402,20 +402,20 @@ begin
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
   AssertLiteral('Correct end value',VD.Init,100);
 
-  // $l1<=$le2
+  // $l<=$end
   Cond:=TJSRelationalExpressionLE(AssertElement('Condition is <= expression',TJSRelationalExpressionLE,ForSt.Cond));
   AssertIdentifier('Cond LHS is '+LoopVar,Cond.A,LoopVar);
   AssertIdentifier('Cond RHS is '+LoopEndVar,Cond.B,LoopEndVar);
 
-  // $l1++
+  // $l++
   I:=TJSUnaryPostPlusPlusExpression(AssertElement('Increment is ++ statement',TJSUnaryPostPlusPlusExpression,ForSt.Incr));
   AssertIdentifier('++ on correct variable name',I.A,LoopVar);
 
   // body
   L:=TJSStatementList(AssertElement('For body ist list',TJSStatementList,ForSt.Body));
 
-  // I:=$l1
-  A:=TJSSimpleAssignStatement(AssertElement('I:=$l1',TJSSimpleAssignStatement,L.A));
+  // I:=$l
+  A:=TJSSimpleAssignStatement(AssertElement('I:='+LoopVar,TJSSimpleAssignStatement,L.A));
   AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
   AssertIdentifier('Init statement RHS is '+LoopVar,A.Expr,LoopVar);
 
@@ -446,14 +446,14 @@ begin
   F.Body:=CreateAssignStatement();
   ForSt:=TJSForStatement(Convert(F,TJSForStatement));
   // Should be
-  //   for(var $l1=100, $le2=1; $l1>=$le2; $l1--){
-  //     I=$l1;
+  //   for(var $l=100, $end=1; $l>=$end; $l--){
+  //     I=$l;
   //     a=b;
   //   }
-  LoopVar:=Pas2JSBuiltInNames[pbivnLoop]+'1';
-  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd]+'2';
+  LoopVar:=Pas2JSBuiltInNames[pbivnLoop];
+  LoopEndVar:=Pas2JSBuiltInNames[pbivnLoopEnd];
 
-  // "var $l1=100, $le2=1"
+  // "var $l=100, $end=1"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
   VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
@@ -463,20 +463,20 @@ begin
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
   AssertLiteral('Correct end value',VD.Init,1);
 
-  // $l1>=$le2
+  // $l>=$end
   Cond:=TJSRelationalExpressionGE(AssertElement('Condition is >= expression',TJSRelationalExpressionGE,ForSt.Cond));
   AssertIdentifier('Cond LHS is '+LoopVar,Cond.A,LoopVar);
   AssertIdentifier('Cond RHS is '+LoopEndVar,Cond.B,LoopEndVar);
 
-  // $l1--
+  // $l--
   I:=TJSUnaryPostMinusMinusExpression(AssertElement('Increment is -- statement',TJSUnaryPostMinusMinusExpression,ForSt.Incr));
   AssertIdentifier('-- on correct variable name',I.A,LoopVar);
 
   // body
   L:=TJSStatementList(AssertElement('For body ist list',TJSStatementList,ForSt.Body));
 
-  // I:=$l1
-  A:=TJSSimpleAssignStatement(AssertElement('I:=$l1',TJSSimpleAssignStatement,L.A));
+  // I:=$l
+  A:=TJSSimpleAssignStatement(AssertElement('I:='+LoopVar,TJSSimpleAssignStatement,L.A));
   AssertIdentifier('Init statement LHS is loop variable',A.LHS,'i');
   AssertIdentifier('Init statement RHS is '+LoopVar,A.Expr,LoopVar);
 

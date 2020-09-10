@@ -4428,8 +4428,10 @@ var
   ArrEl: TPasArrayType;
   i: Integer;
   AObjKind: TPasObjKind;
+  ok: Boolean;
 begin
   Result:=nil;
+  ok := false;
   TypeName := CurTokenString;
   NamePos := CurSourcePos;
   TypeParams:=TFPList.Create;
@@ -4510,7 +4512,10 @@ begin
     else
       ParseExcTypeParamsNotAllowed;
     end;
+    ok:=true;
   finally
+    if (not ok) and (Result<>nil) and not AddToParent then
+      Result.Release({$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF});
     for i:=0 to TypeParams.Count-1 do
       TPasElement(TypeParams[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
     TypeParams.Free;

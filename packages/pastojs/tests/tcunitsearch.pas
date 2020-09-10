@@ -154,6 +154,12 @@ type
 
     procedure TestUS_UseUnitTwiceFail;
     procedure TestUS_UseUnitTwiceViaNameSpace;
+
+    // namespace
+    Procedure TestDefaultNameSpaceLast;
+    Procedure TestDefaultNameSpaceAfterNameSpace;
+    Procedure TestNoNameSpaceBeforeDefaultNameSpace;
+    Procedure TestNoNameSpaceAndDefaultNameSpace;
   end;
 
 function LinesToStr(const Lines: array of string): string;
@@ -841,6 +847,88 @@ begin
     '  a:=a;',
     'end.']);
   Compile(['test1.pas','-FNsub','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestDefaultNameSpaceLast;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddUnit('NS1.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddFile('test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['test1.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestDefaultNameSpaceAfterNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('prg.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddUnit('sub.Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddFile('prg.test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['prg.test1.pas','-FNsub','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestNoNameSpaceBeforeDefaultNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('prg.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddUnit('Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddFile('prg.test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['prg.test1.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestNoNameSpaceAndDefaultNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('UnitA.pas',
+    ['type TBool = boolean;'],
+    ['']);
+  AddUnit('ThirdParty.UnitB.pas',
+    ['uses UnitA;',
+     'type TAlias = TBool;'],
+    ['']);
+  AddUnit('MyProject.UnitA.pas',
+    [
+    'uses ThirdParty.UnitB;',
+    'var a: TAlias;'],
+    ['']);
+  AddFile('MyProject.Main.pas',[
+    'uses MyProject.UnitA;',
+    'var',
+    '  b: boolean;',
+    'begin',
+    '  b:=a;',
+    'end.']);
+  Compile(['MyProject.Main.pas','','-Jc']);
 end;
 
 Initialization
