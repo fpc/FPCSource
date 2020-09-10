@@ -249,7 +249,7 @@ begin
       Result:=Result+Delimiter;
     end;
   // Quote empty string:
-  If (Length(Result)=0) and (Count=1) then
+  If (Length(Result)=0) and (Count=1) and (QuoteChar<>#0) then
     Result:=QuoteChar+QuoteChar;
 end;
 

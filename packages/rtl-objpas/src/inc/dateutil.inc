@@ -1390,9 +1390,11 @@ end;
 
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond);
-end;
-
+  if anow>athen then
+    Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)
+  else
+    Result:=Trunc(Abs(DateTimeDiff(AThen,ANow))+HalfMilliSecond); // bug 37361
+end;            
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin

@@ -162,7 +162,7 @@ Const
   fsFromEnd       = 2;
 
   { File errors }
-  feInvalidHandle : THandle = THandle(-1);  //return value on FileOpen error
+  feInvalidHandle = THandle(-1);  //return value on FileOpen error
 
 Type
   TFileSearchOption = (sfoImplicitCurrentDir,sfoStripQuotes);

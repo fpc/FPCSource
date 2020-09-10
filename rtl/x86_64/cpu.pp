@@ -33,6 +33,7 @@ unit cpu;
     function AVXSupport : boolean;inline;
     function AVX2Support: boolean;inline;
     function FMASupport: boolean;inline;
+    function POPCNTSupport: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -48,7 +49,8 @@ unit cpu;
       _AVXSupport,
       _InterlockedCompareExchange128Support,
       _AVX2Support,
-      _FMASupport : boolean;
+      _FMASupport,
+      _POPCNTSupport: boolean;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -141,6 +143,7 @@ unit cpu;
         end ['rax','rbx','rcx','rdx'];
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
         _AESSupport:=(_ecx and $2000000)<>0;
+        _POPCNTSupport:=(_ecx and $800000)<>0;
 
         _AVXSupport:=
           { XGETBV suspport? }
@@ -193,6 +196,11 @@ unit cpu;
         result:=_FMASupport;
       end;
 
+
+    function POPCNTSupport: boolean;inline;
+      begin
+        result:=_POPCNTSupport;
+      end;
 
 begin
   SetupSupport;
