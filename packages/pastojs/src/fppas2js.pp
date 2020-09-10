@@ -563,6 +563,7 @@ type
     pbifnBitwiseNativeIntXor,
     pbifnCheckMethodCall,
     pbifnCheckVersion,
+    pbifnClassAncestorFunc,
     pbifnClassInstanceFree,
     pbifnClassInstanceNew,
     pbifnCreateClass,
@@ -742,6 +743,7 @@ const
     'xor', // pbifnBitwiseNativeIntXor,
     'checkMethodCall', // pbifnCheckMethodCall
     'checkVersion', // pbifnCheckVersion
+    '$func', // pbifnClassAncestorFunc
     '$destroy', // pbifnClassInstanceFree
     '$create', // pbifnClassInstanceNew
     'createClass', // pbifnCreateClass   rtl.createClass
@@ -9691,36 +9693,48 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
       DoError(20170418204325,nNestedInheritedNeedsParameters,sNestedInheritedNeedsParameters,
         [],El);
 
-    if (AncestorProc.Parent is TPasClassType)
-        and TPasClassType(AncestorProc.Parent).IsExternal then
-      begin
-      // ancestor is in an external class
-      // They could be overriden, without a Pascal declaration
-      // -> use the direct ancestor class of the current proc
-      aClass:=SelfContext.ThisPas as TPasClassType;
-      if aClass.CustomData=nil then
-        RaiseInconsistency(20170323111252,aClass);
-      ClassScope:=TPasClassScope(aClass.CustomData);
-      AncestorScope:=ClassScope.AncestorScope;
-      if AncestorScope=nil then
-        RaiseInconsistency(20170323111306,aClass);
-      AncestorClass:=AncestorScope.Element as TPasClassType;
-      FunName:=CreateReferencePath(AncestorClass,AContext,rpkPathAndName,true)
-        +'.'+TransformVariableName(AncestorProc,AContext);
-      end
-    else
-      FunName:=CreateReferencePath(AncestorProc,AContext,rpkPathAndName,true);
-    if AncestorProc.ProcType.Args.Count=0 then
-      Apply:=false;
-    if Apply and (SelfContext=AContext) then
-      // create "ancestor.funcname.apply(this,arguments)"
-      FunName:=FunName+'.apply'
-    else
-      // create "ancestor.funcname.call(this,param1,param2,...)"
-      FunName:=FunName+'.call';
     Call:=nil;
     try
       Call:=CreateCallExpression(ParentEl);
+      if (AncestorProc.Parent is TPasClassType)
+          and TPasClassType(AncestorProc.Parent).IsExternal then
+        begin
+        // ancestor is in an external class
+        // They could be overriden, without a Pascal declaration
+        // -> use the direct ancestor class of the current proc
+        aClass:=SelfContext.ThisPas as TPasClassType;
+        if aClass.CustomData=nil then
+          RaiseInconsistency(20170323111252,aClass);
+        ClassScope:=TPasClassScope(aClass.CustomData);
+        AncestorScope:=ClassScope.AncestorScope;
+        if AncestorScope=nil then
+          RaiseInconsistency(20170323111306,aClass);
+        AncestorClass:=AncestorScope.Element as TPasClassType;
+        if (AncestorProc.ClassType=TPasConstructor) and SameText(AncestorProc.Name,'new')
+            and AContext.Resolver.IsExternalClass_Name(TPasClassType(AncestorProc.Parent),'Function') then
+          begin
+          // calling ancestor new constructor
+          // this.$func(param1,param2,...)
+          FunName:='this.'+GetBIName(pbifnClassAncestorFunc);
+          Call.Expr:=CreatePrimitiveDotExpr(FunName,ParentEl);
+          CreateProcedureCall(Call,ParamsExpr,AncestorProc.ProcType,AContext);
+          Result:=Call;
+          exit;
+          end
+        else
+          FunName:=CreateReferencePath(AncestorClass,AContext,rpkPathAndName,true)
+            +'.'+TransformVariableName(AncestorProc,AContext);
+        end
+      else
+        FunName:=CreateReferencePath(AncestorProc,AContext,rpkPathAndName,true);
+      if AncestorProc.ProcType.Args.Count=0 then
+        Apply:=false;
+      if Apply and (SelfContext=AContext) then
+        // create "ancestor.funcname.apply(this,arguments)"
+        FunName:=FunName+'.apply'
+      else
+        // create "ancestor.funcname.call(this,param1,param2,...)"
+        FunName:=FunName+'.call';
       Call.Expr:=CreatePrimitiveDotExpr(FunName,ParentEl);
       Call.AddArg(CreatePrimitiveDotExpr(SelfName,ParentEl));
       if Apply then

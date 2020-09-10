@@ -17491,6 +17491,7 @@ begin
   '  TJSFunction = class external name ''Function''',
   '  end;',
   '  TExtA = class external name ''ExtA''(TJSFunction)',
+  '    constructor New(w: word);',
   '  end;',
   '  TBird = class (TExtA)',
   '  public',
@@ -17504,6 +17505,8 @@ begin
   '  end;',
   'constructor TBird.Create(a: word);',
   'begin',
+  '  inherited;',  // silently ignored
+  '  inherited New(a);', // this.$func(a)
   'end;',
   'constructor TEagle.Create(b: word);',
   'begin',
@@ -17531,6 +17534,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function (a) {',
+    '    this.$func(a);',
     '    return this;',
     '  };',
     '});',
