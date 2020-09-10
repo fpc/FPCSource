@@ -104,7 +104,8 @@ type
 
   TSystemUnitPart = (
     supTObject,
-    supTVarRec
+    supTVarRec,
+    supTTypeKind
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -112,6 +113,7 @@ type
 
   TCustomTestResolver = Class(TTestParser)
   Private
+    FHub: TPasResolverHub;
     {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
     FStartElementRefCount: int64;
     {$ENDIF}
@@ -173,6 +175,7 @@ type
     procedure StartUnit(NeedSystemUnit: boolean);
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
+    property Hub: TPasResolverHub read FHub;
     property ResolverEngine: TTestEnginePasResolver read FResolverEngine;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
@@ -320,6 +323,7 @@ type
     Procedure TestIncStringFail;
     Procedure TestTypeInfo;
     Procedure TestTypeInfo_FailRTTIDisabled;
+    Procedure TestGetTypeKind;
 
     // statements
     Procedure TestForLoop;
@@ -1060,6 +1064,7 @@ begin
   FStartElementRefCount:=TPasElement.GlobalRefCount;
   {$ENDIF}
   FModules:=TObjectList.Create(true);
+  FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
   Scanner.OnDirective:=@OnScannerDirective;
@@ -1096,6 +1101,7 @@ begin
     FModules.OwnsObjects:=true;
     FreeAndNil(FModules);// free all other modules
     end;
+  FreeAndNil(FHub);
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown inherited');
   {$ENDIF}
@@ -2171,6 +2177,7 @@ begin
   Result.AddObjFPCBuiltInIdentifiers;
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
+  Result.Hub:=Hub;
   FModules.Add(Result);
 end;
 
@@ -2205,6 +2212,15 @@ begin
   Intf:=TStringList.Create;
   // interface
   Intf.Add('type');
+  if supTTypeKind in Parts then
+    begin
+    Intf.Add('  TTypeKind=(tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,');
+    Intf.Add('             tkSet,tkMethod,tkSString,tkLString,tkAString,');
+    Intf.Add('             tkWString,tkVariant,tkArray,tkRecord,tkInterface,');
+    Intf.Add('             tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,');
+    Intf.Add('             tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,');
+    Intf.Add('             tkHelper,tkFile,tkClassRef,tkPointer);');
+    end;
   Intf.Add('  integer=longint;');
   Intf.Add('  sizeint=int64;');
     //'const',
@@ -5058,6 +5074,44 @@ begin
   '  if typeinfo(o)=nil then ;',
   '']);
   CheckResolverException(sSymbolCannotBePublished,nSymbolCannotBePublished);
+end;
+
+procedure TTestResolver.TestGetTypeKind;
+begin
+  StartProgram(true,[supTTypeKind]);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TRec = record',
+  '    v: integer;',
+  '  end;',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '    class function ClassType: TClass; virtual; abstract;',
+  '  end;',
+  'var',
+  '  i: integer;',
+  '  s: string;',
+  '  p: pointer;',
+  '  r: TRec;',
+  '  o: TObject;',
+  '  c: TClass;',
+  '  k: TTypeKind;',
+  'begin',
+  '  k:=gettypekind(integer);',
+  '  k:=gettypekind(longint);',
+  '  k:=gettypekind(i);',
+  '  k:=gettypekind(s);',
+  '  k:=gettypekind(p);',
+  '  k:=gettypekind(r.v);',
+  '  k:=gettypekind(TObject.ClassType);',
+  '  k:=gettypekind(o.ClassType);',
+  '  k:=gettypekind(o);',
+  '  k:=gettypekind(c);',
+  '  k:=gettypekind(c.ClassType);',
+  '  k:=gettypekind(k);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestForLoop;

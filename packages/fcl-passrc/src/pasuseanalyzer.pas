@@ -329,6 +329,7 @@ function CompareElementWithPAElement(El, Id: Pointer): integer;
 function ComparePAOverrideLists(List1, List2: Pointer): integer;
 function CompareElementWithPAOverrideList(El, List: Pointer): integer;
 {$endif}
+function CreatePasElementSet: TPasAnalyzerKeySet;
 function GetElModName(El: TPasElement): string;
 function dbgs(a: TPAIdentifierAccess): string; overload;
 
@@ -393,6 +394,17 @@ begin
   Result:=ComparePointer(El,OvList.Element);
 end;
 {$endif}
+
+function CreatePasElementSet: TPasAnalyzerKeySet;
+begin
+  Result:=TPasAnalyzerKeySet.Create(
+            {$ifdef pas2js}
+            @PasElementToHashName
+            {$else}
+            @ComparePointer
+            {$endif}
+            ,nil);
+end;
 
 function GetElModName(El: TPasElement): string;
 var
@@ -2977,23 +2989,9 @@ var
 begin
   CreateTree;
   for m in TPAUseMode do
-    FModeChecked[m]:=TPasAnalyzerKeySet.Create(
-      {$ifdef pas2js}
-      @PasElementToHashName
-      {$else}
-      @ComparePointer
-      {$endif}
-      ,nil
-      );
+    FModeChecked[m]:=CreatePasElementSet;
   for oc in TPAOtherCheckedEl do
-    FOtherChecked[oc]:=TPasAnalyzerKeySet.Create(
-      {$ifdef pas2js}
-      @PasElementToHashName
-      {$else}
-      @ComparePointer
-      {$endif}
-      ,nil
-      );
+    FOtherChecked[oc]:=CreatePasElementSet;
   FOverrideLists:=TPasAnalyzerKeySet.Create(
     {$ifdef pas2js}
     @PAOverrideList_ElToHashName,@PasElementToHashName

@@ -210,10 +210,9 @@ begin
   if (UnitNameLen>0) and Assigned(OnUnitAlias) then
     begin
     UnitNameMaxLen:=Max(UnitNameLen,255);
-    s:=UseUnitName;
-    SetLength(s,UnitNameMaxLen);
+    s:=UseUnitName+StringOfChar(#0,UnitNameMaxLen-UnitNameLen);
     if OnUnitAlias(OnUnitAliasData,Pointer(s),UnitNameMaxLen) then
-      UseUnitName:=LeftStr(s,UnitNameLen);
+      UseUnitName:=PAnsiChar(s);
     end;
 end;
 

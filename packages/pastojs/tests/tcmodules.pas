@@ -111,6 +111,7 @@ type
     FExpectedErrorNumber: integer;
     FFilename: string;
     FFileResolver: TStreamResolver;
+    FHub: TPas2JSResolverHub;
     FJSImplementationSrc: TJSSourceElements;
     FJSImplementationUses: TJSArrayLiteral;
     FJSInitBody: TJSFunctionBody;
@@ -216,6 +217,7 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+    property Hub: TPas2JSResolverHub read FHub;
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPas2jsPasScanner read FScanner;
@@ -1310,6 +1312,8 @@ begin
   inherited SetUp;
   FSkipTests:=false;
   FSource:=TStringList.Create;
+
+  FHub:=TPas2JSResolverHub.Create(Self);
   FModules:=TObjectList.Create(true);
 
   FFilename:='test1.pp';
@@ -1404,6 +1408,7 @@ begin
     ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
     FEngine:=nil;
     end;
+  FreeAndNil(FHub);
 
   inherited TearDown;
   {$IFDEF EnablePasTreeGlobalRefCount}
@@ -1558,6 +1563,7 @@ begin
   Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
+  Result.Hub:=Hub;
   FModules.Add(Result);
 end;
 
@@ -1664,6 +1670,39 @@ begin
     begin
     Intf.AddStrings([
     'type',
+    '  TTypeKind = (',
+    '    tkUnknown,  // 0',
+    '    tkInteger,  // 1',
+    '    tkChar,     // 2 in Delphi/FPC tkWChar, tkUChar',
+    '    tkString,   // 3 in Delphi/FPC tkSString, tkWString or tkUString',
+    '    tkEnumeration, // 4',
+    '    tkSet,      // 5',
+    '    tkDouble,   // 6',
+    '    tkBool,     // 7',
+    '    tkProcVar,  // 8  function or procedure',
+    '    tkMethod,   // 9  proc var of object',
+    '    tkArray,    // 10 static array',
+    '    tkDynArray, // 11',
+    '    tkRecord,   // 12',
+    '    tkClass,    // 13',
+    '    tkClassRef, // 14',
+    '    tkPointer,  // 15',
+    '    tkJSValue,  // 16',
+    '    tkRefToProcVar, // 17  variable of procedure type',
+    '    tkInterface, // 18',
+    '    //tkObject,',
+    '    //tkSString,tkLString,tkAString,tkWString,',
+    '    //tkVariant,',
+    '    //tkWChar,',
+    '    //tkInt64,',
+    '    //tkQWord,',
+    '    //tkInterfaceRaw,',
+    '    //tkUString,tkUChar,',
+    '    tkHelper,   // 19',
+    '    //tkFile,',
+    '    tkExtClass  // 20',
+    '    );',
+    '  TTypeKinds = set of TTypeKind;',
     '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
     '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
     '  end;',
@@ -16957,28 +16996,35 @@ end;
 procedure TTestModule.TestExternalClass_Is;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtA''');
-  Add('  end;');
-  Add('  TExtAClass = class of TExtA;');
-  Add('  TExtB = class external name ''ExtB'' (TExtA)');
-  Add('  end;');
-  Add('  TExtBClass = class of TExtB;');
-  Add('  TExtC = class (TExtB)');
-  Add('  end;');
-  Add('  TExtCClass = class of TExtC;');
-  Add('var');
-  Add('  A: texta; ClA: TExtAClass;');
-  Add('  B: textb; ClB: TExtBClass;');
-  Add('  C: textc; ClC: TExtCClass;');
-  Add('begin');
-  Add('  if a is textb then ;');
-  Add('  if a is textc then ;');
-  Add('  if b is textc then ;');
-  Add('  if cla is textb then ;');
-  Add('  if cla is textc then ;');
-  Add('  if clb is textc then ;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '  end;',
+  '  TExtAClass = class of TExtA;',
+  '  TExtB = class external name ''ExtB'' (TExtA)',
+  '  end;',
+  '  TExtBClass = class of TExtB;',
+  '  TExtC = class (TExtB)',
+  '  end;',
+  '  TExtCClass = class of TExtC;',
+  'var',
+  '  A: texta; ClA: TExtAClass;',
+  '  B: textb; ClB: TExtBClass;',
+  '  C: textc; ClC: TExtCClass;',
+  'begin',
+  '  if a is textb then ;',
+  '  if a is textc then ;',
+  '  if b is textc then ;',
+  '  if cla is textb then ;',
+  '  if cla is textc then ;',
+  '  if clb is textc then ;',
+  '  try',
+  '  except',
+  '  on TExtA do ;',
+  '  on e: TExtB do ;',
+  '  end;',
+  '']);
   ConvertProgram;
   CheckSource('TestExternalClass_Is',
     LinesToStr([ // statements
@@ -17002,6 +17048,12 @@ begin
     'if (rtl.isExt($mod.ClA, ExtB)) ;',
     'if (rtl.is($mod.ClA, $mod.TExtC)) ;',
     'if (rtl.is($mod.ClB, $mod.TExtC)) ;',
+    'try {} catch ($e) {',
+    '  if (rtl.isExt($e,ExtA)) {}',
+    '  else if (rtl.isExt($e,ExtB)) {',
+    '    var e = $e;',
+    '  } else throw $e',
+    '};',
     '']));
 end;
 
@@ -28459,9 +28511,12 @@ begin
   '  TColor = type TGraphicsColor;',
   'var',
   '  p: TTypeInfo;',
+  '  k: TTypeKind;',
   'begin',
   '  p:=typeinfo(TGraphicsColor);',
   '  p:=typeinfo(TColor);',
+  '  k:=GetTypeKind(TGraphicsColor);',
+  '  k:=GetTypeKind(TColor);',
   '']);
   ConvertProgram;
   CheckSource('TestRTTI_IntRange',
@@ -28473,10 +28528,13 @@ begin
     '});',
     '$mod.$rtti.$inherited("TColor", $mod.$rtti["TGraphicsColor"], {});',
     'this.p = null;',
+    'this.k = 0;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TGraphicsColor"];',
     '$mod.p = $mod.$rtti["TColor"];',
+    '$mod.k = 1;',
+    '$mod.k = 1;',
     '']));
 end;
 
@@ -30304,7 +30362,7 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses2',
     LinesToStr([ // statements
-    '  $mod.$rtti.$StaticArray("TStaticArr", {',
+    '$mod.$rtti.$StaticArray("TStaticArr", {',
     '  dims: [2],',
     '  eltype: rtl.string',
     '});',

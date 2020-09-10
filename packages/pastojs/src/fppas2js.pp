@@ -465,6 +465,11 @@ unit FPPas2Js;
 interface
 
 uses
+  {$ifdef pas2js}
+  js,
+  {$else}
+  AVL_Tree,
+  {$endif}
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
   PasTree, PScanner, PasResolveEval, PasResolver;
@@ -616,7 +621,6 @@ type
     pbifnRecordAssign,
     pbifnRecordClone,
     pbifnRecordCreateType,
-    pbifnRecordCreateSpecializeType,
     pbifnRecordEqual,
     pbifnRecordNew,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
@@ -797,7 +801,6 @@ const
     '$assign', // pbifnRecordAssign
     '$clone', // pbifnRecordClone
     'recNewT', // pbifnRecordCreateType
-    'recNewS', // pbifnRecordCreateSpecializeType
     '$eq', // pbifnRecordEqual
     '$new', // pbifnRecordNew
     'addField', // pbifnRTTIAddField
@@ -1369,6 +1372,23 @@ type
     property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
   end;
 
+  { TPas2JSResolverHub }
+
+  TPas2JSResolverHub = class(TPasResolverHub)
+  private
+    FJSDelaySpecialize: TFPList;// list of TPasGenericType
+    function GetJSDelaySpecializes(Index: integer): TPasGenericType;
+  public
+    constructor Create(TheOwner: TObject); override;
+    destructor Destroy; override;
+    procedure Reset; override;
+    // delayed type specialization
+    procedure AddJSDelaySpecialize(SpecType: TPasGenericType);
+    function IsJSDelaySpecialize(SpecType: TPasGenericType): boolean;
+    function JSDelaySpecializeCount: integer;
+    property JSDelaySpecializes[Index: integer]: TPasGenericType read GetJSDelaySpecializes;
+  end;
+
   { TPas2JSResolver }
 
   TPas2JSResolver = class(TPasResolver)
@@ -1473,6 +1493,7 @@ type
     // generic/specialize
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
+    function SpecializeNeedsDelay(SpecializedItem: TPRSpecializedItem): TPasElement;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -2101,6 +2122,7 @@ type
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_GetTypeKind(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -2309,6 +2331,49 @@ begin
     Result:=Result+h;
     end;
   Result:='['+Result+']';
+end;
+
+{ TPas2JSResolverHub }
+
+function TPas2JSResolverHub.GetJSDelaySpecializes(Index: integer
+  ): TPasGenericType;
+begin
+  Result:=TPasGenericType(FJSDelaySpecialize[Index]);
+end;
+
+constructor TPas2JSResolverHub.Create(TheOwner: TObject);
+begin
+  inherited Create(TheOwner);
+  FJSDelaySpecialize:=TFPList.Create;
+end;
+
+destructor TPas2JSResolverHub.Destroy;
+begin
+  FreeAndNil(FJSDelaySpecialize);
+  inherited Destroy;
+end;
+
+procedure TPas2JSResolverHub.Reset;
+begin
+  inherited Reset;
+  FJSDelaySpecialize.Clear;
+end;
+
+procedure TPas2JSResolverHub.AddJSDelaySpecialize(SpecType: TPasGenericType);
+begin
+  if FJSDelaySpecialize.IndexOf(SpecType)>=0 then
+    raise EPas2JS.Create('TPas2JSResolverHub.AddJSDelaySpecialize '+GetObjPath(SpecType));
+  FJSDelaySpecialize.Add(SpecType);
+end;
+
+function TPas2JSResolverHub.IsJSDelaySpecialize(SpecType: TPasGenericType): boolean;
+begin
+  Result:=FJSDelaySpecialize.IndexOf(SpecType)>=0;
+end;
+
+function TPas2JSResolverHub.JSDelaySpecializeCount: integer;
+begin
+  Result:=FJSDelaySpecialize.Count;
 end;
 
 { TPas2JSModuleScope }
@@ -4897,6 +4962,61 @@ begin
         ClearOverloadScopes;
       end;
       end;
+    end;
+end;
+
+function TPas2JSResolver.SpecializeNeedsDelay(
+  SpecializedItem: TPRSpecializedItem): TPasElement;
+// finds first specialize param defined later than the generic
+// For example: generic in the unit interface, param in implementation
+// or param in another unit, not used by the generic
+var
+  Gen: TPasElement;
+  GenMod, ParamMod: TPasModule;
+  Params: TPasTypeArray;
+  Param: TPasType;
+  i: Integer;
+  GenSection, ParamSection: TPasSection;
+  ParamResolver, GenResolver: TPasResolver;
+begin
+  Result:=nil;
+  {$IFNDEF EnableDelaySpecialize}
+  exit;
+  {$ENDIF}
+  Gen:=SpecializedItem.GenericEl;
+  GenSection:=GetParentSection(Gen);
+  if not (GenSection is TInterfaceSection) then
+    exit; // generic in unit implementation/program/library -> params cannot be defined in a later section -> no delay needed
+  GenMod:=nil;
+  GenResolver:=nil;
+
+  // ToDo: delay only, if either RTTI or class var using a param
+
+  Params:=SpecializedItem.Params;
+  for i:=0 to length(Params)-1 do
+    begin
+    Param:=ResolveAliasType(Params[i],false);
+    if Param.ClassType=TPasUnresolvedSymbolRef then
+      continue; // built-in type -> no delay needed
+    ParamSection:=GetParentSection(Param);
+    if ParamSection=GenSection then
+      continue; // same section -> no delay needed
+    // not in same section
+    ParamMod:=ParamSection.GetModule;
+    if GenMod=nil then
+      GenMod:=GenSection.GetModule;
+    if ParamMod=GenMod then
+      exit(Param); // generic in unit interface, param in implementation
+    // param in another unit
+    if ParamSection is TImplementationSection then
+      exit(Param); // generic in unit interface, param in another implementation
+    // param in another unit interface
+    if GenResolver=nil then
+      GenResolver:=GetResolver(GenMod);
+    ParamResolver:=GetResolver(ParamMod);
+    if ParamResolver.FinishedInterfaceIndex<GenResolver.FinishedInterfaceIndex then
+      exit(Param); // param in a later unit interface
+    // generic in a later unit interface -> no delay needed
     end;
 end;
 
@@ -10845,6 +10965,7 @@ begin
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
           bfDeleteArray: Result:=ConvertBuiltIn_DeleteArray(El,AContext);
           bfTypeInfo: Result:=ConvertBuiltIn_TypeInfo(El,AContext);
+          bfGetTypeKind: Result:=ConvertBuiltIn_GetTypeKind(El,AContext);
           bfAssert:
             begin
             Result:=ConvertBuiltIn_Assert(El,AContext);
@@ -13425,6 +13546,24 @@ begin
     Result:=CreateTypeInfoRef(TypeEl,AContext,Param);
 end;
 
+function TPasToJSConverter.ConvertBuiltIn_GetTypeKind(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  aResolver: TPas2JSResolver;
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  aResolver.BI_GetTypeKind_OnEval(aResolver.BuiltInProcs[bfGetTypeKind],El,[refConst],Value);
+  try
+    if not (Value is TResEvalEnum) then
+      RaiseNotSupported(El,AContext,20200826222729,GetObjName(Value));
+    Result:=CreateLiteralNumber(El,TResEvalEnum(Value).Index);
+  finally
+    ReleaseEvalValue(Value);
+  end;
+end;
+
 function TPasToJSConverter.ConvertBuiltIn_Assert(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // throw pas.SysUtils.EAssertionFailed.$create("Create");
@@ -14375,7 +14514,7 @@ begin
         continue;
         end
       else if C=TPasAttributes then
-        // ToDo
+        continue
       else
         RaiseNotSupported(P as TPasElement,AContext,20161024191434);
       Add(E,P);
@@ -24353,25 +24492,45 @@ function TPasToJSConverter.ConvertExceptOn(El: TPasImplExceptOn;
   AContext: TConvertContext): TJSElement;
 // convert "on T do ;" to "if(T.isPrototypeOf(exceptObject)){}"
 // convert "on E:T do ;" to "if(T.isPrototypeOf(exceptObject)){ var E=exceptObject; }"
+// convert "on TExternal do ;" to "if(rtl.isExt(exceptObject,TExternal)){}"
+
 Var
   IfSt : TJSIfStatement;
   ListFirst , ListLast: TJSStatementList;
   DotExpr: TJSDotMemberExpression;
   Call: TJSCallExpression;
   V: TJSVariableStatement;
+  aResolver: TPas2JSResolver;
+  aType: TPasType;
+  IsExternal: Boolean;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
+  aType:=aResolver.ResolveAliasType(El.TypeEl);
+  IsExternal:=(aType is TPasClassType) and TPasClassType(aType).IsExternal;
+
   // create "if()"
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
-    // create "T.isPrototypeOf"
-    DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-    DotExpr.MExpr:=CreateReferencePathExpr(El.TypeEl,AContext);
-    DotExpr.Name:='isPrototypeOf';
-    // create "T.isPrototypeOf(exceptObject)"
-    Call:=CreateCallExpression(El);
-    Call.Expr:=DotExpr;
-    Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+    if IsExternal then
+      begin
+      // create rtl.isExt(exceptObject,T)
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIsExt)]);
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+      Call.AddArg(CreateReferencePathExpr(El.TypeEl,AContext));
+      end
+    else
+      begin
+      // create "T.isPrototypeOf"
+      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+      DotExpr.MExpr:=CreateReferencePathExpr(El.TypeEl,AContext);
+      DotExpr.Name:='isPrototypeOf';
+      // create "T.isPrototypeOf(exceptObject)"
+      Call:=CreateCallExpression(El);
+      Call.Expr:=DotExpr;
+      Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnExceptObject),El));
+      end;
     IfSt.Cond:=Call;
 
     if El.VarEl<>nil then
@@ -24572,6 +24731,7 @@ var
   ok, IsFull: Boolean;
   VarSt: TJSVariableStatement;
   bifn: TPas2JSBuiltInName;
+  RecScope: TPas2JSRecordScope;
 begin
   Result:=nil;
   if El.Name='' then
@@ -24590,14 +24750,14 @@ begin
     // rtl.recNewT()
     Call:=CreateCallExpression(El);
     bifn:=pbifnRecordCreateType;
-    {$IFDEF EnableDelaySpecialize}
+
     RecScope:=TPas2JSRecordScope(El.CustomData);
     if RecScope.SpecializedFromItem<>nil then
       begin
-      if RecScope.SpecializedFromItem.FirstSpecialize.GetModule<>EL.GetModule then
-        bifn:=pbifnRecordCreateSpecializeType;
+      // ToDo
+      if aResolver.SpecializeNeedsDelay(RecScope.SpecializedFromItem)<>nil then
+        ;//bifn:=pbifnRecordCreateSpecializeType;
       end;
-    {$ENDIF}
 
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(bifn)]);
 

@@ -562,12 +562,15 @@ type
   { TPasGenericTemplateType - type param of a generic }
 
   TPasGenericTemplateType = Class(TPasType)
+  protected
+    procedure SetParent(const AValue: TPasElement); override;
   public
     destructor Destroy; override;
     function GetDeclaration(full : boolean) : string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
     procedure AddConstraint(El: TPasElement);
+    procedure ClearConstraints;
   Public
     TypeConstraint: String deprecated; // deprecated in fpc 3.3.1
     Constraints: TPasElementArray; // list of TPasExpr or TPasType, can be nil!
@@ -1962,13 +1965,20 @@ end;
 
 { TPasGenericTemplateType }
 
-destructor TPasGenericTemplateType.Destroy;
-var
-  i: Integer;
+procedure TPasGenericTemplateType.SetParent(const AValue: TPasElement);
 begin
-  for i:=0 to length(Constraints)-1 do
-    Constraints[i].Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-  Constraints:=nil;
+  if (AValue=nil) and (Parent<>nil) then
+    begin
+    // parent is cleared
+    // -> clear all references to this class (releasing loops)
+    ClearConstraints;
+    end;
+  inherited SetParent(AValue);
+end;
+
+destructor TPasGenericTemplateType.Destroy;
+begin
+  ClearConstraints;
   inherited Destroy;
 end;
 
@@ -2006,6 +2016,22 @@ begin
   l:=Length(Constraints);
   SetLength(Constraints,l+1);
   Constraints[l]:=El;
+end;
+
+procedure TPasGenericTemplateType.ClearConstraints;
+var
+  i: Integer;
+  aConstraint: TPasElement;
+begin
+  // -> clear all references to this class (releasing loops)
+  for i:=0 to length(Constraints)-1 do
+    begin
+    aConstraint:=Constraints[i];
+    if aConstraint.Parent=Self then
+      aConstraint.Parent:=nil;
+    aConstraint.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    end;
+  Constraints:=nil;
 end;
 
 {$IFDEF HasPTDumpStack}
