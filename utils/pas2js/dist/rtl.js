@@ -129,8 +129,7 @@ var rtl = {
   exitcode: 0,
 
   run: function(module_name){
-  
-    function doRun(){
+    try {
       if (!rtl.hasString(module_name)) module_name='program';
       if (rtl.debug_load_units) rtl.debug('rtl.run module="'+module_name+'"');
       rtl.initRTTI();
@@ -143,21 +142,36 @@ var rtl = {
         var r = pas.program.$main();
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
-    }
-    
-    if (rtl.showUncaughtExceptions) {
-      try{
-        doRun();
-      } catch(re) {
-        var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
-	    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
-        alert('Uncaught Exception : '+errMsg);
-        rtl.exitCode = 216;
+    } catch(re) {
+      if (!rtl.showUncaughtExceptions) {
+        throw re
+      } else {  
+        if (!rtl.handleUncaughtException(re)) {
+          rtl.showException(re);
+          rtl.exitcode = 216;
+        }  
+      }
+    } 
+    return rtl.exitcode;
+  },
+  
+  showException : function (re) {
+    var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
+    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
+    alert('Uncaught Exception : '+errMsg);
+  },
+
+  handleUncaughtException: function (e) {
+    if (rtl.onUncaughtException) {
+      try {
+        rtl.onUncaughtException(e);
+        return true;
+      } catch (ee) {
+        return false; 
       }
     } else {
-      doRun();
+      return false;
     }
-    return rtl.exitcode;
   },
 
   loadintf: function(module){
@@ -223,6 +237,23 @@ var rtl = {
       cb = function(){
         return fn.apply(scope,arguments);
       };
+    };
+    cb.scope = scope;
+    cb.fn = fn;
+    return cb;
+  },
+
+  createSafeCallback: function(scope, fn){
+    var cb = function(){
+      try{
+        if (typeof(fn)==='string'){
+          return scope[fn].apply(scope,arguments);
+        } else {
+          return fn.apply(scope,arguments);
+        };
+      } catch (err) {
+        if (!rtl.handleUncaughtException(err)) throw err;
+      }
     };
     cb.scope = scope;
     cb.fn = fn;
@@ -386,6 +417,15 @@ var rtl = {
     if (obj==null) return null;
     obj.$destroy(rtl.tObjectDestroy);
     return null;
+  },
+
+  hideProp: function(o,p,v){
+    Object.defineProperty(o,p, {
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    if(arguments.length>2){ o[p]=v; }
   },
 
   recNewT: function(parent,name,initfn,full){
@@ -811,10 +851,20 @@ var rtl = {
     return (arr == null) ? 0 : arr.length;
   },
 
+  arrayRef: function(a){
+    if (a!=null) rtl.hideProp(a,'$pas2jsrefcnt',1);
+    return a;
+  },
+
   arraySetLength: function(arr,defaultvalue,newlength){
     var stack = [];
+    var s = 9999;
     for (var i=2; i<arguments.length; i++){
-      stack.push({ dim:arguments[i]+0, a:null, i:0, src:null });
+      var j = arguments[i];
+      if (j==='s'){ s = i-2; }
+      else {
+        stack.push({ dim:j+0, a:null, i:0, src:null });
+      }
     }
     var dimmax = stack.length-1;
     var depth = 0;
@@ -822,13 +872,28 @@ var rtl = {
     var item = null;
     var a = null;
     var src = arr;
-    var oldlen = 0
+    var srclen = 0, oldlen = 0;
     do{
-      a = [];
       if (depth>0){
         item=stack[depth-1];
-        item.a[item.i]=a;
         src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+      }
+      if (!src){
+        a = [];
+        srclen = 0;
+        oldlen = 0;
+      } else if (src.$pas2jsrefcnt>0 || depth>=s){
+        a = [];
+        srclen = src.length;
+        oldlen = srclen;
+      } else {
+        a = src;
+        srclen = 0;
+        oldlen = a.length;
+      }
+      a.length = stack[depth].dim;
+      if (depth>0){
+        item.a[item.i]=a;
         item.i++;
       }
       if (depth<dimmax){
@@ -838,20 +903,23 @@ var rtl = {
         item.src = src;
         depth++;
       } else {
-        oldlen = src?src.length:0;
         if (rtl.isArray(defaultvalue)){
-          for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
+          // array of dyn array
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=[];
         } else if (rtl.isObject(defaultvalue)) {
           if (rtl.isTRecord(defaultvalue)){
-            for (var i=0; i<lastlen; i++){
-              a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
-            }
+            // array of record
+            for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
           } else {
-            for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
+            // array of set
+            for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]={};
           }
         } else {
-          for (var i=0; i<lastlen; i++)
-            a[i]=(i<oldlen)?src[i]:defaultvalue;
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
         }
         while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
           depth--;
@@ -863,40 +931,6 @@ var rtl = {
       }
     }while (true);
   },
-
-  /*arrayChgLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    if (arr == null) arr = [];
-    var p = arguments;
-    function setLength(a,argNo){
-      var oldlen = a.length;
-      var newlen = p[argNo];
-      if (oldlen!==newlength){
-        a.length = newlength;
-        if (argNo === p.length-1){
-          if (rtl.isArray(defaultvalue)){
-            for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
-          } else if (rtl.isObject(defaultvalue)) {
-            if (rtl.isTRecord(defaultvalue)){
-              for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue.$new(); // e.g. record
-            } else {
-              for (var i=oldlen; i<newlen; i++) a[i]={}; // e.g. set
-            }
-          } else {
-            for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue;
-          }
-        } else {
-          for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
-        }
-      }
-      if (argNo < p.length-1){
-        // multi argNo
-        for (var i=0; i<newlen; i++) a[i]=setLength(a[i],argNo+1);
-      }
-      return a;
-    }
-    return setLength(arr,2);
-  },*/
 
   arrayEq: function(a,b){
     if (a===null) return b===null;
@@ -1001,12 +1035,7 @@ var rtl = {
   },
 
   refSet: function(s){
-    Object.defineProperty(s, '$shared', {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: true
-    });
+    rtl.hideProp(s,'$shared',true);
     return s;
   },
 

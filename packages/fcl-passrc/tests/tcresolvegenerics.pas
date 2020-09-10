@@ -87,11 +87,15 @@ type
     procedure TestGen_Class_Enums_NotPropagating;
     procedure TestGen_Class_Self;
     procedure TestGen_Class_MemberTypeConstructor;
+    procedure TestGen_Class_AliasMemberType;
+    procedure TestGen_Class_AccessGenericMemberTypeFail;
+    procedure TestGen_Class_ReferenceTo; // ToDo
     procedure TestGen_Class_List;
     // ToDo: different modeswitches at parse time and specialize time
 
     // generic external class
     procedure TestGen_ExtClass_Array;
+    procedure TestGen_ExtClass_VarargsOfType;
 
     // generic interface
     procedure TestGen_ClassInterface;
@@ -104,6 +108,7 @@ type
 
     // generic procedure type
     procedure TestGen_ProcType;
+    procedure TestGen_ProcType_AnonymousFunc_Delphi;
 
     // pointer of generic
     procedure TestGen_PointerDirectSpecializeFail;
@@ -169,7 +174,8 @@ type
     procedure TestGenMethod_TemplNameDifferFail;
     procedure TestGenMethod_ImplConstraintFail;
     procedure TestGenMethod_NestedSelf;
-    procedure TestGenMethod_OverloadTypeParamCnt;
+    procedure TestGenMethod_OverloadTypeParamCntObjFPC;
+    procedure TestGenMethod_OverloadTypeParamCntDelphi;
     procedure TestGenMethod_OverloadArgs;
   end;
 
@@ -1387,6 +1393,87 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGen_Class_AliasMemberType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TObject = class end;',
+  '',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TBirdWord = specialize TBird<Word>;',
+  '  TBirdWordRun = TBirdWord.TRun;',
+  '',
+  '  generic TExt<T> = class external name ''Ext''',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TExtWord = specialize TExt<Word>;',
+  '  TExtWordRun = TExtWord.TRun;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AccessGenericMemberTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TBirdRun = TBird.TRun;',
+  'begin',
+  '']);
+  CheckResolverException('Generics without specialization cannot be used as a type for a reference',
+    nGenericsWithoutSpecializationAsType);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_ReferenceTo;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TGJSPromise<T> = class',
+  '  public type',
+  '    TGJSPromiseResolver = reference to function (aValue : T) : T;',
+  '    TGJSPromiseExecutor = reference to procedure (resolve,reject : TGJSPromiseResolver);',
+  '  public',
+  '    constructor new(Executor : TGJSPromiseExecutor);',
+  '  end;',
+  'constructor TGJSPromise.new(Executor : TGJSPromiseExecutor);',
+  'begin',
+  'end;',
+  '',
+  'type',
+  '  TJSPromise = specialize TGJSPromise<Word>;',
+  '  TJSPromiseResolver = reference to function (aValue : Word) : Word;',
+  '',
+  '  TURLLoader = Class(TObject)',
+  '    procedure dofetch(resolve, reject: TJSPromiseResolver); virtual; abstract;',
+  '    Function fetch : TJSPromise;',
+  '  end;',
+  'function TURLLoader.fetch : TJSPromise;',
+  'begin',
+  '  Result:=TJSPromise.New(@Dofetch);',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGen_Class_List;
 begin
   StartProgram(false);
@@ -1472,6 +1559,33 @@ begin
   '           begin',
   '           end',
   '      );',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ExtClass_VarargsOfType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  '  generic TGJSSet<T> = class external name ''Set''',
+  '    constructor new(aElement1: T); varargs of T; overload;',
+  '    function bind(thisArg: TJSObject): T; varargs of T;',
+  '  end;',
+  '  TJSWordSet = specialize TGJSSet<word>;',
+  'var',
+  '  s: TJSWordSet;',
+  '  w: word;',
+  'begin',
+  '  s:=TJSWordSet.new(3);',
+  '  s:=TJSWordSet.new(3,5);',
+  '  w:=s.bind(nil);',
+  '  w:=s.bind(nil,6);',
+  '  w:=s.bind(nil,7,8);',
   '']);
   ParseProgram;
 end;
@@ -1615,6 +1729,51 @@ begin
   '  b:=@GetIt;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ProcType_AnonymousFunc_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  IInterface = interface',
+  '  end;',
+  '  Integer = longint;',
+  '  IComparer<T> = interface',
+  '    function Compare(const Left, Right: T): Integer; overload;',
+  '  end;',
+  '  TOnComparison<T> = function(const Left, Right: T): Integer of object;',
+  '  TComparisonFunc<T> = reference to function(const Left, Right: T): Integer;',
+  '  TComparer<T> = class(TObject, IComparer<T>)',
+  '  public',
+  '    function Compare(const Left, Right: T): Integer; overload;',
+  '    class function Construct(const AComparison: TOnComparison<T>): IComparer<T>; overload;',
+  '    class function Construct(const AComparison: TComparisonFunc<T>): IComparer<T>; overload;',
+  '  end;',
+  'function TComparer<T>.Compare(const Left, Right: T): Integer; overload;',
+  'begin',
+  'end;',
+  'class function TComparer<T>.Construct(const AComparison: TOnComparison<T>): IComparer<T>;',
+  'begin',
+  'end;',
+  'class function TComparer<T>.Construct(const AComparison: TComparisonFunc<T>): IComparer<T>;',
+  'begin',
+  'end;',
+  'procedure Test;',
+  'var',
+  '  aComparer : IComparer<Integer>;',
+  'begin',
+  '  aComparer:=TComparer<Integer>.Construct(function (Const a,b : integer) : integer',
+  '    begin',
+  '      Result:=a-b;',
+  '    end);',
+  'end;',
+  'begin',
+  '  Test;']);
+  ParseModule;
 end;
 
 procedure TTestResolveGenerics.TestGen_PointerDirectSpecializeFail;
@@ -2544,7 +2703,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCnt;
+procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCntObjFPC;
 begin
   StartProgram(false);
   Add([
@@ -2565,6 +2724,32 @@ begin
   'begin',
   '  obj.specialize {@A}Run<word>(3);',
   '  obj.specialize {@B}Run<word,char>(4);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCntDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure {#A}Run<T>(a: T); overload;',
+  '    procedure {#B}Run<M,N>(a: M); overload;',
+  '  end;',
+  'procedure TObject.Run<T>(a: T);',
+  'begin',
+  'end;',
+  'procedure TObject.Run<M,N>(a: M);',
+  'begin',
+  '  {@A}Run<M>(a);',
+  '  {@B}Run<double,char>(1.3);',
+  'end;',
+  'var obj: TObject;',
+  'begin',
+  '  obj.{@A}Run<word>(3);',
+  '  obj.{@B}Run<word,char>(4);',
   '']);
   ParseProgram;
 end;

@@ -197,6 +197,12 @@ type
     procedure TestWith;
     procedure TestXor;
     procedure TestLineEnding;
+    procedure TestObjCClass;
+    procedure TestObjCClass2;
+    procedure TestObjCProtocol;
+    procedure TestObjCProtocol2;
+    procedure TestObjCCategory;
+    procedure TestObjCCategory2;
     procedure TestTab;
     Procedure TestEscapedKeyWord;
     Procedure TestTokenSeries;
@@ -1356,6 +1362,37 @@ procedure TTestScanner.TestLineEnding;
 
 begin
   TestToken(tkLineEnding,#10);
+end;
+
+procedure TTestScanner.TestObjCClass;
+begin
+  TestToken(tkObjCClass,'objcclass');
+end;
+
+procedure TTestScanner.TestObjCClass2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objcclass');
+end;
+
+procedure TTestScanner.TestObjCProtocol;
+begin
+  TestToken(tkObjCProtocol,'objcprotocol');
+end;
+
+procedure TTestScanner.TestObjCProtocol2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objcprotocol');
+end;
+
+procedure TTestScanner.TestObjCCategory;
+
+begin
+  TestToken(tkObjCCategory,'objccategory');
+end;
+
+procedure TTestScanner.TestObjCCategory2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objccategory');
 end;
 
 

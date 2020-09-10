@@ -115,6 +115,13 @@ type
     Procedure TestFunctionStdCall;
     Procedure TestProcedureOldFPCCall;
     Procedure TestFunctionOldFPCCall;
+    procedure TestCallingConventionHardFloat;
+    procedure TestCallingConventionMS_ABI_CDecl;
+    procedure TestCallingConventionMS_ABI_Default;
+    procedure TestCallingConventionMWPascal;
+    procedure TestCallingConventionSysV_ABI_CDec;
+    procedure TestCallingConventionSysV_ABI_Default;
+    procedure TestCallingConventionVectorCall;
     Procedure TestProcedurePublic;
     Procedure TestProcedurePublicIdent;
     Procedure TestFunctionPublic;
@@ -773,6 +780,49 @@ begin
   ParseFunction('(Const B : Array of Const)');
   AssertFunc([],[],ccDefault,1);
   AssertArrayArg(FuncType,0,'B',argConst,'');
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysV_ABI_Default;
+begin
+  ParseProcedure('; SysV_ABI_Default');
+  AssertProc([],[],ccSysV_ABI_Default,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysV_ABI_CDec;
+begin
+  ParseProcedure('; SysV_ABI_CDecl');
+  AssertProc([],[],ccSysV_ABI_CDecl,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionMS_ABI_Default;
+begin
+  ParseProcedure('; MS_ABI_Default');
+  AssertProc([],[],ccMS_ABI_Default,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionMS_ABI_CDecl;
+begin
+  ParseProcedure('; MS_ABI_CDecl');
+  AssertProc([],[],ccMS_ABI_CDecl,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionVectorCall;
+begin
+  ParseProcedure('; VectorCall');
+  AssertProc([],[],ccVectorCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionHardFloat;
+begin
+  ParseProcedure('; HardFloat');
+  AssertProc([],[],ccHardFloat,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionMWPascal;
+
+begin
+  ParseProcedure('; mwpascal');
+  AssertProc([],[],ccMWPascal,0);
 end;
 
 procedure TTestProcedureFunction.TestProcedureCdecl;

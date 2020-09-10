@@ -12,7 +12,8 @@ uses
   tests.generics.arrayhelper,
   tests.generics.trees,
   tests.generics.stdcollections,
-  tests.generics.sets
+  tests.generics.sets,
+  tests.generics.dictionary
   ;
 
 var

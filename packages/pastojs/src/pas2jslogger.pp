@@ -30,7 +30,7 @@ uses
   {$IFDEF Pas2JS}
   JS,
   {$IFDEF NodeJS}
-  NodeJSFS,
+  Node.FS,
   {$ENDIF}
   {$ENDIF}
   pas2jsutils,
