@@ -801,13 +801,11 @@ begin
     begin
     if LParentIsClassOrRecord then
       begin
-      Writeln('a');
       if NotOption(woNoExternalClass) then
         Add('; external name ''%s''',[aVar.ExportName.GetDeclaration(true)]);
       end
     else if NotOption(woNoExternalVar) then
       begin
-      Writeln('b');
       Add('; external ');
       if (aVar.LibraryName<>Nil) then
         Add('%s ',[aVar.LibraryName.GetDeclaration(true)]);
@@ -893,6 +891,7 @@ begin
   if TPasProcedureType(AProc).CallingConvention<>ccDefault then
     Add('; '+cCallingConventions[TPasProcedureType(AProc).CallingConvention]);
 end;
+
 
 procedure TPasWriter.WriteProcDecl(AProc: TPasProcedure; ForceBody : Boolean = False; NamePrefix : String = '');
 
