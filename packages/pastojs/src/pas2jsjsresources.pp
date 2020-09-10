@@ -83,7 +83,7 @@ begin
   aName:=Options.Values['name'];
   if aName='' then
     aName:=ChangeFileExt(ExtractFileName(aFileName),'');
-  Result:=Format(SAddResource,[aName,LowerCase(CurrentUnitName),aFormat,aData]);
+  Result:=Format(SAddResource,[LowerCase(aName),LowerCase(CurrentUnitName),aFormat,aData]);
 end;
 
 procedure TJSResourceHandler.HandleResource(aFileName: string; Options: TStrings);

@@ -16,22 +16,7 @@
 
 unit PScanner;
 
-{$mode objfpc}
-{$h+}
-
-{$ifdef fpc}
-  {$define UsePChar}
-  {$define UseAnsiStrings}
-  {$define HasStreams}
-  {$IF FPC_FULLVERSION<30101}
-    {$define EmulateArrayInsert}
-  {$endif}
-  {$define HasFS}
-{$endif}
-
-{$IFDEF NODEJS}
-  {$define HasFS}
-{$ENDIF}
+{$i fcl-passrc.inc}
 
 interface
 

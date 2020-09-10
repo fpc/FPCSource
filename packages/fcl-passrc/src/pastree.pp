@@ -14,15 +14,13 @@
 
  **********************************************************************}
 
-{$mode objfpc}
-{$h+}
-
 unit PasTree;
+
+{$i fcl-passrc.inc}
 
 {$if defined(debugrefcount) or defined(VerbosePasTreeMem) or defined(VerbosePasResolver)}
   {$define EnablePasTreeGlobalRefCount}
 {$endif}
-{$inline on}
 
 interface
 
@@ -1187,6 +1185,7 @@ type
   { TPasClassOperator }
 
   TPasClassOperator = class(TPasOperator)
+  public
     function TypeName: string; override;
     function GetProcTypeEnum: TProcType; override;
   end;
@@ -1637,7 +1636,7 @@ type
   TPasImplTryExceptElse = class(TPasImplTryHandler)
   end;
 
-  { TPasImplExceptOn }
+  { TPasImplExceptOn - Parent is TPasImplTryExcept }
 
   TPasImplExceptOn = class(TPasImplStatement)
   public

@@ -2300,7 +2300,7 @@ End.
 
     <div class="section">
     <h2 id="dispatch">Dispatch messages</h2>
-    The procedure modifier <b>message</b> and the <b>Dispatch</b> works
+    The procedure modifier <b>message</b> and the <b>Dispatch</b> method works
     similar to FPC/Delphi, as it expects a record of a specific format and
     <b><i>TObject.Dispatch</i></b> calls the corresponding method with that
     message number or string.<br>
@@ -2799,10 +2799,11 @@ End.
 
     <div class="section">
     <h2 id="externalclassancestor">External class as ancestor</h2>
-    A Pascal class can descend from an external class.<br>
+    A Pascal class can descend from an external class - a JS object or function.<br>
     The methods <i>AfterConstruction</i> and <i>BeforeDestruction</i>
     are called if they exist.<br>
-    New instances are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Object descendant are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Function descendant are created by default with <i>new DescendantFunc()</i>.<br>
     You can override this, by providing a<br>
     <b>class function NewInstance(fnname: string; const paramsarray): TPasClass; virtual;</b>.
     This method is called to create a new instance and before calling the constructor.
@@ -2817,19 +2818,22 @@ End.
         </tr>
         <tr>
           <td>
-<pre>Program MyModule;
+<pre>
+// Example for descending a Pascal class from a JS Object
+Program MyModule;
 {$modeswitch externalclass}
 type
   TExtA = class external name 'ExtA'
   end;
   TMyB = class(TExtA)
   protected
+    // optional: override default allocation
     class function NewInstance(fnname: string; const paramarray): TMyB; virtual;
   end;
 class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;
 Begin
   asm
-  Result = Object.create(ExtA);
+  Result = Object.create(ExtA); // that is what the rtl does
   end;
 End;
 
@@ -2852,6 +2856,62 @@ End.
     };
   });
   $mod.$main = function () {
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>
+// Example for descending a Pascal class from a JS Function
+Program MyModule;
+{$modeswitch externalclass}
+uses JS;
+type
+  TExternalFunc = class external name 'ExternalFunc'(TJSFunction)
+    constructor New(a: word);
+  end;
+  TMyFunc = class(TExternalFunc)
+    constructor Create(b: word);
+  end;
+constructor TMyFunc.Create(b: word);
+Begin
+  inherited New(b+1); // optional: call inherited constructor function
+End;
+
+var
+  f: TMyFunc;
+Begin
+  f:=TMyFunc.Create(3);
+  writeln(jsInstanceOf(f,TExternalFunc)); // writes true, instanceof operator works as expected
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System","js"],function () {
+  var $mod = this;
+  rtl.createClassExt($mod, "TMyFunc", ExternalFunc, "", function () {
+    this.$init = function () {
+    };
+    this.$final = function () {
+    };
+    this.Create$2 = function (b) {
+      this.$ancestorfunc(b+1);
+    };
+  });
+  this.f = null;
+  $mod.$main = function () {
+    f = $mod.TMyFunc.$create("Create$2",[3]);
+    pas.System.Writeln(pas.JS.jsInstanceOf(f,ExternalFunc));
   };
 });
 </pre>
