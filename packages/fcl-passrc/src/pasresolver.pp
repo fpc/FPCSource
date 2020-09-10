@@ -5676,7 +5676,7 @@ end;
 
 procedure TPasResolver.FinishUsesClause;
 var
-  Section, CurSection: TPasSection;
+  Section: TPasSection;
   i, j: Integer;
   PublicEl, UseModule: TPasElement;
   Scope: TPasSectionScope;
@@ -5722,25 +5722,6 @@ begin
       RaiseInternalError(20160922163403,'uses element has invalid resolver data: '
         +UseUnit.Name+'->'+GetObjName(PublicEl)+'->'+PublicEl.CustomData.ClassName);
     UsesScope:=TPasSectionScope(PublicEl.CustomData);
-
-    // check if module was already used by a different name
-    j:=i;
-    CurSection:=Section;
-    repeat
-      dec(j);
-      if j<0 then
-        begin
-        if CurSection.ClassType<>TImplementationSection then
-          break;
-        CurSection:=CurSection.GetModule.InterfaceSection;
-        if CurSection=nil then break;
-        j:=length(CurSection.UsesClause)-1;
-        if j<0 then break;
-        end;
-      if CurSection.UsesClause[j].Module=UseModule then
-        RaiseMsg(20170503004022,nDuplicateIdentifier,sDuplicateIdentifier,
-          [UseModule.Name,GetElementSourcePosStr(CurSection.UsesClause[j])],UseUnit);
-    until false;
 
     // add full uses name
     AddIdentifier(Scope,UseUnit.Name,UseUnit,pikSimple);
@@ -10805,6 +10786,24 @@ begin
         [GetElementTypeName(FoundEl)+' '+FoundEl.Name],NameExpr);
     end;
 
+  if FoundEl is TPasType then
+    begin
+      // typecast
+      TypeEl:=ResolveAliasType(TPasType(FoundEl));
+      C:=TypeEl.ClassType;
+      if C=TPasUnresolvedSymbolRef then
+        begin
+        // typecast to built-in type
+        if TypeEl.CustomData is TResElDataBaseType then
+          CheckTypeCast(TypeEl,Params,true); // emit warnings
+        end
+      else
+        begin
+        // typecast to user type
+        CheckTypeCast(TypeEl,Params,true); // emit warnings
+        end;
+    end;
+
   // FoundEl compatible element -> create reference
   Ref:=CreateReference(FoundEl,NameExpr,rraRead);
   if FindCallData.StartScope.ClassType=ScopeClass_WithExpr then
@@ -15677,16 +15676,20 @@ type
               and (NewBaseType in [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,btLongint])
               and (BaseType1<>btLongWord) and (BaseType2<>btLongWord) then
             NewBaseType:=btLongint
+          {$ifdef HasInt64}
           else if (BaseTypes[btInt64]<>nil)
               and (NewBaseType<=btInt64)
               and (BaseType1<>btQWord) and (BaseType2<>btQWord) then
             NewBaseType:=btInt64
+          {$endif}
           else if (BaseTypes[btIntDouble]<>nil)
               and (NewBaseType<=btIntDouble) then
             NewBaseType:=btIntDouble
+          {$ifdef HasInt64}
           else if (BaseTypes[btQWord]<>nil)
               and not (NewBaseType in btAllSignedInteger) then
             NewBaseType:=btQWord
+          {$endif}
           else
             NewBaseType:=GetCombinedInt(Param1Resolved,Param2Resolved,ErrorPos);
           end
@@ -26116,8 +26119,18 @@ end;
 function TPasResolver.CheckTypeCastRes(const FromResolved,
   ToResolved: TPasResolverResult; ErrorEl: TPasElement; RaiseOnError: boolean
   ): integer;
+
+  procedure WarnClassTypesAreNotRelated(GotType, ExpType: TPasClassType);
+  var
+    GotDesc, ExpDesc: String;
+  begin
+    GetIncompatibleTypeDesc(GotType,ExpType,GotDesc,ExpDesc);
+    LogMsg(20200209140450,mtWarning,nClassTypesAreNotRelatedXY,
+      sClassTypesAreNotRelatedXY,[GotDesc,ExpDesc],ErrorEl);
+  end;
+
 var
-  ToTypeEl, ToClassType, FromClassType, FromTypeEl: TPasType;
+  ToTypeEl, ToType, FromType, FromTypeEl: TPasType;
   ToTypeBaseType: TResolverBaseType;
   C: TClass;
   ToProcType, FromProcType: TPasProcedureType;
@@ -26125,6 +26138,7 @@ var
   i: Integer;
   ConToken: TToken;
   ConEl: TPasElement;
+  ToClassType, FromClassType: TPasClassType;
 begin
   Result:=cIncompatible;
   ToTypeEl:=ToResolved.LoTypeEl;
@@ -26244,34 +26258,36 @@ begin
       end
     else if C=TPasClassType then
       begin
+      ToClassType:=TPasClassType(ToTypeEl);
       // to class
       if FromResolved.BaseType=btContext then
         begin
         FromTypeEl:=FromResolved.LoTypeEl;
         if FromTypeEl.ClassType=TPasClassType then
           begin
+          FromClassType:=TPasClassType(FromTypeEl);
           if FromResolved.IdentEl is TPasType then
             RaiseMsg(20170404162606,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
-          if TPasClassType(FromTypeEl).ObjKind=TPasClassType(ToTypeEl).ObjKind then
+          if FromClassType.ObjKind=ToClassType.ObjKind then
             begin
             // type cast upwards or downwards
             Result:=CheckSrcIsADstType(FromResolved,ToResolved);
             if Result=cIncompatible then
               Result:=CheckSrcIsADstType(ToResolved,FromResolved);
             end
-          else if TPasClassType(ToTypeEl).ObjKind=okInterface then
+          else if ToClassType.ObjKind=okInterface then
             begin
-            if (TPasClassType(FromTypeEl).ObjKind=okClass)
-                and (not TPasClassType(FromTypeEl).IsExternal) then
+            if (FromClassType.ObjKind=okClass)
+                and (not FromClassType.IsExternal) then
               begin
               // e.g. intftype(classinstvar)
               Result:=cCompatible;
               end;
             end
-          else if TPasClassType(FromTypeEl).ObjKind=okInterface then
+          else if FromClassType.ObjKind=okInterface then
             begin
-            if (TPasClassType(ToTypeEl).ObjKind=okClass)
-                and (not TPasClassType(ToTypeEl).IsExternal) then
+            if (ToClassType.ObjKind=okClass)
+                and (not ToClassType.IsExternal) then
               begin
               // e.g. classtype(intfvar)
               Result:=cCompatible;
@@ -26279,6 +26295,12 @@ begin
             end;
           if Result=cIncompatible then
             Result:=CheckTypeCastClassInstanceToClass(FromResolved,ToResolved,ErrorEl);
+          if (Result=cIncompatible) and (FromClassType.ObjKind=ToClassType.ObjKind) then
+            begin
+            if RaiseOnError then
+              WarnClassTypesAreNotRelated(FromClassType,ToClassType);
+            Result:=cTypeConversion;
+            end;
           end
         else if FromTypeEl.ClassType=TPasGenericTemplateType then
           begin
@@ -26354,9 +26376,9 @@ begin
           if (FromResolved.IdentEl is TPasType) then
             RaiseMsg(20170404162604,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
           // type cast  classof(classof-var)  upwards or downwards
-          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
-          FromClassType:=TPasClassOfType(FromResolved.LoTypeEl).DestType;
-          Result:=CheckClassesAreRelated(ToClassType,FromClassType);
+          ToType:=TPasClassOfType(ToTypeEl).DestType;
+          FromType:=TPasClassOfType(FromResolved.LoTypeEl).DestType;
+          Result:=CheckClassesAreRelated(ToType,FromType);
           end;
         end
       else if FromResolved.BaseType=btPointer then
@@ -26541,9 +26563,9 @@ begin
             and (ToTypeEl=ToResolved.IdentEl) then
           begin
           // for example  class-of(Self) in a class function
-          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
-          FromClassType:=TPasClassType(FromTypeEl);
-          Result:=CheckClassesAreRelated(ToClassType,FromClassType);
+          ToType:=TPasClassOfType(ToTypeEl).DestType;
+          FromType:=TPasClassType(FromTypeEl);
+          Result:=CheckClassesAreRelated(ToType,FromType);
           end;
         end;
       end;
@@ -27930,7 +27952,8 @@ begin
   Templates:=GetProcTemplateTypes(Proc);
   if (Templates<>nil) and (Templates.Count>0) then
     exit(false);
-  if ProcScope.SpecializedFromItem=nil then exit(true);
+  if ProcScope.SpecializedFromItem=nil then
+    exit(true);
   Params:=ProcScope.SpecializedFromItem.Params;
   for i:=0 to length(Params)-1 do
     if Params[i] is TPasGenericTemplateType then exit(false);

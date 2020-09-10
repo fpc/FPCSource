@@ -339,6 +339,7 @@ type
     Procedure TestProc_LocalVarAbsolute;
     Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
+    Procedure TestProc_ConstRefWord;
 
     // anonymous functions
     Procedure TestAnonymousProc_Assign_ObjFPC;
@@ -434,6 +435,7 @@ type
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_SetLengthMultiDim;
     Procedure TestArray_OpenArrayOfString;
+    Procedure TestArray_ConstRef;
     Procedure TestArray_Concat;
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
@@ -456,6 +458,7 @@ type
     Procedure TestRecord_WithDo;
     Procedure TestRecord_Assign;
     Procedure TestRecord_AsParams;
+    Procedure TestRecord_ConstRef;
     Procedure TestRecordElement_AsParams;
     Procedure TestRecordElementFromFuncResult_AsParams;
     Procedure TestRecordElementFromWith_AsParams;
@@ -526,7 +529,8 @@ type
     Procedure TestClass_ExternalOverrideFail;
     Procedure TestClass_ExternalVar;
     Procedure TestClass_Const;
-    Procedure TestClass_LocalConstDuplicate;
+    Procedure TestClass_LocalConstDuplicate_Prg;
+    Procedure TestClass_LocalConstDuplicate_Unit;
     // ToDo: Procedure TestAdvRecord_LocalConstDuplicate;
     Procedure TestClass_LocalVarSelfFail;
     Procedure TestClass_ArgSelfFail;
@@ -4528,7 +4532,7 @@ begin
   '  Nan:=&bOolean;',
   'end;',
   'begin',
-  ' Date(1);']);
+  '  Date(1);']);
   ConvertProgram;
   CheckSource('TestProc_ReservedWords',
     LinesToStr([ // statements
@@ -4542,6 +4546,50 @@ begin
     '']),
     LinesToStr([
     '  $mod.Date(1);'
+    ]));
+end;
+
+procedure TTestModule.TestProc_ConstRefWord;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Run(constref w: word);',
+  'var l: word;',
+  'begin',
+  '  l:=w;',
+  '  Run(w);',
+  '  Run(l);',
+  'end;',
+  'procedure Fly(a: word; var b: word; out c: word; const d: word; constref e: word);',
+  'begin',
+  '  Run(a);',
+  '  Run(b);',
+  '  Run(c);',
+  '  Run(d);',
+  '  Run(e);',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  ConvertProgram;
+  CheckHint(mtWarning,nConstRefNotForXAsConst,'ConstRef not yet implemented for Word. Treating as Const');
+  CheckSource('TestProc_ConstRefWord',
+    LinesToStr([ // statements
+    'this.Run = function (w) {',
+    '  var l = 0;',
+    '  l = w;',
+    '  $mod.Run(w);',
+    '  $mod.Run(l);',
+    '};',
+    'this.Fly = function (a, b, c, d, e) {',
+    '  $mod.Run(a);',
+    '  $mod.Run(b.get());',
+    '  $mod.Run(c.get());',
+    '  $mod.Run(d);',
+    '  $mod.Run(e);',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(1);'
     ]));
 end;
 
@@ -7981,38 +8029,40 @@ end;
 procedure TTestModule.TestTryExcept;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  Exception = class Msg: string; end;');
-  Add('  EInvalidCast = class(Exception) end;');
-  Add('var vI: longint;');
-  Add('begin');
-  Add('  try');
-  Add('    vi:=1;');
-  Add('  except');
-  Add('    vi:=2');
-  Add('  end;');
-  Add('  try');
-  Add('    vi:=3;');
-  Add('  except');
-  Add('    raise;');
-  Add('  end;');
-  Add('  try');
-  Add('    VI:=4;');
-  Add('  except');
-  Add('    on einvalidcast do');
-  Add('      raise;');
-  Add('    on E: exception do');
-  Add('      if e.msg='''' then');
-  Add('        raise e;');
-  Add('    else');
-  Add('      vi:=5');
-  Add('  end;');
-  Add('  try');
-  Add('    VI:=6;');
-  Add('  except');
-  Add('    on einvalidcast do ;');
-  Add('  end;');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  Exception = class Msg: string; end;',
+  '  EInvalidCast = class(Exception) end;',
+  'var vI: longint;',
+  'begin',
+  '  try',
+  '    vi:=1;',
+  '  except',
+  '    vi:=2',
+  '  end;',
+  '  try',
+  '    vi:=3;',
+  '  except',
+  '    raise;',
+  '  end;',
+  '  try',
+  '    VI:=4;',
+  '  except',
+  '    on einvalidcast do',
+  '      raise;',
+  '    on E: exception do',
+  '      if e.msg='''' then',
+  '        raise e;',
+  '    else',
+  '      vi:=5',
+  '  end;',
+  '  try',
+  '    VI:=6;',
+  '  except',
+  '    on einvalidcast do ;',
+  '  end;',
+  '']);
   ConvertProgram;
   CheckSource('TestTryExcept',
     LinesToStr([ // statements
@@ -9320,6 +9370,46 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_ConstRef;
+begin
+  StartProgram(false);
+  Add([
+  'type TArr = array of word;',
+  'procedure Run(constref a: TArr);',
+  'begin',
+  'end;',
+  'procedure Fly(a: TArr; var b: TArr; out c: TArr; const d: TArr; constref e: TArr);',
+  'var l: TArr;',
+  'begin',
+  '  Run(l);',
+  '  Run(a);',
+  '  Run(b);',
+  '  Run(c);',
+  '  Run(d);',
+  '  Run(e);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints();
+  CheckSource('TestArray_ConstRef',
+    LinesToStr([ // statements
+    'this.Run = function (a) {',
+    '};',
+    'this.Fly = function (a, b, c, d, e) {',
+    '  var l = [];',
+    '  $mod.Run(l);',
+    '  $mod.Run(a);',
+    '  $mod.Run(b.get());',
+    '  $mod.Run(c.get());',
+    '  $mod.Run(d);',
+    '  $mod.Run(e);',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+end;
+
 procedure TTestModule.TestArray_Concat;
 begin
   StartProgram(false);
@@ -10385,6 +10475,56 @@ begin
     ]),
     LinesToStr([
     '$mod.DoIt($mod.TRecord.$clone($mod.i), $mod.i, $mod.i, $mod.i);',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_ConstRef;
+begin
+  StartProgram(false);
+  Add([
+  'type TRec = record i: word; end;',
+  'procedure Run(constref a: TRec);',
+  'begin',
+  'end;',
+  'procedure Fly(a: TRec; var b: TRec; out c: TRec; const d: TRec; constref e: TRec);',
+  'var l: TRec;',
+  'begin',
+  '  Run(l);',
+  '  Run(a);',
+  '  Run(b);',
+  '  Run(c);',
+  '  Run(d);',
+  '  Run(e);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints();
+  CheckSource('TestRecord_ConstRef',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.i === b.i;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Run = function (a) {',
+    '};',
+    'this.Fly = function (a, b, c, d, e) {',
+    '  var l = $mod.TRec.$new();',
+    '  $mod.Run(l);',
+    '  $mod.Run(a);',
+    '  $mod.Run(b);',
+    '  $mod.Run(c);',
+    '  $mod.Run(d);',
+    '  $mod.Run(e);',
+    '};',
+    '']),
+    LinesToStr([
     '']));
 end;
 
@@ -14109,7 +14249,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClass_LocalConstDuplicate;
+procedure TTestModule.TestClass_LocalConstDuplicate_Prg;
 begin
   StartProgram(false);
   Add([
@@ -14140,7 +14280,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_LocalConstDuplicate',
+  CheckSource('TestClass_LocalConstDuplicate_Prg',
     LinesToStr([
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.cI = 3;',
@@ -14166,6 +14306,66 @@ begin
     '']),
     LinesToStr([
     '']));
+end;
+
+procedure TTestModule.TestClass_LocalConstDuplicate_Unit;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '    const cI: longint = 3;',
+  '    procedure Fly;',
+  '    procedure Run;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Go;',
+  '  end;',
+  'implementation',
+  'procedure tobject.fly;',
+  'const cI: word = 4;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  'procedure tobject.run;',
+  'const cI: word = 5;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  'procedure tbird.go;',
+  'const cI: word = 6;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestClass_LocalConstDuplicate_Unit',
+    LinesToStr([
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.cI = 3;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var cI$1 = 4;',
+    '  this.Fly = function () {',
+    '    if (cI$1 === this.cI) ;',
+    '  };',
+    '  var cI$2 = 5;',
+    '  this.Run = function () {',
+    '    if (cI$2 === this.cI) ;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  var cI$3 = 6;',
+    '  this.Go = function () {',
+    '    if (cI$3 === this.cI) ;',
+    '  };',
+    '});',
+    '']),
+    '',
+    '');
 end;
 
 procedure TTestModule.TestClass_LocalVarSelfFail;

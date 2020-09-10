@@ -44,6 +44,7 @@ type
 
   TPas2JSMapper = class(TBufferWriter)
   private
+    FPCUExt: string;
     FDestFileName: String;
     FSrcMap: TPas2JSSrcMap;
     procedure SetSrcMap(const AValue: TPas2JSSrcMap);
@@ -52,16 +53,19 @@ type
     FGeneratedStartLine: integer; // first line where CurElement was set or a line was written
     // last valid CurElement position
     FSrcFilename: String;
+    FSrcIsBinary: boolean;
     FSrcLine: integer;
     FSrcColumn: integer;
     procedure SetCurElement(const AValue: TJSElement); override;
+    procedure SetSrcFilename(Value: string); virtual;
     procedure Writing; override;
   public
     property SrcMap: TPas2JSSrcMap read FSrcMap write SetSrcMap;
     destructor Destroy; override;
     procedure WriteFile(Src, Filename: string);
     // Final destination filename. Usually unit, unless combining javascript in single file.
-    Property DestFileName : String Read FDestFileName Write FDestFileName;
+    property DestFileName : String read FDestFileName Write FDestFileName;
+    property PCUExt: string read FPCUExt write FPCUExt;
   end;
 
 implementation
@@ -97,6 +101,7 @@ end;
 procedure TPas2JSMapper.SetCurElement(const AValue: TJSElement);
 var
   C: TClass;
+  NewSrcFilename: String;
 begin
   {$IFDEF VerboseSrcMap}
   system.write('TPas2JSMapper.SetCurElement ',CurLine,',',CurColumn);
@@ -112,26 +117,38 @@ begin
       or (C=TJSEmptyStatement) then
     exit; // do not switch position on brackets
 
-  if (AValue<>nil) and (AValue.Source<>'') then
+  if (AValue<>nil) then
     begin
-    if (FSrcFilename<>AValue.Source)
-        or (FSrcLine<>AValue.Line)
-        or (FSrcColumn<>AValue.Column) then
+    NewSrcFilename:=AValue.Source;
+    if NewSrcFilename<>'' then
       begin
-      FNeedMapping:=true;
-      FSrcFilename:=AValue.Source;
-      FSrcLine:=AValue.Line;
-      FSrcColumn:=AValue.Column;
+      if (FSrcFilename<>NewSrcFilename)
+          or (FSrcLine<>AValue.Line)
+          or (FSrcColumn<>AValue.Column) then
+        begin
+        FNeedMapping:=true;
+        SetSrcFilename(NewSrcFilename);
+        FSrcLine:=AValue.Line;
+        FSrcColumn:=AValue.Column;
+        end;
       end;
     end;
   if FGeneratedStartLine<1 then
     FGeneratedStartLine:=CurLine;
 end;
 
+procedure TPas2JSMapper.SetSrcFilename(Value: string);
+begin
+  if FSrcFilename=Value then exit;
+  FSrcFilename:=Value;
+  FSrcIsBinary:=SameText(ExtractFileExt(Value),FPCUExt);
+end;
+
 procedure TPas2JSMapper.Writing;
 var
   S: TJSString;
-  p, l, Line: Integer;
+  p, l, Line, CurSrcLine, CurSrcColumn: Integer;
+  CurSrcFilename: String;
 begin
   inherited Writing;
   if SrcMap=nil then exit;
@@ -143,12 +160,29 @@ begin
   if FSrcFilename='' then
     exit; // built-in element -> do not add a mapping
 
+  if FSrcIsBinary then
+    begin
+    // precompiled js -> map to js
+    CurSrcFilename:=DestFileName;
+    CurSrcLine:=CurLine;
+    CurSrcColumn:=CurColumn;
+    FSrcLine:=CurLine;
+    FSrcColumn:=1;
+    end
+  else
+    begin
+    CurSrcFilename:=FSrcFilename;
+    CurSrcLine:=FSrcLine;
+    CurSrcColumn:=FSrcColumn;
+    end;
+  //system.writeln('TPas2JSMapper.Writing ',FSrcFilename);
+
   FNeedMapping:=false;
   //system.writeln('TPas2JSMapper.Writing Generated.Line=',CurLine,',Col=',CurColumn-1,
   //  ' Orig:',ExtractFileName(FSrcFilename),',Line=',FSrcLine,',Col=',FSrcColumn-1);
 
   SrcMap.AddMapping(CurLine,Max(0,CurColumn-1),
-    FSrcFilename,Max(0,FSrcLine),Max(0,FSrcColumn-1));
+    CurSrcFilename,Max(0,CurSrcLine),Max(0,CurSrcColumn-1));
 
   if (CurElement is TJSLiteral)
       and (TJSLiteral(CurElement).Value.CustomValue<>'') then
@@ -171,7 +205,7 @@ begin
         //system.writeln('TPas2JSMapper.Writing Generated.Line=',CurLine+Line,',Col=',0,
         //  ' Orig:',ExtractFileName(FSrcFilename),',Line=',FSrcLine+Line,',Col=',0);
         SrcMap.AddMapping(CurLine+Line,0,
-          FSrcFilename,FSrcLine+Line,0);
+          CurSrcFilename,CurSrcLine+Line,0);
         end;
       else
         inc(p);
@@ -190,7 +224,7 @@ var
   l, p, LineStart: integer;
 begin
   if Src='' then exit;
-  FSrcFilename:=Filename;
+  SetSrcFilename(Filename);
   FSrcLine:=1;
   FSrcColumn:=1;
   l:=length(Src);
