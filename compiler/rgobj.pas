@@ -2146,30 +2146,38 @@ unit rgobj;
 
     procedure trgobj.translate_registers(list: TAsmList);
 
-      function get_reg_name_full(r: tregister): string;
+      function get_reg_name_full(r: tregister; include_prefix: boolean): string;
         var
           rr:tregister;
           sr:TSuperRegister;
         begin
-          rr:=r;
           sr:=getsupreg(r);
           if reginfo[sr].live_start=nil then
             begin
               result:='';
               exit;
             end;
-          setsupreg(rr,reginfo[sr].colour);
-          result:=std_regname(rr);
-{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-          if sr<first_int_imreg then
-            exit;
-          while cg.has_next_reg[sr] do
+          if (sr<length(spillinfo)) and spillinfo[sr].spilled then
+            with spillinfo[sr].spilllocation do
+              begin
+                result:='['+std_regname(base);
+                if offset>=0 then
+                  result:=result+'+';
+                result:=result+IntToStr(offset)+']';
+                if include_prefix then
+                  result:='stack '+result;
+              end
+          else
             begin
-              r:=cg.GetNextReg(r);
-              sr:=getsupreg(r);
+              rr:=r;
               setsupreg(rr,reginfo[sr].colour);
-              result:=result+':'+std_regname(rr);
+              result:=std_regname(rr);
+              if include_prefix then
+                result:='register '+result;
             end;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+          if (sr>=first_int_imreg) and cg.has_next_reg[sr] then
+            result:=result+':'+get_reg_name_full(cg.GetNextReg(r),false);
 {$endif defined(cpu8bitalu) or defined(cpu16bitalu)}
         end;
 
@@ -2225,12 +2233,12 @@ unit rgobj;
                     begin
                       if (cs_asm_source in current_settings.globalswitches) then
                         begin
-                          s:=get_reg_name_full(tai_varloc(p).newlocation);
+                          s:=get_reg_name_full(tai_varloc(p).newlocation,tai_varloc(p).newlocationhi=NR_NO);
                           if s<>'' then
                             begin
                               if tai_varloc(p).newlocationhi<>NR_NO then
-                                s:=get_reg_name_full(tai_varloc(p).newlocationhi)+':'+s;
-                              hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in register '+s));
+                                s:=get_reg_name_full(tai_varloc(p).newlocationhi,true)+':'+s;
+                              hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in '+s));
                               list.insertafter(hp,p);
                             end;
                           setsupreg(tai_varloc(p).newlocation,reginfo[getsupreg(tai_varloc(p).newlocation)].colour);
