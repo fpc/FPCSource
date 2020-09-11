@@ -47,6 +47,7 @@ Type
     Procedure TestSetValue;
     Procedure TestAddDuplicate;
     Procedure TestAddOrSet;
+    Procedure TestTryAdd;
     Procedure TestContainsKey;
     Procedure TestContainsValue;
     Procedure TestDelete;
@@ -294,6 +295,13 @@ begin
   DoAdd(3);
   Dict.AddOrSetValue(2,'a new 2');
   DoGetValue(2,'a new 2');
+end;
+
+procedure TTestSimpleDictionary.TestTryAdd;
+begin
+  AssertTrue(Dict.TryAdd(1, 'Foobar'));
+  AssertFalse(Dict.TryAdd(1, 'Foo'));
+  AssertTrue(Dict.TryAdd(2, 'Bar'));
 end;
 
 procedure TTestSimpleDictionary.TestContainsKey;
