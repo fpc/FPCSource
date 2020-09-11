@@ -38,8 +38,8 @@ interface
     gas_op2str : op2strtable = (
       '<none>',
       // control flow
-      'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end',
-      'return', 'unreachable',
+      'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end_block',
+      'end_loop', 'end_if', 'return', 'unreachable',
       // basic
       'nop', 'drop', 'i32.const', 'i64.const', 'f32.const', 'f64.const',
       'local.get', 'local.set', 'local.tee', 'global.get', 'global.set',

@@ -120,14 +120,14 @@ begin
   if (lnf_testatbegin in loopflags) then
     current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1) ); // jump back to the external loop
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
   if not (lnf_testatbegin in loopflags) then begin
     pass_generate_code_condition;
   end;
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) ); // jump back to loop
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_loop));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
   current_procinfo.CurrContinueLabel:=oldclabel;
   current_procinfo.CurrBreakLabel:=oldblabel;
@@ -175,7 +175,7 @@ begin
 
   // 0 const on stack if used to return IF value
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 0));
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
   thlcgwasm(hlcg).decblock;
 
   // clearing IF return value

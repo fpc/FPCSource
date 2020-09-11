@@ -22,7 +22,7 @@
 
         '<none>',
         // control flow
-        'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end',
+        'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end', 'end', 'end',
         'return', 'unreachable',
         // basic
         'nop', 'drop', 'i32.const', 'i64.const', 'f32.const', 'f64.const',
