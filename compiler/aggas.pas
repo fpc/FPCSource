@@ -552,6 +552,11 @@ implementation
            begin
              if (atype in [sec_stub]) then
                writer.AsmWrite('.section ');
+           end;
+         system_wasm32_wasi,
+         system_wasm32_wasm:
+           begin
+             writer.AsmWrite('.section ');
            end
          else
            begin
