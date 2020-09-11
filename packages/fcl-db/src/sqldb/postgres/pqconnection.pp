@@ -883,6 +883,7 @@ begin
   with (cursor as TPQCursor) do
     begin
     FPrepared := False;
+    FDirect := False;
     // Prior to v8 there is no support for cursors and parameters.
     // So that's not supported.
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
@@ -930,8 +931,6 @@ begin
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      if LogEvent(detPrepare) then
-        Log(detPrepare,S);
       if LogEvent(detActualSQL) then
         Log(detActualSQL,S);
       res := PQexec(tr.PGConn,pchar(s));
@@ -948,7 +947,13 @@ begin
       FPrepared := True;
       end
     else
-      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      begin
+      if Assigned(AParams) then
+        Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL)
+      else
+        Statement:=Buf;
+      FDirect:=True;
+      end;
     end;
 end;
 
@@ -994,6 +999,7 @@ var ar  : array of PAnsiChar;
 begin
   with cursor as TPQCursor do
     begin
+    CurTuple:=-1;
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin

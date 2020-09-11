@@ -595,6 +595,7 @@ begin
     FPreparedStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
       FPreparedStatement := AParams.ParseSQL(FPreparedStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
+    FPrepared:=True;
     end
 end;
 
