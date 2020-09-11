@@ -1726,6 +1726,7 @@ implementation
          current_asmdata.asmlists[al_procedures].empty then
         current_asmdata.asmlists[al_procedures].concat(tai_align.Create(4));
       tcpuprocdef(pd).exprasmlist:=TAsmList.create;
+      new_section(tcpuprocdef(pd).exprasmlist,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
       tcpuprocdef(pd).exprasmlist.concatlist(code);
       if assigned(data) and
          not data.empty then
