@@ -29,7 +29,8 @@ uses
   globtype,
   aasmdata,
   symtype,
-  symdef,symsym;
+  symdef,symsym,
+  cgutils;
 
 type
   { defs }
@@ -98,6 +99,8 @@ type
   { tcpuprocdef }
 
   tcpuprocdef = class(tprocdef)
+    frame_pointer_ref,
+    base_pointer_ref: treference;
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
