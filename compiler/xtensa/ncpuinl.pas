@@ -30,12 +30,16 @@ unit ncpuinl;
 
     type
       tcpuinlineNode = class(tcginlinenode)
+        function first_abs_real: tnode; override;
         procedure second_abs_long; override;
+        procedure second_abs_real; override;
       end;
 
   implementation
 
     uses
+      cpuinfo,
+      verbose,globals,
       compinnr,
       aasmdata,
       aasmcpu,
@@ -56,6 +60,29 @@ unit ncpuinl;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS,location.register,left.location.register));
       end;
+
+
+    function tcpuinlinenode.first_abs_real : tnode;
+      begin
+        result:=nil;
+        if is_single(left.resultdef) and (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) then
+          expectloc:=LOC_FPUREGISTER
+        else
+          result:=inherited first_abs_real;
+      end;
+
+
+    procedure tcpuinlinenode.second_abs_real;
+      begin
+        if not(is_single(resultdef)) then
+          InternalError(2020091101);
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        location_reset(location,LOC_FPUREGISTER,OS_F32);
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),PF_S));
+      end;
+
 
 
 begin
