@@ -3901,7 +3901,7 @@ implementation
 
     constructor tclassrefdef.create(def:tdef);
       begin
-         while tobjectdef(def).is_unique_objpasdef do
+         while (def.typ=objectdef) and tobjectdef(def).is_unique_objpasdef do
            def:=tobjectdef(def).childof;
          inherited create(classrefdef,def);
          if df_specialization in tstoreddef(def).defoptions then
