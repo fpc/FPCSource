@@ -39,7 +39,7 @@ interface
       '<none>',
       // control flow
       'block', 'loop', 'br', 'br_if', 'br_table', 'if', 'else', 'end_block',
-      'end_loop', 'end_if', 'return', 'unreachable',
+      'end_loop', 'end_if', 'end_function', 'return', 'unreachable',
       // basic
       'nop', 'drop', 'i32.const', 'i64.const', 'f32.const', 'f64.const',
       'local.get', 'local.set', 'local.tee', 'global.get', 'global.set',

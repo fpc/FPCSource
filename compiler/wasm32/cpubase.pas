@@ -40,7 +40,7 @@ uses
       TAsmOp=(A_None,
       // control flow
       a_block, a_loop, a_br, a_br_if, a_br_table, a_if, a_else, a_end_block,
-      a_end_loop, a_end_if, a_return, a_unreachable,
+      a_end_loop, a_end_if, a_end_function, a_return, a_unreachable,
       // basic
       a_nop, a_drop, a_i32_const, a_i64_const, a_f32_const, a_f64_const,
       a_get_local, a_set_local, a_tee_local, a_get_global, a_set_global,
