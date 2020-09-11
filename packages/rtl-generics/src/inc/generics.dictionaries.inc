@@ -604,6 +604,15 @@ begin
     AValue := Default(TValue);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryAdd(constref AKey: TKey; constref AValue: TValue): Boolean;
+var
+  LHash: UInt32;
+begin
+  Result := FindBucketIndex(FItems, AKey, LHash) < 0;
+  if Result then
+    DoAdd(AKey, AValue);
+end;
+
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
 var
   LIndex: SizeInt;

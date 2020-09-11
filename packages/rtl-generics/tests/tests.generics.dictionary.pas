@@ -47,6 +47,7 @@ Type
     Procedure TestSetValue;
     Procedure TestAddDuplicate;
     Procedure TestAddOrSet;
+    Procedure TestTryAdd;
     Procedure TestContainsKey;
     Procedure TestContainsValue;
     Procedure TestDelete;
@@ -296,6 +297,13 @@ begin
   DoGetValue(2,'a new 2');
 end;
 
+procedure TTestSimpleDictionary.TestTryAdd;
+begin
+  AssertTrue(Dict.TryAdd(1, 'Foobar'));
+  AssertFalse(Dict.TryAdd(1, 'Foo'));
+  AssertTrue(Dict.TryAdd(2, 'Bar'));
+end;
+
 procedure TTestSimpleDictionary.TestContainsKey;
 
 Var
@@ -343,6 +351,7 @@ Var
 begin
   DoAdd(3);
   A:=Dict.ToArray;
+  specialize TArrayHelper<TMyPair>.Sort(A{$ifndef fpc}, specialize TComparer<TMySimpleDict.TMyPair>.Default{$endif});
   AssertEquals('Length Ok',3,Length(A));
   For I:=1 to 3 do
     begin
@@ -362,6 +371,7 @@ Var
 begin
   DoAdd(3);
   A:=Dict.Keys.ToArray;
+  specialize TArrayHelper<Integer>.Sort(A{$ifndef fpc}, specialize TComparer<Integer>.Default{$endif});
   AssertEquals('Length Ok',3,Length(A));
   For I:=1 to 3 do
     begin
@@ -379,6 +389,7 @@ Var
 begin
   DoAdd(3);
   A:=Dict.Values.ToArray;
+  specialize TArrayHelper<String>.Sort(A{$ifndef fpc}, specialize TComparer<String>.Default{$endif});
   AssertEquals('Length Ok',3,Length(A));
   For I:=1 to 3 do
     begin
@@ -388,6 +399,9 @@ begin
 end;
 
 procedure TTestSimpleDictionary.TestEnumerator;
+type
+  TStringList = specialize TList<String>;
+  TIntegerList = specialize TList<Integer>;
 
 Var
 {$ifdef fpc}
@@ -395,19 +409,36 @@ Var
 {$else}
   A : TMySimpleDict.TMyPair;
 {$endif}
-  I : Integer;
+  I,J : Integer;
   SI : String;
-
+  IL: TIntegerList;
+  SL: TStringList;
 begin
   DoAdd(3);
-  I:=1;
-  For A in Dict do
-    begin
-    SI:=IntToStr(I);
-    AssertEquals('key '+SI,I,A.Key);
-    AssertEquals('Value '+SI,SI,A.Value);
-    Inc(I);
+  IL:=Nil;
+  SL:=TStringList.Create;
+  try
+    IL:=TIntegerList.Create;
+    for I:=1 to 3 do begin
+      IL.Add(I);
+      SL.Add(IntToStr(I));
     end;
+    I:=1;
+    For A in Dict do
+      begin
+      SI:=IntToStr(I);
+      J:=IL.IndexOf(A.Key);
+      AssertTrue('key '+SI,J>=0);
+      IL.Delete(J);
+      J:=SL.IndexOf(A.Value);
+      AssertTrue('value '+SI,J>=0);
+      SL.Delete(J);
+      Inc(I);
+      end;
+  finally
+    IL.Free;
+    SL.Free;
+  end;
 end;
 
 procedure TTestSimpleDictionary.TestNotification;

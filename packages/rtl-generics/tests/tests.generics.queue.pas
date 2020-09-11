@@ -377,7 +377,7 @@ procedure TTestSimpleQueue.TestValueNotificationDelete;
 begin
   DoAdd(3);
   Queue.OnNotify:=@DoValueNotify;
-  SetExpectValues('Clear',['1','2','3'],[cnRemoved,cnRemoved,cnRemoved],{$IFDEF FPC}true{$ELSE}False{$endif});
+  SetExpectValues('Clear',['1','2','3'],[cnRemoved,cnRemoved,cnRemoved]);
   Queue.Clear;
   DoneExpectValues;
 end;

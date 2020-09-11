@@ -2395,6 +2395,8 @@ type
     function GetLastSection: TPasSection;
     function GetParentSection(El: TPasElement): TPasSection;
     function FindUsedUnitInSection(aMod: TPasModule; Section: TPasSection): TPasUsesUnit;
+    function FirstSectionUsesUnit(aModule: TPasModule): boolean;
+    function ImplementationUsesUnit(aModule: TPasModule; NotInIntf: boolean = true): boolean;
     function GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
       isLoFunc: Boolean; out Mask: LongWord): Integer;
   public
@@ -29588,6 +29590,31 @@ begin
   Clause:=Section.UsesClause;
   for i:=0 to length(Clause)-1 do
     if Clause[i].Module=aMod then exit(Clause[i]);
+end;
+
+function TPasResolver.FirstSectionUsesUnit(aModule: TPasModule): boolean;
+var
+  aSection: TPasSection;
+begin
+  Result:=false;
+  aSection:=GetFirstSection(false);
+  if aSection=nil then
+    exit;
+  Result:=FindUsedUnitInSection(aModule,aSection)<>nil;
+end;
+
+function TPasResolver.ImplementationUsesUnit(aModule: TPasModule;
+  NotInIntf: boolean): boolean;
+var
+  MyModule: TPasModule;
+begin
+  Result:=false;
+  MyModule:=RootElement;
+  if MyModule=nil then exit;
+  if FindUsedUnitInSection(aModule,MyModule.ImplementationSection)=nil then
+    exit;
+  if NotInIntf then
+    Result:=not FirstSectionUsesUnit(aModule);
 end;
 
 function TPasResolver.GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
