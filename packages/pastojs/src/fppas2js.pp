@@ -1730,12 +1730,22 @@ type
 
   { TSectionContext - interface/implementation/program/library
     interface/program/library: PasElement is TPasModule, ThisPas is TPasModule
-    implementation: PasElement is TImplementationSection, ThisPas is TPasModule }
+    implementation: PasElement is TImplementationSection, ThisPas=nil }
 
   TSectionContext = Class(TFunctionContext)
   public
+    SrcElements: TJSSourceElements;
     HeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
+    procedure AddHeaderStatement(JS: TJSElement);
+  end;
+
+  { TInterfaceSectionContext }
+
+  TInterfaceSectionContext = Class(TSectionContext)
+  public
+    ImplHeaderStatements: TFPList;
+    destructor Destroy; override;
   end;
 
   { TDotContext - used for converting eopSubIdent }
@@ -1984,9 +1994,10 @@ type
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
     Function CreateGlobalTypePath(El: TPasType; AContext : TConvertContext): string; virtual;
     // section
-    Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement; virtual;
+    Function CreateImplementationSection(El: TPasModule; AContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
+    Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddDelayedInits(El: TPasProgram; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddDelaySpecializeInit(El: TPasGenericType; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     // set
@@ -2365,6 +2376,21 @@ begin
     Result:=Result+h;
     end;
   Result:='['+Result+']';
+end;
+
+{ TInterfaceSectionContext }
+
+destructor TInterfaceSectionContext.Destroy;
+var
+  i: Integer;
+begin
+  if ImplHeaderStatements<>nil then
+    begin
+    for i:=0 to ImplHeaderStatements.Count-1 do
+      TJSElement(ImplHeaderStatements[i]).Free;
+    FreeAndNil(ImplHeaderStatements);
+    end;
+  inherited Destroy;
 end;
 
 { TPas2JSResolverHub }
@@ -7138,6 +7164,14 @@ constructor TSectionContext.Create(PasEl: TPasElement; JSEl: TJSElement;
 begin
   inherited;
   IsGlobal:=true;
+  SrcElements:=JSEl as TJSSourceElements;
+end;
+
+procedure TSectionContext.AddHeaderStatement(JS: TJSElement);
+begin
+  if JS=nil then exit;
+  SrcElements.Statements.InsertNode(HeaderIndex).Node:=JS;
+  inc(HeaderIndex);
 end;
 
 { TFunctionContext }
@@ -7697,7 +7731,10 @@ begin
       end;
 
     ImplVarSt:=nil;
-    IntfContext:=TSectionContext.Create(El,Src,AContext);
+    if El.ClassType=TPasModule then
+      IntfContext:=TInterfaceSectionContext.Create(El,Src,AContext)
+    else
+      IntfContext:=TSectionContext.Create(El,Src,AContext);
     try
       // add "var $mod = this;"
       IntfContext.ThisPas:=El;
@@ -7738,7 +7775,7 @@ begin
         if Assigned(El.InterfaceSection) then
           AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
 
-        ImplFunc:=CreateImplementationSection(El,IntfContext);
+        ImplFunc:=CreateImplementationSection(El,TInterfaceSectionContext(IntfContext));
         if ImplFunc=nil then
           begin
           // remove unneeded $impl from interface
@@ -16734,15 +16771,16 @@ begin
 end;
 
 function TPasToJSConverter.CreateImplementationSection(El: TPasModule;
-  AContext: TConvertContext
-  ): TJSFunctionDeclarationStatement;
+  AContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement;
 var
   Src: TJSSourceElements;
   ImplContext: TSectionContext;
-  ImplDecl: TJSElement;
+  ImplDecl, JS: TJSElement;
   FunDecl: TJSFunctionDeclarationStatement;
+  i: Integer;
 begin
   Result:=nil;
+
   // create function(){}
   FunDecl:=CreateFunctionSt(El.ImplementationSection,true,true);
   Src:=TJSSourceElements(FunDecl.AFunction.Body.A);
@@ -16750,7 +16788,21 @@ begin
   // create section context (a function)
   ImplContext:=TSectionContext.Create(El.ImplementationSection,Src,AContext);
   try
-    // ToDo: ImplContext.ThisPas:=El;
+    // ToDo: IntfContext.ThisPas:=El;
+    // ToDo: IntfContext.ThisKind:=cctkGlobal;
+
+    // add pending impl header statements
+    if AContext.ImplHeaderStatements<>nil then
+      begin
+      for i:=0 to AContext.ImplHeaderStatements.Count-1 do
+        begin
+        JS:=TJSElement(AContext.ImplHeaderStatements[i]);
+        ImplContext.AddHeaderStatement(JS);
+        AContext.ImplHeaderStatements[i]:=nil;
+        end;
+      FreeAndNil(AContext.ImplHeaderStatements);
+      end;
+
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
     if ImplDecl<>nil then
@@ -16784,14 +16836,38 @@ procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;
   PosEl: TPasElement; aContext: TConvertContext);
 var
   SectionCtx: TSectionContext;
-  Src: TJSSourceElements;
 begin
+  if JS=nil then exit;
   SectionCtx:=TSectionContext(aContext.GetContextOfType(TSectionContext));
   if SectionCtx=nil then
     RaiseNotSupported(PosEl,aContext,20200606142555);
-  Src:=SectionCtx.JSElement as TJSSourceElements;
-  Src.Statements.InsertNode(SectionCtx.HeaderIndex).Node:=JS;
-  inc(SectionCtx.HeaderIndex);
+  if SectionCtx.Parent is TSectionContext then
+    SectionCtx:=TSectionContext(SectionCtx.Parent);
+  SectionCtx.AddHeaderStatement(JS);
+end;
+
+procedure TPasToJSConverter.AddImplHeaderStatement(JS: TJSElement;
+  PosEl: TPasElement; aContext: TConvertContext);
+var
+  SectionCtx: TSectionContext;
+  IntfSec: TInterfaceSectionContext;
+begin
+  if JS=nil then exit;
+  SectionCtx:=TSectionContext(aContext.GetContextOfType(TSectionContext));
+  if SectionCtx=nil then
+    RaiseNotSupported(PosEl,aContext,20200606142555);
+  if SectionCtx.PasElement is TImplementationSection then
+    SectionCtx.AddHeaderStatement(JS)
+  else if SectionCtx is TInterfaceSectionContext then
+    begin
+    // add pending impl header statement
+    IntfSec:=TInterfaceSectionContext(SectionCtx);
+    if IntfSec.ImplHeaderStatements=nil then
+      IntfSec.ImplHeaderStatements:=TFPList.Create;
+    IntfSec.ImplHeaderStatements.Add(JS);
+    end
+  else
+    RaiseNotSupported(PosEl,aContext,20200911165632);
 end;
 
 procedure TPasToJSConverter.AddDelayedInits(El: TPasProgram;
@@ -25724,6 +25800,7 @@ var
   FuncContext: TFunctionContext;
   Expr: TJSElement;
   V: TJSVariableStatement;
+  AssignSt: TJSSimpleAssignStatement;
 begin
   Result:=JSPath;
   if El is TPasUnresolvedSymbolRef then
@@ -25753,11 +25830,27 @@ begin
       RaiseNotSupported(El,AContext,20200608160225);
     Result:=FuncContext.CreateLocalIdentifier(Result);
     SectionContext.AddLocalVar(Result,El,false);
-    // insert var $lmr = JSPath;
-    Expr:=CreatePrimitiveDotExpr(JSPath,El);
-    V:=CreateVarStatement(Result,Expr,El);
-    AddHeaderStatement(V,El,SectionContext);
-    // ToDo: check if from impl uses section and separate "var $lmr = null;" and "$lmr = JSPath";
+
+    // ToDo: check if from a unit used by impl uses section
+    if aResolver.ImplementationUsesUnit(ElModule) then
+      begin
+      // insert var $lm = null;
+      Expr:=CreateLiteralNull(El);
+      V:=CreateVarStatement(Result,Expr,El);
+      AddHeaderStatement(V,El,SectionContext);
+      // insert impl  $lm = JSPath;
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=CreatePrimitiveDotExpr(Result,El);
+      AssignSt.Expr:=CreatePrimitiveDotExpr(JSPath,El);
+      AddImplHeaderStatement(AssignSt,El,AContext);
+      end
+    else
+      begin
+      // insert var $lm = JSPath;
+      Expr:=CreatePrimitiveDotExpr(JSPath,El);
+      V:=CreateVarStatement(Result,Expr,El);
+      AddHeaderStatement(V,El,SectionContext);
+      end;
     end;
 end;
 
