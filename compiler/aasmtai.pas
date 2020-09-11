@@ -407,7 +407,9 @@ interface
         { for the OMF object format }
         asd_omf_linnum_line,
         { RISC-V }
-        asd_option
+        asd_option,
+        { WebAssembly }
+        asd_end_function
       );
 
       TAsmSehDirective=(
@@ -452,7 +454,9 @@ interface
         { for the OMF object format }
         'omf_line',
         { RISC-V }
-        'option'
+        'option',
+        { WebAssembly }
+        'end_function'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

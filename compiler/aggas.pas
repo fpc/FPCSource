@@ -1806,6 +1806,8 @@ implementation
         name has to be translated as well }
       if dir=asd_cpu then
         writer.AsmWrite(asminfo^.comment+' CPU ')
+      else if dir=asd_end_function then
+        writer.AsmWrite(#9#9+directivestr[dir])
       else
         writer.AsmWrite('.'+directivestr[dir]+' ');
     end;

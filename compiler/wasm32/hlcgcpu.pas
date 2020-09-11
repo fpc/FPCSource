@@ -1707,6 +1707,7 @@ implementation
       list.Concat(taicpu.op_sym(a_set_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
 
       list.concat(taicpu.op_none(a_return));
+      list.concat(tai_directive.Create(asd_end_function,''));
     end;
 
   procedure thlcgwasm.gen_load_return_value(list: TAsmList);
