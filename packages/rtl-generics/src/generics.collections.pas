@@ -2021,6 +2021,9 @@ end;
 
 function TQueue<T>.DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): T;
 begin
+  if Count = 0 then
+    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
+
   Result := FItems[AIndex];
   FItems[AIndex] := Default(T);
   Inc(FLow);
@@ -2151,7 +2154,7 @@ end;
 
 function TStack<T>.DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): T;
 begin
-  if AIndex < 0 then
+  if (AIndex < 0) or (Count = 0) then
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
 
   Result := FItems[AIndex];
