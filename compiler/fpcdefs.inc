@@ -341,6 +341,7 @@
   {$define cpuneedsdivhelper}
   {$define cpucapabilities}
   {$define cpurequiresproperalignment}
+  {$define cpufloatintregmov}
 {$endif xtensa}
 
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
