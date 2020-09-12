@@ -232,6 +232,51 @@ procedure fail;
       WriteLn('Success!');
   end;
 
+
+ procedure test_abs_single;
+  var
+   _result : boolean;
+   value : single;
+   value1: single;
+  begin
+    _result := true;
+    Write('Abs() test with single type...');
+
+    value := VALUE_ONE_REAL;
+    if (trunc(abs(value)) <> trunc(RESULT_CONST_ONE_REAL))  then
+       _result := false;
+
+    value := VALUE_THREE_REAL;
+    if trunc(abs(value)) <> trunc(RESULT_CONST_THREE_REAL) then
+       _result := false;
+
+    value := VALUE_FOUR_REAL;
+    if trunc(abs(value)) <> trunc(RESULT_CONST_FOUR_REAL) then
+       _result := false;
+
+    value := VALUE_ONE_REAL;
+    value1 := abs(value);
+    if trunc(value1) <> trunc(RESULT_ONE_REAL) then
+       _result := false;
+
+    value := VALUE_THREE_REAL;
+    value1 := abs(value);
+    if trunc(value1) <> trunc(RESULT_THREE_REAL) then
+       _result := false;
+
+    value := VALUE_FOUR_REAL;
+    value1 := abs(value);
+    if trunc(value1) <> trunc(RESULT_FOUR_REAL) then
+       _result := false;
+
+    if not _result then
+      fail
+    else
+      WriteLn('Success!');
+  end;
+
+
+
  procedure test_abs_real;
   var
    _result : boolean;
@@ -294,6 +339,7 @@ Begin
   test_abs_currency;
 {$endif SKIP_CURRENCY_TEST}
   test_abs_real;
+  test_abs_single;
   test_abs_longint;
   test_abs_int64;
 end.

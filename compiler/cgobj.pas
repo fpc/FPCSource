@@ -282,6 +282,7 @@ unit cgobj;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
           procedure a_loadfpu_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, fpureg: tregister); virtual;
+          procedure a_loadfpu_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; fpureg, intreg: tregister); virtual;
 
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual;
@@ -1437,7 +1438,9 @@ implementation
              begin
                case getregtype(reg) of
                  R_FPUREGISTER:
-                   a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg)
+                   a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+                 R_INTREGISTER:
+                   a_loadfpu_reg_intreg(list,paraloc.size,regsize,paraloc.register,reg);
                  else
                    internalerror(2015031401);
                  end;
@@ -1970,6 +1973,21 @@ implementation
         tg.gettemp(list,tcgsize2size[fromsize],tcgsize2size[fromsize],tt_normal,tmpref);
         a_load_reg_ref(list,fromsize,fromsize,intreg,tmpref);
         a_loadfpu_ref_reg(list,tosize,tosize,tmpref,fpureg);
+        tg.ungettemp(list,tmpref);
+      end;
+
+
+    procedure tcg.a_loadfpu_reg_intreg(list : TAsmList; fromsize,tosize : tcgsize; fpureg,intreg : tregister);
+      var
+        tmpref: treference;
+      begin
+        if not(tcgsize2size[fromsize] in [4,8]) or
+           not(tcgsize2size[tosize] in [4,8]) or
+           (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+          internalerror(2020091201);
+        tg.gettemp(list,tcgsize2size[fromsize],tcgsize2size[fromsize],tt_normal,tmpref);
+        a_loadfpu_reg_ref(list,fromsize,fromsize,fpureg,tmpref);
+        a_load_ref_reg(list,tosize,tosize,tmpref,intreg);
         tg.ungettemp(list,tmpref);
       end;
 

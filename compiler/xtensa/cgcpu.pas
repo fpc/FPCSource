@@ -77,6 +77,9 @@ interface
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);override;
 
+        procedure a_loadfpu_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, fpureg: tregister);override;
+        procedure a_loadfpu_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; fpureg, intreg: tregister);override;
+
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
         procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef);override;
@@ -1194,6 +1197,24 @@ implementation
 
          list.concat(taicpu.op_reg_ref(A_SSI,reg,href));
        end;
+
+
+    procedure tcgcpu.a_loadfpu_intreg_reg(list : TAsmList; fromsize,tosize : tcgsize; intreg,fpureg : tregister);
+      begin
+        if not(tcgsize2size[fromsize]=4) or
+           not(tcgsize2size[tosize]=4) then
+          internalerror(2020091102);
+        list.concat(taicpu.op_reg_reg(A_WFR,fpureg,intreg));
+      end;
+
+
+    procedure tcgcpu.a_loadfpu_reg_intreg(list : TAsmList; fromsize,tosize : tcgsize; fpureg,intreg : tregister);
+      begin
+        if not(tcgsize2size[fromsize]=4) or
+           not(tcgsize2size[tosize]=4) then
+          internalerror(2020091202);
+        list.concat(taicpu.op_reg_reg(A_RFR,intreg,fpureg));
+      end;
 
 
     procedure tcgcpu.maybeadjustresult(list : TAsmList; op : TOpCg; size : tcgsize; dst : tregister);

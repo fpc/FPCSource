@@ -806,8 +806,19 @@ interface
             (location.loc=LOC_CONSTANT)
            ) or
            ((resultdef.typ=floatdef) xor (location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_MMREGISTER])) then
-          hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
-
+          begin
+            { check if the CPU supports direct moves between int and fpu registers and take advantage of it }
+{$ifdef cpufloatintregmov}
+            if (resultdef.typ<>floatdef) and (location.loc in [LOC_CFPUREGISTER,LOC_FPUREGISTER]) then
+              begin
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                cg.a_loadfpu_reg_intreg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+              end
+            else
+{$endif cpufloatintregmov}
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+          end;
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
         location.size:=newsize;

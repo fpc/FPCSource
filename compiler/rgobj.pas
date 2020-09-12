@@ -641,10 +641,17 @@ unit rgobj;
           i8086 where indexed memory access instructions allow only
           few registers as arguments and additionally the calling convention
           provides no general purpose volatile registers.
+          
+          Also spill registers which have the initial memory location
+          and are used only once. This allows to access the memory location
+          directly, without preloading it to a register.
         }
         for i:=first_imaginary to maxreg-1 do
           with reginfo[i] do
-            if real_reg_interferences>=usable_registers_cnt then
+            if (real_reg_interferences>=usable_registers_cnt) or
+               { also spill registers which have the initial memory location
+                 and are used only once }
+               ((ri_has_initial_loc in flags) and (weight<=200)) then
               spillednodes.add(i);
         if spillednodes.length<>0 then
           begin
@@ -1699,15 +1706,6 @@ unit rgobj;
       for i:=selectstack.length downto 1 do
         begin
           n:=selectstack.buf^[i-1];
-          { Always spill the register if it has the initial memory location
-            and is used only once (weight<=200). This allows to access the
-            memory location directly, without preloading it to a register. }
-          with reginfo[n] do
-            if (ri_has_initial_loc in flags) and (weight<=200) then
-              begin
-                spillednodes.add(n);
-                continue;
-              end;
           {Create a list of colours that we cannot assign to n.}
           adj_colours:=[];
           adj:=reginfo[n].adjlist;

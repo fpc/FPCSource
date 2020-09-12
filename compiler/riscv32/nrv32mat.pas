@@ -100,7 +100,7 @@ implementation
         else
           op:=A_DIVU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,denum,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
       end;
 
     procedure trv32moddivnode.emit_mod_reg_reg(signed: boolean; denum, num: tregister);
@@ -112,7 +112,7 @@ implementation
         else
           op:=A_REMU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,denum,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
       end;
 
 

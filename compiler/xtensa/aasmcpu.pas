@@ -106,6 +106,8 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
+
 implementation
 
 uses cutils, cclasses;
@@ -492,6 +494,13 @@ uses cutils, cclasses;
           else
             internalerror(2020030701);
         end;
+      end;
+
+
+    function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
+      begin
+        i.oppostfix:=pf;
+        result:=i;
       end;
 
 
