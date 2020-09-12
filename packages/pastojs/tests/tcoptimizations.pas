@@ -303,6 +303,8 @@ begin
     '  end;',
     '  TBear = class',
     '  end;',
+    '  TFrog = class',
+    '  end;',
     'var Ant: TAnt;',
     '']),
   LinesToStr([
@@ -347,6 +349,7 @@ begin
   '  Ant:=TAnt.Create;', // init to impl-uses
   '  Bird:=TBird.Create;', // init to intf-uses
   '  Eagle:=TEagle.Create;', // init to intf-JS
+  '  TFrog.Create;', // only in init to impl-uses
   '  Eagle.Fly;',
   '  RedAnt.Run;',
   '']);
@@ -359,6 +362,7 @@ begin
     'var $lm1 = null;',
     'var $lt1 = null;',
     'var $lt2 = null;',
+    'var $lt3 = null;',
     'rtl.createClass($mod, "TEagle", $lt, function () {',
     '  this.Fly = function () {',
     '    $impl.TRedAnt.$create("Create");',
@@ -373,6 +377,7 @@ begin
     '$impl.Ant = $lt1.$create("Create");',
     '$impl.Bird = $lt.$create("Create");',
     '$impl.Eagle = $mod.TEagle.$create("Create");',
+    '$lt3.$create("Create");',
     '$impl.Eagle.Fly();',
     '$impl.RedAnt.Run();',
     '']),
@@ -380,6 +385,7 @@ begin
     '$lm1 = pas.UnitB;',
     '$lt1 = $lm1.TAnt;',
     '$lt2 = $lm1.TBear;',
+    '$lt3 = $lm1.TFrog;',
     'rtl.createClass($impl, "TRedAnt", $lt1, function () {',
     '  this.Run = function () {',
     '    $impl.TRedAnt.$create("Create");',
