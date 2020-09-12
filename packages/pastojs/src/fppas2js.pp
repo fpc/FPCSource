@@ -1744,8 +1744,12 @@ type
 
   TInterfaceSectionContext = Class(TSectionContext)
   public
+    ImplContext: TSectionContext;
     ImplHeaderStatements: TFPList;
+    ImplSrcElements: TJSSourceElements;
+    ImplHeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
     destructor Destroy; override;
+    procedure AddImplHeaderStatement(JS: TJSElement);
   end;
 
   { TDotContext - used for converting eopSubIdent }
@@ -1994,7 +1998,7 @@ type
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
     Function CreateGlobalTypePath(El: TPasType; AContext : TConvertContext): string; virtual;
     // section
-    Function CreateImplementationSection(El: TPasModule; AContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
+    Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
@@ -2391,6 +2395,29 @@ begin
     FreeAndNil(ImplHeaderStatements);
     end;
   inherited Destroy;
+end;
+
+procedure TInterfaceSectionContext.AddImplHeaderStatement(JS: TJSElement);
+begin
+  if JS=nil then exit;
+  if ImplContext<>nil then
+    begin
+    // unit impl is currently created
+    ImplContext.AddHeaderStatement(JS);
+    end
+  else if ImplSrcElements<>nil then
+    begin
+    // unit impl finished -> e.g. during the initialization section
+    ImplSrcElements.Statements.InsertNode(ImplHeaderIndex).Node:=JS;
+    inc(ImplHeaderIndex);
+    end
+  else
+    begin
+    // unit impl not yet created
+    if ImplHeaderStatements=nil then
+      ImplHeaderStatements:=TFPList.Create;
+    ImplHeaderStatements.Add(JS);
+    end;
 end;
 
 { TPas2JSResolverHub }
@@ -16771,7 +16798,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateImplementationSection(El: TPasModule;
-  AContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement;
+  IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement;
 var
   Src: TJSSourceElements;
   ImplContext: TSectionContext;
@@ -16784,33 +16811,37 @@ begin
   // create function(){}
   FunDecl:=CreateFunctionSt(El.ImplementationSection,true,true);
   Src:=TJSSourceElements(FunDecl.AFunction.Body.A);
+  IntfContext.ImplSrcElements:=Src;
 
   // create section context (a function)
-  ImplContext:=TSectionContext.Create(El.ImplementationSection,Src,AContext);
+  ImplContext:=TSectionContext.Create(El.ImplementationSection,Src,IntfContext);
   try
+    IntfContext.ImplContext:=ImplContext;
     // ToDo: IntfContext.ThisPas:=El;
     // ToDo: IntfContext.ThisKind:=cctkGlobal;
 
     // add pending impl header statements
-    if AContext.ImplHeaderStatements<>nil then
+    if IntfContext.ImplHeaderStatements<>nil then
       begin
-      for i:=0 to AContext.ImplHeaderStatements.Count-1 do
+      for i:=0 to IntfContext.ImplHeaderStatements.Count-1 do
         begin
-        JS:=TJSElement(AContext.ImplHeaderStatements[i]);
+        JS:=TJSElement(IntfContext.ImplHeaderStatements[i]);
         ImplContext.AddHeaderStatement(JS);
-        AContext.ImplHeaderStatements[i]:=nil;
+        IntfContext.ImplHeaderStatements[i]:=nil;
         end;
-      FreeAndNil(AContext.ImplHeaderStatements);
+      FreeAndNil(IntfContext.ImplHeaderStatements);
       end;
 
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
     if ImplDecl<>nil then
       RaiseInconsistency(20170910175032,El); // elements should have been added directly
+    IntfContext.ImplHeaderIndex:=ImplContext.HeaderIndex;
     if Src.Statements.Count=0 then
       exit; // no implementation
     Result:=FunDecl;
   finally
+    IntfContext.ImplContext:=nil;
     ImplContext.Free;
     if Result=nil then
       FunDecl.Free;
@@ -16849,25 +16880,13 @@ end;
 procedure TPasToJSConverter.AddImplHeaderStatement(JS: TJSElement;
   PosEl: TPasElement; aContext: TConvertContext);
 var
-  SectionCtx: TSectionContext;
   IntfSec: TInterfaceSectionContext;
 begin
   if JS=nil then exit;
-  SectionCtx:=TSectionContext(aContext.GetContextOfType(TSectionContext));
-  if SectionCtx=nil then
+  IntfSec:=TInterfaceSectionContext(aContext.GetContextOfType(TInterfaceSectionContext));
+  if IntfSec=nil then
     RaiseNotSupported(PosEl,aContext,20200606142555);
-  if SectionCtx.PasElement is TImplementationSection then
-    SectionCtx.AddHeaderStatement(JS)
-  else if SectionCtx is TInterfaceSectionContext then
-    begin
-    // add pending impl header statement
-    IntfSec:=TInterfaceSectionContext(SectionCtx);
-    if IntfSec.ImplHeaderStatements=nil then
-      IntfSec.ImplHeaderStatements:=TFPList.Create;
-    IntfSec.ImplHeaderStatements.Add(JS);
-    end
-  else
-    RaiseNotSupported(PosEl,aContext,20200911165632);
+  IntfSec.AddImplHeaderStatement(JS);
 end;
 
 procedure TPasToJSConverter.AddDelayedInits(El: TPasProgram;
