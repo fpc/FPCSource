@@ -344,6 +344,9 @@ Unit AoptObj;
         { removes p from asml, updates registers and replaces p with hp1 (if the next instruction was known beforehand) }
         procedure RemoveCurrentP(var p: tai; const hp1: tai); inline;
 
+        { removes hp from asml then frees it }
+        procedure RemoveInstruction(const hp: tai); inline;
+
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
          <code>               <code>
@@ -1507,6 +1510,13 @@ Unit AoptObj;
         AsmL.Remove(p);
         p.Free;
         p := hp1;
+      end;
+
+
+    procedure TAOptObj.RemoveInstruction(const hp: tai); inline;
+      begin
+        AsmL.Remove(hp);
+        hp.Free;
       end;
 
 
