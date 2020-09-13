@@ -19,8 +19,11 @@
 *****************************************************************************}
 
 function do_isdevice(handle:thandle):boolean;
+var
+  HT: dword;
 begin
-  do_isdevice:=(handle = StdInputHandle) or (handle = StdOutputHandle) or (handle = StdErrorHandle);
+  HT := GetFileType (Handle);
+  Do_IsDevice := (HT = FILE_TYPE_CHAR) or (HT = FILE_TYPE_PIPE);
 end;
 
 

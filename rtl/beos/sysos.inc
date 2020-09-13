@@ -132,17 +132,14 @@ end;
 *****************************************************************************}
 
 Function Do_IsDevice(Handle:Longint):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-CONST
-  IOCtl_TCGETS=$5401;
 var
-  Data : array[0..255] of byte; {Large enough for termios info}
+  StatRec: Stat;
 begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+  fpFStat (Handle, StatRec);
+  case StatRec.st_Mode and S_IFMT of
+(* S_IFSOCK supposedly not available under BeOS, thus omitted *)
+   S_IFCHR, S_IFIFO: Do_IsDevice := true
+  else
+   Do_IsDevice := false;
+  end;
 end;

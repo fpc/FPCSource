@@ -397,7 +397,7 @@ asm
     call syscall
     mov eax, 1
     jc @IsDevEnd
-    test edx, 80h           { verify if it is a file  }
+    test edx, 80h           { bit 7 is set if it is a device or a pipe }
     jnz @IsDevEnd
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
