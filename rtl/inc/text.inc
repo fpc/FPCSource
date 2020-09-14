@@ -96,12 +96,6 @@ end;
 Procedure Assign(out t:Text;const s : UnicodeString);
 begin
   InitText(t);
-  if Length (S) >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
 {$ifdef FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
 {$else FPC_ANSI_TEXTFILEREC}
@@ -115,29 +109,12 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Assign(out t:Text;const s: RawByteString);
-{$ifdef FPC_ANSI_TEXTFILEREC}
-var
-  R: RawByteString;
-{$endif FPC_ANSI_TEXTFILEREC}
 Begin
   InitText(t);
 {$ifdef FPC_ANSI_TEXTFILEREC}
   { ensure the characters in the record's filename are encoded correctly }
-  R:=ToSingleByteFileSystemEncodedFileName(S);
-  if Length (R) >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
-  TextRec(t).Name:=R;
+  TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
 {$else FPC_ANSI_TEXTFILEREC}
-  if Length (S) >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
   TextRec(t).Name:=S;
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
@@ -161,60 +138,26 @@ End;
 
 
 Procedure Assign(out t:Text;const p: PAnsiChar);
-var
-{$IFDEF FPC_HAS_FEATURE_ANSISTRINGS}
-  S: ansistring;
-{$ELSE FPC_HAS_FEATURE_ANSISTRINGS}
-  Counter: SizeInt;
-{$ENDIF FPC_HAS_FEATURE_ANSISTRINGS}
 Begin
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-  S := AnsiString (P);
-  if Length (S) >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
-  Assign(t,S);
+  Assign(t,AnsiString(p));
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
   { no use in making this the one that does the work, since the name field is
     limited to 255 characters anyway }
-{  Assign(t,strpas(p));}
-  { TH: The length of name field may be extended sooner or later, let's play
-    safely }
-  Counter := IndexByte(P^,-1,0);
-  if Counter >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
-  Move(P^,TextRec(t).Name,counter+1);
+  Assign(t,strpas(p));
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
 
 
 Procedure Assign(out t:Text;const c: AnsiChar);
-{$IFNDEF FPC_HAS_FEATURE_ANSISTRINGS}
-var
-  Counter: SizeInt;
-{$ENDIF FPC_HAS_FEATURE_ANSISTRINGS}
 Begin
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   Assign(t,AnsiString(c));
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
-  Counter := IndexByte(c,-1,0);
-  if Counter >= Length (TextRec.Name) then
-{ The last character of TextRec.Name needs to be #0 }
-   begin
-     InOutRes:=3;
-     Exit;
-   end;
-  Move(c,TextRec(F).Name,counter+1);
-{  Assign(t,ShortString(c));}
+  Assign(t,ShortString(c));
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
+
 
 Procedure Close(var t : Text);[IOCheck];
 Begin
@@ -565,7 +508,7 @@ Begin
   if not isdevice then
     { if we didn't modify the buffer, simply restore the BufPos and BufEnd  }
     { (the latter because it's now probably set to zero because nothing was }
-    { read anymore)                                                         }
+    {  was read anymore)                                                    }
     if (reads = 0) then
       begin
         TextRec(t).BufPos:=oldbufpos;
