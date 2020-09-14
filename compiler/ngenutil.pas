@@ -105,9 +105,9 @@ interface
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ: Tasmsymtype); virtual;
 
       { initialization of iso styled program parameters }
-      class procedure initialize_textrec(p : TObject; statn : pointer);
+      class procedure initialize_filerecs(p : TObject; statn : pointer);
       { finalization of iso styled program parameters }
-      class procedure finalize_textrec(p : TObject; statn : pointer);
+      class procedure finalize_filerecs(p : TObject; statn : pointer);
      public
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
@@ -546,49 +546,83 @@ implementation
     end;
 
 
-  class procedure tnodeutils.initialize_textrec(p:TObject;statn:pointer);
+  class procedure tnodeutils.initialize_filerecs(p:TObject;statn:pointer);
     var
       stat: ^tstatementnode absolute statn;
     begin
       if (tsym(p).typ=staticvarsym) and
-       (tstaticvarsym(p).vardef.typ=filedef) and
-       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
-       (tstaticvarsym(p).isoindex<>0) then
-       begin
-         if cs_transparent_file_names in current_settings.globalswitches then
-           addstatement(stat^,ccallnode.createintern('fpc_textinit_filename_iso',
-             ccallparanode.create(
-               cstringconstnode.createstr(tstaticvarsym(p).Name),
-             ccallparanode.create(
-               cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
-             ccallparanode.create(
-               cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-             nil)))))
-         else
-           addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
-             ccallparanode.create(
-               cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
-             ccallparanode.create(
-               cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-             nil))));
-       end;
+        (tstaticvarsym(p).vardef.typ=filedef) and
+        (tstaticvarsym(p).isoindex<>0) then
+        case tfiledef(tstaticvarsym(p).vardef).filetyp of
+          ft_text:
+            begin
+              if cs_transparent_file_names in current_settings.globalswitches then
+                addstatement(stat^,ccallnode.createintern('fpc_textinit_filename_iso',
+                  ccallparanode.create(
+                    cstringconstnode.createstr(tstaticvarsym(p).Name),
+                  ccallparanode.create(
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                  ccallparanode.create(
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                  nil)))))
+              else
+                addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
+                  ccallparanode.create(
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                  ccallparanode.create(
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                  nil))));
+            end;
+          ft_typed:
+            begin
+              if cs_transparent_file_names in current_settings.globalswitches then
+                addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_filename_iso',
+                  ccallparanode.create(
+                    cstringconstnode.createstr(tstaticvarsym(p).Name),
+                  ccallparanode.create(
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                  ccallparanode.create(
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                  nil)))))
+              else
+                addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_iso',
+                  ccallparanode.create(
+                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false),
+                  ccallparanode.create(
+                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                  nil))));
+            end;
+          else
+            ;
+        end;
     end;
 
 
-  class procedure tnodeutils.finalize_textrec(p:TObject;statn:pointer);
+  class procedure tnodeutils.finalize_filerecs(p:TObject;statn:pointer);
     var
       stat: ^tstatementnode absolute statn;
     begin
       if (tsym(p).typ=staticvarsym) and
-       (tstaticvarsym(p).vardef.typ=filedef) and
-       (tfiledef(tstaticvarsym(p).vardef).filetyp=ft_text) and
-       (tstaticvarsym(p).isoindex<>0) then
-       begin
-         addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
-           ccallparanode.create(
-             cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
-           nil)));
-       end;
+        (tstaticvarsym(p).vardef.typ=filedef) and
+        (tstaticvarsym(p).isoindex<>0) then
+        case tfiledef(tstaticvarsym(p).vardef).filetyp of
+          ft_text:
+            begin
+              addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
+                ccallparanode.create(
+                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                nil)));
+            end;
+          ft_typed:
+            begin
+              addstatement(stat^,ccallnode.createintern('fpc_typedfile_close_iso',
+                ccallparanode.create(
+                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner),
+                nil)));
+            end;
+          else
+            ;
+        end;
     end;
 
 
@@ -637,9 +671,9 @@ implementation
         (pd.proctypeoption=potype_proginit) then
         begin
           block:=internalstatements(stat);
-          pd.localst.SymList.ForEachCall(@initialize_textrec,@stat);
+          pd.localst.SymList.ForEachCall(@initialize_filerecs,@stat);
           addstatement(stat,result);
-          pd.localst.SymList.ForEachCall(@finalize_textrec,@stat);
+          pd.localst.SymList.ForEachCall(@finalize_filerecs,@stat);
           result:=block;
         end;
 
