@@ -9,7 +9,7 @@ main=rtl
 # macpas and iso7185 units rely on sysutils unit, not yet handled here
 # extpas unit relies on dos unit, not yet handled
 units=system uuchar objpas sysconst sysutils math rtlconsts \
-      character fpwidestring unicodedata unicodenumtable \
+      character fpwidestring unicodedata unicodenumtable fgl \
       dos iso7185 extpas typinfo types classes macpas buildrtl
 implicitunits=ctypes strings symbian
 
