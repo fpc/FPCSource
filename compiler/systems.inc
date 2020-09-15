@@ -93,12 +93,12 @@
              system_i386_freebsd,       { 6 }
              system_m68k_Amiga,         { 7 }
              system_m68k_Atari,         { 8 }
-             system_m68k_macos,         { 9 }
+             system_m68k_macosclassic,  { 9 }
              system_m68k_linux,         { 10 }
              system_m68k_PalmOS,        { 11 }
              obsolete_system_alpha_linux,{ 12 }
              system_powerpc_linux,      { 13 }
-             system_powerpc_macos,      { 14 }
+             system_powerpc_macosclassic,{ 14 }
              system_i386_solaris,       { 15 }
              system_i386_beos,          { 16 }
              system_i386_netbsd,        { 17 }
@@ -148,7 +148,7 @@
              system_x86_64_darwin,      { 61 }
              system_avr_embedded,       { 62 }
              system_i386_haiku,         { 63 }
-             system_arm_darwin,         { 64 }
+             system_arm_ios,            { 64 }
              system_x86_64_solaris,     { 65 }
              system_mipseb_linux,       { 66 }
              system_mipsel_linux,       { 67 }
@@ -170,7 +170,7 @@
              system_i386_aros,          { 83 }
              system_x86_64_aros,        { 84 }
              system_x86_64_dragonfly,   { 85 }
-             system_aarch64_darwin,     { 86 }
+             system_aarch64_ios,        { 86 }
              system_x86_64_iphonesim,   { 87 }
              system_aarch64_linux,      { 88 }
              system_i8086_win16,        { 89 }
@@ -186,7 +186,8 @@
              system_riscv32_embedded,   { 99 }
              system_aarch64_android,    { 100 }
              system_x86_64_android,     { 101 }
-             system_x86_64_haiku        { 102 }
+             system_x86_64_haiku,       { 102 }
+             system_aarch64_darwin      { 111 (in trunk) }
        );
 
      type
@@ -234,13 +235,14 @@
              ,as_gas_powerpc_xcoff
              ,as_arm_elf32
              ,as_i8086_omf
-             ,as_llvm
-             ,as_clang
+             ,as_clang_asdarwin        { machine code assembler in Darwin as style assembled by clang }
              ,as_solaris_as
              ,as_m68k_vasm
              ,as_m68k_as_aout
              ,as_wasm_binaryen
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
+             ,as_clang_llvm
+             ,as_clang_gas             { machine code assembler in gas style assembled by clang }
        );
 
        tlink = (ld_none,
@@ -251,6 +253,7 @@
              ld_android,
              ld_beos,
              ld_bsd,
+             ld_darwin,
              ld_embedded,
              ld_emx,
              ld_gba,

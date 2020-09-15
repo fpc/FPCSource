@@ -46,7 +46,9 @@ compiler/aarch64/racpu.pas svneol=native#text/plain
 compiler/aarch64/racpugas.pas svneol=native#text/plain
 compiler/aarch64/rgcpu.pas svneol=native#text/plain
 compiler/aarch64/symcpu.pas svneol=native#text/plain
+compiler/aarch64/tripletcpu.pas svneol=native#text/plain
 compiler/aasmbase.pas svneol=native#text/plain
+compiler/aasmcfi.pas svneol=native#text/plain
 compiler/aasmcnst.pas svneol=native#text/plain
 compiler/aasmdata.pas svneol=native#text/plain
 compiler/aasmdef.pas svneol=native#text/plain
@@ -102,6 +104,7 @@ compiler/arm/rarmstd.inc svneol=native#text/plain
 compiler/arm/rarmsup.inc svneol=native#text/plain
 compiler/arm/rgcpu.pas svneol=native#text/plain
 compiler/arm/symcpu.pas svneol=native#text/plain
+compiler/arm/tripletcpu.pas svneol=native#text/plain
 compiler/assemble.pas svneol=native#text/plain
 compiler/avr/aasmcpu.pas svneol=native#text/plain
 compiler/avr/agavrgas.pas svneol=native#text/plain
@@ -138,6 +141,7 @@ compiler/avr/ravrstd.inc svneol=native#text/plain
 compiler/avr/ravrsup.inc svneol=native#text/plain
 compiler/avr/rgcpu.pas svneol=native#text/plain
 compiler/avr/symcpu.pas svneol=native#text/plain
+compiler/avr/tripletcpu.pas svneol=native#text/plain
 compiler/blockutl.pas svneol=native#text/plain
 compiler/browcol.pas svneol=native#text/plain
 compiler/catch.pas svneol=native#text/plain
@@ -239,6 +243,7 @@ compiler/i386/ra386att.pas svneol=native#text/plain
 compiler/i386/ra386int.pas svneol=native#text/plain
 compiler/i386/rgcpu.pas svneol=native#text/plain
 compiler/i386/symcpu.pas svneol=native#text/plain
+compiler/i386/tripletcpu.pas svneol=native#text/plain
 compiler/i8086/aoptcpu.pas svneol=native#text/plain
 compiler/i8086/aoptcpub.pas svneol=native#text/plain
 compiler/i8086/aoptcpud.pas svneol=native#text/plain
@@ -287,6 +292,7 @@ compiler/i8086/ra8086int.pas svneol=native#text/plain
 compiler/i8086/rgcpu.pas svneol=native#text/plain
 compiler/i8086/symcpu.pas svneol=native#text/plain
 compiler/i8086/tgcpu.pas svneol=native#text/plain
+compiler/i8086/tripletcpu.pas svneol=native#text/plain
 compiler/impdef.pas svneol=native#text/plain
 compiler/import.pas svneol=native#text/plain
 compiler/jvm/aasmcpu.pas svneol=native#text/plain
@@ -330,6 +336,7 @@ compiler/jvm/rjvmstd.inc svneol=native#text/plain
 compiler/jvm/rjvmsup.inc svneol=native#text/plain
 compiler/jvm/symcpu.pas svneol=native#text/plain
 compiler/jvm/tgcpu.pas svneol=native#text/plain
+compiler/jvm/tripletcpu.pas svneol=native#text/plain
 compiler/ldscript.pas svneol=native#text/plain
 compiler/link.pas svneol=native#text/plain
 compiler/llvm/aasmllvm.pas svneol=native#text/plain
@@ -398,6 +405,7 @@ compiler/m68k/ra68k.pas svneol=native#text/plain
 compiler/m68k/ra68kmot.pas svneol=native#text/plain
 compiler/m68k/rgcpu.pas svneol=native#text/plain
 compiler/m68k/symcpu.pas svneol=native#text/plain
+compiler/m68k/tripletcpu.pas svneol=native#text/plain
 compiler/macho.pas svneol=native#text/plain
 compiler/machoutils.pas svneol=native#text/plain
 compiler/mips/aasmcpu.pas svneol=native#text/plain
@@ -440,6 +448,7 @@ compiler/mips/rmipsstd.inc svneol=native#text/plain
 compiler/mips/rmipssup.inc svneol=native#text/plain
 compiler/mips/strinst.inc svneol=native#text/plain
 compiler/mips/symcpu.pas svneol=native#text/plain
+compiler/mips/tripletcpu.pas svneol=native#text/plain
 compiler/msg/errorct.msg svneol=native#text/plain
 compiler/msg/errord.msg svneol=native#text/plain
 compiler/msg/errorda.msg svneol=native#text/plain
@@ -583,6 +592,7 @@ compiler/powerpc/rppcstab.inc svneol=native#text/plain
 compiler/powerpc/rppcstd.inc svneol=native#text/plain
 compiler/powerpc/rppcsup.inc svneol=native#text/plain
 compiler/powerpc/symcpu.pas svneol=native#text/plain
+compiler/powerpc/tripletcpu.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpu.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpub.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpud.pas svneol=native#text/plain
@@ -619,6 +629,7 @@ compiler/powerpc64/rppcstab.inc svneol=native#text/plain
 compiler/powerpc64/rppcstd.inc svneol=native#text/plain
 compiler/powerpc64/rppcsup.inc svneol=native#text/plain
 compiler/powerpc64/symcpu.pas svneol=native#text/plain
+compiler/powerpc64/tripletcpu.pas svneol=native#text/plain
 compiler/pp.lpi svneol=native#text/plain
 compiler/pp.pas svneol=native#text/plain
 compiler/pparautl.pas svneol=native#text/plain
@@ -679,6 +690,7 @@ compiler/sparc/rspsri.inc svneol=native#text/plain
 compiler/sparc/rspstab.inc svneol=native#text/plain
 compiler/sparc/rspstd.inc svneol=native#text/plain
 compiler/sparc/rspsup.inc svneol=native#text/plain
+compiler/sparc/tripletcpu.pas svneol=native#text/plain
 compiler/sparc64/cgcpu.pas svneol=native#text/pascal
 compiler/sparc64/cpugas.pas svneol=native#text/pascal
 compiler/sparc64/cpuinfo.pas svneol=native#text/plain
@@ -695,6 +707,7 @@ compiler/sparc64/rsp64stab.inc svneol=native#text/pascal
 compiler/sparc64/rsp64std.inc svneol=native#text/pascal
 compiler/sparc64/rsp64sup.inc svneol=native#text/pascal
 compiler/sparc64/tgcpu.pas svneol=native#text/plain
+compiler/sparc64/tripletcpu.pas svneol=native#text/plain
 compiler/sparcgen/aasmcpu.pas svneol=native#text/plain
 compiler/sparcgen/aoptcpu.pas svneol=native#text/plain
 compiler/sparcgen/aoptcpub.pas svneol=native#text/plain
@@ -737,6 +750,7 @@ compiler/systems/i_aros.pas svneol=native#text/plain
 compiler/systems/i_atari.pas svneol=native#text/plain
 compiler/systems/i_beos.pas svneol=native#text/plain
 compiler/systems/i_bsd.pas svneol=native#text/plain
+compiler/systems/i_darwin.pas svneol=native#text/plain
 compiler/systems/i_embed.pas svneol=native#text/plain
 compiler/systems/i_emx.pas svneol=native#text/plain
 compiler/systems/i_gba.pas svneol=native#text/plain
@@ -768,6 +782,7 @@ compiler/systems/t_aros.pas svneol=native#text/plain
 compiler/systems/t_atari.pas svneol=native#text/plain
 compiler/systems/t_beos.pas svneol=native#text/plain
 compiler/systems/t_bsd.pas svneol=native#text/plain
+compiler/systems/t_darwin.pas svneol=native#text/plain
 compiler/systems/t_embed.pas svneol=native#text/plain
 compiler/systems/t_emx.pas svneol=native#text/plain
 compiler/systems/t_gba.pas svneol=native#text/plain
@@ -793,6 +808,7 @@ compiler/systems/t_win.pas svneol=native#text/plain
 compiler/systems/t_win16.pas svneol=native#text/plain
 compiler/tgobj.pas svneol=native#text/plain
 compiler/tokens.pas svneol=native#text/plain
+compiler/triplet.pas svneol=native#text/plain
 compiler/utils/Makefile svneol=native#text/plain
 compiler/utils/Makefile.fpc svneol=native#text/plain
 compiler/utils/README.txt svneol=native#text/plain
@@ -902,6 +918,7 @@ compiler/x86_64/rax64att.pas svneol=native#text/plain
 compiler/x86_64/rax64int.pas svneol=native#text/plain
 compiler/x86_64/rgcpu.pas svneol=native#text/plain
 compiler/x86_64/symcpu.pas svneol=native#text/plain
+compiler/x86_64/tripletcpu.pas svneol=native#text/plain
 compiler/x86_64/win64unw.pas svneol=native#text/plain
 compiler/x86_64/x8664ats.inc svneol=native#text/plain
 compiler/x86_64/x8664att.inc svneol=native#text/plain
@@ -12853,6 +12870,7 @@ tests/tbs/tb0657.pp svneol=native#text/pascal
 tests/tbs/tb0665.pp svneol=native#text/pascal
 tests/tbs/tb0666a.pp svneol=native#text/pascal
 tests/tbs/tb0666b.pp svneol=native#text/pascal
+tests/tbs/tb0669.pp svneol=native#text/pascal
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/tb610.pp svneol=native#text/pascal
 tests/tbs/tb613.pp svneol=native#text/plain
@@ -12985,13 +13003,6 @@ tests/test/cg/obj/darwin/aarch64/tcext3.o -text
 tests/test/cg/obj/darwin/aarch64/tcext4.o -text
 tests/test/cg/obj/darwin/aarch64/tcext5.o -text
 tests/test/cg/obj/darwin/aarch64/tcext6.o -text
-tests/test/cg/obj/darwin/arm/cpptcl1.o -text
-tests/test/cg/obj/darwin/arm/cpptcl2.o -text
-tests/test/cg/obj/darwin/arm/ctest.o -text
-tests/test/cg/obj/darwin/arm/tcext3.o -text
-tests/test/cg/obj/darwin/arm/tcext4.o -text
-tests/test/cg/obj/darwin/arm/tcext5.o -text
-tests/test/cg/obj/darwin/arm/tcext6.o -text
 tests/test/cg/obj/darwin/i386/cpptcl1.o -text
 tests/test/cg/obj/darwin/i386/cpptcl2.o -text
 tests/test/cg/obj/darwin/i386/ctest.o -text
@@ -13048,6 +13059,20 @@ tests/test/cg/obj/haiku/i386/tcext3.o -text
 tests/test/cg/obj/haiku/i386/tcext4.o -text
 tests/test/cg/obj/haiku/i386/tcext5.o -text
 tests/test/cg/obj/haiku/i386/tcext6.o -text
+tests/test/cg/obj/ios/aarch64/cpptcl1.o -text
+tests/test/cg/obj/ios/aarch64/cpptcl2.o -text
+tests/test/cg/obj/ios/aarch64/ctest.o -text
+tests/test/cg/obj/ios/aarch64/tcext3.o -text
+tests/test/cg/obj/ios/aarch64/tcext4.o -text
+tests/test/cg/obj/ios/aarch64/tcext5.o -text
+tests/test/cg/obj/ios/aarch64/tcext6.o -text
+tests/test/cg/obj/ios/arm/cpptcl1.o -text
+tests/test/cg/obj/ios/arm/cpptcl2.o -text
+tests/test/cg/obj/ios/arm/ctest.o -text
+tests/test/cg/obj/ios/arm/tcext3.o -text
+tests/test/cg/obj/ios/arm/tcext4.o -text
+tests/test/cg/obj/ios/arm/tcext5.o -text
+tests/test/cg/obj/ios/arm/tcext6.o -text
 tests/test/cg/obj/linux/aarch64/cpptcl1.o -text
 tests/test/cg/obj/linux/aarch64/cpptcl2.o -text
 tests/test/cg/obj/linux/aarch64/ctest.o -text
@@ -17672,6 +17697,7 @@ tests/webtbs/tw37228.pp svneol=native#text/plain
 tests/webtbs/tw37322.pp svneol=native#text/pascal
 tests/webtbs/tw37323.pp svneol=native#text/pascal
 tests/webtbs/tw37355.pp svneol=native#text/pascal
+tests/webtbs/tw37397.pp svneol=native#text/plain
 tests/webtbs/tw3742.pp svneol=native#text/plain
 tests/webtbs/tw3751.pp svneol=native#text/plain
 tests/webtbs/tw3758.pp svneol=native#text/plain

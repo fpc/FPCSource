@@ -53,6 +53,7 @@ unit aoptcpu;
       cpuinfo,
       aasmcpu,
       aoptutils,
+      aasmcfi,
       procinfo,
       cgutils,
       { units we should get rid off: }
@@ -534,8 +535,10 @@ begin
                       if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                         begin
                           { don't kill start/end of assembler block,
-                            no-line-info-start/end etc }
-                          if hp1.typ<>ait_marker then
+                            no-line-info-start/end, cfi end, etc }
+                          if not(hp1.typ in [ait_align,ait_marker]) and
+                             ((hp1.typ<>ait_cfi) or
+                              (tai_cfi_base(hp1).cfityp<>cfi_endproc)) then
                             begin
                               asml.remove(hp1);
                               hp1.free;

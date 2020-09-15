@@ -415,7 +415,7 @@ unit cgppc;
          fixref(list,ref2);
          if assigned(ref2.symbol) then
            begin
-             if target_info.system = system_powerpc_macos then
+             if target_info.system = system_powerpc_macosclassic then
                begin
                  if macos_direct_globals then
                    begin
@@ -1113,7 +1113,7 @@ unit cgppc;
         tmpreg := NR_NO;
         largeOffset:= hasLargeOffset(ref);
 
-        if target_info.system in ([system_powerpc_macos]+systems_aix) then
+        if target_info.system in ([system_powerpc_macosclassic]+systems_aix) then
           begin
 
             if assigned(ref.symbol) and
@@ -1186,7 +1186,7 @@ unit cgppc;
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end
-        else {if target_info.system <> system_powerpc_macos}
+        else {if target_info.system <> system_powerpc_macosclassic}
           begin
             if assigned(ref.symbol) or
                largeOffset then

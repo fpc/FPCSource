@@ -75,9 +75,10 @@ interface
       TOS=(
         o_linux,o_go32v2,o_win32,o_os2,o_freebsd,o_beos,o_haiku,o_netbsd,
         o_amiga,o_atari, o_solaris, o_qnx, o_netware, o_openbsd,o_wdosx,
-        o_palmos,o_macos,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
+        o_palmos,o_macosclassic,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
         o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
-        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_wasm
+        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_wasm,
+        o_ios
       );
 
       TTargetSet=array[tcpu,tos] of boolean;
@@ -98,19 +99,19 @@ interface
       OSStr : array[TOS] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','haiku','netbsd',
         'amiga','atari','solaris', 'qnx', 'netware','openbsd','wdosx',
-        'palmos','macos','darwin','emx','watcom','morphos','netwlibc',
+        'palmos','macosclassic','darwin','emx','watcom','morphos','netwlibc',
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
-        'dragonfly', 'win16', 'wasm'
+        'dragonfly', 'win16', 'wasm', 'ios'
       );
 
       OSSuffix : array[TOS] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_haiku','_netbsd',
         '_amiga','_atari','_solaris', '_qnx', '_netware','_openbsd','_wdosx',
-        '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc',
+        '_palmos','_macosclassic','_darwin','_emx','_watcom','_morphos','_netwlibc',
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
-        '_dragonfly','_win16','_wasm'
+        '_dragonfly','_win16','_wasm','_ios'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -132,8 +133,8 @@ interface
         { openbsd } ( true,  false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
         { wdosx }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
         { palmos }  ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false),
-        { macos }   ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
-        { darwin }  ( true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, false,   false, false, true,  false, false),
+   { macosclassic } ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
+        { darwin }  ( true,  false, true,  false, true,  false, true,  false, false, false, false, false, false, false,   false, false, true,  false, false),
         { emx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
         { watcom }  ( true,  false, false, false ,false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
         { morphos } ( false, false, true,  false ,false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
@@ -154,7 +155,8 @@ interface
         { aros }    ( true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false,   false, false, false, false, false),
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false, false),
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false),
-        { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false)
+        { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false),
+        { ios }     ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true , false, false)
       );
 
     type

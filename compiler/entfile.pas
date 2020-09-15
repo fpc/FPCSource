@@ -119,6 +119,7 @@ const
   ibwpofile         = 84;
   ibmoduleoptions   = 85;
   ibunitimportsyms  = 86;
+  iborderedsymbols  = 87;
 
   ibmainname       = 90;
   ibsymtableoptions = 91;

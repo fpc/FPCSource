@@ -25,7 +25,7 @@ begin
 
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
     P.Dependencies.Add('winunits-base',[Win32,Win64]);
-    P.Dependencies.Add('univint',[darwin,iPhoneSim]);
+    P.Dependencies.Add('univint',[darwin,iPhoneSim,ios]);
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';

@@ -65,6 +65,8 @@ interface
          ,af_no_debug
          ,af_stabs_use_function_absolute_addresses
          ,af_no_stabs
+         { assembler is part of the LLVM toolchain }
+         ,af_llvm
        );
 
        pasminfo = ^tasminfo;
@@ -154,7 +156,11 @@ interface
             tf_x86_far_procs_push_odd_bp,
             { indicates that this target can use dynamic packages otherwise an
               error will be generated if a package file is compiled }
-            tf_supports_packages
+            tf_supports_packages,
+            { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
+            tf_supports_symbolorderfile,
+            { use high level cfi directives to generate call frame information }
+            tf_use_hlcfi
        );
 
        psysteminfo = ^tsysteminfo;
@@ -162,7 +168,7 @@ interface
        tsysteminfo = record
           system       : tsystem;
           name         : string[34];
-          shortname    : string[9];
+          shortname    : string[12];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
@@ -257,10 +263,12 @@ interface
                              system_i8086_win16];
 
        { all darwin systems }
-       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
+       systems_ios = [system_arm_ios,system_aarch64_ios];
+       systems_iphonesym = [system_i386_iphonesim,system_x86_64_iphonesim];
+       systems_macosx = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
-                         system_arm_darwin,system_i386_iphonesim,
-                         system_aarch64_darwin,system_x86_64_iphonesim];
+                         system_aarch64_darwin];
+       systems_darwin = systems_ios + systems_iphonesym + systems_macosx;
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -295,7 +303,7 @@ interface
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
        { all classic Mac OS targets }
-       systems_macos = [system_m68k_macos,system_powerpc_macos];
+       systems_macos = [system_m68k_macosclassic,system_powerpc_macosclassic];
 
        { all OS/2 targets }
        systems_os2 = [system_i386_OS2,system_i386_emx];
@@ -313,7 +321,7 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_aarch64_darwin,system_x86_64_iphonesim];
 
        { systems supporting "blocks" }
        systems_blocks_supported = systems_darwin;
@@ -383,7 +391,7 @@ interface
 
        { all systems where a value parameter passed by reference must be copied
          on the caller side rather than on the callee side }
-       systems_caller_copy_addr_value_para = [system_aarch64_darwin,system_aarch64_linux];
+       systems_caller_copy_addr_value_para = [system_aarch64_ios,system_aarch64_darwin,system_aarch64_linux];
 
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program
@@ -992,7 +1000,7 @@ begin
     {$endif}
     {$ifdef darwin}
       {$define default_target_set}
-      default_target(system_arm_darwin);
+      default_target(system_arm_ios);
     {$endif}
     {$ifndef default_target_set}
       default_target(system_arm_linux);
@@ -1029,10 +1037,13 @@ begin
   {$ifdef cpuaarch64}
     default_target(source_info.system);
   {$else cpuaarch64}
-    {$ifdef darwin}
+    {$if defined(ios)}
+      {$define default_target_set}
+      default_target(system_aarch64_ios);
+    {$elseif defined(darwin)}
       {$define default_target_set}
       default_target(system_aarch64_darwin);
-    {$endif darwin}
+    {$endif}
     {$ifdef android}
       {$define default_target_set}
       default_target(system_aarch64_android);

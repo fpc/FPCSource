@@ -2750,7 +2750,7 @@ implementation
           system_i386_darwin,
           system_i386_iphonesim,
           system_powerpc64_darwin,
-          system_arm_darwin:
+          system_arm_ios:
             begin
               nlsymname:='L'+symname+'$non_lazy_ptr';
               l:=current_asmdata.getasmsymbol(nlsymname);

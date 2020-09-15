@@ -22,7 +22,7 @@ begin
     P.SourcePath.Add('examples');
     P.IncludePath.Add('src');
     { only enable for darwin after testing }
-    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx,darwin,iphonesim];
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx,darwin,iphonesim,ios];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

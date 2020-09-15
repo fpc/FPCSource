@@ -63,7 +63,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        if (target_info.system<>system_arm_darwin) then
+        if (target_info.system<>system_arm_ios) then
           result:=VOLATILE_INTREGISTERS
         else
           result:=VOLATILE_INTREGISTERS_DARWIN;

@@ -15,7 +15,7 @@ type
 {$endif}
 
 {$ifdef FUNCTIONS}
-function IOBluetoothGetObjectIDFromArguments(argc: cint; argv: PChar { variable size array of PChar }): IOBluetoothObjectID; cdecl; external; deprecated 'in 10.6 and later';
+function IOBluetoothGetObjectIDFromArguments(argc: cint; argv: PPChar { variable size array of PChar }): IOBluetoothObjectID; cdecl; external; deprecated 'in 10.6 and later';
 {$endif}
 
 {$ifdef TYPES}

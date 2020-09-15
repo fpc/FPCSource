@@ -378,6 +378,7 @@ Unit AoptObj;
       globals,
       verbose,
       aoptutils,
+      aasmcfi,
       procinfo;
 
 
@@ -1554,8 +1555,10 @@ Unit AoptObj;
                                      (JumpTargetOp(taicpu(hp1))^.ref^.symbol is TAsmLabel) then
                                      TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
                                   { don't kill start/end of assembler block,
-                                    no-line-info-start/end etc }
-                                  if hp1.typ<>ait_marker then
+                                    no-line-info-start/end, cfi end, etc }
+                                  if not(hp1.typ in [ait_align,ait_marker]) and
+                                     ((hp1.typ<>ait_cfi) or
+                                      (tai_cfi_base(hp1).cfityp<>cfi_endproc)) then
                                     begin
 {$ifdef cpudelayslot}
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then

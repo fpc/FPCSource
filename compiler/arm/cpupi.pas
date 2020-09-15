@@ -86,7 +86,7 @@ unit cpupi;
           end;
         if tg.direction = -1 then
           begin
-            if (target_info.system<>system_arm_darwin) then
+            if (target_info.system<>system_arm_ios) then
               { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
                 always adjust the frame pointer to point to the first stored
                 register (= last register in list above) -> + 4 }

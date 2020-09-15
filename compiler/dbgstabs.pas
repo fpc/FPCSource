@@ -1853,7 +1853,7 @@ implementation
         dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
+        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
           exit;
         new_section(list,sec_fpc,'links',0);
         { make sure the debuginfo doesn't get stripped out }

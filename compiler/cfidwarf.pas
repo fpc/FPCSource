@@ -29,7 +29,7 @@ interface
       cclasses,
       globtype,
       cgbase,cpubase,
-      aasmbase,aasmtai,aasmdata;
+      aasmbase,aasmcfi,aasmtai,aasmdata;
 
     const
       maxdwarfops = 2;
@@ -60,6 +60,10 @@ interface
       end;
 
       TDwarfAsmCFI=class(TAsmCFI)
+        constructor create;override;
+      end;
+
+      TDwarfAsmCFILowLevel=class(TDwarfAsmCFI)
       private
         FDwarfList : TLinkedList;
         FFrameStartLabel,
@@ -84,6 +88,19 @@ interface
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);override;
       end;
 
+
+      TDwarfAsmCFIHighLevel=class(TDwarfAsmCFILowLevel)
+      public
+        procedure generate_code(list:TAsmList);override;
+
+        { operations }
+        procedure start_frame(list:TAsmList);override;
+        procedure end_frame(list:TAsmList);override;
+        procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);override;
+        procedure cfa_restore(list:TAsmList;reg:tregister);override;
+        procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);override;
+        procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);override;
+      end;
 
 implementation
 
@@ -226,6 +243,17 @@ implementation
 
     constructor TDwarfAsmCFI.create;
       begin
+        inherited;
+      end;
+
+
+
+{****************************************************************************
+                             TDwarfAsmCFILowLevel
+****************************************************************************}
+
+    constructor TDwarfAsmCFILowLevel.create;
+      begin
         inherited create;
         FFrameStartLabel:=nil;
         FFrameEndLabel:=nil;
@@ -236,7 +264,7 @@ implementation
       end;
 
 
-    destructor TDwarfAsmCFI.destroy;
+    destructor TDwarfAsmCFILowLevel.destroy;
       begin
         FDwarfList.Free;
       end;
@@ -244,7 +272,7 @@ implementation
 
 {$ifdef i386}
     { if more cpu dependend stuff is implemented, this needs more refactoring }
-    procedure TDwarfAsmCFI.generate_initial_instructions(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.generate_initial_instructions(list:TAsmList);
       begin
         list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
         list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_STACK_POINTER_REG)));
@@ -255,7 +283,7 @@ implementation
       end;
 {$else i386}
     { if more cpu dependend stuff is implemented, this needs more refactoring }
-    procedure TDwarfAsmCFI.generate_initial_instructions(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.generate_initial_instructions(list:TAsmList);
       begin
         list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
         list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_STACK_POINTER_REG)));
@@ -266,7 +294,7 @@ implementation
       end;
 {$endif i386}
 
-    procedure TDwarfAsmCFI.generate_code(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.generate_code(list:TAsmList);
       var
         hp : tdwarfitem;
         cielabel,
@@ -357,7 +385,7 @@ implementation
       end;
 
 
-    procedure TDwarfAsmCFI.start_frame(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.start_frame(list:TAsmList);
       begin
         if assigned(FFrameStartLabel) then
           internalerror(200404129);
@@ -369,7 +397,7 @@ implementation
       end;
 
 
-    procedure TDwarfAsmCFI.end_frame(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.end_frame(list:TAsmList);
       begin
         if not assigned(FFrameStartLabel) then
           internalerror(2004041213);
@@ -381,7 +409,7 @@ implementation
       end;
 
 
-    procedure TDwarfAsmCFI.cfa_advance_loc(list:TAsmList);
+    procedure TDwarfAsmCFILowLevel.cfa_advance_loc(list:TAsmList);
       var
         currloclabel : tasmlabel;
       begin
@@ -394,7 +422,7 @@ implementation
       end;
 
 
-    procedure TDwarfAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
+    procedure TDwarfAsmCFILowLevel.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
         cfa_advance_loc(list);
 { TODO: check if ref is a temp}
@@ -403,27 +431,108 @@ implementation
       end;
 
 
-    procedure TDwarfAsmCFI.cfa_restore(list:TAsmList;reg:tregister);
+    procedure TDwarfAsmCFILowLevel.cfa_restore(list:TAsmList;reg:tregister);
       begin
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_reg(DW_CFA_restore_extended,doe_uleb,reg));
       end;
 
 
-    procedure TDwarfAsmCFI.cfa_def_cfa_register(list:TAsmList;reg:tregister);
+    procedure TDwarfAsmCFILowLevel.cfa_def_cfa_register(list:TAsmList;reg:tregister);
       begin
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_reg(DW_CFA_def_cfa_register,doe_uleb,reg));
       end;
 
 
-    procedure TDwarfAsmCFI.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
+    procedure TDwarfAsmCFILowLevel.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_const(DW_CFA_def_cfa_offset,doe_uleb,ofs));
       end;
 
 
+{****************************************************************************
+                             TDwarfAsmCFILowLevel
+****************************************************************************}
+
+
+    procedure TDwarfAsmCFIHighLevel.generate_code(list: TAsmList);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.start_frame(list: TAsmList);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_none.create(cfi_startproc));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.end_frame(list: TAsmList);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_none.create(cfi_endproc));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.cfa_offset(list: TAsmList; reg: tregister; ofs: longint);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_reg_val.create(cfi_offset,reg,ofs));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.cfa_restore(list: TAsmList; reg: tregister);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_reg.create(cfi_restore,reg));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_register(list: TAsmList; reg: tregister);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_reg.create(cfi_def_cfa_register,reg));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_offset(list: TAsmList; ofs: longint);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        list.concat(tai_cfi_op_val.create(cfi_def_cfa_offset,ofs));
+      end;
+
+
 begin
-  CAsmCFI:=TDwarfAsmCFI;
+  CAsmCFI:=TDwarfAsmCFIHighLevel;
 end.

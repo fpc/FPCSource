@@ -34,7 +34,7 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=macos
+target=macosclassic
 
 [compiler]
 includedir=$(INC) $(PROCINC)

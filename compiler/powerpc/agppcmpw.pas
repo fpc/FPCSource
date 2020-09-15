@@ -1232,7 +1232,7 @@ interface
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM $EXTRAOPT -o $OBJ';
-            supported_targets : [system_powerpc_macos];
+            supported_targets : [system_powerpc_macosclassic];
             flags : [af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';

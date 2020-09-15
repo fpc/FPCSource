@@ -109,7 +109,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -126,7 +126,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -143,7 +143,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -155,11 +154,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -545,6 +549,42 @@ type
 		vectorImage: VectorInformationPtr;
 	end;
 {$endc} { TARGET_CPU_X86 || TARGET_CPU_X86_64 }
+
+
+{$ifc TARGET_CPU_ARM64}
+type
+	MachineInformationPtr = ^MachineInformation;
+	MachineInformation = record
+		__unusedMachineInformationField: {const} UnivPtr;
+	end;
+type
+	RegisterInformationPtr = ^RegisterInformation;
+	RegisterInformation = record
+		__unusedRegisterInformationField: {const} UnivPtr;
+	end;
+type
+	FPUInformationPtr = ^FPUInformation;
+	FPUInformation = record
+		__unusedFPUInformationField: {const} UnivPtr;
+	end;
+type
+	VectorInformationPtr = ^VectorInformation;
+	VectorInformation = record
+		__unusedVectorInformationField: {const} UnivPtr;
+	end;
+
+type
+	ExceptionInformationPtr = ^ExceptionInformation;
+	ExceptionInformation = record
+		theKind: ExceptionKind;
+  { XXX: Not implemented }
+		machineState: MachineInformationPtr;
+		registerImage: RegisterInformationPtr;
+		FPUImage: FPUInformationPtr;
+		info: ExceptionInfo;
+		vectorImage: VectorInformationPtr;
+	end;
+{$endc}  { TARGET_CPU_ARM64 }
 
 { 
     Note:   An ExceptionHandler is NOT a UniversalProcPtr, except in Carbon.

@@ -72,7 +72,16 @@ interface
         InstrWriter: TLLVMInstrWriter;
       end;
 
+<<<<<<< .working
 
+||||||| .merge-left.r45806
+      TLLVMLLCAssember=class(TLLVMAssember)
+      public
+       function MakeCmdLine: TCmdStr; override;
+      end;
+
+=======
+>>>>>>> .merge-right.r45807
       {# This is the base class for writing instructions.
 
          The WriteInstruction() method must be overridden
@@ -101,7 +110,13 @@ implementation
       objcasm,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,itllvm,llvmdef,
+<<<<<<< .working
       cgbase,cgutils,cpubase,llvminfo;
+||||||| .merge-left.r45806
+      cgbase,cgutils,cpubase,cpuinfo,llvminfo;
+=======
+      cgbase,cgutils,cpubase,cpuinfo,triplet,llvminfo;
+>>>>>>> .merge-right.r45807
 
     const
       line_length = 70;
@@ -815,7 +830,7 @@ implementation
         writer.AsmWrite(target_info.llvmdatalayout);
         writer.AsmWriteln('"');
         writer.AsmWrite('target triple = "');
-        writer.AsmWrite(llvm_target_name);
+        writer.AsmWrite(targettriplet(triplet_llvm));
         writer.AsmWriteln('"');
       end;
 
@@ -1452,22 +1467,241 @@ implementation
        end;
 
 
-   const
-     as_llvm_info : tasminfo =
-        (
-          id     : as_llvm;
+<<<<<<< .working
+||||||| .merge-left.r45806
+{****************************************************************************}
+{                               llc Assember                                 }
+{****************************************************************************}
 
-          idtxt  : 'LLVM-AS';
-          asmbin : 'llc';
-          asmcmd: '$OPT -o $OBJ $ASM';
-          supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_powerpc64_darwin];
-          flags : [af_smartlink_sections];
+     function TLLVMLLCAssember.MakeCmdLine: TCmdStr;
+       var
+         optstr: TCmdStr;
+       begin
+         result:=inherited;
+         { standard optimization flags for llc -- todo: this needs to be split
+           into a call to opt and one to llc }
+         if cs_opt_level3 in current_settings.optimizerswitches then
+           optstr:='-O3'
+         else if cs_opt_level2 in current_settings.optimizerswitches then
+           optstr:='-O2'
+         else if cs_opt_level1 in current_settings.optimizerswitches then
+           optstr:='-O1'
+         else
+           optstr:='-O0';
+         { stack frame elimination }
+         if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+           optstr:=optstr+' -disable-fp-elim';
+         { fast math }
+         if cs_opt_fastmath in current_settings.optimizerswitches then
+           optstr:=optstr+' -enable-unsafe-fp-math -fp-contract=fast';  { -enable-fp-mad support depends on version }
+         { smart linking }
+         if cs_create_smart in current_settings.moduleswitches then
+           optstr:=optstr+' -data-sections -function-sections';
+         { pic }
+         if cs_create_pic in current_settings.moduleswitches then
+           optstr:=optstr+' -relocation-model=pic'
+         else if not(target_info.system in systems_darwin) then
+           optstr:=optstr+' -relocation-model=static'
+         else
+           optstr:=optstr+' -relocation-model=dynamic-no-pic';
+         { force object output instead of textual assembler code }
+         optstr:=optstr+' -filetype=obj';
+         if fputypestrllvm[current_settings.fputype]<>'' then
+           optstr:=optstr+' -mattr=+'+fputypestrllvm[current_settings.fputype];
+         replace(result,'$OPT',optstr);
+       end;
+
+
+{****************************************************************************}
+{                               clang Assember                               }
+{****************************************************************************}
+
+    function TLLVMClangAssember.MakeCmdLine: TCmdStr;
+      var
+        wpostr,
+        optstr: TCmdStr;
+      begin
+        wpostr:='';
+        if cs_lto in current_settings.moduleswitches then
+          begin
+            case fnextpass of
+              0:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.bc');
+                  wpostr:=' -flto';
+                end;
+              1:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.o');
+                end;
+            end;
+          end;
+        result:=inherited;
+        { standard optimization flags for llc -- todo: this needs to be split
+          into a call to opt and one to llc }
+        if cs_opt_level3 in current_settings.optimizerswitches then
+          optstr:='-O3'
+        else if cs_opt_level2 in current_settings.optimizerswitches then
+          optstr:='-O2'
+        else if cs_opt_level1 in current_settings.optimizerswitches then
+          optstr:='-O1'
+        else
+          optstr:='-O0';
+        optstr:=optstr+wpostr;
+        { stack frame elimination }
+        if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+          optstr:=optstr+' -fno-omit-frame-pointer'
+        else
+          optstr:=optstr+' -fomit-frame-pointer';
+        { fast math }
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          optstr:=optstr+' -ffast-math';
+        { smart linking }
+        if cs_create_smart in current_settings.moduleswitches then
+          optstr:=optstr+' -fdata-sections -ffunction-sections';
+        { pic }
+        if cs_create_pic in current_settings.moduleswitches then
+          optstr:=optstr+' -fpic'
+        else if not(target_info.system in systems_darwin) then
+          optstr:=optstr+' -static'
+        else
+          optstr:=optstr+' -mdynamic-no-pic';
+        if not(target_info.system in systems_darwin) then
+          begin
+            optstr:=optstr+' --target='+llvm_target_name;
+          end;
+
+        if fputypestrllvm[current_settings.fputype]<>'' then
+          optstr:=optstr+' -m'+fputypestrllvm[current_settings.fputype];
+
+        replace(result,'$OPT',optstr);
+        inc(fnextpass);
+      end;
+
+
+    function TLLVMClangAssember.DoAssemble: boolean;
+      begin
+        fnextpass:=0;
+        result:=inherited;
+      end;
+
+
+    function TLLVMClangAssember.RerunAssembler: boolean;
+      begin
+        result:=
+          (cs_lto in current_settings.moduleswitches) and
+          (fnextpass<=1);
+      end;
+
+
+    function TLLVMClangAssember.DoPipe: boolean;
+      begin
+        result:=
+          not(cs_lto in current_settings.moduleswitches) and
+          inherited;
+      end;
+
+
+=======
+{****************************************************************************}
+{                               clang Assember                               }
+{****************************************************************************}
+
+    function TLLVMClangAssember.MakeCmdLine: TCmdStr;
+      var
+        wpostr,
+        optstr: TCmdStr;
+      begin
+        wpostr:='';
+        if cs_lto in current_settings.moduleswitches then
+          begin
+            case fnextpass of
+              0:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.bc');
+                  wpostr:=' -flto';
+                end;
+              1:
+                begin
+                  ObjFileName:=ChangeFileExt(ObjFileName,'.o');
+                end;
+            end;
+          end;
+        result:=inherited;
+        if cs_opt_level3 in current_settings.optimizerswitches then
+          optstr:='-O3'
+        else if cs_opt_level2 in current_settings.optimizerswitches then
+          optstr:='-O2'
+        else if cs_opt_level1 in current_settings.optimizerswitches then
+          optstr:='-O1'
+        else
+          optstr:='-O0';
+        optstr:=optstr+wpostr;
+        { stack frame elimination }
+        if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+          optstr:=optstr+' -fno-omit-frame-pointer'
+        else
+          optstr:=optstr+' -fomit-frame-pointer';
+        { fast math }
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          optstr:=optstr+' -ffast-math';
+        { smart linking }
+        if cs_create_smart in current_settings.moduleswitches then
+          optstr:=optstr+' -fdata-sections -ffunction-sections';
+        { pic }
+        if cs_create_pic in current_settings.moduleswitches then
+          optstr:=optstr+' -fpic'
+        else if not(target_info.system in systems_darwin) then
+          optstr:=optstr+' -static'
+        else
+          optstr:=optstr+' -mdynamic-no-pic';
+
+        if fputypestrllvm[current_settings.fputype]<>'' then
+          optstr:=optstr+' -m'+fputypestrllvm[current_settings.fputype];
+
+        replace(result,'$OPT',optstr);
+        inc(fnextpass);
+      end;
+
+
+    function TLLVMClangAssember.DoAssemble: boolean;
+      begin
+        fnextpass:=0;
+        result:=inherited;
+      end;
+
+
+    function TLLVMClangAssember.RerunAssembler: boolean;
+      begin
+        result:=
+          (cs_lto in current_settings.moduleswitches) and
+          (fnextpass<=1);
+      end;
+
+
+    function TLLVMClangAssember.DoPipe: boolean;
+      begin
+        result:=
+          not(cs_lto in current_settings.moduleswitches) and
+          inherited;
+      end;
+
+
+   const
+     as_clang_llvm_info : tasminfo =
+        (
+          id     : as_clang_llvm;
+          idtxt  : 'CLANG-LLVM';
+          asmbin : 'clang';
+          asmcmd: '-x ir -target $TARGET $OPT -target $TRIPLET -c -o $OBJ $ASM $EXTRAOPT';
+          supported_targets : [system_x86_64_linux,system_x86_64_darwin];
+          flags : [af_smartlink_sections,af_llvm];
           labelprefix : 'L';
+          labelmaxlen : -1;
           comment : '; ';
           dollarsign: '$';
         );
 
-
 begin
-  RegisterAssembler(as_llvm_info,TLLVMAssember);
+  RegisterAssembler(as_clang_llvm_info,TLLVMClangAssember);
 end.

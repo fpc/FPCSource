@@ -121,12 +121,12 @@ const
   { 6 }   'FreeBSD-i386',
   { 7 }   'Amiga',
   { 8 }   'Atari',
-  { 9 }   'MacOS-m68k',
+  { 9 }   'MacOSClassic-m68k',
   { 10 }  'Linux-m68k',
   { 11 }  'PalmOS-m68k',
   { 12 }  'Linux-alpha (obsolete)',
   { 13 }  'Linux-ppc',
-  { 14 }  'MacOS-ppc',
+  { 14 }  'MacOSClassic-ppc',
   { 15 }  'Solaris-i386',
   { 16 }  'BeOS-i386',
   { 17 }  'NetBSD-i386',
@@ -176,7 +176,7 @@ const
   { 61 }  'Darwin-x64',
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
-  { 64 }  'Darwin-ARM',
+  { 64 }  'iOS-ARM',
   { 65 }  'Solaris-x86-64',
   { 66 }  'Linux-MIPS',
   { 67 }  'Linux-MIPSel',
@@ -198,7 +198,7 @@ const
   { 83 }  'AROS-i386',
   { 84 }  'AROS-x86-64',
   { 85 }  'DragonFly-x86-64',
-  { 86 }  'Darwin-AArch64',
+  { 86 }  'iOS-AArch64',
   { 87 }  'iPhoneSim-x86-64',
   { 88 }  'Linux-AArch64',
   { 89 }  'Win16',
@@ -214,7 +214,8 @@ const
   { 99 }  'Embedded-RiscV64',
   { 100 } 'Android-AArch64',
   { 101 } 'Android-x86-64',
-  { 102 } 'Haiku-x86-64'
+  { 102 } 'Haiku-x86-64',
+  { 111 } 'Darwin-AArch64'
   );
 
 const
@@ -4691,6 +4692,10 @@ begin
          ibresources :
            if not silent then
              ReadContainer('Resource file: ');
+
+         iborderedsymbols:
+           if not silent then
+             ReadContainer('Ordered symbol: ');
 
          iberror :
            begin

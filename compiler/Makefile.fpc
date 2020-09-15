@@ -348,7 +348,7 @@ endif
 ifeq ($(OS_TARGET),win16)
 NoNativeBinaries=1
 endif
-ifeq ($(OS_TARGET),macos)
+ifeq ($(OS_TARGET),macosclassic)
 NoNativeBinaries=1
 endif
 

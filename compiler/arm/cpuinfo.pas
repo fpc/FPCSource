@@ -73,6 +73,23 @@ Type
       fpu_vfpv4
      );
 
+Const
+  fputypestrllvm : array[tfputype] of string[13] = ('',
+    '',
+    '',
+    '',
+    '',
+    '',
+    'fpu=vfpv2',
+    'fpu=vfpv3',
+    'fpu=vfpv3-d16',
+    'fpu=vfpv4-s16',
+    'fpu=vfpv4'
+  );
+
+Type
+
+
    tcontrollertype =
      (ct_none,
 

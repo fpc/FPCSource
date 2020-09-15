@@ -1096,6 +1096,7 @@ implementation
              secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
+       current_module.linkorderedsymbols.concat(sym.Name);
        finalize_asmlist(sym,def,sectype,secname,alignment,options);
      end;
 

@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'GMP';
     P.NeedLibC:= false;
-    P.OSes := [freebsd,darwin,iphonesim,linux,win32,aix];
+    P.OSes := [freebsd,darwin,iphonesim,ios,linux,win32,aix];
 
     P.SourcePath.Add('src');
 

@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.2.1';
-    P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
+    P.Dependencies.Add('univint',[Darwin,iPhoneSim,ios]);
     p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
@@ -26,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

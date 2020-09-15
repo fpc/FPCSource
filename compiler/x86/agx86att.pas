@@ -447,12 +447,12 @@ interface
 
        as_x86_64_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch x86_64 $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs,af_llvm];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -521,12 +521,12 @@ interface
 
        as_i386_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch i386 $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs,af_llvm];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';

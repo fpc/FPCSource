@@ -50,14 +50,35 @@ unit opttail;
         var
           usedcallnode : tcallnode;
 
-        function is_recursivecall(n : tnode) : boolean;
+        function has_copyback_paras(call: tcallnode): boolean;
+          var
+            n: tcallparanode;
           begin
-            result:=(n.nodetype=calln) and (tcallnode(n).procdefinition=p) and not(assigned(tcallnode(n).methodpointer));
+            n:=tcallparanode(call.left);
+            result:=false;
+            while assigned(n) do
+              begin
+                if assigned(n.fparacopyback) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+                n:=tcallparanode(n.right);
+              end;
+          end;
+
+        function is_optimizable_recursivecall(n : tnode) : boolean;
+          begin
+            result:=
+              (n.nodetype=calln) and
+              (tcallnode(n).procdefinition=p) and
+              not(assigned(tcallnode(n).methodpointer)) and
+              not has_copyback_paras(tcallnode(n));
             if result then
               usedcallnode:=tcallnode(n)
             else
               { obsolete type cast? }
-              result:=((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_recursivecall(ttypeconvnode(n).left));
+              result:=((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_optimizable_recursivecall(ttypeconvnode(n).left));
           end;
 
         function is_resultassignment(n : tnode) : boolean;
@@ -101,9 +122,9 @@ unit opttail;
             calln,
             assignn:
               begin
-                if ((n.nodetype=calln) and is_recursivecall(n)) or
+                if ((n.nodetype=calln) and is_optimizable_recursivecall(n)) or
                    ((n.nodetype=assignn) and is_resultassignment(tbinarynode(n).left) and
-                   is_recursivecall(tbinarynode(n).right)) then
+                   is_optimizable_recursivecall(tbinarynode(n).right)) then
                   begin
                     { found one! }
                     {
@@ -120,6 +141,11 @@ unit opttail;
                     paranode:=tcallparanode(usedcallnode.left);
                     while assigned(paranode) do
                       begin
+                        if assigned(paranode.fparainit) then
+                          begin
+                            addstatement(calcstatements,paranode.fparainit);
+                            paranode.fparainit:=nil;
+                          end;
                         tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
                         addstatement(calcstatements,tempnode);
                         addstatement(calcstatements,

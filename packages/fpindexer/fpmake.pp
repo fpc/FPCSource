@@ -7,8 +7,8 @@ uses fpmkunit;
 
 procedure add_fpindexer(const ADirectory: string);
 Const
-  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix,dragonfly];
-  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,win32,wince,aix,dragonfly];
+  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,ios,netbsd,openbsd,aix,dragonfly];
+  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,win32,wince,aix,dragonfly];
     
 Var
   T : TTarget;

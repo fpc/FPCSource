@@ -16,7 +16,7 @@ begin
     begin
     P:=AddPackage('utils-fpcreslipo');
     P.ShortName:='fpcreslipo';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -29,7 +29,7 @@ begin
     P.Version:='3.2.1';
     P.Dependencies.Add('fcl-res');
 
-    P.OSes:=[darwin, iphonesim];
+    P.OSes:=[darwin, iphonesim,ios];
 
     P.Targets.AddImplicitUnit('msghandler.pp').install := false;
     P.Targets.AddImplicitUnit('paramparser.pp').install := false;

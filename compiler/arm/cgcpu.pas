@@ -274,7 +274,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
-        if (target_info.system<>system_arm_darwin) then
+        if (target_info.system<>system_arm_ios) then
             begin
               if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
@@ -2463,7 +2463,7 @@ unit cgcpu;
         indirection_done:=false;
         if assigned(ref.symbol) then
           begin
-            if (target_info.system=system_arm_darwin) and
+            if (target_info.system=system_arm_ios) and
                (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) then
               begin
                 tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
@@ -4219,7 +4219,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
-        if (target_info.system<>system_arm_darwin) then
+        if (target_info.system<>system_arm_ios) then
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])

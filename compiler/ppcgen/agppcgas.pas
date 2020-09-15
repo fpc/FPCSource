@@ -726,12 +726,12 @@ unit agppcgas;
 
     as_ppc_clang_darwin_info : tasminfo =
        (
-         id     : as_clang;
+         id     : as_clang_asdarwin;
          idtxt  : 'CLANG';
          asmbin : 'clang';
-         asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
-         supported_targets : [system_powerpc_macos, system_powerpc_darwin, system_powerpc64_darwin];
-         flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+         asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
+         supported_targets : [system_powerpc_macosclassic, system_powerpc_darwin, system_powerpc64_darwin];
+         flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
          labelprefix : 'L';
          comment : '# ';
          dollarsign: '$';

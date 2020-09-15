@@ -97,6 +97,7 @@ interface
           procedure writederefdata;
           procedure writeImportSymbols;
           procedure writeResources;
+          procedure writeOrderedSymbols;
           procedure writeunitimportsyms;
           procedure writeasmsyms(kind:tunitasmlisttype;list:tfphashobjectlist);
           procedure readsourcefiles;
@@ -106,6 +107,7 @@ interface
           procedure readderefdata;
           procedure readImportSymbols;
           procedure readResources;
+          procedure readOrderedSymbols;
           procedure readwpofile;
           procedure readunitimportsyms;
           procedure readasmsyms;
@@ -934,6 +936,20 @@ var
       end;
 
 
+    procedure tppumodule.writeOrderedSymbols;
+      var
+        res : TCmdStrListItem;
+      begin
+        res:=TCmdStrListItem(linkorderedsymbols.First);
+        while res<>nil do
+          begin
+            ppufile.putstring(res.FPStr);
+            res:=TCmdStrListItem(res.Next);
+          end;
+        ppufile.writeentry(iborderedsymbols);
+      end;
+
+
     procedure tppumodule.writeunitimportsyms;
       var
         i : longint;
@@ -1240,6 +1256,13 @@ var
       end;
 
 
+    procedure tppumodule.readOrderedSymbols;
+      begin
+        while not ppufile.endofentry do
+          linkorderedsymbols.Concat(ppufile.getstring);
+      end;
+
+
     procedure tppumodule.readwpofile;
       var
         orgwpofilename: string;
@@ -1375,6 +1398,8 @@ var
                readderefdata;
              ibresources:
                readResources;
+             iborderedsymbols:
+               readOrderedSymbols;
              ibwpofile:
                readwpofile;
              ibendinterface :
@@ -1510,6 +1535,7 @@ var
          writelinkcontainer(linkotherframeworks,iblinkotherframeworks,true);
          writeImportSymbols;
          writeResources;
+         writeOrderedSymbols;
          ppufile.do_crc:=true;
 
          { generate implementation deref data, the interface deref data is

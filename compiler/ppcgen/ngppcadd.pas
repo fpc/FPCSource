@@ -329,7 +329,7 @@ implementation
               { clang does not recognize fcmpo instruction,
                 so we need to fall back to fcmpu, which does not
                 generate the same exeception information }
-              if target_asm.id = as_clang then
+              if target_asm.id in [as_clang_gas,as_clang_asdarwin] then
                 op:=A_FCMPU
               else
                 op:=A_FCMPO;

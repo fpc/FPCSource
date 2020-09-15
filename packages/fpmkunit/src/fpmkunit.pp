@@ -119,10 +119,10 @@ Type
   TOS=(osNone,
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
-    palmos,macos,darwin,emx,watcom,morphos,netwlibc,
+    palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
-    win16
+    win16,ios
   );
   TOSes = Set of TOS;
 
@@ -175,14 +175,14 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android,dragonfly];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,ios,aix,Android,dragonfly];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,ios,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
   AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari];
 
   AllSmartLinkLibraryOSes = [Linux,msdos,win16,palmos]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macosclassic,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -203,8 +203,8 @@ Const
     { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false, false),
     { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false),
-    { macos }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, true , false),
+{ macosclassic }( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
+    { darwin }  ( false, true,  false, true,  false, true,  false, true,  false, false, false, false, false, false, true , false),
     { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false, false, false, false),
     { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false, false, false, false, false),
@@ -225,7 +225,8 @@ Const
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false, false),
     { aros }    ( false, true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false, false),
     { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false, false),
-    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false)
+    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false),
+    { ios }     ( false, false, false, false, false, false,  true, false, false, false, false, false, false, false, true , false)
   );
 
   // Useful
@@ -2645,7 +2646,7 @@ function AddLibraryExtension(const LibraryName: string; AOS : TOS): string;
 begin
   if AOS in [Go32v2,Win32,Win64,Wince,OS2,EMX,Watcom] then
     Result:=LibraryName+DLLExt
-  else if aOS in [darwin,macos,iphonesim] then
+  else if aOS in [darwin,macosclassic,iphonesim,ios] then
     Result:=LibraryName+DyLibExt
   else if aOS = Aix then
     Result:=LibraryName+AIXSharedLibExt
@@ -2659,7 +2660,7 @@ begin
     Result := 'libimp'+UnitName
   else if AOS in [os2,emx] then
     Result := UnitName
-  else if AOS in [netware,netwlibc,macos] then
+  else if AOS in [netware,netwlibc,macosclassic] then
     Result := 'lib'+UnitName
   else
     Result := 'libimp'+UnitName;
@@ -8703,7 +8704,7 @@ begin
     Result := Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'
-  else if AOS in [macos] then
+  else if AOS in [macosclassic] then
     Result:=Name+'Lib'
   else
     Result:='libp'+Name+LibExt;

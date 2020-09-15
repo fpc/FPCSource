@@ -2143,7 +2143,7 @@ type
                 they are directly added to the assembler output by llvm }
             exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],initname);
           end
-         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
+         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
            begin
              { create a stub with the name of the desired main routine, with
                the same signature as the C "main" function, and call through to

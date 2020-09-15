@@ -107,8 +107,7 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
-  pkgutil,
-  i_bsd;
+  pkgutil;
 
 const
   page_size = 24;
@@ -928,7 +927,7 @@ begin
   if MacVersionSet then
     exit;
   { check for deployment target set via environment variable }
-  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
+  if not(target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim]) then
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
@@ -958,30 +957,35 @@ begin
     system_powerpc_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1030');
-        MacOSXVersionMin:='10.3';
+        MacOSXVersionMin:='10.3.0';
       end;
     system_powerpc64_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
-        MacOSXVersionMin:='10.4';
+        MacOSXVersionMin:='10.4.0';
       end;
     system_i386_darwin,
     system_x86_64_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1080');
-        MacOSXVersionMin:='10.8';
+        MacOSXVersionMin:='10.8.0';
       end;
-    system_arm_darwin,
+    system_arm_ios,
     system_i386_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
-        iPhoneOSVersionMin:='3.0';
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
+        iPhoneOSVersionMin:='9.0.0';
       end;
-    system_aarch64_darwin,
+    system_aarch64_ios,
     system_x86_64_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','70000');
-        iPhoneOSVersionMin:='7.0';
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
+        iPhoneOSVersionMin:='9.0.0';
+      end;
+    system_aarch64_darwin:
+      begin
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','110000');
+        MacOSXVersionMin:='11.0.0';
       end
     else
       internalerror(2012031001);
@@ -2289,7 +2293,6 @@ begin
                       begin
                         if (target_info.system in systems_darwin) then
                           begin
-                            RegisterRes(res_macosx_ext_info,TWinLikeResourceFile);
                             set_target_res(res_ext);
                             target_info.resobjext:='.fpcres';
                           end
@@ -2373,7 +2376,7 @@ begin
                       end;
                     'M':
                       begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim])) and
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim])) and
                            ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
                           begin
                             break;
@@ -2417,7 +2420,7 @@ begin
                       end;
                     'P':
                       begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) and
+                        if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim]) and
                            ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
                           begin
                             break;
@@ -3942,15 +3945,21 @@ begin
   librarysearchpath.AddList(unitsearchpath,false);
 
 {$ifdef llvm}
-  { force llvm assembler writer }
-  option.paratargetasm:=as_llvm;
+  { default to clang }
+  if (option.paratargetasm=as_none) then
+    begin
+      option.paratargetasm:=as_clang_llvm;
+    end;
 {$endif llvm}
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
     begin
       if not set_target_asm(option.paratargetasm) then
         begin
-          Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name);
+          if assigned(asminfos[option.paratargetasm]) then
+            Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name)
+          else
+            Message2(option_incompatible_asm,'<invalid assembler>',target_info.name);
           set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
@@ -3984,7 +3993,11 @@ begin
      (af_outputbinary in target_asm.flags) then
    begin
      Message(option_switch_bin_to_src_assembler);
+{$ifdef llvm}
+     set_target_asm(as_clang_llvm);
+{$else}
      set_target_asm(target_info.assemextern);
+{$endif}
      { At least i8086 needs that for nasm and -CX
        which is incompatible with internal linker }
      option.checkoptionscompatibility;
@@ -4050,7 +4063,7 @@ begin
 
 {$ifdef arm}
   case target_info.system of
-    system_arm_darwin:
+    system_arm_ios:
       begin
         { set default cpu type to ARMv7 for Darwin unless specified otherwise, and fpu
           to VFPv3 (that's what all 32 bit ARM iOS devices use nowadays)
@@ -4102,7 +4115,8 @@ begin
         end
       else
         begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4])
+	     or (target_info.system = system_arm_ios) then
             begin
               Message(option_illegal_fpu_eabihf);
               StopOptions(1);

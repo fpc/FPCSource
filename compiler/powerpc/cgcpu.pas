@@ -192,7 +192,7 @@ const
                    list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
                end;
 
-             if target_info.system in [system_powerpc_macos,system_powerpc_aix] then
+             if target_info.system in [system_powerpc_macosclassic,system_powerpc_aix] then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
@@ -216,7 +216,7 @@ const
         tmpref : treference;
 
       begin
-        if target_info.system=system_powerpc_macos then
+        if target_info.system=system_powerpc_macosclassic then
           begin
             {Generate instruction to load the procedure address from
             the transition vector.}

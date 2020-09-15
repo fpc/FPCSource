@@ -261,7 +261,7 @@ Implementation
 {$endif FPC_SOFT_FPUX80}
 {$endif}
       cscript,fmodule,verbose,
-      cpuinfo,
+      cpuinfo,triplet,
       aasmcpu;
 
     var
@@ -741,7 +741,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang,as_solaris_as]));
+                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang_gas,as_clang_llvm,as_solaris_as]));
       end;
 
 
@@ -918,17 +918,13 @@ Implementation
 
       begin
         result:=asminfo^.asmcmd;
-        { for Xcode 7.x and later }
-        if MacOSXVersionMin<>'' then
-          Replace(result,'$DARWINVERSION','-mmacosx-version-min='+MacOSXVersionMin)
-        else if iPhoneOSVersionMin<>'' then
-          Replace(result,'$DARWINVERSION','-miphoneos-version-min='+iPhoneOSVersionMin)
-        else
-          Replace(result,'$DARWINVERSION','');
+        if af_llvm in target_asm.flags then
+          Replace(result,'$TRIPLET',targettriplet(triplet_llvm))
 {$ifdef arm}
-        if (target_info.system=system_arm_darwin) then
-          Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
+        else if (target_info.system=system_arm_ios) then
+          Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]))
 {$endif arm}
+        ;
         if (cs_link_on_target in current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
@@ -938,7 +934,7 @@ Implementation
          begin
 {$ifdef hasunix}
           if DoPipe then
-            if asminfo^.id<>as_clang then
+            if not(asminfo^.id in [as_clang_gas,as_clang_asdarwin,as_clang_llvm]) then
               Replace(result,'$ASM','')
             else
               Replace(result,'$ASM','-')
@@ -2352,7 +2348,7 @@ Implementation
       var
         asmkind: tasm;
       begin
-        for asmkind in [as_gas,as_ggas,as_darwin] do
+        for asmkind in [as_gas,as_ggas,as_darwin,as_clang_gas,as_clang_asdarwin] do
           if assigned(asminfos[asmkind]) and
              (target_info.system in asminfos[asmkind]^.supported_targets) then
             begin
