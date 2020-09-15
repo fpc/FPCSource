@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-{$define SYSTEM_DEBUG}
+{ $define SYSTEM_DEBUG}
 
 procedure SignalToRunerror(Sig: longint; SigInfo: PSigInfo; UContext: PUContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
