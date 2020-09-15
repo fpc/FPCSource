@@ -482,7 +482,7 @@ Type
     Function GetValue(AName : String) : String;
     Function GetValue(const AName,Args : String) : String; virtual;
     Function ReplaceStrings(Const ASource : String; Const MaxDepth: Integer = 10) : String; virtual;
-    Function Substitute(Const Source : String; Macros : Array of string) : String; virtual;
+    Function Substitute(Const Source : String; const Macros : Array of string) : String; virtual;
   end;
 
   { TPackageDictionary }
@@ -847,6 +847,9 @@ Type
     // Is set when all sourcefiles are found
     FAllFilesResolved: boolean;
     FPackageVariants: TFPList;
+{$ifndef NO_THREADING}
+    FResolveDirsCS: TRTLCriticalSection;
+{$endif}
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
@@ -886,6 +889,8 @@ Type
     procedure SetDefaultPackageVariant;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+    procedure EnterResolveDirsCS;
+    procedure LeaveResolveDirsCS;
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
     Property ShortName : String Read GetShortName Write FShortName;
@@ -1296,9 +1301,9 @@ Type
     Procedure CheckPackages; virtual;
     Procedure CreateBuildEngine; virtual;
     Procedure Error(const Msg : String);
-    Procedure Error(const Fmt : String; Args : Array of const);
+    Procedure Error(const Fmt : String; const Args : Array of const);
     Procedure AnalyzeOptions;
-    Procedure Usage(const FMT : String; Args : Array of const);
+    Procedure Usage(const FMT : String; const Args : Array of const);
     Procedure Compile(Force : Boolean); virtual;
     Procedure Clean(AllTargets: boolean); virtual;
     Procedure Install(ForceBuild : Boolean); virtual;
@@ -3148,10 +3153,11 @@ end;
 
 constructor TCompileWorkerThread.Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent);
 begin
-  inherited Create(false);
+  inherited Create(true);
   FNotifyStartTask := RTLEventCreate;
   FBuildEngine := ABuildEngine;
   FNotifyMainThreadEvent:=NotifyMainThreadEvent;
+  Start;
 end;
 
 destructor TCompileWorkerThread.Destroy;
@@ -3649,6 +3655,9 @@ begin
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
   FSupportBuildModes:=[bmBuildUnit, bmOneByOne];
+{$ifndef NO_THREADING}
+  InitCriticalSection(FResolveDirsCS);
+{$endif}
 end;
 
 
@@ -3656,6 +3665,9 @@ destructor TPackage.destroy;
 var
   i: integer;
 begin
+{$ifndef NO_THREADING}
+  DoneCriticalSection(FResolveDirsCS);
+{$endif}
   FreeAndNil(FDictionary);
   FreeAndNil(FDependencies);
   FreeAndNil(FInstallFiles);
@@ -4280,6 +4292,20 @@ begin
     L.Free;
     F.Free;
   end;
+end;
+
+procedure TPackage.EnterResolveDirsCS;
+begin
+{$ifndef NO_THREADING}
+   EnterCriticalSection(FResolveDirsCS);
+{$endif}
+end;
+
+procedure TPackage.LeaveResolveDirsCS;
+begin
+{$ifndef NO_THREADING}
+   LeaveCriticalSection(FResolveDirsCS);
+{$endif}
 end;
 
 
@@ -5006,7 +5032,7 @@ begin
 end;
 
 
-procedure TCustomInstaller.Error(const Fmt: String; Args: array of const);
+procedure TCustomInstaller.Error(const Fmt: String; const Args: array of const);
 begin
   Raise EInstallerError.CreateFmt(Fmt,Args);
 end;
@@ -5343,7 +5369,7 @@ begin
 end;
 
 
-procedure TCustomInstaller.Usage(const FMT: String; Args: array of const);
+procedure TCustomInstaller.Usage(const FMT: String; const Args: array of const);
 
   Procedure LogCmd(const LC,Msg : String);
   begin
@@ -6568,27 +6594,36 @@ var
   i: Integer;
   Continue: Boolean;
 begin
-  if APackage.UnitDir='' then
-    begin
-      Log(vldebug, SDbgSearchExtDepPath, [APackage.Name]);
-      GetPluginManager.BeforeResolvePackagePath(Self, APackage, Continue);
-      if Continue then
-        begin
-        for I := 0 to Defaults.SearchPath.Count-1 do
+{$ifndef NO_THREADING}
+  APackage.EnterResolveDirsCS;
+  try
+{$endif}
+    if APackage.UnitDir='' then
+      begin
+        Log(vldebug, SDbgSearchExtDepPath, [APackage.Name]);
+        GetPluginManager.BeforeResolvePackagePath(Self, APackage, Continue);
+        if Continue then
           begin
-            if Defaults.SearchPath[i]<>'' then
-              GetPluginManager.ResolvePackagePath(Self, APackage, Defaults.SearchPath[i], Continue);
-            if not Continue then
-              Break
+          for I := 0 to Defaults.SearchPath.Count-1 do
+            begin
+              if Defaults.SearchPath[i]<>'' then
+                GetPluginManager.ResolvePackagePath(Self, APackage, Defaults.SearchPath[i], Continue);
+              if not Continue then
+                Break
+            end;
+
+          if Continue then
+            GetPluginManager.AfterResolvePackagePath(Self, APackage, Continue);
           end;
 
-        if Continue then
-          GetPluginManager.AfterResolvePackagePath(Self, APackage, Continue);
-        end;
-
-      if APackage.UnitDir = '' then
-        APackage.UnitDir := DirNotFound
-    end;
+        if APackage.UnitDir = '' then
+          APackage.UnitDir := DirNotFound
+      end;
+{$ifndef NO_THREADING}
+  finally
+    APackage.LeaveResolveDirsCS;
+  end;
+{$endif}
 end;
 
 
@@ -9440,7 +9475,7 @@ begin
 end;
 
 
-Function TDictionary.Substitute(Const Source : String; Macros : Array of string) : String;
+Function TDictionary.Substitute(Const Source : String; const Macros : Array of string) : String;
 Var
   I : Integer;
 begin
@@ -9451,6 +9486,7 @@ begin
       Inc(I,2);
     end;
   Result:=ReplaceStrings(Source);
+  I:=0;
   While I<High(Macros) do
     begin
       RemoveItem(Macros[i]);
