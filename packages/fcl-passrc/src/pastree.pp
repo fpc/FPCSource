@@ -5724,7 +5724,7 @@ begin
       Result:=Result+', ';
     Result:=Result+Params[I].GetDeclaration(Full);  
     end;
-  if Kind = pekSet then
+  if Kind in [pekSet,pekArrayParams] then
     Result := '[' + Result + ']'
   else
     Result := '(' + Result + ')';
