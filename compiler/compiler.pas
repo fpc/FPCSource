@@ -104,7 +104,7 @@ uses
   ,i_macos
 {$endif macos}
 {$ifdef morphos}
-  ,i_morphos
+  ,i_morph
 {$endif morphos}
 {$ifdef nds}
   ,i_nds
