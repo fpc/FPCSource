@@ -1653,6 +1653,8 @@ const pemagic : array[0..3] of byte = (
                FCoffStrs.writestr(s);
                FCoffStrs.writestr(#0);
                s:='/'+ToStr(strpos);
+               if length(s)>8 then
+                 internalerror(2020091501);
              end;
             move(s[1],sechdr.name,length(s));
             if not win32 then
