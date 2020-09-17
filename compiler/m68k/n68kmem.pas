@@ -99,7 +99,7 @@ implementation
 
         if (location.reference.base=NR_NO) and not (scaled) and not assigned(location.reference.symbol) then
           begin
-           { prefer an address reg, if we will be a base, for indexes any register works }
+            { prefer an address reg, if we will be a base, for indexes any register works }
             if isintregister(maybe_const_reg) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
@@ -109,26 +109,33 @@ implementation
               end;
             location.reference.base:=maybe_const_reg;
           end
-        else if location.reference.index=NR_NO then
-          begin
-            location.reference.index:=maybe_const_reg;
-            if (scaled) then
-              location.reference.scalefactor:=l;
-          end
         else
           begin
-            hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
+            if location.reference.index<>NR_NO then
+              begin
+                { if we already have an index register, dereference the ref to a new base, to be able to insert an index }
+                hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+                reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
+              end;
+            if def_cgsize(regsize) in [OS_8,OS_16] then
+              begin
+                { index registers are always sign extended on m68k, so we have to zero extend by hand,
+                  if the index variable is unsigned, and its width is less than the whole register }
+                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: index zero extend')));
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,def_cgsize(regsize),OS_ADDR,maybe_const_reg,hreg);
+                maybe_const_reg:=hreg;
+              end;
             { insert new index register }
             location.reference.index:=maybe_const_reg;
             if (scaled) then
               location.reference.scalefactor:=l;
           end;
-          { update alignment }
-          if (location.reference.alignment=0) then
-            internalerror(2009020704);
-          location.reference.alignment:=newalignment(location.reference.alignment,l);
+        { update alignment }
+        if (location.reference.alignment=0) then
+          internalerror(2009020704);
+        location.reference.alignment:=newalignment(location.reference.alignment,l);
       end;
 
      { see remarks for tcgvecnode.update_reference_reg_mul above }
