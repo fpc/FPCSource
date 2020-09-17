@@ -1241,31 +1241,38 @@ begin
 end;
 
 procedure TPasWriter.WriteImplIfElse(AIfElse: TPasImplIfElse);
+
+Var
+  DoBeginEnd : Boolean;
+
 begin
   Add('if ' + AIfElse.Condition + ' then');
   if Assigned(AIfElse.IfBranch) then
-  begin
+    begin
     AddLn;
-    if (AIfElse.IfBranch.ClassType = TPasImplCommands) or
-      (AIfElse.IfBranch.ClassType = TPasImplBlock) then
+    DoBeginEnd:=(AIfElse.IfBranch.ClassType = TPasImplCommands) or
+                (AIfElse.IfBranch.ClassType = TPasImplBlock) or
+                Assigned(aIfElse.ElseBranch);
+    if DoBeginEnd then
       AddLn('begin');
     IncIndent;
     WriteImplElement(AIfElse.IfBranch, False);
     DecIndent;
-    if (AIfElse.IfBranch.ClassType = TPasImplCommands) or
-      (AIfElse.IfBranch.ClassType = TPasImplBlock) then
+    if DoBeginEnd then
+      begin
       if Assigned(AIfElse.ElseBranch) then
         Add('end ')
       else
         AddLn('end;')
+      end
     else
       if Assigned(AIfElse.ElseBranch) then
         AddLn;
-  end else
-    if not Assigned(AIfElse.ElseBranch) then
-      AddLn(';')
-    else
-      AddLn;
+    end
+  else if not Assigned(AIfElse.ElseBranch) then
+    AddLn(';')
+  else
+    AddLn;
 
   if Assigned(AIfElse.ElseBranch) then
     if AIfElse.ElseBranch.ClassType = TPasImplIfElse then
@@ -1277,10 +1284,10 @@ begin
       AddLn('else');
       IncIndent;
       WriteImplElement(AIfElse.ElseBranch, True);
-      if (not Assigned(AIfElse.Parent)) or
+{      if (not Assigned(AIfElse.Parent)) or
         (AIfElse.Parent.ClassType <> TPasImplIfElse) or
         (TPasImplIfElse(AIfElse.Parent).IfBranch <> AIfElse) then
-        AddLn(';');
+        AddLn(';');}
       DecIndent;
     end;
 end;
