@@ -2064,6 +2064,9 @@ type_e_forward_interface_type_does_not_match=04127_E_The interface type of the f
 type_e_generic_const_type_not_allowed=04128_E_Type not allowed for generic constant parameter: $1
 % Only types that can also be used (indirectly) for untyped constants can be used as a
 % type for a generic constant parameter.
+type_e_cant_read_write_type_in_iso_mode=04129_E_Can't read or write variables of this type in iso mode
+% You are trying to \var{read} or \var{write} a variable from or to a
+% file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
 % \end{description}
 #
 # Symtable

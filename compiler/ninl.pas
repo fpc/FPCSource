@@ -765,7 +765,14 @@ implementation
           else
             case para.left.resultdef.typ of
               stringdef :
-                name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
+                begin
+                  name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
+                  if (m_isolike_io in current_settings.modeswitches) and (tstringdef(para.left.resultdef).stringtype<>st_shortstring) then
+                    begin
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type_in_iso_mode);
+                      error_para := true;
+                    end;
+                end;
               pointerdef :
                 begin
                   if (not is_pchar(para.left.resultdef)) or do_read then
