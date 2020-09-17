@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
 filename="$1"
 shift
-FPC_OPTS="$*"
+
+verbose=0
+i=1
+while [ $i -le $# ] ; do
+  arg="${!i}"
+  echo "Handling arg $i, \"$arg\""
+  if [ "${arg//=}" != "$arg" ] ; then
+    echo "Evaluating \"$arg\""
+    arg2="${arg/=*/}=\"${arg/*=/}\""
+    eval "$arg2"
+  elif [ "$arg" == "-v" ] ; then
+    verbose=1
+  else
+    FPC_OPTS="$FPC_OPTS $arg"
+  fi
+  let i++
+done
 
 if [ ! -f "$filename" ] ; then
   echo "Usage: $0 file.h2paschk"
@@ -58,8 +74,16 @@ if [ $res -ne 0 ] ; then
   exit
 fi
 
-echo "Calling $CC $CC_OPT -o ${filebase}_c ${filebase}.c"
-$CC $CC_OPT -o ${filebase}_c${VERSION} ${filebase}.c > ${filebase}${VERSION}_c.comp.log 2>&1
+TMP_DIR=tmp_$VERSION
+if [ -d $TMP_DIR ] ; then
+  rm -Rf $TMP_DIR
+fi
+mkdir $TMP_DIR
+
+mv ${filebase}.c ${filebase}.pas $TMP_DIR
+cd $TMP_DIR
+echo "Calling $CC $CC_OPT -o ${filebase}_${VERSION}_c ${filebase}.c"
+$CC $CC_OPT -o ${filebase}_${VERSION}_c ${filebase}.c > ${filebase}_${VERSION}_c.comp.log 2>&1
 res=$?
 if [ $res -ne 0 ] ; then
   echo "$CC call failed in $VERSION, res=$res"
@@ -67,15 +91,15 @@ if [ $res -ne 0 ] ; then
   exit
 fi
 
-./${filebase}_c${VERSION} > ${filebase}_c${VERSION}.out
+./${filebase}_${VERSION}_c > ${filebase}_${VERSION}_c.out
 res=$?
 if [ $res -ne 0 ] ; then
-  echo "./${filebase}_c${VERSION} failed in $VERSION, res=$res"
+  echo "./${filebase}_${VERSION}_c failed in $VERSION, res=$res"
   exit
 fi
 
-echo "Calling $MAKE all OPT=\"-n -gwl $FPC_OPTS\" FPC=$FPC"
-$MAKE all OPT="-n -gwl $FPC_OPTS" FPC=$FPC > ${filebase}${VERSION}_make_all.log 2>&1
+echo "Calling $MAKE -C .. all OPT=\"-n -gwl $FPC_OPTS\" FPC=$FPC"
+$MAKE -C .. all OPT="-n -gwl $FPC_OPTS" FPC=$FPC > ${filebase}${VERSION}_make_all.log 2>&1
 res=$?
 if [ $res -ne 0 ] ; then
   echo "$MAKE call failed in $VERSION, res=$res"
@@ -85,24 +109,24 @@ fi
 
 OS_TARGET=`$FPC $FPC_OPTS  -iTO`
 CPU_TARGET=`$FPC $FPC_OPTS -iTP`
-echo "Calling $MAKE -C ${filedir} ${filebaseonly} FPC=$FPC OPT=\"-n -gwl $FPC_OPTS\" -Fu../units/$CPU_TARGET-$OS_TARGET"
-$MAKE -C ${filedir} ${filebaseonly} FPC=$FPC OPT="-n -gwl $FPC_OPTS -Fu../units/$CPU_TARGET-$OS_TARGET" > ${filebase}${VERSION}_pas.comp.log 2>&1
+echo "Calling $MAKE -C .. ${TMP_DIR}/${filebaseonly} FPC=$FPC OPT=\"-n -gwl $FPC_OPTS\" -Fu../units/$CPU_TARGET-$OS_TARGET"
+$MAKE -C .. ${TMP_DIR}/${filebaseonly} FPC=$FPC OPT="-n -gwl $FPC_OPTS -Fu../units/$CPU_TARGET-$OS_TARGET" > ${filebase}_${VERSION}_pas.comp.log 2>&1
 res=$?
 if [ $res -ne 0 ] ; then
   echo "$FPC call failed in $VERSION, res=$res"
-  cat ${filebase}${VERSION}_pas.comp.log
+  cat ${filebase}_${VERSION}_pas.comp.log
   exit
 fi
-mv -f ${filebase} ${filebase}${VERSION}
+mv -f ../${filebase} ./${filebase}_${VERSION}_pas
 
-./${filebase}${VERSION} > ${filebase}_pas${VERSION}.out
+./${filebase}_${VERSION}_pas > ${filebase}_${VERSION}_pas.out
 res=$?
 if [ $res -ne 0 ] ; then
   echo "./${filebase}${VERSION} call failed in $VERSION, res=$res"
   exit
 fi
 
-diff ${filebase}_c${VERSION}.out ${filebase}_pas${VERSION}.out > ${filebase}${VERSION}.diffs
+diff ${filebase}_${VERSION}_c.out ${filebase}_${VERSION}_pas.out > ${filebase}_${VERSION}.diffs
 res=$?
 if [ $res -eq 0 ] ; then
   echo "No difference found!"
@@ -110,19 +134,21 @@ else
   echo "Diffs for ${VERSION} are:"
   echo "< C      results"
   echo "> Pascal results"
-  cat ${filebase}${VERSION}.diffs
+  cat ${filebase}_${VERSION}.diffs
 fi
 # Clean up
-rm -f ${filebase}_c${VERSION}
-rm -f ${filebase}${VERSION}
-rm -f ${filebase}_c${VERSION}.out
-rm -f ${filebase}_pas${VERSION}.out
-rm -f ${filebase}${VERSION}_c.comp.log
-rm -f ${filebase}${VERSION}_pas.comp.log
-rm -f ${filebase}${VERSION}_make_all.log
-rm -f ${filebase}.c
-rm -f ${filebase}.pas
-
+if [ $verbose -eq 0 ] ; then
+  rm -f ${filebase}_${VERSION}_c
+  rm -f ${filebase}_${VERSION}_pas
+  rm -f ${filebase}_${VERSION}_c.out
+  rm -f ${filebase}_pas${VERSION}.out
+  rm -f ${filebase}_${VERSION}_c.comp.log
+  rm -f ${filebase}_${VERSION}_pas.comp.log
+  rm -f ${filebase}_${VERSION}_make_all.log
+  rm -f ${filebase}.c
+  rm -f ${filebase}.pas
+fi
+cd ..
 }
 
 function check_64 ()
@@ -207,10 +233,10 @@ if [ $default_fpc -eq 1 ] ; then
 else
   if [ "${FPC}" == "$FPC64" ] ; then
     check_64
-  fi
-
-  if [ "${FPC}" == "$FPC32" ] ; then
+  elif [ "${FPC}" == "$FPC32" ] ; then
     check_32
+  else
+    echo "Unrecognized FPC=\"$FPC\""
   fi
 fi
 

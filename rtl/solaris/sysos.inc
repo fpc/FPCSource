@@ -97,10 +97,15 @@ end;
 *****************************************************************************}
 
 function do_isdevice(handle:longint):boolean;
+var
+  StatRec: Stat;
 begin
-  do_isdevice:= (handle=StdInputHandle) or
-                (handle=StdOutputHandle) or
-                (handle=StdErrorHandle);
+  fpFStat (Handle, StatRec);
+  case StatRec.st_Mode and S_IFMT of
+   S_IFCHR, S_IFIFO, S_IFSOCK: Do_IsDevice := true
+  else
+   Do_IsDevice := false;
+  end;
 end;
 
 

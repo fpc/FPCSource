@@ -17,6 +17,18 @@
 {$packrecords C}
 
 type
+  TAarch64_ctx = record
+    magic,
+    size : DWord
+  end;
+
+  TFPSIMD_Context = record
+    head : TAarch64_ctx;
+    fpsr,
+    fpcr : DWord;
+    vregs : array[0..31] of array[0..7] of Byte;
+  end;
+
   PSigContext = ^TSigContext;
   TSigContext = record
     fault_address : cULong;
@@ -25,10 +37,12 @@ type
     pc : cULong;
     pstate : cULong;
     __pad : cULong;
-    { The following field should be 16-byte-aligned. Currently the
+    { The following fields should be 16-byte-aligned. Currently the
       directive for specifying alignment is buggy, so the preceding
       field was added so that the record has the right size. }
-    __reserved : array[0..4095] of cUChar;
+    case Byte of
+      1: (__reserved : array[0..4095] of cUChar);
+      2: (FPSIMD_Context : TFPSIMD_Context);
   end;
 
   stack_t = record

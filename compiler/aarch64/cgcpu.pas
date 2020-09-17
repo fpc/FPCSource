@@ -2507,7 +2507,7 @@ implementation
 
     procedure tcgaarch64.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
       var
-        r : TRegister;
+        r, tmpreg: TRegister;
         ai: taicpu;
         l1,l2: TAsmLabel;
       begin
@@ -2516,18 +2516,17 @@ implementation
             (force or current_procinfo.FPUExceptionCheckNeeded)) then
           begin
             r:=getintregister(list,OS_INT);
+            tmpreg:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg(A_MRS,r,NR_FPSR));
-            list.concat(taicpu.op_reg_const(A_TST,r,$1f));
+            list.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,r,$1f));
             current_asmdata.getjumplabel(l1);
             current_asmdata.getjumplabel(l2);
-            ai:=taicpu.op_sym(A_B,l1);
+            ai:=taicpu.op_reg_sym_ofs(A_CBNZ,tmpreg,l1,0);
             ai.is_jmp:=true;
-            ai.condition:=C_NE;
             list.concat(ai);
-            list.concat(taicpu.op_reg_const(A_TST,r,$80));
-            ai:=taicpu.op_sym(A_B,l2);
+            list.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,r,$80));
+            ai:=taicpu.op_reg_sym_ofs(A_CBZ,tmpreg,l2,0);
             ai.is_jmp:=true;
-            ai.condition:=C_EQ;
             list.concat(ai);
             a_label(list,l1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));

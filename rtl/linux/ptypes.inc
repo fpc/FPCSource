@@ -30,7 +30,7 @@ and all three 32-bit systems returned completely identical types too
 introduction)
 }
 {$ifdef CPUSPARC}
-  {$define __USE_LARGEFILE64}
+  { define __USE_LARGEFILE64}
 {$endif}
 
 {$if defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}

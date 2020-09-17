@@ -585,6 +585,7 @@ const
   type_e_cblock_callconv=04126;
   type_e_forward_interface_type_does_not_match=04127;
   type_e_generic_const_type_not_allowed=04128;
+  type_e_cant_read_write_type_in_iso_mode=04129;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -1126,9 +1127,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 85732;
+  MsgTxtSize = 85795;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,356,129,99,63,143,36,223,68,
+    28,106,356,130,99,63,143,36,223,68,
     62,20,30,1,1,1,1,1,1,1
   );
