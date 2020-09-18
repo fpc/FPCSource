@@ -105,7 +105,8 @@ interface
           tc_variant_2_interface,
           tc_array_2_dynarray,
           tc_elem_2_openarray,
-          tc_arrayconstructor_2_dynarray
+          tc_arrayconstructor_2_dynarray,
+          tc_arrayconstructor_2_array
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -1167,6 +1168,17 @@ implementation
                             begin
                               eq:=te_convert_l1;
                               doconv:=tc_string_2_chararray;
+                            end
+                        else
+                          { to normal array }
+                          if is_normal_array(def_to) and is_array_constructor(def_from) then
+                            begin
+                              { element count must match exactly }
+                              if tarraydef(def_to).elecount=tarraydef(def_from).elecount then
+                                begin
+                                  eq:=te_convert_l2;
+                                  doconv:=tc_arrayconstructor_2_array;
+                                end;
                             end
                         else
                          { other arrays }

@@ -119,6 +119,7 @@ interface
           function typecheck_array_2_dynarray : tnode; virtual;
           function typecheck_elem_2_openarray : tnode; virtual;
           function typecheck_arrayconstructor_to_dynarray : tnode; virtual;
+          function typecheck_arrayconstructor_to_array : tnode; virtual;
        private
           function _typecheck_int_to_int : tnode;
           function _typecheck_cord_to_pointer : tnode;
@@ -151,6 +152,7 @@ interface
           function _typecheck_array_2_dynarray : tnode;
           function _typecheck_elem_2_openarray : tnode;
           function _typecheck_arrayconstructor_to_dynarray: tnode;
+          function _typecheck_arrayconstructor_to_array : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -2083,6 +2085,64 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_arrayconstructor_to_array : tnode;
+      var
+        newstatement,
+        assstatement : tstatementnode;
+        arrnode : ttempcreatenode;
+        temp2 : ttempcreatenode;
+        assnode : tnode;
+        paracount : integer;
+        elemnode : tarrayconstructornode;
+      begin
+        tarrayconstructornode(left).force_type(tarraydef(resultdef).elementdef);
+
+        result:=internalstatements(newstatement);
+        { create temp for result }
+        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true);
+        addstatement(newstatement,arrnode);
+
+        paracount:=0;
+
+        { create an assignment call for each element }
+        assnode:=internalstatements(assstatement);
+        if left.nodetype=arrayconstructorrangen then
+          internalerror(2020041402);
+        elemnode:=tarrayconstructornode(left);
+        while assigned(elemnode) do
+          begin
+            { arr[i] := param_i }
+            if not assigned(elemnode.left) then
+              internalerror(2020041403);
+            addstatement(assstatement,
+              cassignmentnode.create(
+                cvecnode.create(
+                  ctemprefnode.create(arrnode),
+                  cordconstnode.create(paracount,tarraydef(totypedef).rangedef,false)),
+                elemnode.left));
+            elemnode.left:=nil;
+            inc(paracount);
+            elemnode:=tarrayconstructornode(elemnode.right);
+            if assigned(elemnode) and (elemnode.nodetype<>arrayconstructorn) then
+              internalerror(2020041404);
+          end;
+
+        { get temp for array of lengths }
+        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
+        addstatement(newstatement,temp2);
+
+        { add assignment statememnts }
+        addstatement(newstatement,ctempdeletenode.create(temp2));
+        addstatement(newstatement,assnode);
+        { the last statement should return the value as
+          location and type, this is done be referencing the
+          temp and converting it first from a persistent temp to
+          normal temp }
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
+        addstatement(newstatement,ctemprefnode.create(arrnode));
+      end;
+
+
     function ttypeconvnode._typecheck_int_to_int : tnode;
       begin
         result := typecheck_int_to_int;
@@ -2269,6 +2329,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_arrayconstructor_to_array : tnode;
+      begin
+        result:=typecheck_arrayconstructor_to_array;
+      end;
+
+
     function ttypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
@@ -2393,7 +2459,8 @@ implementation
           { interface_2_variant} @ttypeconvnode._typecheck_variant_to_interface,
           { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray,
           { elem_2_openarray } @ttypeconvnode._typecheck_elem_2_openarray,
-          { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray
+          { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray,
+          { arrayconstructor_2_array } @ttypeconvnode._typecheck_arrayconstructor_to_array
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -3978,6 +4045,7 @@ implementation
            nil,
            nil,
            @ttypeconvnode._first_nothing,
+           @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing
          );
       type
@@ -4255,7 +4323,8 @@ implementation
            @ttypeconvnode._second_nothing,  { interface_2_variant }
            @ttypeconvnode._second_nothing,  { array_2_dynarray }
            @ttypeconvnode._second_elem_to_openarray,  { elem_2_openarray }
-           @ttypeconvnode._second_nothing   { arrayconstructor_2_dynarray }
+           @ttypeconvnode._second_nothing,  { arrayconstructor_2_dynarray }
+           @ttypeconvnode._second_nothing   { arrayconstructor_2_array }
          );
       type
          tprocedureofobject = procedure of object;
