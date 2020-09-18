@@ -315,21 +315,54 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   end;
 
 
-{ provide local access to dynarr_copy }
-function int_dynarray_copy(psrc : pointer;ti : pointer;
-    lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[external name 'FPC_DYNARR_COPY'];
+{ provide local access to array_to_dynarray_copy }
+function int_array_to_dynarray_copy(psrc : pointer;ti : pointer;
+    lowidx,count,maxcount:tdynarrayindex;
+    elesize : sizeint;
+    eletype : pointer
+    ) : fpc_stub_dynarray;[external name 'FPC_ARR_TO_DYNARR_COPY'];
 
+
+{$ifdef VER3_2}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
   var
     realpsrc : pdynarray;
-    i,size : sizeint;
+    eletype,tti : pointer;
     elesize : sizeint;
-    eletype : pointer;
   begin
      fpc_dynarray_clear(pointer(result),ti);
      if psrc=nil then
        exit;
+
+     realpsrc:=pdynarray(psrc-sizeof(tdynarray));
+
+     tti:=aligntoqword(ti+2+PByte(ti)[1]);
+
+     elesize:=pdynarraytypedata(tti)^.elSize;
+     { only set if type needs finalization }
+     if assigned(pdynarraytypedata(tti)^.elType) then
+       eletype:=pdynarraytypedata(tti)^.elType^
+     else
+       eletype:=nil;
+
+     fpc_array_to_dynarray_copy(psrc,ti,lowidx,count,realpsrc^.high+1,elesize,eletype);
+  end;
+{$endif VER3_2}
+
+{ copy a custom array (open/dynamic/static) to dynamic array }
+function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
+    lowidx,count,maxcount:tdynarrayindex;
+    elesize : sizeint;
+    eletype : pointer
+    ) : fpc_stub_dynarray;[Public,Alias:'FPC_ARR_TO_DYNARR_COPY'];compilerproc;
+  var
+    i,size : sizeint;
+  begin
+     fpc_dynarray_clear(pointer(result),ti);
+     if psrc=nil then
+       exit;
+
 {$ifndef FPC_DYNARRAYCOPY_FIXED}
      if (lowidx=-1) and (count=-1) then
        begin
@@ -337,7 +370,6 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
          count:=high(tdynarrayindex);
        end;
 {$endif FPC_DYNARRAYCOPY_FIXED}
-     realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      if (lowidx<0) then
        begin
        { Decrease count if index is negative, this is different from how copy()
@@ -347,28 +379,10 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
          count:=count+lowidx;
          lowidx:=0;
        end;
-     if (count>realpsrc^.high-lowidx+1) then
-       count:=realpsrc^.high-lowidx+1;
+     if (count>maxcount-lowidx) then
+       count:=maxcount-lowidx;
      if count<=0 then
        exit;
-
-     { skip kind and name }
-{$ifdef VER3_0}
-     ti:=aligntoptr(ti+2+PByte(ti)[1]);
-{$else VER3_0}
-     ti:=aligntoqword(ti+2+PByte(ti)[1]);
-{$endif VER3_0}
-
-     elesize:=pdynarraytypedata(ti)^.elSize;
-     { only set if type needs finalization }
-     {$ifdef VER3_0}
-     eletype:=pdynarraytypedata(ti)^.elType;
-     {$else}
-     if assigned(pdynarraytypedata(ti)^.elType) then
-       eletype:=pdynarraytypedata(ti)^.elType^
-     else
-       eletype:=nil;
-     {$endif}
 
      { create new array }
      size:=elesize*count;
