@@ -151,7 +151,7 @@ interface
           function _typecheck_interface_to_variant : tnode;
           function _typecheck_array_2_dynarray : tnode;
           function _typecheck_elem_2_openarray : tnode;
-          function _typecheck_arrayconstructor_to_dynarray: tnode;
+          function _typecheck_arrayconstructor_to_dynarray : tnode;
           function _typecheck_arrayconstructor_to_array : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -2001,12 +2001,13 @@ implementation
 
     function ttypeconvnode.typecheck_arrayconstructor_to_dynarray : tnode;
       var
-        newstatement,assstatement:tstatementnode;
-        arrnode:ttempcreatenode;
-        temp2:ttempcreatenode;
-        assnode:tnode;
-        paracount:integer;
-        elemnode:tarrayconstructornode;
+        newstatement,
+        assstatement : tstatementnode;
+        arrnode : ttempcreatenode;
+        temp2 : ttempcreatenode;
+        assnode : tnode;
+        paracount : integer;
+        elemnode : tarrayconstructornode;
       begin
         { assignment of []? }
         if (
