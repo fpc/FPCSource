@@ -1914,7 +1914,16 @@ implementation
           begin
             minargs:=1;
             resultdef:=paradef;
-            func:='fpc_dynarray_copy';
+            func:='fpc_array_to_dynarray_copy';
+          end
+        else
+         if is_open_array(paradef) then
+          begin
+            minargs:=1;
+            resultdef:=carraydef.create(0,-1,tarraydef(paradef).rangedef);
+            tarraydef(resultdef).arrayoptions:=tarraydef(resultdef).arrayoptions+[ado_IsDynamicArray];
+            tarraydef(resultdef).elementdef:=tarraydef(paradef).elementdef;
+            func:='fpc_array_to_dynarray_copy';
           end
         else if counter in [2..3] then
           begin
@@ -4697,7 +4706,12 @@ implementation
     function tinlinenode.first_copy: tnode;
       var
         lowppn,
-        highppn,
+        countppn,
+        elesizeppn,
+        eletypeppn,
+        maxcountppn,
+        arrayppn,
+        rttippn,
         npara,
         paras   : tnode;
         ppn     : tcallparanode;
@@ -4737,30 +4751,57 @@ implementation
         else if is_dynamic_array(resultdef) then
           begin
             { create statements with call }
+            elesizeppn:=cordconstnode.create(tarraydef(paradef).elesize,sinttype,false);
+            if is_managed_type(tarraydef(paradef).elementdef) then
+              eletypeppn:=caddrnode.create_internal(
+                crttinode.create(tstoreddef(tarraydef(paradef).elementdef),fullrtti,rdt_normal))
+            else
+              eletypeppn:=cordconstnode.create(0,voidpointertype,false);
+            maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy);
             case counter of
               1:
                 begin
                   { copy the whole array using [0..high(sizeint)] range }
-                  highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
+                  countppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
                   lowppn:=cordconstnode.create(0,sinttype,false);
+                end;
+              2:
+                begin
+                  { copy the array using [low..high(sizeint)] range }
+                  countppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
+                  lowppn:=tcallparanode(paras).left.getcopy;
                 end;
               3:
                 begin
-                  highppn:=tcallparanode(paras).left.getcopy;
+                  countppn:=tcallparanode(paras).left.getcopy;
                   lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
                 end;
               else
                 internalerror(2012100701);
             end;
 
-            { create call to fpc_dynarray_copy }
-            npara:=ccallparanode.create(highppn,
+            if is_open_array(paradef) then
+              begin
+                arrayppn:=caddrnode.create_internal(ppn.left);
+              end
+            else if is_dynamic_array(paradef) then
+              begin
+                arrayppn:=ctypeconvnode.create_internal(ppn.left,voidpointertype);
+              end
+            else
+              internalerror(2012100702);
+
+            rttippn:=caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal));
+
+            { create call to fpc_array_to_dynarray_copy }
+            npara:=ccallparanode.create(eletypeppn,
+                   ccallparanode.create(elesizeppn,
+                   ccallparanode.create(maxcountppn,
+                   ccallparanode.create(countppn,
                    ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(paradef),initrtti,rdt_normal)),
-                   ccallparanode.create
-                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
-            result:=ccallnode.createinternres('fpc_dynarray_copy',npara,paradef);
+                   ccallparanode.create(rttippn,
+                   ccallparanode.create(arrayppn,nil)))))));
+            result:=ccallnode.createinternres('fpc_array_to_dynarray_copy',npara,resultdef);
 
             ppn.left:=nil;
             paras.free;
