@@ -104,7 +104,7 @@ begin
    begin
      PendingSystemTail^:=SystemEvent;
      inc(PendingSystemTail);
-     if longint(PendingSystemTail)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
+     if PtrUInt(PendingSystemTail)=PtrUInt(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
       PendingSystemTail:=@PendingSystemEvent;
        inc(PendingSystemEvents);
    end;

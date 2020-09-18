@@ -2112,7 +2112,7 @@ BEGIN
      Tp := Last;                                      { Set temporary ptr }
      Repeat
        Tp := Tp^.Next;                                { Get next view }
-       IF Byte(Longint(CallPointerMethodLocal(P,
+         IF Byte(PtrUInt(CallPointerMethodLocal(P,
          { On most systems, locals are accessed relative to base pointer,
            but for MIPS cpu, they are accessed relative to stack pointer.
            This needs adaptation for so low level routines,
