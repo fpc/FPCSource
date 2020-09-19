@@ -2119,7 +2119,7 @@ implementation
               cassignmentnode.create(
                 cvecnode.create(
                   ctemprefnode.create(arrnode),
-                  cordconstnode.create(paracount,tarraydef(totypedef).rangedef,false)),
+                  cordconstnode.create(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false)),
                 elemnode.left));
             elemnode.left:=nil;
             inc(paracount);

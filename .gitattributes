@@ -14405,6 +14405,7 @@ tests/test/tarrconstr12.pp svneol=native#text/pascal
 tests/test/tarrconstr13.pp svneol=native#text/pascal
 tests/test/tarrconstr14.pp svneol=native#text/pascal
 tests/test/tarrconstr15.pp svneol=native#text/pascal
+tests/test/tarrconstr16.pp svneol=native#text/pascal
 tests/test/tarrconstr2.pp svneol=native#text/pascal
 tests/test/tarrconstr3.pp svneol=native#text/pascal
 tests/test/tarrconstr4.pp svneol=native#text/pascal
