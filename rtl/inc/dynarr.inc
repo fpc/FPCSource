@@ -323,7 +323,7 @@ function int_array_to_dynarray_copy(psrc : pointer;ti : pointer;
     ) : fpc_stub_dynarray;[external name 'FPC_ARR_TO_DYNARR_COPY'];
 
 
-{$ifdef VER3_2}
+{$if defined(VER3_0) or defined(VER3_2)}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : fpc_stub_dynarray;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
   var
@@ -337,18 +337,26 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
 
+{$ifdef VER3_0}
+     tti:=aligntoptr(ti+2+PByte(ti)[1]);
+{$else VER3_0}
      tti:=aligntoqword(ti+2+PByte(ti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(tti)^.elSize;
+{$ifdef VER3_0}
+     eletype:=pdynarraytypedata(tti)^.elType;
+{$else VER3_0}
      { only set if type needs finalization }
      if assigned(pdynarraytypedata(tti)^.elType) then
        eletype:=pdynarraytypedata(tti)^.elType^
      else
        eletype:=nil;
+{$endif VER3_0}
 
      fpc_array_to_dynarray_copy(psrc,ti,lowidx,count,realpsrc^.high+1,elesize,eletype);
   end;
-{$endif VER3_2}
+{$endif VER3_0 or VER3_2}
 
 { copy a custom array (open/dynamic/static) to dynamic array }
 function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
