@@ -208,8 +208,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
           { do we have to allocate memory? }
           if dims[0] = 0 then
             exit;
-          getmem(newp,size);
-          fillchar(newp^,size,0);
+          newp:=AllocMem(size);
 {$ifndef VER3_0}
           { call int_InitializeArray for management operators }
           if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
