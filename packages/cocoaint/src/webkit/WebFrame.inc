@@ -23,7 +23,7 @@ type
     function name: NSString; message 'name';
     function webView: WebView; message 'webView';
     function frameView: WebFrameView; message 'frameView';
-    function DOMDocument_: DOMDocument; message 'DOMDocument';
+    function DOMDocument: DOMDocument; message 'DOMDocument';
     function frameElement: DOMHTMLElement; message 'frameElement';
     procedure loadRequest (request: NSURLRequest); message 'loadRequest:';
     procedure loadData_MIMEType_textEncodingName_baseURL (data: NSData; MIMEType: NSString; encodingName: NSString; URL: NSURL); message 'loadData:MIMEType:textEncodingName:baseURL:';
