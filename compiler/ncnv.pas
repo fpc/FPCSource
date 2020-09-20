@@ -3175,7 +3175,13 @@ implementation
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
                        if not(nf_generic_para in flags) then
-                         adaptrange(resultdef,tordconstnode(left).value,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches);
+                          adaptrange(
+                            resultdef,tordconstnode(left).value,
+                            { when evaluating an explicit typecast during inlining, don't warn about
+                              lost bits; only warn if someone literally typed e.g. byte($1ff) }
+                            (([nf_internal,nf_absolute]*flags)<>[]) or (forinline and (nf_explicit in flags)),
+                            nf_explicit in flags,
+                            cs_check_range in localswitches);
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
