@@ -1281,12 +1281,10 @@ implementation
                      Message(sym_e_label_already_defined);
                    if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
-                       tlabelsym(srsym).nonlocal:=true;
                        include(current_procinfo.flags,pi_has_interproclabel);
+                       if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                         Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                      end;
-                   if tlabelsym(srsym).nonlocal and
-                     (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-                     Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
 
                    tlabelsym(srsym).defined:=true;
                    p:=clabelnode.create(nil,tlabelsym(srsym));

@@ -2202,7 +2202,6 @@ implementation
 
                     if assigned(labelsym.jumpbuf) then
                       begin
-                        labelsym.nonlocal:=true;
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
