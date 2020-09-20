@@ -1348,7 +1348,7 @@ implementation
                    (left.nodetype=equaln) and
                    (right.nodetype=equaln) and
                    (not might_have_sideeffects(left)) and
-                   (not might_have_sideeffects(right)) and
+                   (not might_have_sideeffects(right,[mhs_exceptions])) and
                    (is_constintnode(taddnode(left).left) or is_constintnode(taddnode(left).right) or
                     is_constpointernode(taddnode(left).left) or is_constpointernode(taddnode(left).right) or
                     is_constcharnode(taddnode(left).left) or is_constcharnode(taddnode(left).right)) and
