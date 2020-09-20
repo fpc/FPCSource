@@ -18,3 +18,4 @@ begin
   Writeln(HexStr(Value, 4));
   v := swapendian(Value);
   Writeln(HexStr(v, 4));
+end.
