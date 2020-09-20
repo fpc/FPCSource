@@ -4601,6 +4601,16 @@ type
               inc_comment_level;
             '}' :
               dec_comment_level;
+            '*' :
+              { in iso mode, comments opened by a curly bracket can be closed by asterisk, round bracket }
+              if m_iso in current_settings.modeswitches then
+                begin
+                  readchar;
+                  if c=')' then
+                    dec_comment_level
+                  else
+                    continue;
+                end;
             #10,#13 :
               linebreak;
             #26 :
@@ -4690,6 +4700,16 @@ type
                    else
                     found:=0;
                  end;
+              '}' :
+                { in iso mode, comments opened by asterisk, round bracket can be closed by a curly bracket }
+                if m_iso in current_settings.modeswitches then
+                  begin
+                    dec_comment_level;
+                    if comment_level=0 then
+                      found:=2
+                    else
+                      found:=0;
+                  end;
                '(' :
                  begin
                    if found=4 then
