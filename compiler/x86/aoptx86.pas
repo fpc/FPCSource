@@ -5482,32 +5482,81 @@ unit aoptx86;
             if reg_and_hp1_is_instr and
               (taicpu(hp1).opcode = A_AND) and
               MatchOpType(taicpu(hp1),top_const,top_reg) and
-              (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
+              ((taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg)
+{$ifdef x86_64}
+               { check for implicit extension to 64 bit }
+               or
+               ((taicpu(p).opsize in [S_BL,S_WL]) and
+                (taicpu(hp1).opsize=S_Q) and
+                SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.reg)
+               )
+{$endif x86_64}
+              )
+              then
               begin
                 case taicpu(p).opsize Of
                   S_BL, S_BW{$ifdef x86_64}, S_BQ{$endif x86_64}:
                     if (taicpu(hp1).oper[0]^.val = $ff) then
                       begin
-                        DebugMsg(SPeepholeOptimization + 'var4',p);
+                        DebugMsg(SPeepholeOptimization + 'MovzAnd2Movz1',p);
                         RemoveInstruction(hp1);
+                        Result:=true;
+                        exit;
                       end;
                     S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
                       if (taicpu(hp1).oper[0]^.val = $ffff) then
                         begin
-                          DebugMsg(SPeepholeOptimization + 'var5',p);
+                          DebugMsg(SPeepholeOptimization + 'MovzAnd2Movz2',p);
                           RemoveInstruction(hp1);
+                          Result:=true;
+                          exit;
                         end;
 {$ifdef x86_64}
                     S_LQ:
                       if (taicpu(hp1).oper[0]^.val = $ffffffff) then
                         begin
-                          if (cs_asm_source in current_settings.globalswitches) then
-                            asml.insertbefore(tai_comment.create(strpnew(SPeepholeOptimization + 'var6')),p);
+                          DebugMsg(SPeepholeOptimization + 'MovzAnd2Movz3',p);
                           RemoveInstruction(hp1);
+                          Result:=true;
+                          exit;
                         end;
+                    else
+                      ;
+                end;
 {$endif x86_64}
-                  else
-                    ;
+                { we cannot get rid of the and, but can we get rid of the movz ?}
+                if SuperRegistersEqual(taicpu(p).oper[0]^.reg,taicpu(p).oper[1]^.reg) then
+                  begin
+                    case taicpu(p).opsize Of
+                      S_BL, S_BW{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                        if (taicpu(hp1).oper[0]^.val and $ff)=taicpu(hp1).oper[0]^.val then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'MovzAnd2And1',p);
+                            RemoveCurrentP(p,hp1);
+                            Result:=true;
+                            exit;
+                          end;
+                        S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                          if (taicpu(hp1).oper[0]^.val and $ffff)=taicpu(hp1).oper[0]^.val then
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'MovzAnd2And2',p);
+                              RemoveCurrentP(p,hp1);
+                              Result:=true;
+                              exit;
+                            end;
+{$ifdef x86_64}
+                        S_LQ:
+                          if (taicpu(hp1).oper[0]^.val and $ffffffff)=taicpu(hp1).oper[0]^.val then
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'MovzAnd2And3',p);
+                              RemoveCurrentP(p,hp1);
+                              Result:=true;
+                              exit;
+                            end;
+{$endif x86_64}
+                        else
+                          ;
+                    end;
                 end;
               end;
             { changes some movzx constructs to faster synonyms (all examples
