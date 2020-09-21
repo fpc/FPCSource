@@ -4754,7 +4754,7 @@ implementation
             elesizeppn:=cordconstnode.create(tarraydef(paradef).elesize,sinttype,false);
             if is_managed_type(tarraydef(paradef).elementdef) then
               eletypeppn:=caddrnode.create_internal(
-                crttinode.create(tstoreddef(tarraydef(paradef).elementdef),fullrtti,rdt_normal))
+                crttinode.create(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal))
             else
               eletypeppn:=cordconstnode.create(0,voidpointertype,false);
             maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy);
