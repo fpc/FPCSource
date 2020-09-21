@@ -5520,10 +5520,10 @@ unit aoptx86;
                           Result:=true;
                           exit;
                         end;
+{$endif x86_64}
                     else
                       ;
                 end;
-{$endif x86_64}
                 { we cannot get rid of the and, but can we get rid of the movz ?}
                 if SuperRegistersEqual(taicpu(p).oper[0]^.reg,taicpu(p).oper[1]^.reg) then
                   begin
@@ -5757,7 +5757,7 @@ unit aoptx86;
                (((taicpu(p).opsize=S_W) and
                  (taicpu(hp1).opsize=S_BW)) or
                 ((taicpu(p).opsize=S_L) and
-                 (taicpu(hp1).opsize in [S_WL,S_BL,S_BQ,S_WQ]))
+                 (taicpu(hp1).opsize in [S_WL,S_BL{$ifdef x86_64},S_BQ,S_WQ{$endif x86_64}]))
 {$ifdef x86_64}
                   or
                  ((taicpu(p).opsize=S_Q) and
