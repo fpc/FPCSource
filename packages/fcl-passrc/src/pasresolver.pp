@@ -6711,11 +6711,14 @@ begin
             end;
           okInterface:
             begin
-            // there can be multiple interfacetype constraint
-            if not (LastType is TPasClassType) then
-              RaiseCannotBeTogether(20190720211236,LastType.Name,MemberType.Name);
-            if TPasClassType(LastType).ObjKind<>okInterface then
-              RaiseCannotBeTogether(20190720211304,LastType.Name,MemberType.Name);
+            if LastType<>nil then
+              begin
+              // there can be multiple interfacetype constraint
+              if not (LastType is TPasClassType) then
+                RaiseCannotBeTogether(20190720211236,LastType.Name,MemberType.Name);
+              if TPasClassType(LastType).ObjKind<>okInterface then
+                RaiseCannotBeTogether(20190720211304,LastType.Name,MemberType.Name);
+              end;
             end
           else
             RaiseXIsNotAValidConstraint(20190720210919,MemberType.Name);

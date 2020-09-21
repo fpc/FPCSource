@@ -1,8 +1,8 @@
 {$mode iso}
-label
-  0;
+{$goto on}
 
 begin
-  0:
-    writeln('ok');
+  writeln{comment*);{}
+  writeln(*comment};(* *)
+  writeln;
 end.

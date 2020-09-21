@@ -67,10 +67,10 @@ Procedure fpc_shortstr_insert_char(source:Char;var s:shortstring;index:SizeInt);
 {$endif VER3_0}
 
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
-{$ifdef VER3_2}
+{$if defined(VER3_0) or defined(VER3_2)}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : fpc_stub_dynarray;compilerproc;
-{$endif VER3_2}
+{$endif VER3_0 or VER3_2}
 function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count,maxcount:tdynarrayindex;
     elesize : sizeint;
