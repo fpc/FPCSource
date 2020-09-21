@@ -5751,17 +5751,17 @@ unit aoptx86;
               end
             else if MatchOpType(taicpu(p),top_const,top_reg) and
               MatchInstruction(hp1,A_MOVZX,[]) and
-              (taicpu(hp1).oper[0]^.typ = top_reg) and
-              MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+              MatchOpType(taicpu(hp1),top_reg,top_reg) and
+              SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.reg) and
               (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
                (((taicpu(p).opsize=S_W) and
                  (taicpu(hp1).opsize=S_BW)) or
                 ((taicpu(p).opsize=S_L) and
-                 (taicpu(hp1).opsize in [S_WL,S_BL]))
+                 (taicpu(hp1).opsize in [S_WL,S_BL,S_BQ,S_WQ]))
 {$ifdef x86_64}
                   or
                  ((taicpu(p).opsize=S_Q) and
-                  (taicpu(hp1).opsize in [S_BQ,S_WQ]))
+                  (taicpu(hp1).opsize in [S_BQ,S_WQ,S_BL,S_WL]))
 {$endif x86_64}
                 ) then
                   begin
