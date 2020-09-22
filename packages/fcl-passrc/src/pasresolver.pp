@@ -6719,7 +6719,7 @@ begin
               if TPasClassType(LastType).ObjKind<>okInterface then
                 RaiseCannotBeTogether(20190720211304,LastType.Name,MemberType.Name);
               end;
-            end
+            end;
           else
             RaiseXIsNotAValidConstraint(20190720210919,MemberType.Name);
           end;
@@ -7480,7 +7480,7 @@ begin
       if (ClassOrRecScope is TPasClassScope)
           and (TPasClassScope(ClassOrRecScope).CanonicalClassOf<>nil) then
         begin
-        // 'Self' in a method is the hidden classtype argument
+        // 'Self' in a class method is the hidden classtype argument
         // Note: this is true in classes, adv records and helpers
         SelfArg:=TPasArgument.Create('Self',DeclProc);
         ImplProcScope.SelfArg:=SelfArg;
