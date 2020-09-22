@@ -206,8 +206,10 @@ unit iso7185;
 
     procedure Get(var f:TypedFile);[IOCheck];
       Begin
-        if not(eof(f)) then
-          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1);
+        if not(system.eof(f)) then
+          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+        else
+          FileRec(f)._private[1]:=1;
       End;
 
 
