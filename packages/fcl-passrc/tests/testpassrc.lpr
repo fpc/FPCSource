@@ -4,10 +4,10 @@ program testpassrc;
 
 uses
   //MemCheck,
-  Classes, consoletestrunner, tcscanner, tctypeparser, tcstatements,
-  tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
-  tcexprparser, tcprocfunc, tcpassrcutil, tcresolver, tcgenerics,
-  tcuseanalyzer, pasresolveeval, tcresolvegenerics;
+  Classes, consoletestrunner,{ tcscanner, tctypeparser, tcstatements,
+  tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,}
+  tcexprparser{, tcprocfunc, tcpassrcutil, tcresolver, tcgenerics,
+  tcuseanalyzer, pasresolveeval, tcresolvegenerics};
 
 type
 
