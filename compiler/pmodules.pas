@@ -2210,6 +2210,10 @@ type
                FPC_SYSTEMMAIN) }
              main_procinfo:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
+         else if target_info.system=system_wasm32_wasi then
+           begin
+             main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
+           end
          else
            begin
              main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
