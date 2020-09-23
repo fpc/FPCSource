@@ -150,6 +150,8 @@ type
     Procedure TestExpCaret;
     Procedure TestArrayAccess;
     Procedure TestHelperOnLiteral;
+
+    procedure TestParseAdhocExpression;
   end;
 
 implementation
@@ -1314,6 +1316,22 @@ begin
 
   AssertExpression('left AS a',AsExpr.left,pekIdent,'a');
   AssertExpression('right AS b',AsExpr.right,pekIdent,'b');
+end;
+
+procedure TTestExpressions.TestParseAdhocExpression;
+var
+  ExprElement: TPasExpr;
+  BinaryExpression: TBinaryExpr;
+begin
+  // Unlike the other tests, this is not about the parser, but about the
+  // ability to parse an expression on it's own. Without any further context.
+  Add('True=False');
+  StartParsing;
+  Parser.NextToken;
+  Parser.ParseAdhocExpression(ExprElement);
+  BinaryExpression := AssertExpression('Some expression, parsed separately',ExprElement,pekBinary,TBinaryExpr) as TBinaryExpr;
+  AssertExpression('Some expression, parsed separately, left part', BinaryExpression.left, pekBoolConst, TBoolConstExpr);
+  AssertExpression('Some expression, parsed separately, right part',BinaryExpression.right, pekBoolConst, TBoolConstExpr);
 end;
 
 initialization
