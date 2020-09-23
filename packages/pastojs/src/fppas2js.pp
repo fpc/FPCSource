@@ -5173,7 +5173,9 @@ begin
     if GenResolver=nil then
       GenResolver:=GetResolver(GenMod);
     ParamResolver:=GetResolver(ParamMod);
-    if ParamResolver.FinishedInterfaceIndex<GenResolver.FinishedInterfaceIndex then
+    if (ParamResolver.FinishedInterfaceIndex>GenResolver.FinishedInterfaceIndex)
+        or (ParamResolver.FinishedInterfaceIndex=0) // 0 means currently parsing
+        then
       exit(Param); // param in a later unit interface
     // generic in a later unit interface -> no delay needed
     end;
