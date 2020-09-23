@@ -1135,7 +1135,7 @@ implementation
                               cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             end;
-                        LOC_SUBSETREG,LOC_SUBSETREF:
+                        LOC_CSUBSETREG,LOC_SUBSETREG,LOC_SUBSETREF:
                           begin
                             r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
                             cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
