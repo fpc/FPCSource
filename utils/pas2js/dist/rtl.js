@@ -353,6 +353,7 @@ var rtl = {
       // create pascal class descendent from JS function
       c = Object.create(ancestor.prototype);
       c.$ancestorfunc = ancestor;
+      c.$ancestor = null; // no pascal ancestor
     } else if (ancestor.$func){
       // create pascal class descendent from a pascal class descendent of a JS function
       isFunc = true;
@@ -360,6 +361,7 @@ var rtl = {
       c.$ancestor = ancestor;
     } else {
       c = Object.create(ancestor);
+      c.$ancestor = null; // no pascal ancestor
     }
     c.$create = function(fn,args){
       if (args == undefined) args = [];

@@ -55,16 +55,19 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
   end;
 
 {$else}
-function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; external;
+
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; compilerproc; nostackframe;
   asm
     entry a1,16
     movi.n a2,0
   end;
 
 
-procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc; external;
+procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc; nostackframe;
   asm
     entry a1,16
+    movi.n a2,1
+    movnez a2,value,value
   end;
 {$endif}
 

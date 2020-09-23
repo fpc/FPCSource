@@ -190,13 +190,15 @@ Put + after a boolean switch option to enable it, - to disable it
   -n      : Do not read the default config files
   -o&lt;x&gt;   : Change main JavaScript file to &lt;x&gt;, "." means stdout
   -O&lt;x&gt;   : Optimizations:
-    -O-   : Disable optimizations
-    -O1   : Level 1 optimizations (quick and debugger friendly)
+    -O-  : Disable optimizations
+    -O1  : Level 1 optimizations (quick and debugger friendly)
+    -O2  : Level 2 optimizations (Level 1 + not debugger friendly)
     -Oo&lt;x&gt; : Enable or disable optimization. The x is case insensitive:
       -OoEnumNumbers[-] : write enum values as number instead of name. Default in -O1.
       -OoRemoveNotUsedPrivates[-] : Default is enabled
       -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc
       -OoRemoveNotUsedPublished[-] : Default is disabled
+      -OoShortRefGlobals[-]: Insert JS local var for types and modules. Default enabled in -O2
   -P&lt;x&gt;   : Set target processor. Case insensitive:
     -Pecmascript5  : default
     -Pecmascript6

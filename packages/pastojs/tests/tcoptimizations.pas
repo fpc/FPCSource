@@ -17,7 +17,7 @@
    ./testpas2js --suite=TTestOptimizations
    ./testpas2js --suite=TTestOptimizations.TestOmitLocalVar
 }
-unit tcoptimizations;
+unit TCOptimizations;
 
 {$mode objfpc}{$H+}
 
@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, testregistry, fppas2js, pastree,
   PScanner, Pas2jsUseAnalyzer, PasResolver, PasResolveEval,
-  tcmodules;
+  TCModules;
 
 type
 
@@ -56,17 +56,10 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
-    // unit optimization: jsaliasglobals
-    procedure TestOptAliasGlobals_Program;
-    procedure TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
-    // ToDo: external var, const, class
-    // ToDo: RTTI
-    // ToDo: typeinfo(var), typeinfo(type)
-    // ToDo: resourcestring
-    // ToDo: Global EnumType, EnumValue, EnumType.Value, unit.EnumType.Value
-    // ToDo: Nested EnumType: EnumValue, EnumType.Value, unit.aType.EnumType.Value, aType.EnumType.Value, Instance.EnumType.Value
-    // ToDo: Instance.RecordType, Instance.RecordType.ClassVar
-    // ToDo: ClassVarRecord
+    // unit optimization: jsshortrefglobals
+    procedure TestOptShortRefGlobals_Program;
+    procedure TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
+    procedure TestOptShortRefGlobals_Property;
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
@@ -199,7 +192,7 @@ end;
 
 { TTestOptimizations }
 
-procedure TTestOptimizations.TestOptAliasGlobals_Program;
+procedure TTestOptimizations.TestOptShortRefGlobals_Program;
 begin
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
@@ -224,7 +217,7 @@ begin
 
   StartProgram(true,[supTObject]);
   Add([
-  '{$optimization JSAliasGlobals}',
+  '{$optimization JSShortRefGlobals}',
   'uses unita;',
   'type',
   '  TEagle = class(TBird)',
@@ -249,12 +242,12 @@ begin
   '  c:=cRedBlue;',
   '']);
   ConvertProgram;
-  CheckSource('TestOptAliasGlobals_Program',
+  CheckSource('TestOptShortRefGlobals_Program',
     LinesToStr([
     'var $lm = pas.UnitA;',
     'var $lt = $lm.TBird;',
     'var $lt1 = $lm.TRec;',
-    'rtl.createClass($mod, "TEagle", $lt, function () {',
+    'rtl.createClass(this, "TEagle", $lt, function () {',
     '  this.Run = function (w) {',
     '    var Result = 0;',
     '    return Result;',
@@ -277,7 +270,7 @@ begin
     '']));
 end;
 
-procedure TTestOptimizations.TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl;
+procedure TTestOptimizations.TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
 begin
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
@@ -311,7 +304,7 @@ begin
     '']));
   StartUnit(true,[supTObject]);
   Add([
-  '{$optimization JSAliasGlobals}',
+  '{$optimization JSShortRefGlobals}',
   'interface',
   'uses unita;',
   'type',
@@ -354,7 +347,7 @@ begin
   '  RedAnt.Run;',
   '']);
   ConvertUnit;
-  CheckSource('TestOptAliasGlobals_Unit_FromIntfImpl_ToIntfImpl',
+  CheckSource('TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl',
     LinesToStr([
     'var $impl = $mod.$impl;',
     'var $lm = pas.UnitA;',
@@ -363,7 +356,7 @@ begin
     'var $lt1 = null;',
     'var $lt2 = null;',
     'var $lt3 = null;',
-    'rtl.createClass($mod, "TEagle", $lt, function () {',
+    'rtl.createClass(this, "TEagle", $lt, function () {',
     '  this.Fly = function () {',
     '    $impl.TRedAnt.$create("Create");',
     '    $lt1.$create("Create");',
@@ -399,6 +392,55 @@ begin
     '$impl.Ant = null;',
     '$impl.Bird = null;',
     '$impl.Eagle = null;',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Property;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    FWing: TObject;',
+    '    class var FLeg: TObject;',
+    '  public',
+    '    property Wing: TObject read FWing write FWing;',
+    '    class property Leg: TObject read FLeg write FLeg;',
+    '  end;',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)', // intf-JS to intf-uses
+  '    procedure Fly(o: TObject);',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Fly(o: TObject);',
+  'begin',
+  '  Fly(Wing);',
+  '  Fly(Leg);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Property',
+    LinesToStr([
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TBird;',
+    'rtl.createClass(this, "TEagle", $lt, function () {',
+    '  this.Fly = function (o) {',
+    '    this.Fly(this.FWing);',
+    '    this.Fly(this.FLeg);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
     '']));
 end;
 
@@ -605,7 +647,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitRecordMember',
     LinesToStr([
-    'rtl.recNewT($mod, "TRec", function () {',
+    'rtl.recNewT(this, "TRec", function () {',
     '  this.a = 0;',
     '  this.$eq = function (b) {',
     '    return this.a === b.a;',
@@ -615,7 +657,7 @@ begin
     '    return this;',
     '  };',
     '});',
-    'this.r = $mod.TRec.$new();',
+    'this.r = this.TRec.$new();',
     '']),
     LinesToStr([
     '$mod.r.a = 3;',
@@ -653,7 +695,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_TObject',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -693,7 +735,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_Class_TObject',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -725,7 +767,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassField',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.a = 0;',
     '  };',
@@ -754,7 +796,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -784,7 +826,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -820,7 +862,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter1',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -851,7 +893,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter2',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -892,7 +934,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter1',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -923,7 +965,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter2',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -970,7 +1012,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_Class_KeepNewInstance',
     LinesToStr([
-    'rtl.createClassExt($mod, "TBird", Object, "NewInstance", function () {',
+    'rtl.createClassExt(this, "TBird", Object, "NewInstance", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -1019,7 +1061,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_CallInherited',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -1029,7 +1071,7 @@ begin
     '  this.DoB = function () {',
     '  };',
     '});',
-    ' rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
+    ' rtl.createClass(this, "TMobile", this.TObject, function () {',
     '  this.DoA$1 = function () {',
     '    $mod.TObject.DoA.call(this);',
     '  };',
@@ -1096,7 +1138,7 @@ begin
   LinesToStr([
   'rtl.module("system", [], function () {',
   '  var $mod = this;',
-  '  rtl.recNewT($mod, "TVarRec", function () {',
+  '  rtl.recNewT(this, "TVarRec", function () {',
   '    this.VType = 0;',
   '    this.VJSValue = undefined;',
   '    this.$eq = function (b) {',
@@ -1175,7 +1217,7 @@ begin
   LinesToStr([
   'rtl.module("unit1", ["system"], function () {',
   '  var $mod = this;',
-  '  rtl.createClass($mod, "TObject", null, function () {',
+  '  rtl.createClass(this, "TObject", null, function () {',
   '    this.$init = function () {',
   '      this.FA = 0;',
   '    };',
@@ -1250,7 +1292,7 @@ begin
   'rtl.module("program",["system"],function () {',
   '  var $mod = this;',
   '  this.gcBlack = 0;',
-  '  rtl.createClass($mod,"TObject",null,function () {',
+  '  rtl.createClass(this,"TObject",null,function () {',
   '    this.$init = function () {',
   '      this.FColor = 0;',
   '    };',
@@ -1294,10 +1336,10 @@ begin
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
-    '  $mod.$rtti.$DynArray("TArrB", {',
+    '  this.$rtti.$DynArray("TArrB", {',
     '    eltype: rtl.string',
     '  });',
-    '  rtl.createClass($mod, "TObject", null, function () {',
+    '  rtl.createClass(this, "TObject", null, function () {',
     '    this.$init = function () {',
     '      this.PublicA = [];',
     '      this.PublishedB = [];',
@@ -1339,7 +1381,7 @@ begin
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
-    '  $mod.$rtti.$DynArray("TArrB", {',
+    '  this.$rtti.$DynArray("TArrB", {',
     '    eltype: rtl.string',
     '  });',
     '  this.A = [];',
