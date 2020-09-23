@@ -105,6 +105,12 @@ unit agarmgas;
         result:=inherited MakeCmdLine;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
+        if (current_settings.fputype = fpu_fpa) then
+          result:='-mfpu=fpa '+result;
+        if (current_settings.fputype = fpu_fpa10) then
+          result:='-mfpu=fpa10 '+result;
+        if (current_settings.fputype = fpu_fpa11) then
+          result:='-mfpu=fpa11 '+result;
         if (current_settings.fputype = fpu_vfpv2) then
           result:='-mfpu=vfpv2 '+result;
         if (current_settings.fputype = fpu_vfpv3) then
