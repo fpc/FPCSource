@@ -1,4 +1,4 @@
-unit pas2jsutils;
+unit Pas2JSUtils;
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org

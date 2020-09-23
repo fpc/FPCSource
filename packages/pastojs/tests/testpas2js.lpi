@@ -59,6 +59,7 @@
       <Unit4>
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCOptimizations"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcsrcmap.pas"/>
