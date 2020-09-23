@@ -77,6 +77,7 @@ type
     procedure TestGenMethod_ObjFPC;
 
     // generic array
+    procedure TestGen_Array_OtherUnit;
     procedure TestGen_ArrayOfUnitImplRec;
 
     // generic procedure type
@@ -2037,6 +2038,62 @@ begin
     '']));
 end;
 
+procedure TTestGenerics.TestGen_Array_OtherUnit;
+begin
+  WithTypeInfo:=true;
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+  'type',
+  '  generic TDyn<T> = array of T;',
+  '  generic TStatic<T> = array[1..2] of T;',
+  '']),
+  '');
+  AddModuleWithIntfImplSrc('UnitB.pas',
+  LinesToStr([
+  'uses UnitA;',
+  'type',
+  '  TAnt = class end;',
+  '  TAntArray = specialize TDyn<TAnt>;',
+  'procedure Run;',
+  '']),
+  LinesToStr([
+  'procedure Run;',
+  'begin',
+  '  if typeinfo(TAntArray)=nil then ;',
+  'end;',
+  '']));
+  Add([
+  'uses UnitB;',
+  'begin',
+  '  Run;',
+  '']);
+  ConvertProgram;
+  CheckUnit('UnitA.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  this.$rtti.$DynArray("TDyn<UnitB.TAnt>", {});',
+    '});']));
+  CheckUnit('UnitB.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitB", ["system", "UnitA"], function () {',
+    '  var $mod = this;',
+    '  rtl.createClass(this, "TAnt", pas.system.TObject, function () {',
+    '  });',
+    '  this.Run = function () {',
+    '    if (pas.UnitA.$rtti["TDyn<UnitB.TAnt>"] === null) ;',
+    '  };',
+    '});']));
+  CheckSource('TestGen_Array_OtherUnit',
+    LinesToStr([ // statements
+    'pas.UnitA.$rtti["TDyn<UnitB.TAnt>"].eltype = pas.UnitB.$rtti["TAnt"];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '  pas.UnitB.Run();',
+    '']));
+end;
+
 procedure TTestGenerics.TestGen_ArrayOfUnitImplRec;
 begin
   WithTypeInfo:=true;
@@ -2052,12 +2109,16 @@ begin
   '  TBird = record',
   '    b: word;',
   '  end;',
+  '  TAnt = class end;',
+  '  TAntArray = specialize TDyn<TAnt>;',
   'var',
   '  d: specialize TDyn<TBird>;',
   '  s: specialize TStatic<TBird>;',
+  '  p: pointer;',
   'begin',
   '  d[0].b:=s[1].b;',
   '  s:=s;',
+  '  p:=typeinfo(TAntArray);',
   '']));
   Add([
   'uses UnitA;',
@@ -2069,6 +2130,7 @@ begin
     'rtl.module("UnitA", ["system"], function () {',
     '  var $mod = this;',
     '  var $impl = $mod.$impl;',
+    '  this.$rtti.$DynArray("TDyn<UnitA.TAnt>", {});',
     '  this.$rtti.$DynArray("TDyn<UnitA.TBird>", {});',
     '  this.TStatic$G1$clone = function (a) {',
     '    var r = [];',
@@ -2091,16 +2153,21 @@ begin
     '      var $r = $mod.$rtti.$Record("TBird", {});',
     '      $r.addField("b", rtl.word);',
     '    });',
+    '    rtl.createClass($impl, "TAnt", pas.system.TObject, function () {',
+    '    });',
     '    $impl.d = [];',
     '    $impl.s = rtl.arraySetLength(null, $impl.TBird, 2);',
+    '    $impl.p = null;',
     '  };',
     '  $mod.$init = function () {',
     '    $impl.d[0].b = $impl.s[0].b;',
     '    $impl.s = $mod.TStatic$G1$clone($impl.s);',
+    '    $impl.p = $mod.$rtti["TDyn<UnitA.TAnt>"];',
     '  };',
     '}, []);']));
-  CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
+  CheckSource('TestGen_ArrayOfUnitImplRec',
     LinesToStr([ // statements
+    'pas.UnitA.$rtti["TDyn<UnitA.TAnt>"].eltype = pas.UnitA.$rtti["TAnt"];',
     'pas.UnitA.$rtti["TDyn<UnitA.TBird>"].eltype = pas.UnitA.$rtti["TBird"];',
     'pas.UnitA.$rtti["TStatic<UnitA.TBird>"].eltype = pas.UnitA.$rtti["TBird"];',
     '']),
