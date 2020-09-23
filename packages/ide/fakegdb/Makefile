@@ -269,8 +269,8 @@ endif
 ifndef CROSSBINDIR
 CROSSBINDIR:=$(wildcard $(FPCDIR)/bin/$(TARGETSUFFIX))
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
-ifeq ($(OS_SOURCE),darwin)
+ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
+ifneq ($(findstring $(OS_SOURCE),darwin ios),)
 DARWIN2DARWIN=1
 endif
 endif
@@ -938,14 +938,14 @@ STATICLIBPREFIX=
 SHORTSUFFIX=nwl
 IMPORTLIBPREFIX=imp
 endif
-ifeq ($(OS_TARGET),macos)
+ifeq ($(OS_TARGET),macosclassic)
 BATCHEXT=
 EXEEXT=
 DEBUGSYMEXT=.xcoff
 SHORTSUFFIX=mac
 IMPORTLIBPREFIX=imp
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
+ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
 BATCHEXT=.sh
 EXEEXT=
 HASSHAREDLIB=1
