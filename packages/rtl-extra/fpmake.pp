@@ -91,21 +91,12 @@ begin
     if Defaults.CPU<>jvm then
       T:=P.Targets.AddUnit('clocale.pp',[android]);
 
-    { Ideally, we should check if rtl contians math unit,
+    { Ideally, we should check if rtl contains math unit,
       I do know how that can be checked. PM 2019/11/27 }
-    if (Defaults.CPU<>i8086) or (Defaults.OS<>embedded) then
-      T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
-
-    T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
-
-    T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
-    T.Dependencies.AddInclude('printerh.inc',PrinterOSes);
-    T.Dependencies.AddInclude('printer.inc',PrinterOSes);
-
-    { Ideally, we should check if rtl contians math unit,
-      I do know how that can be checked. PM 2019/11/27 }
-    if (Defaults.CPU<>i8086) or (Defaults.OS<>embedded) then
+    if ((Defaults.CPU<>i8086) and (Defaults.CPU<>z80))
+       or (Defaults.OS<>embedded) then
       begin
+        T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
         T:=P.Targets.AddUnit('matrix.pp',MatrixOSes);
         with T.Dependencies do
           begin
@@ -113,6 +104,13 @@ begin
             AddInclude('mmatimp.inc');
           end;
       end;
+
+    T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
+
+    T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
+    T.Dependencies.AddInclude('printerh.inc',PrinterOSes);
+    T.Dependencies.AddInclude('printer.inc',PrinterOSes);
+
     T:=P.Targets.AddUnit('winsock.pp',WinSockOSes);
     with T.Dependencies do
      begin

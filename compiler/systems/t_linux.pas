@@ -170,6 +170,7 @@ begin
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/i386-linux-gnu',true);
 {$endif i386}
 {$ifdef aarch64}
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/aarch64-linux-gnu',true);
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/aarch64-linux-gnu',true);
 {$endif aarch64}
