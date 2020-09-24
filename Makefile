@@ -1050,7 +1050,11 @@ ifneq ($(findstring sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+CROSSGCCOPT=-mabi=32
+else
 CROSSGCCOPT=-m32
+endif
 endif
 endif
 endif
@@ -1059,6 +1063,21 @@ ifdef FPCFPMAKE
 FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
 ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
 FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
+FPCMAKE_CROSSGCCOPT=-m64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+FPCMAKE_CROSSGCCOPT=-mabi=64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+FPCMAKE_CROSSGCCOPT=-mabi=32
+else
+FPCMAKE_CROSSGCCOPT=-m32
+endif
+endif
+endif
+FPCMAKEGCCLIBDIR:=$(shell dirname `gcc $(FPCMAKE_CROSSGCCOPT) -print-libgcc-file-name`)
 endif
 endif
 ifndef FPCMAKEGCCLIBDIR
