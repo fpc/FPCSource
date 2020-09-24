@@ -4188,6 +4188,7 @@ begin
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
+
 var
   TokenStart: {$ifdef UsePChar}PChar{$else}integer{$endif};
   i: TToken;
@@ -4199,6 +4200,7 @@ var
   s: string;
   l: integer;
   {$endif}
+  LE : String[2];
 
   procedure FetchCurTokenString; inline;
   begin
@@ -4334,6 +4336,7 @@ begin
         Result := tkBraceOpen
       else
         begin
+        LE:=LineEnding;
         // Old-style multi-line comment
         Inc(FTokenPos);
         TokenStart := FTokenPos;
@@ -4353,7 +4356,7 @@ begin
 
             // Corrected JC: Append the correct lineending
             Inc(OldLength, SectionLength);
-            for Ch in LineEnding do
+            for Ch in LE do
               begin
                 Inc(OldLength);
                 FCurTokenString[OldLength] := Ch;
@@ -4651,6 +4654,7 @@ begin
       end;
     '{':        // Multi-line comment
       begin
+      LE:=LineEnding;
       Inc(FTokenPos);
       TokenStart := FTokenPos;
       FCurTokenString := '';
@@ -4669,7 +4673,7 @@ begin
 
           // Corrected JC: Append the correct lineending
           Inc(OldLength, SectionLength);
-          for Ch in LineEnding do
+          for Ch in LE do
             begin
               Inc(OldLength);
               FCurTokenString[OldLength] := Ch;
