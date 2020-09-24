@@ -4324,7 +4324,12 @@ begin
     '(':
       begin
       Inc(FTokenPos);
-      if {$ifdef UsePChar}FTokenPos[0] <> '*'{$else}(FTokenPos>l) or (s[FTokenPos]<>'*'){$endif} then
+      if {$ifdef UsePChar}FTokenPos[0] = '.'{$else}(FTokenPos>l) or (s[FTokenPos]<>'.'){$endif} then
+        begin
+        Inc(FTokenPos);
+        Result := tkSquaredBraceOpen;
+        end
+      else if {$ifdef UsePChar}FTokenPos[0] <> '*'{$else}(FTokenPos>l) or (s[FTokenPos]<>'*'){$endif} then
         Result := tkBraceOpen
       else
         begin
@@ -4448,7 +4453,12 @@ begin
     '.':
       begin
       Inc(FTokenPos);
-      if {$ifdef UsePChar}FTokenPos[0]='.'{$else}(FTokenPos<=l) and (s[FTokenPos]='.'){$endif} then
+      if {$ifdef UsePChar}FTokenPos[0]=')'{$else}(FTokenPos<=l) and (s[FTokenPos]=')'){$endif} then
+        begin
+        Inc(FTokenPos);
+        Result := tkSquaredBraceClose;
+        end
+      else if {$ifdef UsePChar}FTokenPos[0]='.'{$else}(FTokenPos<=l) and (s[FTokenPos]='.'){$endif} then
         begin
         Inc(FTokenPos);
         Result := tkDotDot;
@@ -4492,14 +4502,14 @@ begin
       end;
     '0'..'9':
       begin
-      // 1, 12, 1.2, 1.2E3, 1.E2, 1E2, 1.2E-3, 1E+2
+      // 1, 12, 1.2, 1.2E3, 1.E2, 1E2, 1.2E-3, 1E+2 and .)
       // beware of 1..2
       TokenStart := FTokenPos;
       repeat
         Inc(FTokenPos);
       until {$ifdef UsePChar}not (FTokenPos[0] in Digits){$else}(FTokenPos>l) or not (s[FTokenPos] in Digits){$endif};
-      if {$ifdef UsePChar}(FTokenPos[0]='.') and (FTokenPos[1]<>'.'){$else}
-          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or (s[FTokenPos+1]<>'.')){$endif}then
+      if {$ifdef UsePChar}(FTokenPos[0]='.') and (FTokenPos[1]<>'.') and (FTokenPos[1]<>')'){$else}
+          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or (s[FTokenPos+1]<>'.') and ((FTokenPos=l) or (s[FTokenPos+1]<>')')){$endif}then
         begin
         inc(FTokenPos);
         while {$ifdef UsePChar}FTokenPos[0] in Digits{$else}(FTokenPos<=l) and (s[FTokenPos] in Digits){$endif} do
