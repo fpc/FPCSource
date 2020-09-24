@@ -55,7 +55,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 prt0$(OEXT) : prt0.asm
         $(MAKE) $(COMPILER_UNITTARGETDIR)
-        sdcc-sdasz80 -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
+        sdasz80 -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
 #
 # System Units (System, Objpas, Strings)
 #

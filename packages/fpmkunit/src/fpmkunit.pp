@@ -5053,7 +5053,7 @@ begin
 //  FBuildEngine.Defaults:=Defaults;
   FBuildEngine.ListMode:=FListMode;
   FBuildEngine.FInteractive:=FInteractive;
-  FBuildEngine.Verbose := (FLogLevels = AllMessages);
+  FBuildEngine.Verbose := (vlInfo in FLogLevels) or (vlDebug in FLogLevels);
   FBuildEngine.OnLog:=@Self.Log;
   NotifyEventCollection.CallEvents(neaAfterCreateBuildengine, Self);
 end;

@@ -80,6 +80,10 @@ type
     procedure TestComment3;
     procedure TestComment4;
     procedure TestComment5;
+    procedure TestComment6;
+    procedure TestComment7;
+    procedure TestComment8;
+    procedure TestComment9;
     procedure TestNestedComment1;
     procedure TestNestedComment2;
     procedure TestNestedComment3;
@@ -444,8 +448,10 @@ begin
   if DoClear then
     FResolver.Clear;
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
+  {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// '+TestName);
   Writeln(Source);
+  {$EndIf}
 //  FreeAndNil(FScanner);
 //  FScanner:=TTestingPascalScanner.Create(FResolver);
   FScanner.OpenFile('afile.pp');
@@ -562,6 +568,34 @@ procedure TTestScanner.TestComment5;
 begin
   DoTestToken(tkComment,'(* abc'+LineEnding+'def *)',False);
   AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment6;
+
+begin
+  DoTestToken(tkComment,'{ abc }',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment7;
+
+begin
+  DoTestToken(tkComment,'{ abc'+LineEnding+'def }',False);
+  AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment8;
+
+begin
+  DoTestToken(tkComment,'// abc ',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment9;
+
+begin
+  DoTestToken(tkComment,'// abc '+LineEnding,False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
 end;
 
 procedure TTestScanner.TestNestedComment1;
@@ -734,6 +768,7 @@ procedure TTestScanner.TestSquaredBraceOpen;
 
 begin
   TestToken(tkSquaredBraceOpen,'[');
+  TestToken(tkSquaredBraceOpen,'(.'); // JC: Test for the BraceDotOpen
 end;
 
 
@@ -741,6 +776,8 @@ procedure TTestScanner.TestSquaredBraceClose;
 
 begin
   TestToken(tkSquaredBraceClose,']');
+  TestToken(tkSquaredBraceClose,'.)'); // JC: Test for the DotBraceClose
+  TestTokens([tkNumber,tkSquaredBraceClose],'1.)'); // JC: Test for a Number followed by DotBraceClose
 end;
 
 

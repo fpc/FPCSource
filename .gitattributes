@@ -14605,6 +14605,7 @@ tests/test/tcase48.pp svneol=native#text/pascal
 tests/test/tcase48_2.pp svneol=native#text/pascal
 tests/test/tcase49.pp svneol=native#text/pascal
 tests/test/tcase5.pp svneol=native#text/pascal
+tests/test/tcase50.pp svneol=native#text/pascal
 tests/test/tcase6.pp svneol=native#text/pascal
 tests/test/tcase7.pp svneol=native#text/pascal
 tests/test/tcase8.pp svneol=native#text/pascal
@@ -16140,6 +16141,7 @@ tests/test/units/system/tresb.res -text
 tests/test/units/system/tresext.pp svneol=native#text/plain
 tests/test/units/system/trnd1.pp svneol=native#text/pascal
 tests/test/units/system/tround.pp svneol=native#text/plain
+tests/test/units/system/tseekeof.pp svneol=native#text/plain
 tests/test/units/system/tseg.pp svneol=native#text/plain
 tests/test/units/system/tsetstr.pp svneol=native#text/plain
 tests/test/units/system/tsetstr2.pp svneol=native#text/plain

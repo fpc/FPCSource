@@ -440,6 +440,7 @@ type
     procedure ParseFinalization;
     procedure ParseDeclarations(Declarations: TPasDeclarations);
     procedure ParseStatement(Parent: TPasImplBlock; out NewImplElement: TPasImplElement);
+    procedure ParseAdhocExpression(out NewExprElement: TPasExpr);
     procedure ParseLabels(AParent: TPasElement);
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseProcAsmBlock(Parent: TProcedureBody);
@@ -7798,6 +7799,11 @@ function TPasParser.CreateRecordValues(AParent: TPasElement): TRecordValues;
 begin
   Result:=TRecordValues(CreateElement(TRecordValues,'',AParent));
   Result.Kind:=pekListOfExp;
+end;
+
+procedure TPasParser.ParseAdhocExpression(out NewExprElement: TPasExpr);
+begin
+  NewExprElement := DoParseExpression(nil);
 end;
 
 initialization

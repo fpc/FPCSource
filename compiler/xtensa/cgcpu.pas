@@ -528,7 +528,7 @@ implementation
           list.concat(taicpu.op_reg_reg_const(A_SRLI,dst,src,a))
         else if (op=OP_SHR) and (a>15) and (a<=31) then
           list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,dst,src,a,32-a))
-        else if (op=OP_AND) and (63-BsrQWord(a)+PopCnt(QWord(a))=64) and (PopCnt(QWord(a))<=16) then
+        else if (op=OP_AND) and (63-BsrQWord(qword(a))+PopCnt(QWord(a))=64) and (PopCnt(QWord(a))<=16) then
           list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,dst,src,0,PopCnt(QWord(a))))
         else
           begin
