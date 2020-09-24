@@ -14565,6 +14565,7 @@ tests/test/tcase48.pp svneol=native#text/pascal
 tests/test/tcase48_2.pp svneol=native#text/pascal
 tests/test/tcase49.pp -text svneol=native#text/pascal
 tests/test/tcase5.pp svneol=native#text/pascal
+tests/test/tcase50.pp svneol=native#text/pascal
 tests/test/tcase6.pp svneol=native#text/pascal
 tests/test/tcase7.pp svneol=native#text/pascal
 tests/test/tcase8.pp svneol=native#text/pascal
