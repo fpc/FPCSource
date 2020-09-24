@@ -1679,7 +1679,7 @@ begin
     Add some way to specify heaptrc options? }
   GetEnv:=nil;
 end;
-{$elseif defined(msdos)}
+{$elseif defined(msdos) or defined(msxdos)}
    type
      PFarChar=^Char;far;
      PPFarChar=^PFarChar;
