@@ -444,8 +444,10 @@ begin
   if DoClear then
     FResolver.Clear;
   FResolver.AddStream('afile.pp',TStringStream.Create(Source));
+  {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// '+TestName);
   Writeln(Source);
+  {$EndIf}
 //  FreeAndNil(FScanner);
 //  FScanner:=TTestingPascalScanner.Create(FResolver);
   FScanner.OpenFile('afile.pp');
@@ -734,6 +736,7 @@ procedure TTestScanner.TestSquaredBraceOpen;
 
 begin
   TestToken(tkSquaredBraceOpen,'[');
+  TestToken(tkSquaredBraceOpen,'(.'); // JC: Test for the BraceDotOpen
 end;
 
 
@@ -741,6 +744,8 @@ procedure TTestScanner.TestSquaredBraceClose;
 
 begin
   TestToken(tkSquaredBraceClose,']');
+  TestToken(tkSquaredBraceClose,'.)'); // JC: Test for the DotBraceClose
+  TestTokens([tkNumber,tkSquaredBraceClose],'1.)'); // JC: Test for a Number followed by DotBraceClose
 end;
 
 
