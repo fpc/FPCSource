@@ -80,6 +80,10 @@ type
     procedure TestComment3;
     procedure TestComment4;
     procedure TestComment5;
+    procedure TestComment6;
+    procedure TestComment7;
+    procedure TestComment8;
+    procedure TestComment9;
     procedure TestNestedComment1;
     procedure TestNestedComment2;
     procedure TestNestedComment3;
@@ -564,6 +568,34 @@ procedure TTestScanner.TestComment5;
 begin
   DoTestToken(tkComment,'(* abc'+LineEnding+'def *)',False);
   AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment6;
+
+begin
+  DoTestToken(tkComment,'{ abc }',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment7;
+
+begin
+  DoTestToken(tkComment,'{ abc'+LineEnding+'def }',False);
+  AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment8;
+
+begin
+  DoTestToken(tkComment,'// abc ',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment9;
+
+begin
+  DoTestToken(tkComment,'// abc '+LineEnding,False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
 end;
 
 procedure TTestScanner.TestNestedComment1;
