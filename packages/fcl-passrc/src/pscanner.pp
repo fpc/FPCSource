@@ -4194,6 +4194,7 @@ var
   SectionLength, NestingLevel, Index: Integer;
   {$ifdef UsePChar}
   OldLength: integer;
+  Ch: Char;
   {$else}
   s: string;
   l: integer;
@@ -4346,13 +4347,19 @@ begin
             begin
             SectionLength:=FTokenPos - TokenStart;
             {$ifdef UsePChar}
-            SetLength(FCurTokenString, OldLength + SectionLength+1); // +1 for #10
+            SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
             if SectionLength > 0 then
-              Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-            Inc(OldLength, SectionLength+1);
-            FCurTokenString[OldLength] := #10;
+              Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
+
+            // Corrected JC: Append the correct lineending
+            Inc(OldLength, SectionLength);
+            for Ch in LineEnding do
+              begin
+                Inc(OldLength);
+                FCurTokenString[OldLength] := Ch;
+              end;
             {$else}
-            FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+#10;
+            FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
             {$endif}
             if not FetchLocalLine then
               begin
@@ -4656,13 +4663,19 @@ begin
           begin
           SectionLength := FTokenPos - TokenStart;
           {$ifdef UsePChar}
-          SetLength(FCurTokenString, OldLength + SectionLength+1); // +1 for the #10
+          SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
           if SectionLength > 0 then
             Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
-          Inc(OldLength, SectionLength+1);
-          FCurTokenString[OldLength] := #10;
+
+          // Corrected JC: Append the correct lineending
+          Inc(OldLength, SectionLength);
+          for Ch in LineEnding do
+            begin
+              Inc(OldLength);
+              FCurTokenString[OldLength] := Ch;
+            end;
           {$else}
-          FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+#10;
+          FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
           {$endif}
           if not FetchLocalLine then
           begin
