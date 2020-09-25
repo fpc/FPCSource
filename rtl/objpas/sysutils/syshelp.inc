@@ -960,7 +960,7 @@ begin
   if (I>LS) then
     I:=LS;
   I:=I-L+1;
-  M:=AStartIndex-ACount+1; // 1 based
+  M:=AStartIndex-ACount+2; // 1 based
   if M<1 then
     M:=1;
   while (Result=-1) and (I>=M) do
