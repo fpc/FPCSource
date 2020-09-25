@@ -60,6 +60,7 @@ type
     procedure TestOptShortRefGlobals_Program;
     procedure TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
     procedure TestOptShortRefGlobals_Property;
+    procedure TestOptShortRefGlobals_GenericFunction;
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
@@ -437,6 +438,51 @@ begin
     '    this.Fly(this.FLeg);',
     '  };',
     '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericFunction;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'generic function Run<T>(a: T): T;',
+    '']),
+  LinesToStr([
+    'generic function Run<T>(a: T): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class',
+  '  end;',
+  'procedure Fly;',
+  'implementation',
+  'procedure Fly;',
+  'begin',
+  '  specialize Run<TEagle>(nil);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericFunction',
+    LinesToStr([
+    'var $lm = pas.system;',
+    'var $lt = $lm.TObject;',
+    'var $lm1 = pas.UnitA;',
+    'var $lp = $lm1.Run$G1;',
+    'rtl.createClass(this, "TEagle", $lt, function () {',
+    '});',
+    'this.Fly = function () {',
+    '  $lp(null);',
+    '};',
     '']),
     LinesToStr([
     '']),
