@@ -139,6 +139,8 @@ unit aoptcpu;
               case taicpu(p).opcode Of
                 A_AND:
                   Result:=OptPass1And(p);
+                A_IMUL:
+                  Result:=OptPass1Imul(p);
                 A_CMP:
                   Result:=OptPass1Cmp(p);
                 A_VPXOR:
