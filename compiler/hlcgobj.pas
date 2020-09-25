@@ -5138,6 +5138,7 @@ implementation
     begin
       list:=TAsmList(arg);
       if (tsym(p).typ=paravarsym) and
+         (tparavarsym(p).is_used) and
          ((vo_has_local_copy in tparavarsym(p).varoptions) or
           (not(target_info.system in systems_caller_copy_addr_value_para) and
            (is_open_array(tparavarsym(p).vardef) or

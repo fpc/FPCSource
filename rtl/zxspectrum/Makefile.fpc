@@ -4,7 +4,7 @@
 [package]
 main=rtl
 [target]
-loaders=prt0
+loaders=
 units=system si_prc
 
 [require]
@@ -49,13 +49,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-#
-# Loaders
-#
 
-prt0$(OEXT) : prt0.asm
-        $(MAKE) $(COMPILER_UNITTARGETDIR)
-        sdasz80 -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
 #
 # System Units (System, Objpas, Strings)
 #

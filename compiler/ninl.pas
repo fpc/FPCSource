@@ -3477,7 +3477,7 @@ implementation
                       inserttypeconv(tcallparanode(tcallparanode(left).right).left,
                         tsetdef(left.resultdef).elementdef);
                     end
-                  else
+                  else if left.resultdef.typ<>undefineddef then
                     CGMessage(type_e_mismatch);
                 end;
               in_pack_x_y_z,

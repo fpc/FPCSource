@@ -672,6 +672,7 @@ type
     pbivnMessageInt,
     pbivnMessageStr,
     pbivnLocalModuleRef,
+    pbivnLocalProcRef,
     pbivnLocalTypeRef,
     pbivnLoop,
     pbivnLoopEnd,
@@ -854,6 +855,7 @@ const
     '$msgint', // pbivnMessageInt
     '$msgstr', // pbivnMessageStr
     '$lm', // pbivnLocalModuleRef
+    '$lp', // pbivnLocalProcRef
     '$lt', // pbivnLocalTypeRef
     '$l', // pbivnLoop
     '$end', // pbivnLoopEnd
@@ -2003,6 +2005,8 @@ type
     Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext;
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
     Function CreateGlobalTypePath(El: TPasType; AContext : TConvertContext): string; virtual;
+    Function CreateStaticProcPath(El: TPasProcedure; AContext : TConvertContext): string; virtual;
+    Function CreateGlobalElPath(El: TPasElement; AContext : TConvertContext): string; virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -3676,7 +3680,6 @@ procedure TPas2JSResolver.RenameSpecialized(SpecializedItem: TPRSpecializedItem
 var
   GenScope: TPasGenericScope;
   NewName: String;
-  ProcScope: TPas2JSProcedureScope;
 begin
   if SpecializedItem=nil then exit;
   NewName:=SpecializedItem.GenericEl.Name+'$G'+IntToStr(SpecializedItem.Index+1);
@@ -3690,19 +3693,11 @@ begin
   else if GenScope is TPas2JSProcTypeScope then
     TPas2JSProcTypeScope(GenScope).JSName:=NewName
   else if GenScope is TPas2JSProcedureScope then
-    begin
-    ProcScope:=TPas2JSProcedureScope(GenScope);
-    if ProcScope.OverloadName<>'' then
-      NewName:=ProcScope.OverloadName
-    else
-      NewName:=SpecializedItem.GenericEl.Name;
-    NewName:=LastDottedIdentifier(NewName);
-    ProcScope.JSName:=NewName+'$G'+IntToStr(SpecializedItem.Index+1);
-    end
+    // handled in GetOverloadName
   else
     RaiseNotYetImplemented(20200906203342,SpecializedItem.SpecializedEl,GetObjName(GenScope));
   {$IFDEF VerbosePas2JS}
-  //writeln('TPas2JSResolver.RenameSpecialized GenericEl=',GetObjPath(SpecializedItem.GenericEl),' Spec=',GetObjPath(SpecializedItem.SpecializedEl),' JSName="',NewName,'"');
+  writeln('TPas2JSResolver.RenameSpecialized GenericEl=',GetObjPath(SpecializedItem.GenericEl),' Spec=',GetObjPath(SpecializedItem.SpecializedEl),' JSName="',NewName,'"');
   {$ENDIF}
 end;
 
@@ -6824,13 +6819,13 @@ begin
       ProcScope:=TPas2JSProcedureScope(Data);
       if ProcScope.SpecializedFromItem<>nil then
         begin
-        // specialized proc -> generic name + 's' + index
+        // specialized proc -> generic name + '$G' + index
         GenEl:=ProcScope.SpecializedFromItem.GenericEl;
         GenScope:=TPas2JSProcedureScope(GenEl.CustomData);
         Result:=GenScope.OverloadName;
         if Result='' then
           Result:=GenEl.Name+'$';
-        Result:=Result+'s'+IntToStr(ProcScope.SpecializedFromItem.Index);
+        Result:=Result+'G'+IntToStr(ProcScope.SpecializedFromItem.Index+1);
         end
       else
         Result:=ProcScope.OverloadName;
@@ -23752,6 +23747,15 @@ var
          and not TPasProcedure(Proc).IsStatic;
   end;
 
+  function ProcHasNoSelf(Proc: TPasProcedure): boolean;
+  begin
+    if Proc=nil then exit(false);
+    if not (Proc.Parent is TPasMembersType) then
+      exit(true);
+    if Proc.IsStatic then exit(true);
+    Result:=false;
+  end;
+
   procedure Append_GetClass(Member: TPasElement);
   var
     P: TPasElement;
@@ -23928,10 +23932,18 @@ begin
     if El.Parent=nil then
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
 
-    if (coShortRefGlobals in Options) and (El is TPasType) and (Kind=rpkPathAndName) then
+    if (coShortRefGlobals in Options) and (Kind=rpkPathAndName) then
       begin
-      Result:=CreateGlobalTypePath(TPasType(El),AContext);
-      exit;
+      if (El is TPasType) then
+        begin
+        Result:=CreateGlobalTypePath(TPasType(El),AContext);
+        exit;
+        end
+      else if (El is TPasProcedure) and ProcHasNoSelf(TPasProcedure(El)) then
+        begin
+        Result:=CreateStaticProcPath(TPasProcedure(El),AContext);
+        exit;
+        end;
       end;
 
     El:=ImplToDecl(El);
@@ -24126,12 +24138,27 @@ function TPasToJSConverter.CreateGlobalTypePath(El: TPasType;
   AContext: TConvertContext): string;
 var
   aType: TPasType;
-  Parent: TPasElement;
-  CurModule: TPasModule;
-  ShortRefGlobals: Boolean;
 begin
   aType:=AContext.Resolver.ResolveAliasType(El);
-  Result:=AContext.GetLocalName(aType,[cvkGlobal]);
+  Result:=CreateGlobalElPath(aType,AContext);
+end;
+
+function TPasToJSConverter.CreateStaticProcPath(El: TPasProcedure;
+  AContext: TConvertContext): string;
+begin
+  if (not El.IsStatic) and (El.Parent is TPasMembersType) then
+    RaiseNotSupported(El,AContext,20200925104007);
+  Result:=CreateGlobalElPath(El,AContext);
+end;
+
+function TPasToJSConverter.CreateGlobalElPath(El: TPasElement;
+  AContext: TConvertContext): string;
+var
+  ShortRefGlobals: Boolean;
+  Parent: TPasElement;
+  CurModule: TPasModule;
+begin
+  Result:=AContext.GetLocalName(El,[cvkGlobal]);
   if Result<>'' then
     exit; // already exists
   ShortRefGlobals:=coShortRefGlobals in Options;
@@ -24157,8 +24184,8 @@ begin
   else if Parent is TPasModule then
     Result:=TransformModuleName(TPasModule(Parent),true,AContext)
   else
-    RaiseNotSupported(El,AContext,20200609230526,GetObjName(aType));
-  Result:=Result+'.'+TransformElToJSName(aType,AContext);
+    RaiseNotSupported(El,AContext,20200609230526,GetObjPath(El));
+  Result:=Result+'.'+TransformElToJSName(El,AContext);
   if ShortRefGlobals then
     Result:=CreateGlobalAlias(El,Result,AContext);
 end;
@@ -25947,12 +25974,13 @@ begin
       Result:=GetBIName(pbivnLocalModuleRef)
     else if El is TPasType then
       Result:=GetBIName(pbivnLocalTypeRef)
+    else if El is TPasProcedure then
+      Result:=GetBIName(pbivnLocalProcRef)
     else
       RaiseNotSupported(El,AContext,20200608160225);
     Result:=FuncContext.CreateLocalIdentifier(Result);
     SectionContext.AddLocalVar(Result,El,cvkGlobal,false);
 
-    // ToDo: check if from a unit used by impl uses section
     if aResolver.ImplementationUsesUnit(ElModule) then
       begin
       // insert var $lm = null;

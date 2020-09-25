@@ -1720,7 +1720,7 @@ begin
   CheckSource('TestGenProc_Function_ObjFPC',
     LinesToStr([ // statements
     'this.w = 0;',
-    'this.Run$s0 = function (a) {',
+    'this.Run$G1 = function (a) {',
     '  var Result = 0;',
     '  var i = 0;',
     '  a = i;',
@@ -1729,7 +1729,7 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.w = $mod.Run$s0(3);',
+    '$mod.w = $mod.Run$G1(3);',
     '']));
 end;
 
@@ -1752,7 +1752,7 @@ begin
   CheckSource('TestGenProc_Function_Delphi',
     LinesToStr([ // statements
     'this.w = 0;',
-    'this.Run$s0 = function (a) {',
+    'this.Run$G1 = function (a) {',
     '  var Result = 0;',
     '  var i = 0;',
     '  a = i;',
@@ -1761,7 +1761,7 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.w = $mod.Run$s0(3);',
+    '$mod.w = $mod.Run$G1(3);',
     '']));
 end;
 
@@ -1784,20 +1784,20 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_Overload',
     LinesToStr([ // statements
-    'this.DoIt$s0 = function (a, w) {',
+    'this.DoIt$G1 = function (a, w) {',
     '};',
-    'this.DoIt$s1 = function (a, w) {',
+    'this.DoIt$G2 = function (a, w) {',
     '};',
-    'this.DoIt$1s0 = function (a, b) {',
+    'this.DoIt$1G1 = function (a, b) {',
     '};',
-    'this.DoIt$1s1 = function (a, b) {',
+    'this.DoIt$1G2 = function (a, b) {',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt$s0(3, 4);',
-    '$mod.DoIt$s1(false, 5);',
-    '$mod.DoIt$1s0(6, true);',
-    '$mod.DoIt$1s1(7.3, true);',
+    '$mod.DoIt$G1(3, 4);',
+    '$mod.DoIt$G2(false, 5);',
+    '$mod.DoIt$1G1(6, true);',
+    '$mod.DoIt$1G2(7.3, true);',
     '']));
 end;
 
@@ -1817,15 +1817,15 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_infer_OverloadForward',
     LinesToStr([ // statements
-    'this.Run$s0 = function (a, b) {',
-    '  $mod.Run$s0(1, true);',
+    'this.Run$G1 = function (a, b) {',
+    '  $mod.Run$G1(1, true);',
     '};',
-    'this.Run$s1 = function (a, b) {',
-    '  $mod.Run$s0(1, true);',
+    'this.Run$G2 = function (a, b) {',
+    '  $mod.Run$G1(1, true);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Run$s1(1.3, true);',
+    '$mod.Run$G2(1.3, true);',
     '']));
 end;
 
@@ -1857,20 +1857,20 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_infer_OverloadForward',
     LinesToStr([ // statements
-    'this.Run$s0 = function (a, b) {',
-    '  $mod.Run$s0(1, true);',
-    '  $mod.Run$1s0(2, 3);',
-    '  $mod.Run$2s0("foo", "bar");',
+    'this.Run$G1 = function (a, b) {',
+    '  $mod.Run$G1(1, true);',
+    '  $mod.Run$1G1(2, 3);',
+    '  $mod.Run$2G1("foo", "bar");',
     '};',
-    'this.Run$1s0 = function (a, w) {',
+    'this.Run$1G1 = function (a, w) {',
     '};',
-    'this.Run$2s0 = function (a, b) {',
+    'this.Run$2G1 = function (a, b) {',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Run$s0(1, true);',
-    '$mod.Run$1s0(2, 3);',
-    '$mod.Run$2s0("foo", "bar");',
+    '$mod.Run$G1(1, true);',
+    '$mod.Run$1G1(2, 3);',
+    '$mod.Run$2G1("foo", "bar");',
     '']));
 end;
 
@@ -1894,20 +1894,20 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_TypeInfo',
     LinesToStr([ // statements
-    'this.Run$s0 = function (a) {',
+    'this.Run$G1 = function (a) {',
     '  var p = null;',
     '  p = rtl.word;',
     '  p = rtl.word;',
     '};',
-    'this.Run$s1 = function (a) {',
+    'this.Run$G2 = function (a) {',
     '  var p = null;',
     '  p = rtl.string;',
     '  p = rtl.string;',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Run$s0(3);',
-    '$mod.Run$s1("foo");',
+    '$mod.Run$G1(3);',
+    '$mod.Run$G2("foo");',
     '']));
 end;
 
@@ -1931,21 +1931,21 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_Infer_Widen',
     LinesToStr([ // statements
-    'this.Run$s0 = function (a, b) {',
+    'this.Run$G1 = function (a, b) {',
     '};',
-    'this.Run$s1 = function (a, b) {',
+    'this.Run$G2 = function (a, b) {',
     '};',
-    'this.Run$s2 = function (a, b) {',
+    'this.Run$G3 = function (a, b) {',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Run$s0(1, 2);',
-    '$mod.Run$s0(2, 2);',
-    '$mod.Run$s1(3, 2);',
-    '$mod.Run$s1(4, 2);',
-    '$mod.Run$s1(5, 2);',
-    '$mod.Run$s2("a", "foo");',
-    '$mod.Run$s2("bar", "c");',
+    '$mod.Run$G1(1, 2);',
+    '$mod.Run$G1(2, 2);',
+    '$mod.Run$G2(3, 2);',
+    '$mod.Run$G2(4, 2);',
+    '$mod.Run$G2(5, 2);',
+    '$mod.Run$G3("a", "foo");',
+    '$mod.Run$G3("bar", "c");',
     '']));
 end;
 
@@ -1967,17 +1967,17 @@ begin
   ConvertProgram;
   CheckSource('TestGenProc_Infer_PassAsArg',
     LinesToStr([ // statements
-    'this.Run$s0 = function (a) {',
+    'this.Run$G1 = function (a) {',
     '  var Result = 0;',
     '  var b = 0;',
-    '  $mod.Run$s0($mod.Run$s0(3));',
-    '  $mod.Run$s0($mod.Run$s0(4));',
+    '  $mod.Run$G1($mod.Run$G1(3));',
+    '  $mod.Run$G1($mod.Run$G1(4));',
     '  return Result;',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.Run$s0($mod.Run$s0(5));',
-    '$mod.Run$s0($mod.Run$s0(6));',
+    '$mod.Run$G1($mod.Run$G1(5));',
+    '$mod.Run$G1($mod.Run$G1(6));',
     '']));
 end;
 
@@ -2019,22 +2019,22 @@ begin
     '  };',
     '  this.$final = function () {',
     '  };',
-    '  this.Run$s0 = function (a, b) {',
-    '    this.Run$s0(1, true);',
-    '    this.Run$1s0(2, 3);',
-    '    this.Run$2s0("foo", "bar");',
+    '  this.Run$G1 = function (a, b) {',
+    '    this.Run$G1(1, true);',
+    '    this.Run$1G1(2, 3);',
+    '    this.Run$2G1("foo", "bar");',
     '  };',
-    '  this.Run$1s0 = function (a, w) {',
+    '  this.Run$1G1 = function (a, w) {',
     '  };',
-    '  this.Run$2s0 = function (a, b) {',
+    '  this.Run$2G1 = function (a, b) {',
     '  };',
     '});',
     'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.o.Run$s0(1, true);',
-    '$mod.o.Run$1s0(2, 3);',
-    '$mod.o.Run$2s0("foo", "bar");',
+    '$mod.o.Run$G1(1, true);',
+    '$mod.o.Run$1G1(2, 3);',
+    '$mod.o.Run$2G1("foo", "bar");',
     '']));
 end;
 
