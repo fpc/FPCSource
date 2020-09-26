@@ -25422,7 +25422,8 @@ begin
         RaiseNotSupported(El,AContext,20190105104054);
       // local record type elevated to global scope
       Src:=TJSSourceElements(AContext.JSElement);
-      VarSt:=CreateVarStatement(TransformElToJSName(El,AContext),Call,El);
+      JSName:=TransformElToJSName(El,AContext);
+      VarSt:=CreateVarStatement(JSName,Call,El);
       AddToSourceElements(Src,VarSt); // keep Result=nil
       // add parameter: parent = null
       Call.AddArg(CreateLiteralNull(El));
@@ -25459,7 +25460,7 @@ begin
     FuncContext.ThisVar.Element:=El;
     FuncContext.ThisVar.Kind:=cvkGlobal;
 
-    if coShortRefGlobals in Options then
+    if (coShortRefGlobals in Options) and not (El.Parent is TProcedureBody) then
       begin
       // $lt = this;
       JSName:=AContext.GetLocalName(El,[cvkGlobal]);
