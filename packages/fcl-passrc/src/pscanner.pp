@@ -4200,7 +4200,7 @@ var
   s: string;
   l: integer;
   {$endif}
-  LE : String[2];
+  LE : String{$ifdef fpc}[2]{$endif};
 
   procedure FetchCurTokenString; inline;
   begin
@@ -4327,7 +4327,7 @@ begin
     '(':
       begin
       Inc(FTokenPos);
-      if {$ifdef UsePChar}FTokenPos[0] = '.'{$else}(FTokenPos>l) or (s[FTokenPos]<>'.'){$endif} then
+      if {$ifdef UsePChar}FTokenPos[0] = '.'{$else}(FTokenPos<=l) and (s[FTokenPos]='.'){$endif} then
         begin
         Inc(FTokenPos);
         Result := tkSquaredBraceOpen;
@@ -4519,7 +4519,7 @@ begin
         Inc(FTokenPos);
       until {$ifdef UsePChar}not (FTokenPos[0] in Digits){$else}(FTokenPos>l) or not (s[FTokenPos] in Digits){$endif};
       if {$ifdef UsePChar}(FTokenPos[0]='.') and (FTokenPos[1]<>'.') and (FTokenPos[1]<>')'){$else}
-          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or (s[FTokenPos+1]<>'.') and ((FTokenPos=l) or (s[FTokenPos+1]<>')')){$endif}then
+          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or ((s[FTokenPos+1]<>'.') and (s[FTokenPos+1]<>')'))){$endif}then
         begin
         inc(FTokenPos);
         while {$ifdef UsePChar}FTokenPos[0] in Digits{$else}(FTokenPos<=l) and (s[FTokenPos] in Digits){$endif} do
