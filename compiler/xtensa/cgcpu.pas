@@ -621,6 +621,7 @@ implementation
           begin
             instr:=taicpu.op_reg_sym(A_B,f.register,l);
             instr.condition:=flags_to_cond(f.flag);
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else
@@ -905,6 +906,7 @@ implementation
             end;     
             instr:=taicpu.op_reg_sym(A_B,reg,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else if is_b4const(a) and
@@ -921,6 +923,7 @@ implementation
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else if is_b4constu(a) and
@@ -935,6 +938,7 @@ implementation
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else
@@ -958,6 +962,7 @@ implementation
 
         instr:=taicpu.op_reg_reg_sym(A_B,reg2,reg1,l);
         instr.condition:=TOpCmp2AsmCond[cmp_op];
+        instr.is_jmp:=true;
         list.concat(instr);
       end;
 
