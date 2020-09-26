@@ -123,11 +123,11 @@ resourcestring
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Records';
   SParserNoFieldsAllowedInX = 'Fields are not allowed in %s';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
-  SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location.';
-  SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location.';
-  SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
-  SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
-  SErrRecordTypesNotAllowed = 'Record types not allowed at this location.';
+  SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location';
+  SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location';
+  SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location';
+  SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location';
+  SErrRecordTypesNotAllowed = 'Record types not allowed at this location';
   SParserTypeNotAllowedHere = 'Type "%s" not allowed here';
   SParserNotAnOperand = 'Not an operand: (%d : %s)';
   SParserArrayPropertiesCannotHaveDefaultValue = 'Array properties cannot have default value';

@@ -63,6 +63,7 @@ type
     procedure TestOptShortRefGlobals_GenericFunction;
     procedure TestOptShortRefGlobals_SameUnit_EnumType;
     procedure TestOptShortRefGlobals_SameUnit_ClassType;
+    procedure TestOptShortRefGlobals_SameUnit_RecordType;
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
@@ -619,7 +620,7 @@ begin
   'end;',
   '']);
   ConvertUnit;
-  CheckSource('TestOptShortRefGlobals_SameUnit_EnumType',
+  CheckSource('TestOptShortRefGlobals_SameUnit_ClassType',
     LinesToStr([
     'var $impl = $mod.$impl;',
     'var $lt = null;',
@@ -663,6 +664,115 @@ begin
     LinesToStr([
     'rtl.createClass($impl, "TFrog", $lt4, function () {',
     '  $lt3 = this;',
+    '});',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_RecordType;
+begin
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  '{$modeswitch advancedrecords}',
+  'interface',
+  'type',
+  '  TAnt = record',
+  '  type',
+  '    TLeg = record',
+  '      l: word;',
+  '    end;',
+  '    procedure Run;',
+  '    Leg: TLeg;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TBird = record',
+  '    b: word;',
+  '  end;',
+  'procedure TAnt.Run;',
+  'type',
+  '  TFoot = record',
+  '    f: word;',
+  '  end;',
+  'var',
+  '  b: TBird;',
+  '  l: TLeg;',
+  '  a: TAnt;',
+  '  f: TFoot;',
+  'begin',
+  '  b.b:=1;',
+  '  l.l:=2;',
+  '  a.Leg.l:=3;',
+  '  f.f:=4;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_RecordType',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
+    'rtl.recNewT(this, "TAnt", function () {',
+    '  $lt = this;',
+    '  rtl.recNewT($lt, "TLeg", function () {',
+    '    $lt1 = this;',
+    '    this.l = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.l === b.l;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.l = s.l;',
+    '      return this;',
+    '    };',
+    '  });',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.Leg = $lt1.$new();',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return this.Leg.$eq(b.Leg);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.Leg.$assign(s.Leg);',
+    '    return this;',
+    '  };',
+    '  var TFoot = rtl.recNewT(null, "", function () {',
+    '    this.f = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.f === b.f;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.f = s.f;',
+    '      return this;',
+    '    };',
+    '  });',
+    '  this.Run = function () {',
+    '    var b = $lt2.$new();',
+    '    var l = $lt1.$new();',
+    '    var a = $lt.$new();',
+    '    var f = TFoot.$new();',
+    '    b.b = 1;',
+    '    l.l = 2;',
+    '    a.Leg.l = 3;',
+    '    f.f = 4;',
+    '  };',
+    '}, true);',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'rtl.recNewT($impl, "TBird", function () {',
+    '  $lt2 = this;',
+    '  this.b = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.b === b.b;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.b = s.b;',
+    '    return this;',
+    '  };',
     '});',
     '']));
 end;
