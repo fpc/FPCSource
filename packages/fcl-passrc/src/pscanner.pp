@@ -4196,11 +4196,11 @@ var
   {$ifdef UsePChar}
   OldLength: integer;
   Ch: Char;
+  LE: string[2];
   {$else}
   s: string;
   l: integer;
   {$endif}
-  LE : String{$ifdef fpc}[2]{$endif};
 
   procedure FetchCurTokenString; inline;
   begin
@@ -4336,7 +4336,9 @@ begin
         Result := tkBraceOpen
       else
         begin
+        {$ifdef UsePChar}
         LE:=LineEnding;
+        {$endif}
         // Old-style multi-line comment
         Inc(FTokenPos);
         TokenStart := FTokenPos;
@@ -4353,13 +4355,11 @@ begin
             SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
             if SectionLength > 0 then
               Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
-
-            // Corrected JC: Append the correct lineending
             Inc(OldLength, SectionLength);
             for Ch in LE do
               begin
-                Inc(OldLength);
-                FCurTokenString[OldLength] := Ch;
+              Inc(OldLength);
+              FCurTokenString[OldLength] := Ch;
               end;
             {$else}
             FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
@@ -4654,11 +4654,11 @@ begin
       end;
     '{':        // Multi-line comment
       begin
-      LE:=LineEnding;
       Inc(FTokenPos);
       TokenStart := FTokenPos;
       FCurTokenString := '';
       {$ifdef UsePChar}
+      LE:=LineEnding;
       OldLength := 0;
       {$endif}
       NestingLevel := 0;
