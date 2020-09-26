@@ -33,6 +33,8 @@ interface
        protected
          function first_real_to_real: tnode;override;
          procedure second_int_to_bool;override;
+         procedure second_int_to_real;override;
+         function first_int_to_real: tnode;override;
        end;
 
 implementation
@@ -67,7 +69,7 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610151);
+                    internalerror(2020092603);
                 end;
               s64real:
                 case tfloatdef(resultdef).floattype of
@@ -80,10 +82,10 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610152);
+                    internalerror(2020092602);
                 end;
               else
-                internalerror(200610153);
+                internalerror(2020092601);
             end;
             left:=nil;
             firstpass(result);
@@ -92,7 +94,6 @@ implementation
         else
           Result := inherited first_real_to_real;
       end;
-
 
 
     procedure tcputypeconvnode.second_int_to_bool;
@@ -186,6 +187,41 @@ implementation
           location.register:=hreg1;
       end;
 
+
+    function tcputypeconvnode.first_int_to_real: tnode;
+      var
+        fname: string[19];
+      begin
+        if (cs_fp_emulation in current_settings.moduleswitches) or
+          (current_settings.fputype=fpu_soft) or
+          not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) or
+          ((is_double(resultdef)) and not(FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype])) or
+          is_64bitint(left.resultdef) or
+          is_currency(left.resultdef) or
+          (is_32bit(left.resultdef) and not(is_signed(left.resultdef))) then
+          result:=inherited first_int_to_real
+        else
+          begin
+            { other integers are supposed to be 32 bit }
+            inserttypeconv(left,s32inttype);
+            firstpass(left);
+            result:=nil;
+            expectloc:=LOC_FPUREGISTER;
+          end;
+      end;
+
+
+    procedure tcputypeconvnode.second_int_to_real;
+      var
+        ai: taicpu;
+      begin
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,s32inttype,true);
+        ai:=taicpu.op_reg_reg_const(A_FLOAT,location.register,left.location.register,0);
+        ai.oppostfix:=PF_S;
+        current_asmdata.CurrAsmList.concat(ai);
+      end;
 
 begin
   ctypeconvnode:=tcputypeconvnode;

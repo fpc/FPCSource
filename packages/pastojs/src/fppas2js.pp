@@ -466,7 +466,6 @@ interface
 
 uses
   {$ifdef pas2js}
-  js,
   {$else}
   AVL_Tree,
   {$endif}
@@ -1673,6 +1672,7 @@ type
     function GetContextOfPasElement(El: TPasElement): TConvertContext;
     function GetFuncContextOfPasElement(El: TPasElement): TFunctionContext;
     function GetContextOfType(aType: TConvertContextClass): TConvertContext;
+    function GetMainSectionContext: TFunctionContext;
     function CurrentModeSwitches: TModeSwitches;
     function GetGlobalFunc: TFunctionContext;
     procedure WriteStack;
@@ -1922,7 +1922,9 @@ type
     Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
       ErrorEl: TPasElement; Full: boolean = false): String; virtual;
     Function TransformArgName(Arg: TPasArgument; AContext: TConvertContext): string; virtual;
-    Function CreateGlobalAlias(El: TPasElement; JSPath: string; AContext: TConvertContext): string; virtual;
+    Function CreateGlobalAliasForeign(El: TPasElement; JSPath: string; AContext: TConvertContext): string; virtual; // El in other module
+    Function CreateGlobalAliasNull(El: TPasElement; Prefix: TPas2JSBuiltInName;
+      SectionContext: TSectionContext): TFCLocalIdentifier; virtual;
     // utility functions for creating stuff
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
@@ -7539,6 +7541,18 @@ begin
       exit(ctx);
     ctx:=ctx.Parent;
   until ctx=nil;
+end;
+
+function TConvertContext.GetMainSectionContext: TFunctionContext;
+var
+  Ctx: TConvertContext;
+begin
+  Ctx:=Self;
+  repeat
+    if Ctx is TSectionContext then
+      Result:=TSectionContext(Ctx);
+    Ctx:=Ctx.Parent;
+  until Ctx=nil;
 end;
 
 function TConvertContext.CurrentModeSwitches: TModeSwitches;
@@ -14650,6 +14664,29 @@ Var
       end;
   end;
 
+  procedure InitForwards(Decls: TFPList; SectionContext: TSectionContext);
+  var
+    i: Integer;
+    P: TPasElement;
+    C: TClass;
+  begin
+    For i:=0 to Decls.Count-1 do
+      begin
+      P:=TPasElement(Decls[i]);
+      if not IsElementUsed(P) then continue;
+      C:=P.ClassType;
+      if (C=TPasClassType) and TPasClassType(P).IsForward then
+        continue;
+      if (C=TPasClassType) or (C=TPasRecordType) or (C=TPasEnumType) then
+        begin
+        // add var $lt = null;
+        CreateGlobalAliasNull(P,pbivnLocalTypeRef,SectionContext);
+        if (C=TPasClassType) or (C=TPasRecordType) then
+          InitForwards(TPasMembersType(P).Members,SectionContext);
+        end;
+      end;
+  end;
+
   procedure InitSection(Section: TPasSection);
   var
     SectionScope: TPas2JSSectionScope;
@@ -14665,6 +14702,18 @@ Var
     SectionCtx:=TSectionContext(AContext);
     Src:=SectionCtx.JSElement as TJSSourceElements;
     SectionCtx.HeaderIndex:=Src.Statements.Count;
+
+    // add local vars for forward declarations
+    if (coShortRefGlobals in Options)
+        and (Section.ClassType<>TImplementationSection) then
+      begin
+      InitForwards(Section.Declarations,TSectionContext(AContext));
+      if Section is TInterfaceSection then
+        begin
+        InitForwards(TPasModule(Section.Parent).ImplementationSection.Declarations,
+                     TSectionContext(AContext));
+        end;
+      end;
   end;
 
 var
@@ -14846,7 +14895,7 @@ var
   P: TPasElement;
   Scope: TPas2JSClassScope;
   Ancestor: TPasType;
-  AncestorPath, OwnerName, DestructorName, FnName, IntfKind: String;
+  AncestorPath, OwnerName, DestructorName, FnName, IntfKind, JSName: String;
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
   NeedInitFunction, HasConstructor, IsJSFunction, NeedClassExt,
@@ -14926,7 +14975,8 @@ begin
     Call.AddArg(CreatePrimitiveDotExpr(OwnerName,El));
 
     // add parameter: string constant '"classname"'
-    ArgEx := CreateLiteralString(El,TransformElToJSName(El,AContext));
+    JSName:=TransformElToJSName(El,AContext);
+    ArgEx:=CreateLiteralString(El,JSName);
     Call.AddArg(ArgEx);
 
     if El.ObjKind=okInterface then
@@ -14984,6 +15034,18 @@ begin
       FuncContext.IsGlobal:=true;
       FuncContext.ThisVar.Element:=El;
       FuncContext.ThisVar.Kind:=cvkGlobal;
+
+      if coShortRefGlobals in Options then
+        begin
+        // $lt = this;
+        JSName:=AContext.GetLocalName(El,[cvkGlobal]);
+        if JSName='' then
+          RaiseNotSupported(El,AContext,20200926232402);
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreatePrimitiveDotExpr(JSName,El);
+        AssignSt.Expr:=CreatePrimitiveDotExpr('this',El);
+        AddToSourceElements(Src,AssignSt);
+        end;
 
       if IntfKind<>'' then
         begin
@@ -15278,6 +15340,8 @@ function TPasToJSConverter.ConvertEnumType(El: TPasEnumType;
 //     minvalue: 0,
 //     maxvalue: 1
 //   });
+//  coShortRefGlobals:
+//  $lt = this.TMyEnum ...
 var
   ObjectContect: TObjectContext;
   i: Integer;
@@ -15285,7 +15349,7 @@ var
   ParentObj, Obj, TIObj: TJSObjectLiteral;
   ObjLit, TIProp: TJSObjectLiteralElement;
   AssignSt: TJSSimpleAssignStatement;
-  JSName: TJSString;
+  JSName: string;
   Call: TJSCallExpression;
   List: TJSStatementList;
   ok: Boolean;
@@ -15293,6 +15357,7 @@ var
   Src: TJSSourceElements;
   ProcScope: TPas2JSProcedureScope;
   VarSt: TJSVariableStatement;
+  SectionContext: TSectionContext;
 begin
   Result:=nil;
   for i:=0 to El.Values.Count-1 do
@@ -15322,11 +15387,14 @@ begin
     else if El.Parent is TProcedureBody then
       begin
       // add 'var TypeName = {}'
-      VarSt:=CreateVarStatement(TransformElToJSName(El,AContext),Obj,El);
+      JSName:=TransformElToJSName(El,AContext);
+      VarSt:=CreateVarStatement(JSName,Obj,El);
       if AContext.JSElement is TJSSourceElements then
         begin
         Src:=TJSSourceElements(AContext.JSElement);
         AddToSourceElements(Src,VarSt); // keep Result=nil
+        if AContext is TFunctionContext then
+          TFunctionContext(AContext).AddLocalVar(JSName,El,cvkGlobal,false);
         end
       else
         Result:=VarSt;
@@ -15338,20 +15406,32 @@ begin
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
       Result:=AssignSt;
+      if coShortRefGlobals in Options then
+        begin
+        SectionContext:=TSectionContext(AContext.GetMainSectionContext);
+        JSName:=SectionContext.GetLocalName(El,[cvkGlobal]);
+        if JSName='' then
+          RaiseNotSupported(El,AContext,20200926232620);
+        // $lt = this.TypeName = {}
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreatePrimitiveDotExpr(JSName,El);
+        AssignSt.Expr:=Result;
+        Result:=AssignSt;
+        end;
       end;
 
     ObjectContect:=TObjectContext.Create(El,Obj,AContext);
     for i:=0 to El.Values.Count-1 do
       begin
       EnumValue:=TPasEnumValue(El.Values[i]);
-      JSName:=TJSString(TransformElToJSName(EnumValue,AContext));
+      JSName:=TransformElToJSName(EnumValue,AContext);
       // add "0":"value"
       ObjLit:=Obj.Elements.AddElement;
       ObjLit.Name:=TJSString(IntToStr(i));
-      ObjLit.Expr:=CreateLiteralJSString(El,JSName);
+      ObjLit.Expr:=CreateLiteralJSString(El,TJSString(JSName));
       // add value:0
       ObjLit:=Obj.Elements.AddElement;
-      ObjLit.Name:=JSName;
+      ObjLit.Name:=TJSString(JSName);
       ObjLit.Expr:=CreateLiteralNumber(El,i);
       end;
 
@@ -16930,11 +17010,9 @@ var
   SectionCtx: TSectionContext;
 begin
   if JS=nil then exit;
-  SectionCtx:=TSectionContext(aContext.GetContextOfType(TSectionContext));
+  SectionCtx:=TSectionContext(aContext.GetMainSectionContext);
   if SectionCtx=nil then
     RaiseNotSupported(PosEl,aContext,20200606142555);
-  if SectionCtx.Parent is TSectionContext then
-    SectionCtx:=TSectionContext(SectionCtx.Parent);
   SectionCtx.AddHeaderStatement(JS);
 end;
 
@@ -24187,7 +24265,7 @@ begin
     RaiseNotSupported(El,AContext,20200609230526,GetObjPath(El));
   Result:=Result+'.'+TransformElToJSName(El,AContext);
   if ShortRefGlobals then
-    Result:=CreateGlobalAlias(El,Result,AContext);
+    Result:=CreateGlobalAliasForeign(El,Result,AContext);
 end;
 
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;
@@ -25299,7 +25377,7 @@ var
   DelaySrc: TJSSourceElements;
   DelayFuncContext: TFunctionContext;
   Call: TJSCallExpression;
-  JSParentName: String;
+  JSParentName, JSName: String;
   FunDecl: TJSFunctionDeclarationStatement;
   Src: TJSSourceElements;
   FuncContext: TFunctionContext;
@@ -25312,6 +25390,7 @@ var
   NewFields, Vars, Methods: TFPList;
   ok, IsComplex, SpecializeDelay: Boolean;
   VarSt: TJSVariableStatement;
+  AssignSt: TJSSimpleAssignStatement;
 begin
   Result:=nil;
   if El.Name='' then
@@ -25343,7 +25422,8 @@ begin
         RaiseNotSupported(El,AContext,20190105104054);
       // local record type elevated to global scope
       Src:=TJSSourceElements(AContext.JSElement);
-      VarSt:=CreateVarStatement(TransformElToJSName(El,AContext),Call,El);
+      JSName:=TransformElToJSName(El,AContext);
+      VarSt:=CreateVarStatement(JSName,Call,El);
       AddToSourceElements(Src,VarSt); // keep Result=nil
       // add parameter: parent = null
       Call.AddArg(CreateLiteralNull(El));
@@ -25379,6 +25459,18 @@ begin
     FuncContext.IsGlobal:=true;
     FuncContext.ThisVar.Element:=El;
     FuncContext.ThisVar.Kind:=cvkGlobal;
+
+    if (coShortRefGlobals in Options) and not (El.Parent is TProcedureBody) then
+      begin
+      // $lt = this;
+      JSName:=AContext.GetLocalName(El,[cvkGlobal]);
+      if JSName='' then
+        RaiseNotSupported(El,AContext,20200926235501);
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=CreatePrimitiveDotExpr(JSName,El);
+      AssignSt.Expr:=CreatePrimitiveDotExpr('this',El);
+      AddToSourceElements(Src,AssignSt);
+      end;
 
     // init fields
     NewFields:=TFPList.Create;
@@ -25692,7 +25784,7 @@ begin
       Result:=GetBIName(pbivnModules)+'.'+Result;
 
     if coShortRefGlobals in Options then
-      Result:=CreateGlobalAlias(El,Result,AContext);
+      Result:=CreateGlobalAliasForeign(El,Result,AContext);
     end;
 end;
 
@@ -25939,7 +26031,7 @@ begin
     Result:=TransformToJSName(Arg,Result,true,AContext);
 end;
 
-function TPasToJSConverter.CreateGlobalAlias(El: TPasElement; JSPath: string;
+function TPasToJSConverter.CreateGlobalAliasForeign(El: TPasElement; JSPath: string;
   AContext: TConvertContext): string;
 var
   ElModule, MyModule: TPasModule;
@@ -25965,9 +26057,7 @@ begin
   else
     begin
     // El is from another unit
-    SectionContext:=TSectionContext(AContext.GetContextOfType(TSectionContext));
-    if SectionContext.Parent is TSectionContext then
-      SectionContext:=TSectionContext(SectionContext.Parent);
+    SectionContext:=TSectionContext(AContext.GetMainSectionContext);
 
     FuncContext:=AContext.GetFunctionContext;
     if El is TPasModule then
@@ -26001,6 +26091,18 @@ begin
       AddHeaderStatement(V,El,SectionContext);
       end;
     end;
+end;
+
+function TPasToJSConverter.CreateGlobalAliasNull(El: TPasElement;
+  Prefix: TPas2JSBuiltInName; SectionContext: TSectionContext
+  ): TFCLocalIdentifier;
+var
+  V: TJSVariableStatement;
+begin
+  // insert var $lt = null;
+  Result:=SectionContext.AddLocalVar(GetBIName(Prefix),El,cvkGlobal,true);
+  V:=CreateVarStatement(Result.Name,CreateLiteralNull(El),El);
+  AddHeaderStatement(V,El,SectionContext);
 end;
 
 function TPasToJSConverter.ConvertPasElement(El: TPasElement;

@@ -113,6 +113,7 @@ type
                      varerror : (verror : hresult);
                      varboolean : (vboolean : wordbool);
                      varunknown : (vunknown : pointer);
+                     varustring : (vustring : pointer);
                      // vardecimal : ( : );
                      varshortint : (vshortint : shortint);
                      varbyte : (vbyte : byte);

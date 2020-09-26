@@ -69,6 +69,8 @@ interface
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);override;
+
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
 
         procedure g_concatcopy(list : TAsmList; const source,dest : treference; len : tcgint);override;
@@ -621,6 +623,7 @@ implementation
           begin
             instr:=taicpu.op_reg_sym(A_B,f.register,l);
             instr.condition:=flags_to_cond(f.flag);
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else
@@ -905,6 +908,7 @@ implementation
             end;     
             instr:=taicpu.op_reg_sym(A_B,reg,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else if is_b4const(a) and
@@ -921,6 +925,7 @@ implementation
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else if is_b4constu(a) and
@@ -935,6 +940,7 @@ implementation
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
+            instr.is_jmp:=true;
             list.concat(instr);
           end
         else
@@ -958,6 +964,7 @@ implementation
 
         instr:=taicpu.op_reg_reg_sym(A_B,reg2,reg1,l);
         instr.condition:=TOpCmp2AsmCond[cmp_op];
+        instr.is_jmp:=true;
         list.concat(instr);
       end;
 
@@ -1262,6 +1269,28 @@ implementation
           current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(offset));
+      end;
+
+
+    procedure tcgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
+      var
+        ai: taicpu;
+        tmpreg: TRegister;
+      begin
+        if reverse then
+          begin
+            list.Concat(taicpu.op_reg_reg(A_NSAU,dst,src));
+            tmpreg:=getintregister(list,OS_INT);
+            a_load_const_reg(list,OS_INT,31,tmpreg);
+            a_op_reg_reg_reg(list,OP_SUB,OS_INT,dst,tmpreg,dst);
+            tmpreg:=getintregister(list,OS_INT);
+            a_load_const_reg(list,OS_INT,255,tmpreg);
+            ai:=taicpu.op_reg_reg_reg(A_MOV,dst,tmpreg,src);
+            ai.condition:=C_EQZ;
+            list.Concat(ai);
+          end
+        else
+          Internalerror(2020092604);
       end;
 
 

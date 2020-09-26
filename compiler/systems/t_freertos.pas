@@ -1115,13 +1115,13 @@ begin
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32",');
-      writeln(t,'    "IDF_PATH": "'+idfpath+'",');
+      writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
       writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "kconfigs.in",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "kconfigs_projbuild.in"');
     end
   else
     begin
-      writeln(t,'    "IDF_PATH": "'+idfpath+'",');
+      writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
       writeln(t,'    "IDF_TARGET": "esp8266",');
       writeln(t,'    "IDF_CMAKE": "n"');
     end;
@@ -1161,9 +1161,17 @@ begin
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
-  binstr:='$IDF_PATH/tools/ldgen/ldgen.py';
+{$ifdef UNIX}
+  binstr:=TargetFixPath(idfpath,false)+'/tools/ldgen/ldgen.py';
+{$else}
+  binstr:='python';
+{$endif UNIX}
+  if source_info.exeext<>'' then
+    binstr:=binstr+source_info.exeext;
+  S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
-    cmdstr:='--config sdkconfig '+
+    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
+            '--config sdkconfig '+
             '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
             '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
             '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
@@ -1174,9 +1182,10 @@ begin
             '--kconfig $IDF_PATH/Kconfig '+
             '--env-file config.env '+
             '--libraries-file ldgen_libraries '+
-            '--objdump xtensa-esp32-elf-objdump'
+            '--objdump '+S
   else
-    cmdstr:='--config sdkconfig '+
+    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
+            '--config sdkconfig '+
             '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
             '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
             '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
@@ -1191,9 +1200,8 @@ begin
             '--kconfig $IDF_PATH/Kconfig '+
             '--env-file config.env '+
             '--libraries-file ldgen_libraries '+
-            '--objdump xtensa-lx106-elf-objdump';
+            '--objdump '+S;
 
-  Replace(binstr,'$IDF_PATH',idfpath);
   Replace(cmdstr,'$IDF_PATH',idfpath);
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=DoExec(binstr,cmdstr,true,false);
@@ -1262,10 +1270,18 @@ begin
 {$ifdef XTENSA}
   if success then
    begin
-      binstr:=idfpath+'/components/esptool_py/esptool/esptool.py';
+{$ifdef UNIX}
+      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+      cmdstr:='';
+{$else}
+      binstr:='python';
+      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+{$endif UNIX}
+      if source_info.exeext<>'' then
+        binstr:=binstr+source_info.exeext;
       if (current_settings.controllertype = ct_esp32) then
         begin
-          success:=DoExec(binstr,'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
+          success:=DoExec(binstr,cmdstr+'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
             '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--elf-sha256-offset 0xb0 '+
             '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
@@ -1274,7 +1290,7 @@ begin
         end
       else if (current_settings.controllertype = ct_esp8266) then
         begin
-          success:=DoExec(binstr,'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
+          success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
             '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--version=3 '+
             '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+

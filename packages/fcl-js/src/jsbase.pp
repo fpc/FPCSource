@@ -19,11 +19,9 @@ unit jsbase;
 
 interface
 
-uses
-  {$ifdef pas2js}
-  js,
-  {$endif}
-  Classes;
+{$ifdef pas2js}
+uses js;
+{$endif}
 
 const
   MinSafeIntDouble = -$1fffffffffffff; // -9007199254740991 53 bits (52 explicitly stored)

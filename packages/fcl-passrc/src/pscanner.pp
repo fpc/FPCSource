@@ -4196,11 +4196,11 @@ var
   {$ifdef UsePChar}
   OldLength: integer;
   Ch: Char;
+  LE: string[2];
   {$else}
   s: string;
   l: integer;
   {$endif}
-  LE : String[2];
 
   procedure FetchCurTokenString; inline;
   begin
@@ -4327,7 +4327,7 @@ begin
     '(':
       begin
       Inc(FTokenPos);
-      if {$ifdef UsePChar}FTokenPos[0] = '.'{$else}(FTokenPos>l) or (s[FTokenPos]<>'.'){$endif} then
+      if {$ifdef UsePChar}FTokenPos[0] = '.'{$else}(FTokenPos<=l) and (s[FTokenPos]='.'){$endif} then
         begin
         Inc(FTokenPos);
         Result := tkSquaredBraceOpen;
@@ -4336,7 +4336,9 @@ begin
         Result := tkBraceOpen
       else
         begin
+        {$ifdef UsePChar}
         LE:=LineEnding;
+        {$endif}
         // Old-style multi-line comment
         Inc(FTokenPos);
         TokenStart := FTokenPos;
@@ -4353,13 +4355,11 @@ begin
             SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
             if SectionLength > 0 then
               Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
-
-            // Corrected JC: Append the correct lineending
             Inc(OldLength, SectionLength);
             for Ch in LE do
               begin
-                Inc(OldLength);
-                FCurTokenString[OldLength] := Ch;
+              Inc(OldLength);
+              FCurTokenString[OldLength] := Ch;
               end;
             {$else}
             FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
@@ -4519,7 +4519,7 @@ begin
         Inc(FTokenPos);
       until {$ifdef UsePChar}not (FTokenPos[0] in Digits){$else}(FTokenPos>l) or not (s[FTokenPos] in Digits){$endif};
       if {$ifdef UsePChar}(FTokenPos[0]='.') and (FTokenPos[1]<>'.') and (FTokenPos[1]<>')'){$else}
-          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or (s[FTokenPos+1]<>'.') and ((FTokenPos=l) or (s[FTokenPos+1]<>')')){$endif}then
+          (FTokenPos<=l) and (s[FTokenPos]='.') and ((FTokenPos=l) or ((s[FTokenPos+1]<>'.') and (s[FTokenPos+1]<>')'))){$endif}then
         begin
         inc(FTokenPos);
         while {$ifdef UsePChar}FTokenPos[0] in Digits{$else}(FTokenPos<=l) and (s[FTokenPos] in Digits){$endif} do
@@ -4654,11 +4654,11 @@ begin
       end;
     '{':        // Multi-line comment
       begin
-      LE:=LineEnding;
       Inc(FTokenPos);
       TokenStart := FTokenPos;
       FCurTokenString := '';
       {$ifdef UsePChar}
+      LE:=LineEnding;
       OldLength := 0;
       {$endif}
       NestingLevel := 0;
