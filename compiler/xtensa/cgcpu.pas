@@ -69,6 +69,8 @@ interface
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);override;
+
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
 
         procedure g_concatcopy(list : TAsmList; const source,dest : treference; len : tcgint);override;
@@ -1267,6 +1269,28 @@ implementation
           current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(offset));
+      end;
+
+
+    procedure tcgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
+      var
+        ai: taicpu;
+        tmpreg: TRegister;
+      begin
+        if reverse then
+          begin
+            list.Concat(taicpu.op_reg_reg(A_NSAU,dst,src));
+            tmpreg:=getintregister(list,OS_INT);
+            a_load_const_reg(list,OS_INT,31,tmpreg);
+            a_op_reg_reg_reg(list,OP_SUB,OS_INT,dst,tmpreg,dst);
+            tmpreg:=getintregister(list,OS_INT);
+            a_load_const_reg(list,OS_INT,255,tmpreg);
+            ai:=taicpu.op_reg_reg_reg(A_MOV,dst,tmpreg,src);
+            ai.condition:=C_EQZ;
+            list.Concat(ai);
+          end
+        else
+          Internalerror(2020092604);
       end;
 
 

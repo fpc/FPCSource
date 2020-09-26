@@ -4619,6 +4619,16 @@ begin
     end;
 {$endif}
 
+{$if defined(xtensa)}
+  { it is determined during system unit compilation if nsau is used for bsr or not,
+    this is not perfect but the current implementation bsf/bsr does not allow another
+    solution }
+  if CPUXTENSA_HAS_NSAx in cpu_capabilities[init_settings.cputype] then
+    begin
+      def_system_macro('FPC_HAS_INTERNAL_BSR');
+    end;
+{$endif}
+
 {$if defined(powerpc64)}
   { on sysv targets, default to elfv2 for little endian and to elfv1 for
     big endian (unless specified otherwise). As the gcc man page says:
