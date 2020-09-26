@@ -62,6 +62,7 @@ type
     procedure TestOptShortRefGlobals_Property;
     procedure TestOptShortRefGlobals_GenericFunction;
     procedure TestOptShortRefGlobals_SameUnit_EnumType;
+    procedure TestOptShortRefGlobals_SameUnit_ClassType;
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
@@ -246,24 +247,26 @@ begin
   ConvertProgram;
   CheckSource('TestOptShortRefGlobals_Program',
     LinesToStr([
+    'var $lt = null;',
     'var $lm = pas.UnitA;',
-    'var $lt = $lm.TBird;',
-    'var $lt1 = $lm.TRec;',
-    'rtl.createClass(this, "TEagle", $lt, function () {',
+    'var $lt1 = $lm.TBird;',
+    'var $lt2 = $lm.TRec;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
     '  this.Run = function (w) {',
     '    var Result = 0;',
     '    return Result;',
     '  };',
     '});',
     'this.e = null;',
-    'this.r = $lt1.$new();',
+    'this.r = $lt2.$new();',
     'this.c = {};',
     '']),
     LinesToStr([
-    '$mod.e = $mod.TEagle.$create("Create");',
-    '$lm.b = $lt.$create("Create");',
-    '$lt.c = $mod.e.c + 1;',
-    '$mod.r.x = $lt.c;',
+    '$mod.e = $lt.$create("Create");',
+    '$lm.b = $lt1.$create("Create");',
+    '$lt1.c = $mod.e.c + 1;',
+    '$mod.r.x = $lt1.c;',
     '$mod.r.x = $lm.b.c;',
     '$mod.r.x = $mod.e.$class.Run(5);',
     '$mod.r.x = $mod.e.$class.Run(5);',
@@ -352,42 +355,46 @@ begin
   CheckSource('TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl',
     LinesToStr([
     'var $impl = $mod.$impl;',
-    'var $lm = pas.UnitA;',
-    'var $lt = $lm.TBird;',
-    'var $lm1 = null;',
+    'var $lt = null;',
     'var $lt1 = null;',
-    'var $lt2 = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt2 = $lm.TBird;',
+    'var $lm1 = null;',
     'var $lt3 = null;',
-    'rtl.createClass(this, "TEagle", $lt, function () {',
+    'var $lt4 = null;',
+    'var $lt5 = null;',
+    'rtl.createClass(this, "TEagle", $lt2, function () {',
+    '  $lt = this;',
     '  this.Fly = function () {',
-    '    $impl.TRedAnt.$create("Create");',
     '    $lt1.$create("Create");',
+    '    $lt3.$create("Create");',
+    '    $lt2.$create("Create");',
     '    $lt.$create("Create");',
-    '    $mod.TEagle.$create("Create");',
     '  };',
     '});',
     '']),
     LinesToStr([
-    '$impl.RedAnt = $impl.TRedAnt.$create("Create");',
-    '$impl.Ant = $lt1.$create("Create");',
-    '$impl.Bird = $lt.$create("Create");',
-    '$impl.Eagle = $mod.TEagle.$create("Create");',
-    '$lt3.$create("Create");',
+    '$impl.RedAnt = $lt1.$create("Create");',
+    '$impl.Ant = $lt3.$create("Create");',
+    '$impl.Bird = $lt2.$create("Create");',
+    '$impl.Eagle = $lt.$create("Create");',
+    '$lt5.$create("Create");',
     '$impl.Eagle.Fly();',
     '$impl.RedAnt.Run();',
     '']),
     LinesToStr([
     '$lm1 = pas.UnitB;',
-    '$lt1 = $lm1.TAnt;',
-    '$lt2 = $lm1.TBear;',
-    '$lt3 = $lm1.TFrog;',
-    'rtl.createClass($impl, "TRedAnt", $lt1, function () {',
+    '$lt3 = $lm1.TAnt;',
+    '$lt4 = $lm1.TBear;',
+    '$lt5 = $lm1.TFrog;',
+    'rtl.createClass($impl, "TRedAnt", $lt3, function () {',
+    '  $lt1 = this;',
     '  this.Run = function () {',
-    '    $impl.TRedAnt.$create("Create");',
     '    $lt1.$create("Create");',
-    '    $lt.$create("Create");',
-    '    $mod.TEagle.$create("Create");',
+    '    $lt3.$create("Create");',
     '    $lt2.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $lt4.$create("Create");',
     '  };',
     '});',
     '$impl.RedAnt = null;',
@@ -431,9 +438,11 @@ begin
   ConvertUnit;
   CheckSource('TestOptShortRefGlobals_Property',
     LinesToStr([
+    'var $lt = null;',
     'var $lm = pas.UnitA;',
-    'var $lt = $lm.TBird;',
-    'rtl.createClass(this, "TEagle", $lt, function () {',
+    'var $lt1 = $lm.TBird;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
     '  this.Fly = function (o) {',
     '    this.Fly(this.FWing);',
     '    this.Fly(this.FLeg);',
@@ -475,11 +484,13 @@ begin
   ConvertUnit;
   CheckSource('TestOptShortRefGlobals_GenericFunction',
     LinesToStr([
+    'var $lt = null;',
     'var $lm = pas.system;',
-    'var $lt = $lm.TObject;',
+    'var $lt1 = $lm.TObject;',
     'var $lm1 = pas.UnitA;',
     'var $lp = $lm1.Run$G1;',
-    'rtl.createClass(this, "TEagle", $lt, function () {',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
     '});',
     'this.Fly = function () {',
     '  $lp(null);',
@@ -498,23 +509,25 @@ begin
   '{$optimization JSShortRefGlobals}',
   'interface',
   'type',
-  '  TEnum = (red,blue);',
   '  TBird = class',
   '  type',
   '    TFlag = (big,small);',
   '    procedure Fly;',
   '  end;',
-  'var f: TBird.TFlag;',
+  '  TEnum = (red,blue);',
+  'var',
+  '  e: TEnum;',
+  '  f: TBird.TFlag;',
   'procedure Run;',
   'implementation',
   'procedure TBird.Fly;',
   'begin',
+  '  e:=blue;',
   '  f:=small;',
   'end;',
   'procedure Run;',
   'type TSub = (left,right);',
-  'var e: TEnum;',
-  '  s: TSub;',
+  'var s: TSub;',
   'begin',
   '  e:=red;',
   '  s:=right;',
@@ -524,26 +537,31 @@ begin
   ConvertUnit;
   CheckSource('TestOptShortRefGlobals_SameUnit_EnumType',
     LinesToStr([
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
     'var $lm = pas.system;',
-    'var $lt1 = $lm.TObject;',
-    'var $lt = this.TEnum = {',
-    '  "0": "red",',
-    '  red: 0,',
-    '  "1": "blue",',
-    '  blue: 1',
-    '};',
-    'var $lt2 = {',
+    'var $lt3 = $lm.TObject;',
+    'rtl.createClass(this, "TBird", $lt3, function () {',
+    '  $lt = this;',
+    '  $lt1 = this.TFlag = {',
     '    "0": "big",',
     '    big: 0,',
     '    "1": "small",',
     '    small: 1',
     '  };',
-    'rtl.createClass(this, "TBird", $lt1, function () {',
-    '  this.TFlag = $lt2;',
     '  this.Fly = function () {',
-    '    $mod.f = $lt2.small;',
+    '    $mod.e = $lt2.blue;',
+    '    $mod.f = $lt1.small;',
     '  };',
     '});',
+    '$lt2 = this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.e = 0;',
     'this.f = 0;',
     'var TSub = {',
     '  "0": "left",',
@@ -552,16 +570,100 @@ begin
     '  right: 1',
     '};',
     'this.Run = function () {',
-    '  var e = 0;',
     '  var s = 0;',
-    '  e = $lt.red;',
+    '  $mod.e = $lt2.red;',
     '  s = TSub.right;',
-    '  $mod.f = $lt2.big;',
+    '  $mod.f = $lt1.big;',
     '};',
     '']),
     LinesToStr([
     '']),
     LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_ClassType;
+begin
+  WithTypeInfo:=true;
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'type',
+  '  TBird = class;',
+  '  TAnt = class',
+  '  type',
+  '    TLeg = class',
+  '    end;',
+  '    procedure Run;',
+  '  published',
+  '    Bird: TBird;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TFrog = class',
+  '  end;',
+  'procedure TAnt.Run;',
+  'begin',
+  '  if typeinfo(TBird)=nil then;',
+  '  Bird:=TBird.Create;',
+  '  TLeg.Create;',
+  '  TFrog.Create;',
+  'end;',
+  'procedure TBird.Fly;',
+  'begin',
+  '  if typeinfo(TAnt)=nil then;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_EnumType',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
+    'var $lt3 = null;',
+    'var $lm = pas.system;',
+    'var $lt4 = $lm.TObject;',
+    'this.$rtti.$Class("TBird");',
+    'rtl.createClass(this, "TAnt", $lt4, function () {',
+    '  $lt = this;',
+    '  rtl.createClass(this, "TLeg", $lt4, function () {',
+    '    $lt1 = this;',
+    '  });',
+    '  this.$init = function () {',
+    '    $lt4.$init.call(this);',
+    '    this.Bird = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Bird = undefined;',
+    '    $lt4.$final.call(this);',
+    '  };',
+    '  this.Run = function () {',
+    '    if ($mod.$rtti["TBird"] === null) ;',
+    '    this.Bird = $lt2.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt3.$create("Create");',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("Bird", $mod.$rtti["TBird"]);',
+    '});',
+    'rtl.createClass(this, "TBird", $lt4, function () {',
+    '  $lt2 = this;',
+    '  this.Fly = function () {',
+    '    if ($mod.$rtti["TAnt"] === null) ;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'rtl.createClass($impl, "TFrog", $lt4, function () {',
+    '  $lt3 = this;',
+    '});',
     '']));
 end;
 
@@ -1386,7 +1488,7 @@ procedure TTestOptimizations.TestWPO_ConstructorDefaultValueConst;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
   Add([
   'const gcBlack = 0;',
@@ -1437,7 +1539,7 @@ procedure TTestOptimizations.TestWPO_RTTI_PublishedField;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
   Add('type');
   Add('  TArrA = array of char;');
@@ -1485,7 +1587,7 @@ procedure TTestOptimizations.TestWPO_RTTI_TypeInfo;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
   Add('type');
   Add('  TArrA = array of char;');

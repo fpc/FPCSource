@@ -2308,6 +2308,7 @@ type
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasPropertyDefaultExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
+    function GetPasClassForward(ClassEl: TPasClassType): TPasClassType;
     function GetParentProcBody(El: TPasElement): TProcedureBody;
     function ProcHasImplElements(Proc: TPasProcedure): boolean; virtual;
     function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
@@ -28006,6 +28007,31 @@ begin
       end
     else
       Result:=ClassScope.DirectAncestor;
+    end;
+end;
+
+function TPasResolver.GetPasClassForward(ClassEl: TPasClassType): TPasClassType;
+var
+  Parent: TPasElement;
+  i: Integer;
+  CurClass: TPasClassType;
+  Ref: TResolvedReference;
+  Decls: TFPList;
+begin
+  Result:=nil;
+  if ClassEl=nil then exit;
+  Parent:=ClassEl.Parent;
+  if not (Parent is TPasDeclarations) then
+    RaiseNotYetImplemented(20200926214106,ClassEl);
+  Decls:=TPasDeclarations(Parent).Classes;
+  for i:=0 to Decls.Count-1 do
+    begin
+    CurClass:=TPasClassType(Decls[i]);
+    if CurClass=ClassEl then exit;
+    if not CurClass.IsForward then continue;
+    Ref:=TResolvedReference(CurClass.CustomData);
+    if Ref.Declaration=ClassEl then
+      exit(TPasClassType(Ref.Declaration));
     end;
 end;
 
