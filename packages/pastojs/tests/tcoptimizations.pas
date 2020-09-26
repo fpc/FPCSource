@@ -61,6 +61,7 @@ type
     procedure TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
     procedure TestOptShortRefGlobals_Property;
     procedure TestOptShortRefGlobals_GenericFunction;
+    procedure TestOptShortRefGlobals_SameUnit_EnumType;
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
@@ -482,6 +483,80 @@ begin
     '});',
     'this.Fly = function () {',
     '  $lp(null);',
+    '};',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_EnumType;
+begin
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'type',
+  '  TEnum = (red,blue);',
+  '  TBird = class',
+  '  type',
+  '    TFlag = (big,small);',
+  '    procedure Fly;',
+  '  end;',
+  'var f: TBird.TFlag;',
+  'procedure Run;',
+  'implementation',
+  'procedure TBird.Fly;',
+  'begin',
+  '  f:=small;',
+  'end;',
+  'procedure Run;',
+  'type TSub = (left,right);',
+  'var e: TEnum;',
+  '  s: TSub;',
+  'begin',
+  '  e:=red;',
+  '  s:=right;',
+  '  f:=big;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_EnumType',
+    LinesToStr([
+    'var $lm = pas.system;',
+    'var $lt1 = $lm.TObject;',
+    'var $lt = this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'var $lt2 = {',
+    '    "0": "big",',
+    '    big: 0,',
+    '    "1": "small",',
+    '    small: 1',
+    '  };',
+    'rtl.createClass(this, "TBird", $lt1, function () {',
+    '  this.TFlag = $lt2;',
+    '  this.Fly = function () {',
+    '    $mod.f = $lt2.small;',
+    '  };',
+    '});',
+    'this.f = 0;',
+    'var TSub = {',
+    '  "0": "left",',
+    '  left: 0,',
+    '  "1": "right",',
+    '  right: 1',
+    '};',
+    'this.Run = function () {',
+    '  var e = 0;',
+    '  var s = 0;',
+    '  e = $lt.red;',
+    '  s = TSub.right;',
+    '  $mod.f = $lt2.big;',
     '};',
     '']),
     LinesToStr([

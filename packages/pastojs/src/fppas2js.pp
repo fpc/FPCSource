@@ -15278,6 +15278,8 @@ function TPasToJSConverter.ConvertEnumType(El: TPasEnumType;
 //     minvalue: 0,
 //     maxvalue: 1
 //   });
+//  coShortRefGlobals:
+//  var $lt = this.TMyEnum ...
 var
   ObjectContect: TObjectContext;
   i: Integer;
@@ -15285,7 +15287,7 @@ var
   ParentObj, Obj, TIObj: TJSObjectLiteral;
   ObjLit, TIProp: TJSObjectLiteralElement;
   AssignSt: TJSSimpleAssignStatement;
-  JSName: TJSString;
+  JSName: string;
   Call: TJSCallExpression;
   List: TJSStatementList;
   ok: Boolean;
@@ -15293,6 +15295,7 @@ var
   Src: TJSSourceElements;
   ProcScope: TPas2JSProcedureScope;
   VarSt: TJSVariableStatement;
+  GlobalCtx: TConvertContext;
 begin
   Result:=nil;
   for i:=0 to El.Values.Count-1 do
@@ -15322,11 +15325,14 @@ begin
     else if El.Parent is TProcedureBody then
       begin
       // add 'var TypeName = {}'
-      VarSt:=CreateVarStatement(TransformElToJSName(El,AContext),Obj,El);
+      JSName:=TransformElToJSName(El,AContext);
+      VarSt:=CreateVarStatement(JSName,Obj,El);
       if AContext.JSElement is TJSSourceElements then
         begin
         Src:=TJSSourceElements(AContext.JSElement);
         AddToSourceElements(Src,VarSt); // keep Result=nil
+        if AContext is TFunctionContext then
+          TFunctionContext(AContext).AddLocalVar(JSName,El,cvkGlobal,false);
         end
       else
         Result:=VarSt;
@@ -15338,20 +15344,47 @@ begin
       AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
       Result:=AssignSt;
+      if (coShortRefGlobals in Options) and (AContext is TFunctionContext) then
+        begin
+        GlobalCtx:=AContext;
+        while (GlobalCtx.PasElement is TPasMembersType) do
+          GlobalCtx:=GlobalCtx.Parent;
+        if (GlobalCtx<>AContext) and (GlobalCtx is TFunctionContext) then
+          begin
+          // add to GlobalCtx:      var $lt = {}
+          // add to local context:  this.TypeName = $lt
+          if not (GlobalCtx.JSElement is TJSSourceElements) then
+            RaiseNotSupported(El,AContext,20200926181516,GetObjName(GlobalCtx.JSElement));
+          Src:=TJSSourceElements(GlobalCtx.JSElement);
+          JSName:=TFunctionContext(AContext).CreateLocalIdentifier(GetBIName(pbivnLocalTypeRef));
+          AssignSt.Expr:=CreatePrimitiveDotExpr(JSName,El);
+
+          VarSt:=CreateVarStatement(JSName,Obj,El);
+          AddToSourceElements(Src,VarSt);
+          TFunctionContext(GlobalCtx).AddLocalVar(JSName,El,cvkGlobal,false);
+          end
+        else
+          begin
+          // var $lt = this.TypeName = {}
+          JSName:=TFunctionContext(AContext).CreateLocalIdentifier(GetBIName(pbivnLocalTypeRef));
+          TFunctionContext(AContext).AddLocalVar(JSName,El,cvkGlobal,false);
+          Result:=CreateVarStatement(JSName,AssignSt,El);
+          end;
+        end;
       end;
 
     ObjectContect:=TObjectContext.Create(El,Obj,AContext);
     for i:=0 to El.Values.Count-1 do
       begin
       EnumValue:=TPasEnumValue(El.Values[i]);
-      JSName:=TJSString(TransformElToJSName(EnumValue,AContext));
+      JSName:=TransformElToJSName(EnumValue,AContext);
       // add "0":"value"
       ObjLit:=Obj.Elements.AddElement;
       ObjLit.Name:=TJSString(IntToStr(i));
-      ObjLit.Expr:=CreateLiteralJSString(El,JSName);
+      ObjLit.Expr:=CreateLiteralJSString(El,TJSString(JSName));
       // add value:0
       ObjLit:=Obj.Elements.AddElement;
-      ObjLit.Name:=JSName;
+      ObjLit.Name:=TJSString(JSName);
       ObjLit.Expr:=CreateLiteralNumber(El,i);
       end;
 
