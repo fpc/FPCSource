@@ -25,7 +25,7 @@ unit FPPJsSrcMap;
 interface
 
 uses
-  Classes, SysUtils, math,
+  SysUtils, math,
   jswriter, jstree, JSSrcMap;
 
 type

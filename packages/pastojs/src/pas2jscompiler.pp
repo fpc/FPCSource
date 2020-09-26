@@ -1182,6 +1182,7 @@ begin
   // maybe emit message ?
   FResourceHandler.StartUnit(PasModule.Name);
   FResourceHandler.HandleResource(aFileName,aOptions);
+  if Sender=nil then ;
 end;
 
 function TPas2jsCompilerFile.OnConverterIsElementUsed(Sender: TObject;

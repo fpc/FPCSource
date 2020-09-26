@@ -26,7 +26,7 @@ uses
   {$IFDEF NodeJS}
   node.fs,
   {$ENDIF}
-  Classes, SysUtils, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
+  SysUtils, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
 
 Type
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)

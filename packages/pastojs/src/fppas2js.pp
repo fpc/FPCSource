@@ -466,7 +466,6 @@ interface
 
 uses
   {$ifdef pas2js}
-  js,
   {$else}
   AVL_Tree,
   {$endif}
