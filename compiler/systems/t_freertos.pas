@@ -1161,12 +1161,16 @@ begin
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
+{$ifdef UNIX}
+  binstr:=TargetFixPath(idfpath,false)+'/tools/ldgen/ldgen.py';
+{$else}
   binstr:='python';
+{$endif UNIX}
   if source_info.exeext<>'' then
     binstr:=binstr+source_info.exeext;
   S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
-    cmdstr:='$IDF_PATH/tools/ldgen/ldgen.py '+
+    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
             '--config sdkconfig '+
             '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
             '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
@@ -1180,7 +1184,7 @@ begin
             '--libraries-file ldgen_libraries '+
             '--objdump '+S
   else
-    cmdstr:='$IDF_PATH/tools/ldgen/ldgen.py '+
+    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
             '--config sdkconfig '+
             '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
             '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
@@ -1266,10 +1270,15 @@ begin
 {$ifdef XTENSA}
   if success then
    begin
+{$ifdef UNIX}
+      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+      cmdstr:='';
+{$else}
       binstr:='python';
+      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+{$endif UNIX}
       if source_info.exeext<>'' then
         binstr:=binstr+source_info.exeext;
-      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
       if (current_settings.controllertype = ct_esp32) then
         begin
           success:=DoExec(binstr,cmdstr+'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
