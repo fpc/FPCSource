@@ -5658,12 +5658,18 @@ begin
         else
           if not (ConEl is TPasType) then
             RaiseNotYetImplemented(20191018180031,ConEl,GetObjPath(Param));
-          if ConEl is TPasClassType then
-            begin
-            if TPasClassType(ConEl).IsExternal then
-              TIName:=Pas2JSBuiltInNames[pbitnTIExtClass]
+          TypeEl:=ResolveAliasType(TPasType(ConEl));
+          if TypeEl is TPasClassType then
+            case TPasClassType(TypeEl).ObjKind of
+            okClass:
+              if TPasClassType(TypeEl).IsExternal then
+                TIName:=Pas2JSBuiltInNames[pbitnTIExtClass]
+              else
+                TIName:=Pas2JSBuiltInNames[pbitnTIClass];
+            okInterface:
+              TIName:=Pas2JSBuiltInNames[pbitnTIInterface];
             else
-              TIName:=Pas2JSBuiltInNames[pbitnTIClass];
+              RaiseNotYetImplemented(20200927100825,ConEl,GetObjPath(Param));
             end
           else
             RaiseNotYetImplemented(20191018180131,ConEl,GetObjPath(Param));

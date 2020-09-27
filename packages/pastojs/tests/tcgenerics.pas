@@ -52,6 +52,7 @@ type
     // class interfaces
     procedure TestGen_ClassInterface_Corba;
     procedure TestGen_ClassInterface_InterfacedObject;
+    procedure TestGen_ClassInterface_COM_RTTI;
 
     // statements
     Procedure TestGen_InlineSpec_Constructor;
@@ -1475,6 +1476,46 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     'rtl.setIntfP($mod, "aComparer", rtl.queryIntfT($mod.TComparer$G1.$create("Create"), $mod.IComparer$G2), true);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassInterface_COM_RTTI;
+begin
+  StartProgram(true,[supTInterfacedObject]);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird = class',
+  '    function Fly<T: IInterface>: T;',
+  '  end;',
+  '  IAnt = interface',
+  '    procedure InterfaceProc;',
+  '  end;',
+  'function TBird.Fly<T>: T;',
+  'begin',
+  '  if TypeInfo(T)=nil then ;',
+  'end;',
+  'var Bird: TBird;',
+  '  Ant: IAnt;',
+  'begin',
+  '  Ant := Bird.Fly<IAnt>;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassInterface_COM_RTTI',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TBird", pas.system.TObject, function () {',
+    '  this.Fly$G1 = function () {',
+    '    var Result = null;',
+    '    if ($mod.$rtti["IAnt"] === null) ;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createInterface(this, "IAnt", "{B9D0FF27-A446-3A1B-AA85-F167837AA297}", ["InterfaceProc"], pas.system.IUnknown);',
+    'this.Bird = null;',
+    'this.Ant = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'rtl.setIntfP($mod, "Ant", $mod.Bird.Fly$G1(), true);',
     '']));
 end;
 
