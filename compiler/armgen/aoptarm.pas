@@ -170,18 +170,26 @@ Implementation
 
   function TARMAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     Out Next: tai; reg: TRegister): Boolean;
+    var
+      gniResult: Boolean;
     begin
       Next:=Current;
+      Result := False;
       repeat
-        Result:=GetNextInstruction(Next,Next);
-      until not (Result) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
-            (Next.typ<>ait_instruction) or
-            RegInInstruction(reg,Next) or
-            is_calljmp(taicpu(Next).opcode)
+
+        gniResult:=GetNextInstruction(Next,Next);
+        if gniResult and RegInInstruction(reg,Next) then
+          { Found something }
+          Exit(True);
+
+      until not gniResult or
+        not(cs_opt_level3 in current_settings.optimizerswitches) or
+        (Next.typ<>ait_instruction) or
+        is_calljmp(taicpu(Next).opcode)
 {$ifdef ARM}
-            or RegModifiedByInstruction(NR_PC,Next);
+        or RegModifiedByInstruction(NR_PC,Next)
 {$endif ARM}
+        ;
     end;
 
 
