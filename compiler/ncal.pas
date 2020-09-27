@@ -1192,6 +1192,13 @@ implementation
                     (parasym.vardef.typ=setdef) then
                    inserttypeconv(left,parasym.vardef);
 
+                 { if an array constructor can be a set and it is passed to
+                   a formaldef, a set must be passed, see also issue #37796 }
+                 if (left.nodetype=arrayconstructorn) and
+                    (parasym.vardef.typ=formaldef) and
+                    (arrayconstructor_can_be_set(left)) then
+                   left:=arrayconstructor_to_set(left,false);
+
                  { set some settings needed for arrayconstructor }
                  if is_array_constructor(left.resultdef) then
                   begin

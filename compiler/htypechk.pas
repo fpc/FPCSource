@@ -1803,6 +1803,7 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
+             arrayconstructorn,
              setconstn,
              stringconstn,
              guidconstn :
@@ -2106,6 +2107,7 @@ implementation
                  (tstringdef(def_to).encoding=tstringdef(p.resultdef).encoding) then
                 eq:=te_equal
             end;
+          formaldef,
           setdef :
             begin
               { set can also be a not yet converted array constructor }

@@ -16315,7 +16315,7 @@ begin
                               ParamType,ConstraintClass,ErrorPos);
       exit(cIncompatible);
       end;
-    if TPasClassType(ParamType).ObjKind<>okClass then
+    if not (TPasClassType(ParamType).ObjKind in [okClass,okInterface]) then
       begin
       if ErrorPos<>nil then
         RaiseMsg(20190904175144,nXExpectedButYFound,sXExpectedButYFound,
@@ -29830,7 +29830,7 @@ begin
   Result:=nil;
   while ClassEl<>nil do
     begin
-    if IndexOfImplementedInterface(ClassEl,Intf)>=0 then
+    if (ClassEl=Intf) or (IndexOfImplementedInterface(ClassEl,Intf)>=0) then
       exit(ClassEl);
     ClassEl:=GetPasClassAncestor(ClassEl,true) as TPasClassType;
     end;

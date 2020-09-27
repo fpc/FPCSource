@@ -2193,7 +2193,8 @@ implementation
                     p2:=current_procinfo;
                     while true do
                       begin
-                        if (p2.flags*[pi_needs_implicit_finally,pi_uses_exceptions,pi_has_implicit_finally])<>[] then
+                        if ((cs_implicit_exceptions in current_settings.moduleswitches) and ((p2.flags*[pi_needs_implicit_finally,pi_has_implicit_finally])<>[])) or
+                        ((p2.flags*[pi_uses_exceptions])<>[]) then
                           Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
                         if labelsym.owner=p2.procdef.localst then
                           break;
