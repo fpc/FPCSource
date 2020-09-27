@@ -47,7 +47,7 @@ Type
     function OptPass1UXTH(var p: tai): Boolean;
     function OptPass1SXTB(var p: tai): Boolean;
     function OptPass1SXTH(var p: tai): Boolean;
-    function OptPass1And(var p: tai): Boolean;
+    function OptPass1And(var p: tai): Boolean; virtual;
   End;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;

@@ -43,12 +43,13 @@ Interface
         function PostPeepHoleOptsCpu(var p: tai): boolean; override;
         function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;override;
         function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;override;
-        function LookForPostindexedPattern(p : taicpu) : boolean;
+        function LookForPostindexedPattern(var p : tai) : boolean;
       private
+        function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
         function OptPass1Shift(var p: tai): boolean;
         function OptPostCMP(var p: tai): boolean;
         function OptPass1Data(var p: tai): boolean;
-        function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
+        function OptPass1FData(var p: tai): Boolean;
         function OptPass1STP(var p: tai): boolean;
         function OptPass1Mov(var p: tai): boolean;
         function OptPass1FMov(var p: tai): Boolean;
@@ -172,20 +173,20 @@ Implementation
 
       ldr/str regX,[reg1], regY/const
   }
-  function TCpuAsmOptimizer.LookForPostindexedPattern(p: taicpu) : boolean;
+  function TCpuAsmOptimizer.LookForPostindexedPattern(var p: tai) : boolean;
     var
       hp1 : tai;
     begin
       Result:=false;
-      if (p.oper[1]^.typ = top_ref) and
-        (p.oper[1]^.ref^.addressmode=AM_OFFSET) and
-        (p.oper[1]^.ref^.index=NR_NO) and
-        (p.oper[1]^.ref^.offset=0) and
-        GetNextInstructionUsingReg(p, hp1, p.oper[1]^.ref^.base) and
+      if (taicpu(p).oper[1]^.typ = top_ref) and
+        (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+        (taicpu(p).oper[1]^.ref^.index=NR_NO) and
+        (taicpu(p).oper[1]^.ref^.offset=0) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.ref^.base) and
         { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
         MatchInstruction(hp1, [A_ADD, A_SUB], [PF_None]) and
-        (taicpu(hp1).oper[0]^.reg=p.oper[1]^.ref^.base) and
-        (taicpu(hp1).oper[1]^.reg=p.oper[1]^.ref^.base) and
+        (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[1]^.ref^.base) and
+        (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[1]^.ref^.base) and
         (
          { valid offset? }
          (taicpu(hp1).oper[2]^.typ=top_const) and
@@ -193,16 +194,20 @@ Implementation
          (abs(taicpu(hp1).oper[2]^.val)<256)
         ) and
         { don't apply the optimization if the base register is loaded }
-        (getsupreg(p.oper[0]^.reg)<>getsupreg(p.oper[1]^.ref^.base)) and
+        (getsupreg(taicpu(p).oper[0]^.reg)<>getsupreg(taicpu(p).oper[1]^.ref^.base)) and
         not(RegModifiedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) and
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
         begin
-          DebugMsg('Peephole Str/LdrAdd/Sub2Str/Ldr Postindex done', p);
-          p.oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
-          if taicpu(hp1).opcode=A_ADD then
-            p.oper[1]^.ref^.offset:=taicpu(hp1).oper[2]^.val
+          if taicpu(p).opcode = A_LDR then
+            DebugMsg('Peephole LdrAdd/Sub2Ldr Postindex done', p)
           else
-            p.oper[1]^.ref^.offset:=-taicpu(hp1).oper[2]^.val;
+            DebugMsg('Peephole StrAdd/Sub2Str Postindex done', p);
+
+          taicpu(p).oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
+          if taicpu(hp1).opcode=A_ADD then
+            taicpu(p).oper[1]^.ref^.offset:=taicpu(hp1).oper[2]^.val
+          else
+            taicpu(p).oper[1]^.ref^.offset:=-taicpu(hp1).oper[2]^.val;
           asml.Remove(hp1);
           hp1.Free;
           Result:=true;
@@ -398,10 +403,17 @@ Implementation
     var
       hp1: tai;
     begin
-      result:=false;
-      if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-        RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
-        Result:=true;
+      Result := GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1FData(var p: tai): Boolean;
+    var
+      hp1: tai;
+    begin
+      Result := GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        RemoveSuperfluousFMov(p, hp1, 'FOpFMov2FOp');
     end;
 
 
@@ -431,21 +443,20 @@ Implementation
         (taicpu(p).oper[2]^.ref^.index=NR_NO) and
         (taicpu(p).oper[2]^.ref^.offset=-16) and
         (taicpu(p).oper[2]^.ref^.addressmode=AM_PREINDEXED) and
-        GetNextInstruction(p, hp1) and
-        GetNextInstruction(hp1, hp2) and
-        SkipEntryExitMarker(hp2, hp2) and
-        GetNextInstruction(hp2, hp3) and
-        SkipEntryExitMarker(hp3, hp3) and
-        GetNextInstruction(hp3, hp4) and
 
+        GetNextInstruction(p, hp1) and
         MatchInstruction(hp1, A_MOV, [C_None], [PF_NONE]) and
         MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
         (taicpu(hp1).oper[1]^.typ = top_reg) and
         (taicpu(hp1).oper[1]^.reg = NR_STACK_POINTER_REG) and
 
+        GetNextInstruction(hp1, hp2) and
+        SkipEntryExitMarker(hp2, hp2) and
         MatchInstruction(hp2, A_BL, [C_None], [PF_NONE]) and
         (taicpu(hp2).oper[0]^.typ = top_ref) and
 
+        GetNextInstruction(hp2, hp3) and
+        SkipEntryExitMarker(hp3, hp3) and
         MatchInstruction(hp3, A_LDP, [C_None], [PF_NONE]) and
         MatchOpType(taicpu(hp3),top_reg,top_reg,top_ref) and
         (taicpu(hp3).oper[0]^.reg = NR_X29) and
@@ -455,6 +466,7 @@ Implementation
         (taicpu(hp3).oper[2]^.ref^.offset=16) and
         (taicpu(hp3).oper[2]^.ref^.addressmode=AM_POSTINDEXED) and
 
+        GetNextInstruction(hp3, hp4) and
         MatchInstruction(hp4, A_RET, [C_None], [PF_None]) and
         (taicpu(hp4).ops = 0) then
         begin
@@ -728,14 +740,9 @@ Implementation
       if p.typ=ait_instruction then
         begin
           case taicpu(p).opcode of
-            A_LDR:
-              begin
-                Result:=LookForPostindexedPattern(taicpu(p));
-              end;
+            A_LDR,
             A_STR:
-              begin
-                Result:=LookForPostindexedPattern(taicpu(p));
-              end;
+              Result:=LookForPostindexedPattern(p);
             A_MOV:
               Result:=OptPass1Mov(p);
             A_STP:
@@ -773,11 +780,7 @@ Implementation
             A_FNEG,
             A_FCVT,
             A_FABS:
-              begin
-                if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                  RemoveSuperfluousFMov(p, hp1, 'FOpFMov2FOp') then
-                  Result:=true;
-              end;
+              Result:=OptPass1FData(p);
             A_FMOV:
               Result:=OptPass1FMov(p);
             else
