@@ -836,6 +836,17 @@ implementation
             end;
           writer.AsmWriteLn(')');
         end;
+
+
+      procedure WriteImportExport(hp:tai_impexp);
+        var
+          symstypestr: string;
+        begin
+          Str(hp.symstype,symstypestr);
+          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', extmodule='''+hp.extmodule+''', symstype='+symstypestr+')');
+          if hp.extmodule='' then
+            writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
+        end;
 {$endif WASM}
 
     var
@@ -1603,9 +1614,7 @@ implementation
            ait_functype:
              WriteFuncType(tai_functype(hp));
            ait_importexport:
-             begin
-               writer.AsmWriteLn(asminfo^.comment+'TODO: ait_importexport');
-             end;
+             WriteImportExport(tai_impexp(hp));
 {$endif WASM}
 
            else
