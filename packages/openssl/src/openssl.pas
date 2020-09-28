@@ -5626,7 +5626,7 @@ begin
   Idx:=Low(SSL_DLL_Names);
   While (not Result) and (Idx<=High(SSL_DLL_Names)) do
     begin
-    Result := TryLoadLibPair(MakeLibName(SSL_DLL_Names[Idx],''), MakeLibName(Crypto_DLL_Names[Idx]),'');
+    Result := TryLoadLibPair(MakeLibName(SSL_DLL_Names[Idx],''), MakeLibName(Crypto_DLL_Names[Idx],''));
     Inc(Idx);
     end;
 {$ELSE}
