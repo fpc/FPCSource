@@ -286,15 +286,14 @@ var rtl = {
   },
 
   initClass: function(c,parent,name,initfn,rttiname){
-    if (!rttiname) rttiname = name;
     parent[name] = c;
     c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
-    c.$classname = rttiname;
+    c.$classname = rttiname?rttiname:name;
     parent = rtl.initStruct(c,parent,name);
     c.$fullname = parent.$name+'.'+name;
     // rtti
     if (rtl.debug_rtti) rtl.debug('initClass '+c.$fullname);
-    var t = c.$module.$rtti.$Class(rttiname,{ "class": c });
+    var t = c.$module.$rtti.$Class(c.$classname,{ "class": c });
     c.$rtti = t;
     if (rtl.isObject(c.$ancestor)) t.ancestor = c.$ancestor.$rtti;
     if (!t.ancestor) t.ancestor = null;
@@ -402,7 +401,7 @@ var rtl = {
     }
   },
 
-  createHelper: function(parent,name,ancestor,initfn){
+  createHelper: function(parent,name,ancestor,initfn,rttiname){
     // create a helper,
     // ancestor must be null or a helper,
     var c = null;
@@ -415,11 +414,11 @@ var rtl = {
     };
     parent[name] = c;
     c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
-    c.$classname = name;
+    c.$classname = rttiname?rttiname:name;
     parent = rtl.initStruct(c,parent,name);
     c.$fullname = parent.$name+'.'+name;
     // rtti
-    var t = c.$module.$rtti.$Helper(c.$name,{ "helper": c });
+    var t = c.$module.$rtti.$Helper(c.$classname,{ "helper": c });
     c.$rtti = t;
     if (rtl.isObject(ancestor)) t.ancestor = ancestor.$rtti;
     if (!t.ancestor) t.ancestor = null;

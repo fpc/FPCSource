@@ -123,7 +123,7 @@ unit agz80vasm;
         eextended: extended;
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
-	eextended: floatx80;
+        eextended: floatx80;
 {$endif}
 {$endif cpuextended}
       begin
@@ -143,13 +143,13 @@ unit agz80vasm;
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
              aitrealconst_s80bit:
                begin
-     	         if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                 if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
                    writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
-     	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                 else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                    writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
                 else
-     	         internalerror(2017091901);
-       	      end;
+                  internalerror(2017091901);
+              end;
 {$pop}
 {$endif}
 {$endif cpuextended}
@@ -186,12 +186,12 @@ unit agz80vasm;
 {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
           aitrealconst_s80bit:
             begin
-	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+              if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
                 eextended:=float64_to_floatx80(float64(double(tai_realconst(hp).value.s80val)))
-	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
-	        eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
-	      else
-	        internalerror(2017091901);
+              else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
+              else
+                internalerror(2017091901);
               pdata:=@eextended;
             end;
 {$pop}
@@ -920,7 +920,7 @@ unit agz80vasm;
             asmbin : 'vasmz80_std';
             asmcmd : '-quiet -Fvobj -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_z80_embedded, system_z80_zxspectrum, system_z80_msxdos];
-            flags : [af_needar{,af_smartlink_sections}];
+            flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             labelmaxlen : -1;
             comment : '; ';

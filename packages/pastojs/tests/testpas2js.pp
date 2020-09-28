@@ -20,8 +20,8 @@ uses
   {$IFDEF EnableMemCheck}
   MemCheck,
   {$ENDIF}
-  Classes, consoletestrunner, tcconverter, TCModules, tcoptimizations, tcsrcmap,
-  tcfiler, tcunitsearch, tcprecompile, TCGenerics;
+  Classes, consoletestrunner, tcconverter, TCModules, TCSrcMap,
+  TCFiler, TCUnitSearch, TCOptimizations, TCGenerics, TCPrecompile;
 
 type
 

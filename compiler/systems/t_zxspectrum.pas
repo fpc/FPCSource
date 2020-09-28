@@ -173,8 +173,9 @@ function TLinkerZXSpectrum.WriteResponseFile_Vlink: Boolean;
         Add('SECTIONS');
         Add('{');
         Add('  . = 0x'+hexstr(FOrigin,4)+';');
-        Add('  .text : { *(.text .text.* ) }');
-        Add('  .data : { *(.data .data.* .rodata .rodata.* .bss .bss.* .fpc.* .stack .stack.* ) }');
+        Add('  .text : { *(.text .text.* _CODE _CODE.* ) }');
+        Add('  .data : { *(.data .data.* .rodata .rodata.* .fpc.* ) }');
+        Add('  .bss  : { *(.bss .bss.* _BSS _BSS.* _BSSEND _BSSEND.* _HEAP _HEAP.* .stack .stack.* _STACK _STACK.* ) }');
         Add('}');
       end;
 

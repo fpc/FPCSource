@@ -15177,7 +15177,8 @@ begin
       end;// end of init function
 
     // for specialization: add RTTI name
-    if (Scope.JSName<>'') and (Scope.JSName<>El.Name) and HasTypeInfo(El,AContext) then
+    if ((Scope.JSName<>'') and (Scope.JSName<>El.Name))
+        or (El.Parent is TPasMembersType) then
       begin
       Call.AddArg(CreateLiteralString(El,GetTypeInfoName(El,AContext,El)));
       end;
