@@ -364,7 +364,7 @@ interface
                                          system_arm_wince,
                                          system_x86_64_win64,
                                          system_i8086_win16,
-                                         system_aarch64_win64]+systems_linux+systems_android;
+                                         system_aarch64_win64]+systems_linux+systems_android+systems_wasm;
 
        { all systems that reference symbols in other binaries using indirect imports }
        systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
