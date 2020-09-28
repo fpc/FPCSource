@@ -634,7 +634,7 @@ begin
     '  $lt = this;',
     '  rtl.createClass(this, "TLeg", $lt4, function () {',
     '    $lt1 = this;',
-    '  });',
+    '  }, "TAnt.TLeg");',
     '  this.$init = function () {',
     '    $lt4.$init.call(this);',
     '    this.Bird = null;',

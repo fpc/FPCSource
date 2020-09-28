@@ -27,7 +27,7 @@ type
     Procedure TestGen_ClassEmpty;
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
-    Procedure TestGen_Class_TCustomList;
+    Procedure TestGen_Class_TCustomList; // ToDo: with Self do Result:=Method()
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_Class_TypeInfo;
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
@@ -37,12 +37,13 @@ type
     Procedure TestGen_Class_ClassConstructor;
     Procedure TestGen_Class_TypeCastSpecializesWarn;
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
-    procedure TestGen_Class_VarArgsOfType;
     procedure TestGen_Class_OverloadsInUnit;
     procedure TestGen_ClassForward_CircleRTTI;
+    procedure TestGen_Class_Nested_RTTI;
     Procedure TestGen_Class_ClassVarRecord_UnitImpl;
 
     // generic external class
+    procedure TestGen_ExtClass_VarArgsOfType;
     procedure TestGen_ExtClass_Array;
     procedure TestGen_ExtClass_GenJSValueAssign;
     procedure TestGen_ExtClass_AliasMemberType;
@@ -365,7 +366,7 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.a = null;',
     'this.b = null;',
     '']),
@@ -403,7 +404,7 @@ begin
     '    var Result = 0;',
     '    return Result;',
     '  };',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.a = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -479,7 +480,7 @@ begin
     '    this.FItems.splice(2, 0, w);',
     '    this.FItems.splice(2, 3);',
     '  };',
-    '});',
+    '}, "TList<System.Word>");',
     'this.l = null;',
     'this.w = 0;',
     '']),
@@ -511,7 +512,7 @@ begin
   'function TList<T>.Add: word;',
   'begin',
   '  Result:=PrepareAddingItem;',
-  //'  Result:=Self.PrepareAddingItem;',
+  '  Result:=Self.PrepareAddingItem;',
   //'  with Self do Result:=PrepareAddingItem;',
   'end;',
   'var l: TWordList;',
@@ -531,14 +532,15 @@ begin
     '    var Result = 0;',
     '    return Result;',
     '  };',
-    '});',
+    '}, "TCustomList<System.Word>");',
     'rtl.createClass(this, "TList$G1", this.TCustomList$G2, function () {',
     '  this.Add = function () {',
     '    var Result = 0;',
     '    Result = this.PrepareAddingItem();',
+    '    Result = this.PrepareAddingItem();',
     '    return Result;',
     '  };',
-    '});',
+    '}, "TList<System.Word>");',
     'this.l = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -568,9 +570,9 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TBird$G2", this.TObject, function () {',
-    '});',
+    '}, "TBird<System.Word>");',
     'rtl.createClass(this, "TEagle$G1", this.TBird$G2, function () {',
-    '});',
+    '}, "TEagle<System.Word>");',
     'this.a = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -684,7 +686,7 @@ begin
     '});',
     'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
     '  this.fSize = 0;',
-    '});',
+    '}, "TBird<System.Word>");',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.TBird$G1.fSize = 3 + $mod.TBird$G1.fSize;',
@@ -750,7 +752,7 @@ begin
     '    this.Run();',
     '    $mod.TPoint$G1.Run();',
     '  };',
-    '});',
+    '}, "TPoint<System.Word>");',
     'this.p = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -800,13 +802,13 @@ begin
     '  this.x = 0;',
     '  this.Fly = function () {',
     '  };',
-    '});',
+    '}, "TPoint<System.Word>");',
     'this.r = null;',
     'rtl.createClass(this, "TPoint$G2", this.TObject, function () {',
     '  this.x = 0;',
     '  this.Fly = function () {',
     '  };',
-    '});',
+    '}, "TPoint<System.SmallInt>");',
     'this.s = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -858,13 +860,13 @@ begin
     '    $mod.TObject.$init.call(this);',
     '    this.F = 0;',
     '  };',
-    '});',
+    '}, "TBird<System.Word>");',
     'rtl.createClass(this, "TBird$G2", this.TObject, function () {',
     '  this.$init = function () {',
     '    $mod.TObject.$init.call(this);',
     '    this.F = "";',
     '  };',
-    '});',
+    '}, "TBird<System.Char>");',
     'this.w = null;',
     'this.c = null;',
     '']),
@@ -906,13 +908,13 @@ begin
     '    $mod.TObject.$init.call(this);',
     '    this.F = 0;',
     '  };',
-    '});',
+    '}, "TBird<System.Word>");',
     'rtl.createClass(this, "TBird$G2", this.TObject, function () {',
     '  this.$init = function () {',
     '    $mod.TObject.$init.call(this);',
     '    this.F = undefined;',
     '  };',
-    '});',
+    '}, "TBird<System.JSValue>");',
     'this.w = null;',
     'this.a = null;',
     '']),
@@ -921,45 +923,6 @@ begin
     '$mod.a = $mod.w;',
     '']));
   CheckResolverUnexpectedHints();
-end;
-
-procedure TTestGenerics.TestGen_Class_VarArgsOfType;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  '{$modeswitch externalclass}',
-  'type',
-  '  TJSObject = class external name ''Object''',
-  '  end;',
-  '  generic TGJSSet<T> = class external name ''Set''',
-  '    constructor new(aElement1: T); varargs of T; overload;',
-  '    function bind(thisArg: TJSObject): T; varargs of T;',
-  '  end;',
-  '  TJSWordSet = specialize TGJSSet<word>;',
-  'var',
-  '  s: TJSWordSet;',
-  '  w: word;',
-  'begin',
-  '  s:=TJSWordSet.new(3);',
-  '  s:=TJSWordSet.new(3,5);',
-  '  w:=s.bind(nil);',
-  '  w:=s.bind(nil,6);',
-  '  w:=s.bind(nil,7,8);',
-  '']);
-  ConvertProgram;
-  CheckSource('TestGen_Class_VarArgsOfType',
-    LinesToStr([ // statements
-    'this.s = null;',
-    'this.w = 0;',
-    '']),
-    LinesToStr([ // $mod.$main
-    '$mod.s = new Set(3);',
-    '$mod.s = new Set(3, 5);',
-    '$mod.w = $mod.s.bind(null);',
-    '$mod.w = $mod.s.bind(null, 6);',
-    '$mod.w = $mod.s.bind(null, 7, 8);',
-    '']));
 end;
 
 procedure TTestGenerics.TestGen_Class_OverloadsInUnit;
@@ -1013,7 +976,7 @@ begin
     '    this.Create$2 = function (b) {',
     '      return this;',
     '    };',
-    '  });',
+    '  }, "TBird<System.Word>");',
     '  rtl.createClass(this, "TBird$G2", pas.system.TObject, function () {',
     '    this.c = 13;',
     '    var c$1 = 14;',
@@ -1024,7 +987,7 @@ begin
     '    this.Create$2 = function (b) {',
     '      return this;',
     '    };',
-    '  });',
+    '  }, "TBird<System.Double>");',
     '});',
     '']));
   CheckSource('TestGen_Class_OverloadsInUnit',
@@ -1115,6 +1078,57 @@ begin
     '']));
 end;
 
+procedure TTestGenerics.TestGen_Class_Nested_RTTI;
+begin
+  WithTypeInfo:=true;
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+  'type',
+  '  generic TAnt<T> = class',
+  '  type',
+  '    TLeg = class',
+  '    published',
+  '      Size: T;',
+  '    end;',
+  '  end;',
+  '  TBoolAnt = specialize TAnt<boolean>;',
+  '']),
+  LinesToStr([
+  '']));
+  Add([
+  'uses UnitA;',
+  'var',
+  '  BoolLeg: TBoolAnt.TLeg;',
+  'begin',
+  '  if typeinfo(TBoolAnt.TLeg)=nil then ;',
+  '']);
+  ConvertProgram;
+  CheckUnit('UnitA.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  $mod.$rtti.$Class("TAnt<System.Boolean>");',
+    '  rtl.createClass(this, "TAnt$G1", pas.system.TObject, function () {',
+    '    rtl.createClass(this, "TLeg", pas.system.TObject, function () {',
+    '      this.$init = function () {',
+    '        pas.system.TObject.$init.call(this);',
+    '        this.Size = false;',
+    '      };',
+    '      var $r = this.$rtti;',
+    '      $r.addField("Size", rtl.boolean);',
+    '    }, "TAnt<System.Boolean>.TLeg");',
+    '  }, "TAnt<System.Boolean>");',
+    '});']));
+  CheckSource('TestGen_Class_Nested_RTTI',
+    LinesToStr([ // statements
+    'this.BoolLeg = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if (pas.UnitA.$rtti["TAnt<System.Boolean>.TLeg"] === null) ;',
+    '']));
+end;
+
 procedure TTestGenerics.TestGen_Class_ClassVarRecord_UnitImpl;
 begin
   StartProgram(true,[supTObject]);
@@ -1151,7 +1165,7 @@ begin
     '      this.x = $impl.TBird.$new();',
     '      this.a = rtl.arraySetLength(null, $impl.TBird, 2);',
     '    };',
-    '  });',
+    '  }, "TAnt<UnitA.TBird>");',
     '  $mod.$implcode = function () {',
     '    rtl.recNewT($impl, "TBird", function () {',
     '      this.b = 0;',
@@ -1168,12 +1182,52 @@ begin
     '  $mod.$init = function () {',
     '    $impl.f.x.b = $impl.f.x.b + 10;',
     '  };',
-    '}, []);']));
+    '}, []);',
+    '']));
   CheckSource('TestGen_Class_ClassVarRecord_UnitImpl',
     LinesToStr([ // statements
     'pas.UnitA.TAnt$G1.$initSpec();',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ExtClass_VarArgsOfType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  '  generic TGJSSet<T> = class external name ''Set''',
+  '    constructor new(aElement1: T); varargs of T; overload;',
+  '    function bind(thisArg: TJSObject): T; varargs of T;',
+  '  end;',
+  '  TJSWordSet = specialize TGJSSet<word>;',
+  'var',
+  '  s: TJSWordSet;',
+  '  w: word;',
+  'begin',
+  '  s:=TJSWordSet.new(3);',
+  '  s:=TJSWordSet.new(3,5);',
+  '  w:=s.bind(nil);',
+  '  w:=s.bind(nil,6);',
+  '  w:=s.bind(nil,7,8);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ExtClass_VarArgsOfType',
+    LinesToStr([ // statements
+    'this.s = null;',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.s = new Set(3);',
+    '$mod.s = new Set(3, 5);',
+    '$mod.w = $mod.s.bind(null);',
+    '$mod.w = $mod.s.bind(null, 6);',
+    '$mod.w = $mod.s.bind(null, 7, 8);',
     '']));
 end;
 
@@ -1431,10 +1485,17 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createInterface(this, "IBird$G2", "{33AB51C6-6240-3BDF-B4B0-D48A593EAB0A}", ["GetSize", "SetSize", "DoIt"], this.IUnknown);',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IBird$G2",',
+    '  "{33AB51C6-6240-3BDF-B4B0-D48A593EAB0A}",',
+    '  ["GetSize", "SetSize", "DoIt"],',
+    '  this.IUnknown,',
+    '  "IBird<System.Word>"',
+    ');',
     'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
     '  rtl.addIntf(this, $mod.IBird$G2);',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.BirdIntf = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -1463,7 +1524,14 @@ begin
   ConvertProgram;
   CheckSource('TestGen_ClassInterface_InterfacedObject',
     LinesToStr([ // statements
-    'rtl.createInterface(this, "IComparer$G2", "{505778ED-F783-4456-9691-32F419CC5E18}", ["Compare"], pas.system.IUnknown);',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IComparer$G2",',
+    '  "{505778ED-F783-4456-9691-32F419CC5E18}",',
+    '  ["Compare"],',
+    '  pas.system.IUnknown,',
+    '  "IComparer<System.Longint>"',
+    ');',
     'this.aComparer = null;',
     'rtl.createClass(this, "TComparer$G1", pas.system.TInterfacedObject, function () {',
     '  this.Compare = function (Left, Right) {',
@@ -1472,7 +1540,7 @@ begin
     '  };',
     '  rtl.addIntf(this, $mod.IComparer$G2);',
     '  rtl.addIntf(this, pas.system.IUnknown);',
-    '});',
+    '}, "TComparer<System.Longint>");',
     '']),
     LinesToStr([ // $mod.$main
     'rtl.setIntfP($mod, "aComparer", rtl.queryIntfT($mod.TComparer$G1.$create("Create"), $mod.IComparer$G2), true);',
@@ -1549,7 +1617,7 @@ begin
     '  };',
     '});',
     'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.b = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -1592,13 +1660,13 @@ begin
     '    this.Fly = function () {',
     '      $impl.DoIt();',
     '    };',
-    '  });',
+    '  }, "TBird<System.Boolean>");',
     '  this.b = null;',
     '  rtl.createClass(this, "TBird$G2", pas.system.TObject, function () {',
     '    this.Fly = function () {',
     '      $impl.DoIt();',
     '    };',
-    '  });',
+    '  }, "TBird<System.Word>");',
     '  $mod.$implcode = function () {',
     '    $impl.DoIt = function () {',
     '      var b = null;',
@@ -1646,7 +1714,7 @@ begin
     '    var i = 0;',
     '    i = this.m;',
     '  };',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.b = null;',
     '']),
     LinesToStr([ // $mod.$main
@@ -1694,7 +1762,7 @@ begin
     '    $mod.o.Field = 3;',
     '    if (4 === $mod.o.Field) ;',
     '  };',
-    '});',
+    '}, "TBird<System.Word>");',
     'this.b = null;',
     '']),
     LinesToStr([ // $mod.$main
