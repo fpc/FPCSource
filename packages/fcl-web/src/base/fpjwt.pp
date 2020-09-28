@@ -165,8 +165,10 @@ function TJWT.GetAsString: TJSONStringType;
 begin
   Result:=Base64ToBase64URL(EncodeStringBase64(JOSE.AsString));
   Result:=Result+'.'+Base64ToBase64URL(EncodeStringBase64(Claims.AsString));
-  If (Signature<>'') then
-    Result:=Result+'.'+Signature;
+  // Dot must always be present, even if signature is empty.
+  // https://tools.ietf.org/html/rfc7519#section-6.1
+  // (See also Bug ID 37830)
+  Result:=Result+'.'+Signature;
 end;
 
 
