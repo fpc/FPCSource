@@ -121,8 +121,8 @@ begin
     tmp := TCmdStrListItem(tmp.Next);
   end;
 
-  if HasExports then
-    cmdstr := cmdstr + ' --export-dynamic'; //' --export-dynamic';
+//  if HasExports then
+//    cmdstr := cmdstr + ' --export-dynamic'; //' --export-dynamic';
 
   cmdstr := cmdstr + ' --no-entry --allow-undefined';
 
