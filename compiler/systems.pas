@@ -293,6 +293,9 @@ interface
                          system_aarch64_darwin];
        systems_darwin = systems_ios + systems_iphonesym + systems_macosx;
 
+       { all WebAssembly systems }
+       systems_wasm = [system_wasm32_wasm,system_wasm32_wasi];
+
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
                           system_x86_64_solaris];
