@@ -133,6 +133,7 @@ implementation
       { print all global procedures/functions }
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
+      writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
     end;
 
 
