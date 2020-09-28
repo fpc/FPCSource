@@ -1213,6 +1213,7 @@ type
     pageToken : String;
     q : String;
     spaces : String;
+    fields: String;
   end;
   
   
@@ -4120,6 +4121,7 @@ begin
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   AddToQuery(_Q,'q',AQuery.q);
   AddToQuery(_Q,'spaces',AQuery.spaces);
+  AddToQuery(_Q,'fields',AQuery.fields);
   Result:=List(_Q);
 end;
 
