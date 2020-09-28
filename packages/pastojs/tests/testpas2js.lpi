@@ -64,6 +64,7 @@
       <Unit5>
         <Filename Value="tcsrcmap.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCSrcMap"/>
       </Unit5>
       <Unit6>
         <Filename Value="../src/fppjssrcmap.pp"/>

@@ -16,7 +16,7 @@
  Examples:
     ./testpas2js --suite=TTestSrcMap.TestEmptyProgram
 }
-unit tcsrcmap;
+unit TCSrcMap;
 
 {$mode objfpc}{$H+}
 
