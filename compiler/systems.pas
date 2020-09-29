@@ -279,7 +279,7 @@ interface
                            system_powerpc_embedded,
                            system_sparc_embedded,obsolete_system_vm_embedded,
                            obsolete_system_ia64_embedded,system_x86_64_embedded,
-                           system_mips_embedded,system_arm_embedded,
+                           obsolete_system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded,system_avr_embedded,
                            system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded,
                            system_i8086_embedded];
