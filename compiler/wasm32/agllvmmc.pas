@@ -42,6 +42,7 @@ interface
     protected
       procedure WriteProcDef(pd: tprocdef);
       procedure WriteSymtableProcdefs(st: TSymtable);
+      procedure WriteImports;
 
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
@@ -112,6 +113,31 @@ implementation
     end;
 
 
+  procedure TLLVMMachineCodePlaygroundAssembler.WriteImports;
+      var
+        i    : integer;
+        proc : tprocdef;
+    begin
+      for i:=0 to current_module.deflist.Count-1 do
+        if tdef(current_module.deflist[i]).typ = procdef then
+          begin
+            proc := tprocdef(current_module.deflist[i]);
+            if (po_external in proc.procoptions) and assigned(proc.import_dll) then
+              begin
+                WriteProcDef(proc);
+                writer.AsmWrite(#9'.import_module'#9);
+                writer.AsmWrite(proc.mangledname);
+                writer.AsmWrite(', ');
+                writer.AsmWriteLn(proc.import_dll^);
+                writer.AsmWrite(#9'.import_name'#9);
+                writer.AsmWrite(proc.mangledname);
+                writer.AsmWrite(', ');
+                writer.AsmWriteLn(proc.import_name^);
+              end;
+          end;
+    end;
+
+
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
       if atype=sec_fpc then
@@ -134,6 +160,7 @@ implementation
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
       writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
+      WriteImports;
     end;
 
 
