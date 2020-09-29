@@ -609,7 +609,11 @@ begin
         Continue;
       end;
       { then check for the method }
-      if Assigned(aMethod) and (entry^.Method <> aMethod) then begin
+      if Assigned(aMethod) and
+          (
+            (TMethod(entry^.Method).Code <> TMethod(aMethod).Code) or
+            (TMethod(entry^.Method).Data <> TMethod(aMethod).Data)
+          ) then begin
         lastentry := entry;
         entry := entry^.Next;
         Continue;
