@@ -1428,6 +1428,10 @@ implementation
                  { the .localentry directive has to specify the size from the
                    start till here of the non-local entry code as second argument }
                  s:=', .-';
+               if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
+                 sepChar := '@'
+               else
+                 sepChar := '#';
                if replaceforbidden then
                  begin
                    { avoid string truncation }
@@ -1438,6 +1442,11 @@ implementation
                      begin
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
+                     end;
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     begin
+                       writer.AsmWrite(#9'.type'#9 + ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
+                       writer.AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end
                else
@@ -1450,6 +1459,11 @@ implementation
                      begin
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(tai_symbolpair(hp).sym^);
+                     end;
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     begin
+                       writer.AsmWrite(#9'.type'#9 + tai_symbolpair(hp).sym^);
+                       writer.AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
              end;
