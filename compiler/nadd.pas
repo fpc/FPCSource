@@ -490,7 +490,7 @@ implementation
 
 
       var
-        t       , vl, hp: tnode;
+        t,vl,hp,lefttarget,righttarget: tnode;
         lt,rt   : tnodetype;
         hdef,
         rd,ld   , inttype: tdef;
@@ -1307,6 +1307,27 @@ implementation
                     exit;
                   end
               end;
+          end;
+
+        { check if
+           typeinfo(<type1>)=/<>typeinfo(<type2>)
+          can be evaluated at compile time
+        }
+        lefttarget:=actualtargetnode(@left)^;
+        righttarget:=actualtargetnode(@right)^;
+        if (nodetype in [equaln,unequaln]) and (lefttarget.nodetype=inlinen) and (righttarget.nodetype=inlinen) and
+          (tinlinenode(lefttarget).inlinenumber=in_typeinfo_x) and (tinlinenode(righttarget).inlinenumber=in_typeinfo_x) and
+          (tinlinenode(lefttarget).left.nodetype=typen) and (tinlinenode(righttarget).left.nodetype=typen) then
+          begin
+            case nodetype of
+              equaln:
+                result:=cordconstnode.create(ord(ttypenode(tinlinenode(lefttarget).left).resultdef=ttypenode(tinlinenode(righttarget).left).resultdef),bool8type,false);
+              unequaln:
+                result:=cordconstnode.create(ord(ttypenode(tinlinenode(lefttarget).left).resultdef<>ttypenode(tinlinenode(righttarget).left).resultdef),bool8type,false);
+              else
+                Internalerror(2020092901);
+            end;
+            exit;
           end;
 
         { slow simplifications }

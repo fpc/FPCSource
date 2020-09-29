@@ -373,8 +373,9 @@ begin
             end
           else if u1<>0 then
             MaybeAppendUnicode;
-          if FTokenStr^ = #0 then
-            Error(SErrOpenString,[FCurRow]);
+          if FTokenStr^ < #$20 then
+            if FTokenStr^ = #0 then Error(SErrOpenString,[FCurRow])
+            else if joStrict in Options then Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
           Inc(FTokenStr);
           end;
         if FTokenStr^ = #0 then
@@ -396,37 +397,54 @@ begin
     '0'..'9','.','-':
       begin
         TokenStart := FTokenStr;
+        if FTokenStr^ = '-' then inc(FTokenStr);
+        case FTokenStr^ of
+          '1'..'9': Inc(FTokenStr);
+          '0': begin
+            Inc(FTokenStr);
+            if (joStrict in Options) and (FTokenStr^ in ['0'..'9']) then
+              Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+          end;
+          '.': if joStrict in Options then
+                 Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+          else
+            Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+        end;
         while true do
         begin
-          Inc(FTokenStr);
           case FTokenStr^ of
+            '0'..'9': inc(FTokenStr);
             '.':
               begin
-                if FTokenStr[1] in ['0'..'9', 'e', 'E'] then
-                begin
-                  Inc(FTokenStr);
-                  repeat
+                case FTokenStr[1] of
+                  '0'..'9': Inc(FTokenStr, 2);
+                  'e', 'E': begin
+                    if joStrict in Options then
+                      Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
                     Inc(FTokenStr);
-                  until not (FTokenStr^ in ['0'..'9', 'e', 'E','-','+']);
+                  end;
+                  else Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
                 end;
-                break;
-              end;
-            '0'..'9': ;
-            'e', 'E':
-              begin
-                Inc(FTokenStr);
-                if FTokenStr^ in ['-','+']  then
-                  Inc(FTokenStr);
                 while FTokenStr^ in ['0'..'9'] do
-                  Inc(FTokenStr);
+                  inc(FTokenStr);
                 break;
               end;
           else
-            if {(FTokenStr<>FEOL) and }not (FTokenStr^ in [#13,#10,#0,'}',']',',',#9,' ']) then
-               Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
             break;
           end;
         end;
+        if FTokenStr^ in ['e', 'E'] then begin
+          Inc(FTokenStr);
+          if FTokenStr^ in ['-','+']  then
+            Inc(FTokenStr);
+          if not (FTokenStr^ in ['0'..'9']) then
+            Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+          repeat
+            Inc(FTokenStr);
+          until not (FTokenStr^ in ['0'..'9']);
+        end;
+        if {(FTokenStr<>FEOL) and }not (FTokenStr^ in [#13,#10,#0,'}',']',',',#9,' ']) then
+          Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
         SectionLength := FTokenStr - TokenStart;
         FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
@@ -513,23 +531,33 @@ begin
         tstart:=CurRow;
         Tcol:=CurColumn;
         TokenStart := FTokenStr;
+        Result:=tkIdentifier;
+        case TokenStart^ of
+          't': if (TokenStart[1] = 'r') and (TokenStart[2] = 'u') and (TokenStart[3] = 'e') then
+            Result:=tkTrue;
+          'f': if (TokenStart[1] = 'a') and (TokenStart[2] = 'l') and (TokenStart[3] = 's') and (TokenStart[4] = 'e') then
+            Result:=tkFalse;
+          'n': if (TokenStart[1] = 'u') and (TokenStart[2] = 'l') and (TokenStart[3] = 'l') then
+            Result:=tkNull;
+        end;
+        if result <> tkIdentifier then inc(FTokenStr, length(TokenInfos[result]) - 1);
         repeat
           Inc(FTokenStr);
         until not (FTokenStr^ in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
         SectionLength := FTokenStr - TokenStart;
         FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
-        for it := tkTrue to tkNull do
-          if CompareText(CurTokenString, TokenInfos[it]) = 0 then
-            begin
-            Result := it;
-            FCurToken := Result;
-            exit;
-            end;
-        if (joStrict in Options) then
-          Error(SErrInvalidCharacter, [tStart,tcol,TokenStart[0]])
-        else
-          Result:=tkIdentifier;
+        if (result = tkIdentifier) or (SectionLength <> length(TokenInfos[result])) then begin
+          if (joStrict in Options) then
+            Error(SErrInvalidCharacter, [tStart,tcol,TokenStart[0]]);
+          for it := tkTrue to tkNull do
+            if CompareText(CurTokenString, TokenInfos[it]) = 0 then
+              begin
+              Result := it;
+              FCurToken := Result;
+              exit;
+              end;
+        end;
       end;
   else
     Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
