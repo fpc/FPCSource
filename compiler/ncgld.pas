@@ -882,7 +882,8 @@ implementation
                            ((left.location.size<>right.location.size)
                            { on newer (1993+ :)) x86 cpus, use the fpu to copy extended values }
 {$ifdef x86}
-                            or ({$ifndef x86_64}(current_settings.cputype>=cpu_Pentium) and{$endif x86_64} (is_extended(right.resultdef)))
+                            or ({$ifndef x86_64}(current_settings.cputype>=cpu_Pentium) and{$endif x86_64}
+                            (is_extended(right.resultdef) {$ifdef i386} or is_double(right.resultdef){$endif i386} ))
 {$endif x86}
                            )then
                           begin
