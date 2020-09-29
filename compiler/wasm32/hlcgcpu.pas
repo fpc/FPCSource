@@ -141,6 +141,8 @@ uses
 
       { Wasm-specific routines }
 
+      procedure g_procdef(list:TAsmList;pd: tprocdef);
+
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
       { extra_slots are the slots that are used by the reference, and that
         will be removed by the store operation }
@@ -1625,50 +1627,10 @@ implementation
 
   procedure thlcgwasm.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
     var
-      functype: tai_functype;
       pd: tcpuprocdef;
-      i: integer;
-      prm: tcpuparavarsym;
-      bt: TWasmBasicType;
     begin
       pd:=tcpuprocdef(current_procinfo.procdef);
-      functype:=tai_functype.create(pd.mangledname);
-      if Assigned(pd.paras) and (pd.paras.Count>0) then
-        begin
-          for i:=0 to pd.paras.Count-1 do
-            begin
-              prm := tcpuparavarsym(pd.paras[i]);
-              case prm.paraloc[callerside].Size of
-                OS_8..OS_32, OS_S8..OS_S32:
-                  functype.add_param(wbt_i32);
-                OS_64, OS_S64:
-                  functype.add_param(wbt_i64);
-                OS_F32:
-                  functype.add_param(wbt_f32);
-                OS_F64:
-                  functype.add_param(wbt_f64);
-              else
-                // unsupported calleeside parameter type
-                Internalerror(2019093001);
-              end;
-            end;
-        end;
-      if Assigned(pd.returndef) and (pd.returndef.size>0) then
-        begin
-          if not defToWasmBasic(pd.returndef,bt) then
-            bt:=wbt_i32;
-          case bt of
-            wbt_i64:
-              functype.add_result(wbt_i64);
-            wbt_f32:
-              functype.add_result(wbt_f32);
-            wbt_f64:
-              functype.add_result(wbt_f64);
-          else
-            functype.add_result(wbt_i32);
-          end;
-        end;
-      list.Concat(functype);
+      g_procdef(list,pd);
 
       tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_persistent,pd.frame_pointer_ref);
       tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_persistent,pd.base_pointer_ref);
@@ -2040,6 +2002,52 @@ implementation
     begin
       internalerror(2012090206);
     end;
+
+    procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef);
+      var
+        functype: tai_functype;
+        i: integer;
+        prm: tcpuparavarsym;
+        bt: TWasmBasicType;
+      begin
+        functype:=tai_functype.create(pd.mangledname);
+        if Assigned(pd.paras) and (pd.paras.Count>0) then
+          begin
+            for i:=0 to pd.paras.Count-1 do
+              begin
+                prm := tcpuparavarsym(pd.paras[i]);
+                case prm.paraloc[callerside].Size of
+                  OS_8..OS_32, OS_S8..OS_S32:
+                    functype.add_param(wbt_i32);
+                  OS_64, OS_S64:
+                    functype.add_param(wbt_i64);
+                  OS_F32:
+                    functype.add_param(wbt_f32);
+                  OS_F64:
+                    functype.add_param(wbt_f64);
+                else
+                  // unsupported calleeside parameter type
+                  Internalerror(2019093001);
+                end;
+              end;
+          end;
+        if Assigned(pd.returndef) and (pd.returndef.size>0) then
+          begin
+            if not defToWasmBasic(pd.returndef,bt) then
+              bt:=wbt_i32;
+            case bt of
+              wbt_i64:
+                functype.add_result(wbt_i64);
+              wbt_f32:
+                functype.add_result(wbt_f32);
+              wbt_f64:
+                functype.add_result(wbt_f64);
+            else
+              functype.add_result(wbt_i32);
+            end;
+          end;
+        list.Concat(functype);
+      end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var
