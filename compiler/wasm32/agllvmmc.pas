@@ -63,6 +63,7 @@ implementation
     fmodule,finput,
     itcpugas,
     cpubase,
+    hlcgobj,hlcgcpu,
     verbose;
 
   { TLLVMMachineCodePlaygroundAssembler }
@@ -114,9 +115,10 @@ implementation
 
 
   procedure TLLVMMachineCodePlaygroundAssembler.WriteImports;
-      var
-        i    : integer;
-        proc : tprocdef;
+    var
+      i    : integer;
+      proc : tprocdef;
+      list : TAsmList;
     begin
       for i:=0 to current_module.deflist.Count-1 do
         if tdef(current_module.deflist[i]).typ = procdef then
@@ -124,7 +126,11 @@ implementation
             proc := tprocdef(current_module.deflist[i]);
             if (po_external in proc.procoptions) and assigned(proc.import_dll) then
               begin
-                WriteProcDef(proc);
+                //WriteProcDef(proc);
+                list:=TAsmList.Create;
+                thlcgwasm(hlcg).g_procdef(list,proc);
+                WriteTree(list);
+                list.free;
                 writer.AsmWrite(#9'.import_module'#9);
                 writer.AsmWrite(proc.mangledname);
                 writer.AsmWrite(', ');
