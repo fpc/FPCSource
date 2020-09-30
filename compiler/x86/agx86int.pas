@@ -679,7 +679,7 @@ implementation
                          writer.AsmWriteln(#9#9'DW'#9'0,0,0,8000h,FFFFh');
                      end
                    else if (asminfo^.id = as_i386_wasm) and (IsNan(tai_realconst(hp).value.s80val)) then
-                     writer.AsmWriteln(#9#9'DW'#9'0,0,0,C000h,7FFFh')
+                     writer.AsmWriteln(#9#9'DW'#9'0,0,0,0xC000,0x7FFF')
                    else
                      writer.AsmWriteLn(#9#9'DT'#9+extended2str(tai_realconst(hp).value.s80val));
                  aitrealconst_s64comp:
@@ -768,8 +768,8 @@ implementation
              begin
                if tai_label(hp).labsym.is_used then
                 begin
-                  writer.AsmWrite(tai_label(hp).labsym.name);
-                  if assigned(hp.next) and not(tai(hp.next).typ in
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name));
+                  if not assigned(hp.next) or not(tai(hp.next).typ in
                      [ait_const,ait_realconst,ait_string]) then
                    writer.AsmWriteLn(':')
                   else
@@ -797,7 +797,7 @@ implementation
                if tai_symbol(hp).is_global then
                  writer.AsmWriteLn(#9'PUBLIC'#9+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
-               if assigned(hp.next) and not(tai(hp.next).typ in
+               if not assigned(hp.next) or not(tai(hp.next).typ in
                   [ait_const,ait_realconst,ait_string]) then
                  writer.AsmWriteLn(':');
              end;
