@@ -304,7 +304,7 @@ implementation
             begin
               if (asminfo^.id = as_i386_tasm) then
                 writer.AsmWrite('dword ptr ');
-              writer.AsmWrite(symbol.name);
+              writer.AsmWrite(ApplyAsmSymbolRestrictions(symbol.name));
               first:=false;
             end;
            if (base<>NR_NO) then
@@ -418,7 +418,7 @@ implementation
                 begin
                   writer.AsmWrite('offset ');
                   if assigned(o.ref^.symbol) then
-                    writer.AsmWrite(o.ref^.symbol.name);
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                   if o.ref^.offset>0 then
                    writer.AsmWrite('+'+tostr(o.ref^.offset))
                   else
@@ -462,7 +462,7 @@ implementation
               end
             else
               begin
-                writer.AsmWrite(o.ref^.symbol.name);
+                writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                 if o.ref^.offset>0 then
                  writer.AsmWrite('+'+tostr(o.ref^.offset))
                 else
@@ -579,8 +579,8 @@ implementation
            ait_datablock :
              begin
                if tai_datablock(hp).is_global then
-                 writer.AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
-               writer.AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
+                 writer.AsmWriteLn(#9'PUBLIC'#9+ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
+               writer.AsmWriteLn(PadTabs(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name),#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
              end;
            ait_const:
              begin
@@ -606,9 +606,9 @@ implementation
                        if assigned(tai_const(hp).sym) then
                          begin
                            if assigned(tai_const(hp).endsym) then
-                             s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).endsym.name)+'-'+ApplyAsmSymbolRestrictions(tai_const(hp).sym.name)
                            else
-                             s:=tai_const(hp).sym.name;
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).sym.name);
                            if tai_const(hp).value<>0 then
                              s:=s+tostr_with_plus(tai_const(hp).value);
                          end
@@ -780,7 +780,7 @@ implementation
              begin
                if tai_symbol(hp).has_value then
                  internalerror(2009090802);
-               { wasm is case insensitive, we nned to use only uppercase version 
+               { wasm is case insensitive, we need to use only uppercase version 
                  if both a lowercase and an uppercase version are provided }
                if (asminfo^.id = as_i386_wasm) then
                  begin
@@ -795,8 +795,8 @@ implementation
                      end;
                  end;
                if tai_symbol(hp).is_global then
-                 writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
-               writer.AsmWrite(tai_symbol(hp).sym.name);
+                 writer.AsmWriteLn(#9'PUBLIC'#9+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
+               writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const,ait_realconst,ait_string]) then
                  writer.AsmWriteLn(':');
@@ -1033,11 +1033,11 @@ implementation
                 case asminfo^.id of
                   as_i386_masm,
                   as_i386_wasm :
-                    writer.AsmWriteln(#9'EXTRN'#9+sym.name+': NEAR');
+                    writer.AsmWriteln(#9'EXTRN'#9+ApplyAsmSymbolRestrictions(sym.name)+': NEAR');
                   as_x86_64_masm :
-                    writer.AsmWriteln(#9'EXTRN'#9+sym.name+': PROC');
+                    writer.AsmWriteln(#9'EXTRN'#9+ApplyAsmSymbolRestrictions(sym.name)+': PROC');
                   else
-                    writer.AsmWriteln(#9'EXTRN'#9+sym.name);
+                    writer.AsmWriteln(#9'EXTRN'#9+ApplyAsmSymbolRestrictions(sym.name));
                 end;
               end;
           end;
@@ -1168,7 +1168,7 @@ implementation
             supported_targets : [system_i386_watcom];
             flags : [af_needar];
             labelprefix : '@@';
-            labelmaxlen : -1;
+            labelmaxlen : 247;
             comment : '; ';
             dollarsign: '$';
           );
