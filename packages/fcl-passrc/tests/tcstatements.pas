@@ -100,6 +100,7 @@ Type
     Procedure TestCaseElseBlockAssignment;
     Procedure TestCaseElseBlock2Assignments;
     Procedure TestCaseIfCaseElse;
+    Procedure TestCaseIfCaseElseElse;
     Procedure TestCaseIfElse;
     Procedure TestCaseElseNoSemicolon;
     Procedure TestCaseIfElseNoSemicolon;
@@ -1301,7 +1302,7 @@ begin
   C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
   AssertNotNull('Have case expression',C.CaseExpr);
   AssertExpression('Case expression',C.CaseExpr,pekIdent,'a');
-  AssertEquals('Two case labels',1,C.Elements.Count);
+  AssertEquals('One case label',1,C.Elements.Count);
   AssertNull('Have no else branch',C.ElseBranch);
   S:=TPasImplCaseStatement(C.Elements[0]);
   AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
@@ -1309,6 +1310,30 @@ begin
   AssertEquals('1 case label statement',1,S.Elements.Count);
   AssertEquals('If statement in case label 1',TPasImplIfElse,TPasElement(S.Elements[0]).ClassType);
   AssertNotNull('If statement has else block',TPasImplIfElse(S.Elements[0]).ElseBranch);
+end;
+
+procedure TTestStatementParser.TestCaseIfCaseElseElse;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  DeclareVar('boolean','b');
+  TestStatement(['case a of','1 : if b then',' begin end','else','else','DoElse',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNotNull('Have case expression',C.CaseExpr);
+  AssertExpression('Case expression',C.CaseExpr,pekIdent,'a');
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertNotNull('Have an else branch',C.ElseBranch);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('If statement in case label 1',TPasImplIfElse,TPasElement(S.Elements[0]).ClassType);
+  AssertNotNull('If statement has else block',TPasImplIfElse(S.Elements[0]).ElseBranch);
+  AssertEquals('If statement has a commend as else block',TPasImplCommand,TPasImplIfElse(S.Elements[0]).ElseBranch.ClassType);
+  AssertEquals('But ... an empty command','',TPasImplCommand(TPasImplIfElse(S.Elements[0]).ElseBranch).Command);
 end;
 
 procedure TTestStatementParser.TestCaseElseNoSemicolon;
