@@ -739,7 +739,9 @@ begin
   I2:=I.Ifbranch as TPasImplIfElse;
   AssertExpression('IF condition',I2.ConditionExpr,pekIdent,'b');
   AssertNotNull('Have then for inner if',I2.ifBranch);
-  AssertNull('Empty else for inner if',I2.ElseBranch);
+  AssertnotNull('Empty else for inner if',I2.ElseBranch);
+  AssertEquals('Have a commend for inner if else',TPasImplCommand,I2.ElseBranch.ClassType);
+  AssertEquals('... an empty command','',TPasImplCommand(I2.ElseBranch).Command);
 end;
 
 procedure TTestStatementParser.TestIfIfElseElseBlock;
