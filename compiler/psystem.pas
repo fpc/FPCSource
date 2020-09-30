@@ -256,6 +256,7 @@ implementation
 
       var
         hrecst : trecordsymtable;
+	pvmt_name : shortstring;
       begin
         symtablestack.push(systemunit);
         cundefinedtype:=cundefineddef.create(true);
@@ -310,7 +311,11 @@ implementation
         cunicodestringtype:=cstringdef.createunicode(true);
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0,true);
-{$ifdef x86}
+        if target_info.system=system_i386_watcom then
+          pvmt_name:='lower__pvmt'
+        else
+          pvmt_name:='pvmt';
+ {$ifdef x86}
         create_fpu_types;
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
@@ -637,7 +642,7 @@ implementation
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
-            systemunit.insert(ctypesym.create('$pvmt',pvmttype));
+            systemunit.insert(ctypesym.create('$'+pvmt_name,pvmttype));
             addfield(hrecst,cfieldvarsym.create('$length',vs_value,sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,sizesinttype,[]));
             addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
@@ -686,6 +691,7 @@ implementation
 
       var
         oldcurrentmodule : tmodule;
+        pvmt_name : shortstring;
       begin
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
@@ -777,9 +783,13 @@ implementation
         loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
         loadtype('file',cfiletype);
+        if target_info.system=system_i386_watcom then
+          pvmt_name:='lower__pvmt'
+        else
+          pvmt_name:='pvmt';
         if not(target_info.system in systems_managed_vm) then
           begin
-            loadtype('pvmt',pvmttype);
+            loadtype(pvmt_name,pvmttype);
             loadtype('vtblarray',vmtarraytype);
             loadtype('__vtbl_ptr_type',vmttype);
           end;
