@@ -72,6 +72,7 @@ Type
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
     Procedure TestNestedIfElseElse;
+    procedure TestIfIfElseElseBlock;
     Procedure TestWhile;
     Procedure TestWhileBlock;
     Procedure TestWhileNested;
@@ -740,6 +741,30 @@ begin
   AssertNotNull('Have then for inner if',I2.ifBranch);
   AssertNull('Empty else for inner if',I2.ElseBranch);
 end;
+
+procedure TTestStatementParser.TestIfIfElseElseBlock;
+
+var
+  OuterIf,InnerIf: TPasImplIfElse;
+begin
+  DeclareVar('boolean');
+  DeclareVar('boolean','B');
+  TestStatement(['if a then','if b then','  begin','  end','else','else','  begin','  end']);
+  OuterIf:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',OuterIf.ConditionExpr,pekIdent,'a');
+  AssertNotNull('if branch',OuterIf.IfBranch);
+  AssertEquals('if else block',TPasImplIfElse,OuterIf.ifBranch.ClassType);
+  InnerIf:=OuterIf.IfBranch as TPasImplIfElse;
+  AssertExpression('IF condition',InnerIf.ConditionExpr,pekIdent,'b');
+  AssertNotNull('if branch',InnerIf.IfBranch);
+  AssertEquals('begin end block',TPasImplBeginBlock,InnerIf.ifBranch.ClassType);
+  AssertNotNull('Else branch',InnerIf.ElseBranch);
+  AssertEquals('empty statement',TPasImplCommand,InnerIf.ElseBranch.ClassType);
+  AssertEquals('empty command','',TPasImplCommand(InnerIf.ElseBranch).Command);
+  AssertNotNull('Else branch',OuterIf.ElseBranch);
+  AssertEquals('begin end block',TPasImplBeginBlock,OuterIf.ElseBranch.ClassType);
+end;
+
 
 procedure TTestStatementParser.TestWhile;
 
