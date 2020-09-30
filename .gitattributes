@@ -12085,6 +12085,7 @@ rtl/watcom/sysos.inc svneol=native#text/plain
 rtl/watcom/sysosh.inc svneol=native#text/plain
 rtl/watcom/system.pp svneol=native#text/plain
 rtl/watcom/sysutils.pp svneol=native#text/plain
+rtl/watcom/tthread.inc svneol=native#text/plain
 rtl/watcom/watcom.pp svneol=native#text/plain
 rtl/wii/Makefile svneol=native#text/plain
 rtl/wii/Makefile.fpc svneol=native#text/plain
