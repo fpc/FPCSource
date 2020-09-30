@@ -3820,8 +3820,8 @@ unit aoptx86;
            (taicpu(hp1).opsize = taicpu(p).opsize) and
            RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
           begin
-            { replacing fstp f;fld f by fst f is only valid for extended because of rounding }
-            if (taicpu(p).opsize=S_FX) and
+            { replacing fstp f;fld f by fst f is only valid for extended because of rounding or if fastmath is on }
+            if ((taicpu(p).opsize=S_FX) or (cs_opt_fastmath in current_settings.optimizerswitches)) and
                GetNextInstruction(hp1, hp2) and
                (hp2.typ = ait_instruction) and
                IsExitCode(hp2) and
@@ -3835,18 +3835,27 @@ unit aoptx86;
                 RemoveLastDeallocForFuncRes(p);
                 Result := true;
               end
-            (* can't be done because the store operation rounds
             else
-              { fst can't store an extended value! }
-              if (taicpu(p).opsize <> S_FX) and
-                 (taicpu(p).opsize <> S_IQ) then
+              { we can do this only in fast math mode as fstp is rounding ...
+                ... still disabled as it breaks the compiler and/or rtl }
+              if ({ (cs_opt_fastmath in current_settings.optimizerswitches) or }
+                { ... or if another fstp equal to the first one follows }
+                (GetNextInstruction(hp1,hp2) and
+                (hp2.typ = ait_instruction) and
+                (taicpu(p).opcode=taicpu(hp2).opcode) and
+                (taicpu(p).opsize=taicpu(hp2).opsize))
+                ) and
+                { fst can't store an extended/comp value }
+                (taicpu(p).opsize <> S_FX) and
+                (taicpu(p).opsize <> S_IQ) then
                 begin
                   if (taicpu(p).opcode = A_FSTP) then
                     taicpu(p).opcode := A_FST
-                  else taicpu(p).opcode := A_FIST;
+                  else
+                    taicpu(p).opcode := A_FIST;
+                  DebugMsg(SPeepholeOptimization + 'FstpFld2Fst',p);
                   RemoveInstruction(hp1);
-                end
-            *)
+                end;
           end;
       end;
 
