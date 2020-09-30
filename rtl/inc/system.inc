@@ -860,7 +860,7 @@ end;
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need
     the instruction address to walk the stack. }
-function get_pc_addr : codepointer;
+function get_pc_addr : codepointer;inline;
 begin
   get_pc_addr:=nil;
 end;
