@@ -226,6 +226,7 @@ end;
 Function FileSeek (Handle, FOffset, Origin : Longint) : Longint;
 var
   Regs: registers;
+  res: dword;
 begin
   Regs.Eax := $4200;
   Regs.Al := Origin;
@@ -236,8 +237,9 @@ begin
   if Regs.Flags and CarryFlag <> 0 then
      result := -1
   else begin
-     LongRec(result).Lo := Regs.Ax;
-     LongRec(result).Hi := Regs.Dx;
+     LongRec(res).Lo := Regs.Ax;
+     LongRec(res).Hi := Regs.Dx;
+     result:=res;
      end ;
 end;
 
@@ -409,6 +411,7 @@ end;
 Function FileGetDate (Handle : Longint) : Int64;
 var
   Regs: registers;
+  res: dword;
 begin
   //!! for win95 an alternative function is available.
   Regs.Ebx := Handle;
@@ -418,8 +421,9 @@ begin
    result := -1
   else
    begin
-     LongRec(result).Lo := Regs.cx;
-     LongRec(result).Hi := Regs.dx;
+     LongRec(res).Lo := Regs.cx;
+     LongRec(res).Hi := Regs.dx;
+     result := res;
    end ;
 end;
 

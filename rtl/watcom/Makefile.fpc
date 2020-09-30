@@ -10,6 +10,7 @@ loaders=prt0
 #exceptn fpu
 units=system uuchar objpas macpas iso7185 extpas strings watcom dos \
       cpu charset cpall types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
+      character fpwidestring unicodedata unicodenumtable \
       math typinfo mmx sortbase \
       classes sysutils
 implicitunits=exeinfo \
@@ -212,6 +213,18 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

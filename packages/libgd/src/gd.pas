@@ -16,6 +16,9 @@ unit gd;
 {$IFDEF GO32V2}
   {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
 {$ENDIF GO32V2}
+{$IFDEF WATCOM}
+  {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
+{$ENDIF WATCOM}
 {$IFDEF AMIGA}
   {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
 {$ENDIF AMIGA}
@@ -76,6 +79,14 @@ uses
     {$linklib c}
    {$UNDEF LOAD_DYNAMICALLY}
 {$ENDIF GO32V2}
+{$IFDEF WATCOM}
+  {$DEFINE EXTDECL := cdecl}
+    {$DEFINE gdlib := }
+    {$DEFINE clib := }
+    {$linklib gd}
+    {$linklib c}
+   {$UNDEF LOAD_DYNAMICALLY}
+{$ENDIF WATCOM}
 {$IFDEF OS2}
 (* Force static linking under OS/2 for now to avoid     *)
 (* dependency on dll for a one particular libc version. *)

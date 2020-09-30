@@ -291,15 +291,20 @@ implementation
     function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
         i : longint;
-        rchar: char;
+        rchar, ochar: char;
         crc: Cardinal;
         charstoremove: integer;
       begin
         Result:=s;
         rchar:=target_asm.dollarsign;
-        for i:=1 to Length(Result) do
-          if Result[i]='$' then
-            Result[i]:=rchar;
+        if target_asm.id=as_i386_wasm then
+          ochar:='.'
+        else
+          ochar:='$';
+        if (ochar<>rchar) then
+          for  i:=1 to Length(Result) do
+            if Result[i]=ochar then
+              Result[i]:=rchar;
         if (target_asm.labelmaxlen<>-1) and (Length(Result)>target_asm.labelmaxlen) then
           begin
             crc:=0;

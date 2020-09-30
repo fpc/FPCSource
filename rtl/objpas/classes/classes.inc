@@ -602,42 +602,35 @@ begin
     lastentry := Nil;
     entry := ThreadQueueHead;
     while Assigned(entry) do begin
-      { first check for the thread }
-      if Assigned(aThread) and (entry^.Thread <> aThread) and (entry^.ThreadID <> aThread.ThreadID) then begin
-        lastentry := entry;
-        entry := entry^.Next;
-        Continue;
-      end;
-      { then check for the method }
-      if Assigned(aMethod) and
+      if
+        { only entries not added by Synchronize }
+        not Assigned(entry^.SyncEvent)
+        { check for the thread }
+        and (not Assigned(aThread) or (entry^.Thread = aThread) or (entry^.ThreadID = aThread.ThreadID))
+        { check for the method }
+        and (not Assigned(aMethod) or
           (
-            (TMethod(entry^.Method).Code <> TMethod(aMethod).Code) or
-            (TMethod(entry^.Method).Data <> TMethod(aMethod).Data)
-          ) then begin
+            (TMethod(entry^.Method).Code = TMethod(aMethod).Code) and
+            (TMethod(entry^.Method).Data = TMethod(aMethod).Data)
+          ))
+      then begin
+        { ok, we need to remove this entry }
+        tmpentry := entry;
+        if Assigned(lastentry) then
+          lastentry^.Next := entry^.Next;
+        entry := entry^.Next;
+        if ThreadQueueHead = tmpentry then
+          ThreadQueueHead := entry;
+        if ThreadQueueTail = tmpentry then
+          ThreadQueueTail := lastentry;
+        { only dispose events added by Queue }
+        if not Assigned(tmpentry^.SyncEvent) then
+          Dispose(tmpentry);
+      end else begin
+        { leave this entry }
         lastentry := entry;
         entry := entry^.Next;
-        Continue;
       end;
-      { skip entries added by Synchronize }
-      if Assigned(entry^.SyncEvent) then begin
-        lastentry := entry;
-        entry := entry^.Next;
-        Continue;
-      end;
-
-      { ok, we need to remove this entry }
-
-      tmpentry := entry;
-      if Assigned(lastentry) then
-        lastentry^.Next := entry^.Next;
-      entry := entry^.Next;
-      if ThreadQueueHead = tmpentry then
-        ThreadQueueHead := entry;
-      if ThreadQueueTail = tmpentry then
-        ThreadQueueTail := lastentry;
-      { only dispose events added by Queue }
-      if not Assigned(tmpentry^.SyncEvent) then
-        Dispose(tmpentry);
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally

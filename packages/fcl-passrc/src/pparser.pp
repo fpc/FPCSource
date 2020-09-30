@@ -5986,7 +5986,20 @@ begin
               El:=nil;
             end;
             if (CurToken=tkelse) and (TPasImplIfElse(CurBlock).ElseBranch=nil) then
-              break; // add next statement as ElseBranch
+              begin
+                // Check if next token is an else too
+                NextToken;
+                if CurToken = tkElse then
+                  begin
+                    // empty ELSE statement without semicolon e.g. if condition then [...] else else
+                    El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
+                    CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
+                    El:=nil;
+                    CloseBlock;
+                  end;
+                UngetToken;
+                break; // add next statement as ElseBranch
+              end;
             end
           else if (CurBlock is TPasImplTryExcept) and (CurToken=tkelse) then
             begin

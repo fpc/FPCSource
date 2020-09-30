@@ -1,3 +1,5 @@
+{ %OPT=-Oonofastmath }
+
 begin
   if not(single(144115188075855877) = single(144115188075855872)) then
     halt(1);
