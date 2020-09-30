@@ -71,6 +71,7 @@ Type
     procedure TestIfWithBlock;
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
+    Procedure TestNestedIfElseElse;
     Procedure TestWhile;
     Procedure TestWhileBlock;
     Procedure TestWhileNested;
@@ -712,6 +713,32 @@ begin
   AssertEquals('if in if branch',TPasImplIfElse,I.ifBranch.ClassType);
   I:=I.Ifbranch as TPasImplIfElse;
   AssertEquals('begin end block',TPasImplBeginBlock,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestNestedIfElseElse;
+
+// Bug ID 37760
+
+Var
+  I,I2 : TPasImplIfElse;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['if a then',
+                 '  if b then',
+                 '    DoA ',
+                 '   else',
+                 ' else',
+                 '   DoB']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertNotNull('if branch',I.IfBranch);
+  AssertNotNull('Have else for outer if',I.ElseBranch);
+  AssertEquals('Have if in if branch',TPasImplIfElse,I.ifBranch.ClassType);
+  I2:=I.Ifbranch as TPasImplIfElse;
+  AssertExpression('IF condition',I2.ConditionExpr,pekIdent,'b');
+  AssertNotNull('Have then for inner if',I2.ifBranch);
+  AssertNull('Empty else for inner if',I2.ElseBranch);
 end;
 
 procedure TTestStatementParser.TestWhile;
