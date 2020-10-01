@@ -91,7 +91,7 @@ var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
   framebufsize,
-  framecount  : longint;
+  framecount  : PtrInt;
   frames      : PCodePointer;
   prev_frame,
   curr_frame  : Pointer;
@@ -113,8 +113,8 @@ begin
   curr_frame:=AFrame;
   curr_addr:=AnAddr;
   frames:=nil;
-  framebufsize:=0;
   framecount:=0;
+  framebufsize:=0;
   { The frame pointer of this procedure is used as initial stack bottom value. }
   prev_frame:=get_frame;
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
