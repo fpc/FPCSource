@@ -725,6 +725,7 @@ type
     Procedure TestPropertyArgs2;
     Procedure TestPropertyArgsWithDefaultsFail;
     Procedure TestPropertyArgs_StringConstDefault;
+    Procedure TestPropertyInherited;
     Procedure TestClassProperty;
     Procedure TestClassPropertyNonStaticFail;
     Procedure TestClassPropertyNonStaticAllow;
@@ -12995,6 +12996,62 @@ begin
   '  end;',
   'begin']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyInherited;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add(['type',
+  '  TObject = class',
+  '    FA: word;',
+  '    property A: word read FA write FA;',
+  '  end;',
+  '  TBird = class(TObject)',
+  '    FB: word;',
+  '    procedure Run(Value: word);',
+  '    property A read FB write FB;',
+  '  end;',
+  'procedure TBird.Run(Value: word);',
+  'begin',
+  '  inherited {#A}A:=Value;',
+  //'  Value:=inherited {@A1}A;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    writeln('TTestResolver.TestPropertyInherited ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        writeln('TTestResolver.TestPropertyInherited ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' CustomData=',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProperty) then continue;
+        writeln('TTestResolver.TestPropertyInherited ',GetObjName(Ref.Declaration),' Ref.Access=',Ref.Access);
+        case aMarker^.Identifier of
+        'A': if Ref.Access<>rraAssign then
+          RaiseErrorAtSrcMarker('expected property write at "#'+aMarker^.Identifier+', but got "'+dbgs(Ref.Access),aMarker);
+        'B': if Ref.Access<>rraRead then
+          RaiseErrorAtSrcMarker('expected property read at "#'+aMarker^.Identifier+', but got "'+dbgs(Ref.Access),aMarker);
+        end;
+        break;
+        end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestClassProperty;

@@ -80,6 +80,8 @@ type
     procedure TestM_Class_Property;
     procedure TestM_Class_PropertyProtected;
     procedure TestM_Class_PropertyOverride;
+    procedure TestM_Class_PropertyOverride2;
+    procedure TestM_Class_PropertyInherited;
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
     procedure TestM_ClassInterface_Corba;
@@ -1178,20 +1180,74 @@ end;
 procedure TTestUseAnalyzer.TestM_Class_PropertyOverride;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#integer_used}integer = longint;');
-  Add('  {tobject_used}TObject = class');
-  Add('    {#fa_used}FA: integer;');
-  Add('    {#fb_notused}FB: integer;');
-  Add('    property {#obj_a_notused}A: integer read FA write FB;');
-  Add('  end;');
-  Add('  {tmobile_used}TMobile = class(TObject)');
-  Add('    {#fc_used}FC: integer;');
-  Add('    property {#mob_a_used}A write FC;');
-  Add('  end;');
-  Add('var {#m_used}M: TMobile;');
-  Add('begin');
-  Add('  M.A:=M.A;');
+  Add(['type',
+  '  {#integer_used}integer = longint;',
+  '  {tobject_used}TObject = class',
+  '    {#fa_used}FA: integer;',
+  '    {#fb_notused}FB: integer;',
+  '    property {#obj_a_notused}A: integer read FA write FB;',
+  '  end;',
+  '  {tmobile_used}TMobile = class(TObject)',
+  '    {#fc_used}FC: integer;',
+  '    property {#mob_a_used}A write FC;',
+  '  end;',
+  'var {#m_used}M: TMobile;',
+  'begin',
+  '  M.A:=M.A;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_Class_PropertyOverride2;
+begin
+  StartProgram(false);
+  Add(['type',
+  '  {#integer_used}integer = longint;',
+  '  {tobject_used}TObject = class',
+  '    {#fa_used}FA: integer;',
+  '    {#fb_used}FB: integer;',
+  '    property {#obj_a_used}A: integer read FA write FB;',
+  '  end;',
+  '  {tmobile_used}TMobile = class(TObject)',
+  '    {#fc_notused}FC: integer;',
+  '    property {#mob_a_notused}A write FC;',
+  '  end;',
+  'var',
+  '  {#m_used}M: TMobile;',
+  '  {#o_used}o: TObject;',
+  'begin',
+  '  o:=m;',
+  '  o.A:=o.A;',
+  '']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_Class_PropertyInherited;
+begin
+  StartProgram(false);
+  Add(['type',
+  '  {tobject_used}TObject = class',
+  '    {#fa_used}FA: word;',
+  '    {#fb_used}FB: word;',
+  '    property {#obj_a_used}A: word write FA;',
+  '    property {#obj_b_used}B: word read FB;',
+  '  end;',
+  '  {tbird_used}TBird = class(TObject)',
+  '    {#fc_notused}FC: word;',
+  '    {#fd_notused}FD: word;',
+  '    procedure {#run_used}Run({#run_value_used}Value: word);',
+  '    property {#bird_a_notused}A write FC;',
+  '    property {#bird_b_notused}B write FD;',
+  '  end;',
+  'procedure TBird.Run(Value: word);',
+  'begin',
+  '  inherited A:=Value;',
+  '  Value:=inherited B;',
+  'end;',
+  'var',
+  '  {#b_used}b: TBird;',
+  'begin',
+  '  b.Run(3);',
+  '']);
   AnalyzeProgram;
 end;
 
