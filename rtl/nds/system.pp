@@ -26,7 +26,10 @@ interface
 {$define FPC_HAS_FEATURE_THREADING}
 
 {$define CPUARM_HAS_UMULL} 
-{$define CPUARM_HAS_CLZ}
+{$ifdef FPC_HAS_INTERNAL_BSR}
+  {$define CPUARM_HAS_CLZ}
+{$endif def FPC_HAS_INTERNAL_BSR}
+
 
 {$i systemh.inc}
 {$i ndsbiosh.inc}
