@@ -403,6 +403,7 @@ Type
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
+  TExitCode = Longint;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -415,6 +416,7 @@ Type
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
+  TExitCode = Longint;
 {$endif CPU32}
 
 {$ifdef CPU16}
@@ -446,6 +448,8 @@ Type
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
+  { this is TP compatible }
+  TExitCode = Word;
 {$endif CPU16}
 
 {$if defined(VER2) or defined(VER3_0)}
@@ -774,7 +778,7 @@ const
   ModuleIsCpp : Boolean = FALSE;
 
 var
-  ExitCode    : Longint; public name 'operatingsystem_result';
+  ExitCode    : TExitCode; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
 
@@ -1604,7 +1608,7 @@ procedure DumpExceptionBacktrace(var f:text);
 
 Procedure RunError(w:Word);noreturn;
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
-Procedure Halt(errnum:Longint);noreturn;
+Procedure Halt(errnum:TExitCode);noreturn;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
 {$endif FPC_HAS_FEATURE_HEAP}

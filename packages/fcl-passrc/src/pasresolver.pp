@@ -1635,7 +1635,7 @@ type
     procedure ResolveStatementConditionExpr(El: TPasExpr); virtual;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string; Access: TResolvedRefAccess); virtual;
     procedure ResolveInherited(El: TInheritedExpr; Access: TResolvedRefAccess); virtual;
-    procedure ResolveInheritedCall(El: TBinaryExpr; Access: TResolvedRefAccess);         virtual;
+    procedure ResolveInheritedName(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveBinaryExpr(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveSubIdent(El: TBinaryExpr; Access: TResolvedRefAccess); virtual;
     procedure ResolveParamsExpr(Params: TParamsExpr; Access: TResolvedRefAccess); virtual;
@@ -10303,7 +10303,7 @@ begin
   and (TBinaryExpr(El.Parent).OpCode=eopNone) then
     begin
     // e.g. 'inherited Proc;'
-    ResolveInheritedCall(TBinaryExpr(El.Parent),Access);
+    ResolveInheritedName(TBinaryExpr(El.Parent),Access);
     exit;
     end;
 
@@ -10377,11 +10377,11 @@ begin
       sAbstractMethodsCannotBeCalledDirectly,[],El);
 end;
 
-procedure TPasResolver.ResolveInheritedCall(El: TBinaryExpr;
+procedure TPasResolver.ResolveInheritedName(El: TBinaryExpr;
   Access: TResolvedRefAccess);
 // El.OpCode=eopNone
 // El.left is TInheritedExpr
-// El.right is the identifier and parameters
+// El.right is the identifier and/or paramexpr
 var
   SelfScope: TPasProcedureScope;
   ClassRecScope: TPasClassOrRecordScope;
@@ -10393,7 +10393,7 @@ var
   InhScope: TPasInheritedScope;
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ResolveInheritedCall El=',GetTreeDbg(El));
+  writeln('TPasResolver.ResolveInheritedCall El=',GetTreeDbg(El),' Access=',Access);
   {$ENDIF}
 
   SelfScope:=GetCurrentSelfScope(El);
@@ -10453,15 +10453,20 @@ begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.ResolveBinaryExpr left=',GetObjName(El.left),' right=',GetObjName(El.right),' opcode=',OpcodeStrings[El.OpCode]);
   {$ENDIF}
-  ResolveExpr(El.left,rraRead);
-  if El.right=nil then exit;
   case El.OpCode of
   eopNone:
     case El.Kind of
     pekRange:
+      begin
+      ResolveExpr(El.left,rraRead);
+      if El.right=nil then exit;
       ResolveExpr(El.right,rraRead);
+      end;
     else
       if El.left.ClassType=TInheritedExpr then
+        begin
+        ResolveExpr(El.left,Access);
+        end
       else
         begin
         {$IFDEF VerbosePasResolver}
@@ -10493,9 +10498,17 @@ begin
   eopIs,
   eopAs,
   eopSymmetricaldifference:
+    begin
+    ResolveExpr(El.left,rraRead);
+    if El.right=nil then exit;
     ResolveExpr(El.right,rraRead);
+    end;
   eopSubIdent:
+    begin
+    ResolveExpr(El.left,rraRead);
+    if El.right=nil then exit;
     ResolveSubIdent(El,Access);
+    end;
   else
     RaiseNotYetImplemented(20160922163459,El,OpcodeStrings[El.OpCode]);
   end;
