@@ -33,10 +33,10 @@ type
   {$endif}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
-Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
-Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); forward;
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleError (Errno : TExitCode); external name 'FPC_HANDLEERROR';
+Procedure HandleErrorFrame (Errno : TExitCode;frame : Pointer); forward;
+Procedure HandleErrorAddrFrame (Errno : TExitCode;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleErrorAddrFrameInd (Errno : TExitCode;addr : CodePointer; frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -1268,7 +1268,7 @@ begin
 end;
 
 
-Procedure Halt(ErrNum: Longint);noreturn;
+Procedure Halt(ErrNum: TExitCode);noreturn;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
 {$ifdef FPC_LIMITED_EXITCODE}
@@ -1320,7 +1320,7 @@ end;
 {$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : TExitCode;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If codepointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
@@ -1337,13 +1337,13 @@ end;
 { This is used internally by system skip first level,
   and generated the same output as before, when
   HandleErrorFrame function was used internally. }
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer);
+Procedure HandleErrorAddrFrameInd (Errno : TExitCode;addr : CodePointer; frame : Pointer);
 begin
   get_caller_stackinfo (frame, addr);
   HandleErrorAddrFrame (Errno,addr,frame);
 end;
 
-Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
+Procedure HandleErrorFrame (Errno : TExitCode;frame : Pointer);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -1354,7 +1354,7 @@ begin
 end;
 
 
-procedure fpc_handleerror (Errno : longint); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
+procedure fpc_handleerror (Errno : TExitCode); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
