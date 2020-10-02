@@ -465,7 +465,7 @@ interface
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
-        cputype : cpu_Pentium;
+        cputype : cpu_Pentium2;
         optimizecputype : cpu_Pentium3;
         asmcputype : cpu_none;
         fputype : fpu_x87;
