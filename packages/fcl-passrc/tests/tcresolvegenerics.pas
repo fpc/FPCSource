@@ -1650,8 +1650,8 @@ begin
   '  B: TBird;',
   '  List: TList<TEagle>;',
   'begin',
- // '  List:=TList<Eagle>(B.Legs);',
- // '  TList<Eagle>(B.Legs):=List;',
+  '  List:=TList<TEagle>(B.Legs);',
+  '  TList<TEagle>(B.Legs):=List;',
   '',
   '']);
   ParseProgram;

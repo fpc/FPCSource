@@ -29715,12 +29715,19 @@ function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
     i: Integer;
     SrcParam, DestParam: TPasType;
     SrcParamScope, DestParamScope: TPasGenericScope;
+    SrcSpecializedFromItem, DestSpecializedFromItem: TPRSpecializedItem;
   begin
-    if SrcScope.SpecializedFromItem.GenericEl<>DestScope.SpecializedFromItem.GenericEl then
+    SrcSpecializedFromItem:=SrcScope.SpecializedFromItem;
+    DestSpecializedFromItem:=DestScope.SpecializedFromItem;
+    if SrcSpecializedFromItem=nil then
+      exit(false);
+    if DestSpecializedFromItem=nil then
+      exit(false);
+    if SrcSpecializedFromItem.GenericEl<>DestSpecializedFromItem.GenericEl then
       exit(false);
     // specialized from same generic -> check params
-    SrcParams:=SrcScope.SpecializedFromItem.Params;
-    DestParams:=DestScope.SpecializedFromItem.Params;
+    SrcParams:=SrcSpecializedFromItem.Params;
+    DestParams:=DestSpecializedFromItem.Params;
     for i:=0 to length(SrcParams)-1 do
       begin
       SrcParam:=SrcParams[i];
