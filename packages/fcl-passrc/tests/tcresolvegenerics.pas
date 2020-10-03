@@ -1655,6 +1655,8 @@ begin
   '',
   '']);
   ParseProgram;
+  // FPC/pas2js: Class types "TList<afile.TBird>" and "TList<afile.TEagle>" are not related
+  // Delphi: no warning
 end;
 
 procedure TTestResolveGenerics.TestGen_ExtClass_Array;
