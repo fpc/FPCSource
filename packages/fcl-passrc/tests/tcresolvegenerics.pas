@@ -95,6 +95,7 @@ type
     procedure TestGen_Class_ReferenceTo;
     procedure TestGen_Class_TwoSpecsAreNotRelatedWarn;
     procedure TestGen_Class_List;
+    procedure TestGen_Class_Typecast;
     // ToDo: different modeswitches at parse time and specialize time
 
     // generic external class
@@ -1626,6 +1627,33 @@ begin
   'begin',
   '  l[1]:=w;',
   '  w:=l[2];']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_Typecast;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TList<T> = class',
+  '  end;',
+  '  TEagle = class;',
+  '  TBird = class',
+  '    FLegs: TList<TBird>;',
+  '    property Legs: TList<TBird> read FLegs write FLegs;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '  end;',
+  'var',
+  '  B: TBird;',
+  '  List: TList<TEagle>;',
+  'begin',
+ // '  List:=TList<Eagle>(B.Legs);',
+ // '  TList<Eagle>(B.Legs):=List;',
+  '',
+  '']);
   ParseProgram;
 end;
 
