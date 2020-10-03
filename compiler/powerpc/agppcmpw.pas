@@ -1046,7 +1046,7 @@ interface
                begin
                   if tai_symbol(hp).sym.typ=AT_FUNCTION then
                     WriteProcedureHeader(hp)
-                  else if tai_symbol(hp).sym.typ=AT_DATA then
+                  else if tai_symbol(hp).sym.typ in [AT_DATA,AT_METADATA] then
                     begin
                        s:= tai_symbol(hp).sym.name;
                        WriteDataHeader(s, tai_symbol(hp).is_global, true);
