@@ -352,6 +352,24 @@ override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
 ALLTARGETS=$(CYCLETARGETS)
+NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos symbian watcom wii win16 zxspectrum
+NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80
+ifneq ($(CPU_SOURCE),$(CPU_TARGET))
+ifneq ($(findstring $(CPU_TARGET),$(NO_NATIVE_COMPILER_CPU_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+ifneq ($(OS_SOURCE),$(OS_TARGET))
+ifneq ($(findstring $(OS_TARGET),$(NO_NATIVE_COMPILER_OS_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+ifndef FORCE_NATIVE_BINARIES
+ifeq ($(NoNativeBinaries),1)
+override EXEEXT=$(SRCEXEEXT)
+CROSSINSTALL=1
+endif
+endif
 ifdef POWERPC
 PPC_TARGET=powerpc
 endif
@@ -618,37 +636,6 @@ OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
 OPTWPOPERFORM+=-Owsymbolliveness
 endif
 endif
-endif
-ifeq ($(CPU_TARGET),jvm)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),embedded)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),gba)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),msdos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),nds)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),win16)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),macosclassic)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),freertos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),zxspectrum)
-NoNativeBinaries=1
-endif
-ifeq ($(NoNativeBinaries),1)
-override EXEEXT=$(SRCEXEEXT)
-CROSSINSTALL=1
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=utils

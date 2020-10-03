@@ -20448,6 +20448,55 @@
     flags   : [if_xsave]
   ),
   (
+    opcode  : A_XSETBV;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #3#15#1#209;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XSAVE;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #2#15#174#132;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XSAVE64;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #214#2#15#174#132;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XRSTOR;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #2#15#174#133;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XRSTOR64;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #214#2#15#174#133;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XSAVEOPT;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #2#15#174#134;
+    flags   : [if_xsave]
+  ),
+  (
+    opcode  : A_XSAVEOPT64;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #214#2#15#174#134;
+    flags   : [if_xsave]
+  ),
+  (
     opcode  : A_PREFETCHWT1;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none,ot_none);

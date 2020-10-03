@@ -19,7 +19,7 @@ unit testjsondata;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpjson, contnrs;
+  Classes, SysUtils, fpcunit, testregistry, fpjson;
 
 type
    TMyNull     = Class(TJSONNull);
@@ -1311,7 +1311,7 @@ begin
     TestAsInteger(J,1);
     TestAsInt64(J,1);
     TestAsQword(J,1);
-    TestAsString(J,BoolToStr(True,True));
+    TestAsString(J,BoolToStr(True,'true','false'));
     TestAsFloat(J,1.0);
   finally
     FreeAndNil(J);
@@ -1334,7 +1334,7 @@ begin
     TestAsInteger(J,0);
     TestAsInt64(J,0);
     TestAsQWord(J,0);
-    TestAsString(J,BoolToStr(False,True));
+    TestAsString(J,BoolToStr(False,'true','false'));
     TestAsFloat(J,0.0);
   finally
     FreeAndNil(J);

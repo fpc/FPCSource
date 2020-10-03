@@ -4187,7 +4187,7 @@ ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\xE6\110        
 
 
 ; VCVTPD2PS xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
-;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm 
+;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTPD2PS,vcvtpd2psM]
 (Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \350\352\361\362\364\370\1\x5A\110        AVX,SANDYBRIDGE,TFV
@@ -4286,7 +4286,7 @@ reg64,mem32                               \333\350\352\362\363\370\1\x2D\110    
 reg64,xmmreg_er                           \333\350\352\362\363\370\1\x2D\110        AVX,SANDYBRIDGE
 
 ; VCVTTPD2DQ xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
-;                                               map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm 
+;                                               map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTTPD2DQ,vcvttpd2dqM]
 (Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \350\352\361\362\364\370\1\xE6\110        AVX,SANDYBRIDGE,AVX512,TFV
@@ -6924,13 +6924,41 @@ reg16|32|64                          \320\2\x0F\xC7\207                   RAND
 (Ch_WEAX, Ch_WEDX, Ch_RECX)
 void                  \3\x0F\x01\xD0                                      XSAVE
 
+[XSETBV]
+(Ch_REAX, Ch_REDX, Ch_RECX)
+void                  \3\x0F\x01\xD1                                      XSAVE
+
+[XSAVE]
+(Ch_All)
+mem                   \2\x0F\xAE\204                                      XSAVE
+
+[XSAVE64]
+(Ch_All)
+mem                   \326\2\x0F\xAE\204                                  XSAVE
+
+[XRSTOR]
+(Ch_All)
+mem                   \2\x0F\xAE\205                                      XSAVE
+
+[XRSTOR64]
+(Ch_All)
+mem                   \326\2\x0F\xAE\205                                  XSAVE
+
+[XSAVEOPT]
+(Ch_All)
+mem                   \2\x0F\xAE\206                                      XSAVE
+
+[XSAVEOPT64]
+(Ch_All)
+mem                   \326\2\x0F\xAE\206                                  XSAVE
+
+
 ;*******************************************************************************
 ;********** PREFETCHWT1 ********************************************************
 ;*******************************************************************************
 [PREFETCHWT1,prefetchwt1X]
 (Ch_All)
 mem                   \2\x0F\x0D\202                                      PREFETCHWT1
-
 
 ;*******************************************************************************
 ;********** AVX 512 - MASKRegister *********************************************
