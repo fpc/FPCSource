@@ -1796,7 +1796,7 @@ end;
 
 function TJSONBoolean.GetAsString: TJSONStringType;
 begin
-  Result:=BoolToStr(FValue, True);
+  Result:=BoolToStr(FValue, 'true', 'false');
 end;
 
 procedure TJSONBoolean.SetAsString(const AValue: TJSONStringType);
