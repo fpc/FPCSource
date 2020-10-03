@@ -52,6 +52,17 @@ end;
 procedure TAVXTestGenerator.Init;
 begin
   // Opcode, i386, x8664, AVX512, Parameter
+
+  { XSAVE opcodes }
+  FOpCodeList.Add('XGETBV,1,1,0,,,,,');
+  FOpCodeList.Add('XSETBV,1,1,0,,,,,');
+  FOpCodeList.Add('XSAVE,1,1,0,MEM64,,,,');
+  FOpCodeList.Add('XSAVE64,1,1,0,MEM64,,,,');
+  FOpCodeList.Add('XRSTOR,1,1,0,MEM64,,,,');
+  FOpCodeList.Add('XRSTOR64,1,1,0,MEM64,,,,');
+  FOpCodeList.Add('XSAVEOPT,1,1,0,MEM64,,,,');
+  FOpCodeList.Add('XSAVEOPT64,1,1,0,MEM64,,,,');
+
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,MEM32,,,');
 
@@ -144,17 +155,6 @@ begin
 
 
 
-
-
-
-
-
-
-
-
-
-
-
   FOpCodeList.Add('ADCX,1,1,0,REG32,RM32,,,');
   FOpCodeList.Add('ADCX,1,1,0,REG64,RM64,,,');
   FOpCodeList.Add('ADOX,1,1,0,REG32,RM32,,,');
@@ -174,7 +174,7 @@ begin
   FOpCodeList.Add('PDEP,1,1,0,REG64,REG64,RM64,,');
   FOpCodeList.Add('PEXT,1,1,0,REG32,REG32,RM32,,');
   FOpCodeList.Add('PEXT,1,1,0,REG64,REG64,RM64,,');
-  
+
   FOpCodeList.Add('MOVBE,1,1,0,REG16,MEM16,,,');
   FOpCodeList.Add('MOVBE,1,1,0,MEM16,REG16,,,');
   FOpCodeList.Add('MOVBE,1,1,0,REG32,MEM32,,,');
@@ -425,7 +425,7 @@ begin
   FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,MEM256,,');
   FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,YMMREG_ER,,');
   FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,8B32,,');
- 
+
   FOpCodeList.Add('vcvtdq2ps,1,1,1,XMMREG_MZ,XMMRM,,');
   FOpCodeList.Add('vcvtdq2ps,1,1,1,XMMREG_MZ,4B32,,');
   FOpCodeList.Add('vcvtdq2ps,1,1,1,YMMREG_MZ,YMMRM,,');
@@ -3134,10 +3134,10 @@ begin
   FOpCodeList.Add('vshufi64x2,1,1,1,ymmreg_mz,ymmreg,4b64,imm8');
   FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
   FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,8b64,imm8');
-    
+
   FOpCodeList.Add('movntss,1,1,0,MEM32,XMMREG,');
   FOpCodeList.Add('movntsd,1,1,0,MEM64,XMMREG,');
-  
+
   FOpCodeList.Add('VAESDEC,1,1,1,xmmreg,xmmreg,xmmrm,');
   FOpCodeList.Add('VAESDEC,1,1,1,zmmreg,zmmreg,zmmrm,');
   FOpCodeList.Add('VAESDECLAST,1,1,1,xmmreg,xmmreg,xmmrm,');
@@ -3269,9 +3269,6 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,xmmreg,xmmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,ymmreg,ymmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
-
-  
-  
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
