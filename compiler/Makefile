@@ -352,6 +352,24 @@ override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80
 ALLTARGETS=$(CYCLETARGETS)
+NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos symbian watcom wii win16 zxspectrum
+NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80
+ifneq ($(CPU_SOURCE),$(CPU_TARGET))
+ifneq ($(findstring $(CPU_TARGET),$(NO_NATIVE_COMPILER_CPU_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+ifneq ($(OS_SOURCE),$(OS_TARGET))
+ifneq ($(findstring $(OS_TARGET),$(NO_NATIVE_COMPILER_OS_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+ifndef FORCE_NATIVE_BINARIES
+ifeq ($(NoNativeBinaries),1)
+override EXEEXT=$(SRCEXEEXT)
+CROSSINSTALL=1
+endif
+endif
 ifdef POWERPC
 PPC_TARGET=powerpc
 endif
@@ -612,37 +630,6 @@ OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
 OPTWPOPERFORM+=-Owsymbolliveness
 endif
 endif
-endif
-ifeq ($(CPU_TARGET),jvm)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),embedded)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),gba)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),msdos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),nds)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),win16)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),macosclassic)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),freertos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),zxspectrum)
-NoNativeBinaries=1
-endif
-ifeq ($(NoNativeBinaries),1)
-override EXEEXT=$(SRCEXEEXT)
-CROSSINSTALL=1
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=utils
@@ -2725,7 +2712,11 @@ ifneq ($(findstring sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+CROSSGCCOPT=-mabi=32
+else
 CROSSGCCOPT=-m32
+endif
 endif
 endif
 endif
@@ -2734,6 +2725,21 @@ ifdef FPCFPMAKE
 FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
 ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
 FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
+FPCMAKE_CROSSGCCOPT=-m64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+FPCMAKE_CROSSGCCOPT=-mabi=64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+FPCMAKE_CROSSGCCOPT=-mabi=32
+else
+FPCMAKE_CROSSGCCOPT=-m32
+endif
+endif
+endif
+FPCMAKEGCCLIBDIR:=$(shell dirname `gcc $(FPCMAKE_CROSSGCCOPT) -print-libgcc-file-name`)
 endif
 endif
 ifndef FPCMAKEGCCLIBDIR

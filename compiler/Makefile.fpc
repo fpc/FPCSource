@@ -37,6 +37,33 @@ CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
 
+# All OS targets that do not support native compiler
+NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos symbian watcom wii win16 zxspectrum
+# All CPU targets that do not support native compiler
+NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80
+
+# Don't compile a native compiler & utilities for targets
+# which do not support it
+ifneq ($(CPU_SOURCE),$(CPU_TARGET))
+ifneq ($(findstring $(CPU_TARGET),$(NO_NATIVE_COMPILER_CPU_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+
+ifneq ($(OS_SOURCE),$(OS_TARGET))
+ifneq ($(findstring $(OS_TARGET),$(NO_NATIVE_COMPILER_OS_LIST)),)
+NoNativeBinaries=1
+endif
+endif
+
+ifndef FORCE_NATIVE_BINARIES
+ifeq ($(NoNativeBinaries),1)
+override EXEEXT=$(SRCEXEEXT)
+# In those cases, installation in a cross-installation
+CROSSINSTALL=1
+endif
+endif
+
 # Allow POWERPC, POWERPC64, M68K, I386, jvm defines for target cpu
 ifdef POWERPC
 PPC_TARGET=powerpc
@@ -378,43 +405,6 @@ OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
 OPTWPOPERFORM+=-Owsymbolliveness
 endif
 endif
-endif
-
-# Don't compile a native compiler & utilities for JVM and embedded
-# targets
-ifeq ($(CPU_TARGET),jvm)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),embedded)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),gba)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),msdos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),nds)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),win16)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),macosclassic)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),freertos)
-NoNativeBinaries=1
-endif
-ifeq ($(OS_TARGET),zxspectrum)
-NoNativeBinaries=1
-endif
-
-# Allow install for jvm
-ifeq ($(NoNativeBinaries),1)
-override EXEEXT=$(SRCEXEEXT)
-# In those cases, installation in a cross-installation
-CROSSINSTALL=1
 endif
 
 [rules]
