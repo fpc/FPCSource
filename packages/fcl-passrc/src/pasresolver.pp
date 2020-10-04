@@ -9577,59 +9577,42 @@ type
     var ValueSet: TResEvalSet): boolean;
   var
     CaseExprType: TPasType;
+    bt: TResolverBaseType;
+    ElTypeResolved: TPasResolverResult;
   begin
     Result:=false;
-    if ResolvedEl.BaseType in btAllInteger then
+    bt:=ResolvedEl.BaseType;
+    if bt in btAllStrings then
+      exit(true)
+    else if bt=btRange then
+      bt:=ResolvedEl.SubType;
+    if bt in btAllInteger then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskInt);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllBooleans then
+    else if bt in btAllBooleans then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskBool);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllChars then
+    else if bt in btAllChars then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskChar);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllStrings then
-      Result:=true
-    else if ResolvedEl.BaseType=btContext then
+    else if bt=btContext then
       begin
       CaseExprType:=ResolvedEl.LoTypeEl;
       if CaseExprType.ClassType=TPasEnumType then
         begin
         ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
         Result:=true;
-        end;
-      end
-    else if ResolvedEl.BaseType=btRange then
-      begin
-      if ResolvedEl.SubType in btAllInteger then
-        begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskInt);
-        Result:=true;
         end
-      else if ResolvedEl.SubType in btAllBooleans then
+      else if CaseExprType.ClassType=TPasRangeType then
         begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskBool);
-        Result:=true;
-        end
-      else if ResolvedEl.SubType in btAllChars then
-        begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskChar);
-        Result:=true;
-        end
-      else if ResolvedEl.SubType=btContext then
-        begin
-        CaseExprType:=ResolvedEl.LoTypeEl;
-        if CaseExprType.ClassType=TPasEnumType then
-          begin
-          ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
-          Result:=true;
-          end;
+        ComputeElement(TPasRangeType(CaseExprType).RangeExpr.left,ElTypeResolved,[rcConstant]);
+        Result:=CreateValues(ElTypeResolved,ValueSet);
         end;
       end;
   end;

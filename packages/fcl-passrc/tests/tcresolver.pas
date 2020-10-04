@@ -4281,6 +4281,9 @@ begin
   '  i:=longint(er);',
   '  if b in sr then ;',
   '  if er in sr then ;',
+  '  case er of',
+  '  c: ;',
+  '  end;',
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
