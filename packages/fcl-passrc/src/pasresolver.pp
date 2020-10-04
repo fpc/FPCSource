@@ -18836,6 +18836,7 @@ var
   Param: TPasExpr;
   ParamResolved, IncrResolved: TPasResolverResult;
   TypeEl: TPasType;
+  bt: TResolverBaseType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit(cIncompatible);
@@ -18855,18 +18856,23 @@ begin
       RaiseVarExpected(20170216152319,Expr,ParamResolved.IdentEl);
     exit;
     end;
-  if ParamResolved.BaseType in btAllInteger then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt in btAllInteger then
     Result:=cExact
-  else if ParamResolved.BaseType=btPointer then
+  else if bt=btPointer then
     begin
     if ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end
-  else if ParamResolved.BaseType=btContext then
+  else if bt=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
         and ElHasBoolSwitch(Expr,bsPointerMath) then
+      Result:=cExact
+    else if TypeEl.ClassType=TPasRangeType then
       Result:=cExact;
     end;
   if Result=cIncompatible then
@@ -19476,18 +19482,22 @@ function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
   end;
 
 var
-  TypeEl: TPasType;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=cIncompatible;
-  if ParamResolved.BaseType in (btAllInteger+btAllBooleans+btAllFloats) then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt in (btAllInteger+btAllBooleans+btAllFloats) then
     Result:=cExact
-  else if IsFunc and (ParamResolved.BaseType in btAllStringAndChars) then
+  else if IsFunc and (bt in btAllStringAndChars) then
     Result:=cExact
-  else if ParamResolved.BaseType=btContext then
+  else if bt=btContext then
     begin
-      TypeEl:=ParamResolved.LoTypeEl;
-      if TypeEl.ClassType=TPasEnumType then
-        Result:=cExact
+    C:=ParamResolved.LoTypeEl.ClassType;
+    if (C=TPasEnumType) or (C=TPasRangeType) then
+      Result:=cExact
     end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170319220517,ArgNo,Param,ParamResolved,'boolean, integer, enum value',RaiseOnError));
@@ -19656,6 +19666,8 @@ var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,3,RaiseOnError) then
     exit(cIncompatible);
@@ -19676,11 +19688,15 @@ begin
   Result:=cIncompatible;
   if ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
-    if ParamResolved.BaseType in (btAllInteger+btAllBooleans+btAllFloats) then
+    bt:=ParamResolved.BaseType;
+    if bt=btRange then
+      bt:=ParamResolved.SubType;
+    if bt in (btAllInteger+btAllBooleans+btAllFloats) then
       Result:=cExact
-    else if ParamResolved.BaseType=btContext then
+    else if bt=btContext then
       begin
-      if ParamResolved.LoTypeEl is TPasEnumType then
+      C:=ParamResolved.LoTypeEl.ClassType;
+      if (C=TPasEnumType) or (C=TPasRangeType) then
         Result:=cExact;
       end;
     end;
