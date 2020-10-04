@@ -5910,23 +5910,28 @@ end;
 procedure TTestModule.TestSet_Operator_In;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TColor = (Red, Green, Blue);');
-  Add('  TColors = set of tcolor;');
-  Add('var');
-  Add('  vC: tcolor;');
-  Add('  vT: tcolors;');
-  Add('  B: boolean;');
-  Add('begin');
-  Add('  b:=red in vt;');
-  Add('  b:=vc in vt;');
-  Add('  b:=green in [red..blue];');
-  Add('  b:=vc in [red..blue];');
-  Add('  ');
-  Add('  if red in vt then ;');
-  Add('  while vC in vt do ;');
-  Add('  repeat');
-  Add('  until vC in vt;');
+  Add([
+  'type',
+  '  TColor = (Red, Green, Blue);',
+  '  TColors = set of tcolor;',
+  '  TColorRg = green..blue;',
+  'var',
+  '  vC: tcolor;',
+  '  vT: tcolors;',
+  '  B: boolean;',
+  '  rg: TColorRg;',
+  'begin',
+  '  b:=red in vt;',
+  '  b:=vc in vt;',
+  '  b:=green in [red..blue];',
+  '  b:=vc in [red..blue];',
+  '  ',
+  '  if red in vt then ;',
+  '  while vC in vt do ;',
+  '  repeat',
+  '  until vC in vt;',
+  '  if rg in [green..blue] then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestSet_Operator_In',
     LinesToStr([ // statements
@@ -5940,8 +5945,9 @@ begin
     '  };',
     'this.vC = 0;',
     'this.vT = {};',
-    'this.B = false;'
-    ]),
+    'this.B = false;',
+    'this.rg = this.TColor.Green;',
+    '']),
     LinesToStr([
     '$mod.B = $mod.TColor.Red in $mod.vT;',
     '$mod.B = $mod.vC in $mod.vT;',
@@ -5952,6 +5958,7 @@ begin
     '};',
     'do {',
     '} while (!($mod.vC in $mod.vT));',
+    'if ($mod.rg in rtl.createSet(null, $mod.TColor.Green, $mod.TColor.Blue)) ;',
     '']));
 end;
 

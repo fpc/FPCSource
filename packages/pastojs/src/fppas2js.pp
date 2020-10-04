@@ -23384,6 +23384,8 @@ var
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
   aResolver: TPas2JSResolver;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=ConvertExpression(Expr,AContext);
   if Result=nil then
@@ -23437,19 +23439,22 @@ begin
   if aResolver<>nil then
     begin
     aResolver.ComputeElement(Expr,ExprResolved,[]);
-    if (ExprResolved.BaseType in btAllJSStringAndChars)
-        or ((ExprResolved.BaseType=btRange) and (ExprResolved.SubType in btAllJSChars)) then
+    bt:=ExprResolved.BaseType;
+    if bt=btRange then
+      bt:=ExprResolved.SubType;
+    if bt in btAllJSStringAndChars then
       begin
       // aChar -> aChar.charCodeAt()
       Result:=CreateCallCharCodeAt(Result,0,Expr);
       end
-    else if ExprResolved.BaseType in btAllJSInteger then
+    else if bt in btAllJSInteger then
       begin
       // ok
       end
-    else if ExprResolved.BaseType=btContext then
+    else if bt=btContext then
       begin
-      if ExprResolved.LoTypeEl.ClassType=TPasEnumType then
+      C:=ExprResolved.LoTypeEl.ClassType;
+      if (C=TPasEnumType) or (C=TPasRangeType) then
         // ok
       else
         RaiseNotSupported(Expr,AContext,20170415191933);
