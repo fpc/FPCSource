@@ -364,6 +364,7 @@ type
     Procedure TestEnum_Number;
     Procedure TestEnum_ConstFail;
     Procedure TestEnum_Functions;
+    Procedure TestEnumRg_Functions;
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
@@ -5373,7 +5374,6 @@ begin
   '  s:=str(e:3);',
   '  writestr(s,e:3,red);',
   '  val(s,e,i);',
-  '  e:=TMyEnum(i);',
   '  i:=longint(e);']);
   ConvertProgram;
   CheckSource('TestEnum_Functions',
@@ -5424,7 +5424,93 @@ begin
     '$mod.e = rtl.valEnum($mod.s, $mod.TMyEnum, function (v) {',
     '  $mod.i = v;',
     '});',
+    '$mod.i=$mod.e;',
+    '']));
+end;
+
+procedure TTestModule.TestEnumRg_Functions;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = Green..Blue;',
+  'procedure DoIt(var e: TEnumRg; var i: word);',
+  'var',
+  '  v: longint;',
+  '  s: string;',
+  'begin',
+  '  val(s,e,v);',
+  '  val(s,e,i);',
+  'end;',
+  'var',
+  '  e: TEnumRg;',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  i:=ord(green);',
+  '  i:=ord(e);',
+  '  e:=low(tenumrg);',
+  '  e:=low(e);',
+  '  e:=high(tenumrg);',
+  '  e:=high(e);',
+  '  e:=pred(blue);',
+  '  e:=pred(e);',
+  '  e:=succ(green);',
+  '  e:=succ(e);',
+  '  e:=tenumrg(1);',
+  '  e:=tenumrg(i);',
+  '  s:=str(e);',
+  '  str(e,s);',
+  '  str(red,s);',
+  '  s:=str(e:3);',
+  '  writestr(s,e:3,blue);',
+  '  val(s,e,i);',
+  '  i:=longint(e);']);
+  ConvertProgram;
+  CheckSource('TestEnumRg_Functions',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.DoIt = function (e, i) {',
+    '  var v = 0;',
+    '  var s = "";',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, function (w) {',
+    '    v = w;',
+    '  }));',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, i.set));',
+    '};',
+    'this.e = this.TEnum.Green;',
+    'this.i = 0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    '$mod.i=$mod.TEnum.Green;',
+    '$mod.i=$mod.e;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue-1;',
+    '$mod.e=$mod.e-1;',
+    '$mod.e=$mod.TEnum.Green+1;',
+    '$mod.e=$mod.e+1;',
+    '$mod.e=1;',
     '$mod.e=$mod.i;',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.TEnum.Red];',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3);',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3)+$mod.TEnum[$mod.TEnum.Blue];',
+    '$mod.e = rtl.valEnum($mod.s, $mod.TEnum, function (v) {',
+    '  $mod.i = v;',
+    '});',
     '$mod.i=$mod.e;',
     '']));
 end;
