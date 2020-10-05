@@ -29729,8 +29729,8 @@ function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
     DestParams:=DestSpecializedFromItem.Params;
     for i:=0 to length(SrcParams)-1 do
       begin
-      SrcParam:=SrcParams[i];
-      DestParam:=DestParams[i];
+      SrcParam:=ResolveAliasType(SrcParams[i]);
+      DestParam:=ResolveAliasType(DestParams[i]);
       if (SrcParam is TPasGenericTemplateType)
           or (DestParam is TPasGenericTemplateType)
           or (SrcParam=DestParam)
