@@ -4174,7 +4174,37 @@ unit aoptx86;
            RemoveInstruction(hp1);
            Result:=true;
            Exit;
-         end;
+         end
+        {
+           replace
+             pxor reg1,reg1
+             movapd/s reg1,reg2
+             dealloc reg1
+
+             by
+
+             pxor reg2,reg2
+        }
+        else if GetNextInstruction(p,hp1) and
+          { we mix single and double opperations here because we assume that the compiler
+            generates vmovapd only after double operations and vmovaps only after single operations }
+          MatchInstruction(hp1,A_MOVAPD,A_MOVAPS,[S_NO]) and
+          MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+          (taicpu(p).oper[0]^.typ=top_reg) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+              begin
+                taicpu(p).loadoper(0,taicpu(hp1).oper[1]^);
+                taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                DebugMsg(SPeepholeOptimization + 'PXorMovapd2PXor done',p);
+                RemoveInstruction(hp1);
+                result:=true;
+              end;
+          end;
+
      end;
 
 
@@ -4201,7 +4231,9 @@ unit aoptx86;
            RemoveInstruction(hp1);
            Result:=true;
            Exit;
-         end;
+         end
+       else
+         Result:=OptPass1VOP(p);
      end;
 
    function TX86AsmOptimizer.OptPass1Imul(var p: tai): boolean;
