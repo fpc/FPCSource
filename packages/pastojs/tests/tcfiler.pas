@@ -2730,7 +2730,7 @@ begin
   'implementation',
   'generic function Run<T>(a: T): T;',
   'var b: T;',
-  '  var i: word;',
+  '  i: word;',
   'begin',
   '  b:=a;',
   '  Result:=b;',

@@ -358,6 +358,7 @@ type
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
     Procedure TestAnonymousProc_ForLoop;
+    Procedure TestAnonymousProc_AsmDelphi;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -5255,6 +5256,51 @@ begin
     LinesToStr([
     '$mod.DoIt();'
     ]));
+end;
+
+procedure TTestModule.TestAnonymousProc_AsmDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc = reference to procedure;',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure Run;',
+  'asm',
+  'end;',
+  'procedure Walk(p: TProc; f: TFunc);',
+  'begin',
+  '  Walk(procedure asm end, function(b:word): word asm return 1+b; end);',
+  'end;',
+  'begin',
+  '  Walk(procedure',
+  '    asm',
+  '      console.log("a");',
+  '    end,',
+  '    function(x: word): word asm',
+  '      console.log("c");',
+  '    end);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_AsmDelphi',
+    LinesToStr([ // statements
+    'this.Run = function () {',
+    '};',
+    'this.Walk = function (p, f) {',
+    '  $mod.Walk(function () {',
+    '  }, function (b) {',
+    '    return 1+b;',
+    '  });',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Walk(function () {',
+    '  console.log("a");',
+    '}, function (x) {',
+    '  console.log("c");',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestEnum_Name;
