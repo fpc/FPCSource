@@ -229,3 +229,12 @@ Function FileGetDate (Handle : THandle) : Int64;
 Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Function GetFileHandle(var f : File):THandle;
 Function GetFileHandle(var f : Text):THandle;
+
+Function GetFileContents(Const aFileName : RawByteString) : TBytes;
+Function GetFileContents(Const aFileName : UnicodeString) : TBytes;
+Function GetFileContents(Const aHandle : THandle) : TBytes;
+Function GetFileAsString(Const aFileName : RawByteString) : RawByteString;
+Function GetFileAsString(Const aFileName : RawByteString; aEncoding : TEncoding) : RawByteString;
+Function GetFileAsString(Const aFileName : UnicodeString) : UnicodeString;
+Function GetFileAsString(Const aFileName : UnicodeString; aEncoding : TEncoding) : UnicodeString;
+
