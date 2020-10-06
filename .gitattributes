@@ -3859,6 +3859,7 @@ packages/fcl-passrc/tests/tcgenerics.pp svneol=native#text/plain
 packages/fcl-passrc/tests/tcmoduleparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tconstparser.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcpassrcutil.pas svneol=native#text/plain
+packages/fcl-passrc/tests/tcpaswritestatements.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcprocfunc.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcresolvegenerics.pas svneol=native#text/plain
 packages/fcl-passrc/tests/tcresolver.pas svneol=native#text/plain

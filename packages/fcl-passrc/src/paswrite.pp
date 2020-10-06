@@ -122,6 +122,9 @@ type
     procedure WriteImplCommand(ACommand: TPasImplCommand);virtual;
     procedure WriteImplCommands(ACommands: TPasImplCommands); virtual;
     procedure WriteImplIfElse(AIfElse: TPasImplIfElse); virtual;
+    procedure WriteImplCaseOf(ACaseOf: TPasImplCaseOf); virtual;
+    procedure WriteImplCaseStatement(ACaseStatement: TPasImplCaseStatement;
+      AAutoInsertBeginEnd: boolean=true); virtual;
     procedure WriteImplForLoop(AForLoop: TPasImplForLoop); virtual;
     procedure WriteImplWhileDo(aWhileDo : TPasImplWhileDo); virtual;
     procedure WriteImplRepeatUntil(aRepeatUntil : TPasImplRepeatUntil); virtual;
@@ -1196,6 +1199,8 @@ begin
     end
   else if AElement.ClassType = TPasImplIfElse then
     WriteImplIfElse(TPasImplIfElse(AElement))
+  else if AElement.InheritsFrom(TPasImplCaseOf) then
+    WriteImplCaseOf(TPasImplCaseOf(aElement))
   else if AElement.ClassType = TPasImplForLoop then
     WriteImplForLoop(TPasImplForLoop(AElement))
   else if AElement.InheritsFrom(TPasImplWhileDo) then
@@ -1295,6 +1300,72 @@ begin
     end;
 end;
 
+procedure TPasWriter.WriteImplCaseStatement(ACaseStatement: TPasImplCaseStatement;AAutoInsertBeginEnd:boolean=true);
+var
+  i: Integer;
+begin
+  for i := 0 to ACaseStatement.Expressions.Count - 1 do
+     begin
+       if i>0 then add(', ');
+       add(GetExpr(TPasExpr(ACaseStatement.Expressions[i])))
+     end;
+  add(': ');
+  IncIndent;
+  //JC: If no body is assigned, omit the whole block
+  if assigned(ACaseStatement.Body) then
+    begin
+      if AAutoInsertBeginEnd then
+        begin
+          addLn('begin');
+          IncIndent;
+        end;
+      //JC: if the body already is a begin-end-Block, the begin of that block is omitted
+      if ACaseStatement.Body is TPasImplBeginBlock then
+         WriteImplBlock(TPasImplBeginBlock(ACaseStatement.Body))
+       else
+         WriteImplElement(ACaseStatement.Body,false);
+      if AAutoInsertBeginEnd then
+        begin
+          DecIndent;
+          Add('end'); //JC: No semicolon or Linefeed here !
+          // Otherwise there would be a problem with th else-statement.
+        end;
+    end;
+  DecIndent;
+end;
+
+procedure TPasWriter.WriteImplCaseOf(ACaseOf: TPasImplCaseOf);
+var
+  i: Integer;
+
+begin
+  Add('case %s of', [GetExpr(ACaseOf.CaseExpr)]);
+  IncIndent;
+  for i := 0 to ACaseOf.Elements.Count - 1 do
+  begin
+    if TPasElement(ACaseOf.Elements[i]) is TPasImplCaseStatement then
+      begin
+        if i >0 then
+          AddLn(';')
+        else
+          AddLn;
+        WriteImplCaseStatement(TPasImplCaseStatement(ACaseOf.Elements[i]),True);
+      end;
+  end;
+  if assigned(ACaseOf.ElseBranch) then
+    begin
+      AddLn;
+      AddLn('else');
+      IncIndent;
+      WriteImplBlock(ACaseOf.ElseBranch);
+      DecIndent;
+    end
+  else
+    AddLn(';');
+  DecIndent;
+  AddLn('end;');
+end;
+
 
 procedure TPasWriter.WriteImplRepeatUntil(aRepeatUntil: TPasImplRepeatUntil);
 
@@ -1337,9 +1408,14 @@ end;
 
 procedure TPasWriter.WriteImplRaise(aRaise: TPasImplRaise);
 begin
-  Add('raise %s',[GetExpr(aRaise.ExceptObject)]);
-  if aRaise.ExceptAddr<>Nil then
-    Add(' at %s',[GetExpr(aRaise.ExceptAddr)]);
+  if  assigned(aRaise.ExceptObject) then
+    begin
+      Add('raise %s',[GetExpr(aRaise.ExceptObject)]);
+      if aRaise.ExceptAddr<>Nil then
+        Add(' at %s',[GetExpr(aRaise.ExceptAddr)]);
+    end
+  else
+    Add('raise');
   Addln(';');
 end;
 
@@ -1391,15 +1467,21 @@ begin
   With aForLoop do
     begin
     If LoopType=ltIn then
-      AddLn('for %s in %s do',[GetExpr(VariableName),GetExpr(StartExpr)])
+      Add('for %s in %s do',[GetExpr(VariableName),GetExpr(StartExpr)])
     else
-      AddLn('for %s:=%s %s %s do',[GetExpr(VariableName),GetExpr(StartExpr),
+      Add('for %s:=%s %s %s do',[GetExpr(VariableName),GetExpr(StartExpr),
                                    ToNames[Down],GetExpr(EndExpr)]);
-    IncIndent;
-    WriteImplElement(Body, True);
-    DecIndent;
-    if (Body is TPasImplBlock) and
-       (Body is TPasImplCommands) then
+    if assigned(Body) then
+      begin
+        AddLn;
+        IncIndent;
+        WriteImplElement(Body, True);
+        DecIndent;
+        if (Body is TPasImplBlock) and
+           (Body is TPasImplCommands) then
+          AddLn(';');
+      end
+    else
       AddLn(';');
     end;
 end;
@@ -1410,12 +1492,18 @@ procedure TPasWriter.WriteImplWhileDo(aWhileDo: TPasImplWhileDo);
 begin
   With aWhileDo do
     begin
-    AddLn('While %s do',[GetExpr(ConditionExpr)]);
-    IncIndent;
-    WriteImplElement(Body, True);
-    DecIndent;
-    if (Body.InheritsFrom(TPasImplBlock)) and
-       (Body.InheritsFrom(TPasImplCommands)) then
+    Add('While %s do',[GetExpr(ConditionExpr)]);
+    if assigned(Body) then
+      begin
+        AddLn;
+        IncIndent;
+        WriteImplElement(Body, True);
+        DecIndent;
+        if (Body.InheritsFrom(TPasImplBlock)) and
+           (Body.InheritsFrom(TPasImplCommands)) then
+          AddLn(';');
+      end
+    else
       AddLn(';');
     end;
 end;
