@@ -711,7 +711,10 @@ Var
 
 begin
   aLen:=FileSeek(aHandle,0,fsFromEnd);
-  FileSeek(aHandle,0,fsFromBeginning);
+  if aLen<0 then
+    Raise EInOutError.Create(SSeekFailed);
+  if FileSeek(aHandle,0,fsFromBeginning)<0 then
+    Raise EInOutError.Create(SSeekFailed);
   SetLength(Result,aLen);
   aOffset:=0;
   Repeat
