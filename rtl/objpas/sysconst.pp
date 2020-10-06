@@ -100,6 +100,7 @@ const
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
   SThreadError           = 'Thread error';
+  SSeekFailed            = 'Seek operation failed';
 
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';
