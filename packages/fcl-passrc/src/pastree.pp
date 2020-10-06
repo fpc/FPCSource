@@ -5847,7 +5847,11 @@ begin
     begin
     If (Result<>'')  then
       Result:=Result+', ';
-    Result:=Result+Params[I].GetDeclaration(Full);  
+    Result:=Result+Params[I].GetDeclaration(Full);
+    if Assigned(Params[I].format1) then
+      Result:=Result+':'+Params[I].format1.GetDeclaration(false);
+    if Assigned(Params[I].format2) then
+      Result:=Result+':'+Params[I].format2.GetDeclaration(false);
     end;
   if Kind in [pekSet,pekArrayParams] then
     Result := '[' + Result + ']'
