@@ -1124,7 +1124,7 @@ type
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
     procedure WriteQWord(q : QWord);
-    Procedure WriteAnsiString (const S : String);
+    Procedure WriteAnsiString (const S : String); virtual;
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize64;
   end;
@@ -1260,9 +1260,9 @@ type
     Destructor Destroy; override;
     function ReadUnicodeString(Count: Longint): UnicodeString;
     procedure WriteUnicodeString(const AString: UnicodeString);
-    function ReadAnsiString(Count: Longint): AnsiString;
-    procedure WriteAnsiString(const AString: AnsiString);
-    function ReadString(Count: Longint): string;
+    function ReadAnsiString(Count: Longint): AnsiString; overload;
+    procedure WriteAnsiString(const AString: AnsiString); override;
+    function ReadString(Count: Longint): string; 
     procedure WriteString(const AString: string);
     property DataString: string read GetDataString;
     Property UnicodeDataString : UnicodeString Read GetUnicodeDataString;
