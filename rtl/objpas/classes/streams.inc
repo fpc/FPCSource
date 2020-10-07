@@ -939,6 +939,7 @@ begin
   NewLen:=Size-FPosition;
   If NewLen>Count then NewLen:=Count;
   Result:=FEncoding.GetAnsiString(FBytes,FPosition,NewLen);
+  Inc(FPosition,NewLen);
 end;
 
 procedure TStringStream.WriteAnsiString(const AString: AnsiString);
@@ -988,6 +989,7 @@ begin
     begin
     SetLength(Result, NewLen);
     Move(FBytes[FPosition],Result[1],NewLen);
+    inc(FPosition,Newlen);
     end;
 end;
 
