@@ -4281,6 +4281,15 @@ begin
   '  i:=longint(er);',
   '  if b in sr then ;',
   '  if er in sr then ;',
+  '  er:=low(TEnumRg);',
+  '  er:=high(TEnumRg);',
+  '  er:=succ(er);',
+  '  er:=pred(er);',
+  '  inc(er);',
+  '  dec(er);',
+  '  case er of',
+  '  c: ;',
+  '  end;',
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;

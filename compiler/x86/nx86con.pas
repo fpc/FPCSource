@@ -41,6 +41,7 @@ implementation
       symdef,
       defutil,
       cpubase,
+      aasmdata,
       cga,cgx86,cgobj,cgbase,cgutils;
 
 {*****************************************************************************
@@ -68,14 +69,26 @@ implementation
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
                end
-             else if (value_real=0.0) and not(use_vectorfpu(resultdef)) then
+             else if value_real=0.0 then
                begin
-                  emit_none(A_FLDZ,S_NO);
-                  if (get_real_sign(value_real) < 0) then
-                    emit_none(A_FCHS,S_NO);
-                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-                  location.register:=NR_ST;
-                  tcgx86(cg).inc_fpu_stack;
+                 if use_vectorfpu(resultdef) then
+                   begin
+                     location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+                     location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                     if UseAVX then
+                       emit_reg_reg_reg(A_VPXOR,S_NO,location.register,location.register,location.register)
+                     else
+                       emit_reg_reg(A_PXOR,S_NO,location.register,location.register);
+                   end
+                 else
+                   begin
+                      emit_none(A_FLDZ,S_NO);
+                      if (get_real_sign(value_real) < 0) then
+                        emit_none(A_FCHS,S_NO);
+                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+                      location.register:=NR_ST;
+                      tcgx86(cg).inc_fpu_stack;
+                   end;
                end
             else
               inherited pass_generate_code;

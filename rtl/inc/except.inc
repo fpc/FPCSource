@@ -101,40 +101,43 @@ begin
   writeln ('In PushExceptObject');
 {$endif}
   _ExceptObjectStack:=@ExceptObjectStack;
-  New(NewObj);
+  NewObj:=AllocMem(sizeof(TExceptObject));
   NewObj^.Next:=_ExceptObjectStack^;
   _ExceptObjectStack^:=NewObj;
 
   NewObj^.FObject:=Obj;
   NewObj^.Addr:=AnAddr;
-  NewObj^.refcount:=0;
+  if assigned(get_frame) then
+    begin
+	  NewObj^.refcount:=0;
 
-  { Backtrace }
-  curr_frame:=AFrame;
-  curr_addr:=AnAddr;
-  frames:=nil;
-  framecount:=0;
-  framebufsize:=0;
-  { The frame pointer of this procedure is used as initial stack bottom value. }
-  prev_frame:=get_frame;
-  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-        (curr_frame<StackTop) do
-    Begin
-      prev_frame:=curr_frame;
-      get_caller_stackinfo(curr_frame,curr_addr);
-      if (curr_addr=nil) or
-         (curr_frame=nil) then
-        break;
-      if (framecount>=framebufsize) then
-        begin
-          inc(framebufsize,16);
-          reallocmem(frames,framebufsize*sizeof(codepointer));
-        end;
-      frames[framecount]:=curr_addr;
-      inc(framecount);
-    End;
-  NewObj^.framecount:=framecount;
-  NewObj^.frames:=frames;
+	  { Backtrace }
+	  curr_frame:=AFrame;
+	  curr_addr:=AnAddr;
+	  frames:=nil;
+	  framecount:=0;
+      framebufsize:=0;
+      { The frame pointer of this procedure is used as initial stack bottom value. }
+      prev_frame:=get_frame;
+      while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
+            (curr_frame<StackTop) do
+        Begin
+          prev_frame:=curr_frame;
+          get_caller_stackinfo(curr_frame,curr_addr);
+          if (curr_addr=nil) or
+             (curr_frame=nil) then
+            break;
+          if (framecount>=framebufsize) then
+            begin
+              inc(framebufsize,16);
+              reallocmem(frames,framebufsize*sizeof(codepointer));
+            end;
+          frames[framecount]:=curr_addr;
+          inc(framecount);
+        End;
+	  NewObj^.framecount:=framecount;
+	  NewObj^.frames:=frames;
+    end;
   Result:=NewObj;
 end;
 

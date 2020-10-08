@@ -358,12 +358,14 @@ type
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
     Procedure TestAnonymousProc_ForLoop;
+    Procedure TestAnonymousProc_AsmDelphi;
 
     // enums, sets
     Procedure TestEnum_Name;
     Procedure TestEnum_Number;
     Procedure TestEnum_ConstFail;
     Procedure TestEnum_Functions;
+    Procedure TestEnumRg_Functions;
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
@@ -5256,6 +5258,51 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestAnonymousProc_AsmDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc = reference to procedure;',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure Run;',
+  'asm',
+  'end;',
+  'procedure Walk(p: TProc; f: TFunc);',
+  'begin',
+  '  Walk(procedure asm end, function(b:word): word asm return 1+b; end);',
+  'end;',
+  'begin',
+  '  Walk(procedure',
+  '    asm',
+  '      console.log("a");',
+  '    end,',
+  '    function(x: word): word asm',
+  '      console.log("c");',
+  '    end);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_AsmDelphi',
+    LinesToStr([ // statements
+    'this.Run = function () {',
+    '};',
+    'this.Walk = function (p, f) {',
+    '  $mod.Walk(function () {',
+    '  }, function (b) {',
+    '    return 1+b;',
+    '  });',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Walk(function () {',
+    '  console.log("a");',
+    '}, function (x) {',
+    '  console.log("c");',
+    '});',
+    '']));
+end;
+
 procedure TTestModule.TestEnum_Name;
 begin
   StartProgram(false);
@@ -5373,7 +5420,6 @@ begin
   '  s:=str(e:3);',
   '  writestr(s,e:3,red);',
   '  val(s,e,i);',
-  '  e:=TMyEnum(i);',
   '  i:=longint(e);']);
   ConvertProgram;
   CheckSource('TestEnum_Functions',
@@ -5424,7 +5470,93 @@ begin
     '$mod.e = rtl.valEnum($mod.s, $mod.TMyEnum, function (v) {',
     '  $mod.i = v;',
     '});',
+    '$mod.i=$mod.e;',
+    '']));
+end;
+
+procedure TTestModule.TestEnumRg_Functions;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = Green..Blue;',
+  'procedure DoIt(var e: TEnumRg; var i: word);',
+  'var',
+  '  v: longint;',
+  '  s: string;',
+  'begin',
+  '  val(s,e,v);',
+  '  val(s,e,i);',
+  'end;',
+  'var',
+  '  e: TEnumRg;',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  i:=ord(green);',
+  '  i:=ord(e);',
+  '  e:=low(tenumrg);',
+  '  e:=low(e);',
+  '  e:=high(tenumrg);',
+  '  e:=high(e);',
+  '  e:=pred(blue);',
+  '  e:=pred(e);',
+  '  e:=succ(green);',
+  '  e:=succ(e);',
+  '  e:=tenumrg(1);',
+  '  e:=tenumrg(i);',
+  '  s:=str(e);',
+  '  str(e,s);',
+  '  str(red,s);',
+  '  s:=str(e:3);',
+  '  writestr(s,e:3,blue);',
+  '  val(s,e,i);',
+  '  i:=longint(e);']);
+  ConvertProgram;
+  CheckSource('TestEnumRg_Functions',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.DoIt = function (e, i) {',
+    '  var v = 0;',
+    '  var s = "";',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, function (w) {',
+    '    v = w;',
+    '  }));',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, i.set));',
+    '};',
+    'this.e = this.TEnum.Green;',
+    'this.i = 0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    '$mod.i=$mod.TEnum.Green;',
+    '$mod.i=$mod.e;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue-1;',
+    '$mod.e=$mod.e-1;',
+    '$mod.e=$mod.TEnum.Green+1;',
+    '$mod.e=$mod.e+1;',
+    '$mod.e=1;',
     '$mod.e=$mod.i;',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.TEnum.Red];',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3);',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3)+$mod.TEnum[$mod.TEnum.Blue];',
+    '$mod.e = rtl.valEnum($mod.s, $mod.TEnum, function (v) {',
+    '  $mod.i = v;',
+    '});',
     '$mod.i=$mod.e;',
     '']));
 end;
@@ -5824,23 +5956,28 @@ end;
 procedure TTestModule.TestSet_Operator_In;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TColor = (Red, Green, Blue);');
-  Add('  TColors = set of tcolor;');
-  Add('var');
-  Add('  vC: tcolor;');
-  Add('  vT: tcolors;');
-  Add('  B: boolean;');
-  Add('begin');
-  Add('  b:=red in vt;');
-  Add('  b:=vc in vt;');
-  Add('  b:=green in [red..blue];');
-  Add('  b:=vc in [red..blue];');
-  Add('  ');
-  Add('  if red in vt then ;');
-  Add('  while vC in vt do ;');
-  Add('  repeat');
-  Add('  until vC in vt;');
+  Add([
+  'type',
+  '  TColor = (Red, Green, Blue);',
+  '  TColors = set of tcolor;',
+  '  TColorRg = green..blue;',
+  'var',
+  '  vC: tcolor;',
+  '  vT: tcolors;',
+  '  B: boolean;',
+  '  rg: TColorRg;',
+  'begin',
+  '  b:=red in vt;',
+  '  b:=vc in vt;',
+  '  b:=green in [red..blue];',
+  '  b:=vc in [red..blue];',
+  '  ',
+  '  if red in vt then ;',
+  '  while vC in vt do ;',
+  '  repeat',
+  '  until vC in vt;',
+  '  if rg in [green..blue] then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestSet_Operator_In',
     LinesToStr([ // statements
@@ -5854,8 +5991,9 @@ begin
     '  };',
     'this.vC = 0;',
     'this.vT = {};',
-    'this.B = false;'
-    ]),
+    'this.B = false;',
+    'this.rg = this.TColor.Green;',
+    '']),
     LinesToStr([
     '$mod.B = $mod.TColor.Red in $mod.vT;',
     '$mod.B = $mod.vC in $mod.vT;',
@@ -5866,6 +6004,7 @@ begin
     '};',
     'do {',
     '} while (!($mod.vC in $mod.vT));',
+    'if ($mod.rg in rtl.createSet(null, $mod.TColor.Green, $mod.TColor.Blue)) ;',
     '']));
 end;
 

@@ -5524,15 +5524,21 @@ var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=inherited;
   Params:=TParamsExpr(Expr);
   Param:=Params.Params[1];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
-  if ParamResolved.BaseType=btContext then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt=btContext then
     begin
-    if ParamResolved.LoTypeEl is TPasEnumType then
+    C:=ParamResolved.LoTypeEl.ClassType;
+    if (C=TPasEnumType) or (C=TPasRangeType) then
       Result:=cExact
     end;
   if Result=cIncompatible then
@@ -11831,6 +11837,9 @@ var
   AddExpr: TJSAdditiveExpressionPlus;
   Int: TMaxPrecInt;
   aResolver: TPas2JSResolver;
+  from_bt: TResolverBaseType;
+  FromTypeEl: TPasType;
+  ElTypeResolved: TPasResolverResult;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -11839,8 +11848,16 @@ begin
   JSBaseTypeData:=nil;
   JSBaseType:=pbtNone;
 
+  from_bt:=ParamResolved.BaseType;
+  FromTypeEl:=ParamResolved.LoTypeEl;
+  if from_bt=btRange then
+    begin
+    from_bt:=ParamResolved.SubType;
+    aResolver.ComputeElement(TPasRangeType(FromTypeEl).RangeExpr.left,ElTypeResolved,[rcConstant]);
+    FromTypeEl:=ElTypeResolved.LoTypeEl;
+    end;
   to_bt:=ToBaseTypeData.BaseType;
-  if to_bt=ParamResolved.BaseType then
+  if from_bt=to_bt then
     begin
     Result:=ConvertExpression(Param,AContext);
     exit;
@@ -11848,14 +11865,14 @@ begin
 
   if to_bt in btAllJSInteger then
     begin
-    if ParamResolved.BaseType in btAllJSInteger then
+    if from_bt in btAllJSInteger then
       begin
       // integer to integer -> value
       Result:=ConvertExpression(Param,AContext);
-      Result:=ConvertIntToInt(Result,ParamResolved.BaseType,to_bt,El,AContext);
+      Result:=ConvertIntToInt(Result,from_bt,to_bt,El,AContext);
       exit;
       end
-    else if ParamResolved.BaseType in btAllJSBooleans then
+    else if from_bt in btAllJSBooleans then
       begin
       // boolean to integer -> value?1:0
       Result:=ConvertExpression(Param,AContext);
@@ -11870,7 +11887,7 @@ begin
       Result:=CondExpr;
       exit;
       end
-    else if ParamResolved.BaseType in btAllJSChars then
+    else if from_bt in btAllJSChars then
       begin
       // char to integer
       Result:=ConvertExpression(Param,AContext);
@@ -11878,9 +11895,9 @@ begin
       Result:=ConvertIntToInt(Result,btWord,to_bt,El,AContext);
       exit;
       end
-    else if ParamResolved.BaseType=btContext then
+    else if from_bt=btContext then
       begin
-      if ParamResolved.LoTypeEl.ClassType=TPasEnumType then
+      if FromTypeEl.ClassType=TPasEnumType then
         begin
         // e.g. longint(TEnum) -> value
         Result:=ConvertExpression(Param,AContext);
@@ -11904,7 +11921,7 @@ begin
         exit;
         end;
       end
-    else if (to_bt=btCurrency) and (ParamResolved.BaseType in btAllJSFloats) then
+    else if (to_bt=btCurrency) and (from_bt in btAllJSFloats) then
       begin
       // currency(double)  ->  double*10000
       Result:=ConvertExpression(Param,AContext);
@@ -11914,13 +11931,13 @@ begin
     end
   else if to_bt in btAllJSBooleans then
     begin
-    if ParamResolved.BaseType in btAllJSBooleans then
+    if from_bt in btAllJSBooleans then
       begin
       // boolean to boolean -> value
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
-    else if ParamResolved.BaseType in btAllJSInteger then
+    else if from_bt in btAllJSInteger then
       begin
       // integer to boolean -> value!=0
       Result:=ConvertExpression(Param,AContext);
@@ -11949,7 +11966,7 @@ begin
     end
   else if to_bt in btAllJSFloats then
     begin
-    if ParamResolved.BaseType in (btAllJSFloats+btAllJSInteger) then
+    if from_bt in (btAllJSFloats+btAllJSInteger) then
       begin
       // int to double -> value
       Result:=ConvertExpression(Param,AContext);
@@ -11975,13 +11992,13 @@ begin
     end
   else if to_bt in btAllJSStrings then
     begin
-    if ParamResolved.BaseType in btAllJSStringAndChars then
+    if from_bt in btAllJSStringAndChars then
       begin
       // string or char to string -> value
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
-    else if ParamResolved.BaseType=btPointer then
+    else if from_bt=btPointer then
       begin
       // string(aPointer) -> value
       Result:=ConvertExpression(Param,AContext);
@@ -12004,15 +12021,15 @@ begin
     end
   else if to_bt=btChar then
     begin
-    if ParamResolved.BaseType=btChar then
+    if from_bt=btChar then
       begin
       // char to char
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
-    else if (ParamResolved.BaseType in btAllJSInteger)
-        or ((ParamResolved.BaseType=btContext)
-          and (aResolver.ResolveAliasType(ParamResolved.LoTypeEl).ClassType=TPasEnumType))
+    else if (from_bt in btAllJSInteger)
+        or ((from_bt=btContext)
+          and (FromTypeEl.ClassType=TPasEnumType))
         then
       begin
       // Note: convert value first in case it raises an exception
@@ -12030,7 +12047,7 @@ begin
         end;
       exit;
       end
-    else if (ParamResolved.BaseType in (btArrayRangeTypes+[btRange]))
+    else if (from_bt in (btArrayRangeTypes+[btRange]))
         or (IsParamPas2JSBaseType and (JSBaseType=pbtJSValue)) then
       begin
       // convert value to char -> rtl.getChar(value)
@@ -12071,13 +12088,13 @@ begin
         exit;
         end;
       end
-    else if ParamResolved.BaseType in btAllJSStrings then
+    else if from_bt in btAllJSStrings then
       begin
       // pointer(aString) -> value
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
-    else if ParamResolved.BaseType=btContext then
+    else if from_bt=btContext then
       begin
       // convert user type/value to pointer -> value
       Result:=ConvertExpression(Param,AContext);
@@ -12753,6 +12770,8 @@ var
   Minus: TJSAdditiveExpressionMinus;
   Add: TJSAdditiveExpressionPlus;
   aResolver: TPas2JSResolver;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -12760,7 +12779,10 @@ begin
     RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
   aResolver.ComputeElement(Param,ParamResolved,[]);
-  if ParamResolved.BaseType=btChar then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt=btChar then
     begin
     if Param is TParamsExpr then
       begin
@@ -12805,7 +12827,7 @@ begin
     Result:=CreateCallCharCodeAt(Result,0,El);
     exit;
     end
-  else if ParamResolved.BaseType in btAllJSBooleans then
+  else if bt in btAllJSBooleans then
     begin
     // ord(bool)
     Result:=CheckOrdConstant(aResolver,Param);
@@ -12819,9 +12841,10 @@ begin
     Result:=Add;
     exit;
     end
-  else if ParamResolved.BaseType=btContext then
+  else if bt=btContext then
     begin
-    if ParamResolved.LoTypeEl.ClassType=TPasEnumType then
+    C:=ParamResolved.LoTypeEl.ClassType;
+    if (C=TPasEnumType) or (C=TPasRangeType) then
       begin
       // ord(enum) -> enum
       Result:=ConvertExpression(Param,AContext);
@@ -12856,25 +12879,39 @@ function TPasToJSConverter.ConvertBuiltIn_LowHigh(El: TParamsExpr;
   end;
 
 var
-  ResolvedEl: TPasResolverResult;
   Param: TPasExpr;
+  aResolver: TPas2JSResolver;
+  ResolvedEl: TPasResolverResult;
   TypeEl: TPasType;
   Ranges: TPasExprArray;
   Value: TResEvalValue;
   Call: TJSCallExpression;
   MinusExpr: TJSAdditiveExpressionMinus;
   MinVal, MaxVal: TMaxPrecInt;
+  bt: TResolverBaseType;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
     RaiseInconsistency(20170210120659,El);
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
-  case ResolvedEl.BaseType of
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(Param,ResolvedEl,[]);
+  bt:=ResolvedEl.BaseType;
+  if bt=btRange then
+    bt:=ResolvedEl.SubType;
+  case bt of
     btContext:
       begin
       TypeEl:=ResolvedEl.LoTypeEl;
-      if TypeEl.ClassType=TPasEnumType then
+      if TypeEl.ClassType=TPasRangeType then
+        begin
+        if IsLow then
+          Result:=ConvertElement(TPasRangeType(TypeEl).RangeExpr.left,AContext)
+        else
+          Result:=ConvertElement(TPasRangeType(TypeEl).RangeExpr.right,AContext);
+        exit;
+        end
+      else if TypeEl.ClassType=TPasEnumType then
         begin
         CreateEnumValue(TPasEnumType(TypeEl));
         exit;
@@ -13261,25 +13298,32 @@ var
   end;
 
 var
-  ResolvedEl: TPasResolverResult;
+  aResolver: TPas2JSResolver;
+  ResolvedEl, ElTypeResolved: TPasResolverResult;
   NeedStrLit: Boolean;
   Call: TJSCallExpression;
   Bracket: TJSBracketMemberExpression;
   Arg: TJSElement;
+  bt: TResolverBaseType;
+  TypeEl: TPasType;
 begin
   Result:=nil;
-  AContext.Resolver.ComputeElement(El,ResolvedEl,[]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(El,ResolvedEl,[]);
   Add:=nil;
   Call:=nil;
   Bracket:=nil;
   try
     NeedStrLit:=false;
-    if ResolvedEl.BaseType in (btAllJSBooleans+btAllJSInteger-[btCurrency]) then
+    bt:=ResolvedEl.BaseType;
+    if bt=btRange then
+      bt:=ResolvedEl.SubType;
+    if bt in (btAllJSBooleans+btAllJSInteger-[btCurrency]) then
       begin
       NeedStrLit:=true;
       Add:=ConvertExpression(El,AContext);
       end
-    else if ResolvedEl.BaseType in (btAllJSFloats+[btCurrency]) then
+    else if bt in (btAllJSFloats+[btCurrency]) then
       begin
       // convert to rtl.floatToStr(El,width,precision)
       Call:=CreateCallExpression(El);
@@ -13296,15 +13340,21 @@ begin
       Call:=nil;
       exit;
       end
-    else if IsStrFunc and (ResolvedEl.BaseType in btAllJSStringAndChars) then
+    else if IsStrFunc and (bt in btAllJSStringAndChars) then
       Add:=ConvertExpression(El,AContext)
-    else if ResolvedEl.BaseType=btContext then
+    else if bt=btContext then
       begin
-      if ResolvedEl.LoTypeEl.ClassType=TPasEnumType then
+      TypeEl:=ResolvedEl.LoTypeEl;
+      if TypeEl.ClassType=TPasRangeType then
+        begin
+        aResolver.ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ElTypeResolved,[rcConstant]);
+        TypeEl:=ElTypeResolved.LoTypeEl;
+        end;
+      if TypeEl.ClassType=TPasEnumType then
         begin
         // create enumtype[enumvalue]
         Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-        Bracket.MExpr:=CreateReferencePathExpr(TPasEnumType(ResolvedEl.LoTypeEl),AContext);
+        Bracket.MExpr:=CreateReferencePathExpr(TPasEnumType(TypeEl),AContext);
         Bracket.Name:=ConvertExpression(El,AContext);
         Add:=Bracket;
         Bracket:=nil;
@@ -13389,28 +13439,32 @@ function TPasToJSConverter.ConvertBuiltIn_Val(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // val(const s: string; out value: valuetype; out Code: integertype)
 // for enum it is converted to
-//   value = rtl.valEnum(s,enumTupe,function(c){ Code=c; })
+//   value = rtl.valEnum(s,enumType,function(c){ Code=c; })
 var
+  aResolver: TPas2JSResolver;
   AssignContext: TAssignContext;
   ValueExpr, CodeExpr: TPasExpr;
   Call: TJSCallExpression;
   Params: TPasExprArray;
   EnumType: TPasEnumType;
   Fun: TJSFunctionDeclarationStatement;
-  ExprResolved: TPasResolverResult;
+  ExprResolved, ElTypeResolved: TPasResolverResult;
   ExprArg: TPasArgument;
   AssignSt: TJSSimpleAssignStatement;
   SetterArgName: String;
   ArgJS, SetExpr: TJSElement;
+  bt: TResolverBaseType;
+  LoTypeEl: TPasType;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
   Params:=El.Params;
   Call:=nil;
   AssignContext:=TAssignContext.Create(El,nil,AContext);
   try
     //
     ValueExpr:=Params[1];
-    AContext.Resolver.ComputeElement(ValueExpr,AssignContext.LeftResolved,[rcNoImplicitProc]);
+    aResolver.ComputeElement(ValueExpr,AssignContext.LeftResolved,[rcNoImplicitProc]);
 
     // rtl.valEnum()
     Call:=CreateCallExpression(El);
@@ -13419,11 +13473,20 @@ begin
     // add arg string
     Call.AddArg(ConvertExpression(Params[0],AContext));
     // add arg enumtype
-    if AssignContext.LeftResolved.BaseType=btContext then
+    bt:=AssignContext.LeftResolved.BaseType;
+    if bt=btRange then
+      bt:=AssignContext.LeftResolved.SubType;
+    if bt=btContext then
       begin
-      if AssignContext.LeftResolved.LoTypeEl is TPasEnumType then
+      LoTypeEl:=AssignContext.LeftResolved.LoTypeEl;
+      if LoTypeEl.ClassType=TPasRangeType then
         begin
-        EnumType:=TPasEnumType(AssignContext.LeftResolved.LoTypeEl);
+        aResolver.ComputeElement(TPasRangeType(LoTypeEl).RangeExpr.left,ElTypeResolved,[rcConstant]);
+        LoTypeEl:=ElTypeResolved.LoTypeEl;
+        end;
+      if LoTypeEl.ClassType=TPasEnumType then
+        begin
+        EnumType:=TPasEnumType(LoTypeEl);
         Call.AddArg(CreateReferencePathExpr(EnumType,AContext));
         end else
           RaiseNotSupported(Params[1],AContext,20181214145226,GetResolverResultDbg(AssignContext.LeftResolved));
@@ -23321,6 +23384,8 @@ var
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
   aResolver: TPas2JSResolver;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=ConvertExpression(Expr,AContext);
   if Result=nil then
@@ -23374,19 +23439,22 @@ begin
   if aResolver<>nil then
     begin
     aResolver.ComputeElement(Expr,ExprResolved,[]);
-    if (ExprResolved.BaseType in btAllJSStringAndChars)
-        or ((ExprResolved.BaseType=btRange) and (ExprResolved.SubType in btAllJSChars)) then
+    bt:=ExprResolved.BaseType;
+    if bt=btRange then
+      bt:=ExprResolved.SubType;
+    if bt in btAllJSStringAndChars then
       begin
       // aChar -> aChar.charCodeAt()
       Result:=CreateCallCharCodeAt(Result,0,Expr);
       end
-    else if ExprResolved.BaseType in btAllJSInteger then
+    else if bt in btAllJSInteger then
       begin
       // ok
       end
-    else if ExprResolved.BaseType=btContext then
+    else if bt=btContext then
       begin
-      if ExprResolved.LoTypeEl.ClassType=TPasEnumType then
+      C:=ExprResolved.LoTypeEl.ClassType;
+      if (C=TPasEnumType) or (C=TPasRangeType) then
         // ok
       else
         RaiseNotSupported(Expr,AContext,20170415191933);

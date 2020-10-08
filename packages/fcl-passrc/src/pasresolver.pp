@@ -9577,59 +9577,42 @@ type
     var ValueSet: TResEvalSet): boolean;
   var
     CaseExprType: TPasType;
+    bt: TResolverBaseType;
+    ElTypeResolved: TPasResolverResult;
   begin
     Result:=false;
-    if ResolvedEl.BaseType in btAllInteger then
+    bt:=ResolvedEl.BaseType;
+    if bt in btAllStrings then
+      exit(true)
+    else if bt=btRange then
+      bt:=ResolvedEl.SubType;
+    if bt in btAllInteger then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskInt);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllBooleans then
+    else if bt in btAllBooleans then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskBool);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllChars then
+    else if bt in btAllChars then
       begin
       ValueSet:=TResEvalSet.CreateEmpty(revskChar);
       Result:=true;
       end
-    else if ResolvedEl.BaseType in btAllStrings then
-      Result:=true
-    else if ResolvedEl.BaseType=btContext then
+    else if bt=btContext then
       begin
       CaseExprType:=ResolvedEl.LoTypeEl;
       if CaseExprType.ClassType=TPasEnumType then
         begin
         ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
         Result:=true;
-        end;
-      end
-    else if ResolvedEl.BaseType=btRange then
-      begin
-      if ResolvedEl.SubType in btAllInteger then
-        begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskInt);
-        Result:=true;
         end
-      else if ResolvedEl.SubType in btAllBooleans then
+      else if CaseExprType.ClassType=TPasRangeType then
         begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskBool);
-        Result:=true;
-        end
-      else if ResolvedEl.SubType in btAllChars then
-        begin
-        ValueSet:=TResEvalSet.CreateEmpty(revskChar);
-        Result:=true;
-        end
-      else if ResolvedEl.SubType=btContext then
-        begin
-        CaseExprType:=ResolvedEl.LoTypeEl;
-        if CaseExprType.ClassType=TPasEnumType then
-          begin
-          ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
-          Result:=true;
-          end;
+        ComputeElement(TPasRangeType(CaseExprType).RangeExpr.left,ElTypeResolved,[rcConstant]);
+        Result:=CreateValues(ElTypeResolved,ValueSet);
         end;
       end;
   end;
@@ -18853,6 +18836,7 @@ var
   Param: TPasExpr;
   ParamResolved, IncrResolved: TPasResolverResult;
   TypeEl: TPasType;
+  bt: TResolverBaseType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit(cIncompatible);
@@ -18872,18 +18856,23 @@ begin
       RaiseVarExpected(20170216152319,Expr,ParamResolved.IdentEl);
     exit;
     end;
-  if ParamResolved.BaseType in btAllInteger then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt in btAllInteger then
     Result:=cExact
-  else if ParamResolved.BaseType=btPointer then
+  else if bt=btPointer then
     begin
     if ElHasBoolSwitch(Expr,bsPointerMath) then
       Result:=cExact;
     end
-  else if ParamResolved.BaseType=btContext then
+  else if bt=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
         and ElHasBoolSwitch(Expr,bsPointerMath) then
+      Result:=cExact
+    else if TypeEl.ClassType=TPasRangeType then
       Result:=cExact;
     end;
   if Result=cIncompatible then
@@ -19493,18 +19482,22 @@ function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
   end;
 
 var
-  TypeEl: TPasType;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   Result:=cIncompatible;
-  if ParamResolved.BaseType in (btAllInteger+btAllBooleans+btAllFloats) then
+  bt:=ParamResolved.BaseType;
+  if bt=btRange then
+    bt:=ParamResolved.SubType;
+  if bt in (btAllInteger+btAllBooleans+btAllFloats) then
     Result:=cExact
-  else if IsFunc and (ParamResolved.BaseType in btAllStringAndChars) then
+  else if IsFunc and (bt in btAllStringAndChars) then
     Result:=cExact
-  else if ParamResolved.BaseType=btContext then
+  else if bt=btContext then
     begin
-      TypeEl:=ParamResolved.LoTypeEl;
-      if TypeEl.ClassType=TPasEnumType then
-        Result:=cExact
+    C:=ParamResolved.LoTypeEl.ClassType;
+    if (C=TPasEnumType) or (C=TPasRangeType) then
+      Result:=cExact
     end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170319220517,ArgNo,Param,ParamResolved,'boolean, integer, enum value',RaiseOnError));
@@ -19673,6 +19666,8 @@ var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
+  bt: TResolverBaseType;
+  C: TClass;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,3,RaiseOnError) then
     exit(cIncompatible);
@@ -19693,11 +19688,15 @@ begin
   Result:=cIncompatible;
   if ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
-    if ParamResolved.BaseType in (btAllInteger+btAllBooleans+btAllFloats) then
+    bt:=ParamResolved.BaseType;
+    if bt=btRange then
+      bt:=ParamResolved.SubType;
+    if bt in (btAllInteger+btAllBooleans+btAllFloats) then
       Result:=cExact
-    else if ParamResolved.BaseType=btContext then
+    else if bt=btContext then
       begin
-      if ParamResolved.LoTypeEl is TPasEnumType then
+      C:=ParamResolved.LoTypeEl.ClassType;
+      if (C=TPasEnumType) or (C=TPasRangeType) then
         Result:=cExact;
       end;
     end;
@@ -29730,8 +29729,8 @@ function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
     DestParams:=DestSpecializedFromItem.Params;
     for i:=0 to length(SrcParams)-1 do
       begin
-      SrcParam:=SrcParams[i];
-      DestParam:=DestParams[i];
+      SrcParam:=ResolveAliasType(SrcParams[i]);
+      DestParam:=ResolveAliasType(DestParams[i]);
       if (SrcParam is TPasGenericTemplateType)
           or (DestParam is TPasGenericTemplateType)
           or (SrcParam=DestParam)

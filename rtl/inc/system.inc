@@ -1399,7 +1399,7 @@ end;
 
 Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
-  i : Longint;
+  i : ObjpasInt;
   prevfp : Pointer;
   is_dev : boolean;
 Begin
@@ -1435,7 +1435,7 @@ End;
 
 procedure dump_stack(var f: text; skipframes: longint);
 var
-  i,count: longint;
+  i,count: ObjpasInt;
   frames: array [0..255] of codepointer;
 begin
   if do_isdevice(textrec(f).handle) then
@@ -1459,7 +1459,7 @@ end;
 procedure DumpExceptionBackTrace(var f:text);
 var
   FrameNumber,
-  FrameCount   : longint;
+  FrameCount   : ObjpasInt;
   Frames       : PCodePointer;
 begin
   if RaiseList=nil then
@@ -1525,7 +1525,7 @@ end;
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
 
 var p   : ppchar;
-    i   : LongInt;
+    i   : ObjpasInt;
 begin
   if High(s)<Low(s) Then Exit(NIL);
   Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
@@ -1560,7 +1560,7 @@ end;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 var
-  i,nr  : longint;
+  i,nr  : ObjpasInt;
   Buf : ^char;
   p   : ppchar;
 
@@ -1731,7 +1731,7 @@ end;
 { Allow slash and backslash as separators }
 procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
 var
-  i : longint;
+  i : ObjpasInt;
   len : sizeint;
   newp : pchar;
 begin
@@ -1753,7 +1753,7 @@ end;
 
 procedure DoDirSeparators(var p: pwidechar; inplace: boolean = true);
 var
-  i : longint;
+  i : ObjpasInt;
   len : sizeint;
   newp : pwidechar;
 begin
@@ -1776,7 +1776,7 @@ end;
 
 procedure DoDirSeparators(var p:shortstring);
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   for i:=1 to length(p) do
     if p[i] in AllowDirectorySeparators then
@@ -1787,7 +1787,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
-  i : longint;
+  i : ObjpasInt;
   p : pchar;
   unique : boolean;
 begin
@@ -1810,7 +1810,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
-  i : longint;
+  i : ObjpasInt;
   p : pwidechar;
   unique : boolean;
 begin

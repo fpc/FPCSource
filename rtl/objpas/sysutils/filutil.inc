@@ -670,3 +670,80 @@ begin
   Result:= False;
 end;
 {$endif}
+
+Function GetFileContents(Const aFileName : RawByteString) : TBytes;
+
+Var
+  H : Thandle;
+
+begin
+  H:=FileOpen(aFileName,fmOpenRead or fmShareDenyWrite);
+  if H<0 then
+    Raise EFileNotFoundException.Create(SFileNotFound);
+  try
+    Result:=GetFileContents(H);
+  finally
+    FileClose(H);
+  end;
+end;
+
+Function GetFileContents(Const aFileName : UnicodeString) : TBytes;
+
+Var
+  H : Thandle;
+
+begin
+  H:=FileOpen(aFileName,fmOpenRead or fmShareDenyWrite);
+  if H<0 then
+    Raise EFileNotFoundException.Create(SFileNotFound);
+  try
+    Result:=GetFileContents(H);
+  finally
+    FileClose(H);
+  end;
+end;
+
+Function GetFileContents(Const aHandle : THandle) : TBytes;
+
+Var
+  aLen,aOffset,aRead : Int64;
+  aBuf : PByte;
+
+begin
+  aLen:=FileSeek(aHandle,0,fsFromEnd);
+  if aLen<0 then
+    Raise EInOutError.Create(SSeekFailed);
+  if FileSeek(aHandle,0,fsFromBeginning)<0 then
+    Raise EInOutError.Create(SSeekFailed);
+  SetLength(Result,aLen);
+  aOffset:=0;
+  Repeat
+    aBuf:=@Result[aOffset];
+    aRead:=FileRead(aHandle,aBuf^,aLen-aOffset);
+    aOffset:=aOffset+aRead;
+  Until (aOffset>=aLen) or (aRead<=0);
+  if aRead<0 then
+    RaiseLastOSError;
+end;
+
+Function GetFileAsString(Const aFileName : RawByteString; aEncoding : TEncoding) : RawByteString;
+
+begin
+  Result:=aEncoding.GetAnsiString(GetFileContents(aFileName));
+end;
+
+Function GetFileAsString(Const aFileName : RawByteString) : RawByteString;
+
+begin
+  Result:=GetFileAsString(aFileName,TEncoding.SystemEncoding);
+end;
+
+Function GetFileAsString(Const aFileName : UnicodeString) : UnicodeString;
+begin
+  Result:=GetFileAsString(aFileName, TEncoding.Unicode);
+end;
+
+Function GetFileAsString(Const aFileName : UnicodeString; aEncoding : TEncoding) : UnicodeString;
+begin
+  Result:=aEncoding.GetString(GetFileContents(aFileName))
+end;

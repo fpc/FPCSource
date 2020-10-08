@@ -451,7 +451,8 @@ type
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
-    procedure ParseProcedureOrFunction(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
+    procedure ParseProcedureOrFunction(Parent: TPasElement;
+      Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
     function ParseMethodResolution(Parent: TPasElement): TPasMethodResolution;
     // Properties for external access
@@ -4998,7 +4999,7 @@ begin
     ptAnonymousProcedure,ptAnonymousFunction:
       case CurToken of
       tkIdentifier, // e.g. procedure assembler
-      tkbegin,tkvar,tkconst,tktype,tkprocedure,tkfunction:
+      tkbegin,tkvar,tkconst,tktype,tkprocedure,tkfunction,tkasm:
         UngetToken;
       tkColon:
         if ProcType=ptAnonymousFunction then
@@ -5300,7 +5301,7 @@ begin
         ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
       end;
   else
-    resultEl:=Nil;
+    ResultEl:=Nil;
   end;
   if OfObjectPossible then
     begin
@@ -5312,7 +5313,7 @@ begin
       end
     else if (CurToken = tkIs) then
       begin
-      expectToken(tkIdentifier);
+      ExpectToken(tkIdentifier);
       if (lowerCase(CurTokenString)<>'nested') then
         ParseExc(nParserExpectedNested,SParserExpectedNested);
       Element.IsNested:=True;
