@@ -44,7 +44,6 @@ type
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
 
-  // VFS not supported at this time.
   // Do not change the order. See NativeFlags constant in GetSQLiteOpenFlags.
 
   TSQLiteOpenFlag = (
@@ -69,8 +68,10 @@ Type
   private
     fhandle: psqlite3;
     FOpenFlags: TSQLiteOpenFlags;
+    FVFS: String;
     function GetSQLiteOpenFlags: Integer;
     procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
+    procedure SetVFS(const AValue: String);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -125,6 +126,7 @@ Type
     procedure LoadExtension(const LibraryFile: string);
   Published
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
+    Property VFS : String Read FVFS Write SetVFS;
     Property AlwaysUseBigint : Boolean Read GetAlwaysUseBigint Write SetAlwaysUseBigint;
   end;
 
@@ -857,16 +859,28 @@ begin
   FOpenFlags:=AValue;
 end;
 
+procedure TSQLite3Connection.SetVFS(const AValue: String);
+begin
+  if FVFS=AValue then Exit;
+  CheckDisConnected;
+  FVFS:=AValue;
+end;
+
 procedure TSQLite3Connection.DoInternalConnect;
 var
   filename: ansistring;
+  pvfs: PChar;
 begin
   Inherited;
   if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSQLite;
   filename := DatabaseName;
-  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,Nil));
+  if FVFS <> '' then
+    pvfs := PAnsiChar(FVFS)
+  else
+    pvfs := Nil;
+  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,pvfs));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
   if Params.IndexOfName('foreign_keys') <> -1 then
