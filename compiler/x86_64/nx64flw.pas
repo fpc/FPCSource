@@ -321,6 +321,12 @@ procedure tx64tryfinallynode.pass_generate_code;
         cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
       end;
 
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if (fc_exit in flowcontrol) and (fc_inflowcontrol in oldflowcontrol) then
+      Include(oldflowcontrol, fc_exit);
+
     flowcontrol:=[fc_inflowcontrol];
     { generate finally code as a separate procedure }
     if not implicitframe then
@@ -431,6 +437,12 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if (fc_exit in flowcontrol) and (fc_inflowcontrol in oldflowcontrol) then
+      Include(oldflowcontrol, fc_exit);
+
     flowcontrol:=[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
@@ -520,6 +532,12 @@ procedure tx64tryexceptnode.pass_generate_code;
 errorexit:
     { restore all saved labels }
     endexceptlabel:=oldendexceptlabel;
+
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if (fc_exit in flowcontrol) and (fc_inflowcontrol in oldflowcontrol) then
+      Include(oldflowcontrol, fc_exit);
 
     { restore the control flow labels }
     current_procinfo.CurrExitLabel:=oldCurrExitLabel;
