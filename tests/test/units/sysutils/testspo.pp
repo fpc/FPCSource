@@ -1,3 +1,4 @@
+{$mode delphi}
 program testspo;
 
 {$APPTYPE CONSOLE}
@@ -83,11 +84,11 @@ begin
   Test('a,,', ['a'], TStringSplitOptions.ExcludeEmpty, false);
   Test(',b,', ['b'], TStringSplitOptions.ExcludeEmpty, false);
   Test(',,', [], TStringSplitOptions.ExcludeEmpty, false);
-  
+
 {$IFNDEF FPC}
   WriteLn;
   WriteLn('Press ENTER to quit...');
   ReadLn;
-{$ENDIF}  
+{$ENDIF}
 end.
 
