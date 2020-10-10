@@ -1851,6 +1851,27 @@ unit cgx86;
             )
           )
         );
+        opmm2asmop_avx : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
+          ( { scalar }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDSS,A_NOP,A_VDIVSS,A_NOP,A_NOP,A_VMULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSS,A_VXORPS,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDSD,A_NOP,A_VDIVSD,A_NOP,A_NOP,A_VMULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBSD,A_VXORPD,A_NOP,A_NOP
+            )
+          ),
+          ( { vectorized/packed }
+            { because the logical packed single instructions have shorter op codes, we use always
+              these
+            }
+            ( { OS_F32 }
+              A_NOP,A_NOP,A_VADDPS,A_NOP,A_VDIVPS,A_NOP,A_NOP,A_VMULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPS,A_VXORPS,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_VADDPD,A_NOP,A_VDIVPD,A_NOP,A_NOP,A_VMULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VSUBPD,A_VXORPD,A_NOP,A_NOP
+            )
+          )
+        );
         opmm2asmop_full : array[topcg] of tasmop = (
           A_NOP,A_NOP,A_NOP,A_PAND,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_POR,A_NOP,A_NOP,A_NOP,A_NOP,A_PXOR,A_NOP,A_NOP
         );
@@ -1886,13 +1907,14 @@ unit cgx86;
           end
         else if shufflescalar(shuffle) then
           begin
-            asmop:=opmm2asmop[0,size,op];
-            { no scalar operation available? }
-            if asmop=A_NOP then
+            if UseAVX then
               begin
-                { do vectorized and shuffle finally }
-                internalerror(2010060102);
-              end;
+                asmop:=opmm2asmop_avx[0,size,op];
+                if size in [OS_M256,OS_M512] then
+                  Include(current_procinfo.flags,pi_uses_ymm);
+              end
+            else
+              asmop:=opmm2asmop[0,size,op];
           end
         else
           internalerror(200312211);

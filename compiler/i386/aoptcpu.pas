@@ -203,9 +203,7 @@ unit aoptcpu;
                 A_VANDPD,
                 A_VANDPS,
                 A_VORPD,
-                A_VORPS,
-                A_VXORPD,
-                A_VXORPS:
+                A_VORPS:
                   Result:=OptPass1VOP(p);
                 A_MULSD,
                 A_MULSS,
