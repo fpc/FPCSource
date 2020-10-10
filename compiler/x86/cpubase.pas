@@ -170,7 +170,7 @@ uses
 
       { Number of first imaginary register }
 {$ifdef x86_64}
-      first_mm_imreg     = $10;
+      first_mm_imreg     = $20;
 {$else x86_64}
       first_mm_imreg     = $08;
 {$endif x86_64}
