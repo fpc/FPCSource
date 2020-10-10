@@ -103,9 +103,7 @@ uses
                 A_VANDPD,
                 A_VANDPS,
                 A_VORPD,
-                A_VORPS,
-                A_VXORPD,
-                A_VXORPS:
+                A_VORPS:
                   result:=OptPass1VOP(p);
                 A_MULSD,
                 A_MULSS,
@@ -131,8 +129,12 @@ uses
                   result:=OptPass1FLD(p);
                 A_CMP:
                   result:=OptPass1Cmp(p);
+                A_VXORPS,
+                A_VXORPD,
                 A_VPXOR:
                   Result:=OptPass1VPXor(p);
+                A_XORPS,
+                A_XORPD,
                 A_PXOR:
                   Result:=OptPass1PXor(p);
                 else

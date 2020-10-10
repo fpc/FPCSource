@@ -4236,6 +4236,7 @@ unit aoptx86;
          Result:=OptPass1VOP(p);
      end;
 
+
    function TX86AsmOptimizer.OptPass1Imul(var p: tai): boolean;
      var
        hp1 : tai;
