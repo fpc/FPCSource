@@ -460,8 +460,8 @@ begin
      exit;
    end;
   Internal_getopt:=optstring[temp];
-  if optstring[temp+1]=':' then
-   if optstring[temp+2]=':' then
+  if (length(optstring)>temp) and (optstring[temp+1]=':') then
+   if (length(optstring)>temp+1) and (optstring[temp+2]=':') then
     begin { optional argument }
       if nextchar>0 then
        begin
