@@ -55,7 +55,8 @@ Type
     Function ShutDown : Boolean; virtual;
     Function Install : Boolean; virtual;
     Function UnInstall: boolean; virtual;
-    Function HandleCustomCode(ACode : DWord) : Boolean; Virtual;
+    Function HandleCustomCode(ACode : DWord) : Boolean; virtual;
+    Function HandleCustomCode(ACode, AEventType : DWord; AEventData : Pointer) : Boolean; Virtual;
     procedure DoThreadTerminate(Sender: TObject);virtual;
   Public
     Procedure CheckControlMessages(Wait : Boolean);
@@ -74,6 +75,7 @@ Type
 
   { TDaemon }
   TCustomControlCodeEvent = Procedure(Sender : TCustomDaemon; ACode : DWord; Var Handled : Boolean) of object;
+  TCustomControlCodeEvEvent = Procedure(Sender : TCustomDaemon; ACode, AEventType : DWord; AEventData : Pointer; Var Handled : Boolean) of object;
 
   TDaemon = Class(TCustomDaemon)
   private
@@ -83,6 +85,7 @@ Type
     FBeforeUnInstall: TDaemonEvent;
     FOnContinue: TDaemonOKEvent;
     FOnCustomControl: TCustomControlCodeEvent;
+    FOnCustomControlEvent: TCustomControlCodeEvEvent;
     FOnExecute: TDaemonEvent;
     FOnPause: TDaemonOKEvent;
     FOnShutDown: TDaemonEvent;
@@ -97,6 +100,7 @@ Type
     Function ShutDown : Boolean; override;
     Function Install : Boolean; override;
     Function UnInstall: boolean; override;
+    Function HandleCustomCode(ACode, AEventType : DWord; AEventData : Pointer) : Boolean; override;
     Function HandleCustomCode(ACode : DWord) : Boolean; Override;
   Public
     Property Definition;
@@ -113,6 +117,7 @@ Type
     Property BeforeUnInstall : TDaemonEvent Read FBeforeUnInstall Write FBeforeUnInstall;
     Property AfterUnInstall : TDaemonEvent Read FAfterUnInstall Write FAfterUnInstall;
     Property OnControlCode : TCustomControlCodeEvent Read FOnCustomControl Write FOnCustomControl;
+    Property OnControlCodeEvent : TCustomControlCodeEvEvent Read FOnCustomControlEvent Write FOnCustomControlEvent;
   end;
 
   { TDaemonController }
@@ -175,10 +180,27 @@ Type
   end;
 
 
+  TWinControlCode = (
+    wccNetBindChange,
+    wccParamChange,
+    wccPreShutdown,
+    wccShutdown,
+    wccHardwareProfileChange,
+    wccPowerEvent,
+    wccSessionChange,
+    { Windows 7 + }
+    wccTimeChange,
+    wccTriggerEvent,
+    { Windows 8 + }
+    wccUserModeReboot
+  );
+  TWinControlCodes = set of TWinControlCode;
+
   { TWinBindings }
 
   TWinBindings = class(TPersistent)
   private
+    FAcceptedCodes: TWinControlCodes;
     FDependencies: TDependencies;
     FErrCode: DWord;
     FErrorSeverity: TErrorSeverity;
@@ -207,6 +229,7 @@ Type
     Property IDTag : DWord Read FTagID Write FTagID;
     Property ServiceType : TServiceType Read FServiceType Write FServiceType;
     Property ErrorSeverity : TErrorSeverity Read FErrorSeverity Write FErrorSeverity;
+    Property AcceptedCodes : TWinControlCodes Read FAcceptedCodes Write FAcceptedCodes;
   end;
 
   { TDaemonDef }
@@ -311,7 +334,7 @@ Type
     FDaemon : TCustomDaemon;
   Protected
     procedure StartServiceExecute; virtual;
-    procedure HandleControlCode(ACode : DWord); virtual;
+    procedure HandleControlCode(ACode, AEventType : DWord; AEventData: Pointer); virtual;
   Public
     Constructor Create(ADaemon : TCustomDaemon);
     Procedure Execute; override;
@@ -614,6 +637,15 @@ begin
     FAfterUnInstall(Self)
 end;
 
+function TDaemon.HandleCustomCode(ACode, AEventType : DWord; AEventData : Pointer): Boolean;
+begin
+  Result:=Assigned(FOnCustomControlEvent);
+  If Result then
+    FOnCustomControlEvent(Self,ACode,AEventType,AEventData,Result);
+  If not Result then
+    Result:=HandleCustomCode(ACode);
+end;
+
 function TDaemon.HandleCustomCode(ACode: DWord): Boolean;
 begin
   Result:=Assigned(FOnCustomControl);
@@ -693,6 +725,11 @@ end;
 function TCustomDaemon.HandleCustomCode(ACode: DWord): Boolean;
 begin
   Result:=False
+end;
+
+function TCustomDaemon.HandleCustomCode(ACode, AEventType: DWord; AEventData: Pointer): Boolean;
+begin
+  Result:=HandleCustomCode(ACode);
 end;
 
 procedure TCustomDaemon.DoThreadTerminate(Sender: TObject);
@@ -1252,7 +1289,7 @@ begin
 end;
 
 
-procedure TDaemonThread.HandleControlCode(ACode : DWord);
+procedure TDaemonThread.HandleControlCode(ACode, AEventType : DWord; AEventData : Pointer);
 
 Var
   CS : TCurrentStatus;
@@ -1273,7 +1310,7 @@ begin
       SERVICE_CONTROL_INTERROGATE : OK:=InterrogateDaemon;
     else
       CC:=True;
-      FDaemon.HandleCustomCode(ACode);
+      FDaemon.HandleCustomCode(ACode, AEventType, AEventData);
     end;
     If not OK then
       FDaemon.Status:=CS;
