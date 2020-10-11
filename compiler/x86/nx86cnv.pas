@@ -289,7 +289,9 @@ implementation
               end
             else
               begin
-                if not(is_signed(left.resultdef)) then
+                { do not use is_signed here as it checks the boundaries instead
+                  of the ordtype }
+                if not(torddef(left.resultdef).ordtype in [s32bit,s64bit]) then
                   Internalerror(2020101001);
                 case location.size of
                   OS_F32:
