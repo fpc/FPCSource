@@ -998,10 +998,13 @@ procedure TCustomBufDataset.SetPacketRecords(aValue : integer);
 begin
   if (aValue = -1) or (aValue > 0) then
     begin
-    if (IndexFieldNames='') then
+    if (IndexFieldNames<>'') and (aValue<>-1) then
+      DatabaseError(SInvPacketRecordsValueFieldNames)
+    else
+    if UniDirectional and (aValue=-1) then
+      DatabaseError(SInvPacketRecordsValueUniDirectional)
+    else
       FPacketRecords := aValue
-    else if AValue<>-1 then
-      DatabaseError(SInvPacketRecordsValueFieldNames);
     end
   else
     DatabaseError(SInvPacketRecordsValue);
