@@ -411,7 +411,15 @@ begin
 end;
 
 
-function FileGetSymLinkTargetInt(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec; RaiseErrorOnMissing: Boolean): Boolean;
+type
+  TSymLinkResult = (
+    slrOk,
+    slrNoSymLink,
+    slrError
+  );
+
+
+function FileGetSymLinkTargetInt(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec; RaiseErrorOnMissing: Boolean): TSymLinkResult;
 { reparse point specific declarations from Windows headers }
 const
   IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
@@ -447,6 +455,7 @@ var
   PBuffer: ^TReparseDataBuffer;
   BytesReturned: DWORD;
 begin
+  Result := slrError;
   SymLinkRec := Default(TUnicodeSymLinkRec);
 
   HFile := CreateFileW(PUnicodeChar(FileName), FILE_READ_EA, CShareAny, Nil, OPEN_EXISTING, COpenReparse, 0);
@@ -483,8 +492,10 @@ begin
               raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError))
             else
               SymLinkRec.TargetName := '';
-          end else
+          end else begin
             SetLastError(ERROR_REPARSE_TAG_INVALID);
+            Result := slrNoSymLink;
+          end;
         end else
           SetLastError(ERROR_REPARSE_TAG_INVALID);
       finally
@@ -493,13 +504,15 @@ begin
     finally
       CloseHandle(HFile);
     end;
-  Result := SymLinkRec.TargetName <> '';
+
+  if SymLinkRec.TargetName <> '' then
+    Result := slrOk
 end;
 
 
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 begin
-  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True);
+  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True) = slrOk;
 end;
 
 
@@ -522,14 +535,6 @@ const
     end;
   end;
 
-  function LinkFileExists: Boolean;
-  var
-    slr: TUnicodeSymLinkRec;
-  begin
-    Result := FileGetSymLinkTargetInt(FileOrDirName, slr, False) and
-                FileOrDirExists(slr.TargetName, CheckDir, False);
-  end;
-
 const
   CNotExistsErrors = [
     ERROR_FILE_NOT_FOUND,
@@ -544,14 +549,25 @@ const
   ];
 var
   Attr : DWord;
+  slr : TUnicodeSymLinkRec;
+  res : TSymLinkResult;
 begin
   Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
   if Attr = INVALID_FILE_ATTRIBUTES then
     Result := not (GetLastError in CNotExistsErrors) and FoundByEnum
   else begin
     Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
-    if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then
-      Result := LinkFileExists;
+    if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then begin
+      res := FileGetSymLinkTargetInt(FileOrDirName, slr, False);
+      case res of
+        slrOk:
+          Result := FileOrDirExists(slr.TargetName, CheckDir, False);
+        slrNoSymLink:
+          Result := True;
+        else
+          Result := False;
+      end;
+    end;
   end;
 end;
 
