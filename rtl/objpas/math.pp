@@ -509,6 +509,7 @@ function MaxValue(const data : PInteger; Const N : Integer) : Integer;
 
 { returns random values with gaussian distribution }
 function RandG(mean,stddev : float) : float;
+
 function RandomRange(const aFrom, aTo: Integer): Integer;
 function RandomRange(const aFrom, aTo: Int64): Int64;
 
