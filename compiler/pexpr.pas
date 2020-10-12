@@ -3032,7 +3032,10 @@ implementation
                                  else
                                    begin
                                      srsym:=tprocdef(hdef).procsym;
-                                     srsymtable:=srsym.owner;
+                                     if assigned(spezcontext.symtable) then
+                                       srsymtable:=spezcontext.symtable
+                                     else
+                                       srsymtable:=srsym.owner;
                                    end;
                                end
                              else
