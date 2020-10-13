@@ -1184,7 +1184,7 @@ implementation
         with tarraydef(resultdef) do
           begin
             if highrange<lowrange then
-             internalerror(200501051);
+             internalerror(2005010502);
             arrsize := highrange-lowrange+1;
           end;
         if (left.nodetype = stringconstn) and
@@ -2042,7 +2042,7 @@ implementation
           begin
             { arr[i] := param_i }
             if not assigned(elemnode.left) then
-              internalerror(2017050101);
+              internalerror(2017050103);
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(

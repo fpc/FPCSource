@@ -735,7 +735,7 @@ Implementation
                                   inc(oper.opr.constoffset, l);
                                 end;
                               else
-                                internalerror(200309202);
+                                internalerror(2003092011);
                             end;
                         end;
                     end;

@@ -3951,7 +3951,7 @@ begin
       InternalError(2013092801);
   if tf_x86_far_procs_push_odd_bp in target_info.flags then
     if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
-      InternalError(2013092801);
+      InternalError(2013092802);
 
   { Use standard Android NDK prefixes when cross-compiling }
   if (source_info.system<>target_info.system) and (target_info.system in systems_android) then

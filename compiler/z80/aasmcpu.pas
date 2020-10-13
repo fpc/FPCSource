@@ -802,7 +802,7 @@ implementation
                   NR_L:
                     result:=5 shl 3;
                   else
-                    internalerror(2020050419);
+                    internalerror(2020050427);
                 end;
                 case oper[1]^.reg of
                   NR_A:
@@ -820,7 +820,7 @@ implementation
                   NR_L:
                     result:=result or 5;
                   else
-                    internalerror(2020050419);
+                    internalerror(2020050428);
                 end;
               end;
             'ccc':
@@ -862,14 +862,14 @@ implementation
                   if insentry^.optypes[i]=OT_IMM3 then
                     begin
                       if oper[i]^.typ<>top_const then
-                        internalerror(2020050606);
+                        internalerror(2020050614);
                       result:=Byte(oper[i]^.val) and $07;
                     end;
               end;
             'bbbrrr':
               result:=(EvalMaskCode('bbb') shl 3) or EvalMaskCode('rrr');
             else
-              internalerror(2020050409);
+              internalerror(2020050426);
           end;
         end;
 
@@ -904,7 +904,7 @@ implementation
               '''':
                 begin
                   if (maskcode='') or (maskcode[length(maskcode)]<>'r') then
-                    internalerror(2020050408);
+                    internalerror(2020050425);
                   maskcode[length(maskcode)]:='R';
                 end;
               else
@@ -947,7 +947,7 @@ implementation
             if (ch=',') or (i>length(code)) then
               begin
                 if token='' then
-                  internalerror(2020050402);
+                  internalerror(2020050424);
                 if token[1]='$' then
                   begin
                     Val(token,b,valcode);
@@ -1311,7 +1311,7 @@ implementation
           R_INTREGISTER :
             result:=taicpu.op_ref_reg(A_LD,ref,r);
           else
-            internalerror(200401041);
+            internalerror(2004010403);
         end;
       end;
 

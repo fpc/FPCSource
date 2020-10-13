@@ -202,7 +202,7 @@ begin
           procsym:
             DllExport_COMENT_EXPDEF.InternalName:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
           else
-            internalerror(2015092701);
+            internalerror(2015092705);
         end
       else
         DllExport_COMENT_EXPDEF.InternalName:=hp.name^;

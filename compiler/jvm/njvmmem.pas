@@ -263,7 +263,7 @@ implementation
                   end;
               end
             else
-              internalerror(2011072506);
+              internalerror(2011072503);
           end
         else if (left.resultdef.typ=procdef) then
           begin
@@ -334,7 +334,7 @@ implementation
             vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
             if not assigned(vs) or
                (tsym(vs).typ<>procsym) then
-              internalerror(2011041901);
+              internalerror(2011041903);
             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[],nil);
             inserttypeconv_explicit(result,resultdef);
             { reused }
@@ -391,7 +391,7 @@ implementation
             psym:=search_struct_member(tabstractrecorddef(stringclass),'CHARAT');
             if not assigned(psym) or
                (psym.typ<>procsym) then
-              internalerror(2011031501);
+              internalerror(2011031502);
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
               caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),

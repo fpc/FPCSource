@@ -147,7 +147,7 @@ unit agsdasz80;
      	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                    writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
                 else
-     	         internalerror(2017091901);
+     	         internalerror(2017091904);
        	      end;
 {$pop}
 {$endif}
@@ -155,7 +155,7 @@ unit agsdasz80;
               aitrealconst_s64comp:
                 writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
               else
-                internalerror(2014050604);
+                internalerror(2014050601);
             end;
           end;
         writer.AsmWrite(dbdir);
@@ -190,7 +190,7 @@ unit agsdasz80;
 	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
 	        eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
 	      else
-	        internalerror(2017091901);
+	        internalerror(2017091905);
               pdata:=@eextended;
             end;
 {$pop}
@@ -202,7 +202,7 @@ unit agsdasz80;
               pdata:=@ccomp;
             end;
           else
-            internalerror(2014051001);
+            internalerror(2014051002);
         end;
         count:=tai_realconst(hp).datasize;
         { write bytes in inverse order if source and target endianess don't
@@ -224,7 +224,7 @@ unit agsdasz80;
           begin
             { only supported for double }
             if tai_realconst(hp).datasize<>8 then
-              internalerror(2014050605);
+              internalerror(2014050607);
             { switch bit of the index so that the words are written in
               the opposite order }
             swapmask:=4;
@@ -417,7 +417,7 @@ unit agsdasz80;
                     catching bugs in the code generator during compilation }
                   if ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                      ((o.ref^.offset<-128) or (o.ref^.offset>127)) then
-                    internalerror(2020042802);
+                    internalerror(2020042805);
                   writer.AsmWrite(tostr(o.ref^.offset));
                   writer.AsmWrite(' (');
                   if o.ref^.base<>NR_NO then
@@ -441,14 +441,14 @@ unit agsdasz80;
                   if o.ref^.base<>NR_NO then
                     begin
                       if o.ref^.index<>NR_NO then
-                        internalerror(2020040201);
+                        internalerror(2020040203);
                       writer.AsmWrite(std_regname(o.ref^.base));
                       need_plus:=true;
                     end
                   else if o.ref^.index<>NR_NO then
                     begin
                       if o.ref^.scalefactor>1 then
-                        internalerror(2020040202);
+                        internalerror(2020040206);
                       writer.AsmWrite(std_regname(o.ref^.index));
                       need_plus:=true;
                     end;
@@ -474,7 +474,7 @@ unit agsdasz80;
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100803);
         end;
       end;
 
@@ -507,7 +507,7 @@ unit agsdasz80;
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100804);
         end;
       end;
 

@@ -650,7 +650,7 @@ unit agcpugas;
                 else
                   begin
                     if ref.refaddr<>addr_no then
-                      internalerror(2014121506);
+                      internalerror(2014121502);
                     if (ref.offset<>0) then
                       result:=result+', #'+tostr(ref.offset);
                   end;

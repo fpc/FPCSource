@@ -685,9 +685,9 @@ implementation
                     dbg_state_written:
                       continue;
                     dbg_state_writing:
-                      internalerror(200610052);
+                      internalerror(2006100501);
                     dbg_state_unused:
-                      internalerror(200610053);
+                      internalerror(2006100505);
                     dbg_state_used:
                       appenddef(current_asmdata.asmlists[al_start],def)
                   else

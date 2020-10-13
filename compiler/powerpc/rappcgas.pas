@@ -222,7 +222,7 @@ Unit rappcgas;
                       OPR_REFERENCE :
                         inc(oper.opr.ref.offset,l);
                       else
-                        internalerror(200309202);
+                        internalerror(2003092018);
                     end;
                   end;
                 AS_MINUS:
@@ -521,7 +521,7 @@ Unit rappcgas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092019);
                      end;
                    end
                end;

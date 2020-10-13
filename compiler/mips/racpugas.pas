@@ -251,7 +251,7 @@ Interface
                   OPR_LOCAL:
                     inc(oper.opr.localsymofs,l);
                 else
-                  InternalError(12345);
+                  InternalError(2020100817);
                 end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
                          (prevasmtoken=AS_MINUS);
@@ -291,7 +291,7 @@ Interface
                   OPR_REFERENCE :
                     inc(oper.opr.ref.offset,l);
                   else
-                    internalerror(200309202);
+                    internalerror(2003092006);
                 end;
                 Consume(AS_RPAREN);
                 gotplus:=false;
@@ -380,7 +380,7 @@ Interface
                          OPR_REFERENCE :
                            inc(oper.opr.ref.offset,l);
                          else
-                           internalerror(200309202);
+                           internalerror(2003092007);
                        end;
                      end
                  end;

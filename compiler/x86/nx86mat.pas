@@ -647,7 +647,7 @@ DefaultDiv:
                 4:
                   emit_none(A_CDQ,S_NO);
                 else
-                  internalerror(2013102701);
+                  internalerror(2013102704);
               end
             else
               emit_reg_reg(A_XOR,opsize,regd,regd);

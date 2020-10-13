@@ -509,7 +509,7 @@ implementation
               else internalerror(2003031801);
             end;
           else
-            internalerror(2003031801);
+            internalerror(2003031802);
           end;
         end;
 
@@ -591,7 +591,7 @@ implementation
       begin
         result := flags_2_cond[f];
         if (result=C_None) then
-          InternalError(2014041301);
+          InternalError(2014041302);
       end;
 
 

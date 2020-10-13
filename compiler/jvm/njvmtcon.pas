@@ -197,7 +197,7 @@ implementation
                 if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
                   inserttypeconv(n,getansistringdef);
                   if n.nodetype<>stringconstn then
-                    internalerror(2010033003);
+                    internalerror(2010033010);
                   ca:=pbyte(tstringconstnode(n).value_str);
                 { For tp7 the maximum lentgh can be 255 }
                 if (m_tp7 in current_settings.modeswitches) and
@@ -214,7 +214,7 @@ implementation
                begin
                  inserttypeconv(n,cansichartype);
                  if not is_constcharnode(n) then
-                   internalerror(2010033001);
+                   internalerror(2010033007);
                  ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
                  ca:=@ch;
                  len:=1;

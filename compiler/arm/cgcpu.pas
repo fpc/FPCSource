@@ -329,7 +329,7 @@ unit cgcpu;
           imm1, imm2: DWord;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090907);
           if is_shifter_const(a,imm_shift) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
           else if is_shifter_const(not(a),imm_shift) then
@@ -516,7 +516,7 @@ unit cgcpu;
         hsym:=tsym(procdef.parast.Find('self'));
         if not(assigned(hsym) and
           (hsym.typ=paravarsym)) then
-          internalerror(200305251);
+          internalerror(2003052503);
         paraloc:=tparavarsym(hsym).paraloc[callerside].location;
         while paraloc<>nil do
           with paraloc^ do
@@ -546,7 +546,7 @@ unit cgcpu;
                       end;
                   end
                 else
-                  internalerror(200309189);
+                  internalerror(2003091803);
               end;
               paraloc:=next;
             end;
@@ -1089,7 +1089,7 @@ unit cgcpu;
           OP_ROL:
             begin
               if not(size in [OS_32,OS_S32]) then
-                internalerror(2008072801);
+                internalerror(2008072804);
               { simulate ROL by ror'ing 32-value }
               tmpreg:=getintregister(list,OS_32);
               list.concat(taicpu.op_reg_reg_const(A_RSB,tmpreg,src1, 32));
@@ -1210,7 +1210,7 @@ unit cgcpu;
         if (ref.base=NR_NO) then
           begin
             if ref.shiftmode<>SM_None then
-              internalerror(2014020701);
+              internalerror(2014020707);
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
@@ -1368,7 +1368,7 @@ unit cgcpu;
            OS_F32:
              oppostfix:=PF_None;
            else
-             InternalError(200308299);
+             InternalError(2003082912);
          end;
 
          if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize])) or
@@ -2187,7 +2187,7 @@ unit cgcpu;
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end
               else
-                internalerror(2019050926);
+                internalerror(2019050908);
             end;
 
             if (firstfloatreg<>RS_NO) or
@@ -3193,14 +3193,14 @@ unit cgcpu;
               tosize:=OS_F32;
               { since we are loading an integer, no conversion may be required }
               if (fromsize<>tosize) then
-                internalerror(2009112801);
+                internalerror(2009112802);
             end;
           OS_64,OS_S64:
             begin
               tosize:=OS_F64;
               { since we are loading an integer, no conversion may be required }
               if (fromsize<>tosize) then
-                internalerror(2009112901);
+                internalerror(2009112902);
             end;
           OS_F32,OS_F64:
             ;
@@ -3264,7 +3264,7 @@ unit cgcpu;
         if (fromsize<>OS_F32) then
           internalerror(2009112430);
         if not(tosize in [OS_32,OS_S32]) then
-          internalerror(2009112420);
+          internalerror(2009112409);
         if assigned(shuffle) and
            not shufflescalar(shuffle) then
           internalerror(2009112514);
@@ -3595,7 +3595,7 @@ unit cgcpu;
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi),PF_S));
                 end;
               else
-                internalerror(2003083101);
+                internalerror(2003083102);
             end;
             if size=OS_64 then
               begin
@@ -3634,7 +3634,7 @@ unit cgcpu;
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               else
-                internalerror(2003083101);
+                internalerror(2003083104);
             end;
           end;
       end;
@@ -3976,7 +3976,7 @@ unit cgcpu;
           hr : treference;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090908);
           if is_thumb_imm(a) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
           else
@@ -4008,7 +4008,7 @@ unit cgcpu;
         hsym:=tsym(procdef.parast.Find('self'));
         if not(assigned(hsym) and
           (hsym.typ=paravarsym)) then
-          internalerror(200305251);
+          internalerror(2003052504);
         paraloc:=tparavarsym(hsym).paraloc[callerside].location;
         while paraloc<>nil do
           with paraloc^ do
@@ -4058,7 +4058,7 @@ unit cgcpu;
                       end;
                   end
                 else
-                  internalerror(200309189);
+                  internalerror(2003091804);
               end;
               paraloc:=next;
             end;
@@ -4145,7 +4145,7 @@ unit cgcpu;
           OP_ROL:
             begin
               if not(size in [OS_32,OS_S32]) then
-                internalerror(2008072801);
+                internalerror(2008072805);
               { simulate ROL by ror'ing 32-value }
               tmpreg:=getintregister(list,OS_32);
               a_load_const_reg(list,OS_32,32,tmpreg);
@@ -4227,7 +4227,7 @@ unit cgcpu;
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a-1,l1) and not(cgsetflags or setflags) then
               begin
                 if l1>32 then{roozbeh does this ever happen?}
-                  internalerror(200308296);
+                  internalerror(2003082903);
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
@@ -4237,7 +4237,7 @@ unit cgcpu;
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a+1,l1) and not(cgsetflags or setflags) then
               begin
                 if l1>32 then{does this ever happen?}
-                  internalerror(201205181);
+                  internalerror(2012051802);
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
@@ -4384,7 +4384,7 @@ unit cgcpu;
           hr : treference;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090909);
           if is_thumb32_imm(a) then
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
           else if is_thumb32_imm(not(a)) then
@@ -4431,7 +4431,7 @@ unit cgcpu;
            OS_S32:
              oppostfix:=PF_None;
            else
-             InternalError(200308299);
+             InternalError(2003082913);
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
@@ -4702,7 +4702,7 @@ unit cgcpu;
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a-1,l1) and not(cgsetflags or setflags) then
               begin
                 if l1>32 then{roozbeh does this ever happen?}
-                  internalerror(200308296);
+                  internalerror(2003082911);
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
@@ -4712,7 +4712,7 @@ unit cgcpu;
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a+1,l1) and not(cgsetflags or setflags) then
               begin
                 if l1>32 then{does this ever happen?}
-                  internalerror(201205181);
+                  internalerror(2012051803);
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
@@ -4774,7 +4774,7 @@ unit cgcpu;
            OP_ROL:
               begin
                 if not(size in [OS_32,OS_S32]) then
-                   internalerror(2008072801);
+                   internalerror(2008072806);
                 { simulate ROL by ror'ing 32-value }
                 tmpreg:=getintregister(list,OS_32);
                 list.concat(taicpu.op_reg_const(A_MOV,tmpreg,32));
@@ -5154,7 +5154,7 @@ unit cgcpu;
                 else if ref.refaddr=addr_tpoff then
                   begin
                     if assigned(ref.relsymbol) or (ref.offset<>0) then
-                      Internalerror(2019092805);
+                      Internalerror(2019092807);
 
                     current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
                   end
@@ -5224,7 +5224,7 @@ unit cgcpu;
         if ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) or (op=A_VSTR) or (op=A_VLDR)) and (ref.index<>NR_NO) then
           begin
             if ref.shiftmode<>SM_none then
-              internalerror(200309121);
+              internalerror(2003091202);
             if tmpreg<>NR_NO then
               begin
                 if ref.base=tmpreg then
@@ -5238,7 +5238,7 @@ unit cgcpu;
                 else
                   begin
                     if ref.index<>tmpreg then
-                      internalerror(200403161);
+                      internalerror(2004031602);
                     if ref.signindex<0 then
                       list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,ref.base,tmpreg))
                     else
@@ -5377,7 +5377,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_SBC,regdst.reghi,regsrc.reghi));
             end;
           else
-            internalerror(2003083101);
+            internalerror(2003083105);
         end;
       end;
 
@@ -5431,7 +5431,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_SBC,reg.reghi,tmpreg));
             end;
           else
-            internalerror(2003083101);
+            internalerror(2003083106);
         end;
       end;
 

@@ -1140,7 +1140,7 @@ Implementation
 	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
 	        eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
 	      else
-	        internalerror(2017091901);
+	        internalerror(2017091902);
               pdata:=@eextended;
             end;
 {$pop}
@@ -2062,7 +2062,7 @@ Implementation
 		       else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
 			 eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
 		       else
-			 internalerror(2017091901);
+			 internalerror(2017091903);
                        pdata:=@eextended;
                      end;
            {$pop}
@@ -2101,7 +2101,7 @@ Implementation
                      else if Tai_const(hp).consttype in [aitconst_tlsgd,aitconst_tlsdesc] then
                        begin
                          if objsymend.objsection<>ObjData.CurrObjSec then
-                           Internalerror(2019092802);
+                           Internalerror(2019092803);
                          Tai_const(hp).value:=ObjData.CurrObjSec.Size-objsymend.address+Tai_const(hp).symofs;
                        end
                      else if objsymend.objsection<>objsym.objsection then

@@ -555,7 +555,7 @@ unit cpupara;
               end;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102305);
       end;
 
 begin

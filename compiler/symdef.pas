@@ -5978,7 +5978,7 @@ implementation
     function tprocdef.Getpersonality: tprocdef;
       begin
         if not assigned(implprocdefinfo) then
-          internalerror(2016121701);
+          internalerror(2016121704);
          result:=implprocdefinfo^.personality;
       end;
 
@@ -5986,7 +5986,7 @@ implementation
     procedure tprocdef.Setpersonality(AValue: tprocdef);
       begin
         if not assigned(implprocdefinfo) then
-          internalerror(2016121702);
+          internalerror(2016121705);
         implprocdefinfo^.personality:=AValue;
       end;
 
@@ -7062,7 +7062,7 @@ implementation
 
       begin
         if not assigned(current_module) then
-          internalerror(2011081301);
+          internalerror(2011081302);
         key.def:=def;
         key.copytyp:=copytyp;
         res:=current_module.procaddrdefs.FindOrAdd(@key,sizeof(key));
@@ -7777,7 +7777,7 @@ implementation
         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
           exit;
         if (oo_has_vmt in objectoptions) then
-          internalerror(12345)
+          internalerror(2020100816)
         else
           begin
              tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,

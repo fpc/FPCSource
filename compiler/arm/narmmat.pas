@@ -420,7 +420,7 @@ implementation
                 OS_64:
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
               else
-                internalerror(2014033101);
+                internalerror(2014033103);
               end;
             end
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then

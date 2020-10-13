@@ -244,7 +244,7 @@ implementation
           exit;
         end;
       if (l>8*sizeof(aint)) then
-        internalerror(200608051);
+        internalerror(2006080502);
 
       { adjust the index by subtracting the lower bound of the array and adding
         any constant adjustments }

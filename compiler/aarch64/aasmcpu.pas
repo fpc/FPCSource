@@ -569,7 +569,7 @@ implementation
           R_MMREGISTER:
             result:=taicpu.op_reg_ref(op,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010407);
         end;
       end;
 

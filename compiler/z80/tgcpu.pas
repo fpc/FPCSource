@@ -54,7 +54,7 @@ procedure ttgz80.setfirsttemp(l: asizeint);
   begin
     { this is a negative value normally }
     if l>0 then
-      internalerror(200204221);
+      internalerror(2002042202);
     firsttemp:=l;
     lasttemp:=l;
 {$ifdef EXTDEBUG}

@@ -106,7 +106,7 @@ interface
               niln:
                 lv:=0;
               else
-                internalerror(2002080202);
+                internalerror(2002080201);
             end;
             case rt of
               ordconstn:
@@ -116,7 +116,7 @@ interface
               niln:
                 rv:=0;
               else
-                internalerror(2002080203);
+                internalerror(2002080204);
             end;
 
             case nodetype of
@@ -138,7 +138,7 @@ interface
                     if (rt=pointerconstn) then
                       begin
                         if not(nf_has_pointerdiv in flags) then
-                          internalerror(2008030101);
+                          internalerror(2008030102);
                         { todo: implement pointer-pointer as well }
                         internalerror(2014040607);
                         //t := cpointerconstnode.create(qword(v),resultdef);
@@ -240,7 +240,7 @@ interface
           else
             begin
               { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              internalerror(2001090503);
             end;
         end;
 
@@ -456,7 +456,7 @@ interface
         else if (left.resultdef.typ<>pointerdef) and (right.resultdef.typ=pointerdef) then
           pointernode:=right
         else
-          internalerror(2014040601);
+          internalerror(2014040608);
 
         if not (nodetype in [addn,subn]) then
           internalerror(2014040602);
@@ -927,7 +927,7 @@ interface
                    end;
                end;
              else
-               internalerror(200203282);
+               internalerror(2002032801);
            end;
          end;
       end;

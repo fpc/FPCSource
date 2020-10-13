@@ -458,7 +458,7 @@ implementation
     function TSymtablestack.top:TSymtable;
       begin
         if not assigned(stack) then
-          internalerror(200601233);
+          internalerror(2006012304);
         result:=stack^.symtable;
       end;
 

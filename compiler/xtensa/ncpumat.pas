@@ -241,7 +241,7 @@ implementation
                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,location.register64.reglo);
                 end;
             else
-              internalerror(2014033101);
+              internalerror(2014033102);
             end;
           end
         else
@@ -319,7 +319,7 @@ implementation
           end
         else
           begin
-            internalerror(2020082209);
+            internalerror(2020082204);
             { load right operators in a register - this
                is done since most target cpu which will use this
                node do not support a shift count in a mem. location (cec)

@@ -75,7 +75,7 @@ unit llvmpara;
   procedure tllvmparamanager.getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
     begin
       if (nr<1) or (nr>pd.paras.count) then
-        InternalError(2015040401);
+        InternalError(2015040402);
       pd.init_paraloc_info(callerside);
       createtempparaloc(list,pd.proccalloption,tparavarsym(pd.paras[nr-1]),true,cgpara);
     end;
@@ -256,7 +256,7 @@ unit llvmpara;
           not(po_assembler in p.procoptions)) then
         begin
           if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-            internalerror(2019011902);
+            internalerror(2019011901);
           reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
         end;
     end;

@@ -685,7 +685,7 @@ implementation
                  aitrealconst_s64comp:
                    writer.AsmWriteLn(#9#9'DQ'#9+extended2str(tai_realconst(hp).value.s64compval));
                  else
-                   internalerror(2014050604);
+                   internalerror(2014050606);
                end;
              end;
            ait_string :
@@ -1013,7 +1013,7 @@ implementation
              { Ignore for now };
            else
              if not WriteComments(hp) then
-               internalerror(10000);
+               internalerror(2020100802);
          end;
          hp:=tai(hp.next);
        end;

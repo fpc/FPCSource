@@ -178,7 +178,7 @@ implementation
                          { find proc field in methodpointer record }
                          hsym:=tfieldvarsym(trecorddef(procpointertype).symtable.Find('proc'));
                          if not assigned(hsym) then
-                           internalerror(200412041);
+                           internalerror(2004120404);
                          { Load tmehodpointer(left).proc }
                          result:=csubscriptnode.create(
                                       hsym,
@@ -346,7 +346,7 @@ implementation
                      addvalue:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
                  end;
                else
-                 internalerror(10081);
+                 internalerror(2020100815);
              end;
              { second_ argument specified?, must be a s16bit in register }
              if assigned(tcallparanode(left).right) then

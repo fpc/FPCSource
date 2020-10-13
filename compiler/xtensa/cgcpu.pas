@@ -283,7 +283,7 @@ implementation
           OS_32,
           OS_S32: op:=A_L32I;
         else
-          internalerror(2020030801);
+          internalerror(2020030805);
         end;
 
         href:=ref;
@@ -904,7 +904,7 @@ implementation
               OC_LT: op:=C_LTZ;
               OC_GTE: op:=C_GEZ;
             else
-              Internalerror(2020030801);
+              Internalerror(2020030806);
             end;     
             instr:=taicpu.op_reg_sym(A_B,reg,l);
             instr.condition:=op;
@@ -920,7 +920,7 @@ implementation
               OC_LT: op:=C_LTI;
               OC_GTE: op:=C_GEI;
             else
-              Internalerror(2020030801);
+              Internalerror(2020030807);
             end;
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
@@ -935,7 +935,7 @@ implementation
               OC_B: op:=C_LTUI;
               OC_AE: op:=C_GEUI;
             else
-              Internalerror(2020030801);
+              Internalerror(2020030808);
             end;
 
             instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);

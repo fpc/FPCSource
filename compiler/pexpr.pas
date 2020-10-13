@@ -2233,7 +2233,7 @@ implementation
                                   include(tvecnode(p1).flags,nf_memindex);
                                 end;
 {$else}
-                               internalerror(2013053101);
+                               internalerror(2013053105);
 {$endif}
                              end
                            else

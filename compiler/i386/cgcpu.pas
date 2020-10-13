@@ -636,7 +636,7 @@ unit cgcpu;
               op2:=A_AND;
             end;
           else
-            internalerror(200203241);
+            internalerror(2002032408);
         end;
       end;
 
@@ -857,7 +857,7 @@ unit cgcpu;
                     list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reghi));
                   end;
                 else
-                  internalerror(2017041801);
+                  internalerror(2017041802);
               end;
               cg.a_label(list,l2);
 
@@ -980,7 +980,7 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
                         end;
                       else
-                        internalerror(2017041201);
+                        internalerror(2017041202);
                     end;
                 end;
             end;
@@ -1049,7 +1049,7 @@ unit cgcpu;
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       else
-                        internalerror(2019050901);
+                        internalerror(2019050903);
                     end
                   else if value>31 then
                     case op of
@@ -1086,7 +1086,7 @@ unit cgcpu;
                           cg.a_load_const_ref(list,OS_32,0,tempref);
                         end;
                       else
-                        internalerror(2017041801);
+                        internalerror(2017041803);
                     end
                   else
                     case op of
@@ -1130,7 +1130,7 @@ unit cgcpu;
                             end;
                         end;
                       else
-                        internalerror(2017041201);
+                        internalerror(2017041203);
                     end;
                 end;
             end;

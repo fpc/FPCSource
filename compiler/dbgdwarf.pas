@@ -1309,7 +1309,7 @@ implementation
             if data[i].VType<>vtInteger then
               internalerror(200601261);
             if data[i+1].VType<>vtInteger then
-              internalerror(200601261);
+              internalerror(2006012602);
             append_attribute(tdwarf_attribute(data[i].VInteger),tdwarf_form(data[i+1].VInteger),data[i+2]);
             inc(i,3);
           end;
@@ -2552,7 +2552,7 @@ implementation
                 currdef:=tarraydef(currdef).elementdef;
               end;
             else
-              internalerror(2009031401);
+              internalerror(2009031403);
           end;
           symlist:=symlist^.next;
         until not assigned(symlist);

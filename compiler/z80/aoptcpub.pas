@@ -231,7 +231,7 @@ Uses
             A_LD:
               begin
                 if p.ops<>2 then
-                  internalerror(2020051112);
+                  internalerror(2020051115);
                 { LD A,I or LD A,R ? }
                 if (p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
                    (p.oper[1]^.typ=top_reg) and ((p.oper[1]^.reg=NR_I) or (p.oper[1]^.reg=NR_R)) then
@@ -250,7 +250,7 @@ Uses
             A_INC,A_DEC:
               begin
                 if p.ops<>1 then
-                  internalerror(2020051602);
+                  internalerror(2020051613);
                 if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_BC) or
                                                  (p.oper[0]^.reg=NR_DE) or
                                                  (p.oper[0]^.reg=NR_HL) or
@@ -274,7 +274,7 @@ Uses
             A_ADD:
               begin
                 if p.ops<>2 then
-                  internalerror(2020051601);
+                  internalerror(2020051611);
                 if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_HL) or (p.oper[0]^.reg=NR_IX) or (p.oper[0]^.reg=NR_IY)) then
                   result:=Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
                           Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
@@ -300,7 +300,7 @@ Uses
             A_IN:
               begin
                 if p.ops<>2 then
-                  internalerror(2020051602);
+                  internalerror(2020051614);
                 if (p.oper[1]^.typ=top_ref) and ((p.oper[1]^.ref^.base=NR_C) or (p.oper[1]^.ref^.index=NR_C)) then
                   result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
                           Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
@@ -311,7 +311,7 @@ Uses
                   result:=false;
               end;
             else
-              internalerror(2020051111);
+              internalerror(2020051113);
           end;
         end;
     end;

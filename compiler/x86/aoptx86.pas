@@ -3790,7 +3790,7 @@ unit aoptx86;
             else
               begin
                 if SetC = C_NONE then
-                  InternalError(2018061401);
+                  InternalError(2018061402);
 
                 taicpu(hp2).SetCondition(SetC);
               end;
@@ -5476,7 +5476,7 @@ unit aoptx86;
                     setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(hp2).oper[0]^.reg));
                 end;
               else
-                internalerror(2008042701);
+                internalerror(2008042702);
             end;
             {
               ->

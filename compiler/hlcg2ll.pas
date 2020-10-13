@@ -837,7 +837,7 @@ implementation
     begin
 {$ifdef extdebug}
       if def_cgsize(size)<>loc.size then
-        internalerror(2010112101);
+        internalerror(2010112103);
 {$endif}
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,

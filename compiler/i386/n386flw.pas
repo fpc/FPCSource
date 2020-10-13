@@ -209,7 +209,7 @@ function ti386tryfinallynode.pass_1: tnode;
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
             if (selfsym=nil) or (selfsym.typ<>paravarsym) then
-              InternalError(2011123101);
+              InternalError(2011123102);
             selfsym.varregable:=vr_none;
           end;
       end;

@@ -730,7 +730,7 @@ implementation
                  OS_F64:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_NO,left.location.register,location.register));
                  else
-                   internalerror(2007031402);
+                   internalerror(2007031404);
                end;
            end
          else
@@ -774,7 +774,7 @@ implementation
                  OS_F64:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_NO,left.location.register,location.register));
                  else
-                   internalerror(2007031401);
+                   internalerror(2007031403);
                end;
            end
          else
@@ -878,7 +878,7 @@ implementation
                  s64real:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_NO,left.location.register,location.register));
                  else
-                   internalerror(200510031);
+                   internalerror(2005100303);
                end;
            end
          else
@@ -1374,7 +1374,7 @@ implementation
       begin
         secondpass(left);
         if not(is_dynamic_array(left.resultdef)) then
-          Internalerror(2019122801);
+          Internalerror(2019122809);
         { length in dynamic arrays is at offset -sizeof(pint) }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         current_asmdata.getjumplabel(donelab);

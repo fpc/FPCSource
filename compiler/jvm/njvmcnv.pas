@@ -1021,7 +1021,7 @@ implementation
           fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
-            internalerror(2011072414);
+            internalerror(2011072401);
           result:=csubscriptnode.create(fsym,left);
           left:=nil;
         end;

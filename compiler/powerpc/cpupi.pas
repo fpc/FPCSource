@@ -150,7 +150,7 @@ unit cpupi;
               abi_powerpc_sysv:
                 low_nonvol_fpu_reg := RS_F14;
               else
-                internalerror(2003122903);
+                internalerror(2003122905);
             end;
             for regcounter := low_nonvol_fpu_reg to RS_F31 do
               begin

@@ -1194,7 +1194,7 @@ unit cgcpu;
           OP_DIV,
           OP_IDIV:
               begin
-                 internalerror(20020816);
+                 internalerror(2002081601);
               end;
           OP_MUL,
           OP_IMUL:
@@ -1294,7 +1294,7 @@ unit cgcpu;
                 move_if_needed(list, size, scratch_reg, reg);
               end;
         else
-            internalerror(20020729);
+            internalerror(2002072901);
          end;
       end;
 
@@ -1425,7 +1425,7 @@ unit cgcpu;
           OP_DIV,
           OP_IDIV :
               begin
-                internalerror(20020816);
+                internalerror(2002081602);
               end;
           OP_MUL,
           OP_IMUL:
@@ -1471,7 +1471,7 @@ unit cgcpu;
                 move_if_needed(list, size, hreg2, dst);
               end;
         else
-            internalerror(20020729);
+            internalerror(2002072902);
          end;
       end;
 
@@ -2212,7 +2212,7 @@ unit cgcpu;
               OS_16:
                 begin
                   if (isaddressregister(reg)) then
-                    internalerror(2015031502);
+                    internalerror(2015031503);
                   //list.concat(tai_comment.create(strpnew('zero extend word')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
                 end;
@@ -2577,10 +2577,10 @@ unit cgcpu;
           { this is handled in 1st pass for 32-bit cpus (helper call) }
           OP_IDIV,OP_DIV,
           OP_IMUL,OP_MUL:
-            internalerror(2002081701);
+            internalerror(2002081703);
           { this is also handled in 1st pass for 32-bit cpus (helper call) }
           OP_SAR,OP_SHL,OP_SHR:
-            internalerror(2002081702);
+            internalerror(2002081704);
           { these should have been handled already by earlier passes }
           OP_NOT,OP_NEG:
             internalerror(2012110403);

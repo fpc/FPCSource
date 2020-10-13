@@ -238,7 +238,7 @@ unit agarmgas;
                      else if shiftmode <> SM_None then
                        s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
                      if offset<>0 then
-                       Internalerror(2019012601);
+                       Internalerror(2019012602);
                   end
                 else if offset<>0 then
                   s:=s+', #'+tostr(offset);
@@ -426,7 +426,7 @@ unit agarmgas;
                      top_const:
                        s:=s+sep+tostr(taicpu(hp).oper[1]^.val);
                      else
-                       internalerror(200311292);
+                       internalerror(2003112903);
                    end;
                  end
                else

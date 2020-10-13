@@ -299,7 +299,7 @@ implementation
                   OS_F64:
                     op:=A_CVTSI2SD;
                   else
-                    internalerror(2007120902);
+                    internalerror(2007120904);
                 end;
               end;
 

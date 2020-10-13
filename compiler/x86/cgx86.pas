@@ -271,7 +271,7 @@ unit cgx86;
     function Tcgx86.getmmxregister(list:TAsmList):Tregister;
       begin
         if not assigned(rg[R_MMXREGISTER]) then
-          internalerror(2003121214);
+          internalerror(2003121204);
         result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
       end;
 
@@ -1705,7 +1705,7 @@ unit cgx86;
                list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize,tcgsize2size[tosize]=tmpref.alignment),S_NO,reg,tmpref));
            end
          else
-           internalerror(200312252);
+           internalerror(2003122501);
        end;
 
 
@@ -1780,7 +1780,7 @@ unit cgx86;
             if asmop=A_NOP then
               begin
                 { do vectorized and shuffle finally }
-                internalerror(2010060102);
+                internalerror(2010060103);
               end;
           end
         else

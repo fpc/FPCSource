@@ -161,7 +161,7 @@ implementation
              exit;
            end;
          if (l > 8*sizeof(aint)) then
-           internalerror(200608051);
+           internalerror(2006080503);
          sref.ref := location.reference;
          hreg := cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);

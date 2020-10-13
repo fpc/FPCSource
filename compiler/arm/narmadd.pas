@@ -207,7 +207,7 @@ interface
             end;
           fpu_soft:
             { this case should be handled already by pass1 }
-            internalerror(200308252);
+            internalerror(2003082503);
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
             begin
               { force mmreg as location, left right doesn't matter
@@ -260,7 +260,7 @@ interface
                 slashn :
                   op:=A_VDIV;
                 else
-                  internalerror(2009111401);
+                  internalerror(2009111404);
               end;
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op, location.register,left.location.register,right.location.register), PF_F32));
