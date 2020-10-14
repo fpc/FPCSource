@@ -673,7 +673,7 @@ implementation
                             nil));
                       end
                     else
-                      internalerror(200305108);
+                      internalerror(2003051001);
                   end
                 else
                   if is_object(current_structdef) then

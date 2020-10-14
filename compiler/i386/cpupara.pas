@@ -522,7 +522,7 @@ unit cpupara;
             else
               begin
                 if paralen=0 then
-                  internalerror(200501163);
+                  internalerror(2005011606);
                 firstparaloc:=true;
                 while (paralen>0) do
                   begin
@@ -688,7 +688,7 @@ unit cpupara;
                           else
                             begin
                               if paralen=0 then
-                                internalerror(200501163);
+                                internalerror(2005011607);
                               firstparaloc:=true;
                               while (paralen>0) do
                                 begin

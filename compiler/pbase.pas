@@ -316,14 +316,14 @@ implementation
         if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
           begin
             if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
-              internalerror(200501154);
+              internalerror(2005011503);
             { only allow unit.symbol access if the name was
               found in the current module
               we can use iscurrentunit because generic specializations does not
               change current_unit variable }
             hmodule:=find_module_from_symtable(srsym.Owner);
             if not Assigned(hmodule) then
-              internalerror(201001120);
+              internalerror(2010011201);
             if hmodule.unit_index=current_filepos.moduleindex then
               begin
                 if cuf_consume_id in flags then
@@ -352,7 +352,7 @@ implementation
                           end;
                       end;
                     if assigned(srsym) and (srsym.typ<>unitsym) then
-                      internalerror(201108260);
+                      internalerror(2011082601);
                     if not assigned(srsym) then
                       begin
                         result:=true;

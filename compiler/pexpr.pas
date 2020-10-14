@@ -2233,7 +2233,7 @@ implementation
                                   include(tvecnode(p1).flags,nf_memindex);
                                 end;
 {$else}
-                               internalerror(2013053101);
+                               internalerror(2013053105);
 {$endif}
                              end
                            else
@@ -3032,7 +3032,10 @@ implementation
                                  else
                                    begin
                                      srsym:=tprocdef(hdef).procsym;
-                                     srsymtable:=srsym.owner;
+                                     if assigned(spezcontext.symtable) then
+                                       srsymtable:=spezcontext.symtable
+                                     else
+                                       srsymtable:=srsym.owner;
                                    end;
                                end
                              else

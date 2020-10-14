@@ -363,7 +363,7 @@ interface
                     DH_Plus:
                       tempstr:=tempstr+('+'+#9);
                     else
-                      internalerror(2003112901);
+                      internalerror(2003112904);
                   end;
                   case c.cond of
                     C_LT..C_NU:
@@ -817,12 +817,12 @@ interface
                 case consttype of
                    aitconst_128bit:
                       begin
-                        internalerror(200404291);
+                        internalerror(2004042904);
                       end;
                    aitconst_64bit:
                       begin
                         if assigned(tai_const(hp).sym) then
-                          internalerror(200404292);
+                          internalerror(2004042905);
                         writer.AsmWrite(ait_const2str[aitconst_32bit]);
                         if target_info.endian = endian_little then
                           begin

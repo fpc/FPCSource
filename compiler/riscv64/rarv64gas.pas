@@ -192,7 +192,7 @@ unit rarv64gas;
                       OPR_REFERENCE :
                         inc(oper.opr.ref.offset,l);
                       else
-                        internalerror(200309202);
+                        internalerror(2003092016);
                     end;
                   end;
                 AS_MINUS:
@@ -568,7 +568,7 @@ unit rarv64gas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092017);
                      end;
                    end
                end;

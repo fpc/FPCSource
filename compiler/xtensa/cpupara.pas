@@ -221,7 +221,7 @@ unit cpupara;
                   { only call8 used/supported so far }
                   paraloc^.register:=newreg(R_INTREGISTER,RS_A11,cgsize2subreg(R_INTREGISTER,retcgsize));
                 else
-                  Internalerror(2020032202);
+                  Internalerror(2020032204);
               end
             else
               paraloc^.register:=NR_A3;
@@ -290,7 +290,7 @@ unit cpupara;
 
         result:=create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset,false);
         if result<cur_stack_offset then
-          Internalerror(2020083001);
+          Internalerror(2020083002);
 
         create_funcretloc_info(p,side);
       end;

@@ -425,7 +425,7 @@ implementation
                    addvalue:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
                end;
            else
-               internalerror(10081);
+               internalerror(2020100814);
           end;
           { second_ argument specified?, must be a s32bit in register }
           if assigned(tcallparanode(left).right) then
@@ -678,27 +678,27 @@ implementation
 }
     procedure tcginlinenode.second_pi;
       begin
-        internalerror(20020718);
+        internalerror(2002071801);
       end;
 
     procedure tcginlinenode.second_arctan_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071802);
       end;
 
     procedure tcginlinenode.second_abs_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071803);
       end;
 
     procedure tcginlinenode.second_round_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071804);
       end;
 
     procedure tcginlinenode.second_trunc_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071805);
       end;
 
     procedure tcginlinenode.second_int_real;
@@ -708,27 +708,27 @@ implementation
 
     procedure tcginlinenode.second_sqr_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071806);
       end;
 
     procedure tcginlinenode.second_sqrt_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071807);
       end;
 
     procedure tcginlinenode.second_ln_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071808);
       end;
 
     procedure tcginlinenode.second_cos_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071809);
       end;
 
     procedure tcginlinenode.second_sin_real;
       begin
-        internalerror(20020718);
+        internalerror(2002071810);
       end;
 
 
@@ -966,7 +966,7 @@ implementation
 
     procedure tcginlinenode.second_popcnt;
       begin
-        internalerror(2012082601);
+        internalerror(2012082602);
       end;
 
 

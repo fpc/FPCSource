@@ -415,7 +415,7 @@ Unit raavrgas;
                     OPR_REFERENCE :
                       inc(oper.opr.ref.offset,l);
                     else
-                      internalerror(200309202);
+                      internalerror(2003092012);
                   end;
                   Consume(AS_RPAREN);
                 end
@@ -499,7 +499,7 @@ Unit raavrgas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092013);
                      end;
                    end
                end;

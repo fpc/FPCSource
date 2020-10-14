@@ -663,10 +663,22 @@ unit cpupara;
       var
         paraloc : pcgparalocation;
         paracgsize : tcgsize;
-        offset : aint;
+        offset_lo: aint;
+        offset_hi: aint;
+
+      function parse68kregname(idx: longint): longint;
+        begin
+          result:=-1;
+          if (lowercase(s[idx]) = 'd') and (s[idx+1] in ['0'..'7']) then
+            result:=(ord(s[idx+1]) - ord('0')) * sizeof(pint)
+          else if (lowercase(s[idx]) = 'a') and (s[idx+1] in ['0'..'6']) then
+            result:=(ord(s[idx+1]) - ord('0') + 8) * sizeof(pint);
+        end;
+
       begin
         result:=false;
-        offset:=-1;
+        offset_hi:=-1;
+        offset_lo:=-1;
         case target_info.system of
           system_powerpc_morphos:
             begin
@@ -683,30 +695,60 @@ unit cpupara;
               paraloc^.size:=OS_ADDR;
               paraloc^.def:=p.vardef;
 
-              { convert d0-d7/a0-a6 virtual 68k reg patterns into offsets }
-              if length(s) = 2 then
-                begin
-                  if (lowercase(s[1]) = 'd') and (s[2] in ['0'..'7']) then
-                    offset:=(ord(s[2]) - ord('0')) * sizeof(pint)
-                  else if (lowercase(s[1]) = 'a') and (s[2] in ['0'..'6']) then
-                    offset:=(ord(s[2]) - ord('0') + 8) * sizeof(pint);
+              { convert virtual 68k reg patterns into offsets }
+              case length(s) of
+                2: begin
+                     { single register }
+                     offset_lo:=parse68kregname(1);
+                     if offset_lo<0 then
+                       message(parser_e_illegal_explicit_paraloc);
 
-                  if offset < 0 then
-                    exit;
+                     if tcgsize2size[paracgsize]>4 then
+                       message(parser_e_location_size_too_small);
 
-                  paraloc^.loc:=LOC_REFERENCE;
-                  paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
-                  paraloc^.reference.offset:=offset;
-                end
-              { 'R12' is special, used internally to support regbase and nobase
-                calling convention }
-              else if lowercase(s)='r12' then
-                begin
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R12;
-                end
+                     paraloc^.loc:=LOC_REFERENCE;
+                     paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
+                     paraloc^.reference.offset:=offset_lo;
+                   end;
+                5: begin
+                     { 64bit register pair, used by AmiSSL 68k for example }
+                     offset_hi:=parse68kregname(1);
+                     offset_lo:=parse68kregname(4);
+
+                     if (not (s[3] in [':','-'])) or
+                        (offset_lo<0) or (offset_hi<0) then
+                       message(parser_e_illegal_explicit_paraloc);
+
+                     if offset_lo>=(8*sizeof(pint)) then
+                       message(parser_e_location_regpair_only_data);
+
+                     if (offset_lo-offset_hi)<>4 then
+                       message(parser_e_location_regpair_only_consecutive);
+
+                     if tcgsize2size[paracgsize]<=4 then
+                       message(parser_e_location_size_too_large);
+
+                     if tcgsize2size[paracgsize]>8 then
+                       message(parser_e_location_size_too_small);
+
+                     paraloc^.loc:=LOC_REFERENCE;
+                     paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
+                     paraloc^.reference.offset:=offset_hi;
+                     paraloc^.size:=OS_64;
+                   end;
               else
-                exit;
+                begin
+                  { 'R12' is special, used internally to support regbase and nobase
+                    calling convention }
+                  if lowercase(s)='r12' then
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_R12;
+                    end
+                  else
+                    exit; { error, cannot parse }
+                end;
+              end;
 
               { copy to callee side }
               p.paraloc[calleeside].add_location^:=paraloc^;

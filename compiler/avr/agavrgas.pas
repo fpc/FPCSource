@@ -93,7 +93,7 @@ unit agavrgas;
               //   internalerror(200308293);
   {$endif extdebug}
               if index<>NR_NO then
-                internalerror(2011021701)
+                internalerror(2011021707)
               else if base<>NR_NO then
                 begin
                   if addressmode=AM_PREDRECEMENT then

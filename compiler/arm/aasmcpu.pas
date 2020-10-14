@@ -723,7 +723,7 @@ implementation
           R_MMREGISTER :
             result:=taicpu.op_reg_ref(A_VLDR,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010415);
         end;
       end;
 
@@ -741,7 +741,7 @@ implementation
           R_MMREGISTER :
             result:=taicpu.op_reg_ref(A_VSTR,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010416);
         end;
       end;
 
@@ -925,7 +925,7 @@ implementation
             else
               begin
                 writeln(opcode);
-                internalerror(200403151);
+                internalerror(2004031502);
               end;
           end;
       end;

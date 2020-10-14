@@ -460,7 +460,7 @@ implementation
         if result.resultdef.typ<>orddef then
           internalerror(2013031701);
         if resultdef.typ<>orddef then
-          internalerror(2013031701);
+          internalerror(2013031702);
         if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
           inserttypeconv(result,resultdef);
       end;
@@ -833,7 +833,7 @@ implementation
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                      inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
 {$else}
-                     internalerror(2013031301);
+                     internalerror(2013031302);
 {$endif}
                    end
                end;

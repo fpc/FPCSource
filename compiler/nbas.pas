@@ -1666,7 +1666,7 @@ implementation
       begin
         temp:=ttempcreatenode(nodeppuidxget(tempidx));
         if temp.nodetype<>tempcreaten then
-          internalerror(200311075);
+          internalerror(2003110701);
         tempinfo:=temp.tempinfo;
       end;
 

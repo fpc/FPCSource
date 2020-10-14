@@ -224,7 +224,7 @@ implementation
                   begin
                     { todo: update once we support vectors }
                     if not(toregtyp in [R_FPUREGISTER,R_MMREGISTER]) then
-                      internalerror(2014062203);
+                      internalerror(2014062202);
                     if tobytesize<frombytesize then
                       result:=la_fptrunc
                     else

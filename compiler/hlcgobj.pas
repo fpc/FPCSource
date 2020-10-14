@@ -999,7 +999,7 @@ implementation
                    begin
                      { should be the last part }
                      if assigned(location^.next) then
-                       internalerror(2010052907);
+                       internalerror(2010052902);
                      { load the value piecewise to get it into the register }
                      orgsizeleft:=sizeleft;
                      reghasvalue:=false;
@@ -1083,7 +1083,7 @@ implementation
                    OS_M8..OS_M128:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,nil);
                    else
-                     internalerror(2010053101);
+                     internalerror(2010053103);
                  end;
               end
             else
@@ -1644,7 +1644,7 @@ implementation
       if sref.bitlen>AIntBits then
         begin
           if ((sref.bitlen mod AIntBits)<>0) then
-            internalerror(2019052901);
+            internalerror(2019052902);
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
           if target_info.endian=endian_big then
@@ -2762,7 +2762,7 @@ implementation
         LOC_REFERENCE,LOC_CREFERENCE:
           a_loadmm_reg_ref(list,fromsize,tosize,reg,loc.reference,shuffle);
         else
-          internalerror(2010120415);
+          internalerror(2010120417);
       end;
     end;
 
@@ -3069,7 +3069,7 @@ implementation
             a_load_reg_subsetref(list,size,size,tmpreg,loc.sref);
           end;
         else
-          internalerror(2010120429);
+          internalerror(2010120418);
       end;
     end;
 
@@ -3124,7 +3124,7 @@ implementation
   procedure thlcgobj.a_op_reg(list: TAsmList; Op: TOpCG; size: tdef; reg: TRegister);
     begin
       if not (Op in [OP_NOT,OP_NEG]) then
-        internalerror(2020050701);
+        internalerror(2020050711);
       a_op_reg_reg(list,op,size,reg,reg);
     end;
 
@@ -3133,7 +3133,7 @@ implementation
       tmpreg: TRegister;
     begin
       if not (Op in [OP_NOT,OP_NEG]) then
-        internalerror(2020050701);
+        internalerror(2020050712);
       tmpreg:=getintregister(list,size);
       a_load_ref_reg(list,size,size,ref,tmpreg);
       a_op_reg_reg(list,op,size,tmpreg,tmpreg);
@@ -4252,7 +4252,7 @@ implementation
           begin
             { vectors can't be represented yet using tdef }
             if size.typ<>floatdef then
-              internalerror(2012062301);
+              internalerror(2012062302);
             tg.gethltemp(list,size,size.size,tt_normal,r);
             a_loadmm_reg_ref(list,size,size,l.register,r,mms_movescalar);
             location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
@@ -5036,7 +5036,7 @@ implementation
                            begin
                              hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                              if not assigned(hsym) then
-                               internalerror(201003032);
+                               internalerror(2010030303);
                              highloc:=hsym.initialloc
                            end
                          else
@@ -5067,7 +5067,7 @@ implementation
                              begin
                                hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                                if not assigned(hsym) then
-                                 internalerror(201003032);
+                                 internalerror(2010030304);
                                highloc:=hsym.initialloc
                              end
                            else
@@ -5232,7 +5232,7 @@ implementation
                 a_loadfpu_reg_cgpara(list,size,tmploc.register,cgpara);
               end;
             else
-              internalerror(200204249);
+              internalerror(2002042402);
           end;
         LOC_FPUREGISTER,
         LOC_CFPUREGISTER:
@@ -5381,7 +5381,7 @@ implementation
                       a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
                     end;
                   else
-                    internalerror(2013102301);
+                    internalerror(2013102305);
                 end;
               end;
           end;

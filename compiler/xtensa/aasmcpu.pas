@@ -492,7 +492,7 @@ uses cutils, cclasses;
           R_FPUREGISTER:
             result:=taicpu.op_reg_ref(A_SSI,r,ref);
           else
-            internalerror(2020030701);
+            internalerror(2020030702);
         end;
       end;
 

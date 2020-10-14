@@ -240,7 +240,7 @@ const
 
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090906);
           if (a >= low(smallint)) and
              (a <= high(smallint)) then
             list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a)))
@@ -1161,7 +1161,7 @@ const
             abi_powerpc_sysv:
               firstfpureg := RS_F9;
             else
-              internalerror(2003122903);
+              internalerror(2003122904);
           end;
           for regcounter:=firstfpureg to RS_F31 do
            begin

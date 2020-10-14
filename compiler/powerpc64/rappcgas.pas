@@ -235,7 +235,7 @@ begin
                 OPR_REFERENCE :
                   inc(oper.opr.ref.offset,l);
                 else
-                  internalerror(200309202);
+                  internalerror(2003092014);
               end;
             end;
           AS_MINUS:
@@ -525,7 +525,7 @@ begin
                 OPR_REFERENCE:
                   inc(oper.opr.ref.offset, l);
               else
-                internalerror(200309202);
+                internalerror(2003092015);
               end;
             end
           end;

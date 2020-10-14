@@ -351,7 +351,7 @@ begin
           end;
         end;
       else
-       internalerror(2013120112);
+       internalerror(2013120113);
     end;
     { choose appropriate operand }
     if left.resultdef.typ <> floatdef then begin

@@ -634,7 +634,7 @@ unit nx86add;
               nodetype:=equaln;
             end;
           else
-            internalerror(2003042215);
+            internalerror(2003042204);
         end;
         { left must be a register }
         left_must_be_reg(opdef,opsize,false);
@@ -800,7 +800,7 @@ unit nx86add;
               else
                begin
                  if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                  internalerror(200203247);
+                  internalerror(2002032412);
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  emit_ref_reg(A_MOVQ,S_NO,right.location.reference,hreg);
                  emit_reg_reg(op,S_NO,left.location.register,hreg);
@@ -1040,7 +1040,7 @@ unit nx86add;
           slashn :
             op:=OP_DIV;
           else
-            internalerror(200312231);
+            internalerror(2003122303);
         end;
 
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
@@ -1063,7 +1063,7 @@ unit nx86add;
                   subn:
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPD,S_NO,location.register,location.register));
                   else
-                    internalerror(201108162);
+                    internalerror(2011081601);
                 end;
               end
             else
@@ -1083,7 +1083,7 @@ unit nx86add;
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPS,S_NO,location.register,location.register));
                     end;
                   else
-                    internalerror(201108163);
+                    internalerror(2011081604);
                 end;
               end
           end
@@ -1345,7 +1345,7 @@ unit nx86add;
             else
               op:=ops_div[hasref];
           else
-            internalerror(2003042214);
+            internalerror(2003042203);
         end;
 
         if hasref then

@@ -185,7 +185,7 @@ begin
         end;
       end;
       else
-        internalerror(200410031);
+        internalerror(2004100306);
     end;
   end;
 end;

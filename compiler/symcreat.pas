@@ -482,7 +482,7 @@ implementation
         a typecast at the scanner level }
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
-        internalerror(2011032811);
+        internalerror(2011032804);
       { walk over all fields that need initialization }
       str:='begin ';
       for i:=0 to struct.symtable.symlist.count-1 do

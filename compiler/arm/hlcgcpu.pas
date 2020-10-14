@@ -106,7 +106,7 @@ implementation
         l : TAsmLabel;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061311);
         if GenerateThumbCode then
           begin
             reference_reset_base(href,voidpointertype,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);

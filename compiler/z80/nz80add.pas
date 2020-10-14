@@ -302,7 +302,7 @@ interface
                   { Already handled before the case statement. Nothing to do here. }
                 end;
               else
-                internalerror(2020040402);
+                internalerror(2020040403);
             end;
             current_asmdata.getjumplabel(l);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_PO,l);
@@ -400,7 +400,7 @@ interface
                         unequaln:
                           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
-                          internalerror(2020042102);
+                          internalerror(2020042104);
                       end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
@@ -422,7 +422,7 @@ interface
                         unequaln:
                           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
-                          internalerror(2020042102);
+                          internalerror(2020042105);
                       end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
@@ -494,7 +494,7 @@ interface
                             gten:
                               tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                             else
-                              internalerror(2020042202);
+                              internalerror(2020042207);
                           end
                         else
                           case actualnodetype of
@@ -538,7 +538,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
-                            internalerror(2020042202);
+                            internalerror(2020042210);
                         end
                       else if i<>0 then
                         case actualnodetype of
@@ -549,7 +549,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
-                            internalerror(2020042202);
+                            internalerror(2020042211);
                         end
                       else
                         case actualnodetype of
@@ -562,7 +562,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
                           else
-                            internalerror(2020042203);
+                            internalerror(2020042215);
                         end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
@@ -587,7 +587,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
-                            internalerror(2020042202);
+                            internalerror(2020042212);
                         end
                       else if i<>0 then
                         case actualnodetype of
@@ -598,7 +598,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
                           else
-                            internalerror(2020042202);
+                            internalerror(2020042213);
                         end
                       else
                         case actualnodetype of
@@ -611,7 +611,7 @@ interface
                           gten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
                           else
-                            internalerror(2020042203);
+                            internalerror(2020042216);
                         end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
@@ -621,7 +621,7 @@ interface
                   { Already handled before the case statement. Nothing to do here. }
                 end;
               else
-                internalerror(2020042103);
+                internalerror(2020042106);
             end;
           end;
       end;

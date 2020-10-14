@@ -509,7 +509,7 @@ begin
   {$ENDIF EXTDEBUG}
 
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
-    internalerror(2002090904);
+    internalerror(2002090910);
 
   { the caller is expected to have adjusted the reference already
    in this case }

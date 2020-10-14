@@ -208,7 +208,7 @@ interface
               op2:=A_AND;
             end;
           else
-            internalerror(200203241);
+            internalerror(2002032409);
         end;
       end;
 
@@ -262,7 +262,7 @@ interface
         case op of
           OP_NEG,
           OP_NOT :
-            internalerror(200306017);
+            internalerror(2003060102);
           OP_AND,OP_OR,OP_XOR:
             begin
               cg.a_op_const_reg_reg(list,op,OS_INT,tcgint(lo(value)),regsrc.reglo,regdst.reglo);
@@ -283,7 +283,7 @@ interface
         case op of
           OP_NEG,
           OP_NOT :
-            internalerror(200306017);
+            internalerror(2003060103);
           else
             ;
         end;

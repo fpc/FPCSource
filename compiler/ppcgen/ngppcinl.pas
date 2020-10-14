@@ -176,7 +176,7 @@ implementation
          tmpreg: tregister;
        begin
          if (current_settings.cputype < cpu_PPC970) then
-           internalerror(2007020910);
+           internalerror(2007020901);
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);

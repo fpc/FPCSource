@@ -233,7 +233,7 @@ unit cgcpu;
                   a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
                end;
              else
-               internalerror(2002071004);
+               internalerror(2002071003);
           end;
         end;
 
@@ -369,7 +369,7 @@ unit cgcpu;
         ref: treference;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
-          internalerror(2014011101);
+          internalerror(2014011104);
 
         if use_push(paraloc) then
           begin
@@ -435,7 +435,7 @@ unit cgcpu;
                        hp:=hp^.Next;
                      end;
                    else
-                     internalerror(2002071004);
+                     internalerror(2002071005);
                 end;
               end;
           end;
@@ -1071,7 +1071,7 @@ unit cgcpu;
                        else
                          list.concat(taicpu.op_reg(A_RR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
                      else
-                       internalerror(2020040903);
+                       internalerror(2020040905);
                    end;
                    if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                      begin
@@ -1086,7 +1086,7 @@ unit cgcpu;
                              OP_SHL:
                                list.concat(taicpu.op_reg(A_RL,GetOffsetReg64(reg,reghi,i-1)));
                              else
-                               internalerror(2020040904);
+                               internalerror(2020040906);
                            end;
                        end;
                      end;
@@ -1430,7 +1430,7 @@ unit cgcpu;
                 if ref.index<>NR_NO then
                   begin
                     if ref.scalefactor>1 then
-                      internalerror(2020042002);
+                      internalerror(2020042003);
                     getcpuregister(list,NR_A);
                     emit_mov(list,NR_A,NR_L);
                     list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.index));
@@ -1569,7 +1569,7 @@ unit cgcpu;
          regsused: tregisterlist;
        begin
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-           internalerror(2011021307);
+           internalerror(2011021301);
          if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
            fromsize:=tosize;
 
@@ -1745,7 +1745,7 @@ unit cgcpu;
                   OC_BE:
                     a_jmp_flags(list,F_NC,l);
                   else
-                    internalerror(2020042206);
+                    internalerror(2020042218);
                 end;
                 ungetcpuregister(list,NR_A);
               end
@@ -1764,7 +1764,7 @@ unit cgcpu;
                   OC_GTE:
                     a_jmp_flags(list,F_P,l);
                   else
-                    internalerror(2020042206);
+                    internalerror(2020042219);
                 end;
                 ungetcpuregister(list,NR_A);
               end
@@ -1783,7 +1783,7 @@ unit cgcpu;
                   OC_LTE:
                     a_jmp_flags(list,F_P,l);
                   else
-                    internalerror(2020042206);
+                    internalerror(2020042220);
                 end;
                 ungetcpuregister(list,NR_A);
               end;
@@ -1805,7 +1805,7 @@ unit cgcpu;
                   OC_NE:
                     a_jmp_flags(list,F_NE,l);
                   else
-                    internalerror(2020042206);
+                    internalerror(2020042221);
                 end;
               end;
             if cmp_op=OC_EQ then
@@ -1828,7 +1828,7 @@ unit cgcpu;
                     OC_LTE:
                       a_jmp_signed_cmp_3way(list,l,nil,tmpl);
                     else
-                      internalerror(2020042206);
+                      internalerror(2020042222);
                   end
                 else if i<>0 then
                   case cmp_op of
@@ -1843,7 +1843,7 @@ unit cgcpu;
                     OC_LTE:
                       a_jmp_unsigned_cmp_3way(list,l,nil,tmpl);
                     else
-                      internalerror(2020042206);
+                      internalerror(2020042223);
                   end
                 else
                 case cmp_op of
@@ -1860,7 +1860,7 @@ unit cgcpu;
                   OC_LTE:
                     a_jmp_unsigned_cmp_3way(list,l,l,nil);
                   else
-                    internalerror(2020042206);
+                    internalerror(2020042224);
                 end;
               end;
             cg.a_label(current_asmdata.CurrAsmList,tmpl);

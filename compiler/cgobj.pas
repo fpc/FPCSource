@@ -1427,7 +1427,7 @@ implementation
                        OS_M8..OS_M512:
                          a_loadmm_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg,nil);
                        else
-                         internalerror(2010053102);
+                         internalerror(2010053106);
                      end;
                    end;
                  else
@@ -1464,7 +1464,7 @@ implementation
                end;
              end;
            else
-             internalerror(2002081302);
+             internalerror(2002081303);
          end;
       end;
 
@@ -2086,7 +2086,7 @@ implementation
           LOC_REFERENCE, LOC_CREFERENCE:
             a_op_reg_ref(list,op,loc.size,reg,loc.reference);
           else
-            internalerror(200109061);
+            internalerror(2001090602);
         end;
       end;
 
@@ -2123,7 +2123,7 @@ implementation
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
             end;
           else
-            internalerror(200109061);
+            internalerror(2001090603);
         end;
       end;
 
@@ -2265,7 +2265,7 @@ implementation
         tmpref: treference;
       begin
         if not (Op in [OP_NOT,OP_NEG]) then
-          internalerror(2020050701);
+          internalerror(2020050710);
         if assigned(ref.symbol) then
           begin
             tmpreg:=getaddressregister(list);
@@ -2325,7 +2325,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             a_cmp_const_ref_label(list,size,cmp_op,a,loc.reference,l);
           else
-            internalerror(200109061);
+            internalerror(2001090604);
         end;
       end;
 
@@ -2388,7 +2388,7 @@ implementation
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
             end;
           else
-            internalerror(200109061);
+            internalerror(2001090605);
         end;
       end;
 
@@ -2522,7 +2522,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             a_loadmm_ref_cgpara(list,loc.size,loc.reference,cgpara,shuffle);
           else
-            internalerror(200310123);
+            internalerror(2003101204);
         end;
       end;
 
@@ -2616,7 +2616,7 @@ implementation
           LOC_CREFERENCE,LOC_REFERENCE:
             a_opmm_ref_reg_reg(list,op,size,loc.reference,src,dst,shuffle);
           else
-            internalerror(200312232);
+            internalerror(2003122304);
         end;
       end;
 
@@ -3163,7 +3163,7 @@ implementation
         tempreg: tregister64;
       begin
         if not (op in [OP_NOT,OP_NEG]) then
-          internalerror(2020050706);
+          internalerror(2020050713);
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);

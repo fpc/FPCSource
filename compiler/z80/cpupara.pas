@@ -525,7 +525,7 @@ unit cpupara;
           { just continue loading the parameters in the registers }
           result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset)
         else
-          internalerror(200410231);
+          internalerror(2004102302);
       end;
 
 begin

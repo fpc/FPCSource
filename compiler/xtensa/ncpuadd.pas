@@ -180,7 +180,7 @@ interface
             gtn:      cond:=OC_A;
             gten:     cond:=OC_AE;
           else
-            internalerror(2020030801);
+            internalerror(2020030803);
           end;
 
         if (right.nodetype=ordconstn) and not(nf_swapped in flags) then

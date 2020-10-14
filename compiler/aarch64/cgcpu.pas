@@ -274,7 +274,7 @@ implementation
               { todo }
               A_LD1,A_LD2,A_LD3,A_LD4,
               A_ST1,A_ST2,A_ST3,A_ST4:
-                internalerror(2014110704);
+                internalerror(2014110702);
               { these don't support base+index }
               A_LDUR,A_STUR,
               A_LDP,A_STP:
@@ -301,7 +301,7 @@ implementation
                     offset may still be too big }
                 end;
               else
-                internalerror(2014110901);
+                internalerror(2014110903);
             end;
           end;
 

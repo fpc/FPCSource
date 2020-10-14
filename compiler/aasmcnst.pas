@@ -1312,7 +1312,7 @@ implementation
        else if (assigned(finternal_data_asmlist) and
            (list<>finternal_data_asmlist)) or
            not assigned(list) then
-         internalerror(2015032101);
+         internalerror(2015032102);
        finternal_data_asmlist:=list;
        if not assigned(l) then
          l:=get_internal_data_section_internal_label;

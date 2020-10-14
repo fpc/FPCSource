@@ -169,14 +169,14 @@ begin
       end;
     stringdef:
       begin
-        internalerror(2002072402);
+        internalerror(2002072401);
         exit;
       end;
     setdef:
       begin
         { normalsets are already handled in pass1 }
         if not is_smallset(left.resultdef) then
-          internalerror(200109041);
+          internalerror(2001090403);
         second_addsmallset;
         exit;
       end;

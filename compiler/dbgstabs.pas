@@ -1561,7 +1561,7 @@ implementation
                   ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,getoffsetstr(sym.localloc.reference)])
                 end;
               else
-                internalerror(2003091814);
+                internalerror(2003091805);
             end;
           end;
         write_sym_stabstr(list,sym,ss);

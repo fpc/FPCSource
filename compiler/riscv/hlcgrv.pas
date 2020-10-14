@@ -118,7 +118,7 @@ implementation
         l : TAsmLabel;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061304);
 
         reference_reset_base(href,voidpointertype,NR_X5,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid, sizeof(pint),[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_X5);

@@ -267,11 +267,11 @@ implementation
         pd.synthetickind:=tsk_jvm_enum_fpcordinal;
         { add static class method to convert an ordinal to the corresponding enum }
         if not str_parse_method_dec('function FPCValueOf(__fpc_int: longint): __FPC_TEnumClassAlias; static;',potype_function,true,enumclass,pd) then
-          internalerror(2011062402);
+          internalerror(2011062403);
         pd.synthetickind:=tsk_jvm_enum_fpcvalueof;
         { similar (instance) function for use in set factories; implements FpcEnumValueObtainable interface }
         if not str_parse_method_dec('function fpcGenericValueOf(__fpc_int: longint): JLEnum;',potype_function,false,enumclass,pd) then
-          internalerror(2011062402);
+          internalerror(2011062404);
         pd.synthetickind:=tsk_jvm_enum_fpcvalueof;
 
         { insert "public static valueOf(string): tenumclass" that returns tenumclass(inherited valueOf(tenumclass,string)) }
@@ -417,7 +417,7 @@ implementation
             old_current_structdef:=current_structdef;
             current_structdef:=pvclass;
             if not str_parse_method_dec('constructor Create(__intf:'+pvintf.objextname^+');overload;',potype_constructor,false,pvclass,methoddef) then
-              internalerror(2011092401);
+              internalerror(2011092402);
             methoddef.synthetickind:=tsk_jvm_procvar_intconstr;
             methoddef.skpara:=def;
             current_structdef:=old_current_structdef;

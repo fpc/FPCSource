@@ -630,7 +630,7 @@ begin
   if (cs_create_pic in current_settings.moduleswitches) then
     begin
       if not (pi_needs_got in current_procinfo.flags) then
-        InternalError(2013060103);
+        InternalError(2013060104);
       { For PIC global symbols offset must be handled separately.
         Otherwise (non-PIC or local symbols) offset can be encoded
         into relocation even if exceeds 16 bits. }

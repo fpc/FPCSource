@@ -166,7 +166,7 @@ implementation
           shln: op:=OP_SHL;
           shrn: op:=OP_SHR;
           else
-            internalerror(2013120102);
+            internalerror(2013120109);
         end;
         opsize:=left.location.size;
         opdef:=left.resultdef;

@@ -915,7 +915,7 @@ unit cpupara;
               end;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102306);
 
         create_funcretloc_info(p,side);
       end;

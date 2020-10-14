@@ -682,7 +682,7 @@ unit cpupara;
             result:=curstackoffset;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102303);
 
         create_funcretloc_info(p,side);
       end;

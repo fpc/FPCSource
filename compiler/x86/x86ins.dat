@@ -7296,7 +7296,7 @@ ymmreg_mz,ymmreg                          \350\361\364\371\1\x8A\101            
 zmmreg_mz,zmmreg                          \350\351\361\371\1\x8A\101                AVX512
 
 [VCVTPD2QQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\352\361\370\1\x7B\110                AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x7B\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \350\352\361\364\370\1\x7B\110            AVX512,TFV
@@ -7306,7 +7306,7 @@ zmmreg_mz,bmem64                          \350\351\352\361\370\1\x7B\110        
 zmmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x7B\110            AVX512
 
 [VCVTPD2UDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem128                          \350\352\370\1\x79\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x79\110                AVX512,TFV
 xmmreg_mz,xmmreg                          \350\352\370\1\x79\110                    AVX512
@@ -7318,7 +7318,7 @@ ymmreg_mz,bmem64                          \350\351\352\370\1\x79\110            
 ymmreg_mz,zmmreg_er                       \350\351\352\370\1\x79\110                AVX512
 
 [VCVTPD2UQQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\352\361\370\1\x79\110                AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x79\110                AVX512,BCST2,TFV
 ymmreg_mz,ymmrm                           \350\352\361\364\370\1\x79\110            AVX512,TFV
@@ -7328,7 +7328,7 @@ zmmreg_mz,bmem64                          \350\351\352\361\370\1\x79\110        
 zmmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x79\110            AVX512
 
 [VCVTPS2QQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg                          \350\361\370\1\x7B\110                    AVX512
 xmmreg_mz,mem64                           \350\361\370\1\x7B\110                    AVX512,THV
 xmmreg_mz,bmem32                          \350\361\370\1\x7B\110                    AVX512,BCST2,THV
@@ -7339,7 +7339,7 @@ zmmreg_mz,bmem32                          \350\351\361\370\1\x7B\110            
 zmmreg_mz,ymmreg_er                       \350\351\361\370\1\x7B\110                AVX512
 
 [VCVTPS2UDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\370\1\x79\110                        AVX512,TFV
 xmmreg_mz,bmem32                          \350\370\1\x79\110                        AVX512,BCST4,TFV
 ymmreg_mz,ymmrm                           \350\364\370\1\x79\110                    AVX512,TFV
@@ -7349,7 +7349,7 @@ zmmreg_mz,bmem32                          \350\351\370\1\x79\110                
 zmmreg_mz,zmmreg_er                       \350\351\370\1\x79\110                    AVX512
 
 [VCVTPS2UQQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg                          \350\361\370\1\x79\110                    AVX512
 xmmreg_mz,mem64                           \350\361\370\1\x79\110                    AVX512,THV
 xmmreg_mz,bmem32                          \350\361\370\1\x79\110                    AVX512,BCST2,THV
@@ -7360,7 +7360,7 @@ zmmreg_mz,bmem32                          \350\351\361\370\1\x79\110            
 zmmreg_mz,ymmreg_er                       \350\351\361\370\1\x79\110                AVX512
 
 [VCVTQQ2PD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \333\350\352\370\1\xE6\110                AVX512,TFV
 xmmreg_mz,bmem64                          \333\350\352\370\1\xE6\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \333\350\352\364\370\1\xE6\110            AVX512,TFV
@@ -7370,7 +7370,7 @@ zmmreg_mz,bmem64                          \333\350\351\352\370\1\xE6\110        
 zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\xE6\110            AVX512
 
 [VCVTQQ2PS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem128                          \350\352\370\1\x5B\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x5B\110                AVX512,TFV
 xmmreg_mz,xmmreg                          \350\352\370\1\x5B\110                    AVX512
@@ -7382,21 +7382,21 @@ ymmreg_mz,bmem64                          \350\351\352\370\1\x5B\110            
 ymmreg_mz,zmmreg_er                       \350\351\352\370\1\x5B\110                AVX512
 
 [VCVTSD2USI]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem64                               \334\350\370\1\x79\110                    AVX512,T1F64
 reg32,xmmreg_er                           \334\350\370\1\x79\110                    AVX512
 reg64,mem64                               \334\350\352\370\1\x79\110                AVX512,T1F64
 reg64,xmmreg_er                           \334\350\352\370\1\x79\110                AVX512
 
 [VCVTSS2USI]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem32                               \333\350\370\1\x79\110                    AVX512,T1F32
 reg32,xmmreg_er                           \333\350\370\1\x79\110                    AVX512
 reg64,mem32                               \333\350\352\370\1\x79\110                AVX512,T1F32
 reg64,xmmreg_er                           \333\350\352\370\1\x79\110                AVX512
 
 [VCVTTPD2QQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\352\361\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x7A\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \350\352\361\364\370\1\x7A\110            AVX512,TFV
@@ -7406,7 +7406,7 @@ zmmreg_mz,bmem64                          \350\351\352\361\370\1\x7A\110        
 zmmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\x7A\110            AVX512
 
 [VCVTTPD2UDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem128                          \350\352\370\1\x78\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x78\110                AVX512,TFV
 xmmreg_mz,xmmreg                          \350\352\370\1\x78\110                    AVX512
@@ -7418,7 +7418,7 @@ ymmreg_mz,bmem64                          \350\351\352\370\1\x78\110            
 ymmreg_mz,zmmreg_sae                      \350\351\352\370\1\x78\110                AVX512
 
 [VCVTTPD2UQQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\352\361\370\1\x78\110                AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x78\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \350\352\361\364\370\1\x78\110            AVX512,TFV
@@ -7428,7 +7428,7 @@ zmmreg_mz,bmem64                          \350\351\352\361\370\1\x78\110        
 zmmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\x78\110            AVX512
 
 [VCVTTPS2QQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg                          \350\361\370\1\x7A\110                    AVX512
 xmmreg_mz,mem64                           \350\361\370\1\x7A\110                    AVX512,THV
 xmmreg_mz,bmem32                          \350\361\370\1\x7A\110                    AVX512,BCST2,THV
@@ -7439,7 +7439,7 @@ zmmreg_mz,bmem32                          \350\351\361\370\1\x7A\110            
 zmmreg_mz,ymmreg_sae                      \350\351\361\370\1\x7A\110                AVX512
 
 [VCVTTPS2UDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \350\370\1\x78\110                        AVX512,TFV
 xmmreg_mz,bmem32                          \350\370\1\x78\110                        AVX512,TFV
 ymmreg_mz,ymmrm                           \350\364\370\1\x78\110                    AVX512,TFV
@@ -7449,7 +7449,7 @@ zmmreg_mz,bmem32                          \350\351\370\1\x78\110                
 zmmreg_mz,zmmreg_sae                      \350\351\370\1\x78\110                    AVX512
 
 [VCVTTPS2UQQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg                          \350\361\370\1\x78\110                    AVX512
 xmmreg_mz,mem64                           \350\361\370\1\x78\110                    AVX512,THV
 xmmreg_mz,bmem32                          \350\361\370\1\x78\110                    AVX512,BCST2,THV
@@ -7460,21 +7460,21 @@ zmmreg_mz,bmem32                          \350\351\361\370\1\x78\110            
 zmmreg_mz,ymmreg_sae                      \350\351\361\370\1\x78\110                AVX512
 
 [VCVTTSD2USI]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem64                               \334\350\370\1\x78\110                    AVX512,T1F64
 reg32,xmmreg_sae                          \334\350\370\1\x78\110                    AVX512
 reg64,mem64                               \334\350\352\370\1\x78\110                AVX512,T1F64
 reg64,xmmreg_sae                          \334\350\352\370\1\x78\110                AVX512
 
 [VCVTTSS2USI]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg32,mem32                               \333\350\370\1\x78\110                    AVX512,T1F32
 reg32,xmmreg_sae                          \333\350\370\1\x78\110                    AVX512
 reg64,mem32                               \333\350\352\370\1\x78\110                AVX512,T1F32
 reg64,xmmreg_sae                          \333\350\352\370\1\x78\110                AVX512
 
 [VCVTUDQ2PD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmreg                          \333\350\370\1\x7A\110                    AVX512
 xmmreg_mz,mem64                           \333\350\370\1\x7A\110                    AVX512,THV
 xmmreg_mz,bmem32                          \333\350\370\1\x7A\110                    AVX512,BCST2,THV
@@ -7485,7 +7485,7 @@ zmmreg_mz,bmem32                          \333\350\351\370\1\x7A\110            
 zmmreg_mz,ymmreg_er                       \333\350\351\370\1\x7A\110                AVX512
 
 [VCVTUDQ2PS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \334\350\370\1\x7A\110                    AVX512,TFV
 xmmreg_mz,bmem32                          \334\350\370\1\x7A\110                    AVX512,TFV
 ymmreg_mz,ymmrm                           \334\350\364\370\1\x7A\110                AVX512,TFV
@@ -7495,7 +7495,7 @@ zmmreg_mz,bmem32                          \334\350\351\370\1\x7A\110            
 zmmreg_mz,zmmreg_er                       \334\350\351\370\1\x7A\110                AVX512
 
 [VCVTUQQ2PD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,xmmrm                           \333\350\352\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,bmem64                          \333\350\352\370\1\x7A\110                AVX512,TFV
 ymmreg_mz,ymmrm                           \333\350\352\364\370\1\x7A\110            AVX512,TFV
@@ -7505,7 +7505,7 @@ zmmreg_mz,bmem64                          \333\350\351\352\370\1\x7A\110        
 zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\x7A\110            AVX512
 
 [VCVTUQQ2PS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem128                          \334\350\352\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,mem256                          \334\350\352\364\370\1\x7A\110            AVX512,TFV
 xmmreg_mz,xmmreg                          \334\350\352\370\1\x7A\110                AVX512
@@ -7517,12 +7517,12 @@ ymmreg_mz,bmem64                          \334\350\351\352\370\1\x7A\110        
 ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\x7A\110            AVX512
 
 [VCVTUSI2SD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg_er,rm64                     \334\350\352\370\1\x7B\75\120                AVX512,T1S
 xmmreg,xmmreg_er,rm32                     \334\350\370\1\x7B\75\120                    AVX512,T1S
 
 [VCVTUSI2SS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg_er,rm64                     \333\350\352\370\1\x7B\75\120                AVX512,T1S
 xmmreg,xmmreg_er,rm32                     \333\350\370\1\x7B\75\120                    AVX512,T1S
 

@@ -29,6 +29,7 @@ begin
 end;
 
 var
+  e: PRTLEvent;
   t1, t2: TTest;
 
 procedure TTestThread.Execute;
@@ -46,17 +47,23 @@ begin
 
   { should remove only one }
   RemoveQueuedEvents(@t1.DoTest);
+
+  RTLEventSetEvent(e);
 end;
 
 var
   t: TTestThread;
 begin
+  e := Nil;
   t := TTestThread.Create(True);
   try
+    e := RTLEventCreate;
+
     t1 := TTest.Create;
     t2 := TTest.Create;
 
     t.Start;
+    RTLEventWaitFor(e);
     t.WaitFor;
 
     CheckSynchronize;
@@ -67,6 +74,7 @@ begin
     t1.Free;
     t2.Free;
     t.Free;
+    RTLEventDestroy(e);
   end;
 end.
 

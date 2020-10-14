@@ -276,7 +276,7 @@ interface
           top_const :
               owner.writer.AsmWrite('$'+tostr(o.val));
           else
-            internalerror(10001);
+            internalerror(2020100810);
         end;
 
            if o.vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
@@ -328,7 +328,7 @@ interface
           top_const :
             owner.writer.AsmWrite(tostr(o.val));
           else
-            internalerror(10001);
+            internalerror(2020100811);
         end;
       end;
 

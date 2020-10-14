@@ -477,7 +477,7 @@ implementation
                        end;
                   end;
                 else
-                  internalerror(2019050947);
+                  internalerror(2019050913);
               end;
               { choose appropriate operand }
               if left.resultdef.typ <> floatdef then

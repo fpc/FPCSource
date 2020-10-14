@@ -706,7 +706,7 @@ implementation
              sl_vec:
                hp^.valuedef:=tdef(hp^.valuedefderef.resolve);
              else
-              internalerror(200110205);
+              internalerror(2001102001);
            end;
            hp:=hp^.next;
          end;
@@ -732,7 +732,7 @@ implementation
              sl_vec:
                hp^.valuedefderef.build(hp^.valuedef);
              else
-              internalerror(200110205);
+              internalerror(2001102002);
            end;
            hp:=hp^.next;
          end;
@@ -777,13 +777,13 @@ implementation
              begin
                { same as above }
                if tdef(s).defid=defid_registered_nost then
-                 Internalerror(2015102505);
+                 Internalerror(2015102501);
                if not tdef(s).registered then
                  tdef(s).register_def;
                st:=FindUnitSymtable(tdef(s).owner);
              end
            else
-             internalerror(2016090201);
+             internalerror(2016090204);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
@@ -1147,7 +1147,7 @@ implementation
                  putderef(hp^.valuedefderef);
                end;
              else
-              internalerror(200110205);
+              internalerror(2001102003);
            end;
            hp:=hp^.next;
          end;

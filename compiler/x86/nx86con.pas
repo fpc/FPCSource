@@ -76,9 +76,19 @@ implementation
                      location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
                      if UseAVX then
-                       emit_reg_reg_reg(A_VPXOR,S_NO,location.register,location.register,location.register)
+                       begin
+                         if is_single(resultdef) then
+                           emit_reg_reg_reg(A_VXORPS,S_NO,location.register,location.register,location.register)
+                         else
+                           emit_reg_reg_reg(A_VXORPD,S_NO,location.register,location.register,location.register);
+                       end
                      else
-                       emit_reg_reg(A_PXOR,S_NO,location.register,location.register);
+                       begin
+                         if is_single(resultdef) then
+                           emit_reg_reg(A_XORPS,S_NO,location.register,location.register)
+                         else
+                           emit_reg_reg(A_XORPD,S_NO,location.register,location.register);
+                       end
                    end
                  else
                    begin

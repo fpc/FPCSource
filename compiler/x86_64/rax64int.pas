@@ -100,7 +100,7 @@ Unit rax64int;
         err: boolean;
       begin
         if actasmtoken<>AS_TARGET_DIRECTIVE then
-          InternalError(2011100201);
+          InternalError(2011100203);
         Consume(AS_TARGET_DIRECTIVE);
         Include(current_procinfo.flags,pi_has_unwind_info);
         case actsehdirective of

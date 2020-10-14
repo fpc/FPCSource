@@ -250,7 +250,7 @@ implementation
     else if p is tcpuprocvardef then
       result:=tcpuprocvardef(p).is_far
     else
-      internalerror(2014041301);
+      internalerror(2014041303);
   end;
 
   { true if p is a far proc var }

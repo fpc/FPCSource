@@ -473,7 +473,7 @@ implementation
               else
                 begin
                   writeln(reltyp);
-                  internalerror(200604014);
+                  internalerror(2006040108);
                 end;
             end
           else           { not relocsec.Used }

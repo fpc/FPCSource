@@ -410,7 +410,7 @@ implementation
                 cgop:=OP_IMUL;
             end;
           else
-            internalerror(2013120104);
+            internalerror(2013120111);
         end;
 
         pass_left_right;

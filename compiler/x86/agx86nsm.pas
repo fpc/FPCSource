@@ -450,7 +450,7 @@ interface
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100812);
         end;
       end;
 
@@ -487,7 +487,7 @@ interface
           top_const :
             writer.AsmWrite(tostr(aint(o.val)));
           else
-            internalerror(10001);
+            internalerror(2020100813);
         end;
       end;
 
@@ -1292,7 +1292,7 @@ interface
                    writer.AsmWriteLn('; OMF LINNUM Line '+tai_directive(hp).name);
 {$endif OMFOBJSUPPORT}
                  else
-                   internalerror(200509191);
+                   internalerror(2005091903);
                end;
                writer.AsmLn;
              end;
@@ -1300,7 +1300,7 @@ interface
              { Ignore for now };
            else
              if not WriteComments(hp) then
-               internalerror(10000);
+               internalerror(2020100801);
          end;
          hp:=tai(hp.next);
        end;

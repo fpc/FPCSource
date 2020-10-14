@@ -128,7 +128,7 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610151);
+                    internalerror(2006101504);
                 end;
               s64real:
                 case tfloatdef(resultdef).floattype of
@@ -141,10 +141,10 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610152);
+                    internalerror(2006101505);
                 end;
               else
-                internalerror(200610153);
+                internalerror(2006101506);
             end;
             left:=nil;
             firstpass(result);
@@ -223,7 +223,7 @@ implementation
                           end;
                       end;
                     else
-                      internalerror(200410031);
+                      internalerror(2004100307);
                   end;
               end;
             end;
@@ -248,7 +248,7 @@ implementation
               signed:=left.location.size=OS_S32;
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
-                internalerror(2009112703);
+                internalerror(2009112704);
               if left.location.size<>location.size then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size)
               else
@@ -260,7 +260,7 @@ implementation
             end
           else
             { should be handled in pass 1 }
-            internalerror(2019050934);
+            internalerror(2019050909);
         end;
       end;
 
@@ -358,7 +358,7 @@ implementation
                 tbasecgarm(cg).cgsetflags:=false;
               end;
             else
-              internalerror(200311301);
+              internalerror(2003113002);
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));

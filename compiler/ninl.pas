@@ -486,7 +486,7 @@ implementation
         def : tdef;
       begin
         if not assigned(left) or (left.nodetype<>typen) then
-          internalerror(2012032101);
+          internalerror(2012032102);
         def:=ttypenode(left).typedef;
         result:=nil;
         case def.typ of
@@ -608,7 +608,7 @@ implementation
               in_rewrite_typedfile_name:
                 result := ccallnode.createintern('fpc_rewrite_typed_name_iso',left);
               else
-                internalerror(2016101501);
+                internalerror(2016101502);
             end;
           end
         else
@@ -1127,7 +1127,7 @@ implementation
             in_writeln_x:
               name:='fpc_writeln_end';
             else
-              internalerror(2019050516);
+              internalerror(2019050501);
           end;
           addstatement(Tstatementnode(newstatement),ccallnode.createintern(name,filepara.getcopy));
         end;
@@ -1500,7 +1500,7 @@ implementation
             s16bit: exit('smallint');
             u16bit: exit('word');
             else
-              internalerror(2013032604);
+              internalerror(2013032606);
           end;
         end
       else
@@ -1509,10 +1509,10 @@ implementation
             s64bit,s32bit,s16bit,s8bit: exit('sint');
             u64bit,u32bit,u16bit,u8bit: exit('uint');
             else
-              internalerror(2013032604);
+              internalerror(2013032607);
           end;
         end;
-      internalerror(2013032605);
+      internalerror(2013032608);
     end;
 
 
@@ -2082,7 +2082,7 @@ implementation
                       8:
                         vl:=vl and byte($3f);
                       else
-                        internalerror(2013122302);
+                        internalerror(2013122303);
                     end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
@@ -2180,7 +2180,7 @@ implementation
                       8:
                         vl:=vl and byte($3f);
                       else
-                        internalerror(2013122302);
+                        internalerror(2013122304);
                     end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
@@ -2795,7 +2795,7 @@ implementation
                         8:
                           result:=cordconstnode.create(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         else
-                          internalerror(2017042401);
+                          internalerror(2017042402);
                       end;
                     end;
                 end;
@@ -4109,7 +4109,7 @@ implementation
             end;
 
           in_slice_x:
-            internalerror(2005101501);
+            internalerror(2005101502);
 
           in_ord_x,
           in_chr_byte:
@@ -4119,7 +4119,7 @@ implementation
             end;
 
           in_ofs_x :
-            internalerror(2000101001);
+            internalerror(2000101002);
 
           in_seg_x :
             begin
@@ -4139,7 +4139,7 @@ implementation
           in_writeln_x :
             begin
               { should be handled by pass_typecheck }
-              internalerror(200108234);
+              internalerror(2001082302);
             end;
          in_get_frame:
             begin
@@ -4777,7 +4777,7 @@ implementation
                   lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
                 end;
               else
-                internalerror(2012100701);
+                internalerror(2012100703);
             end;
 
             if is_open_array(paradef) then
@@ -4789,7 +4789,7 @@ implementation
                 arrayppn:=ctypeconvnode.create_internal(ppn.left,voidpointertype);
               end
             else
-              internalerror(2012100702);
+              internalerror(2012100704);
 
             rttippn:=caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal));
 

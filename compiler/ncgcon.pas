@@ -312,7 +312,7 @@ implementation
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
                                if lastlabel.ofs<>datatcb.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
-                                 internalerror(2012051704);
+                                 internalerror(2012051702);
                              end;
                            { no contents of the datatcb itself to concatenate,
                              as we will just return the address of the emitted

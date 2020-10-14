@@ -436,7 +436,7 @@ unit cpubase;
               reghi:=NR_H;
             end;
           else
-            internalerror(2020042801);
+            internalerror(2020042804);
         end;
       end;
 
