@@ -6795,10 +6795,17 @@ implementation
 
 
     function tprocdef.defaultmangledname: TSymStr;
+      var
+        n : TSymStr;
       begin
+        n:=procsym.name;
+        { make sure that the mangled names of these overloadable methods types is
+          unique even if it's made lowercase (e.g. for section names) }
+        if proctypeoption in [potype_operator,potype_class_constructor,potype_class_destructor] then
+          n:='$'+n;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
-        defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
+        defaultmangledname:=make_mangledname('',procsym.owner,n);
         defaultmangledname:=defaultmangledname+mangledprocparanames(Length(defaultmangledname))
       end;
 
