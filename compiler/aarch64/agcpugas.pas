@@ -305,7 +305,11 @@ unit agcpugas;
                         internalerror(2020041214);
                     end
                   else
-                    lastsec:=tai_section(hp);
+                    begin
+                      lastsec:=tai_section(hp);
+                      { also reset the last encountered symbol }
+                      lastsym:=nil;
+                    end;
 
                   if assigned(tmplist) then
                     begin
