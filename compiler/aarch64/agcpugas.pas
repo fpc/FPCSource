@@ -370,7 +370,7 @@ unit agcpugas;
                         { note: we can pass Nil here, because in case of a LLVM
                                 backend this whole code shouldn't be required
                                 anyway }
-                        xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsec.name^,AB_LOCAL,AT_DATA,nil);
+                        xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
 
                         tmplist:=tasmlist.create;
                         new_section(tmplist,sec_pdata,lastsec.name^,0);
