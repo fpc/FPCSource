@@ -305,7 +305,11 @@ unit agcpugas;
                         internalerror(2020041214);
                     end
                   else
-                    lastsec:=tai_section(hp);
+                    begin
+                      lastsec:=tai_section(hp);
+                      { also reset the last encountered symbol }
+                      lastsym:=nil;
+                    end;
 
                   if assigned(tmplist) then
                     begin
@@ -313,10 +317,11 @@ unit agcpugas;
                       tmplist.free;
                       tmplist:=nil;
                     end;
+
                 end;
               ait_symbol:
                 begin
-                  if tai_symbol(hp).is_global then
+                  if tai_symbol(hp).sym.typ=AT_FUNCTION then
                     lastsym:=tai_symbol(hp);
                 end;
               ait_instruction:
@@ -365,7 +370,7 @@ unit agcpugas;
                         { note: we can pass Nil here, because in case of a LLVM
                                 backend this whole code shouldn't be required
                                 anyway }
-                        xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsec.name^,AB_LOCAL,AT_DATA,nil);
+                        xdatasym:=current_asmdata.DefineAsmSymbol('xdata_'+lastsym.sym.name,AB_LOCAL,AT_DATA,nil);
 
                         tmplist:=tasmlist.create;
                         new_section(tmplist,sec_pdata,lastsec.name^,0);
