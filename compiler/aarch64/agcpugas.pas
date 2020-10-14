@@ -313,10 +313,11 @@ unit agcpugas;
                       tmplist.free;
                       tmplist:=nil;
                     end;
+
                 end;
               ait_symbol:
                 begin
-                  if tai_symbol(hp).is_global then
+                  if tai_symbol(hp).sym.typ=AT_FUNCTION then
                     lastsym:=tai_symbol(hp);
                 end;
               ait_instruction:
