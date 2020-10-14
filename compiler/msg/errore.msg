@@ -1075,8 +1075,9 @@ parser_e_paraloc_only_one_para=03197_E_Each argument must have its own location
 parser_e_paraloc_all_paras=03198_E_Each argument must have an explicit location
 % If one argument has an explicit argument location, all arguments of a procedure
 % must have one.
-parser_e_illegal_explicit_paraloc=03199_E_Unknown argument location
-% The location specified for an argument isn't recognized by the compiler.
+parser_e_illegal_explicit_paraloc=03199_E_Invalid explicit parameter location specified
+% Syscalls specific: the specified explicit location string for this parameter cannot be parsed, invalid,
+% or The location specified for an argument isn't recognized by the compiler.
 parser_e_32bitint_or_pointer_variable_expected=03200_E_32 Bit-Integer or pointer variable expected
 % The libbase for MorphOS/AmigaOS can be given only as \var{longint}, \var{dword} or any pointer variable.
 parser_e_goto_outside_proc=03201_E_Goto statements are not allowed between different procedures
@@ -1612,6 +1613,14 @@ parser_e_method_for_type_in_other_unit=03354_E_Implementing a method for type "$
 parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not allowed here
 % At the current location specifying a constraint is not allowed. For example
 % in delphi mode, a constraint might not be specified in the header of the implementation.
+parser_e_location_size_too_small=03356_E_Explicit location is too small for parameter
+% AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
+parser_w_location_size_too_large=03357_W_Explicit location size is larger than required by parameter
+% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64bit, a register pair is specified
+parser_e_location_regpair_only_data=03358_E_Only data registers are supported for explicit location register pairs
+% AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported
+parser_e_location_regpair_only_consecutive=03359_E_Only consecutive registers are supported for explicit location register pairs
+% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
 %
 % \end{description}
 %
