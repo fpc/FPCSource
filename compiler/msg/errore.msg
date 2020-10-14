@@ -1615,7 +1615,7 @@ parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not all
 % in delphi mode, a constraint might not be specified in the header of the implementation.
 parser_e_location_size_too_small=03356_E_Explicit location is too small for parameter
 % AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
-parser_w_location_size_too_large=03357_W_Explicit location size is larger than required by parameter
+parser_e_location_size_too_large=03357_E_Explicit location size is larger than required by parameter
 % AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64bit, a register pair is specified
 parser_e_location_regpair_only_data=03358_E_Only data registers are supported for explicit location register pairs
 % AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported

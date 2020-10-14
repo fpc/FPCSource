@@ -586,7 +586,7 @@ const msgtxt : array[0..000358,1..240] of char=(
   '03354_E_Implementing a method for type "$1" declared in another unit'#000+
   '03355_E_Generic constraint not allowed here'#000+
   '0335','6_E_Explicit location is too small for parameter'#000+
-  '03357_W_Explicit location size is larger than required by parameter'#000+
+  '03357_E_Explicit location size is larger than required by parameter'#000+
   '03358_E_Only data registers are supported for explicit location regist'+
   'er pairs'#000+
   '03359_E_Only consecutive registers are suppo','rted for explicit locati'+

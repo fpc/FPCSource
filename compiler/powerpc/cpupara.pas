@@ -726,7 +726,7 @@ unit cpupara;
                        message(parser_e_location_regpair_only_consecutive);
 
                      if tcgsize2size[paracgsize]<=4 then
-                       message(parser_w_location_size_too_large);
+                       message(parser_e_location_size_too_large);
 
                      if tcgsize2size[paracgsize]>8 then
                        message(parser_e_location_size_too_small);

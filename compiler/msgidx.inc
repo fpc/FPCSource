@@ -467,7 +467,7 @@ const
   parser_e_method_for_type_in_other_unit=03354;
   parser_e_generic_constraints_not_allowed_here=03355;
   parser_e_location_size_too_small=03356;
-  parser_w_location_size_too_large=03357;
+  parser_e_location_size_too_large=03357;
   parser_e_location_regpair_only_data=03358;
   parser_e_location_regpair_only_consecutive=03359;
   type_e_mismatch=04000;
