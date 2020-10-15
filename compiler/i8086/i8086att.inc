@@ -1208,7 +1208,7 @@
 'vcompresspd',
 'vcompressps',
 'vcvtpd2qq',
-'vcvtpd2udq',
+' vcvtpd2udq',
 'vcvtpd2uqq',
 'vcvtps2qq',
 'vcvtps2udq',

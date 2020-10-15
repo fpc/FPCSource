@@ -10496,6 +10496,13 @@
   (
     opcode  : A_VCVTPD2DQ;
     ops     : 2;
+    optypes : (ot_xmmreg_mz,ot_memory or ot_bits256,ot_none,ot_none);
+    code    : #220#232#234#242#244#248#1#230#72;
+    flags   : [if_avx,if_sandybridge,if_tfv]
+  ),
+  (
+    opcode  : A_VCVTPD2DQ;
+    ops     : 2;
     optypes : (ot_xmmreg_mz,ot_xmmrm,ot_none,ot_none);
     code    : #220#232#234#242#248#1#230#72;
     flags   : [if_avx,if_sandybridge,if_tfv]
@@ -10503,9 +10510,9 @@
   (
     opcode  : A_VCVTPD2DQ;
     ops     : 2;
-    optypes : (ot_xmmreg_mz,ot_ymmrm,ot_none,ot_none);
+    optypes : (ot_xmmreg_mz,ot_ymmreg,ot_none,ot_none);
     code    : #220#232#234#242#244#248#1#230#72;
-    flags   : [if_avx,if_sandybridge,if_tfv]
+    flags   : [if_avx,if_sandybridge]
   ),
   (
     opcode  : A_VCVTPD2DQ;
@@ -22172,9 +22179,16 @@
   (
     opcode  : A_VCVTUSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_rm_gpr or ot_bits64,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
     code    : #220#232#234#248#1#123#61#80;
     flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCVTUSI2SD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg64,ot_none);
+    code    : #220#232#234#248#1#123#61#80;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCVTUSI2SD;
@@ -22641,6 +22655,20 @@
   (
     opcode  : A_VFPCLASSPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_memory or ot_bits256,ot_immediate or ot_bits8,ot_none);
+    code    : #232#234#241#244#250#1#102#72#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VFPCLASSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_memory or ot_bits512,ot_immediate or ot_bits8,ot_none);
+    code    : #232#233#234#241#250#1#102#72#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VFPCLASSPD;
+    ops     : 3;
     optypes : (ot_kreg_m,ot_xmmrm,ot_immediate or ot_bits8,ot_none);
     code    : #232#234#241#250#1#102#72#22;
     flags   : [if_avx512,if_tfv]
@@ -22655,9 +22683,9 @@
   (
     opcode  : A_VFPCLASSPD;
     ops     : 3;
-    optypes : (ot_kreg_m,ot_ymmrm,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_kreg_m,ot_ymmreg,ot_immediate or ot_bits8,ot_none);
     code    : #232#234#241#244#250#1#102#72#22;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VFPCLASSPD;
@@ -22669,9 +22697,9 @@
   (
     opcode  : A_VFPCLASSPD;
     ops     : 3;
-    optypes : (ot_kreg_m,ot_zmmrm,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_kreg_m,ot_zmmreg,ot_immediate or ot_bits8,ot_none);
     code    : #232#233#234#241#250#1#102#72#22;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VFPCLASSPD;
@@ -22679,6 +22707,20 @@
     optypes : (ot_kreg_m,ot_bmem64,ot_immediate or ot_bits8,ot_none);
     code    : #232#233#234#241#250#1#102#72#22;
     flags   : [if_avx512,if_bcst8,if_tfv]
+  ),
+  (
+    opcode  : A_VFPCLASSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_memory or ot_bits256,ot_immediate or ot_bits8,ot_none);
+    code    : #232#241#244#250#1#102#72#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VFPCLASSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_memory or ot_bits512,ot_immediate or ot_bits8,ot_none);
+    code    : #232#233#241#250#1#102#72#22;
+    flags   : [if_avx512,if_tfv]
   ),
   (
     opcode  : A_VFPCLASSPS;
@@ -22697,9 +22739,9 @@
   (
     opcode  : A_VFPCLASSPS;
     ops     : 3;
-    optypes : (ot_kreg_m,ot_ymmrm,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_kreg_m,ot_ymmreg,ot_immediate or ot_bits8,ot_none);
     code    : #232#241#244#250#1#102#72#22;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VFPCLASSPS;
@@ -22711,9 +22753,9 @@
   (
     opcode  : A_VFPCLASSPS;
     ops     : 3;
-    optypes : (ot_kreg_m,ot_zmmrm,ot_immediate or ot_bits8,ot_none);
+    optypes : (ot_kreg_m,ot_zmmreg,ot_immediate or ot_bits8,ot_none);
     code    : #232#233#241#250#1#102#72#22;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VFPCLASSPS;
