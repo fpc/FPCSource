@@ -76,7 +76,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                   else if (FpuState and FPU_Underflow)<>0 then
                     res:=206
                   else if (FpuState and FPU_Denormal)<>0 then
-                    res:=216
+                    res:=206
                   else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
                     res:=207
                   else
@@ -100,7 +100,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                   else if (MMState and MM_Underflow)<>0 then
                     res:=206
                   else if (MMState and MM_Denormal)<>0 then
-                    res:=216
+                    res:=206
                   else
                     res:=207;  {'Coprocessor Error'}
 
@@ -122,7 +122,6 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                     { clear top }
                     swd:=swd and not($3700);
                   end;
-               SysResetFPU;
             end;
         end;
       SIGILL,

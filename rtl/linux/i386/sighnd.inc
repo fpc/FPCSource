@@ -60,7 +60,7 @@ begin
                     else if (FpuState and FPU_Underflow)<>0 then
                       res:=206
                     else if (FpuState and FPU_Denormal)<>0 then
-                      res:=216
+                      res:=206
                     else
                       res:=207;  {'Coprocessor Error'}
                   end;
@@ -80,7 +80,7 @@ begin
                         else if (MMState and MM_Underflow)<>0 then
                           res:=206
                         else if (MMState and MM_Denormal)<>0 then
-                          res:=216
+                          res:=206
                         else
                           res:=207;  {'Coprocessor Error'}
                       end;
