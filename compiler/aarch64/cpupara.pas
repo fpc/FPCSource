@@ -266,7 +266,7 @@ unit cpupara;
                     size:=OS_ADDR;
                     def:=hp.paraloc[side].def;
                     loc:=LOC_REGISTER;
-                    register:=NR_X8;
+                    register:=NR_XR;
                   end
               end
             else

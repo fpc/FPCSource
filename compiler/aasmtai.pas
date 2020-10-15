@@ -243,15 +243,18 @@ interface
       toptype=(top_none,top_reg,top_ref,top_const,top_bool,top_local
 {$ifdef arm}
        { ARM only }
-       ,top_regset
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
 {$if defined(arm) or defined(aarch64)}
+       ,top_regset
        ,top_conditioncode
        ,top_shifterop
        ,top_realconst
 {$endif defined(arm) or defined(aarch64)}
+{$ifdef aarch64}
+       ,top_indexedreg
+{$endif}
 {$ifdef m68k}
        { m68k only }
        ,top_regset
@@ -479,6 +482,10 @@ interface
             top_conditioncode : (cc : TAsmCond);
             top_realconst : (val_real:bestreal);
         {$endif defined(arm) or defined(aarch64)}
+        {$ifdef aarch64}
+            top_regset : (basereg: tregister; nregs, regsetindex: byte);
+            top_indexedreg : (indexedreg: tregister; regindex: byte);
+        {$endif}
         {$ifdef m68k}
             top_regset : (dataregset,addrregset,fpuregset: tcpuregisterset);
             top_regpair : (reghi,reglo: tregister);

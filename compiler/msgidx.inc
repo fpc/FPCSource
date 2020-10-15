@@ -853,6 +853,8 @@ const
   asmr_w_multiple_segment_overrides=07140;
   asmr_w_segment_override_ignored_in_64bit_mode=07141;
   asmr_e_mismatch_broadcasting_elements=07142;
+  asmr_e_invalid_arrangement=07143;
+  asmr_e_a64_invalid_regset=07144;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -1131,9 +1133,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 86101;
+  MsgTxtSize = 86201;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,360,130,99,63,143,36,223,68,
+    28,106,360,130,99,63,145,36,223,68,
     62,20,30,1,1,1,1,1,1,1
   );

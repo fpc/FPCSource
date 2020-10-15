@@ -384,7 +384,7 @@ function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : i
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
   asm
-    { dmb ishld }
+    // { dmb ishld }
     dmb #9
   end;
 
@@ -395,13 +395,13 @@ end;
 
 procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  { dmb ish }
+  // { dmb ish }
   dmb #11
 end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  { dmb ishst }
+  // { dmb ishst }
   dmb #10
 end;
 

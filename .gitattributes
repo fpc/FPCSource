@@ -15582,6 +15582,7 @@ tests/test/tpropdef.pp svneol=native#text/plain
 tests/test/tpushpop1.pp svneol=native#text/pascal
 tests/test/tpushpop2.pp svneol=native#text/pascal
 tests/test/tpushpop3.pp svneol=native#text/pascal
+tests/test/traa641.pp svneol=native#text/plain
 tests/test/trange1.pp svneol=native#text/plain
 tests/test/trange2.pp svneol=native#text/plain
 tests/test/trange3.pp svneol=native#text/plain
