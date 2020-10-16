@@ -111,7 +111,7 @@ begin
               else if (FpuState and (Underflow or AE_Underflow))<>0 then
                 res:=206
               else if (FpuState and PSR_Denormal)<>0 then
-                res:=216
+                res:=206
               { else if (FpuState and (PSR_StackOverflow or PRS_StackUnderflow))<>0 then
                 res:=207, disabled, as there is no fpu stack }
               else if (FpuState and (OperandError or SignalingNan or BranchOnUnordered or AE_InvalidOperation))<>0 then
