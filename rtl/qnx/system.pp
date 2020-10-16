@@ -1,5 +1,4 @@
 {
-    $Id: system.pp,v 1.1.2.2 2002/05/01 14:10:36 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
@@ -263,16 +262,3 @@ begin
   setupexecname;
 end.
 
-
-{
- $Log: system.pp,v $
- Revision 1.1.2.2  2002/05/01 14:10:36  carl
- * Correct structures for stat and dirent
- * correct some compilation problems
- * change types according to 80x86 version
-
- Revision 1.1.2.1  2001/12/20 02:55:01  carl
- + QNX versions (still untested)
-
-
-}

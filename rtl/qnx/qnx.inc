@@ -1,5 +1,4 @@
 {
-    $Id: qnx.inc,v 1.1.2.2 2002/05/01 14:10:36 carl Exp $
     Copyright (c) 2002 by Carl Eric Codere
 
 
@@ -52,16 +51,3 @@ type
   
 function sys_statvfs(const path: pchar; var buf : statvfs_t): cint; cdecl; external name 'statvfs';  
 
-
-
-{ 
- $Log: qnx.inc,v $
- Revision 1.1.2.2  2002/05/01 14:10:36  carl
- * Correct structures for stat and dirent
- * correct some compilation problems
- * change types according to 80x86 version
-
- Revision 1.1.2.1  2001/12/20 02:55:01  carl
- + QNX versions (still untested)
-
-}

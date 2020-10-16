@@ -1,5 +1,4 @@
 {
-    $Id: osposixh.inc,v 1.1.2.5 2002/05/01 14:10:36 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Carl Eric Codere
 
@@ -172,25 +171,3 @@ CONST
     
     {$i signal.inc}
 
-
-{
-  $Log: osposixh.inc,v $
-  Revision 1.1.2.5  2002/05/01 14:10:36  carl
-  * Correct structures for stat and dirent
-  * correct some compilation problems
-  * change types according to 80x86 version
-
-  Revision 1.1.2.4  2002/04/17 17:16:14  carl
-  * more fixes for QNX target
-
-  Revision 1.1.2.3  2001/12/20 02:55:01  carl
-  + QNX versions (still untested)
-
-  Revision 1.1.2.2  2001/11/28 03:11:08  carl
-  + ustname structure max length
-
-  Revision 1.1.2.1  2001/11/26 03:00:10  carl
-  + started qnx port
-
-
-}

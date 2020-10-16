@@ -1,5 +1,4 @@
 |
-|   $Id: gprt0.as,v 1.1.2.3 2001/08/01 13:26:17 pierre Exp $
 |   This file is part of the Free Pascal run time library.
 |   Copyright (c) 2001 by Free Pascal Core Team
 |
@@ -74,19 +73,4 @@ _haltproc:
 |        .globl	___fpc_brk_addr
 |___fpc_brk_addr:
 |       .long	0
-
-
-|
-| $Log: gprt0.as,v $
-| Revision 1.1.2.3  2001/08/01 13:26:17  pierre
-|  * syntax adapted to GNU as
-|
-| Revision 1.1.2.2  2001/07/13 15:43:22  pierre
-|  assembler error corrected
-|
-| Revision 1.1.2.1  2001/07/13 15:38:54  pierre
-|  first version of gprt0.as file
-|
-|
-|
 
