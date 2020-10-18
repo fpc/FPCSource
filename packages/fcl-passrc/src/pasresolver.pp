@@ -1092,7 +1092,7 @@ type
     procedure WriteIdentifiers(Prefix: string); override;
     destructor Destroy; override;
   public
-    References: TPasScopeReferences; // created by TPasAnalyzer in DeclrationProc
+    References: TPasScopeReferences; // created by TPasAnalyzer in DeclarationProc
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     function GetReferences: TFPList;
   end;
