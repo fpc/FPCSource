@@ -168,6 +168,22 @@ ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
 
+DATE_FMT = +%Y/%m/%d
+ifdef SOURCE_DATE_EPOCH
+    COMPDATESTR ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
+else
+   # does a git directory exist? ...
+   GIT_DIR = $(wildcard ../.git)
+   ifneq ($(GIT_DIR),)
+      # ... then take date from head
+      COMPDATESTR:=$(shell git log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+   endif
+endif
+
+ifdef COMPDATESTR
+override OPTNEW+=-DD$(COMPDATESTR)
+endif
+
 ifdef CYCLELEVEL
 ifeq ($(CYCLELEVEL),1)
 override LOCALOPT+=$(OPTLEVEL1)
