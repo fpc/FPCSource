@@ -639,24 +639,75 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredDeclarations(const Path: string;
   Orig, Rest: TPasDeclarations; Flags: TPCCheckFlags);
+
+  function IsSpecialization(El: TPasElement): boolean;
+  begin
+    Result:=(El.CustomData is TPasGenericScope)
+        and (TPasGenericScope(El.CustomData).SpecializedFromItem<>nil);
+  end;
+
 var
-  i: Integer;
+  OrigIndex, RestIndex: Integer;
   OrigDecl, RestDecl: TPasElement;
   SubPath: String;
 begin
-  for i:=0 to Orig.Declarations.Count-1 do
+  // check non specializations
+  RestIndex:=0;
+  for OrigIndex:=0 to Orig.Declarations.Count-1 do
     begin
-    OrigDecl:=TPasElement(Orig.Declarations[i]);
-    if i>=Rest.Declarations.Count then
-      AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
-    RestDecl:=TPasElement(Rest.Declarations[i]);
-    SubPath:=Path+'['+IntToStr(i)+']';
+    OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
+    if IsSpecialization(OrigDecl) then
+      continue;
+    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
     if OrigDecl.Name<>'' then
       SubPath:=SubPath+'"'+OrigDecl.Name+'"'
     else
       SubPath:=SubPath+'?noname?';
+    // skip to next non specializations in restored declarations
+    while RestIndex<Rest.Declarations.Count do
+      begin
+      RestDecl:=TPasElement(Rest.Declarations[RestIndex]);
+      if not IsSpecialization(RestDecl) then
+        break;
+      inc(RestIndex)
+      end;
+    if RestIndex=Rest.Declarations.Count then
+      Fail(SubPath+' missing in restored Declarations');
+    // check
     CheckRestoredElement(SubPath,OrigDecl,RestDecl,Flags);
+    inc(RestIndex);
     end;
+
+  // check specializations
+  for OrigIndex:=0 to Orig.Declarations.Count-1 do
+    begin
+    OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
+    if not IsSpecialization(OrigDecl) then
+      continue;
+    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
+    if OrigDecl.Name<>'' then
+      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
+    else
+      SubPath:=SubPath+'?noname?';
+    // search specialization with same name
+    RestIndex:=0;
+    while RestIndex<Rest.Declarations.Count do
+      begin
+      RestDecl:=TPasElement(Rest.Declarations[RestIndex]);
+      if IsSpecialization(RestDecl) and (OrigDecl.Name=RestDecl.Name) then
+        break;
+      inc(RestIndex);
+      end;
+    if RestIndex=Rest.Declarations.Count then
+      Fail(SubPath+' missing in restored Declarations');
+    // check
+    CheckRestoredElement(SubPath,OrigDecl,RestDecl,Flags);
+
+    // move restored element to original place to generate the same JS
+    if OrigIndex<Rest.Declarations.Count then
+      Rest.Declarations.Move(RestIndex,OrigIndex);
+    end;
+
   AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
 end;
 
@@ -3137,8 +3188,6 @@ end;
 
 procedure TTestPrecompile.TestPC_SpecializeClassSameUnit;
 begin
-  exit;
-
   StartUnit(false);
   Add([
   '{$mode delphi}',
