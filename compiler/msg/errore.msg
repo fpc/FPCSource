@@ -3876,7 +3876,9 @@ J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
+**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2Dd<x>_Set description to <x>
+**2DT<x>_Set the time string returned by %TIME% to x, it is not checked for being a valid time string
 **2Dv<x>_Set DLL version to <x>
 *O2Dw_PM application
 **1e<x>_Set path to executable

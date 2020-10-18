@@ -2491,9 +2491,15 @@ type
            macroIsString:=true;
            case hs of
              'TIME':
-               hs:=gettimestr;
+               if timestr<>'' then
+                 hs:=timestr
+               else
+                 hs:=gettimestr;
              'DATE':
-               hs:=getdatestr;
+               if datestr<>'' then
+                 hs:=datestr
+               else
+                 hs:=getdatestr;
              'DATEYEAR':
                begin
                  hs:=tostr(startsystime.Year);
