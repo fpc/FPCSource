@@ -11885,7 +11885,7 @@ var
 begin
   GenTemplates:=El.GenericTemplateTypes;
   if (GenTemplates=nil) or (GenTemplates.Count=0) then
-    RaiseNotYetImplemented(20190726184902,El,'emty generic template list');
+    RaiseNotYetImplemented(20190726184902,El,'empty generic template list');
 
   // template names must differ from generic type name
   for i:=0 to GenTemplates.Count-1 do
