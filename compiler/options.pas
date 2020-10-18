@@ -1586,6 +1586,16 @@ begin
                         description:=Copy(more,j+1,255);
                         break;
                       end;
+                    'D' :
+                      begin
+                        datestr:=Copy(more,j+1,255);
+                        break;
+                      end;
+                    'T' :
+                      begin
+                        timestr:=Copy(more,j+1,255);
+                        break;
+                      end;
                     'v' :
                       begin
                         dllversion:=Copy(more,j+1,255);
