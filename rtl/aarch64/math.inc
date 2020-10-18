@@ -55,7 +55,7 @@
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
       asm
-        { round as floating point towards zero }
+        // { round as floating point towards zero }
         frintz d0,d0
       end;
     {$endif FPC_SYSTEM_HAS_INT}
