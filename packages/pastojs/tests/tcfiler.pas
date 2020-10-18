@@ -35,6 +35,11 @@ type
     );
   TPCCheckFlags = set of TPCCheckFlag;
 
+  TPCCheckedElementPair = class
+  public
+    Orig, Rest: TPasElement;
+  end;
+
   { TCustomTestPrecompile }
 
   TCustomTestPrecompile = Class(TCustomTestModule)
@@ -44,6 +49,7 @@ type
     FPCUReader: TPCUReader;
     FPCUWriter: TPCUWriter;
     FRestAnalyzer: TPas2JSAnalyzer;
+    FCheckedElements: TPasAnalyzerKeySet; // keyset of TPCCheckedElementPair, key is Orig
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
@@ -78,6 +84,7 @@ type
     procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPas2jsRecordScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredPrecompiledJS(const Path: string; OrigEl: TPasElement; Orig: TPas2JSPrecompiledJS; RestEl: TPasElement; Rest: TPas2JSPrecompiledJS; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredScopeRefs(const Path: string; Orig, Rest: TPasScopeReferences; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredGenericParamScope(const Path: string; Orig, Rest: TPasGenericParamsScope; Flags: TPCCheckFlags); virtual;
@@ -238,6 +245,8 @@ type
   end;
 
 function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
+function CompareCheckedElementPairs(Item1, Item2: Pointer): integer;
+function CompareElWithCheckedElementPair(Key, Item: Pointer): integer;
 
 implementation
 
@@ -249,6 +258,22 @@ begin
   Result:=CompareText(Ref1.Element.Name,Ref2.Element.Name);
   if Result<>0 then exit;
   Result:=ComparePointer(Ref1.Element,Ref2.Element);
+end;
+
+function CompareCheckedElementPairs(Item1, Item2: Pointer): integer;
+var
+  Pair1: TPCCheckedElementPair absolute Item1;
+  Pair2: TPCCheckedElementPair absolute Item2;
+begin
+  Result:=ComparePointer(Pair1.Orig,Pair2.Orig);
+end;
+
+function CompareElWithCheckedElementPair(Key, Item: Pointer): integer;
+var
+  El: TPasElement absolute Key;
+  Pair: TPCCheckedElementPair absolute Item;
+begin
+  Result:=ComparePointer(El,Pair.Orig);
 end;
 
 { TCustomTestPrecompile }
@@ -348,6 +373,7 @@ begin
   inherited SetUp;
   FInitialFlags:=TPCUInitialFlags.Create;
   FAnalyzer:=TPas2JSAnalyzer.Create;
+  FCheckedElements:=TPasAnalyzerKeySet.Create(@CompareCheckedElementPairs,@CompareElWithCheckedElementPair);
   Analyzer.Resolver:=Engine;
   Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
@@ -356,6 +382,11 @@ end;
 
 procedure TCustomTestPrecompile.TearDown;
 begin
+  if FCheckedElements<>nil then
+    begin
+    FCheckedElements.FreeItems;
+    FreeAndNil(FCheckedElements);
+    end;
   FreeAndNil(FAnalyzer);
   FreeAndNil(FPCUWriter);
   FreeAndNil(FPCUReader);
@@ -390,6 +421,7 @@ var
 begin
   InitialParserOptions:=Parser.Options;
   Analyzer.Options:=Analyzer.Options+[paoSkipGenericProc];
+  Converter.Options:=Converter.Options+[coShortRefGlobals,coShortRefGenFunc];
   ConvertUnit;
 
   FPCUWriter:=TPCUWriter.Create;
@@ -534,13 +566,13 @@ begin
   if Orig=nil then
     begin
     if Rest<>nil then
-      Fail(Path+': Orig=nil Rest='+GetObjName(Rest));
+      Fail(Path+': Orig=nil Rest='+GetObjPath(Rest));
     exit(false);
     end
   else if Rest=nil then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest=nil');
+    Fail(Path+': Orig='+GetObjPath(Orig)+' Rest=nil');
   if Orig.ClassType<>Rest.ClassType then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+    Fail(Path+': Orig='+GetObjPath(Orig)+' Rest='+GetObjPath(Rest));
   Result:=true;
 end;
 
@@ -793,8 +825,7 @@ procedure TCustomTestPrecompile.CheckRestoredInitialFinalizationScope(
   Flags: TPCCheckFlags);
 begin
   CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References,Flags);
-  if Orig.JS<>Rest.JS then
-    CheckRestoredJS(Path+'.JS',Orig.JS,Rest.JS);
+  CheckRestoredPrecompiledJS(Path+'.ImplJS',Orig.Element,Orig.ImplJS,Rest.Element,Rest.ImplJS,Flags);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredEnumTypeScope(const Path: string;
@@ -891,10 +922,7 @@ var
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
-  if Orig.BodyJS<>Rest.BodyJS then
-    CheckRestoredJS(Path+'.BodyJS',Orig.BodyJS,Rest.BodyJS);
-
-  CheckRestoredStringList(Path+'.GlobalJS',Orig.GlobalJS,Rest.GlobalJS);
+  CheckRestoredPrecompiledJS(Path+'.ImplJS',Orig.Element,Orig.ImplJS,Rest.Element,Rest.ImplJS,Flags);
 
   if Rest.DeclarationProc=nil then
     begin
@@ -920,6 +948,24 @@ begin
   else
     begin
     // ImplProc
+    end;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredPrecompiledJS(const Path: string;
+  OrigEl: TPasElement; Orig: TPas2JSPrecompiledJS; RestEl: TPasElement;
+  Rest: TPas2JSPrecompiledJS; Flags: TPCCheckFlags);
+begin
+  CheckRestoredObject(Path,Orig,Rest);
+  if Orig=nil then exit;
+  if Flags=[] then ;
+
+  AssertEquals(Path+'.EmptyJS',Orig.EmptyJS,Rest.EmptyJS);
+  if Orig.BodyJS<>Rest.BodyJS then
+    CheckRestoredJS(Path+'.BodyJS',Orig.BodyJS,Rest.BodyJS);
+  if Orig.BodyJS<>'' then
+    begin
+    CheckRestoredStringList(Path+'.GlobalJS',Orig.GlobalJS,Rest.GlobalJS);
+    CheckRestoredElRefList(Path+'.ShortRefs',OrigEl,Orig.ShortRefs,RestEl,Rest.ShortRefs,false,Flags);
     end;
 end;
 
@@ -1180,10 +1226,26 @@ procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
 var
   C: TClass;
   AModule: TPasModule;
+  Pair: TPCCheckedElementPair;
 begin
   //writeln('TCustomTestPrecompile.CheckRestoredElement START Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
   if not CheckRestoredObject(Path,Orig,Rest) then exit;
   //writeln('TCustomTestPrecompile.CheckRestoredElement CheckRestoredObject Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
+
+  Pair:=TPCCheckedElementPair(FCheckedElements.FindKey(Orig));
+  if Pair<>nil then
+    begin
+    if Pair.Rest<>Rest then
+      Fail(Path+': Orig='+GetObjPath(Orig)+' Rest='+GetObjPath(Rest));
+    exit;
+    end
+  else
+    begin
+    Pair:=TPCCheckedElementPair.Create;
+    Pair.Orig:=Orig;
+    Pair.Rest:=Rest;
+    FCheckedElements.Add(Pair,false);
+    end;
 
   AModule:=Orig.GetModule;
   if AModule<>Module then
@@ -1779,9 +1841,9 @@ begin
   RestScope:=Rest.CustomData as TPas2JSProcedureScope;
   if OrigScope=nil then
     exit; // msIgnoreInterfaces
-  CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc',
+  CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc [20201018123102]',
     OrigScope.DeclarationProc,RestScope.DeclarationProc);
-  AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
+  AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName [20201018123057]',OrigScope.ResultVarName,RestScope.ResultVarName);
   DeclProc:=RestScope.DeclarationProc;
   if DeclProc=nil then
     begin
@@ -1808,15 +1870,13 @@ begin
   // Body
   if Orig.Body<>nil then
     begin
-    if Engine.ProcCanBePrecompiled(DeclProc) then
-      begin
-      AssertEquals(Path+'.EmptyJS',OrigScope.EmptyJS,RestScope.EmptyJS);
-      CheckRestoredJS(Path+'.BodyJS',OrigScope.BodyJS,RestScope.BodyJS);
-      CheckRestoredStringList(Path+'.GlobalJS',OrigScope.GlobalJS,RestScope.GlobalJS);
-      end
-    else
+    if not Engine.ProcCanBePrecompiled(DeclProc) then
       begin
       // generic body
+      if OrigScope.ImplJS<>nil then
+        Fail(Path+'.CustomData[TPas2JSProcedureScope].ImplJS [20201018123049] OrigScope.ImplJS<>nil');
+      if RestScope.ImplJS<>nil then
+        Fail(Path+'.CustomData[TPas2JSProcedureScope].ImplJS [20201018123139] RestScope.ImplJS<>nil');
       CheckRestoredProcedureBody(Path+'.Body',Orig.Body,Rest.Body,Flags+[PCCGeneric]);
       end;
     end
