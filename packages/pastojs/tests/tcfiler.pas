@@ -218,11 +218,9 @@ type
     procedure TestPC_GenericFunction_AnonymousProc;
     procedure TestPC_GenericClass;
     procedure TestPC_GenericMethod;
-    procedure TestPC_SpecializeClassSameUnit; // ToDo
-    // ToDo: specialize local generic type in unit interface
-    // ToDo: specialize local generic type in unit implementation
-    // ToDo: specialize local generic type in proc decl
-    // ToDo: specialize local generic type in proc body
+    procedure TestPC_SpecializeClassSameUnit;
+    procedure TestPC_Specialize_LocalTypeInUnit;
+    // ToDo: specialize local generic type via class forward
     // ToDo: inline specialize local generic type in unit interface
     // ToDo: inline specialize local generic type in unit implementation
     // ToDo: inline specialize local generic type in proc decl
@@ -691,21 +689,21 @@ begin
       SubPath:=SubPath+'?noname?';
     // search specialization with same name
     RestIndex:=0;
-    while RestIndex<Rest.Declarations.Count do
-      begin
+    repeat
+      if RestIndex=Rest.Declarations.Count then
+        Fail(SubPath+' missing in restored Declarations');
       RestDecl:=TPasElement(Rest.Declarations[RestIndex]);
       if IsSpecialization(RestDecl) and (OrigDecl.Name=RestDecl.Name) then
         break;
       inc(RestIndex);
-      end;
-    if RestIndex=Rest.Declarations.Count then
-      Fail(SubPath+' missing in restored Declarations');
+    until false;
+
+    if (OrigIndex<Rest.Declarations.Count) and (OrigIndex<>RestIndex) then
+      // move restored element to original place to generate the same JS
+      Rest.Declarations.Move(RestIndex,OrigIndex);
+
     // check
     CheckRestoredElement(SubPath,OrigDecl,RestDecl,Flags);
-
-    // move restored element to original place to generate the same JS
-    if OrigIndex<Rest.Declarations.Count then
-      Rest.Declarations.Move(RestIndex,OrigIndex);
     end;
 
   AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
@@ -1026,12 +1024,14 @@ var
   OrigList, RestList: TFPList;
   i: Integer;
   OrigRef, RestRef: TPasScopeReference;
+  ok: Boolean;
 begin
   if Flags=[] then ;
   CheckRestoredObject(Path,Orig,Rest);
   if Orig=nil then exit;
   OrigList:=nil;
   RestList:=nil;
+  ok:=false;
   try
     OrigList:=Orig.GetList;
     RestList:=Rest.GetList;
@@ -1054,7 +1054,21 @@ begin
       RestRef:=TPasScopeReference(RestList[i]);
       Fail(Path+'['+IntToStr(i)+'] Too many in Rest: "'+RestRef.Element.Name+'"');
       end;
+    ok:=true;
   finally
+    if not ok then
+      begin
+      for i:=0 to OrigList.Count-1 do
+        begin
+        OrigRef:=TPasScopeReference(OrigList[i]);
+        writeln('TCustomTestPrecompile.CheckRestoredScopeRefs Orig[',i,']=',GetObjPath(OrigRef.Element));
+        end;
+      for i:=0 to RestList.Count-1 do
+        begin
+        RestRef:=TPasScopeReference(RestList[i]);
+        writeln('TCustomTestPrecompile.CheckRestoredScopeRefs Rest[',i,']=',GetObjPath(RestRef.Element));
+        end;
+      end;
     OrigList.Free;
     RestList.Free;
   end;
@@ -1264,7 +1278,14 @@ begin
     if RestUsed=nil then
       Fail(Path+': used in OrigAnalyzer, but not used in RestAnalyzer');
     if OrigUsed.Access<>RestUsed.Access then
-      AssertEquals(Path+'->Analyzer.Access',dbgs(OrigUsed.Access),dbgs(RestUsed.Access));
+      begin
+      if (OrigUsed.Access in [paiaReadWrite,paiaWriteRead])
+          and (RestUsed.Access in [paiaReadWrite,paiaWriteRead])
+          and not (Orig.Parent is TProcedureBody) then
+        // readwrite or writeread is irrelevant for globals
+      else
+        AssertEquals(Path+'->Analyzer.Access',dbgs(OrigUsed.Access),dbgs(RestUsed.Access));
+      end;
     end
   else if RestAnalyzer.IsUsed(Rest) then
     begin
@@ -3204,7 +3225,46 @@ begin
   'implementation',
   'begin',
   '  b.a:=1.3;',
-  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Specialize_LocalTypeInUnit;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird<T> = class',
+  '    a: T;',
+  '  end;',
+  //'  TDoubleBird = TBIrd<double>;',
+  //'var',
+  //'  db: TDoubleBird;',
+  'procedure Fly;',
+  'implementation',
+  'type',
+  '  TWordBird = TBird<word>;',
+  'procedure Run;',
+  //'type TShortIntBird = TBird<shortint>;',
+  'var',
+  //'  shb: TShortIntBird;',
+  '  wb: TWordBird;',
+  'begin',
+  //'  shb.a:=3;',
+  '  wb.a:=4;',
+  'end;',
+  'procedure Fly;',
+  //'type TByteBird = TBird<byte>;',
+  //'var bb: TByteBird;',
+  'begin',
+  //'  bb.a:=5;',
+  '  Run;',
+  'end;',
+  'begin',
   '']);
   WriteReadUnit;
 end;
