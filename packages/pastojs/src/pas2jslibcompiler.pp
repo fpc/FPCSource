@@ -67,8 +67,6 @@ Type
     FOnWriteJSCallBack: TWriteJSCallBack;
     FOnWriteJSData: Pointer;
     FReadBufferLen: Cardinal;
-    function GetLogEncoding: String;
-    procedure SetLogEncoding(AValue: String);
   Protected
     Function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
     Procedure GetLastError(AError : PAnsiChar; Var AErrorLength : Longint;
@@ -82,7 +80,6 @@ Type
     Function LibraryRun(ACompilerExe, AWorkingDir : PAnsiChar; CommandLine : PPAnsiChar; DoReset : Boolean) :Boolean; {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
     Property LastError : String Read FLastError Write FLastError;
     Property LastErrorClass : String Read FLastErrorClass Write FLastErrorClass;
-    property LogEncoding: String  read GetLogEncoding write SetLogEncoding;
     Property OnLibLogCallBack : TLibLogCallBack Read FOnLibLogCallBack Write FOnLibLogCallBack;
     Property OnLibLogData : Pointer Read FOnLibLogData Write FOnLibLogData;
     Property OnWriteJSCallBack : TWriteJSCallBack Read FOnWriteJSCallBack Write FOnWriteJSCallBack;
@@ -110,7 +107,6 @@ Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAns
 Procedure FreePas2JSCompiler(P : PPas2JSCompiler); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 Function GetPas2JSCompiler : PPas2JSCompiler; {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 Procedure GetPas2JSCompilerLastError(P : PPas2JSCompiler; AError : PAnsiChar; Var AErrorLength : Longint; AErrorClass : PAnsiChar; Var AErrorClassLength : Longint); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
-procedure SetPas2JSLogEncoding(P : PPas2JSCompiler; Enconding: PAnsiChar); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 
 implementation
 
@@ -122,16 +118,6 @@ begin
   Result:=false; // return false to call the default TPas2jsCachedDirectory.DoReadDir
   if Assigned(OnReadDir) then
     Result:=OnReadDir(FOnReadDirData,Dir,PAnsiChar(Dir.Path));
-end;
-
-function TLibraryPas2JSCompiler.GetLogEncoding: String;
-begin
-  Result := Log.Encoding;
-end;
-
-procedure TLibraryPas2JSCompiler.SetLogEncoding(AValue: String);
-begin
-  Log.Encoding := AValue;
 end;
 
 function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean;
@@ -356,11 +342,6 @@ procedure GetPas2JSCompilerLastError(P: PPas2JSCompiler; AError: PAnsiChar;
 
 begin
   TLibraryPas2JSCompiler(P).GetLastError(AError,AErrorLength,AErrorClass,AErrorClassLength);
-end;
-
-procedure SetPas2JSLogEncoding(P : PPas2JSCompiler; Enconding: PAnsiChar); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
-begin
-  TLibraryPas2JSCompiler(P).LogEncoding := Enconding;
 end;
 
 end.

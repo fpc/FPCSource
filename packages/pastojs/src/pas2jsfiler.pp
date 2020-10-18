@@ -95,7 +95,7 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 6;
+  PCUVersion = 7;
   { Version Changes:
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
@@ -106,6 +106,7 @@ const
        not the whole $init function (pas2js 1.5)
     5: removed modeswitch ignoreattributes
     6: default DispatchField=Msg, DispatchStrField=MsgStr
+    7: InitializationSection JS replaced with Body, Empty
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -253,7 +254,8 @@ const
     'RTLVersionCheckMain',
     'RTLVersionCheckSystem',
     'RTLVersionCheckUnit',
-    'AliasGlobals'
+    'ShortRefGlobals',
+    'ShortRefGenFuncs'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;
@@ -813,7 +815,7 @@ type
       DefaultKind: TPasExprKind; DefaultOpCode: TExprOpCode; aContext: TPCUWriterContext); virtual;
     procedure WritePasExprArray(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; const ExprArr: TPasExprArray; aContext: TPCUWriterContext); virtual;
-    // references of a impl block which statements are not stored
+    // references of an impl block which statements are not stored
     procedure WriteScopeReferences(Obj: TJSONObject; References: TPasScopeReferences;
       const PropName: string; aContext: TPCUWriterContext); virtual;
     // extern references
@@ -872,6 +874,7 @@ type
     procedure WriteProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUWriterContext); virtual;
     procedure WriteOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPCUWriterContext); virtual;
     procedure WriteAttributes(Obj: TJSONObject; El: TPasAttributes; aContext: TPCUWriterContext); virtual;
+    procedure WritePrecompiledJS(Obj: TJSONObject; El: TPasElement; ImplJS: TPas2JSPrecompiledJS; aContext: TPCUWriterContext); virtual;
     procedure WriteImplCommand(Obj: TJSONObject; El: TPasImplCommand; aContext: TPCUWriterContext); virtual;
     procedure WriteImplBeginBlock(Obj: TJSONObject; El: TPasImplBeginBlock; aContext: TPCUWriterContext); virtual;
     procedure WriteImplAsmStatement(Obj: TJSONObject; El: TPasImplAsmStatement; aContext: TPCUWriterContext); virtual;
@@ -1177,6 +1180,7 @@ type
     procedure ReadProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPCUReaderContext); virtual;
     procedure ReadOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPCUReaderContext); virtual;
     procedure ReadAttributes(Obj: TJSONObject; El: TPasAttributes; aContext: TPCUReaderContext); virtual;
+    procedure ReadPrecompiledJS(Obj: TJSONObject; El: TPasElement; ImplJS: TPas2JSPrecompiledJS; aContext: TPCUReaderContext); virtual;
     procedure ReadImplCommand(Obj: TJSONObject; El: TPasImplCommand; aContext: TPCUReaderContext); virtual;
     procedure ReadImplBeginBlock(Obj: TJSONObject; El: TPasImplBeginBlock; aContext: TPCUReaderContext); virtual;
     procedure ReadImplAsmStatement(Obj: TJSONObject; El: TPasImplAsmStatement; aContext: TPCUReaderContext); virtual;
@@ -2569,12 +2573,16 @@ procedure TPCUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
   procedure WImplBlock(Block: TPasImplBlock; const PropPrefix: string);
   var
     Scope: TPas2JSInitialFinalizationScope;
+    ImplJS: TPas2JSPrecompiledJS;
+    Sub: TJSONObject;
   begin
     if Block=nil then exit;
     Scope:=Block.CustomData as TPas2JSInitialFinalizationScope;
-    if Scope.JS<>'' then
-      Obj.Add(PropPrefix+'JS',Scope.JS);
-    WriteScopeReferences(Obj,Scope.References,PropPrefix+'Refs',aContext);
+    ImplJS:=Scope.ImplJS;
+    Sub:=TJSONObject.Create;
+    Obj.Add(PropPrefix,Sub);
+    WriteScopeReferences(Sub,Scope.References,'Refs',aContext);
+    WritePrecompiledJS(Sub,Block,ImplJS,aContext);
   end;
 
   procedure RaisePending(Ref: TPCUFilerElementRef);
@@ -4511,8 +4519,6 @@ procedure TPCUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
 var
   DefProcMods, ImplProcMods, DeclProcMods: TProcedureModifiers;
   Scope: TPas2JSProcedureScope;
-  Arr: TJSONArray;
-  i: Integer;
   DeclProc: TPasProcedure;
   DeclScope: TPas2JsProcedureScope;
   BodyObj: TJSONObject;
@@ -4527,6 +4533,8 @@ begin
     // spezialiations are generated on the fly -> cannot be stored
     RaiseMsg(20191120180305,El,GetObjPath(Scope.SpecializedFromItem.FirstSpecialize));
     end;
+  if (Scope.ImplJS<>nil) and (Scope.ImplProc<>nil) then
+    RaiseMsg(20180228142831,El);
 
   if Scope.DeclarationProc=nil then
     begin
@@ -4575,23 +4583,12 @@ begin
       WriteScopeReferences(Obj,DeclScope.References,'Refs',aContext);
 
       // precompiled body
-      if Scope.BodyJS<>'' then
-        begin
-        if Scope.GlobalJS<>nil then
-          begin
-          Arr:=TJSONArray.Create;
-          Obj.Add('Globals',Arr);
-          for i:=0 to Scope.GlobalJS.Count-1 do
-            Arr.Add(Scope.GlobalJS[i]);
-          end;
-        Obj.Add('Body',Scope.BodyJS);
-        Obj.Add('Empty',Scope.EmptyJS);
-        end;
+      WritePrecompiledJS(Obj,El,Scope.ImplJS,aContext);
       end
     else
       begin
       // generic function: store pascal elements
-      if Scope.BodyJS<>'' then
+      if Scope.ImplJS<>nil then
         RaiseMsg(20191120171941,El);
       ImplProcMods:=El.Modifiers*PCUProcedureModifiersImplProc;
       DeclProcMods:=DeclProc.Modifiers*PCUProcedureModifiersImplProc;
@@ -4606,8 +4603,6 @@ begin
       aContext.InGeneric:=OldInGeneric;
       end;
     end;
-  if (Scope.BodyJS<>'') and (Scope.ImplProc<>nil) then
-    RaiseMsg(20180228142831,El);
 end;
 
 procedure TPCUWriter.WriteOperator(Obj: TJSONObject; El: TPasOperator;
@@ -4624,6 +4619,30 @@ procedure TPCUWriter.WriteAttributes(Obj: TJSONObject; El: TPasAttributes;
 begin
   WritePasElement(Obj,El,aContext);
   WritePasExprArray(Obj,El,'Calls',El.Calls,aContext);
+end;
+
+procedure TPCUWriter.WritePrecompiledJS(Obj: TJSONObject; El: TPasElement;
+  ImplJS: TPas2JSPrecompiledJS; aContext: TPCUWriterContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+begin
+  if ImplJS=nil then exit;
+  if (ImplJS.BodyJS<>'') then
+    begin
+    if ImplJS.GlobalJS<>nil then
+      begin
+      Arr:=TJSONArray.Create;
+      Obj.Add('Globals',Arr);
+      for i:=0 to ImplJS.GlobalJS.Count-1 do
+        Arr.Add(ImplJS.GlobalJS[i]);
+      end;
+    if ImplJS.ShortRefs<>nil then
+      WriteElementList(Obj,El,'ShortRefs',ImplJS.ShortRefs,aContext,true);
+    Obj.Add('Body',ImplJS.BodyJS);
+    end;
+  if ImplJS.EmptyJS then
+    Obj.Add('Empty',ImplJS.EmptyJS);
 end;
 
 procedure TPCUWriter.WriteImplCommand(Obj: TJSONObject; El: TPasImplCommand;
@@ -7799,13 +7818,23 @@ var
     const PropPrefix: string);
   var
     Scope: TPas2JSInitialFinalizationScope;
-    s: string;
+    ImplJS: TPas2JSPrecompiledJS;
+    Sub: TJSONObject;
   begin
     Scope:=TPas2JSInitialFinalizationScope(Resolver.CreateScope(Block,Resolver.ScopeClass_InitialFinalization));
     Block.CustomData:=Scope;
-    if not ReadString(Obj,PropPrefix+'JS',s,Block) then exit;
-    Scope.JS:=s;
-    ReadScopeReferences(Obj,Scope,PropPrefix+'Refs',Scope.References);
+    ImplJS:=TPas2JSPrecompiledJS.Create;
+    Scope.ImplJS:=ImplJS;
+    if FileVersion<7 then
+      begin
+      ReadScopeReferences(Obj,Scope,PropPrefix+'Refs',Scope.References);
+      ReadString(Obj,PropPrefix+'JS',ImplJS.BodyJS,Block);
+      end
+    else if ReadObject(Obj,PropPrefix,Sub,Block) then
+      begin
+      ReadScopeReferences(Sub,Scope,'Refs',Scope.References);
+      ReadPrecompiledJS(Sub,Block,ImplJS,aContext);
+      end;
   end;
 
 var
@@ -7858,12 +7887,14 @@ begin
           TImplementationSection) then
         exit; // pending uses interfaces -> pause
       end;
-    if Obj.Find('InitJS')<>nil then
+    if (Obj.Find('Init')<>nil)
+        or ((FileVersion<7) and (Obj.Find('InitJS')<>nil)) then
       begin
       aModule.InitializationSection:=TInitializationSection(CreateElement(TInitializationSection,'',aModule));
       ReadInitialFinal(Obj,aModule.InitializationSection,'Init');
       end;
-    if Obj.Find('FinalJS')<>nil then
+    if (Obj.Find('Final')<>nil)
+        or ((FileVersion<7) and (Obj.Find('FinalJS')<>nil)) then
       begin
       aModule.FinalizationSection:=TFinalizationSection(CreateElement(TFinalizationSection,'',aModule));
       ReadInitialFinal(Obj,aModule.FinalizationSection,'Final');
@@ -9027,22 +9058,18 @@ procedure TPCUReader.ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure;
 var
   ImplScope: TPas2JSProcedureScope;
   s: string;
-  Arr: TJSONArray;
-  i: Integer;
-  Data: TJSONData;
   DeclProc: TPasProcedure;
   BodyObj, BodyBodyObj: TJSONObject;
   ProcBody: TProcedureBody;
   ImplEl: TPasElement;
   OldInGeneric: Boolean;
+  ImplJS: TPas2JSPrecompiledJS;
 begin
   ImplScope:=TPas2JSProcedureScope(El.CustomData);
   if ImplScope.ImplProc<>nil then
     RaiseMsg(20191231152850,El);
-  if ImplScope.BodyJS<>'' then
-    RaiseMsg(20180228231510,El);
-  if ImplScope.GlobalJS<>nil then
-    RaiseMsg(20180228231511,El);
+  if ImplScope.ImplJS<>nil then
+    RaiseMsg(20201018121506,El);
   DeclProc:=ImplScope.DeclarationProc;
   if DeclProc=nil then
     DeclProc:=El;
@@ -9050,20 +9077,9 @@ begin
   if Resolver.ProcCanBePrecompiled(DeclProc) then
     begin
     // normal proc (non generic)
-    if not ReadString(Obj,'Body',s,El) then
-      RaiseMsg(20180228131232,El);
-    ReadBoolean(Obj,'Empty',ImplScope.EmptyJS,El);
-    ImplScope.BodyJS:=s;
-    if ReadArray(Obj,'Globals',Arr,El) then
-      begin
-      for i:=0 to Arr.Count-1 do
-        begin
-        Data:=Arr[i];
-        if not (Data is TJSONString) then
-          RaiseMsg(20180228231555,El,IntToStr(i)+':'+GetObjName(Data));
-        ImplScope.AddGlobalJS(Data.AsString);
-        end;
-      end;
+    ImplJS:=TPas2JSPrecompiledJS.Create;
+    ImplScope.ImplJS:=ImplJS;
+    ReadPrecompiledJS(Obj,El,ImplJS,aContext);
     end
   else
     begin
@@ -9215,6 +9231,35 @@ procedure TPCUReader.ReadAttributes(Obj: TJSONObject; El: TPasAttributes;
 begin
   ReadPasElement(Obj,El,aContext);
   ReadPasExprArray(Obj,El,'Calls',El.Calls,aContext);
+end;
+
+procedure TPCUReader.ReadPrecompiledJS(Obj: TJSONObject; El: TPasElement;
+  ImplJS: TPas2JSPrecompiledJS; aContext: TPCUReaderContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  Data: TJSONData;
+begin
+  ReadString(Obj,'Body',ImplJS.BodyJS,El);
+  ReadBoolean(Obj,'Empty',ImplJS.EmptyJS,El);
+
+  if ReadArray(Obj,'Globals',Arr,El) then
+    begin
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONString) then
+        RaiseMsg(20180228231555,El,IntToStr(i)+':'+GetObjName(Data));
+      if ImplJS.GlobalJS=nil then
+        ImplJS.GlobalJS:=TStringList.Create;
+      ImplJS.GlobalJS.Add(Data.AsString);
+      end;
+    end;
+
+  ImplJS.ShortRefs:=TFPList.Create;
+  ReadElementList(Obj,El,'ShortRefs',ImplJS.ShortRefs,false,aContext);
+  if ImplJS.ShortRefs.Count=0 then
+    FreeAndNil(ImplJS.ShortRefs);
 end;
 
 procedure TPCUReader.ReadImplCommand(Obj: TJSONObject; El: TPasImplCommand;
