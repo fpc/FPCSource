@@ -3572,6 +3572,9 @@ implementation
         canbesignedconst, canbeunsignedconst: boolean;
       begin
         result := false;
+        { make sure that if there is a constant, that it's on the right }
+        if left.nodetype = ordconstn then
+          swapleftright;
         if is_32to64typeconv(left) then
           begin
             leftoriginallysigned:=is_signed(ttypeconvnode(left).left.resultdef);
@@ -3747,11 +3750,7 @@ implementation
 
         { make sure that if there is a constant, that it's on the right }
         if left.nodetype = ordconstn then
-          begin
-            temp := right;
-            right := left;
-            left := temp;
-          end;
+          swapleftright;
 
         { can we use a shift instead of a mul? }
         if not (cs_check_overflow in current_settings.localswitches) and
