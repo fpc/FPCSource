@@ -180,7 +180,7 @@ type
     {$ifdef pas2js}
     constructor Create(const OnItemToName, OnKeyToName: TPASItemToNameProc); reintroduce;
     {$else}
-    constructor Create(const OnCompareMethod: TListSortCompare;
+    constructor Create(const OnCompareProc: TListSortCompare;
       const OnCompareKeyWithData: TListSortCompare);
     {$endif}
     destructor Destroy; override;
@@ -198,7 +198,7 @@ type
 
   TPasAnalyzerOption = (
     paoOnlyExports, // default: use all class members accessible from outside (protected, but not private)
-    paoImplReferences, // collect references of top lvl proc implementations, initializationa dn finalization sections
+    paoImplReferences, // collect references of top lvl proc implementations, initializationa and finalization sections
     paoSkipGenericProc // ignore generic procedure body
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
@@ -434,10 +434,10 @@ begin
   FItems:=TJSObject.new;
 end;
 {$else}
-constructor TPasAnalyzerKeySet.Create(const OnCompareMethod: TListSortCompare;
+constructor TPasAnalyzerKeySet.Create(const OnCompareProc: TListSortCompare;
   const OnCompareKeyWithData: TListSortCompare);
 begin
-  FTree:=TAVLTree.Create(OnCompareMethod);
+  FTree:=TAVLTree.Create(OnCompareProc);
   FCompareKeyWithData:=OnCompareKeyWithData;
 end;
 {$endif}
@@ -1009,6 +1009,8 @@ procedure TPasAnalyzer.MarkImplScopeRef(El, RefEl: TPasElement;
 
     if (RefEl.Name='') and not (RefEl is TInterfaceSection) then
       exit; // reference to anonymous type -> not needed
+    if RefEl=ElImplScope.Element then
+      exit;
     if ElImplScope is TPasProcedureScope then
       TPasProcedureScope(ElImplScope).AddReference(RefEl,Access)
     else if ElImplScope is TPasInitialFinalizationScope then

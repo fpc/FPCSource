@@ -1,5 +1,4 @@
 {
-    $Id: dos.inc,v 1.1.2.2 2002/05/01 14:09:49 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Carl Eric Codere
 
@@ -150,13 +149,3 @@ begin
   GetTimezoneFile:='';
 end;
 
-
-{
- $Log: dos.inc,v $
- Revision 1.1.2.2  2002/05/01 14:09:49  carl
- + TZ is now taken from GetTimezoneSitrng instead of getenv
-
- Revision 1.1.2.1  2001/12/20 02:55:00  carl
- + QNX versions (still untested)
-
-}

@@ -261,10 +261,22 @@ interface
         R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
         R_SUBFLAGDIRECTION, { = 22; Direction flag }
 {$endif Z80}
-        R_SUBMM8B,          { = 23; for part of v regs on aarch64 }
-        R_SUBMM16B,         { = 24; for part of v regs on aarch64 }
         { subregisters for the metadata register (llvm) }
-        R_SUBMETASTRING     { = 25 }
+        R_SUBMETASTRING    { = 23 }
+{$ifdef aarch64}
+        , R_SUBMM8B          { = 24; for arrangement of v regs on aarch64 }
+        , R_SUBMM16B         { = 25; for arrangement of v regs on aarch64 }
+        , R_SUBMM4H          { = 26; for arrangement of v regs on aarch64 }
+        , R_SUBMM8H          { = 27; for arrangement of v regs on aarch64 }
+        , R_SUBMM2S          { = 28; for arrangement of v regs on aarch64 }
+        , R_SUBMM4S          { = 29; for arrangement of v regs on aarch64 }
+        , R_SUBMM1D          { = 30; for arrangement of v regs on aarch64 }
+        , R_SUBMM2D          { = 31; for arrangement of v regs on aarch64 }
+        , R_SUBMMB1          { = 32; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMH1          { = 33; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMS1          { = 34; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMD1          { = 35; for arrangement of v regs on aarch64; for use with ldN/stN }
+{$endif aarch64}
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -730,8 +742,30 @@ implementation
             result:=result+'my';
           R_SUBMMZ:
             result:=result+'mz';
+{$ifdef aarch64}
           R_SUBMM8B:
             result:=result+'m8b';
+          R_SUBMM16B:
+            result:=result+'m16b';
+          R_SUBMM4H:
+            result:=result+'m4h';
+          R_SUBMM8H:
+            result:=result+'m8h';
+          R_SUBMM2S:
+            result:=result+'m2s';
+          R_SUBMM4S:
+            result:=result+'m4s';
+          R_SUBMM2D:
+            result:=result+'m2d';
+          R_SUBMMB1:
+            result:=result+'mb1';
+          R_SUBMMH1:
+            result:=result+'mh1';
+          R_SUBMMS1:
+            result:=result+'ms1';
+          R_SUBMMD1:
+            result:=result+'md1';
+{$endif}
           else
             internalerror(200308252);
         end;

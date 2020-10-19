@@ -1144,6 +1144,18 @@ type
     function Add(const Identifier: String; El: TPasElement): TPasIdentifier; virtual;
   end;
 
+  { TPas2JSPrecompiledJS - Option coStoreImplJS }
+
+  TPas2JSPrecompiledJS = class
+  public
+    BodyJS: string;
+    EmptyJS: boolean; // true if Body.Body=nil
+    GlobalJS: TStringList;
+    ShortRefs: TFPList; // list of TPasElement needing a SectionContext.AddLocalVar
+    procedure AddShortRef(El: TPasElement);
+    destructor Destroy; override;
+  end;
+
   { TPas2JSSectionScope
     JSElement is TJSSourceElements }
 
@@ -1160,7 +1172,8 @@ type
 
   TPas2JSInitialFinalizationScope = class(TPasInitialFinalizationScope)
   public
-    JS: string; // Option coStoreProcJS
+    ImplJS: TPas2JSPrecompiledJS; // Option coStoreImplJS
+    destructor Destroy; override;
   end;
 
   TMessageIdToProc_List = TStringList;
@@ -1199,9 +1212,7 @@ type
     JSName: string;
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     BodyOverloadsRenamed: boolean;
-    BodyJS: string; // Option coStoreProcJS: stored in ImplScope
-    GlobalJS: TStringList; // Option coStoreProcJS: stored in ImplScope
-    EmptyJS: boolean; // Option coStoreProcJS: stored in ImplScope, true if Body.Body=nil
+    ImplJS: TPas2JSPrecompiledJS; // Option coStoreImplJS: stored in ImplScope
     procedure AddGlobalJS(const JS: string);
     destructor Destroy; override;
   end;
@@ -1365,7 +1376,8 @@ type
     coRTLVersionCheckMain, // insert rtl version check into main
     coRTLVersionCheckSystem, // insert rtl version check into system unit init
     coRTLVersionCheckUnit, // insert rtl version check into every unit init
-    coShortRefGlobals // use short local variables for global identifiers
+    coShortRefGlobals, // use short local variables for global identifiers
+    coShortRefGenFunc // create short local vars for generic methods
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
@@ -1925,6 +1937,8 @@ type
     Function CreateGlobalAliasForeign(El: TPasElement; JSPath: string; AContext: TConvertContext): string; virtual; // El in other module
     Function CreateGlobalAliasNull(El: TPasElement; Prefix: TPas2JSBuiltInName;
       SectionContext: TSectionContext): TFCLocalIdentifier; virtual;
+    Procedure CreateGlobalAlias_List(ElRefList: TFPList; AContext: TConvertContext); virtual;
+    Function ElNeedsGlobalAlias(El: TPasElement): boolean; virtual;
     // utility functions for creating stuff
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
@@ -2002,13 +2016,15 @@ type
     Function CreateRangeCheckCall_TypeRange(aType: TPasType; GetExpr: TJSElement;
       AContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
     // reference
-    Function CreateReferencePath(El: TPasElement; AContext : TConvertContext;
+    Function CreateReferencePath(El: TPasElement; AContext: TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
-    Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext;
+    Function CreateReferencePathExpr(El: TPasElement; AContext: TConvertContext;
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
-    Function CreateGlobalTypePath(El: TPasType; AContext : TConvertContext): string; virtual;
-    Function CreateStaticProcPath(El: TPasProcedure; AContext : TConvertContext): string; virtual;
-    Function CreateGlobalElPath(El: TPasElement; AContext : TConvertContext): string; virtual;
+    Function CreateGlobalTypePath(El: TPasType; AContext: TConvertContext): string; virtual;
+    Function CreateStaticProcPath(El: TPasProcedure; AContext: TConvertContext): string; virtual;
+    Function CreateGlobalElPath(El: TPasElement; AContext: TConvertContext): string; virtual;
+    Function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds; AContext: TConvertContext): string;
+    Procedure StoreImplJSLocal(El: TPasElement; AContext: TConvertContext); virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -2394,6 +2410,14 @@ begin
   Result:='['+Result+']';
 end;
 
+{ TPas2JSInitialFinalizationScope }
+
+destructor TPas2JSInitialFinalizationScope.Destroy;
+begin
+  FreeAndNil(ImplJS);
+  inherited Destroy;
+end;
+
 { TInterfaceSectionContext }
 
 destructor TInterfaceSectionContext.Destroy;
@@ -2682,18 +2706,37 @@ begin
   ElevatedLocals.FElevatedLocals.ForEachCall(@OnWriteItem,Pointer(Prefix));
 end;
 
+{ TPas2JSPrecompiledJS }
+
+procedure TPas2JSPrecompiledJS.AddShortRef(El: TPasElement);
+begin
+  if ShortRefs=nil then
+    ShortRefs:=TFPList.Create;
+  if ShortRefs.IndexOf(El)<0 then
+    ShortRefs.Add(El);
+end;
+
+destructor TPas2JSPrecompiledJS.Destroy;
+begin
+  FreeAndNil(GlobalJS);
+  FreeAndNil(ShortRefs);
+  inherited Destroy;
+end;
+
 { TPas2JSProcedureScope }
 
 procedure TPas2JSProcedureScope.AddGlobalJS(const JS: string);
 begin
-  if GlobalJS=nil then
-    GlobalJS:=TStringList.Create;
-  GlobalJS.Add(Js);
+  if ImplJS=nil then
+    raise Exception.Create('[20201018120133] TPas2JSProcedureScope.AddGlobalJS');
+  if ImplJS.GlobalJS=nil then
+    ImplJS.GlobalJS:=TStringList.Create;
+  ImplJS.GlobalJS.Add(Js);
 end;
 
 destructor TPas2JSProcedureScope.Destroy;
 begin
-  FreeAndNil(GlobalJS);
+  FreeAndNil(ImplJS);
   inherited Destroy;
 end;
 
@@ -6886,8 +6929,8 @@ begin
   Scope:=Proc.CustomData as TPas2JSProcedureScope;
   if Scope.ImplProc<>nil then
     Scope:=Scope.ImplProc.CustomData as TPas2JSProcedureScope;
-  if Scope.BodyJS<>'' then
-    Result:=not Scope.EmptyJS;
+  if (Scope.ImplJS<>nil) and (Scope.ImplJS.BodyJS<>'') then
+    Result:=not Scope.ImplJS.EmptyJS;
 end;
 
 function TPas2JSResolver.HasAnonymousFunctions(El: TPasImplElement): boolean;
@@ -7780,6 +7823,7 @@ Var
   Prg: TPasProgram;
   Lib: TPasLibrary;
   AssignSt: TJSSimpleAssignStatement;
+  IntfSecCtx: TInterfaceSectionContext;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -7859,6 +7903,7 @@ begin
         end
       else
         begin // unit
+        IntfSecCtx:=TInterfaceSectionContext(IntfContext);
         if Assigned(El.ImplementationSection) then
           begin
           // add var $impl = $mod.$impl
@@ -7866,16 +7911,20 @@ begin
             CreateMemberExpression([ModVarName,GetBIName(pbivnImplementation)]),El);
           AddToSourceElements(Src,ImplVarSt);
           // register local var $impl
-          IntfContext.AddLocalVar(GetBIName(pbivnImplementation),El.ImplementationSection,cvkGlobal,false);
+          IntfSecCtx.AddLocalVar(GetBIName(pbivnImplementation),El.ImplementationSection,cvkGlobal,false);
           end;
         if Assigned(El.InterfaceSection) then
-          AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
+          AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfSecCtx));
 
-        ImplFunc:=CreateImplementationSection(El,TInterfaceSectionContext(IntfContext));
+        ImplFunc:=CreateImplementationSection(El,IntfSecCtx);
         if ImplFunc=nil then
           begin
           // remove unneeded $impl from interface
           RemoveFromSourceElements(Src,ImplVarSt);
+          if IntfSecCtx.HeaderIndex>0 then
+            dec(IntfSecCtx.HeaderIndex);
+          if IntfSecCtx.ImplHeaderIndex>0 then
+            dec(IntfSecCtx.ImplHeaderIndex);
           HasImplUsesClause:=length(El.ImplementationSection.UsesClause)>0;
           end
         else
@@ -7891,7 +7940,7 @@ begin
           // add implementation uses list: [<implementation uses1>,<uses2>, ...]
           ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
 
-        CreateInitSection(El,Src,IntfContext);
+        CreateInitSection(El,Src,IntfSecCtx);
 
         end;
     finally
@@ -9470,7 +9519,7 @@ var
 begin
   if AContext.IsGlobal then
     begin
-    ParentName:=AContext.GetLocalName(El.Parent,[cvkGlobal,cvkCurType,cvkInstance]);
+    ParentName:=GetLocalName(El.Parent,[cvkGlobal,cvkCurType],AContext);
     if ParentName='' then
       ParentName:='this';
     if JSName[1]='[' then
@@ -10100,7 +10149,7 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
     SelfContext:=AContext.GetSelfContext;
     if SelfContext=nil then
       RaiseInconsistency(20170418114702,El);
-    SelfName:=AContext.GetLocalName(SelfContext.ThisVar.Element,[cvkCurType,cvkInstance]);
+    SelfName:=GetLocalName(SelfContext.ThisVar.Element,[cvkCurType,cvkInstance],AContext);
 
     if Apply and (SelfContext<>AContext) then
       DoError(20170418204325,nNestedInheritedNeedsParameters,sNestedInheritedNeedsParameters,
@@ -15482,6 +15531,8 @@ begin
         JSName:=SectionContext.GetLocalName(El,[cvkGlobal]);
         if JSName='' then
           RaiseNotSupported(El,AContext,20200926232620);
+        if coStoreImplJS in Options then
+          StoreImplJSLocal(El,AContext);
         // $lt = this.TypeName = {}
         AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
         AssignSt.LHS:=CreatePrimitiveDotExpr(JSName,El);
@@ -16259,6 +16310,7 @@ Var
   aResolver: TPas2JSResolver;
   IsClassConDestructor: Boolean;
   ThisKind: TCtxVarKind;
+  ImplJS: TPas2JSPrecompiledJS;
 begin
   Result:=nil;
 
@@ -16282,11 +16334,12 @@ begin
     ImplProc:=ProcScope.ImplProc;
   ImplProcScope:=TPas2JSProcedureScope(ImplProc.CustomData);
 
-  if ImplProcScope.BodyJS<>'' then
+  ImplJS:=ImplProcScope.ImplJS;
+  if ImplJS<>nil then
     begin
     // using precompiled code
     TPasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
-    if ImplProcScope.GlobalJS<>nil then
+    if ImplJS.GlobalJS<>nil then
       begin
       ConstContext:=AContext.GetGlobalFunc;
       if not (ConstContext.JSElement is TJSSourceElements) then
@@ -16297,19 +16350,29 @@ begin
         RaiseNotSupported(El,AContext,20180228231008);
         end;
       ConstSrcElems:=TJSSourceElements(ConstContext.JSElement);
-      for i:=0 to ImplProcScope.GlobalJS.Count-1 do
+      for i:=0 to ImplJS.GlobalJS.Count-1 do
         begin
         // precompiled global var or type
         Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
-        Lit.Value.CustomValue:=StrToJSString(ImplProcScope.GlobalJS[i]);
+        Lit.Value.CustomValue:=StrToJSString(ImplJS.GlobalJS[i]);
         AddToSourceElements(ConstSrcElems,Lit);
         end;
       end;
+    if coShortRefGlobals in Options then
+      CreateGlobalAlias_List(ImplJS.ShortRefs,AContext);
     // precompiled body
     Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
-    Lit.Value.CustomValue:=StrToJSString(ImplProcScope.BodyJS);
+    Lit.Value.CustomValue:=StrToJSString(ImplJS.BodyJS);
     Result:=Lit;
     exit;
+    end
+  else if (coStoreImplJS in Options) and (aResolver<>nil) then
+    begin
+    if aResolver.ProcCanBePrecompiled(El) then
+      begin
+      ImplJS:=TPas2JSPrecompiledJS.Create;
+      ImplProcScope.ImplJS:=ImplJS;
+      end;
     end;
 
   AssignSt:=nil;
@@ -16477,13 +16540,10 @@ begin
     end;
     end;
 
-  if (coStoreImplJS in Options) and (aResolver<>nil) then
+  if ImplJS<>nil then
     begin
-    if aResolver.ProcCanBePrecompiled(El) then
-      begin
-      ImplProcScope.BodyJS:=CreatePrecompiledJS(Result);
-      ImplProcScope.EmptyJS:=BodyPas.Body=nil;
-      end;
+    ImplJS.BodyJS:=CreatePrecompiledJS(Result);
+    ImplJS.EmptyJS:=BodyPas.Body=nil;
     end;
 end;
 
@@ -16566,6 +16626,7 @@ var
   Lit: TJSLiteral;
   Section: TInitializationSection;
   RootContext: TRootContext;
+  ImplJS: TPas2JSPrecompiledJS;
 begin
   // create: '$mod.$init=function(){}'
   Result:=nil;
@@ -16602,9 +16663,11 @@ begin
 
     // first convert main/initialization statements
     if Section<>nil then
-      if Scope.JS<>'' then
+      begin
+      ImplJS:=Scope.ImplJS;
+      if ImplJS<>nil then
         begin
-        S:=TrimRight(Scope.JS);
+        S:=TrimRight(ImplJS.BodyJS);
         if S<>'' then
           begin
           Body:=CreateBody;
@@ -16613,29 +16676,39 @@ begin
           Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
           Lit.Value.CustomValue:=StrToJSString(S);
           Body.A:=Lit;
+          if coShortRefGlobals in Options then
+            CreateGlobalAlias_List(ImplJS.ShortRefs,AContext);
           end;
         end
-      else if Section.Elements.Count>0 then
+      else
         begin
-        Body:=CreateBody;
-        // Note: although the rtl sets 'this' as the module, the function can
-        //   simply refer to $mod, so no need to set ThisPas here
-        Body.A:=ConvertImplBlockElements(Section,FuncContext,false);
-        FuncContext.BodySt:=Body.A;
-
-        AddInterfaceReleases(FuncContext,PosEl);
-        Body.A:=FuncContext.BodySt;
-
-        // store precompiled JS
         if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
           begin
-          Scope.JS:=TrimRight(CreatePrecompiledJS(Body.A));
-          if Scope.JS='' then
-            Scope.JS:=' '; // store the information, that there is an empty initialization section
+          ImplJS:=TPas2JSPrecompiledJS.Create;
+          Scope.ImplJS:=ImplJS;
           end;
+        if Section.Elements.Count>0 then
+          begin
+          Body:=CreateBody;
+          // Note: although the rtl sets 'this' as the module, the function can
+          //   simply refer to $mod, so no need to set ThisPas here
+          Body.A:=ConvertImplBlockElements(Section,FuncContext,false);
+          FuncContext.BodySt:=Body.A;
+
+          AddInterfaceReleases(FuncContext,PosEl);
+          Body.A:=FuncContext.BodySt;
+
+          // store precompiled JS
+          if ImplJS<>nil then
+            begin
+            ImplJS.BodyJS:=TrimRight(CreatePrecompiledJS(Body.A));
+            ImplJS.EmptyJS:=ImplJS.BodyJS=''; // store the information, that there is an empty initialization section
+            end;
+          end
+        else if ImplJS<>nil then
+          ImplJS.EmptyJS:=true; // store the information, that there is an empty initialization section
         end
-      else if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
-        Scope.JS:=' '; // store the information, that there is an empty initialization section
+      end;
 
     if length(RootContext.GlobalClassMethods)>0 then
       begin
@@ -18446,7 +18519,7 @@ begin
         if SelfScope=nil then
           RaiseNotSupported(PosEl,AContext,20190205230919);
         if SelfScope.SelfArg<>nil then
-          TargetName:=AContext.GetLocalName(SelfScope.SelfArg,cvkAll)
+          TargetName:=GetLocalName(SelfScope.SelfArg,cvkAll,AContext)
         else if SelfScope.ClassRecScope<>nil then
           begin
           TargetName:=CreateReferencePath(SelfScope.ClassRecScope.Element,
@@ -20367,7 +20440,7 @@ var
       Result:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,Expr)
     else if SelfScope<>nil then
       begin
-      Path:=AContext.GetLocalName(SelfScope.SelfArg,cvkAll);
+      Path:=GetLocalName(SelfScope.SelfArg,cvkAll,AContext);
       Result:=CreatePrimitiveDotExpr(Path,Expr);
       end
     else if Left=nil then
@@ -24087,14 +24160,20 @@ begin
 
     if (coShortRefGlobals in Options) and (Kind=rpkPathAndName) then
       begin
-      if (El is TPasType) then
+      ElClass:=El.ClassType;
+      if ElClass.InheritsFrom(TPasType) then
         begin
         Result:=CreateGlobalTypePath(TPasType(El),AContext);
         exit;
         end
-      else if (El is TPasProcedure) and ProcHasNoSelf(TPasProcedure(El)) then
+      else if ElClass.InheritsFrom(TPasProcedure) and ProcHasNoSelf(TPasProcedure(El)) then
         begin
         Result:=CreateStaticProcPath(TPasProcedure(El),AContext);
+        exit;
+        end
+      else if (ElClass=TPasEnumValue) then
+        begin
+        Result:=CreateGlobalElPath(El,AContext);
         exit;
         end;
       end;
@@ -24167,7 +24246,7 @@ begin
           if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisVar.Element),TPasMembersType(ParentEl)) then
             begin
-            ShortName:=AContext.GetLocalName(SelfContext.ThisVar.Element,VarKinds);
+            ShortName:=GetLocalName(SelfContext.ThisVar.Element,VarKinds,AContext);
             if ShortName='' then
               begin
               if not (cvkGlobal in VarKinds) then
@@ -24195,7 +24274,7 @@ begin
             end;
           end;
 
-        ShortName:=AContext.GetLocalName(ParentEl,VarKinds);
+        ShortName:=GetLocalName(ParentEl,VarKinds,AContext);
         //writeln('TPasToJSConverter.CreateReferencePath NOT USING SELF ',GetObjPath(El),' ShortName=',ShortName);
         if ShortName<>'' then
           begin
@@ -24221,7 +24300,7 @@ begin
       else
         begin
         // check if ParentEl has a JS var
-        ShortName:=AContext.GetLocalName(ParentEl,[cvkGlobal]);
+        ShortName:=GetLocalName(ParentEl,[cvkGlobal],AContext);
         if (ShortName<>'') then
           begin
           Prepend(Result,ShortName);
@@ -24310,37 +24389,111 @@ var
   ShortRefGlobals: Boolean;
   Parent: TPasElement;
   CurModule: TPasModule;
+  ElClass: TClass;
 begin
   Result:=AContext.GetLocalName(El,[cvkGlobal]);
   if Result<>'' then
-    exit; // already exists
+    begin
+    // already exists
+    if coStoreImplJS in Options then
+      StoreImplJSLocal(El,AContext);
+    exit;
+    end;
   ShortRefGlobals:=coShortRefGlobals in Options;
 
   Parent:=El.Parent;
-  Result:=AContext.GetLocalName(Parent,[cvkGlobal]);
-  if Result<>'' then
-  else if Parent is TPasType then
-    Result:=CreateGlobalTypePath(TPasType(Parent),AContext)
-  else if Parent is TPasSection then
+  if Parent<>nil then
     begin
-    // element is in foreign unit -> use pas.unitname
-    CurModule:=Parent.GetModule;
-    Result:=TransformModuleName(CurModule,true,AContext);
-    if (Parent.ClassType=TImplementationSection)
-        and (CurModule<>AContext.GetRootContext.PasElement.GetModule) then
+    Result:=AContext.GetLocalName(Parent,[cvkGlobal]);
+    if Result='' then
       begin
-      // element is in foreign implementation section (not program/library section)
-      // -> use pas.unitname.$impl
-      Result:=Result+'.'+GetBIName(pbivnImplementation);
+      ElClass:=Parent.ClassType;
+      if ElClass.InheritsFrom(TPasType) then
+        Result:=CreateGlobalElPath(Parent,AContext)
+      else if ElClass.InheritsFrom(TPasSection) then
+        begin
+        // element is in foreign unit -> use pas.unitname
+        CurModule:=Parent.GetModule;
+        Result:=TransformModuleName(CurModule,true,AContext);
+        if (Parent.ClassType=TImplementationSection)
+            and (CurModule<>AContext.GetRootContext.PasElement.GetModule) then
+          begin
+          // element is in foreign implementation section (not program/library section)
+          // -> use pas.unitname.$impl
+          Result:=Result+'.'+GetBIName(pbivnImplementation);
+          end;
+        end
+      else if ElClass.InheritsFrom(TPasModule) then
+        Result:=TransformModuleName(TPasModule(Parent),true,AContext)
+      else
+        RaiseNotSupported(El,AContext,20200609230526,GetObjPath(El));
       end;
+    Result:=Result+'.'+TransformElToJSName(El,AContext);
     end
-  else if Parent is TPasModule then
-    Result:=TransformModuleName(TPasModule(Parent),true,AContext)
   else
-    RaiseNotSupported(El,AContext,20200609230526,GetObjPath(El));
-  Result:=Result+'.'+TransformElToJSName(El,AContext);
+    begin
+    if El is TPasModule then
+      begin
+      Result:=TransformModuleName(TPasModule(El),true,AContext);
+      exit; // already created a shortrefglobal
+      end
+    else
+      RaiseNotSupported(El,AContext,20201010221704,GetObjPath(El));
+    end;
   if ShortRefGlobals then
     Result:=CreateGlobalAliasForeign(El,Result,AContext);
+end;
+
+function TPasToJSConverter.GetLocalName(El: TPasElement;
+  const Filter: TCtxVarKinds; AContext: TConvertContext): string;
+begin
+  if coStoreImplJS in Options then
+    begin
+    if cvkGlobal in Filter then
+      begin
+      Result:=AContext.GetLocalName(El,[cvkGlobal]);
+      if Result<>'' then
+        begin
+        StoreImplJSLocal(El,AContext);
+        exit;
+        end
+      else if Filter=[cvkGlobal] then
+        exit('');
+      end;
+    end;
+  Result:=AContext.GetLocalName(El,Filter);
+end;
+
+procedure TPasToJSConverter.StoreImplJSLocal(El: TPasElement;
+  AContext: TConvertContext);
+var
+  Ctx: TConvertContext;
+  CurEl: TPasElement;
+  Data: TObject;
+  ImplJS: TPas2JSPrecompiledJS;
+begin
+  Ctx:=AContext;
+  while Ctx<>nil do
+    begin
+    CurEl:=Ctx.PasElement;
+    if CurEl<>nil then
+      begin
+      Data:=CurEl.CustomData;
+      if Data is TPas2JSProcedureScope then
+        begin
+        ImplJS:=TPas2JSProcedureScope(Data).ImplJS;
+        if ImplJS<>nil then
+          ImplJS.AddShortRef(El);
+        end
+      else if Data is TPas2JSInitialFinalizationScope then
+        begin
+        ImplJS:=TPas2JSInitialFinalizationScope(Data).ImplJS;
+        if ImplJS<>nil then
+          ImplJS.AddShortRef(El);
+        end;
+      end;
+    Ctx:=Ctx.Parent;
+    end;
 end;
 
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;
@@ -25513,9 +25666,9 @@ begin
       if (El.Parent=nil)
           or ((El.Parent is TPasSection)
             and (El.Parent.ClassType<>TImplementationSection)) then
-        JSParentName:=AContext.GetLocalName(El.GetModule,[cvkGlobal])
+        JSParentName:=GetLocalName(El.GetModule,[cvkGlobal],AContext)
       else
-        JSParentName:=AContext.GetLocalName(El.Parent,[cvkGlobal]);
+        JSParentName:=GetLocalName(El.Parent,[cvkGlobal],AContext);
       if JSParentName='' then
         JSParentName:='this';
       Call.AddArg(CreatePrimitiveDotExpr(JSParentName,El));
@@ -25541,6 +25694,8 @@ begin
       JSName:=AContext.GetLocalName(El,[cvkGlobal]);
       if JSName='' then
         RaiseNotSupported(El,AContext,20200926235501);
+      if coStoreImplJS in Options then
+        StoreImplJSLocal(El,AContext);
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=CreatePrimitiveDotExpr(JSName,El);
       AssignSt.Expr:=CreatePrimitiveDotExpr('this',El);
@@ -25830,8 +25985,9 @@ var
 begin
   if AddModulesPrefix then
     begin
-    Result:=AContext.GetLocalName(El,[cvkGlobal]);
-    if Result<>'' then exit;
+    Result:=GetLocalName(El,[cvkGlobal],AContext);
+    if Result<>'' then
+      exit;
     end;
   if El is TPasProgram then
     Result:='program'
@@ -26116,6 +26272,7 @@ var
   Expr: TJSElement;
   V: TJSVariableStatement;
   AssignSt: TJSSimpleAssignStatement;
+  ElClass: TClass;
 begin
   Result:=JSPath;
   if El is TPasUnresolvedSymbolRef then
@@ -26135,16 +26292,21 @@ begin
     SectionContext:=TSectionContext(AContext.GetMainSectionContext);
 
     FuncContext:=AContext.GetFunctionContext;
-    if El is TPasModule then
-      Result:=GetBIName(pbivnLocalModuleRef)
-    else if El is TPasType then
+    ElClass:=El.ClassType;
+    if ElClass.InheritsFrom(TPasType) then
       Result:=GetBIName(pbivnLocalTypeRef)
-    else if El is TPasProcedure then
+    else if ElClass.InheritsFrom(TPasProcedure) then
       Result:=GetBIName(pbivnLocalProcRef)
+    else if ElClass=TPasEnumValue then
+      Result:=GetBIName(pbivnLocalTypeRef)
+    else if ElClass.InheritsFrom(TPasModule) then
+      Result:=GetBIName(pbivnLocalModuleRef)
     else
       RaiseNotSupported(El,AContext,20200608160225);
     Result:=FuncContext.CreateLocalIdentifier(Result);
     SectionContext.AddLocalVar(Result,El,cvkGlobal,false);
+    if coStoreImplJS in Options then
+      StoreImplJSLocal(El,AContext);
 
     if aResolver.ImplementationUsesUnit(ElModule) then
       begin
@@ -26178,6 +26340,68 @@ begin
   Result:=SectionContext.AddLocalVar(GetBIName(Prefix),El,cvkGlobal,true);
   V:=CreateVarStatement(Result.Name,CreateLiteralNull(El),El);
   AddHeaderStatement(V,El,SectionContext);
+end;
+
+procedure TPasToJSConverter.CreateGlobalAlias_List(ElRefList: TFPList;
+  AContext: TConvertContext);
+var
+  i: Integer;
+  SectionContext: TSectionContext;
+  El: TPasElement;
+begin
+  if ElRefList=nil then exit;
+  if ElRefList.Count=0 then exit;
+  SectionContext:=TSectionContext(AContext.GetMainSectionContext);
+  for i:=0 to ElRefList.Count-1 do
+    begin
+    El:=TPasElement(ElRefList[i]);
+    if ElNeedsGlobalAlias(El) then
+      CreateGlobalElPath(El,SectionContext);
+    end;
+end;
+
+function TPasToJSConverter.ElNeedsGlobalAlias(El: TPasElement): boolean;
+var
+  C: TClass;
+  Proc: TPasProcedure;
+  ProcScope: TPas2JSProcedureScope;
+begin
+  Result:=false;
+  if El=nil then exit;
+  if not (coShortRefGlobals in Options) then
+    exit;
+  C:=El.ClassType;
+  if El.CustomData is TResElDataBuiltInSymbol then
+    exit(false)
+  else if C.InheritsFrom(TPasType) then
+    exit(true)
+  else if (C=TPasConstructor)
+      or (C=TPasDestructor)
+      or (C=TPasClassConstructor)
+      or (C=TPasClassDestructor)
+      or (C=TPasClassProcedure)
+      or (C=TPasClassOperator)
+      or (C=TPasClassFunction) then
+    exit(true)
+  else if (C=TPasProcedure) or (C=TPasFunction) or (C=TPasOperator) then
+    begin
+    Proc:=TPasProcedure(El);
+    if Proc.IsStatic or (Proc.Parent is TPasSection) then
+      exit(true);
+    if coShortRefGenFunc in Options then
+      begin
+      ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
+      if ProcScope.SpecializedFromItem<>nil then
+        exit(true);
+      end;
+    end
+  else if C=TPasEnumValue then
+    begin
+    if not (coEnumNumbers in Options) then
+      exit(true);
+    end
+  else if C.InheritsFrom(TPasModule) then
+    exit(true);
 end;
 
 function TPasToJSConverter.ConvertPasElement(El: TPasElement;

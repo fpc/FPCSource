@@ -289,6 +289,9 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+
+       timestr,
+       datestr : string;
        { Path to ppc }
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }

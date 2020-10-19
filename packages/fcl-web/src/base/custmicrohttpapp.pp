@@ -644,10 +644,6 @@ begin
     @DoMHDRequest, Self,
     MHD_OPTION_NOTIFY_COMPLETED, @HandleRequestCompleted,
     Nil,MHD_OPTION_END);
-  if Result=Nil then
-    Writeln('a')
-  else
-    Writeln('b');
 end;
 
 procedure TMicroHTTPHandler.Run;

@@ -2576,7 +2576,7 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 #
 # Assembler reader
 #
-# 07141 is the last used one
+# 07144 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2916,6 +2916,8 @@ asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
 asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
 asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (expected: {$1} found: {$2})
+asmr_e_invalid_arrangement=07143_E_Invalid arrangement specifier "$1"
+asmr_e_a64_invalid_regset=07144_E_Registers in a register set must be consecutive.
 #
 # Assembler/binary writers
 #
@@ -3959,7 +3961,9 @@ A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
+**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2Dd<x>_Set description to <x>
+**2DT<x>_Set the time string returned by %TIME% to x, it is not checked for being a valid time string
 **2Dv<x>_Set DLL version to <x>
 *O2Dw_PM application
 **1e<x>_Set path to executable

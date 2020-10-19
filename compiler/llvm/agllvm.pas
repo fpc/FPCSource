@@ -1004,8 +1004,8 @@ implementation
              (pd.mangledname=(target_info.cprefix+'setjmp')) then
             writer.AsmWrite(' returns_twice');
           if po_inline in pd.procoptions then
-            writer.AsmWrite(' inlinehint');
-          if (po_noinline in pd.procoptions) or
+            writer.AsmWrite(' inlinehint')
+          else if (po_noinline in pd.procoptions) or
              (pio_inline_forbidden in pd.implprocoptions) then
             writer.AsmWrite(' noinline');
           { ensure that functions that happen to have the same name as a
@@ -1019,7 +1019,9 @@ implementation
           if pio_thunk in pd.implprocoptions then
             writer.AsmWrite(' "thunk"');
           if llvmflag_null_pointer_valid in llvmversion_properties[current_settings.llvmversion] then
-            writer.AsmWrite(' "null-pointer-is-valid"="true"');
+            writer.AsmWrite(' "null-pointer-is-valid"="true"')
+          else if llvmflag_null_pointer_valid_new in llvmversion_properties[current_settings.llvmversion] then
+            writer.AsmWrite(' null_pointer_is_valid');
           if not(pio_fastmath in pd.implprocoptions) then
             writer.AsmWrite(' strictfp');
         end;

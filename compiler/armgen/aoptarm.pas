@@ -53,7 +53,7 @@ Type
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
   function MatchInstruction(const instr: tai; const op: TAsmOp; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
 {$ifdef AARCH64}
-  function MatchInstruction(const instr: tai; const op: TAsmOps; const postfix: TOpPostfixes): boolean;
+  function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const postfix: TOpPostfixes): boolean;
 {$endif AARCH64}
   function MatchInstruction(const instr: tai; const op: TAsmOp; const postfix: TOpPostfixes): boolean;
 
@@ -104,12 +104,22 @@ Implementation
 
 
 {$ifdef AARCH64}
-  function MatchInstruction(const instr: tai; const op: TAsmOps; const postfix: TOpPostfixes): boolean;
-    begin
-      result :=
-        (instr.typ = ait_instruction) and
-        ((op = []) or (taicpu(instr).opcode in op)) and
-        ((postfix = []) or (taicpu(instr).oppostfix in postfix));
+  function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const postfix: TOpPostfixes): boolean;
+  var
+    op : TAsmOp;
+  begin
+    result:=false;
+    if instr.typ <> ait_instruction then
+      exit;
+    for op in ops do
+      begin
+        if (taicpu(instr).opcode = op) and
+           ((postfix = []) or (taicpu(instr).oppostfix in postfix)) then
+          begin
+            result:=true;
+            exit;
+          end;
+      end;
     end;
 {$endif AARCH64}
 

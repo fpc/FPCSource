@@ -319,14 +319,14 @@ unit raatt;
            end;
 {$endif ARM}
 {$ifdef aarch64}
-           { b.cond }
+           { b.cond, ldX.arrangement }
            case c of
              '.':
                begin
                  repeat
                    actasmpattern:=actasmpattern+c;
                    c:=current_scanner.asmgetchar;
-                 until not(c in ['a'..'z','A'..'Z']);
+                 until not(c in ['a'..'z','A'..'Z','0'..'9']);
                end;
            end;
 {$endif aarch64}
@@ -692,7 +692,7 @@ unit raatt;
 
              '{' :
                begin
-{$ifdef arm}
+{$if defined(arm) or defined(aarch64)}
                  // the arm assembler uses { ... } for register sets
                  // but compiler directives {$... } are still allowed
                  c:=current_scanner.asmgetchar;
@@ -703,21 +703,22 @@ unit raatt;
                      current_scanner.skipcomment(false);
                      GetToken;
                    end;
-{$else arm}
+{$else arm or aarch64}
                  current_scanner.skipcomment(true);
                  GetToken;
 {$endif arm}
                  exit;
                end;
 
-{$ifdef arm}
+{$if defined(arm) or defined(aarch64)}
              '}' :
                begin
                  actasmtoken:=AS_RSBRACKET;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
-
+{$endif arm or aarch64}
+{$ifdef arm}
              '=' :
                begin
                  actasmtoken:=AS_EQUAL;

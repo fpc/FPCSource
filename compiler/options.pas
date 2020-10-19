@@ -1586,6 +1586,16 @@ begin
                         description:=Copy(more,j+1,255);
                         break;
                       end;
+                    'D' :
+                      begin
+                        datestr:=Copy(more,j+1,255);
+                        break;
+                      end;
+                    'T' :
+                      begin
+                        timestr:=Copy(more,j+1,255);
+                        break;
+                      end;
                     'v' :
                       begin
                         dllversion:=Copy(more,j+1,255);
@@ -3946,6 +3956,7 @@ begin
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
+  def_system_macro('FPC_ALIGNED_THREADVARTABLES');
 
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
