@@ -5738,15 +5738,15 @@ end;
 function TPCUReader.AddElReference(Id: integer; ErrorEl: TPasElement;
   El: TPasElement): TPCUFilerElementRef;
 var
+  {$IF defined(VerbosePCUFiler) or defined(memcheck)}
+  Node: TAVLTreeNode;
+  {$ENDIF}
   Ref: TPCUFilerElementRef;
   RefItem: TPCUFilerPendingElRef;
   PendingElRef: TPCUReaderPendingElRef;
   PendingElListRef: TPCUReaderPendingElListRef;
   PendingElArrRef: TPCUReaderPendingElArrRef;
-  {$IF defined(VerbosePCUFiler) or defined(memcheck)}
-  Node: TAVLTreeNode;
   PendingElScopeRef: TPCUReaderPendingElScopeRef;
-  {$ENDIF}
 begin
   if Id<=0 then
     RaiseMsg(20180207151233,ErrorEl);
