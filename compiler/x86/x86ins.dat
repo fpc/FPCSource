@@ -4261,15 +4261,15 @@ xmmreg_mz,xmmreg,xmmreg_er                \334\350\352\362\370\1\x5A\75\120     
 
 [VCVTSI2SD,vcvtsi2sdX]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg_er,reg32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
+xmmreg,xmmreg,reg32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
 xmmreg,xmmreg,mem32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
 xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg,mem64                       \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
+xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
 
 
 [VCVTSI2SS,vcvtsi2ssX]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg_er,reg32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
+xmmreg,xmmreg,reg32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
 xmmreg,xmmreg,mem32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
 xmmreg,xmmreg_er,reg64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
 xmmreg,xmmreg_er,mem64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
