@@ -10867,7 +10867,7 @@
   (
     opcode  : A_VCVTSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg,ot_reg32,ot_none);
     code    : #220#232#242#248#1#42#61#80;
     flags   : [if_avx,if_sandybridge,if_sd]
   ),
@@ -10881,7 +10881,7 @@
   (
     opcode  : A_VCVTSI2SS;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg,ot_reg32,ot_none);
     code    : #219#232#242#248#1#42#61#80;
     flags   : [if_avx,if_sandybridge,if_sd]
   ),
