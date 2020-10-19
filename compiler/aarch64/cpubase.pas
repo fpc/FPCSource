@@ -48,9 +48,6 @@ unit cpubase;
     type
       TAsmOp= {$i a64op.inc}
 
-      { See comment for this type in arm/cpubase.pas }
-      TCommonAsmOps = Set of A_NONE..A_MOV;
-
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
@@ -59,6 +56,13 @@ unit cpubase;
       firstop = low(tasmop);
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
+      { Last value of opcode for TCommonAsmOps set below  }
+      LastCommonAsmOp = A_MOV;
+
+    type
+      { See comment for this type in arm/cpubase.pas }
+      TCommonAsmOps = Set of A_None .. LastCommonAsmOp;
+
 
 {*****************************************************************************
                                   Registers
