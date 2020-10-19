@@ -253,7 +253,7 @@ var
   Ref1: TPasScopeReference absolute Item1;
   Ref2: TPasScopeReference absolute Item2;
 begin
-  Result:=CompareText(Ref1.Element.Name,Ref2.Element.Name);
+  Result:=CompareText(GetObjPath(Ref1.Element),GetObjPath(Ref2.Element));
   if Result<>0 then exit;
   Result:=ComparePointer(Ref1.Element,Ref2.Element);
 end;
@@ -644,11 +644,31 @@ procedure TCustomTestPrecompile.CheckRestoredDeclarations(const Path: string;
         and (TPasGenericScope(El.CustomData).SpecializedFromItem<>nil);
   end;
 
+  function GetSubPath(const Path: string; OrigIndex: integer; OrigDecl: TPasElement): string;
+  begin
+    Result:=Path+'['+IntToStr(OrigIndex)+']';
+    if OrigDecl.Name<>'' then
+      Result:=Result+'"'+OrigDecl.Name+'"'
+    else
+      Result:=Result+'?noname?';
+  end;
+
+{  procedure WriteList;
+  var
+    i: Integer;
+  begin
+    writeln('CheckRestoredDeclarations.WriteList');
+    for i:=0 to Orig.Declarations.Count-1 do
+      if i<Rest.Declarations.Count then
+        writeln('  ',i,' Orig=',TPasElement(Orig.Declarations[i]).Name,' Rest=',TPasElement(Rest.Declarations[i]).Name);
+  end;}
+
 var
   OrigIndex, RestIndex: Integer;
   OrigDecl, RestDecl: TPasElement;
   SubPath: String;
 begin
+  //WriteList;
   // check non specializations
   RestIndex:=0;
   for OrigIndex:=0 to Orig.Declarations.Count-1 do
@@ -656,12 +676,8 @@ begin
     OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
     if IsSpecialization(OrigDecl) then
       continue;
-    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
-    if OrigDecl.Name<>'' then
-      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
-    else
-      SubPath:=SubPath+'?noname?';
-    // skip to next non specializations in restored declarations
+    SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
+    // skip to next non specialization in restored declarations
     while RestIndex<Rest.Declarations.Count do
       begin
       RestDecl:=TPasElement(Rest.Declarations[RestIndex]);
@@ -682,11 +698,7 @@ begin
     OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
     if not IsSpecialization(OrigDecl) then
       continue;
-    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
-    if OrigDecl.Name<>'' then
-      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
-    else
-      SubPath:=SubPath+'?noname?';
+    SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
     // search specialization with same name
     RestIndex:=0;
     repeat
@@ -699,14 +711,33 @@ begin
     until false;
 
     if (OrigIndex<Rest.Declarations.Count) and (OrigIndex<>RestIndex) then
+      begin
       // move restored element to original place to generate the same JS
-      Rest.Declarations.Move(RestIndex,OrigIndex);
+      //writeln('TCustomTestPrecompile.CheckRestoredDeclarations Orig[',OrigIndex,']=',GetObjName(OrigDecl),' Rest[',RestIndex,']=',GetObjName(RestDecl));
+      if RestIndex>OrigIndex then
+        Rest.Declarations.Move(RestIndex,OrigIndex)
+      else
+        Rest.Declarations.Exchange(RestIndex,OrigIndex);
+      //writeln('TCustomTestPrecompile.CheckRestoredDeclarations RestIndex=',RestIndex,' ->',OrigIndex);
+      //WriteList;
+      end;
 
     // check
     CheckRestoredElement(SubPath,OrigDecl,RestDecl,Flags);
     end;
-
   AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
+
+  //WriteList;
+  for OrigIndex:=0 to Orig.Declarations.Count-1 do
+    begin
+    OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
+    RestDecl:=TPasElement(Rest.Declarations[OrigIndex]);
+    if OrigDecl.Name<>RestDecl.Name then
+      begin
+      SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
+      AssertEquals(SubPath+'.Name',GetObjPath(OrigDecl),GetObjPath(RestDecl));
+      end;
+    end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSection(const Path: string; Orig,
@@ -3241,9 +3272,9 @@ begin
   '  TBird<T> = class',
   '    a: T;',
   '  end;',
-  //'  TDoubleBird = TBIrd<double>;',
-  //'var',
-  //'  db: TDoubleBird;',
+  '  TDoubleBird = TBIrd<double>;',
+  'var',
+  '  db: TDoubleBird;',
   'procedure Fly;',
   'implementation',
   'type',
