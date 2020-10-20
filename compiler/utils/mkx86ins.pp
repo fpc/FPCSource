@@ -320,6 +320,11 @@ begin
                     dec(attopcode[0]);
                     attsuffix:='attsufMM';
                   end;
+                'N' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufMMX';
+                  end;
                 'X' :
                   begin
                     dec(attopcode[0]);

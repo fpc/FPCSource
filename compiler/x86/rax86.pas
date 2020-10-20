@@ -239,7 +239,7 @@ begin
           ;
       end;
     end
-  else if gas_needsuffix[opcode]=AttSufMM then
+  else if gas_needsuffix[opcode] in [AttSufMM, AttSufMMX] then
   begin
     if (opr.typ=OPR_Reference) then
     begin

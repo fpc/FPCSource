@@ -1041,6 +1041,8 @@ Implementation
                        actopsize:=att_sizefpuintsuffix[sufidx]
                       else if gas_needsuffix[actopcode]=attsufMM then
                        actopsize:=att_sizemmsuffix[sufidx]
+                      else if gas_needsuffix[actopcode]=attsufMMX then
+                       actopsize:=att_sizemmXsuffix[sufidx]
                       else
                        actopsize:=att_sizesuffix[sufidx];
                       { only accept suffix from the same category that the opcode belongs to }
