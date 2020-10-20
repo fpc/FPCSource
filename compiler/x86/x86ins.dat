@@ -4158,7 +4158,7 @@ ymmreg_mz,mem128                          \333\350\362\364\370\1\xE6\110        
 ymmreg_mz,xmmreg                          \333\350\362\364\370\1\xE6\110            AVX,SANDYBRIDGE
 ymmreg_mz,bmem32                          \333\350\364\370\1\xE6\110                AVX512,BCST4,THV
 zmmreg_mz,mem256                          \333\350\351\370\1\xE6\110                AVX512,THV
-zmmreg_mz,ymmreg_er                       \333\350\351\370\1\xE6\110                AVX512
+zmmreg_mz,ymmreg                          \333\350\351\370\1\xE6\110                AVX512
 zmmreg_mz,bmem32                          \333\350\351\370\1\xE6\110                AVX512,BCST8,THV
 
 
