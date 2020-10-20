@@ -273,28 +273,16 @@ Unit aopt;
     Procedure TAsmOptimizer.Optimize;
       Var
         HP: tai;
-        pass: longint;
       Begin
-        pass:=0;
         BlockStart := tai(AsmL.First);
         pass_1;
         While Assigned(BlockStart) Do
           Begin
             if (cs_opt_peephole in current_settings.optimizerswitches) then
               begin
-                if pass = 0 then
-                  PrePeepHoleOpts;
-                { Peephole optimizations }
+                PrePeepHoleOpts;
                 PeepHoleOptPass1;
-                { Only perform them twice in the first pass }
-                if pass = 0 then
-                  PeepHoleOptPass1;
-              end;
-            { more peephole optimizations }
-            if (cs_opt_peephole in current_settings.optimizerswitches) then
-              begin
                 PeepHoleOptPass2;
-                { if pass = last_pass then }
                 PostPeepHoleOpts;
               end;
             { free memory }
