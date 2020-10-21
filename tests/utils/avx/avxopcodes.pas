@@ -423,7 +423,7 @@ begin
   FOpCodeList.Add('vcvtdq2pd,1,1,1,YMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vcvtdq2pd,1,1,1,YMMREG_MZ,4B32,,');
   FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,MEM256,,');
-  FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,YMMREG_ER,,');
+  FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,YMMREG,,');
   FOpCodeList.Add('vcvtdq2pd,1,1,1,ZMMREG_MZ,8B32,,');
  
   FOpCodeList.Add('vcvtdq2ps,1,1,1,XMMREG_MZ,XMMRM,,');
@@ -1890,7 +1890,7 @@ begin
   FOpCodeList.Add('vcvtudq2pd,1,1,1,ymmreg_mz,4b32,,');
   FOpCodeList.Add('vcvtudq2pd,1,1,1,zmmreg_mz,mem256,,');
   FOpCodeList.Add('vcvtudq2pd,1,1,1,zmmreg_mz,8b32,,');
-  FOpCodeList.Add('vcvtudq2pd,1,1,1,zmmreg_mz,ymmreg_er,,');
+  FOpCodeList.Add('vcvtudq2pd,1,1,1,zmmreg_mz,ymmreg,,');
   FOpCodeList.Add('vcvtudq2ps,1,1,1,xmmreg_mz,xmmrm,,');
   FOpCodeList.Add('vcvtudq2ps,1,1,1,xmmreg_mz,4b32,,');
   FOpCodeList.Add('vcvtudq2ps,1,1,1,ymmreg_mz,ymmrm,,');
