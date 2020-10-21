@@ -872,7 +872,17 @@ implementation
                     exit;
                   p := tunarynode(p).left;
                 end;
-              vecn,
+              vecn:
+                begin
+                  inc(result,node_complexity(tbinarynode(p).left));
+                  inc(result);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p := tbinarynode(p).right;
+                end;
               statementn:
                 begin
                   inc(result,node_complexity(tbinarynode(p).left));
