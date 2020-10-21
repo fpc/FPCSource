@@ -395,6 +395,8 @@ interface
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
         begin
+          if (gas_needsuffix[op]<>AttSufMMX) or
+	     (taicpu(hp).opsize in [S_XMM,S_YMM]) then
           owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         end;
 

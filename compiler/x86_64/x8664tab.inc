@@ -10734,7 +10734,7 @@
   (
     opcode  : A_VCVTDQ2PD;
     ops     : 2;
-    optypes : (ot_zmmreg_mz,ot_ymmreg_er,ot_none,ot_none);
+    optypes : (ot_zmmreg_mz,ot_ymmreg,ot_none,ot_none);
     code    : #219#232#233#248#1#230#72;
     flags   : [if_avx512]
   ),
@@ -22459,7 +22459,7 @@
   (
     opcode  : A_VCVTUDQ2PD;
     ops     : 2;
-    optypes : (ot_zmmreg_mz,ot_ymmreg_er,ot_none,ot_none);
+    optypes : (ot_zmmreg_mz,ot_ymmreg,ot_none,ot_none);
     code    : #219#232#233#248#1#122#72;
     flags   : [if_avx512]
   ),
