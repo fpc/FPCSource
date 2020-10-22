@@ -18465,7 +18465,7 @@ begin
   aResolver:=AContext.Resolver;
 
   Proc:=TPasProcedure(ResolvedEl.IdentEl);
-  if not (Proc.Parent is TPasMembersType)
+  if (not (Proc.Parent is TPasMembersType))
       or (ptmStatic in Proc.ProcType.Modifiers) then
     begin
     // not an "of object" method -> simply use the function

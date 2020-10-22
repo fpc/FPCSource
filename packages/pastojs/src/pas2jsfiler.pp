@@ -1028,10 +1028,11 @@ type
   protected
     // specialize
     FPendingSpecialize: TPCUReaderPendingSpecialized; // chain of TPCUReaderPendingSpecialized
+    function FindPendingSpecialize(Id: integer): TPCUReaderPendingSpecialized;
     function AddPendingSpecialize(Id: integer; const SpecName: string): TPCUReaderPendingSpecialized;
-    function CreateSpecializedElement(PendSpec: TPCUReaderPendingSpecialized): boolean; // false=param missing
+    function CreateSpecializedElement(PendSpec: TPCUReaderPendingSpecialized): boolean; // false=param missing, Note: needs ResolvePendingIdentifierScopes
     procedure DeletePendingSpecialize(PendSpec: TPCUReaderPendingSpecialized);
-    procedure PromiseSpecialize(SpecId: integer; El: TPasElement; const SpecName: string); virtual;
+    function PromiseSpecialize(SpecId: integer; const SpecName: string; RefEl, ErrorEl: TPasElement): TPCUReaderPendingSpecialized; virtual;
     procedure ResolveSpecializedElements(Complete: boolean);
   protected
     // json
@@ -5418,9 +5419,20 @@ begin
     RaiseMsg(20200514130809,SpecData.Element,GetObjPath(RefEl));
 end;
 
+function TPCUReader.FindPendingSpecialize(Id: integer
+  ): TPCUReaderPendingSpecialized;
+begin
+  Result:=FPendingSpecialize;
+  while (Result<>nil) and (Result.Id<>Id) do
+    Result:=Result.Next;
+end;
+
 function TPCUReader.AddPendingSpecialize(Id: integer; const SpecName: string
   ): TPCUReaderPendingSpecialized;
 begin
+  if FindPendingSpecialize(Id)<>nil then
+    RaiseMsg(20201022214051,SpecName+'='+IntToStr(Id));
+
   Result:=TPCUReaderPendingSpecialized.Create;
   if FPendingSpecialize<>nil then
     begin
@@ -5444,21 +5456,26 @@ var
   GenericEl: TPasGenericType;
 begin
   Result:=false;
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUReader.CreateSpecializedElement Gen=',GetObjPath(PendSpec.GenericEl));
+  {$ENDIF}
   if PendSpec.RefEl=nil then
     begin
     if PendSpec.GenericEl=nil then
       RaiseMsg(20200531101241,PendSpec.SpecName)
     else
-      RaiseMsg(20200531101105,PendSpec.GenericEl);// nothing uses this specialize
+      RaiseMsg(20200531101105,PendSpec.GenericEl,PendSpec.SpecName);// nothing uses this specialize
     end;
   if PendSpec.GenericEl=nil then
-    RaiseMsg(20200531101333,PendSpec.RefEl);
+    RaiseMsg(20200531101333,PendSpec.RefEl,PendSpec.SpecName);
   Obj:=PendSpec.Obj;
   if Obj=nil then
-    RaiseMsg(20200531101128,PendSpec.GenericEl); // specialize missing in JSON
+    RaiseMsg(20200531101128,PendSpec.GenericEl,PendSpec.SpecName); // specialize missing in JSON
 
   // resolve params
   RefParams:=PendSpec.Params;
+  if RefParams=nil then
+    RaiseMsg(20201022215141,PendSpec.GenericEl,PendSpec.SpecName);
   for i:=0 to RefParams.Count-1 do
     begin
     Param:=TPCUReaderPendingSpecializedParam(RefParams[i]);
@@ -5501,25 +5518,18 @@ begin
   PendSpec.Free;
 end;
 
-procedure TPCUReader.PromiseSpecialize(SpecId: integer; El: TPasElement;
-  const SpecName: string);
-var
-  PendSpec: TPCUReaderPendingSpecialized;
+function TPCUReader.PromiseSpecialize(SpecId: integer; const SpecName: string;
+  RefEl, ErrorEl: TPasElement): TPCUReaderPendingSpecialized;
 begin
-  PendSpec:=FPendingSpecialize;
-  while PendSpec<>nil do
-    begin
-    if PendSpec.Id=SpecId then
-      break;
-    PendSpec:=PendSpec.Next;
-    end;
+  Result:=FindPendingSpecialize(SpecId);
+  if Result=nil then
+    Result:=AddPendingSpecialize(SpecId,SpecName)
+  else if Result.SpecName<>SpecName then
+    RaiseMsg(20200531093342,ErrorEl,'Id='+IntToStr(SpecId)+' Expected SpecName "'+SpecName+'", but was "'+Result.SpecName+'"');
 
-  if PendSpec=nil then
-    PendSpec:=AddPendingSpecialize(SpecId,SpecName)
-  else if PendSpec.SpecName<>SpecName then
-    RaiseMsg(20200531093342,El,'Id='+IntToStr(SpecId)+' Expected SpecName "'+SpecName+'", but was "'+PendSpec.SpecName+'"');
-  if PendSpec.RefEl=nil then
-    PendSpec.RefEl:=El;
+  if Result.RefEl=nil then
+    Result.RefEl:=RefEl;
+  // Note: cannot specialize before ResolvePendingIdentifierScopes;
 end;
 
 procedure TPCUReader.ResolveSpecializedElements(Complete: boolean);
@@ -5541,7 +5551,7 @@ begin
         if Ref<>nil then
           PendSpec.RefEl:=GetReferrerEl(Ref.Pending);
         end;
-      if PendSpec.RefEl<>nil then
+      if (PendSpec.RefEl<>nil) and (PendSpec.GenericEl<>nil) then
         begin
         if CreateSpecializedElement(PendSpec) then
           Changed:=true
@@ -5554,8 +5564,20 @@ begin
   if Complete then
     UnresolvedSpec:=FPendingSpecialize;
   if UnresolvedSpec<>nil then
+    begin
+    {$IF defined(VerbosePJUFiler) or defined(VerbosePas2JS)}
+    PendSpec:=FPendingSpecialize;
+    while PendSpec<>nil do
+      begin
+      {AllowWriteln}
+      writeln('TPCUReader.ResolveSpecializedElements PENDING: ',PendSpec.SpecName+' Id='+IntToStr(PendSpec.Id)+' RefEl='+GetObjPath(PendSpec.RefEl)+' GenericEl='+GetObjPath(PendSpec.GenericEl));;
+      {AllowWriteln-}
+      PendSpec:=PendSpec.Next;
+      end;
+    {$ENDIF}
     // a pending specialize cannot resolve its params
-    RaiseMsg(20200531101924,UnresolvedSpec.GenericEl,UnresolvedSpec.SpecName+' Id='+IntToStr(UnresolvedSpec.Id)+' RefEl='+GetObjPath(UnresolvedSpec.RefEl));
+    RaiseMsg(20200531101924,UnresolvedSpec.GenericEl,UnresolvedSpec.SpecName+' Id='+IntToStr(UnresolvedSpec.Id)+' RefEl='+GetObjPath(UnresolvedSpec.RefEl)+' GenericEl='+GetObjPath(UnresolvedSpec.GenericEl));
+    end;
 end;
 
 procedure TPCUReader.RaiseMsg(Id: int64; const Msg: string);
@@ -6575,7 +6597,7 @@ begin
   if not ReadString(Obj,'SpecName',SpecName,GenEl) then
     RaiseMsg(20200531085133,GenEl);
 
-  PendSpec:=AddPendingSpecialize(Id,SpecName);
+  PendSpec:=PromiseSpecialize(Id,SpecName,nil,GenEl);
   PendSpec.Obj:=Obj;
   PendSpec.GenericEl:=GenEl;
 
@@ -6596,6 +6618,11 @@ begin
     PendParam.Index:=i;
     PendParam.Id:=Id;
     end;
+
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUReader.ReadSpecialization Id=',PendSpec.Id,' GenEl=',GetObjPath(PendSpec.GenericEl),' SpecName=',PendSpec.SpecName,' ElRef=',GetObjPath(PendSpec.RefEl));
+  {$ENDIF}
+  // Note: cannot specialize before ResolvePendingIdentifierScopes;
 end;
 
 procedure TPCUReader.ReadExternalReferences(Obj: TJSONObject; El: TPasElement);
@@ -8121,7 +8148,7 @@ procedure TPCUReader.ReadSpecializeType(Obj: TJSONObject;
 var
   GenType: TPasGenericType;
   GenericTemplateTypes: TFPList;
-  ExpName: string;
+  SpecName: string;
   i, SpecId: Integer;
   Data: TPasSpecializeTypeData;
 begin
@@ -8153,12 +8180,12 @@ begin
   PromiseSetElReference(SpecId,@Set_SpecializeTypeData,Data,El);
 
   // check old specialized name
-  if not ReadString(Obj,'SpecName',ExpName,El) then
+  if not ReadString(Obj,'SpecName',SpecName,El) then
     RaiseMsg(20200219122919,El);
-  if ExpName='' then
+  if SpecName='' then
     RaiseMsg(20200530134152,El);
 
-  PromiseSpecialize(SpecId,El,ExpName);
+  PromiseSpecialize(SpecId,SpecName,El,El);
 end;
 
 procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
