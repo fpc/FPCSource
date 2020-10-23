@@ -505,6 +505,8 @@ interface
         IF_T4,                  { disp8 - tuple - 4 }
         IF_T8,                  { disp8 - tuple - 8 }
         IF_T1S,                 { disp8 - tuple - 1 scalar }
+        IF_T1S8,                { disp8 - tuple - 1 scalar byte }
+        IF_T1S16,               { disp8 - tuple - 1 scalar word }
         IF_T1F32,
         IF_T1F64,
         IF_TMDDUP,
@@ -2127,6 +2129,8 @@ implementation
                       else tuplesize := 4;
               end;
             end
+            else if IF_T1S8 in aInsEntry^.Flags then tuplesize := 1
+            else if IF_T1S16 in aInsEntry^.Flags then tuplesize := 2
             else if IF_T1F32 in aInsEntry^.Flags then tuplesize := 4
             else if IF_T1F64 in aInsEntry^.Flags then tuplesize := 8
             else if IF_T2 in aInsEntry^.Flags then
