@@ -5627,6 +5627,57 @@ unit aoptx86;
               end;
           end
         else if reg_and_hp1_is_instr and
+          (taicpu(hp1).opcode = A_MOV) and
+          MatchOpType(taicpu(hp1),top_reg,top_reg) and
+          (((taicpu(p).opsize in [S_BW,S_BL,S_WL{$ifdef x86_64},S_BQ,S_WQ,S_LQ{$endif x86_64}]) and
+           (taicpu(hp1).opsize=S_B)) or
+           ((taicpu(p).opsize in [S_WL{$ifdef x86_64},S_WQ,S_LQ{$endif x86_64}]) and
+           (taicpu(hp1).opsize=S_W))
+{$ifdef x86_64}
+           or ((taicpu(p).opsize=S_LQ) and
+            (taicpu(hp1).opsize=S_L))
+{$endif x86_64}
+          ) and
+          SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.reg) then
+          begin
+            { change
+              movx   %reg1,%reg2
+              mov    %reg2,%reg3
+              dealloc %reg2
+
+              into
+
+              mov   %reg1,%reg3
+
+              if the second mov accesses only the bits stored in reg1
+            }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'MovxMov2Mov',p);
+                if taicpu(p).oper[0]^.typ=top_reg then
+                  begin
+                    case taicpu(hp1).opsize of
+                      S_B:
+                        taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBL));
+                      S_W:
+                        taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBW));
+                      S_L:
+                        taicpu(hp1).loadreg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[0]^.reg),R_SUBD));
+                      else
+                        Internalerror(2020102301);
+                    end;
+                    AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+                  end
+                else
+                  taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+                RemoveCurrentP(p);
+                result:=true;
+                exit;
+              end;
+          end
+        else if reg_and_hp1_is_instr and
           (taicpu(p).oper[0]^.typ = top_reg) and
           (
             (taicpu(hp1).opcode = A_SHL) or (taicpu(hp1).opcode = A_SAL)
