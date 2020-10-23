@@ -1052,10 +1052,15 @@ implementation
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),
                                                          true
-                                                        ))
+                                                        ));
                    end
                  else
-                   inserttypeconv(right,htype)
+                   begin
+                     inserttypeconv(right,htype);
+                     { insert type conversion so cse can pick it up }
+                     if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in current_settings.localswitches) then
+                       inserttypeconv_internal(right,ptrsinttype);
+                   end;
                end;
              stringdef:
                if is_open_string(left.resultdef) then

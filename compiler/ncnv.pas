@@ -2925,6 +2925,13 @@ implementation
                   docheckremoveinttypeconvs(tbinarynode(n).left) and
                   docheckremoveinttypeconvs(tbinarynode(n).right);
               end;
+            unaryminusn:
+              begin
+                gotsint:=true;
+                result:=docheckremoveinttypeconvs(tunarynode(n).left);
+              end;
+            notn:
+              result:=docheckremoveinttypeconvs(tunarynode(n).left);
             addn,muln,divn,modn,andn:
               begin
                 if n.nodetype in [divn,modn] then
@@ -2979,6 +2986,21 @@ implementation
               //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
               //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
               //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
+            end;
+          unaryminusn,notn:
+            begin
+              exclude(n.flags,nf_internal);
+              if not forceunsigned and
+                 is_signed(n.resultdef) then
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,signedtype,false,signedtype,unsignedtype);
+                  n.resultdef:=signedtype;
+                end
+              else
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  n.resultdef:=unsignedtype;
+                end;
             end;
           typeconvn:
             begin
@@ -3271,7 +3293,7 @@ implementation
                     to 64 bit                                               }
                   if (resultdef.size <= 4) and
                     is_64bitint(left.resultdef) and
-                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s32inttype,u32inttype);
 {$if defined(cpu16bitalu)}

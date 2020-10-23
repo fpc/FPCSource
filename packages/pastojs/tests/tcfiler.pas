@@ -84,6 +84,8 @@ type
     procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPas2jsRecordScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredProcTypeScope(const Path: string; Orig, Rest: TPas2JSProcTypeScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredArrayScope(const Path: string; Orig, Rest: TPas2JSArrayScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPrecompiledJS(const Path: string; OrigEl: TPasElement; Orig: TPas2JSPrecompiledJS; RestEl: TPasElement; Rest: TPas2JSPrecompiledJS; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredScopeRefs(const Path: string; Orig, Rest: TPasScopeReferences; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope; Flags: TPCCheckFlags); virtual;
@@ -218,13 +220,11 @@ type
     procedure TestPC_GenericFunction_AnonymousProc;
     procedure TestPC_GenericClass;
     procedure TestPC_GenericMethod;
+    // ToDo: GenericMethod Calls, ProcTypes
     procedure TestPC_SpecializeClassSameUnit;
     procedure TestPC_Specialize_LocalTypeInUnit;
-    // ToDo: specialize local generic type via class forward
-    // ToDo: inline specialize local generic type in unit interface
-    // ToDo: inline specialize local generic type in unit implementation
-    // ToDo: inline specialize local generic type in proc decl
-    // ToDo: inline specialize local generic type in proc body
+    procedure TestPC_Specialize_ClassForward;
+    procedure TestPC_InlineSpecialize_LocalTypeInUnit;
     // ToDo: specialize extern generic type in unit interface
     // ToDo: specialize extern generic type in unit implementation
     // ToDo: specialize extern generic type in proc decl
@@ -253,7 +253,7 @@ var
   Ref1: TPasScopeReference absolute Item1;
   Ref2: TPasScopeReference absolute Item2;
 begin
-  Result:=CompareText(Ref1.Element.Name,Ref2.Element.Name);
+  Result:=CompareText(GetObjPath(Ref1.Element),GetObjPath(Ref2.Element));
   if Result<>0 then exit;
   Result:=ComparePointer(Ref1.Element,Ref2.Element);
 end;
@@ -644,11 +644,31 @@ procedure TCustomTestPrecompile.CheckRestoredDeclarations(const Path: string;
         and (TPasGenericScope(El.CustomData).SpecializedFromItem<>nil);
   end;
 
+  function GetSubPath(const Path: string; OrigIndex: integer; OrigDecl: TPasElement): string;
+  begin
+    Result:=Path+'['+IntToStr(OrigIndex)+']';
+    if OrigDecl.Name<>'' then
+      Result:=Result+'"'+OrigDecl.Name+'"'
+    else
+      Result:=Result+'?noname?';
+  end;
+
+{  procedure WriteList;
+  var
+    i: Integer;
+  begin
+    writeln('CheckRestoredDeclarations.WriteList');
+    for i:=0 to Orig.Declarations.Count-1 do
+      if i<Rest.Declarations.Count then
+        writeln('  ',i,' Orig=',TPasElement(Orig.Declarations[i]).Name,' Rest=',TPasElement(Rest.Declarations[i]).Name);
+  end;}
+
 var
   OrigIndex, RestIndex: Integer;
   OrigDecl, RestDecl: TPasElement;
   SubPath: String;
 begin
+  //WriteList;
   // check non specializations
   RestIndex:=0;
   for OrigIndex:=0 to Orig.Declarations.Count-1 do
@@ -656,12 +676,8 @@ begin
     OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
     if IsSpecialization(OrigDecl) then
       continue;
-    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
-    if OrigDecl.Name<>'' then
-      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
-    else
-      SubPath:=SubPath+'?noname?';
-    // skip to next non specializations in restored declarations
+    SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
+    // skip to next non specialization in restored declarations
     while RestIndex<Rest.Declarations.Count do
       begin
       RestDecl:=TPasElement(Rest.Declarations[RestIndex]);
@@ -682,11 +698,7 @@ begin
     OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
     if not IsSpecialization(OrigDecl) then
       continue;
-    SubPath:=Path+'['+IntToStr(OrigIndex)+']';
-    if OrigDecl.Name<>'' then
-      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
-    else
-      SubPath:=SubPath+'?noname?';
+    SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
     // search specialization with same name
     RestIndex:=0;
     repeat
@@ -699,14 +711,33 @@ begin
     until false;
 
     if (OrigIndex<Rest.Declarations.Count) and (OrigIndex<>RestIndex) then
+      begin
       // move restored element to original place to generate the same JS
-      Rest.Declarations.Move(RestIndex,OrigIndex);
+      //writeln('TCustomTestPrecompile.CheckRestoredDeclarations Orig[',OrigIndex,']=',GetObjName(OrigDecl),' Rest[',RestIndex,']=',GetObjName(RestDecl));
+      if RestIndex>OrigIndex then
+        Rest.Declarations.Move(RestIndex,OrigIndex)
+      else
+        Rest.Declarations.Exchange(RestIndex,OrigIndex);
+      //writeln('TCustomTestPrecompile.CheckRestoredDeclarations RestIndex=',RestIndex,' ->',OrigIndex);
+      //WriteList;
+      end;
 
     // check
     CheckRestoredElement(SubPath,OrigDecl,RestDecl,Flags);
     end;
-
   AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
+
+  //WriteList;
+  for OrigIndex:=0 to Orig.Declarations.Count-1 do
+    begin
+    OrigDecl:=TPasElement(Orig.Declarations[OrigIndex]);
+    RestDecl:=TPasElement(Rest.Declarations[OrigIndex]);
+    if OrigDecl.Name<>RestDecl.Name then
+      begin
+      SubPath:=GetSubPath(Path,OrigIndex,OrigDecl);
+      AssertEquals(SubPath+'.Name',GetObjPath(OrigDecl),GetObjPath(RestDecl));
+      end;
+    end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSection(const Path: string; Orig,
@@ -889,6 +920,8 @@ procedure TCustomTestPrecompile.CheckRestoredRecordScope(const Path: string;
 begin
   CheckRestoredReference(Path+'.DefaultProperty',Orig.DefaultProperty,Rest.DefaultProperty);
   CheckRestoredIdentifierScope(Path,Orig,Rest,Flags);
+  // ok -> use same JSName
+  Rest.JSName:=Orig.JSName;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredClassScope(const Path: string;
@@ -962,6 +995,9 @@ begin
     end;
 
   CheckRestoredIdentifierScope(Path,Orig,Rest,Flags);
+
+  // ok -> use same JSName
+  Rest.JSName:=Orig.JSName;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
@@ -998,6 +1034,29 @@ begin
     begin
     // ImplProc
     end;
+
+  // ok -> use same JSName
+  Rest.JSName:=Orig.JSName;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredProcTypeScope(const Path: string;
+  Orig, Rest: TPas2JSProcTypeScope; Flags: TPCCheckFlags);
+begin
+  if Path='' then ;
+  if Flags=[] then ;
+
+  // ok -> use same JSName
+  Rest.JSName:=Orig.JSName;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredArrayScope(const Path: string;
+  Orig, Rest: TPas2JSArrayScope; Flags: TPCCheckFlags);
+begin
+  if Path='' then ;
+  if Flags=[] then ;
+
+  // ok -> use same JSName
+  Rest.JSName:=Orig.JSName;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredPrecompiledJS(const Path: string;
@@ -1224,6 +1283,10 @@ begin
     CheckRestoredClassScope(Path+'[TPas2JSClassScope]',TPas2JSClassScope(Orig),TPas2JSClassScope(Rest),Flags)
   else if C=TPas2JSProcedureScope then
     CheckRestoredProcScope(Path+'[TPas2JSProcedureScope]',TPas2JSProcedureScope(Orig),TPas2JSProcedureScope(Rest),Flags)
+  else if C=TPas2JSArrayScope then
+    CheckRestoredArrayScope(Path+'[TPas2JSArrayScope]',TPas2JSArrayScope(Orig),TPas2JSArrayScope(Rest),Flags)
+  else if C=TPas2JSProcTypeScope then
+    CheckRestoredProcTypeScope(Path+'[TPas2JSProcTypeScope]',TPas2JSProcTypeScope(Orig),TPas2JSProcTypeScope(Rest),Flags)
   else if C=TPasPropertyScope then
     CheckRestoredPropertyScope(Path+'[TPasPropertyScope]',TPasPropertyScope(Orig),TPasPropertyScope(Rest),Flags)
   else if C=TPasGenericParamsScope then
@@ -3241,27 +3304,97 @@ begin
   '  TBird<T> = class',
   '    a: T;',
   '  end;',
-  //'  TDoubleBird = TBIrd<double>;',
-  //'var',
-  //'  db: TDoubleBird;',
+  '  TDoubleBird = TBIrd<double>;',
+  'var',
+  '  db: TDoubleBird;',
   'procedure Fly;',
   'implementation',
   'type',
   '  TWordBird = TBird<word>;',
   'procedure Run;',
-  //'type TShortIntBird = TBird<shortint>;',
+  'type TShortIntBird = TBird<shortint>;',
   'var',
-  //'  shb: TShortIntBird;',
+  '  shb: TShortIntBird;',
   '  wb: TWordBird;',
   'begin',
-  //'  shb.a:=3;',
+  '  shb.a:=3;',
   '  wb.a:=4;',
   'end;',
   'procedure Fly;',
-  //'type TByteBird = TBird<byte>;',
-  //'var bb: TByteBird;',
+  'type TByteBird = TBird<byte>;',
+  'var bb: TByteBird;',
   'begin',
-  //'  bb.a:=5;',
+  '  bb.a:=5;',
+  '  Run;',
+  'end;',
+  'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Specialize_ClassForward;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird<T> = class;',
+  '  TAnt = class',
+  '    b: TBird<word>;',
+  '  end;',
+  '  TBird<T> = class',
+  '    a: TAnt;',
+  '  end;',
+  'procedure Fly;',
+  'implementation',
+  'procedure Fly;',
+  'var b: TBird<Double>;',
+  'begin',
+  '  b.a:=nil;',
+  'end;',
+  'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_InlineSpecialize_LocalTypeInUnit;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TBird<T> = class',
+  '    a: T;',
+  '  end;',
+  'var',
+  '  db: TBIrd<double>;',
+  'procedure Fly;',
+  'implementation',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'var wb: TBird<word>;',
+  'procedure Run;',
+  'var',
+  '  shb: TBird<shortint>;',
+  '  bb: TBird<boolean>;',
+  'begin',
+  '  shb.a:=3;',
+  '  wb.a:=4;',
+  '  bb.a:=true;',
+  '  TBird<string>.Create;',
+  'end;',
+  'procedure Fly;',
+  'var lb: TBird<longint>;',
+  'begin',
+  '  lb.a:=5;',
   '  Run;',
   'end;',
   'begin',
