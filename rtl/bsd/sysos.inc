@@ -32,15 +32,7 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
 {$ifdef OpenBSD}
-
-var libcerrno : libcint; cvar;
-
-function geterrnolocation: Plibcint; cdecl;
-
-begin
- geterrnolocation:=@libcerrno;
-end;
-
+function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 {$else}
 {$endif}
 {$endif}
