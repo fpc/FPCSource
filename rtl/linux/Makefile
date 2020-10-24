@@ -3106,7 +3106,11 @@ ifneq ($(findstring sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+CROSSGCCOPT=-mabi=32
+else
 CROSSGCCOPT=-m32
+endif
 endif
 endif
 endif
@@ -3115,6 +3119,21 @@ ifdef FPCFPMAKE
 FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
 ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
 FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
+FPCMAKE_CROSSGCCOPT=-m64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+FPCMAKE_CROSSGCCOPT=-mabi=64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+FPCMAKE_CROSSGCCOPT=-mabi=32
+else
+FPCMAKE_CROSSGCCOPT=-m32
+endif
+endif
+endif
+FPCMAKEGCCLIBDIR:=$(shell dirname `gcc $(FPCMAKE_CROSSGCCOPT) -print-libgcc-file-name`)
 endif
 endif
 ifndef FPCMAKEGCCLIBDIR
@@ -4425,12 +4444,12 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) fpcylix.pp
 softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $(INC)/softfpu.pp
+	$(COMPILER) $<
 sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $(INC)/sfpux80.pp
+	$(COMPILER) $<
 sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $(INC)/sfpu128.pp
+	$(COMPILER) $<
 ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ufloatx80.pp
+	$(COMPILER) $<
 ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ufloat128.pp
+	$(COMPILER) $<
