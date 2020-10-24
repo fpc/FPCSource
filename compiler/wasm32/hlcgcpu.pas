@@ -1044,10 +1044,6 @@ implementation
       if (ref.base=NR_EVAL_STACK_BASE) or (ref.islocal) then
         exit;
 
-      if assigned(ref.symbol) then
-        begin
-          Writeln(ref.symbol.name, ' ', std_Regname(ref.base), ' ', std_regname(ref.index));
-        end;
       // setting up memory offset
       if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
