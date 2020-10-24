@@ -1363,7 +1363,7 @@ implementation
     begin
       tmpref:=ref;
       if tmpref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
+        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
       a_cmp_stack_label(list,size,cmp_op,l);
