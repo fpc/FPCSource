@@ -1033,9 +1033,13 @@ implementation
         exit;
 
       // setting up memory offset
-      if assigned(ref.symbol) then begin
-        //list.Concat(taicpu.op_sym(a_get_global, ref.symbol));
-      end else if ref.index <> NR_NO then // array access
+      if assigned(ref.symbol) then
+        begin
+          list.Concat(taicpu.op_const(a_i32_const,0));
+          incstack(list,1);
+          result:=1;
+        end
+      else if ref.index <> NR_NO then // array access
       begin
         // it's just faster to sum two of those together
         list.Concat(taicpu.op_reg(a_get_local, ref.base));
