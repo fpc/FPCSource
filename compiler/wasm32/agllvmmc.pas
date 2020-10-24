@@ -197,7 +197,7 @@ implementation
           begin
             // local symbol -> stack slot, stored in offset
             result:='';
-            if ref.base<>NR_STACK_POINTER_REG then
+            if (ref.base<>NR_STACK_POINTER_REG) and (ref.base<>NR_NO) then
               result:=std_regname(ref.base);
             if ref.index<>NR_NO then
               if result<>'' then

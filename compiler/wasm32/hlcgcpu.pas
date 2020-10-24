@@ -1044,14 +1044,16 @@ implementation
       if (ref.base=NR_EVAL_STACK_BASE) or (ref.islocal) then
         exit;
 
-      // setting up memory offset
       if assigned(ref.symbol) then
+        begin
+          Writeln(ref.symbol.name, ' ', std_Regname(ref.base), ' ', std_regname(ref.index));
+        end;
+      // setting up memory offset
+      if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
           list.Concat(taicpu.op_const(a_i32_const,0));
           incstack(list,1);
           result:=1;
-          if (ref.base<>NR_NO) or (ref.index<>NR_NO) then
-            internalerror(2020102401);
         end
       else if ref.index <> NR_NO then // array access
         begin
@@ -1059,6 +1061,10 @@ implementation
           list.Concat(taicpu.op_reg(a_get_local, ref.base));
           list.Concat(taicpu.op_reg(a_get_local, ref.index));
           list.Concat(taicpu.op_none(a_i32_add));
+          ref.base:=NR_NO;
+          ref.index:=NR_NO;
+          incstack(list,1);
+          result:=1;
         end
       else if (ref.base<>NR_NO) then
         begin
@@ -1075,6 +1081,7 @@ implementation
                 end;
               { field name/type encoded in symbol, no index/offset }
               result:=1;
+              ref.base:=NR_NO;
             end
           else // if (ref.base = NR_FRAME_POINTER_REG) then
             begin
