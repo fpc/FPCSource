@@ -119,6 +119,7 @@ implementation
       i    : integer;
       proc : tprocdef;
       list : TAsmList;
+      cur_unit: tused_unit;
     begin
       for i:=0 to current_module.deflist.Count-1 do
         if tdef(current_module.deflist[i]).typ = procdef then
@@ -141,6 +142,24 @@ implementation
                 writer.AsmWriteLn(proc.import_name^);
               end;
           end;
+      cur_unit:=tused_unit(usedunits.First);
+      while assigned(cur_unit) do
+        begin
+          for i:=0 to cur_unit.u.deflist.Count-1 do
+            if assigned(cur_unit.u.deflist[i]) and (tdef(cur_unit.u.deflist[i]).typ = procdef) then
+              begin
+                proc := tprocdef(cur_unit.u.deflist[i]);
+                if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
+                   ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
+                  begin
+                    list:=TAsmList.Create;
+                    thlcgwasm(hlcg).g_procdef(list,proc);
+                    WriteTree(list);
+                    list.free;
+                  end;
+              end;
+          cur_unit:=tused_unit(cur_unit.Next);
+        end;
     end;
 
 
