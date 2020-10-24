@@ -1053,6 +1053,11 @@ implementation
         begin
           list.Concat(taicpu.op_const(a_i32_const,0));
           incstack(list,1);
+          if dup then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,0));
+              incstack(list,1);
+            end;
           result:=1;
         end
       else if ref.index <> NR_NO then // array access
