@@ -1062,9 +1062,16 @@ implementation
           list.Concat(taicpu.op_reg(a_get_local, ref.base));
           list.Concat(taicpu.op_reg(a_get_local, ref.index));
           list.Concat(taicpu.op_none(a_i32_add));
+          incstack(list,1);
+          if dup then
+            begin
+              list.Concat(taicpu.op_reg(a_get_local, ref.base));
+              list.Concat(taicpu.op_reg(a_get_local, ref.index));
+              list.Concat(taicpu.op_none(a_i32_add));
+              incstack(list,1);
+            end;
           ref.base:=NR_NO;
           ref.index:=NR_NO;
-          incstack(list,1);
           result:=1;
         end
       else if (ref.base<>NR_NO) then
