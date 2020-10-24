@@ -224,7 +224,7 @@ uses
         the reference is valid. If dup is true, the necessary values are stored
         twice. Returns how many stack slots have been consumed, disregarding
         the "dup". }
-      function prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
+      function prepare_stack_for_ref(list: TAsmList; var ref: treference; dup: boolean): longint;
       { return the load/store opcode to load/store from/to ref; if the result
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
@@ -450,26 +450,36 @@ implementation
     end;
 
   procedure thlcgwasm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
+    var
+      tmpref: treference;
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER,
         LOC_FPUREGISTER,LOC_CFPUREGISTER:
           a_load_stack_reg(list,size,loc.register);
         LOC_REFERENCE:
-          a_load_stack_ref(list,size,loc.reference,prepare_stack_for_ref(list,loc.reference,false));
+          begin
+            tmpref:=loc.reference;
+            a_load_stack_ref(list,size,loc.reference,prepare_stack_for_ref(list,tmpref,false));
+          end;
         else
           internalerror(2011020501);
       end;
     end;
 
   procedure thlcgwasm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
+    var
+      tmpref: treference;
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER,
         LOC_FPUREGISTER,LOC_CFPUREGISTER:
           a_load_reg_stack(list,size,loc.register);
         LOC_REFERENCE,LOC_CREFERENCE:
-          a_load_ref_stack(list,size,loc.reference,prepare_stack_for_ref(list,loc.reference,false));
+          begin
+            tmpref:=loc.reference;
+            a_load_ref_stack(list,size,loc.reference,prepare_stack_for_ref(list,tmpref,false));
+          end;
         LOC_CONSTANT:
           a_load_const_stack(list,size,loc.value,def2regtyp(size));
         else
@@ -607,6 +617,7 @@ implementation
   procedure thlcgwasm.a_op_ref_stack(list: TAsmList; op: topcg; size: tdef; const ref: treference);
     var
       trunc32: boolean;
+      tmpref: treference;
     begin
       { ref must not be the stack top, because that may indicate an error
         (it means that we will perform an operation of the stack top onto
@@ -615,17 +626,18 @@ implementation
          them; if something like that is needed, call a_op_stack() directly) }
       if ref.base=NR_EVAL_STACK_BASE then
         internalerror(2010121102);
+      tmpref:=ref;
       maybepreparedivu32(list,op,size,trunc32);
       case op of
         OP_SHL,OP_SHR,OP_SAR:
           begin
             if not is_64bitint(size) then
-              a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
+              a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false))
             else
-              a_load_ref_stack(list,s32inttype,ref,prepare_stack_for_ref(list,ref,false));
+              a_load_ref_stack(list,s32inttype,ref,prepare_stack_for_ref(list,tmpref,false));
           end;
         else
-          a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+          a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
       end;
       a_op_stack(list,op,size,trunc32);
     end;
@@ -1023,7 +1035,7 @@ implementation
     end;
 
 
-  function thlcgwasm.prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
+  function thlcgwasm.prepare_stack_for_ref(list: TAsmList; var ref: treference; dup: boolean): longint;
     var
       href: treference;
     begin
@@ -1089,21 +1101,25 @@ implementation
   procedure thlcgwasm.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
       extra_slots: longint;
+      tmpref: treference;
     begin
-      extra_slots:=prepare_stack_for_ref(list,ref,false);
-      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),assigned(ref.symbol));
-      a_load_stack_ref(list,tosize,ref,extra_slots);
+      tmpref:=ref;
+      extra_slots:=prepare_stack_for_ref(list,tmpref,false);
+      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),assigned(tmpref.symbol));
+      a_load_stack_ref(list,tosize,tmpref,extra_slots);
     end;
 
   procedure thlcgwasm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
     var
       extra_slots: longint;
+      tmpref: treference;
     begin
-      extra_slots:=prepare_stack_for_ref(list,ref,false);
+      tmpref:=ref;
+      extra_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_reg_stack(list,fromsize,register);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,fromsize,tosize,assigned(ref.symbol));
-      a_load_stack_ref(list,tosize,ref,extra_slots);
+        resize_stack_int_val(list,fromsize,tosize,assigned(tmpref.symbol));
+      a_load_stack_ref(list,tosize,tmpref,extra_slots);
     end;
 
   procedure thlcgwasm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
@@ -1117,9 +1133,11 @@ implementation
   procedure thlcgwasm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
     var
       extra_slots: longint;
+      tmpref: treference;
     begin
-      extra_slots:=prepare_stack_for_ref(list,ref,false);
-      a_load_ref_stack(list,fromsize,ref,extra_slots);
+      tmpref:=ref;
+      extra_slots:=prepare_stack_for_ref(list,tmpref,false);
+      a_load_ref_stack(list,fromsize,tmpref,extra_slots);
 
       if def2regtyp(fromsize)=R_INTREGISTER then
         resize_stack_int_val(list,fromsize,tosize,false);
@@ -1130,15 +1148,18 @@ implementation
     var
       extra_sslots,
       extra_dslots: longint;
+      tmpsref, tmpdref: treference;
     begin
+      tmpsref:=sref;
+      tmpdref:=dref;
       { make sure the destination reference is on top, since in the end the
         order has to be "destref, value" -> first create "destref, sourceref" }
-      extra_dslots:=prepare_stack_for_ref(list,dref,false);
-      extra_sslots:=prepare_stack_for_ref(list,sref,false);
-      a_load_ref_stack(list,fromsize,sref,extra_sslots);
+      extra_dslots:=prepare_stack_for_ref(list,tmpdref,false);
+      extra_sslots:=prepare_stack_for_ref(list,tmpsref,false);
+      a_load_ref_stack(list,fromsize,tmpsref,extra_sslots);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,fromsize,tosize,assigned(dref.symbol));
-      a_load_stack_ref(list,tosize,dref,extra_dslots);
+        resize_stack_int_val(list,fromsize,tosize,assigned(tmpdref.symbol));
+      a_load_stack_ref(list,tosize,tmpdref,extra_dslots);
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
@@ -1189,16 +1210,18 @@ implementation
   procedure thlcgwasm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     var
       extra_slots: longint;
+      tmpref: treference;
     begin
-      extra_slots:=prepare_stack_for_ref(list,ref,true);
+      tmpref:=ref;
+      extra_slots:=prepare_stack_for_ref(list,tmpref,true);
       { TODO, here or in peepholeopt: use iinc when possible }
-      a_load_ref_stack(list,size,ref,extra_slots);
+      a_load_ref_stack(list,size,tmpref,extra_slots);
       a_op_const_stack(list,op,size,a);
       { for android verifier }
       if (def2regtyp(size)=R_INTREGISTER) and
-         (assigned(ref.symbol)) then
+         (assigned(tmpref.symbol)) then
         resize_stack_int_val(list,size,size,true);
-      a_load_stack_ref(list,size,ref,extra_slots);
+      a_load_stack_ref(list,size,tmpref,extra_slots);
     end;
 
   procedure thlcgwasm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
@@ -1323,9 +1346,12 @@ implementation
     end;
 
   procedure thlcgwasm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
+    var
+      tmpref: treference;
     begin
-      if ref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+      tmpref:=ref;
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
       a_cmp_stack_label(list,size,cmp_op,l);
@@ -1340,11 +1366,14 @@ implementation
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
+    var
+      tmpref: treference;
     begin
+      tmpref:=ref;
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
-      if ref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false))
       else begin
         // todo: need a swap operation?
         //list.concat(taicpu.op_none(a_swap));
@@ -1355,9 +1384,12 @@ implementation
     end;
 
   procedure thlcgwasm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
+    var
+      tmpref: treference;
     begin
-      if ref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+      tmpref:=ref;
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
@@ -1398,10 +1430,13 @@ implementation
       eledef: tdef;
       ndim: longint;
       adddefaultlenparas: boolean;
+      tmpsource, tmpdest: treference;
     begin
+      tmpsource:=source;
+      tmpdest:=dest;
       { load copy helper parameters on the stack }
-      a_load_ref_stack(list,ptruinttype,source,prepare_stack_for_ref(list,source,false));
-      a_load_ref_stack(list,ptruinttype,dest,prepare_stack_for_ref(list,dest,false));
+      a_load_ref_stack(list,ptruinttype,source,prepare_stack_for_ref(list,tmpsource,false));
+      a_load_ref_stack(list,ptruinttype,dest,prepare_stack_for_ref(list,tmpdest,false));
       { call copy helper }
       eledef:=tarraydef(size).elementdef;
       ndim:=1;
@@ -1497,11 +1532,14 @@ implementation
       var
         srsym: tsym;
         pd: tprocdef;
+        tmpsource, tmpdest: treference;
       begin
+        tmpsource:=source;
+        tmpdest:=dest;
         { self }
-        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
+        a_load_ref_stack(list,size,tmpsource,prepare_stack_for_ref(list,tmpsource,false));
         { result }
-        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
+        a_load_ref_stack(list,size,tmpdest,prepare_stack_for_ref(list,tmpdest,false));
         { call fpcDeepCopy helper }
         srsym:=search_struct_member(tabstractrecorddef(size),'FPCDEEPCOPY');
         if not assigned(srsym) or
@@ -1515,9 +1553,13 @@ implementation
 
 
     procedure thlcgwasm.concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
+      var
+        tmpsource, tmpdest: treference;
       begin
-        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
-        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
+        tmpsource:=source;
+        tmpdest:=dest;
+        a_load_ref_stack(list,size,tmpsource,prepare_stack_for_ref(list,tmpsource,false));
+        a_load_ref_stack(list,size,tmpdest,prepare_stack_for_ref(list,tmpdest,false));
         { call set copy helper }
         if tsetdef(size).elementdef.typ=enumdef then
           g_call_system_proc(list,'fpc_enumset_copy',[],nil)
@@ -1530,11 +1572,14 @@ implementation
       var
         srsym: tsym;
         pd: tprocdef;
+        tmpsource, tmpdest: treference;
       begin
+        tmpsource:=source;
+        tmpdest:=dest;
         { self }
-        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
+        a_load_ref_stack(list,size,tmpsource,prepare_stack_for_ref(list,tmpsource,false));
         { result }
-        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
+        a_load_ref_stack(list,size,tmpdest,prepare_stack_for_ref(list,tmpdest,false));
         { call fpcDeepCopy helper }
         srsym:=search_struct_member(java_shortstring,'FPCDEEPCOPY');
         if not assigned(srsym) or
@@ -1601,16 +1646,22 @@ implementation
   procedure thlcgwasm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
     var
       dstack_slots: longint;
+      tmpref1, tmpref2: treference;
     begin
-      dstack_slots:=prepare_stack_for_ref(list,ref2,false);
-      a_load_ref_stack(list,fromsize,ref1,prepare_stack_for_ref(list,ref1,false));
+      tmpref1:=ref1;
+      tmpref2:=ref2;
+      dstack_slots:=prepare_stack_for_ref(list,tmpref2,false);
+      a_load_ref_stack(list,fromsize,tmpref1,prepare_stack_for_ref(list,tmpref1,false));
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
-      a_load_stack_ref(list,tosize,ref2,dstack_slots);
+      a_load_stack_ref(list,tosize,tmpref2,dstack_slots);
     end;
 
   procedure thlcgwasm.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister);
+    var
+      tmpref: treference;
     begin
-      a_load_ref_stack(list,fromsize,ref,prepare_stack_for_ref(list,ref,false));
+      tmpref:=ref;
+      a_load_ref_stack(list,fromsize,tmpref,prepare_stack_for_ref(list,tmpref,false));
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
       a_load_stack_reg(list,tosize,reg);
     end;
@@ -1618,11 +1669,13 @@ implementation
   procedure thlcgwasm.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference);
     var
       dstack_slots: longint;
+      tmpref: treference;
     begin
-      dstack_slots:=prepare_stack_for_ref(list,ref,false);
+      tmpref:=ref;
+      dstack_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_reg_stack(list,fromsize,reg);
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
-      a_load_stack_ref(list,tosize,ref,dstack_slots);
+      a_load_stack_ref(list,tosize,tmpref,dstack_slots);
     end;
 
   procedure thlcgwasm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
@@ -1710,13 +1763,14 @@ implementation
   procedure thlcgwasm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
     var
       normaldim: longint;
-      eleref: treference;
+      eleref, tmpref: treference;
     begin
       { only in case of initialisation, we have to set all elements to "empty" }
       if name<>'fpc_initialize_array' then
         exit;
       { put array on the stack }
-      a_load_ref_stack(list,ptruinttype,ref,prepare_stack_for_ref(list,ref,false));
+      tmpref:=ref;
+      a_load_ref_stack(list,ptruinttype,tmpref,prepare_stack_for_ref(list,tmpref,false));
       { in case it's an open array whose elements are regular arrays, put the
         dimension of the regular arrays on the stack (otherwise pass 0) }
       normaldim:=0;
@@ -1764,6 +1818,7 @@ implementation
       dummyloc: tlocation;
       sym: tsym;
       pd: tprocdef;
+      tmpref: treference;
     begin
       if (t.typ=arraydef) and
          not is_dynamic_array(t) then
@@ -1784,7 +1839,8 @@ implementation
             end
           else
             internalerror(2013113008);
-          a_load_ref_stack(list,ptruinttype,ref,prepare_stack_for_ref(list,ref,false));
+          tmpref:=ref;
+          a_load_ref_stack(list,ptruinttype,ref,prepare_stack_for_ref(list,tmpref,false));
           a_call_name(list,pd,pd.mangledname,[],nil,false);
           { parameter removed, no result }
           decstack(list,1);
