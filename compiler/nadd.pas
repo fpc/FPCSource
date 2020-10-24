@@ -3569,12 +3569,16 @@ implementation
       var
         temp: tnode;
         leftoriginallysigned,
-        canbesignedconst, canbeunsignedconst: boolean;
+        canbesignedconst, canbeunsignedconst, swapped: boolean;
       begin
         result := false;
+        swapped := false;
         { make sure that if there is a constant, that it's on the right }
         if left.nodetype = ordconstn then
-          swapleftright;
+          begin
+            swapleftright;
+            swapped := true;
+          end;
         if is_32to64typeconv(left) then
           begin
             leftoriginallysigned:=is_signed(ttypeconvnode(left).left.resultdef);
@@ -3613,6 +3617,10 @@ implementation
                 result := true;
               end;
           end;
+        { pass_Typecheck caches left/right type and resultdef, so restore the
+          original order }
+        if not result and swapped then
+          swapleftright;
       end;
 
 

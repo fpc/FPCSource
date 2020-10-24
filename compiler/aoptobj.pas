@@ -2465,7 +2465,7 @@ Unit AoptObj;
 
     procedure TAOptObj.PeepHoleOptPass1;
       const
-        MaxPasses: array[1..4] of Cardinal = (1, 2, 8, 8);
+        MaxPasses: array[1..3] of Cardinal = (1, 2, 8);
       var
         p : tai;
         stoploop, FirstInstruction, JumpOptsAvailable: boolean;
@@ -2477,10 +2477,8 @@ Unit AoptObj;
         PassCount := 0;
 
         { Determine the maximum number of passes allowed based on the compiler switches }
-        if (cs_opt_level4 in current_settings.optimizerswitches) then
+        if (cs_opt_level3 in current_settings.optimizerswitches) then
           { it should never take more than 8 passes, but the limit is finite to protect against faulty optimisations }
-          MaxCount := MaxPasses[4]
-        else if (cs_opt_level3 in current_settings.optimizerswitches) then
           MaxCount := MaxPasses[3]
         else if (cs_opt_level2 in current_settings.optimizerswitches) then
           MaxCount := MaxPasses[2] { The original double run of Pass 1 }
