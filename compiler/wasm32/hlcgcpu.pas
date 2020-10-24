@@ -1042,41 +1042,42 @@ implementation
             internalerror(2020102401);
         end
       else if ref.index <> NR_NO then // array access
-      begin
-        // it's just faster to sum two of those together
-        list.Concat(taicpu.op_reg(a_get_local, ref.base));
-        list.Concat(taicpu.op_reg(a_get_local, ref.index));
-        list.Concat(taicpu.op_none(a_i32_add));
-      end else if (ref.base<>NR_NO) then
-          begin
-            if (ref.base<>NR_STACK_POINTER_REG) then
-              begin
-                { regular field -> load self on the stack }
-                a_load_reg_stack(list,voidpointertype,ref.base);
-                if dup then
-                  begin
-                    internalerror(2019083002);
-                    //todo: add duplicate
-                    //list.concat(taicpu.op_none(a_dup));
-                    incstack(list,1);
-                  end;
-                { field name/type encoded in symbol, no index/offset }
-                result:=1;
-              end
-            else // if (ref.base = NR_FRAME_POINTER_REG) then
-              begin
-                list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
-              end;
-          end
-        else
-          begin
-            { static field -> nothing to do here, except for validity check }
-            {if not assigned(ref.symbol) or
-               (ref.offset<>0) then
+        begin
+          // it's just faster to sum two of those together
+          list.Concat(taicpu.op_reg(a_get_local, ref.base));
+          list.Concat(taicpu.op_reg(a_get_local, ref.index));
+          list.Concat(taicpu.op_none(a_i32_add));
+        end
+      else if (ref.base<>NR_NO) then
+        begin
+          if (ref.base<>NR_STACK_POINTER_REG) then
             begin
-              internalerror(2010120525);
-            end;}
-          end;
+              { regular field -> load self on the stack }
+              a_load_reg_stack(list,voidpointertype,ref.base);
+              if dup then
+                begin
+                  internalerror(2019083002);
+                  //todo: add duplicate
+                  //list.concat(taicpu.op_none(a_dup));
+                  incstack(list,1);
+                end;
+              { field name/type encoded in symbol, no index/offset }
+              result:=1;
+            end
+          else // if (ref.base = NR_FRAME_POINTER_REG) then
+            begin
+              list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
+            end;
+        end
+      else
+        begin
+          { static field -> nothing to do here, except for validity check }
+          {if not assigned(ref.symbol) or
+             (ref.offset<>0) then
+          begin
+            internalerror(2010120525);
+          end;}
+        end;
     end;
 
   procedure thlcgwasm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
