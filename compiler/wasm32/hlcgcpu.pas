@@ -1038,6 +1038,8 @@ implementation
           list.Concat(taicpu.op_const(a_i32_const,0));
           incstack(list,1);
           result:=1;
+          if (ref.base<>NR_NO) or (ref.index<>NR_NO) then
+            internalerror(2020102401);
         end
       else if ref.index <> NR_NO then // array access
       begin
