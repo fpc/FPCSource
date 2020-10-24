@@ -177,8 +177,6 @@ implementation
 
     function getreferencestring(var ref : treference) : ansistring;
       begin
-        if (ref.index<>NR_NO) then
-          internalerror(2010122809);
         if assigned(ref.symbol) then
           begin
             // global symbol or field -> full type and name
@@ -186,6 +184,10 @@ implementation
             // This register is not part of this instruction, it will have
             // been placed on the stack by the previous one.
             result:=ref.symbol.name;
+            if ref.base<>NR_NO then
+              result:=result+'+'+std_regname(ref.base);
+            if ref.index<>NR_NO then
+              result:=result+'+'+std_regname(ref.index);
             if ref.offset>0 then
               result:=result+'+'+tostr(ref.offset)
             else if ref.offset<0 then
@@ -194,9 +196,25 @@ implementation
         else
           begin
             // local symbol -> stack slot, stored in offset
+            result:='';
             if ref.base<>NR_STACK_POINTER_REG then
-              internalerror(2010122810);
-            result:=tostr(ref.offset);
+              result:=std_regname(ref.base);
+            if ref.index<>NR_NO then
+              if result<>'' then
+                result:=result+'+'+std_regname(ref.index)
+              else
+                result:=std_regname(ref.index);
+            if ref.offset>0 then
+              begin
+                if result<>'' then
+                  result:=result+'+'+tostr(ref.offset)
+                else
+                  result:=tostr(ref.offset);
+              end
+            else if ref.offset<0 then
+              result:=result+tostr(ref.offset);
+            if result='' then
+              result:='0';
           end;
       end;
 
