@@ -2104,8 +2104,13 @@ implementation
                   OS_F64:
                     functype.add_param(wbt_f64);
                 else
-                  // unsupported calleeside parameter type
-                  Internalerror(2019093001);
+                  begin
+{$ifdef EXTDEBUG}
+                    Writeln('Unsupported caller side parameter type: ', prm.paraloc[callerside].Size);
+{$endif EXTDEBUG}
+                    // unsupported calleeside parameter type
+                    Internalerror(2019093001);
+                  end;
                 end;
               end;
           end;
