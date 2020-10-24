@@ -186,6 +186,10 @@ implementation
             // This register is not part of this instruction, it will have
             // been placed on the stack by the previous one.
             result:=ref.symbol.name;
+            if ref.offset>0 then
+              result:=result+'+'+tostr(ref.offset)
+            else if ref.offset<0 then
+              result:=result+tostr(ref.offset);
           end
         else
           begin
