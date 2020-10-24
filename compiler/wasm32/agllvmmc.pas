@@ -297,12 +297,7 @@ implementation
           for i:=0 to cpu.ops-1 do
             begin
               writer.AsmWrite(#9);
-
-              if (cpu.opcode in AsmOp_LoadStore) and (cpu.oper[i]^.typ = top_ref) then
-                writer.AsmWrite('offset='+tostr( cpu.oper[i]^.ref^.offset))
-              else
-                writer.AsmWrite(getopstr(cpu.oper[i]^));
-
+              writer.AsmWrite(getopstr(cpu.oper[i]^));
             end;
         end;
 
