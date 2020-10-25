@@ -211,10 +211,27 @@ end;
 type
   TOutputColor = (oc_black,oc_red,oc_green,oc_orange,og_blue,oc_magenta,oc_cyan,oc_lightgray);
 
+{$ifdef linux}
+const
+  CachedIsATTY : Boolean = false;
+  IsATTYValue : Boolean = false;
+
+function IsATTY(var t : text) : Boolean;
+  begin
+    if not(CachedIsATTY) then
+      begin
+        IsATTYValue:=termio.IsATTY(t)=1;
+        CachedIsATTY:=true;
+      end;
+    Result:=IsATTYValue;
+  end;
+{$endif linux}
+
+
 procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiString);
   begin
 {$ifdef linux}
-     if IsATTY(t)=1 then
+     if IsATTY(t) then
        begin
          case color of
            oc_black:
@@ -238,7 +255,7 @@ procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiStrin
 {$endif linux}
     write(t,s);
 {$ifdef linux}
-    if IsATTY(t)=1 then
+    if IsATTY(t) then
       write(t,#27'[0m');
 {$endif linux}
   end;
