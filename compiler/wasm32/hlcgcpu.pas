@@ -431,7 +431,6 @@ implementation
               OS_64,OS_S64:
                 begin
                   list.concat(taicpu.op_const(a_i64_const, a));
-                  incstack(list,1); // why?
                 end;
               else
                 internalerror(2010110702);
