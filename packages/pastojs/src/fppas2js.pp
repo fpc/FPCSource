@@ -1742,13 +1742,14 @@ type
     function AddLocalVar(aName: string; El: TPasElement; aKind: TCtxVarKind; AutoUnique: boolean): TFCLocalIdentifier;
     function AddLocalJSVar(aName: string; AutoUnique: boolean): TFCLocalIdentifier;
     procedure Add_InterfaceRelease(El: TPasElement);
-    function CreateLocalIdentifier(const Prefix: string): string;
+    function CreateLocalIdentifier(const Prefix: string; El: TPasElement; aKind: TCtxVarKind): string; virtual;
     function ToString: string; override;
     function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds): string; override;
     function IndexOfLocalVar(const aName: string): integer;
     function IndexOfLocalVar(El: TPasElement; const Filter: TCtxVarKinds): integer;
     function FindLocalVar(const aName: string; WithParents: boolean): TFCLocalIdentifier;
-    function FindLocalIdentifier(El: TPasElement; const Filter: TCtxVarKinds): TFCLocalIdentifier;
+    function FindPrecompiledVar(const aName: string; WithParents: boolean): TPas2JSStoredLocalVar; virtual;
+    function FindPrecompiledVar(El: TPasElement; WithParents: boolean): TPas2JSStoredLocalVar; virtual;
     procedure DoWriteStack(Index: integer); override;
   end;
 
@@ -1765,8 +1766,13 @@ type
   public
     SrcElements: TJSSourceElements;
     HeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
+    PrecompiledVars: TPas2JSStoredLocalVarArray; // copy from TPas2JSModuleScope, do not free
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
     procedure AddHeaderStatement(JS: TJSElement);
+    function FindPrecompiledVar(const aName: string; WithParents: boolean
+      ): TPas2JSStoredLocalVar; override;
+    function FindPrecompiledVar(El: TPasElement; WithParents: boolean
+      ): TPas2JSStoredLocalVar; override;
   end;
 
   { TInterfaceSectionContext }
@@ -2035,6 +2041,7 @@ type
     Function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds; AContext: TConvertContext): string;
     Procedure StoreImplJSLocal(El: TPasElement; AContext: TConvertContext); virtual;
     Procedure StoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
+    Procedure RestoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -7287,6 +7294,32 @@ begin
   inc(HeaderIndex);
 end;
 
+function TSectionContext.FindPrecompiledVar(const aName: string;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  i: Integer;
+begin
+  for i:=0 to length(PrecompiledVars)-1 do
+    if PrecompiledVars[i].Name=aName then
+      exit(PrecompiledVars[i]);
+  if not WithParents then
+    exit(nil);
+  Result:=inherited FindPrecompiledVar(aName,WithParents);
+end;
+
+function TSectionContext.FindPrecompiledVar(El: TPasElement;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  i: Integer;
+begin
+  for i:=0 to length(PrecompiledVars)-1 do
+    if PrecompiledVars[i].Element=El then
+      exit(PrecompiledVars[i]);
+  if not WithParents then
+    exit(nil);
+  Result:=inherited FindPrecompiledVar(El, WithParents);
+end;
+
 { TFunctionContext }
 
 constructor TFunctionContext.Create(PasEl: TPasElement; JSEl: TJSElement;
@@ -7319,12 +7352,7 @@ begin
   if Ident<>nil then
     begin
     if AutoUnique then
-      begin
-      l:=1;
-      while FindLocalVar(aName+IntToStr(l),true)<>nil do
-        inc(l);
-      aName:=aName+IntToStr(l);
-      end
+      aName:=CreateLocalIdentifier(aName,El,aKind)
     else
       begin
       V:=FindLocalVar(aName,false);
@@ -7335,7 +7363,7 @@ begin
       else
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TFunctionContext.AddLocalVar [20200608131330] "'+aName+'" El='+GetObjPath(El),' Old=',GetObjPath(Ident.Element));
+        writeln('TFunctionContext.AddLocalVar [20200608131330] Duplicate "'+aName+'" El='+GetObjPath(El),' Old=',GetObjPath(Ident.Element));
         {$ENDIF}
         raise EPas2JS.Create('[20200608131330] "'+aName+'" El='+GetObjPath(El));
         end;
@@ -7361,19 +7389,28 @@ begin
   IntfElReleases.Add(El);
 end;
 
-function TFunctionContext.CreateLocalIdentifier(const Prefix: string): string;
+function TFunctionContext.CreateLocalIdentifier(const Prefix: string;
+  El: TPasElement; aKind: TCtxVarKind): string;
 var
-  Ident: TFCLocalIdentifier;
   l: Integer;
+  PV: TPas2JSStoredLocalVar;
 begin
+  // check precompiled names
+  if aKind=cvkGlobal then
+    begin
+    PV:=FindPrecompiledVar(El,true);
+    if PV<>nil then
+      exit(PV.Name);
+    end;
+  // find new name
   Result:=Prefix;
-  Ident:=FindLocalVar(Result,true);
-  if Ident=nil then exit;
   l:=0;
-  repeat
+  while (FindLocalVar(Result,true)<>nil)
+      or ((aKind=cvkGlobal) and (FindPrecompiledVar(Result,true)<>nil)) do
+    begin
     inc(l);
     Result:=Prefix+IntToStr(l);
-  until FindLocalVar(Result,true)=nil;
+    end;
 end;
 
 function TFunctionContext.ToString: string;
@@ -7467,14 +7504,30 @@ begin
   Result:=ParentFC.FindLocalVar(aName,true);
 end;
 
-function TFunctionContext.FindLocalIdentifier(El: TPasElement;
-  const Filter: TCtxVarKinds): TFCLocalIdentifier;
+function TFunctionContext.FindPrecompiledVar(const aName: string;
+  WithParents: boolean): TPas2JSStoredLocalVar;
 var
-  i: Integer;
+  ParentFC: TFunctionContext;
 begin
-  i:=IndexOfLocalVar(El,Filter);
-  if i>=0 then
-    exit(LocalVars[i]);
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindPrecompiledVar(aName,true);
+end;
+
+function TFunctionContext.FindPrecompiledVar(El: TPasElement;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  ParentFC: TFunctionContext;
+begin
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindPrecompiledVar(El,true);
 end;
 
 procedure TFunctionContext.DoWriteStack(Index: integer);
@@ -7831,6 +7884,7 @@ Unit with implementation:
     );
 *)
 Var
+  aResolver: TPas2JSResolver;
   OuterSrc , Src: TJSSourceElements;
   RegModuleCall, Call: TJSCallExpression;
   ArgArray: TJSArguments;
@@ -7847,6 +7901,11 @@ Var
   ModScope: TPas2JSModuleScope;
 begin
   Result:=Nil;
+  aResolver:=AContext.Resolver;
+  if aResolver<>nil then
+    ModScope:=El.CustomData as TPas2JSModuleScope
+  else
+    ModScope:=nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
   Result:=OuterSrc;
   ok:=false;
@@ -7907,6 +7966,9 @@ begin
       AddToSourceElements(Src,CreateVarStatement(ModVarName,
         CreatePrimitiveDotExpr('this',El),El));
 
+      if (ModScope<>nil) then
+        RestoreImplJSLocals(ModScope,IntfContext);
+
       if (El is TPasProgram) then
         begin // program
         Prg:=TPasProgram(El);
@@ -7965,11 +8027,8 @@ begin
 
         end;
 
-      if AContext.Resolver<>nil then
-        begin
-        ModScope:=El.CustomData as TPas2JSModuleScope;
+      if (ModScope<>nil) and (coStoreImplJS in Options) then
         StoreImplJSLocals(ModScope,IntfContext);
-        end;
     finally
       IntfContext.Free;
     end;
@@ -24555,6 +24614,12 @@ begin
   SetLength(ModScope.StoreJSLocalVars,StoredIndex);
 end;
 
+procedure TPasToJSConverter.RestoreImplJSLocals(ModScope: TPas2JSModuleScope;
+  IntfContext: TSectionContext);
+begin
+  IntfContext.PrecompiledVars:=ModScope.StoreJSLocalVars;
+end;
+
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;
   Args: TParamsExpr; TargetProc: TPasProcedureType; AContext: TConvertContext);
 // create a call, adding call by reference and default values
@@ -26362,8 +26427,8 @@ begin
       Result:=GetBIName(pbivnLocalModuleRef)
     else
       RaiseNotSupported(El,AContext,20200608160225);
-    Result:=FuncContext.CreateLocalIdentifier(Result);
-    SectionContext.AddLocalVar(Result,El,cvkGlobal,false);
+    Result:=FuncContext.CreateLocalIdentifier(Result,El,cvkGlobal);
+    SectionContext.AddLocalVar(Result,El,cvkGlobal,true);
     if coStoreImplJS in Options then
       StoreImplJSLocal(El,AContext);
 
