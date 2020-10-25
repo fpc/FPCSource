@@ -39,11 +39,11 @@ unit ufloatx80;
 
     procedure DumpFloatx80(const f : floatx80);
       type
-        ta = packed array[0..15] of byte;
+        ta = packed array[0..SizeOf(floatx80)-1] of byte;
       var
         i : longint;
       begin
-        for i:=15 downto 0 do
+        for i:=SizeOf(floatx80)-1 downto 0 do
           begin
             write(hexstr(ta(f)[i],2));
             if i<15 then
