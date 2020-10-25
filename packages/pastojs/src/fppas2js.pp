@@ -1112,6 +1112,13 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
+  TPas2JSStoredLocalVar = class(TPasElementBase)
+  public
+    Name: string;
+    Element: TPasElement;
+  end;
+  TPas2JSStoredLocalVarArray = array of TPas2JSStoredLocalVar;
+
   TPas2JSModuleScopeFlag = (
     p2msfPromiseSearched // TJSPromise searched
     );
@@ -1126,6 +1133,8 @@ type
   public
     FlagsJS: TPas2JSModuleScopeFlags;
     SystemVarRecs: TPasFunction;
+    StoreJSLocalVars: TPas2JSStoredLocalVarArray; // only with coStoreImplJS
+    procedure ClearStoreJSLocalVars;
     destructor Destroy; override;
     property JSPromiseClass: TPasClassType read FJSPromiseClass write SetJSPromiseClass;
   end;
@@ -2025,6 +2034,7 @@ type
     Function CreateGlobalElPath(El: TPasElement; AContext: TConvertContext): string; virtual;
     Function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds; AContext: TConvertContext): string;
     Procedure StoreImplJSLocal(El: TPasElement; AContext: TConvertContext); virtual;
+    Procedure StoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -2515,8 +2525,18 @@ begin
     FJSPromiseClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
 end;
 
+procedure TPas2JSModuleScope.ClearStoreJSLocalVars;
+var
+  i: Integer;
+begin
+  for i:=0 to length(StoreJSLocalVars)-1 do
+    FreeAndNil(StoreJSLocalVars[i]);
+  StoreJSLocalVars:=nil;
+end;
+
 destructor TPas2JSModuleScope.Destroy;
 begin
+  ClearStoreJSLocalVars;
   JSPromiseClass:=nil;
   inherited Destroy;
 end;
@@ -7824,6 +7844,7 @@ Var
   Lib: TPasLibrary;
   AssignSt: TJSSimpleAssignStatement;
   IntfSecCtx: TInterfaceSectionContext;
+  ModScope: TPas2JSModuleScope;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
@@ -7942,6 +7963,12 @@ begin
 
         CreateInitSection(El,Src,IntfSecCtx);
 
+        end;
+
+      if AContext.Resolver<>nil then
+        begin
+        ModScope:=El.CustomData as TPas2JSModuleScope;
+        StoreImplJSLocals(ModScope,IntfContext);
         end;
     finally
       IntfContext.Free;
@@ -24494,6 +24521,38 @@ begin
       end;
     Ctx:=Ctx.Parent;
     end;
+end;
+
+procedure TPasToJSConverter.StoreImplJSLocals(ModScope: TPas2JSModuleScope;
+  IntfContext: TSectionContext);
+var
+  i, StoredIndex: Integer;
+  CtxVar: TFCLocalIdentifier;
+  StoredVar: TPas2JSStoredLocalVar;
+  CurName: String;
+begin
+  ModScope.ClearStoreJSLocalVars;
+  SetLength(ModScope.StoreJSLocalVars,length(IntfContext.LocalVars));
+  StoredIndex:=0;
+  for i:=0 to length(IntfContext.LocalVars)-1 do
+    begin
+    CtxVar:=IntfContext.LocalVars[i];
+    if (CtxVar.Element=nil) or (CtxVar.Kind<>cvkGlobal) then
+      continue;
+    if CtxVar.Element.Parent is TProcedureBody then
+      continue;
+    CurName:=CtxVar.Name;
+    if (CurName='') or (CurName='this')
+        or (CurName=GetBIName(pbivnModule))
+        or (CurName=GetBIName(pbivnImplementation))
+      then continue;
+    StoredVar:=TPas2JSStoredLocalVar.Create;
+    StoredVar.Name:=CurName;
+    StoredVar.Element:=CtxVar.Element;
+    ModScope.StoreJSLocalVars[StoredIndex]:=StoredVar;
+    inc(StoredIndex);
+    end;
+  SetLength(ModScope.StoreJSLocalVars,StoredIndex);
 end;
 
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;

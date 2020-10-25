@@ -76,6 +76,7 @@ type
     procedure CheckRestoredElementBase(const Path: string; Orig, Rest: TPasElementBase; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredResolveData(const Path: string; Orig, Rest: TResolveData; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPasScope(const Path: string; Orig, Rest: TPasScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredLocalVar(const Path: string; Orig, Rest: TPas2JSStoredLocalVar); virtual;
     procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPas2JSModuleScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPas2JSSectionScope; Flags: TPCCheckFlags); virtual;
@@ -801,8 +802,19 @@ begin
   CheckRestoredResolveData(Path,Orig,Rest,Flags);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredLocalVar(const Path: string; Orig,
+  Rest: TPas2JSStoredLocalVar);
+begin
+  AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
+  CheckRestoredReference(Path+'.Id',Orig.Element,Rest.Element);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
   Orig, Rest: TPas2JSModuleScope; Flags: TPCCheckFlags);
+var
+  OrigLocalVars, RestLocalVars: TPas2JSStoredLocalVarArray;
+  i, j: Integer;
+  OrigLocalVar, RestLocalVar: TPas2JSStoredLocalVar;
 begin
   AssertEquals(Path+'.FirstName',Orig.FirstName,Rest.FirstName);
   if Orig.Flags<>Rest.Flags then
@@ -816,6 +828,32 @@ begin
   CheckRestoredReference(Path+'.RangeErrorConstructor',Orig.RangeErrorConstructor,Rest.RangeErrorConstructor);
   CheckRestoredReference(Path+'.SystemTVarRec',Orig.SystemTVarRec,Rest.SystemTVarRec);
   CheckRestoredReference(Path+'.SystemVarRecs',Orig.SystemVarRecs,Rest.SystemVarRecs);
+
+  // StoreJSLocalVars
+  OrigLocalVars:=Orig.StoreJSLocalVars;
+  RestLocalVars:=Rest.StoreJSLocalVars;
+  //for i:=0 to length(RestLocalVars)-1 do
+  //  writeln('TCustomTestPrecompile.CheckRestoredModuleScope Rest ',i,'/',length(RestLocalVars),' ',RestLocalVars[i].Name);
+  for i:=0 to length(OrigLocalVars)-1 do
+  begin
+    OrigLocalVar:=OrigLocalVars[i];
+    //writeln('TCustomTestPrecompile.CheckRestoredModuleScope Orig ',i,'/',length(OrigLocalVars),' ',OrigLocalVar.Name);
+    j:=length(OrigLocalVars)-1;
+    while (j>=0) do
+      begin
+      RestLocalVar:=RestLocalVars[j];
+      if OrigLocalVar.Name=RestLocalVar.Name then
+        begin
+        CheckRestoredLocalVar(Path+'.LocalVars['+IntToStr(i)+']',OrigLocalVar,RestLocalVar);
+        break;
+        end;
+      dec(j);
+      end;
+    if j<0 then
+      Fail(Path+'.LocalVars['+IntToStr(i)+'] Name="'+OrigLocalVar.Name+'" missing in Rest');
+  end;
+  AssertEquals('LocalVars.Count',length(OrigLocalVars),length(RestLocalVars));
+
   CheckRestoredPasScope(Path,Orig,Rest,Flags);
 end;
 
