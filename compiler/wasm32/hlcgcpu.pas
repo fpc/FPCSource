@@ -203,8 +203,6 @@ uses
 
       procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
      protected
-      procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
-
       function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
 
       procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
@@ -392,27 +390,6 @@ implementation
       a_load_reg_stack(list, ptrsinttype, reg);
       current_asmdata.CurrAsmList.Concat(taicpu.op_callindirect( WasmGetTypeCode(pd)) );
       result:=hlcg.get_call_result_cgpara(pd, nil);
-    end;
-
-
-  procedure thlcgwasm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
-    begin
-      if legalize_const and
-         (typ=R_INTREGISTER) and
-         (size.typ=orddef) then
-        begin
-          { uses specific byte/short array store instructions, and the Dalvik
-            VM does not like it if we store values outside the range }
-          case torddef(size).ordtype of
-            u8bit:
-              a:=shortint(a);
-            u16bit:
-              a:=smallint(a);
-            else
-              ;
-          end;
-        end;
-      a_load_const_stack(list,size,a,typ);
     end;
 
 
@@ -1119,7 +1096,7 @@ implementation
     begin
       tmpref:=ref;
       extra_slots:=prepare_stack_for_ref(list,tmpref,false);
-      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),assigned(tmpref.symbol));
+      a_load_const_stack(list,tosize,a,def2regtyp(tosize));
       a_load_stack_ref(list,tosize,tmpref,extra_slots);
     end;
 
