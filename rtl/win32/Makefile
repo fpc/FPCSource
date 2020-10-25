@@ -3572,9 +3572,3 @@ buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-softfpu$(PPUEXT) : ../inc/softfpu.pp system$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) ../inc/softfpu.pp
-sfpu128$(PPUEXT) : ../inc/sfpu128.pp system$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) ../inc/sfpu128.pp
-sfpux80$(PPUEXT) : ../inc/sfpux80.pp system$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) ../inc/sfpux80.pp
