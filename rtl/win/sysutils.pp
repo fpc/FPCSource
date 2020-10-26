@@ -832,6 +832,70 @@ begin
 end;
 
 
+function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+var
+  Year: Integer;
+const
+  DaysPerWeek = 7;
+
+  // MonthOf and YearOf are not available in SysUtils
+  function MonthOf(const AValue: TDateTime): Word;
+  var
+    Y,D : Word;
+  begin
+    DecodeDate(AValue,Y,Result,D);
+  end;
+  function YearOf(const AValue: TDateTime): Word;
+  var
+    D,M : Word;
+  begin
+    DecodeDate(AValue,Result,D,M);
+  end;
+
+  function RelWeekDayToDateTime(const SysTime: TSystemTime): TDateTime;
+  var
+    WeekDay, IncDays: Integer;
+  begin
+    // get first day in month
+    Result := EncodeDate(Year, SysTime.Month, 1);
+    WeekDay := DayOfWeek(Result)-1;
+    // get the correct first weekday in month
+    IncDays := SysTime.wDayOfWeek-WeekDay;
+    if IncDays<0 then
+      Inc(IncDays, DaysPerWeek);
+    // inc weeks
+    Result := Result+IncDays+DaysPerWeek*(SysTime.Day-1);
+    // SysTime.DayOfWeek=5 means the last one - check if we are not in the next month
+    while (MonthOf(Result)>SysTime.Month) do
+      Result := Result-DaysPerWeek;
+    Result := Result+EncodeTime(SysTime.Hour, SysTime.Minute, SysTime.Second, SysTime.Millisecond);
+  end;
+
+var
+  TZInfo: TTimeZoneInformation;
+  DSTStart, DSTEnd: TDateTime;
+
+begin
+  Year := YearOf(DateTime);
+  TZInfo := Default(TTimeZoneInformation);
+  // GetTimeZoneInformationForYear is supported only on Vista and newer
+  if not ((Win32MajorVersion>=6) and GetTimeZoneInformationForYear(Year, nil, TZInfo)) then
+    Exit(False);
+
+  if (TZInfo.StandardDate.Month>0) and (TZInfo.DaylightDate.Month>0) then
+  begin // there is DST
+    DSTStart := RelWeekDayToDateTime(TZInfo.DaylightDate);
+    DSTEnd := RelWeekDayToDateTime(TZInfo.StandardDate);
+    if (DateTime>DSTStart) and (DateTime<DSTEnd) then
+      Offset := TZInfo.Bias+TZInfo.DaylightBias
+    else
+      Offset := TZInfo.Bias+TZInfo.StandardBias;
+  end else // no DST
+    Offset := TZInfo.Bias;
+  Result := True;
+end;
+
+
 function GetTickCount: LongWord;
 begin
   Result := Windows.GetTickCount;

@@ -1509,4 +1509,15 @@ Function GetLocalTimeOffset : Integer;
 begin
   Result:=0;
 end;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+begin
+  Result:=False;
+end;
 {$ENDIF}
+
+function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
+begin
+  if not GetLocalTimeOffset(DateTime, Result) then
+    Result:=GetLocalTimeOffset;
+end;

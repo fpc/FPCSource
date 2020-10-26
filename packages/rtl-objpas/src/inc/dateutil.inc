@@ -2257,7 +2257,7 @@ Var
 begin
   T:=aValue;
   if Not aInputisUTC then
-    T:=IncMinute(T,GetLocalTimeOffset);
+    T:=IncMinute(T,GetLocalTimeOffset(AValue));
   Result:=Round(DateTimeDiff(RecodeMillisecond(T,0),UnixEpoch)*SecsPerDay);
 end;
 
@@ -2267,7 +2267,7 @@ Function UnixToDateTime(const AValue: Int64; aReturnUTC : Boolean = true): TDate
 begin
   Result:=IncSecond(UnixEpoch, AValue);
   if Not aReturnUTC then
-    Result:=IncMinute(Result,-GetLocalTimeOffset);
+    Result:=IncMinute(Result,-GetLocalTimeOffset(Result));
 end;
 
 
@@ -2668,7 +2668,7 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset);
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
@@ -2685,7 +2685,7 @@ end;
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset);
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
@@ -2713,7 +2713,7 @@ var
   Offset: Integer;
 begin
   Result := FormatDateTime(FmtUTC, ADate);
-  Offset := GetLocalTimeOffset;
+  Offset := GetLocalTimeOffset(ADate);
   if AInputIsUTC or (Offset=0) then
     Result:=Result+'Z'
   else
@@ -2939,7 +2939,7 @@ begin
   if ReturnUTC then
     Offset:=0
   else
-    OffSet:=-GetLocalTimeOffset;
+    OffSet:=-GetLocalTimeOffset(ADateTime);
   aDateTime:=IncMinute(aDateTime,Offset);
   Result:=True;
 end;
