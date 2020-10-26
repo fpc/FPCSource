@@ -5290,9 +5290,8 @@ begin
   end else begin
     // search Pascal file with InFilename
     FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,ModuleDir,FoundPasIsForeign);
-    if FoundPasFilename='' then
-      exit; // an in-filename unit source is missing -> stop
-    FoundPasUnitName:=ExtractFilenameOnly(InFilename);
+    if FoundPasFilename<>'' then
+      FoundPasUnitName:=ExtractFilenameOnly(InFilename);
 
     // Note: at the moment if there is a source do not search for pcu
     // Eventually search for both, load pcu and if that fails unload pcu and load source
@@ -5301,7 +5300,9 @@ begin
       // no pas file -> search pcu
       FoundPCUFilename:=PCUSupport.FindPCU(UseUnitName);
       if FoundPCUFilename<>'' then
+      begin
         FoundPCUUnitName:=UseUnitName;
+      end;
     end;
   end;
 
