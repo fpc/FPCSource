@@ -1669,6 +1669,12 @@ begin
  Result := -Tzseconds div 60; 
 end;
 
+function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+
+begin
+  Result := False; // ToDo
+end;
+
 {$ifdef android}
 
 procedure InitAndroid;
