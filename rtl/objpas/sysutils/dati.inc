@@ -1286,6 +1286,21 @@ begin
 end;
 {$endif unix}
 
+Function FileDateToUTC (Filedate : Int64) : TDateTime;
+
+{$ifndef unix}
+begin
+  Result := LocalTimeToUniversal(FileDateToDateTime(Filedate));
+end;
+{$else unix}
+var
+  y, mon, d, h, min, s: word;
+begin
+  EpochToUniversal(FileDate,y,mon,d,h,min,s);
+  Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
+end;
+{$endif unix}
+
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;
 begin
     result := TryStrToDate(S, Value, #0);
@@ -1521,3 +1536,40 @@ begin
   if not GetLocalTimeOffset(DateTime, Result) then
     Result:=GetLocalTimeOffset;
 end;
+
+{ Conversion of UTC to local time and vice versa }
+
+function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+
+begin
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT));
+end;
+
+function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+
+begin
+  if (TZOffset > 0) then
+    Result := UT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset < 0) then
+    Result := UT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+  else
+    Result := UT;
+end;
+
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+
+begin
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT));
+end;
+
+Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
+
+begin
+  if (TZOffset > 0) then
+    Result := LT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset < 0) then
+    Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+  else
+    Result := LT;
+end;
+

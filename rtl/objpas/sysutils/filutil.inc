@@ -119,9 +119,35 @@ begin
 end;
 
 
+function FileAgeUTC(const FileName: RawByteString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
+Var
+  Info : TRawByteSearchRec;
+  A : Integer;
+begin
+  for A:=1 to Length(FileName) do
+    if CharInSet(FileName[A],['?','*']) then
+      Exit(False);
+  A:=0;
+  if not FollowLink then
+    A:=A or faSymLink;
+  Result:=FindFirst(FileName,A,Info)=0;
+  if Result then
+    begin
+      FileDateTimeUTC:=FileDateToUTC(Info.Time);
+      FindClose(Info);
+    end;
+end;
+
+
 Function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 begin
   Result:=FileAge(ToSingleByteFileSystemEncodedFileName(FileName),FileDateTime,FollowLink);
+end;
+
+
+Function FileAgeUTC(const FileName: UnicodeString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
+begin
+  Result:=FileAgeUTC(ToSingleByteFileSystemEncodedFileName(FileName),FileDateTimeUTC,FollowLink);
 end;
 
 
@@ -334,9 +360,36 @@ begin
 end;
 
 
+function FileAgeUTC(const FileName: UnicodeString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
+Var
+  Info : TUnicodeSearchRec;
+  A : Integer;
+
+begin
+  for A:=1 to Length(FileName) do
+    if CharInSet(FileName[A],['?','*']) then
+      Exit(False);
+  A:=0;
+  if not FollowLink then
+    A:=A or faSymLink;
+  Result:=FindFirst(FileName,A,Info)=0;
+  if Result then
+    begin
+      FileDateTimeUTC:=Info.TimeStampUTC;
+      FindClose(Info);
+    end;
+end;
+
+
 Function FileAge(const FileName: RawbyteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 begin
   Result:=FileAge(UnicodeString(FileName),FileDateTime,FollowLink);
+end;
+
+
+function FileAgeUTC(const FileName: RawByteString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
+begin
+  Result:=FileAgeUTC(UnicodeString(FileName),FileDateTimeUTC,FollowLink);
 end;
 
 
@@ -617,6 +670,15 @@ begin
       aResult := SystemTimeToDateTime(st);
   end;
 end;
+
+function FindDataTimeToUTC(constref aFileTime: FILETIME; out aResult: TDateTime): Boolean;
+var
+  st: TSystemTime;
+begin
+  Result := FileTimeToSystemTime(aFileTime, st);
+  if Result then
+    aResult := SystemTimeToDateTime(st);
+end;
 {$endif}
 
 { TUnicodeSearchRec }
@@ -630,6 +692,15 @@ begin
 {$endif}
 end;
 
+function TUnicodeSearchRec.GetTimeStampUTC: TDateTime;
+begin
+{$if declared(FindDataTimeToUTC)}
+  if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
+{$else}
+  Result := FileDateToUTC(Time);
+{$endif}
+end;
+
 { TRawbyteSearchRec }
 
 function TRawbyteSearchRec.GetTimeStamp: TDateTime;
@@ -638,6 +709,15 @@ begin
   if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
 {$else}
   Result := FileDateToDateTime(Time);
+{$endif}
+end;
+
+function TRawbyteSearchRec.GetTimeStampUTC: TDateTime;
+begin
+{$if declared(FindDataTimeToDateTime)}
+  if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
+{$else}
+  Result := FileDateToUTC(Time);
 {$endif}
 end;
 
