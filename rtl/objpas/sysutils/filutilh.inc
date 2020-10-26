@@ -49,7 +49,7 @@ Type
   { TUnicodeSearchRec }
 
   TUnicodeSearchRec = Record
-    Time : Int64;
+    Time : Int64 deprecated 'use TimeStamp instead';
     Size : Int64;
     Attr : Longint;
     Name : UnicodeString;
@@ -74,7 +74,7 @@ Type
   { TRawbyteSearchRec }
 
   TRawbyteSearchRec = Record
-    Time : Int64;
+    Time : Int64 deprecated 'use TimeStamp instead';
     Size : Int64;
     Attr : Longint;
     Name : RawByteString;
