@@ -328,7 +328,7 @@ begin
   Result:=FindFirst(FileName,A,Info)=0;
   if Result then
     begin
-      FileDateTime:=FileDatetoDateTime(Info.Time);
+      FileDateTime:=Info.TimeStamp;
       FindClose(Info);
     end;
 end;
