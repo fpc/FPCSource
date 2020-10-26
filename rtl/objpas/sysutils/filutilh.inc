@@ -63,10 +63,12 @@ Type
 {$endif}
   private
     function GetTimeStamp: TDateTime;
+    function GetTimeStampUTC: TDateTime;
   public
     Function IsDirectory : Boolean; inline;
     function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
+    property TimeStampUTC: TDateTime read GetTimeStampUTC;
   end;
 
   { TRawbyteSearchRec }
@@ -86,10 +88,12 @@ Type
 {$ENDIF}
   private
     function GetTimeStamp: TDateTime;
+    function GetTimeStampUTC: TDateTime;
   public
     Function IsDirectory : Boolean; inline;
     function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
+    property TimeStampUTC: TDateTime read GetTimeStampUTC;
   end;
 
 {$IFDEF FPC_UNICODE_RTL}
@@ -199,6 +203,7 @@ Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : B
 Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString = '') : UnicodeString;
 Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+function FileAgeUTC(const FileName: UnicodeString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 function FileGetSymLinkTarget(const FileName: UnicodeString; out TargetName: UnicodeString): Boolean; inline;
 
@@ -219,6 +224,7 @@ Function FileSearch (Const Name, DirList : RawByteString; ImplicitCurrentDir : B
 Function ExeSearch  (Const Name : RawByteString; Const DirList : RawByteString = '') : RawByteString;
 Function FileIsReadOnly(const FileName: RawByteString): Boolean;
 function FileAge(const FileName: RawByteString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+function FileAgeUTC(const FileName: RawByteString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
 {$ifndef FPUNONE}
 Function FileAge (Const FileName : RawByteString): Int64;
 {$endif}

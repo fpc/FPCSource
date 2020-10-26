@@ -203,3 +203,11 @@ function GetLocalTimeOffset: Integer;
 function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
 function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
 
+Function FileDateToUTC (Filedate : Int64) : TDateTime;
+
+{ UTC <-> Local time }
+Function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+Function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
+
