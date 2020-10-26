@@ -659,6 +659,7 @@ type
     pbifnSet_Union,
     pbifnSpaceLeft,
     pbifnStringSetLength,
+    pbifnTrunc, // rtl.trunc
     pbifnUnitInit,
     // variables
     pbivnExceptObject,
@@ -843,6 +844,7 @@ const
     'unionSet', // pbifnSet_Union  rtl.unionSet +
     'spaceLeft', // pbifnSpaceLeft  rtl.spaceLeft
     'strSetLength', // pbifnStringSetLength  rtl.strSetLength
+    'trunc', // pbifnTrunc
     '$init', // pbifnUnitInit
     '$e', // pbivnExceptObject
     '$ir',  // pbivnIntfExprRefs
@@ -2019,7 +2021,7 @@ type
     // simple JS expressions
     Function CreateMulNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
     Function CreateDivideNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
-    Function CreateMathFloor(El: TPasElement; JS: TJSElement): TJSElement; virtual;
+    Function CreateTruncFloor(El: TPasElement; JS: TJSElement; FloorAndCeil: boolean): TJSElement; virtual;
     Function CreateDotNameExpr(PosEl: TPasElement; MExpr: TJSElement;
       const aName: TJSString): TJSDotMemberExpression; virtual;
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
@@ -8750,8 +8752,8 @@ begin
       case El.OpCode of
       eopDiv:
         begin
-        // convert "a div b" to "Math.floor(a/b)"
-        Result:=CreateMathFloor(El,Result);
+        // convert "a div b" to "rtl.trunc(a/b)"
+        Result:=CreateTruncFloor(El,Result,true);
         end;
       end;
 
@@ -8950,7 +8952,7 @@ begin
         else if El.OpCode=eopShr then
           begin
           // BigInt shr const -> Math.floor(A/otherconst)
-          Result:=CreateMathFloor(El,CreateDivideNumber(El,A,TMaxPrecInt(1) shl BInt));
+          Result:=CreateTruncFloor(El,CreateDivideNumber(El,A,TMaxPrecInt(1) shl BInt),false);
           A:=nil;
           FreeAndNil(B);
           exit;
@@ -9029,22 +9031,22 @@ begin
       end;
     eopDivide:
       begin
-      // currency / currency  ->  Math.floor((currency/currency)*10000)
-      // currency / number  ->  Math.floor(currency/number)
-      // number / currency  ->  Math.floor(number/currency)
+      // currency / currency  ->  rtl.trunc((currency/currency)*10000)
+      // currency / number  ->  rtl.trunc(currency/number)
+      // number / currency  ->  rtl.trunc(number/currency)
       Result:=TJSMultiplicativeExpressionDiv(CreateElement(TJSMultiplicativeExpressionDiv,El));
       TJSBinaryExpression(Result).A:=A; A:=nil;
       TJSBinaryExpression(Result).B:=B; B:=nil;
       if (LeftResolved.BaseType=btCurrency) and (RightResolved.BaseType=btCurrency) then
         Result:=CreateMulNumber(El,Result,10000);
-      Result:=CreateMathFloor(El,Result);
+      Result:=CreateTruncFloor(El,Result,true);
       exit;
       end;
     eopPower:
       begin
-      // currency^^currency  ->  Math.floor(Math.pow(currency/10000,currency/10000)*10000)
-      // currency^^number  ->  Math.floor(Math.pow(currency/10000,number)*10000)
-      // number^^currency  ->  Math.floor(Math.pow(number,currency/10000)*10000)
+      // currency^^currency  ->  rtl.trunc(Math.pow(currency/10000,currency/10000)*10000)
+      // currency^^number  ->  rtl.trunc(Math.pow(currency/10000,number)*10000)
+      // number^^currency  ->  rtl.trunc(Math.pow(number,currency/10000)*10000)
       if LeftResolved.BaseType=btCurrency then
         A:=CreateDivideNumber(El,A,10000);
       if RightResolved.BaseType=btCurrency then
@@ -9054,7 +9056,7 @@ begin
       Call.AddArg(A); A:=nil;
       Call.AddArg(B); B:=nil;
       Result:=CreateMulNumber(El,Call,10000);
-      Result:=CreateMathFloor(El,Result);
+      Result:=CreateTruncFloor(El,Result,true);
       end
     else
       RaiseNotSupported(El,AContext,20180422104215);
@@ -10112,8 +10114,8 @@ begin
   if FromBT=btCurrency then
     begin
     if ToBT<>btCurrency then
-      // currency to integer -> Math.floor(value/10000)
-      Result:=CreateMathFloor(PosEl,CreateDivideNumber(PosEl,Result,10000));
+      // currency to integer -> rtl.trunc(value/10000)
+      Result:=CreateTruncFloor(PosEl,CreateDivideNumber(PosEl,Result,10000),true);
     end
   else if ToBT=btCurrency then
     // integer to currency -> value*10000
@@ -12046,13 +12048,13 @@ begin
       begin
       if JSBaseType=pbtJSValue then
         begin
-        // convert jsvalue to integer -> Math.floor(value)
+        // convert jsvalue to integer -> rtl.trunc(value)
         Result:=ConvertExpression(Param,AContext);
         // Note: convert Param first in case it raises an exception
         if to_bt=btCurrency then
-          // jsvalue to currency -> Math.floor(value*10000)
+          // jsvalue to currency -> rtl.trunc(value*10000)
           Result:=CreateMulNumber(Param,Result,10000);
-        Result:=CreateMathFloor(El,Result);
+        Result:=CreateTruncFloor(El,Result,true);
         exit;
         end;
       end
@@ -13699,7 +13701,7 @@ begin
     if Shift=32 then
       begin
       // JS bitwise operations work only 32bit -> use division for bigger shifts
-      Result:=CreateMathFloor(El,CreateDivideNumber(El,Result,$100000000));
+      Result:=CreateTruncFloor(El,CreateDivideNumber(El,Result,$100000000),false);
       end
     else
       begin
@@ -21528,9 +21530,9 @@ begin
         // currency := currency
       else if AssignContext.RightResolved.BaseType in btAllJSFloats then
         begin
-        // currency := double  ->  currency := Math.floor(double*10000)
+        // currency := double  ->  currency := rtl.trunc(double*10000)
         AssignContext.RightSide:=CreateMulNumber(El,AssignContext.RightSide,10000);
-        AssignContext.RightSide:=CreateMathFloor(El,AssignContext.RightSide);
+        AssignContext.RightSide:=CreateTruncFloor(El,AssignContext.RightSide,true);
         end
       else if AssignContext.RightResolved.BaseType in btAllJSInteger then
         begin
@@ -23753,11 +23755,12 @@ begin
   Mul.B:=CreateLiteralNumber(El,n);
 end;
 
-function TPasToJSConverter.CreateMathFloor(El: TPasElement; JS: TJSElement
-  ): TJSElement;
+function TPasToJSConverter.CreateTruncFloor(El: TPasElement; JS: TJSElement;
+  FloorAndCeil: boolean): TJSElement;
 // create Math.floor(JS)
 var
   Value: TJSValue;
+  Call: TJSCallExpression;
 begin
   if JS is TJSLiteral then
     begin
@@ -23785,18 +23788,24 @@ begin
         exit(JS);
         end;
       jstNumber:
+        begin
         if IsNan(Value.AsNumber) or IsInfinite(Value.AsNumber) then
-          exit(JS)
-        else
-          begin
-          Value.AsNumber:=Trunc(Value.AsNumber);
           exit(JS);
-          end;
+        if FloorAndCeil then
+          Value.AsNumber:=Trunc(Value.AsNumber)
+        else
+          Value.AsNumber:=Floor(Value.AsNumber);
+        exit(JS);
+        end;
     end;
     end;
-  Result:=CreateCallExpression(El);
-  TJSCallExpression(Result).Expr:=CreatePrimitiveDotExpr('Math.floor',El);
-  TJSCallExpression(Result).AddArg(JS);
+  Call:=CreateCallExpression(El);
+  Result:=Call;
+  if FloorAndCeil then
+    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnTrunc),El)
+  else
+    Call.Expr:=CreatePrimitiveDotExpr('Math.floor',El);
+  Call.AddArg(JS);
 end;
 
 function TPasToJSConverter.CreateDotNameExpr(PosEl: TPasElement;
