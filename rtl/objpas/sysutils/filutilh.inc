@@ -46,7 +46,7 @@ Type
 
   // The actual unicode search record
   TUnicodeSearchRec = Record
-    Time : Int64;
+    Time : Int64 deprecated 'use TimeStamp instead';
     Size : Int64;
     Attr : Longint;
     Name : UnicodeString;
@@ -65,7 +65,7 @@ Type
   end;
 
   TRawbyteSearchRec = Record
-    Time : Int64;
+    Time : Int64 deprecated 'use TimeStamp instead';
     Size : Int64;
     Attr : Longint;
     Name : RawByteString;
