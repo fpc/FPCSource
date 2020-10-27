@@ -2186,12 +2186,20 @@ implementation
           begin
             if aInput.typ = top_ref then
             begin
-              if (aInput.ref^.offset <> 0) and
-                 ((aInput.ref^.offset mod tuplesize) = 0) and
-                 (abs(aInput.ref^.offset) div tuplesize <= 127) then
-              begin
-                aInput.ref^.offset := aInput.ref^.offset div tuplesize;
-                EVEXTupleState := etsIsTuple;
+              
+	      // TODO delete
+              Message1(asmr_w_segment_override_ignored_in_64bit_mode, '  "top_ref: " ' + generic_regname(aInput.ref^.base));
+
+
+	      if aInput.ref^.base <> NR_NO then
+	      begin	      
+	        if (aInput.ref^.offset <> 0) and
+                   ((aInput.ref^.offset mod tuplesize) = 0) and
+                   (abs(aInput.ref^.offset) div tuplesize <= 127) then
+                begin
+                  aInput.ref^.offset := aInput.ref^.offset div tuplesize;
+                  EVEXTupleState := etsIsTuple;
+    	        end;  
               end;
             end;
           end;
