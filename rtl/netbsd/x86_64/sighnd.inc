@@ -79,11 +79,11 @@ begin
               else if (FpuState and FPU_Underflow)<>0 then
                 res:=206
               else if (FpuState and FPU_Denormal)<>0 then
-                res:=216
+                res:=207
               else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow))<>0 then
                 res:=207
               else if (FpuState and FPU_Invalid)<>0 then
-                res:=216
+                res:=207
               else
                 res:=207;  {'Coprocessor Error'}
             end;
