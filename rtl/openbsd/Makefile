@@ -364,6 +364,9 @@ PRT0=prt0
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
+ifeq ($(FPC_USE_SYSCALL),)
+override FPCOPT+=-dFPC_USE_LIBC
+endif
 CPU_UNITS=
 SYSINIT_UNITS=si_prc si_c si_dll si_g
 LOADERS=prt0
