@@ -177,6 +177,7 @@ database.
   DIGITS_WORD = 5;
   DIGITS_INTEGER = 9;
   DIGITS_LARGEINT = 18;
+  DIGITS_LONGWORD = 9;
 
 //====================================================================
 // DbfFieldDefs
@@ -475,6 +476,9 @@ begin
 {$ifdef SUPPORT_INT64}
       , ftLargeInt
 {$endif}
+{$ifdef SUPPORT_LONGWORD}
+      , ftLongWord, ftShortInt, ftByte
+{$endif}
                :
       FNativeFieldType := 'N'; //numerical
     ftDate     :
@@ -557,6 +561,19 @@ begin
     ftLargeInt:
       begin
         FSize := DIGITS_LARGEINT;
+        FPrecision := 0;
+      end;
+{$endif}
+{$ifdef SUPPORT_LONGWORD}
+    ftLongWord:
+      begin
+        FSize := DIGITS_LONGWORD;
+        FPrecision := 0;
+      end;
+    ftShortInt,
+    ftByte:
+      begin
+        FSize := 3;
         FPrecision := 0;
       end;
 {$endif}
