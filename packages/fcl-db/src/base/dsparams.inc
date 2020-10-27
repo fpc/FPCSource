@@ -626,6 +626,13 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsLongWord: LongWord;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=FValue;
+end;
 
 Function TParam.GetAsMemo: string;
 begin
@@ -783,6 +790,12 @@ begin
   Value:=AValue;
 end;
 
+Procedure TParam.SetAsLongWord(AValue: LongWord);
+begin
+  FDataType:=ftLongWord;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
   FDataType:=ftMemo;
@@ -851,7 +864,7 @@ begin
       varWord,
       varInteger  : FDataType:=ftInteger;
       varCurrency : FDataType:=ftCurrency;
-      varLongWord,
+      varLongWord : FDataType:=ftLongWord;
       varSingle,
       varDouble   : FDataType:=ftFloat;
       varDate     : FDataType:=ftDateTime;
@@ -961,6 +974,8 @@ begin
       ftWord     : Field.AsInteger:=AsWord;
       ftInteger,
       ftAutoInc  : Field.AsInteger:=AsInteger;
+      ftLongWord : Field.AsLongWord:=AsLongword;
+      ftLargeInt : Field.AsLargeInt:=AsLargeInt;
       ftCurrency : Field.AsCurrency:=AsCurrency;
       ftFloat    : Field.AsFloat:=AsFloat;
       ftBoolean  : Field.AsBoolean:=AsBoolean;
@@ -1000,6 +1015,8 @@ begin
       ftWord     : AsWord:=Field.AsInteger;
       ftInteger,
       ftAutoInc  : AsInteger:=Field.AsInteger;
+      ftLargeInt : AsLargeInt:=Field.AsLargeInt;
+      ftLongWord : AsLongWord:=Field.AsLongWord;
       ftBCD,
       ftCurrency : AsCurrency:=Field.AsCurrency;
       ftFloat    : AsFloat:=Field.AsFloat;
@@ -1074,6 +1091,8 @@ begin
     ftWord     : PWord(Buffer)^:=AsWord;
     ftInteger,
     ftAutoInc  : PInteger(Buffer)^:=AsInteger;
+    ftLargeInt : PInt64(Buffer)^:=AsLargeInt;
+    ftLongWord : PLongWord(Buffer)^:=AsLongWord;
     ftCurrency : PDouble(Buffer)^:=AsCurrency;
     ftFloat    : PDouble(Buffer)^:=AsFloat;
     ftBoolean  : PWordBool(Buffer)^:=AsBoolean;
@@ -1134,6 +1153,8 @@ begin
     ftAutoInc  : Result:=SizeOf(Integer);
     ftSmallint : Result:=SizeOf(SmallInt);
     ftWord     : Result:=SizeOf(Word);
+    ftLongWord : Result:=SizeOf(LongWord);
+    ftLargeInt : Result:=SizeOf(Int64);
     ftTime,
     ftDate     : Result:=SizeOf(Integer);
     ftDateTime,
@@ -1223,6 +1244,8 @@ begin
     ftWord     : AsWord:=PWord(Buffer)^;
     ftInteger,
     ftAutoInc  : AsInteger:=PInteger(Buffer)^;
+    ftLargeInt : AsLargeInt:=PInt64(Buffer)^;
+    ftLongWord : AsLongWord:=PLongWord(Buffer)^;
     ftCurrency : AsCurrency:= PDouble(Buffer)^;
     ftFloat    : AsFloat:=PDouble(Buffer)^;
     ftBoolean  : AsBoolean:=PWordBool(Buffer)^;
