@@ -721,7 +721,8 @@ Const
     '', '', '', '', 'CHAR',
     'CHAR', 'BIGINT', '', '', '',
     '', '', '', '', '',
-    '', '', 'TIMESTAMP', 'DECIMAL','CHAR','BLOB');
+    '', '', 'TIMESTAMP', 'DECIMAL','CHAR','BLOB',
+    '', '', '', '', '', '');
     
 { ---------------------------------------------------------------------
   Constants which can be localized
