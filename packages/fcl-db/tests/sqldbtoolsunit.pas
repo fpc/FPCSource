@@ -127,7 +127,13 @@ const
       {ftTimeStamp} 'TIMESTAMP',
       {ftFMTBcd} 'NUMERIC(18,6)',
       {ftFixedWideChar} '',
-      {ftWideMemo} ''
+      {ftWideMemo} '',
+      {ftOraTimeStamp} '',
+      {ftOraInterval} '',
+      {ftLongWord} '',
+      {ftShortint} '',
+      {ftByte} '',
+      {ftExtended} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
