@@ -2296,9 +2296,9 @@ const
       { ftWideMemo} TWideMemoField,
       { ftOraTimeStamp} nil,
       { ftOraInterval} nil,
-      { ftLongWord} {TLongWordField}nil,
+      { ftLongWord} TLongWordField,
       { ftShortint} {TShortintField}nil,
-      { ftByte} nil,
+      { ftByte} {TByteField}nil,
       { ftExtended} nil
     );
 
