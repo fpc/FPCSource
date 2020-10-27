@@ -1587,7 +1587,7 @@ begin
   SetDataType(ftInteger);
   FMinRange:=Low(LongInt);
   FMaxRange:=High(LongInt);
-  FValidchars:=['+','-','0'..'9'];
+  FValidChars:=['+','-','0'..'9'];
 end;
 
 function TLongintField.GetAsFloat: Double;
@@ -1662,17 +1662,17 @@ end;
 function TLongintField.GetValue(var AValue: Longint): Boolean;
 
 var L : Longint;
-    P : PLongint;
 
 begin
   L:=0;
-  P:=@L;
-  Result:=GetData(P);
+  Result:=GetData(@L);
   If Result then
     Case DataType of
-      ftInteger,ftAutoInc  : AValue:=PLongint(P)^;
-      ftWord               : AValue:=PWord(P)^;
-      ftSmallint           : AValue:=PSmallint(P)^;
+      ftInteger,ftAutoInc  : AValue:=PLongint(@L)^;
+      ftSmallint           : AValue:=PSmallint(@L)^;
+      ftWord               : AValue:=PWord(@L)^;
+      ftShortint           : AValue:=PShortint(@L)^;
+      ftByte               : AValue:=PByte(@L)^;
     end;
 end;
 
@@ -1755,6 +1755,37 @@ begin
     RangeError(AValue,FMinRange,FMaxRange);
 end;
 
+{ TShortintField }
+
+function TShortintField.GetDataSize: Integer;
+begin
+  Result:=SizeOf(Shortint);
+end;
+
+constructor TShortintField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftShortInt);
+  FMinRange:=Low(ShortInt);
+  FMaxRange:=High(ShortInt);
+end;
+
+{ TByteField }
+
+function TByteField.GetDataSize: Integer;
+begin
+  Result:=SizeOf(Byte);
+end;
+
+constructor TByteField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftByte);
+  FMinRange:=Low(Byte);
+  FMaxRange:=High(Byte);
+  FValidChars:=['+','0'..'9'];
+end;
+
 { TSmallintField }
 
 function TSmallintField.GetDataSize: Integer;
@@ -1788,7 +1819,7 @@ begin
   SetDataType(ftWord);
   FMinRange:=0;
   FMaxRange:=65535;
-  FValidchars:=['+','0'..'9'];
+  FValidChars:=['+','0'..'9'];
 end;
 
 { TAutoIncField }
@@ -1819,7 +1850,7 @@ constructor TLongWordField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDataType(ftLongWord);
-  FValidchars:=['+','-','0'..'9'];
+  FValidChars:=['+','0'..'9'];
 end;
 
 function TLongWordField.CheckRange(AValue: LargeInt): Boolean;
@@ -1955,7 +1986,7 @@ begin
   SetDataType(ftLargeint);
   FMinRange:=Low(Largeint);
   FMaxRange:=High(Largeint);
-  FValidchars:=['+','-','0'..'9'];
+  FValidChars:=['+','-','0'..'9'];
 end;
 
 function TLargeintField.GetAsFloat: Double;

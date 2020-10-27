@@ -604,6 +604,24 @@ type
   end;
   TIntegerField = Class(TLongintField);
 
+{ TShortintField }
+
+  TShortintField = class(TLongintField)
+  protected
+    function GetDataSize: Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+{ TByteField }
+
+  TByteField = class(TLongintField)
+  protected
+    function GetDataSize: Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
 { TSmallintField }
 
   TSmallintField = class(TLongintField)
@@ -2297,8 +2315,8 @@ const
       { ftOraTimeStamp} nil,
       { ftOraInterval} nil,
       { ftLongWord} TLongWordField,
-      { ftShortint} {TShortintField}nil,
-      { ftByte} {TByteField}nil,
+      { ftShortint} TShortintField,
+      { ftByte} TByteField,
       { ftExtended} nil
     );
 
