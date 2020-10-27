@@ -869,7 +869,13 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftTimeStamp
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
-      'Unknown'    // ftWideMemo
+      'Unknown',   // ftWideMemo
+      'Unknown',   // ftOraTimeStamp
+      'Unknown',   // ftOraInterval
+      'Unknown',   // ftLongWord
+      'Unknown',   // ftShortint
+      'Unknown',   // ftByte
+      'Unknown'    // ftExtended
     );
 
 

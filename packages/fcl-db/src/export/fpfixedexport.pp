@@ -191,7 +191,13 @@ Const
     {ftTimeStamp} 0,
     {ftFMTBcd} 0,
     {ftFixedWideChar} 0,
-    {ftWideMemo} 0
+    {ftWideMemo} 0,
+    {ftOraTimeStamp} 0,
+    {ftOraInterval} 0,
+    {ftLongWord} 10,
+    {ftShortint} 4,
+    {ftByte} 1,
+    {ftExtended} 20
     );
 
   Function CalcLbool: integer;

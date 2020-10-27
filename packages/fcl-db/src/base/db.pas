@@ -109,7 +109,8 @@ type
     ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
+    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo,
+    ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended);
 
 { Part of DBCommon, but temporarily defined here (bug 8206) }
 
@@ -1297,6 +1298,7 @@ type
   end;
 
 { TParams }
+
   TSQLParseOption = (spoCreate,spoEscapeSlash,spoEscapeRepeat,spoUseMacro);
   TSQLParseOptions = Set of TSQLParseOption;
 
@@ -2126,7 +2128,7 @@ const
       {ftCursor} varError,
       {ftFixedChar} varOleStr,
       {ftWideString} varOleStr,
-      {ftLargeint} varint64,
+      {ftLargeint} varInt64,
       {ftADT} varError,
       {ftArray} varError,
       {ftReference} varError,
@@ -2140,7 +2142,13 @@ const
       {ftTimeStamp} varOleStr,
       {ftFMTBcd} varDouble,
       {ftFixedWideChar} varOleStr,
-      {ftWideMemo} varOleStr
+      {ftWideMemo} varOleStr,
+      {ftOraTimeStamp} varUnknown,
+      {ftOraInterval} varUnknown,
+      {ftLongWord} varLongWord,
+      {ftShortint} varShortint,
+      {ftByte} varByte,
+      {ftExtended} varDouble
     );
 
 
@@ -2186,7 +2194,13 @@ Const
       {ftTimeStamp} 'TimeStamp',
       {ftFMTBcd} 'FMTBcd',
       {ftFixedWideChar} 'FixedWideChar',
-      {ftWideMemo} 'WideMemo'
+      {ftWideMemo} 'WideMemo',
+      {ftOraTimeStamp} 'OraTimeStamp',
+      {ftOraInterval} 'OraInterval',
+      {ftLongWord} 'LongWord',
+      {ftShortint} 'Shortint',
+      {ftByte} 'Byte',
+      {ftExtended} 'Extended'
     );
 
 
@@ -2232,7 +2246,13 @@ const
       { ftTimeStamp} Nil,
       { ftFMTBcd} TFMTBCDField,
       { ftFixedWideString} TWideStringField,
-      { ftWideMemo} TWideMemoField
+      { ftWideMemo} TWideMemoField,
+      { ftOraTimeStamp} nil,
+      { ftOraInterval} nil,
+      { ftLongWord} {TLongWordField}nil,
+      { ftShortint} {TShortintField}nil,
+      { ftByte} nil,
+      { ftExtended} nil
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];

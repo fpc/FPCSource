@@ -106,7 +106,13 @@ const
       '',
       'fixedFMT',           // ftFmtBCD
       'string.uni',         // ftFixedWideChar
-      'bin.hex:WideText'    // ftWideMemo
+      'bin.hex:WideText',   // ftWideMemo
+      '',                   // ftOraTimeStamp
+      '',                   // ftOraInterval
+      '',                   // ftLongWord
+      '',                   // ftShortint
+      '',                   // ftByte
+      ''                    // ftExtended
     );
 
 resourcestring
