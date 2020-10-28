@@ -179,6 +179,7 @@ end;
 
 destructor TPTCWrapperThread.Destroy;
 begin
+  FreeAndNil(FSurfaceCriticalSection);
   inherited;
 end;
 
