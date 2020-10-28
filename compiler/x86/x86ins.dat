@@ -8984,18 +8984,18 @@ zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\x53\75\120         
 
 [VPEXPANDB]
 (Ch_All)
-mem128_m,xmmreg                           \350\361\371\1\x62\101                    AVX512,T1S
-mem256_m,ymmreg                           \350\361\364\371\1\x62\101                AVX512,T1S
-mem512_m,zmmreg                           \350\351\361\371\1\x62\101                AVX512,T1S
+xmmreg_mz,mem128                          \350\361\371\1\x62\101                    AVX512,T1S8
+ymmreg_mz,mem256                          \350\361\364\371\1\x62\101                AVX512,T1S8
+zmmreg_mz,mem512                          \350\351\361\371\1\x62\101                AVX512,T1S8
 xmmreg_mz,xmmreg                          \350\361\371\1\x62\101                    AVX512
 ymmreg_mz,ymmreg                          \350\361\364\371\1\x62\101                AVX512
 zmmreg_mz,zmmreg                          \350\351\361\371\1\x62\101                AVX512
 
 [VPEXPANDW]
 (Ch_All)
-mem128_m,xmmreg                           \350\352\361\371\1\x62\101                AVX512,T1S
-mem256_m,ymmreg                           \350\352\361\364\371\1\x62\101            AVX512,T1S
-mem512_m,zmmreg                           \350\351\352\361\371\1\x62\101            AVX512,T1S
+xmmreg_mz,mem128                          \350\352\361\371\1\x62\101                AVX512,T1S16
+ymmreg_mz,mem256                          \350\352\361\364\371\1\x62\101            AVX512,T1S16
+zmmreg_mz,mem512                          \350\351\352\361\371\1\x62\101            AVX512,T1S16
 xmmreg_mz,xmmreg                          \350\352\361\371\1\x62\101                AVX512
 ymmreg_mz,ymmreg                          \350\352\361\364\371\1\x62\101            AVX512
 zmmreg_mz,zmmreg                          \350\351\352\361\371\1\x62\101            AVX512

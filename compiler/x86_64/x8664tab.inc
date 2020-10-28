@@ -28885,23 +28885,23 @@
   (
     opcode  : A_VPEXPANDB;
     ops     : 2;
-    optypes : (ot_mem128_m,ot_xmmreg,ot_none,ot_none);
+    optypes : (ot_xmmreg_mz,ot_memory or ot_bits128,ot_none,ot_none);
     code    : #232#241#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s8]
   ),
   (
     opcode  : A_VPEXPANDB;
     ops     : 2;
-    optypes : (ot_mem256_m,ot_ymmreg,ot_none,ot_none);
+    optypes : (ot_ymmreg_mz,ot_memory or ot_bits256,ot_none,ot_none);
     code    : #232#241#244#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s8]
   ),
   (
     opcode  : A_VPEXPANDB;
     ops     : 2;
-    optypes : (ot_mem512_m,ot_zmmreg,ot_none,ot_none);
+    optypes : (ot_zmmreg_mz,ot_memory or ot_bits512,ot_none,ot_none);
     code    : #232#233#241#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s8]
   ),
   (
     opcode  : A_VPEXPANDB;
@@ -28927,23 +28927,23 @@
   (
     opcode  : A_VPEXPANDW;
     ops     : 2;
-    optypes : (ot_mem128_m,ot_xmmreg,ot_none,ot_none);
+    optypes : (ot_xmmreg_mz,ot_memory or ot_bits128,ot_none,ot_none);
     code    : #232#234#241#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s16]
   ),
   (
     opcode  : A_VPEXPANDW;
     ops     : 2;
-    optypes : (ot_mem256_m,ot_ymmreg,ot_none,ot_none);
+    optypes : (ot_ymmreg_mz,ot_memory or ot_bits256,ot_none,ot_none);
     code    : #232#234#241#244#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s16]
   ),
   (
     opcode  : A_VPEXPANDW;
     ops     : 2;
-    optypes : (ot_mem512_m,ot_zmmreg,ot_none,ot_none);
+    optypes : (ot_zmmreg_mz,ot_memory or ot_bits512,ot_none,ot_none);
     code    : #232#233#234#241#249#1#98#65;
-    flags   : [if_avx512,if_t1s]
+    flags   : [if_avx512,if_t1s16]
   ),
   (
     opcode  : A_VPEXPANDW;
