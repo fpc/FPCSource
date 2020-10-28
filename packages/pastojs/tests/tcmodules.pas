@@ -10176,6 +10176,7 @@ end;
 
 procedure TTestModule.TestArray_DynArrayConstObjFPC;
 begin
+  Parser.Options:=Parser.Options+[po_cassignments];
   StartProgram(false);
   Add([
   '{$modeswitch arrayoperators}',

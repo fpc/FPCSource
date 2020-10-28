@@ -21516,6 +21516,8 @@ begin
           else
             RaiseNotSupported(El,AContext,20180415101516);
           end;
+        if (LeftTypeEl.ClassType=TPasArrayType) and (El.Kind<>akDefault) then
+          aResolver.RaiseMsg(20201028212754,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
         end;
       end;
     if AssignContext.RightSide=nil then
@@ -21589,12 +21591,16 @@ begin
           begin
           // right side is dynamic array
           if (AssignContext.LeftResolved.BaseType=btContext)
-              and (AssignContext.LeftResolved.LoTypeEl is TPasArrayType)
-              and (not RightIsTemporaryVar)
-              and (not LeftIsConstSetter) then
+              and (AssignContext.LeftResolved.LoTypeEl is TPasArrayType) then
             begin
-            // DynArrayA := DynArrayB  ->  DynArrayA = rtl.arrayRef(DynArrayB)
-            AssignContext.RightSide:=CreateArrayRef(El.right,AssignContext.RightSide);
+            if El.Kind<>akDefault then
+              aResolver.RaiseMsg(20201028213335,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
+            if (not RightIsTemporaryVar)
+                and (not LeftIsConstSetter) then
+              begin
+              // DynArrayA := DynArrayB  ->  DynArrayA = rtl.arrayRef(DynArrayB)
+              AssignContext.RightSide:=CreateArrayRef(El.right,AssignContext.RightSide);
+              end;
             end;
           end;
         end
