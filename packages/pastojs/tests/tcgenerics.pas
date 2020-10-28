@@ -54,6 +54,7 @@ type
     procedure TestGen_ClassInterface_Corba;
     procedure TestGen_ClassInterface_InterfacedObject;
     procedure TestGen_ClassInterface_COM_RTTI;
+    procedure TestGen_ClassInterface_Helper;
 
     // statements
     Procedure TestGen_InlineSpec_Constructor;
@@ -1584,6 +1585,50 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     'rtl.setIntfP($mod, "Ant", $mod.Bird.Fly$G1(), true);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassInterface_Helper;
+begin
+  StartProgram(true,[supTInterfacedObject]);
+  Add([
+  '{$mode objfpc}',
+  '{$ModeSwitch typehelpers}',
+  'type',
+  '  IAnt = interface',
+  '    procedure InterfaceProc;',
+  '  end;',
+  '  TBird = type helper for IAnt',
+  '    generic procedure Fly<T>(a: T);',
+  '  end;',
+  'generic procedure TBird.Fly<T>(a: T);',
+  'begin',
+  'end;',
+  'var ',
+  '  Ant: IAnt;',
+  'begin',
+  '  Ant.specialize Fly<word>(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassInterface_COM_RTTI',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IAnt", "{B9D0FF27-A446-3A1B-AA85-F167837AA297}", ["InterfaceProc"], pas.system.IUnknown);',
+    'rtl.createHelper(this, "TBird", null, function () {',
+    '  this.Fly$G1 = function (a) {',
+    '  };',
+    '});',
+    'this.Ant = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TBird.Fly$G1.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.Ant;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.setIntfP(this.p, "Ant", v);',
+    '    }',
+    '}, 3);',
     '']));
 end;
 
