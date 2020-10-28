@@ -924,6 +924,7 @@ type
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
+    function GetAsLongWord: LongWord; override;
     function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
@@ -933,6 +934,7 @@ type
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
