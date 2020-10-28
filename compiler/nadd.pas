@@ -1884,7 +1884,8 @@ implementation
              floattype for results }
            if (right.resultdef.typ=floatdef) and
               (left.resultdef.typ=floatdef) and
-              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
+              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) and
+              not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) then
              begin
                if cs_excessprecision in current_settings.localswitches then
                  resultrealdef:=pbestrealtype^
