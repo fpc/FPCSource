@@ -3017,6 +3017,11 @@ begin
     Result := 0;
 end;
 
+function TFMTBCDField.GetAsLongWord: LongWord;
+begin
+  Result:=GetAsLargeInt;
+end;
+
 function TFMTBCDField.GetAsInteger: Longint;
 begin
   Result := round(GetAsFloat);
@@ -3112,9 +3117,14 @@ begin
   SetAsBCD(IntegerToBCD(AValue));
 end;
 
+procedure TFMTBCDField.SetAsLongWord(AValue: LongWord);
+begin
+  SetAsLargeInt(AValue);
+end;
+
 procedure TFMTBCDField.SetAsInteger(AValue: Longint);
 begin
-  SetAsBCD(IntegerToBCD(AValue));
+  SetAsLargeInt(AValue);
 end;
 
 procedure TFMTBCDField.SetAsString(const AValue: string);
