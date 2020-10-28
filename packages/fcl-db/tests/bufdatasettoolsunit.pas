@@ -186,7 +186,7 @@ begin
       FieldByName('FWIDESTRING').AsString := testStringValues[i];
       FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FWIDEMEMO').AsString := testStringValues[i];
-      FieldByName('FLONGWORD').AsLongWord := testWordValues[i];
+      FieldByName('FLONGWORD').AsLongWord := testLongWordValues[i];
       FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
       FieldByName('FBYTE').AsInteger := testByteValues[i];
       Post;
