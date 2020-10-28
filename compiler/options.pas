@@ -758,6 +758,9 @@ begin
 {$ifdef llvm}
       'L',
 {$endif}
+{$ifdef xtensa}
+      'x',
+{$endif}
 {$ifdef z80}
       'Z',
 {$endif}
