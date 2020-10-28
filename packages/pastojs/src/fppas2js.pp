@@ -9405,10 +9405,13 @@ begin
   Result:=nil;
   aResolver:=AContext.Resolver;
 
-  // Note: TPasParser guarantees that there is at most one TBinaryExpr between
+  // Note: TPasParser guarantees that there is at most one TBinaryExpr
+  //       and/or one TInlineSpecializeExpr between
   //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
 
   RightEl:=El.right;
+  if RightEl is TInlineSpecializeExpr then
+    RightEl:=TInlineSpecializeExpr(RightEl).NameExpr;
   if (RightEl.ClassType<>TPrimitiveExpr) then
     RaiseNotSupported(RightEl,AContext,20190131162250,'Left='+GetObjName(El.left)+' right='+GetObjName(RightEl));
   if not (RightEl.CustomData is TResolvedReference) then
@@ -9451,10 +9454,13 @@ var
 begin
   aResolver:=AContext.Resolver;
 
-  // Note: TPasParser guarantees that there is at most one TBinaryExpr between
+  // Note: TPasParser guarantees that there is at most one TBinaryExpr
+  //       and/or one TInlineSpecializeExpr between
   //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
 
   RightEl:=El.right;
+  if RightEl is TInlineSpecializeExpr then
+    RightEl:=TInlineSpecializeExpr(RightEl).NameExpr;
   if (RightEl.ClassType<>TPrimitiveExpr) then
     begin
     {$IFDEF VerbosePas2JS}
@@ -20826,7 +20832,7 @@ var
   C: TClass;
 begin
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr));
+  writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr),' Implicit=',Implicit);
   {$ENDIF}
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -24684,9 +24690,12 @@ begin
       if TargetArg.ValueExpr=nil then
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateProcedureCallArgs missing default value: TargetProc=',TargetProc.Name,' i=',i);
+        writeln('TPasToJSConverter.CreateProcedureCallArgs missing default value: i=',i,' TargetProc=',GetObjPath(TargetProc),' Args=',GetObjPath(Args));
         {$ENDIF}
-        RaiseNotSupported(Args,AContext,20170201193601);
+        if Args=nil then
+          RaiseNotSupported(TargetProc,AContext,20201028203457)
+        else
+          RaiseNotSupported(Args,AContext,20170201193601);
         end;
       AContext.Access:=caRead;
       Arg:=ConvertExpression(TargetArg.ValueExpr,ArgContext);
