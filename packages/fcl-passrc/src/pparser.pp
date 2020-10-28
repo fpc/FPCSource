@@ -2541,21 +2541,36 @@ begin
           Expr:=Result;
           if Expr.Kind=pekBinary then
             begin
-            if Expr.OpCode<>eopSubIdent then
+            Bin:=TBinaryExpr(Expr);
+            if Bin.OpCode<>eopSubIdent then
               ParseExcSyntaxError;
-            Expr:=TBinaryExpr(Expr).right;
-            end;
+            Expr:=Bin.right;
+            end
+          else
+            Bin:=nil;
           if Expr.Kind<>pekIdent then
             ParseExcSyntaxError;
 
           // read specialized params
-          ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
+          if Bin<>nil then
+            ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',Bin,SrcPos))
+          else
+            ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
           ReadSpecializeArguments(ISE,ISE.Params);
 
           // A<B>  or  something.A<B>
-          ISE.NameExpr:=Result;
-          Result.Parent:=ISE;
-          Result:=ISE;
+          ISE.NameExpr:=Expr;
+          Expr.Parent:=ISE;
+          if Bin<>nil then
+            begin
+            // something.A<B>
+            Bin.Right:=ISE;
+            end
+          else
+            begin
+            // A<B>
+            Result:=ISE;
+            end;
           ISE:=nil;
           CanSpecialize:=aCannot;
           NextToken;
