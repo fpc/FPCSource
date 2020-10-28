@@ -841,6 +841,7 @@ type
     procedure WriteSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUWriterContext); virtual;
     procedure WriteInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRangeType(Obj: TJSONObject; El: TPasRangeType; aContext: TPCUWriterContext); virtual;
+    procedure WriteArrayTypeScope(Obj: TJSONObject; Scope: TPas2JSArrayScope; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayType(Obj: TJSONObject; El: TPasArrayType; aContext: TPCUWriterContext); virtual;
     procedure WriteFileType(Obj: TJSONObject; El: TPasFileType; aContext: TPCUWriterContext); virtual;
     procedure WriteEnumValue(Obj: TJSONObject; El: TPasEnumValue; aContext: TPCUWriterContext); virtual;
@@ -1147,6 +1148,7 @@ type
     procedure ReadSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPCUReaderContext); virtual;
     procedure ReadInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRangeType(Obj: TJSONObject; El: TPasRangeType; aContext: TPCUReaderContext); virtual;
+    procedure ReadArrayScope(Obj: TJSONObject; Scope: TPas2JSArrayScope; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayType(Obj: TJSONObject; El: TPasArrayType; aContext: TPCUReaderContext); virtual;
     procedure ReadFileType(Obj: TJSONObject; El: TPasFileType; aContext: TPCUReaderContext); virtual;
     procedure ReadEnumValue(Obj: TJSONObject; El: TPasEnumValue; aContext: TPCUReaderContext); virtual;
@@ -3067,7 +3069,7 @@ procedure TPCUWriter.WriteElType(Obj: TJSONObject; El: TPasElement;
   const PropName: string; aType: TPasType; aContext: TPCUWriterContext);
 begin
   if aType=nil then exit;
-  if (aType.Name='') or (aType.Parent=El) then
+  if (aType.Name='') {or (aType.Parent=El)} then
     begin
     // anonymous type
     WriteElementProperty(Obj,El,PropName,aType,aContext);
@@ -4027,6 +4029,12 @@ begin
   WriteExpr(Obj,El,'Range',El.RangeExpr,aContext);
 end;
 
+procedure TPCUWriter.WriteArrayTypeScope(Obj: TJSONObject;
+  Scope: TPas2JSArrayScope; aContext: TPCUWriterContext);
+begin
+  WriteIdentifierScope(Obj,Scope,aContext);
+end;
+
 procedure TPCUWriter.WriteArrayType(Obj: TJSONObject; El: TPasArrayType;
   aContext: TPCUWriterContext);
 begin
@@ -4036,6 +4044,8 @@ begin
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
   WriteElType(Obj,El,'ElType',El.ElType,aContext);
+  if El.CustomData is TPas2JSArrayScope then
+    WriteArrayTypeScope(Obj,TPas2JSArrayScope(El.CustomData),aContext);
 end;
 
 procedure TPCUWriter.WriteFileType(Obj: TJSONObject; El: TPasFileType;
@@ -5067,7 +5077,7 @@ begin
   if RefEl is TPasType then
     begin
     El.ElType:=TPasType(RefEl);
-    if RefEl.Parent<>El then
+    if RefEl.Name<>'' then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArrayType.ElType'){$ENDIF};
     end
   else
@@ -8281,15 +8291,31 @@ begin
   El.RangeExpr:=TBinaryExpr(Expr);
 end;
 
+procedure TPCUReader.ReadArrayScope(Obj: TJSONObject; Scope: TPas2JSArrayScope;
+  aContext: TPCUReaderContext);
+begin
+  ReadIdentifierScope(Obj,Scope,aContext);
+  Scope.GenericStep:=psgsImplementationParsed;
+end;
+
 procedure TPCUReader.ReadArrayType(Obj: TJSONObject; El: TPasArrayType;
   aContext: TPCUReaderContext);
+var
+  Scope: TPas2JSArrayScope;
 begin
   ReadPasElement(Obj,El,aContext);
   ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   ReadPasExprArray(Obj,El,'Ranges',El.Ranges,aContext);
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    begin
+    Scope:=TPas2JSArrayScope(Resolver.CreateScope(El,TPas2JSArrayScope));
+    El.CustomData:=Scope;
+    ReadArrayScope(Obj,Scope,aContext);
+    end;
   ReadElType(Obj,'ElType',El,@Set_ArrayType_ElType,aContext);
+
   ReadSpecializations(Obj,El);
 end;
 
