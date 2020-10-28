@@ -76,7 +76,7 @@ begin
                 res:=205
               else if FpuState = FPE_FltUnd then
                 res:=206
-              else if FpuState and FPU_Denormal)<>0 then
+              else if (FpuState and FPU_Denormal)<>0 then
                 res:=207
               else if FpuState = FPE_FltSub then
                 res:=207
