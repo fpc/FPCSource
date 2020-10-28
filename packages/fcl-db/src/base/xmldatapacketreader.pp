@@ -65,7 +65,7 @@ implementation
 uses xmlwrite, xmlread, base64;
 
 const
-  XMLFieldtypenames : Array [TFieldType] of String[16] =
+  XMLFieldTypeNames : Array [TFieldType] of String[16] =
     (
       'Unknown',
       'string',
@@ -109,7 +109,7 @@ const
       'bin.hex:WideText',   // ftWideMemo
       '',                   // ftOraTimeStamp
       '',                   // ftOraInterval
-      '',                   // ftLongWord
+      'i4',                 // ftLongWord
       '',                   // ftShortint
       '',                   // ftByte
       ''                    // ftExtended

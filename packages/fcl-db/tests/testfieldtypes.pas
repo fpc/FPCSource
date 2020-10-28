@@ -95,6 +95,7 @@ type
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
     procedure TestBlobParamQuery;
+    procedure TestLongWordParamQuery;
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -1589,6 +1590,11 @@ begin
   TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
 end;
 
+procedure TTestFieldTypes.TestLongWordParamQuery;
+begin
+  TestXXParamQuery(ftLongWord, FieldtypeDefinitions[ftLongWord], testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 begin
   TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
@@ -1649,6 +1655,7 @@ begin
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
         ftBlob    : Params.ParamByName('field1').AsBlob := BytesOf(testBlobValues[i]);
+        ftLongWord: Params.ParamByName('field1').AsLongWord := testLongWordValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
@@ -1691,6 +1698,7 @@ begin
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd   : AssertEquals(ParamValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
         ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
+        ftLongWord : AssertEquals(testLongWordValues[i], FieldByName('FIELD1').AsLongWord);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else

@@ -809,6 +809,8 @@ begin
       begin
       if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
         NewType := ftAutoInc
+      else if AField^.flags and UNSIGNED_FLAG <> 0 then
+        NewType := ftLongWord
       else
         NewType := ftInteger;
       end;
@@ -1232,13 +1234,11 @@ begin
       VL := InternalStrToInt64(Source, Len);
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
-{$IF FPC_FULLVERSION >=30301}      
     ftLongWord:
       begin
       VO := InternalStrToDWord(Source, Len);
       Move(VO, Dest^, SizeOf(LongWord));
       end;
-{$ENDIF}      
     ftFloat:
       begin
       VF := InternalStrToFloat(Source, Len);
