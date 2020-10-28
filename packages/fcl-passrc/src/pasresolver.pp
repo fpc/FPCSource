@@ -4729,14 +4729,6 @@ begin
   if not IsNameExpr(El) then exit;
   Parent:=El.Parent;
   if Parent=nil then exit;
-  if Parent.ClassType=TBinaryExpr then
-    begin
-    Bin:=TBinaryExpr(Parent);
-    if (Bin.OpCode<>eopSubIdent) or (Bin.right<>El) then
-      exit;
-    El:=Bin;
-    Parent:=El.Parent;
-    end;
   if Parent.ClassType=TInlineSpecializeExpr then
     begin
     InlineSpec:=TInlineSpecializeExpr(Parent);
@@ -4745,6 +4737,14 @@ begin
     El:=InlineSpec;
     Parent:=El.Parent;
     if Parent=nil then exit;
+    end;
+  if Parent.ClassType=TBinaryExpr then
+    begin
+    Bin:=TBinaryExpr(Parent);
+    if (Bin.OpCode<>eopSubIdent) or (Bin.right<>El) then
+      exit;
+    El:=Bin;
+    Parent:=El.Parent;
     end;
   if Parent.ClassType<>TParamsExpr then exit;
   Params:=TParamsExpr(Parent);
