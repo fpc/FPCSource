@@ -226,6 +226,7 @@ type
     procedure TestPC_Specialize_LocalTypeInUnit;
     procedure TestPC_Specialize_ClassForward;
     procedure TestPC_InlineSpecialize_LocalTypeInUnit;
+    procedure TestPC_Specialize_Array;
     // ToDo: specialize extern generic type in unit interface
     // ToDo: specialize extern generic type in unit implementation
     // ToDo: specialize extern generic type in proc decl
@@ -3433,6 +3434,39 @@ begin
   'var lb: TBird<longint>;',
   'begin',
   '  lb.a:=5;',
+  '  Run;',
+  'end;',
+  'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Specialize_Array;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TArray<T> = array of T;',
+  'var',
+  '  da: TArray<double>;',
+  'procedure Fly;',
+  'implementation',
+  'var wa: TArray<word>;',
+  'procedure Run;',
+  'var',
+  '  sha: TArray<shortint>;',
+  '  ba: TArray<boolean>;',
+  'begin',
+  '  sha[1]:=3;',
+  '  wa[2]:=4;',
+  '  ba[3]:=true;',
+  'end;',
+  'procedure Fly;',
+  'var la: TArray<longint>;',
+  'begin',
+  '  la[4]:=5;',
   '  Run;',
   'end;',
   'begin',
