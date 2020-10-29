@@ -39,11 +39,11 @@ unit ufloat128;
 
     procedure DumpFloat128(const f : float128);
       type
-        ta = packed array[0..15] of byte;
+        ta = packed array[0..SizeOf(float128)-1] of byte;
       var
         i : longint;
       begin
-        for i:=15 downto 0 do
+        for i:=SizeOf(float128)-1 downto 0 do
           begin
             write(hexstr(ta(f)[i],2));
             if i<15 then

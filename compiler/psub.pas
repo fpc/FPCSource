@@ -237,14 +237,6 @@ implementation
           begin
             currpara:=tparavarsym(procdef.paras[i]);
             case currpara.vardef.typ of
-              formaldef :
-                begin
-                  if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
-                    begin
-                      _no_inline('formal parameter');
-                      exit;
-                    end;
-                end;
               arraydef :
                 begin
                   if is_array_of_const(currpara.vardef) or

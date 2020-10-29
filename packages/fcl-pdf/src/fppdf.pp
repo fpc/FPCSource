@@ -1285,9 +1285,7 @@ const
 Var
   PDFFormatSettings : TFormatSettings;
 
-//Works correctly ony with Now (problem with DST depended on time)
-//Is used only for CreationDate and it is usualy Now
-function GetLocalTZD(ISO8601: Boolean): string;
+function GetLocalTZD(ADate: TDateTime; ISO8601: Boolean): string;
 var
   i: Integer;
   fmt: string;
@@ -1296,7 +1294,7 @@ begin
     fmt := '%.2d:%.2d'
   else
     fmt := '%.2d''%.2d''';
-  i := GetLocalTimeOffset; //min
+  i := GetLocalTimeOffset(ADate); //min
   if i < 0 then
     Result := '+'
   else if i = 0 then begin
@@ -1310,7 +1308,7 @@ end;
 
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
-  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(False);
+  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(ADate, False);
 end;
 
 function FormatPDFInt(const Value: integer; PadLen: integer): string;
@@ -1509,7 +1507,7 @@ procedure TXMPStream.Write(const AStream: TStream);
 
   function DateToISO8601Date(t: TDateTime): string;
   begin
-    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(True);
+    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(t, True);
   end;
 
 var

@@ -35,6 +35,7 @@ Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64; deprecated 'use DateUtils.DateTimeToUnix';
 Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word); deprecated 'use DateUtils.UnixToDateTime';
+Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word); deprecated 'use DateUtils.UnixToDateTime';
 Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); deprecated 'use DateUtils.DateTimetoJulianDate';
 Function GregorianToJulian(Year,Month,Day:Longint):LongInt; deprecated 'use DateUtils.JulianDateToDateTime';
 
@@ -183,6 +184,16 @@ Var
   DateNum: LongInt;
 Begin
   inc(Epoch,TZSeconds);
+  EpochToUniversal(epoch,year,month,day,hour,minute,second);
+End;
+
+Procedure EpochToUniversal(epoch:Int64;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into universal time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+Begin
   Datenum:=(Epoch Div 86400) + c1970;
   JulianToGregorian(DateNum,Year,Month,day);
   Epoch:=Abs(Epoch Mod 86400);

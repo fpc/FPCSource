@@ -460,6 +460,12 @@ begin
    end;
 end;
 
+function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+
+begin
+  Result := False; // not supported
+end;
+
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}

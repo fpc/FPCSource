@@ -212,7 +212,7 @@ case $CPU_SOURCE in
   mipsel) FPC32=ppcmipsel; FPC64=;;
 esac
 
-# No i386<->x86_64 cross-compilation on OpeenBSD
+# No i386<->x86_64 cross-compilation on OpenBSD
 if [ "$OS_SOURCE" == "openbsd" ] ; then
   if [ "$CPU_SOURCE" == "i386" ] ; then
     FPC64=

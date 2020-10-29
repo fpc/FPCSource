@@ -170,6 +170,9 @@ implementation
 
   uses
    cutils, systems, globals
+{$ifdef linux}
+   ,termio
+{$endif linux}
    ;
 
 {****************************************************************************
@@ -205,7 +208,57 @@ begin
   tostr:=hs;
 end;
 
+type
+  TOutputColor = (oc_black,oc_red,oc_green,oc_orange,og_blue,oc_magenta,oc_cyan,oc_lightgray);
 
+{$ifdef linux}
+const
+  CachedIsATTY : Boolean = false;
+  IsATTYValue : Boolean = false;
+
+function IsATTY(var t : text) : Boolean;
+  begin
+    if not(CachedIsATTY) then
+      begin
+        IsATTYValue:=termio.IsATTY(t)=1;
+        CachedIsATTY:=true;
+      end;
+    Result:=IsATTYValue;
+  end;
+{$endif linux}
+
+
+procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiString);
+  begin
+{$ifdef linux}
+     if IsATTY(t) then
+       begin
+         case color of
+           oc_black:
+             write(t,#27'[1m'#27'[30m');
+           oc_red:
+             write(t,#27'[1m'#27'[31m');
+           oc_green:
+             write(t,#27'[1m'#27'[32m');
+           oc_orange:
+             write(t,#27'[1m'#27'[33m');
+           og_blue:
+             write(t,#27'[1m'#27'[34m');
+           oc_magenta:
+             write(t,#27'[1m'#27'[35m');
+           oc_cyan:
+             write(t,#27'[1m'#27'[36m');
+           oc_lightgray:
+             write(t,#27'[1m'#27'[37m');
+         end;
+       end;
+{$endif linux}
+    write(t,s);
+{$ifdef linux}
+    if IsATTY(t) then
+      write(t,#27'[0m');
+{$endif linux}
+  end;
 {****************************************************************************
                           Stopping the compiler
 ****************************************************************************}
@@ -259,91 +312,102 @@ Function def_comment(Level:Longint;const s:ansistring):boolean;
 const
   rh_errorstr   = 'error:';
   rh_warningstr = 'warning:';
+
+  procedure WriteMsgTypeColored(var t : text;const s : AnsiString);
+    begin
+      case (status.verbosity and Level) of
+        V_Warning:
+          WriteColoredOutput(t,oc_magenta,s);
+        V_Error,
+        V_Fatal:
+          WriteColoredOutput(t,oc_red,s);
+        else
+          write(t,s);
+      end;
+    end;
+
 var
-  hs : ansistring;
-  hs2 : ansistring;
+  hs2,
+  MsgTypeStr,
+  MsgLocStr,
+  MsgTimeStr: AnsiString;
 begin
   def_comment:=false; { never stop }
-  hs:='';
+  MsgTypeStr:='';
+  MsgLocStr:='';
+  MsgTimeStr:='';
   if not(status.use_gccoutput) then
     begin
       if (status.verbosity and Level)=V_Hint then
-        hs:=hintstr;
+        MsgTypeStr:=hintstr;
       if (status.verbosity and Level)=V_Note then
-        hs:=notestr;
+        MsgTypeStr:=notestr;
       if (status.verbosity and Level)=V_Warning then
-        hs:=warningstr;
+        MsgTypeStr:=warningstr;
       if (status.verbosity and Level)=V_Error then
-        hs:=errorstr;
+        MsgTypeStr:=errorstr;
       if (status.verbosity and Level)=V_Fatal then
-        hs:=fatalstr;
+        MsgTypeStr:=fatalstr;
       if (status.verbosity and Level)=V_Used then
-        hs:=PadSpace('('+status.currentmodule+')',10);
+        MsgTypeStr:=PadSpace('('+status.currentmodule+')',10);
     end
   else
     begin
       if (status.verbosity and Level)=V_Hint then
-        hs:=rh_warningstr;
+        MsgTypeStr:=rh_warningstr;
       if (status.verbosity and Level)=V_Note then
-        hs:=rh_warningstr;
+        MsgTypeStr:=rh_warningstr;
       if (status.verbosity and Level)=V_Warning then
-        hs:=rh_warningstr;
+        MsgTypeStr:=rh_warningstr;
       if (status.verbosity and Level)=V_Error then
-        hs:=rh_errorstr;
+        MsgTypeStr:=rh_errorstr;
       if (status.verbosity and Level)=V_Fatal then
-        hs:=rh_errorstr;
+        MsgTypeStr:=rh_errorstr;
     end;
   { Generate line prefix }
   if ((Level and V_LineInfo)=V_LineInfo) and
      (status.currentsource<>'') and
      (status.currentline>0) then
-   begin
-     {$ifndef macos}
-     { Adding the column should not confuse RHIDE,
-     even if it does not yet use it PM
-     but only if it is after error or warning !! PM }
-     if status.currentcolumn>0 then
-      begin
-        if status.use_gccoutput then
-          hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+':'+tostr(status.currentcolumn)+': '+hs+' '+s
-        else
-          begin
-            hs:=status.currentsource+'('+tostr(status.currentline)+
-              ','+tostr(status.currentcolumn)+') '+hs+' '+s;
-          end;
-        if status.print_source_path then
-          if status.sources_avail then
-            hs:=status.currentsourcepath+hs
+    begin
+{$ifndef macos}
+      { Adding the column should not confuse RHIDE,
+      even if it does not yet use it PM
+      but only if it is after error or warning !! PM }
+      if status.currentcolumn>0 then
+        begin
+          if status.use_gccoutput then
+            MsgLocStr:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+':'+tostr(status.currentcolumn)+':'
           else
-            hs:=status.currentsourceppufilename+':'+hs;
-      end
-     else
-      begin
-        if status.use_gccoutput then
-          hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '+s
-        else
-          hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
-      end;
-     {$else}
-     {MPW style error}
-     if status.currentcolumn>0 then
-       hs:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+
-         ' #[' + tostr(status.currentcolumn) + '] ' +hs+' '+s
-     else
-       hs:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+' # '+hs+' '+s;
-     {$endif}
-   end
-  else
-   begin
-     if hs<>'' then
-      hs:=hs+' '+s
-     else
-      hs:=s;
-   end;
+            MsgLocStr:=status.currentsource+'('+tostr(status.currentline)+','+tostr(status.currentcolumn)+')';
+          if status.print_source_path then
+            if status.sources_avail then
+              MsgLocStr:=status.currentsourcepath+MsgLocStr
+            else
+              MsgLocStr:=status.currentsourceppufilename+':'+MsgLocStr;
+        end
+      else
+        begin
+          if status.use_gccoutput then
+            MsgLocStr:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+':'
+          else
+            MsgLocStr:=status.currentsource+'('+tostr(status.currentline)+')';
+        end;
+ {$else macos}
+      { MPW style error }
+      if status.currentcolumn>0 then
+        MsgLocStr:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+' #[' + tostr(status.currentcolumn) + ']'
+      else
+        MsgLocStr:='File "'+status.currentsourcepath+status.currentsource+'"; Line '+tostr(status.currentline)+' # ';
+ {$endif macos}
+    end;
+  if MsgLocStr<>'' then
+    MsgLocStr:=MsgLocStr+' ';
+  if MsgTypeStr<>'' then
+    MsgTypeStr:=MsgTypeStr+' ';
   if (status.verbosity and V_TimeStamps)<>0 then
     begin
       system.str(getrealtime-starttime:0:3,hs2);
-      hs:='['+hs2+'] '+hs;
+      MsgTimeStr:='['+hs2+'] ';
     end;
 
   { Display line }
@@ -351,24 +415,30 @@ begin
      ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then
    begin
      if status.use_stderr then
-      begin
-        writeln(stderr,hs);
-        flush(stderr);
-      end
+       begin
+         write(StdErr,MsgTimeStr+MsgLocStr);
+         WriteMsgTypeColored(StdErr,MsgTypeStr);
+         writeln(StdErr,s);
+         flush(StdErr);
+       end
      else
-      begin
-        if status.use_redir then
-         writeln(status.redirfile,hs)
-        else
-         writeln(hs);
-      end;
+       begin
+         if status.use_redir then
+           writeln(status.redirfile,MsgTimeStr+MsgLocStr+MsgTypeStr+s)
+         else
+           begin
+             write(MsgTimeStr+MsgLocStr);
+             WriteMsgTypeColored(Output,MsgTypeStr);
+             writeln(s);
+           end;
+       end;
    end;
   { include everything in the bugreport file }
   if status.use_bugreport then
-   begin
-     Write(status.reportbugfile,hexstr(level,8)+':');
-     Writeln(status.reportbugfile,hs);
-   end;
+    begin
+      Write(status.reportbugfile,hexstr(level,8)+':');
+      Writeln(status.reportbugfile,MsgTimeStr+MsgLocStr+MsgTypeStr+s);
+    end;
 end;
 
 

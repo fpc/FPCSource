@@ -1582,10 +1582,13 @@ begin
                  ftWideString : F1.AsWideString:=F2.AsWideString;
                  ftBoolean  : F1.AsBoolean:=F2.AsBoolean;
                  ftFloat    : F1.AsFloat:=F2.AsFloat;
+                 ftShortInt,
+                 ftByte,
                  ftAutoInc,
                  ftSmallInt,
                  ftInteger  : F1.AsInteger:=F2.AsInteger;
                  ftLargeInt : F1.AsLargeInt:=F2.AsLargeInt;
+                 ftLongWord : F1.AsLongWord:=F2.AsLongWord;
                  ftDate     : F1.AsDateTime:=F2.AsDateTime;
                  ftTime     : F1.AsDateTime:=F2.AsDateTime;
                  ftTimestamp,
@@ -2456,16 +2459,19 @@ begin
       ftFixedChar: result := FieldDef.Size*FieldDef.CharSize + 1;
     ftFixedWideChar,
       ftWideString:result := (FieldDef.Size + 1)*FieldDef.CharSize;
-    ftSmallint,
+    ftShortint,
+      ftByte,
+      ftSmallint,
+      ftWord,
       ftInteger,
-      ftAutoInc,
-      ftword     : result := sizeof(longint);
+      ftAutoInc  : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
     ftFmtBCD     : result := sizeof(TBCD);
     ftFloat,
       ftCurrency : result := sizeof(double);
     ftLargeInt   : result := sizeof(largeint);
+    ftLongWord   : result := sizeof(longword);
     ftTime,
       ftDate,
       ftDateTime : result := sizeof(TDateTime);

@@ -76,6 +76,7 @@ type
     procedure CheckRestoredElementBase(const Path: string; Orig, Rest: TPasElementBase; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredResolveData(const Path: string; Orig, Rest: TResolveData; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredPasScope(const Path: string; Orig, Rest: TPasScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredLocalVar(const Path: string; Orig, Rest: TPas2JSStoredLocalVar); virtual;
     procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPas2JSModuleScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPas2JSSectionScope; Flags: TPCCheckFlags); virtual;
@@ -225,6 +226,8 @@ type
     procedure TestPC_Specialize_LocalTypeInUnit;
     procedure TestPC_Specialize_ClassForward;
     procedure TestPC_InlineSpecialize_LocalTypeInUnit;
+    procedure TestPC_Specialize_Array;
+    procedure TestPC_Specialize_ProcType;
     // ToDo: specialize extern generic type in unit interface
     // ToDo: specialize extern generic type in unit implementation
     // ToDo: specialize extern generic type in proc decl
@@ -801,8 +804,19 @@ begin
   CheckRestoredResolveData(Path,Orig,Rest,Flags);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredLocalVar(const Path: string; Orig,
+  Rest: TPas2JSStoredLocalVar);
+begin
+  AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
+  CheckRestoredReference(Path+'.Id',Orig.Element,Rest.Element);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
   Orig, Rest: TPas2JSModuleScope; Flags: TPCCheckFlags);
+var
+  OrigLocalVars, RestLocalVars: TPas2JSStoredLocalVarArray;
+  i, j: Integer;
+  OrigLocalVar, RestLocalVar: TPas2JSStoredLocalVar;
 begin
   AssertEquals(Path+'.FirstName',Orig.FirstName,Rest.FirstName);
   if Orig.Flags<>Rest.Flags then
@@ -816,6 +830,32 @@ begin
   CheckRestoredReference(Path+'.RangeErrorConstructor',Orig.RangeErrorConstructor,Rest.RangeErrorConstructor);
   CheckRestoredReference(Path+'.SystemTVarRec',Orig.SystemTVarRec,Rest.SystemTVarRec);
   CheckRestoredReference(Path+'.SystemVarRecs',Orig.SystemVarRecs,Rest.SystemVarRecs);
+
+  // StoreJSLocalVars
+  OrigLocalVars:=Orig.StoreJSLocalVars;
+  RestLocalVars:=Rest.StoreJSLocalVars;
+  //for i:=0 to length(RestLocalVars)-1 do
+  //  writeln('TCustomTestPrecompile.CheckRestoredModuleScope Rest ',i,'/',length(RestLocalVars),' ',RestLocalVars[i].Name);
+  for i:=0 to length(OrigLocalVars)-1 do
+  begin
+    OrigLocalVar:=OrigLocalVars[i];
+    //writeln('TCustomTestPrecompile.CheckRestoredModuleScope Orig ',i,'/',length(OrigLocalVars),' ',OrigLocalVar.Name);
+    j:=length(OrigLocalVars)-1;
+    while (j>=0) do
+      begin
+      RestLocalVar:=RestLocalVars[j];
+      if OrigLocalVar.Name=RestLocalVar.Name then
+        begin
+        CheckRestoredLocalVar(Path+'.LocalVars['+IntToStr(i)+']',OrigLocalVar,RestLocalVar);
+        break;
+        end;
+      dec(j);
+      end;
+    if j<0 then
+      Fail(Path+'.LocalVars['+IntToStr(i)+'] Name="'+OrigLocalVar.Name+'" missing in Rest');
+  end;
+  AssertEquals('LocalVars.Count',length(OrigLocalVars),length(RestLocalVars));
+
   CheckRestoredPasScope(Path,Orig,Rest,Flags);
 end;
 
@@ -3395,6 +3435,71 @@ begin
   'var lb: TBird<longint>;',
   'begin',
   '  lb.a:=5;',
+  '  Run;',
+  'end;',
+  'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Specialize_Array;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TArray<T> = array of T;',
+  'var',
+  '  da: TArray<double>;',
+  'procedure Fly;',
+  'implementation',
+  'var wa: TArray<word>;',
+  'procedure Run;',
+  'var',
+  '  sha: TArray<shortint>;',
+  '  ba: TArray<boolean>;',
+  'begin',
+  '  sha[1]:=3;',
+  '  wa[2]:=4;',
+  '  ba[3]:=true;',
+  'end;',
+  'procedure Fly;',
+  'var la: TArray<longint>;',
+  'begin',
+  '  la[4]:=5;',
+  '  Run;',
+  'end;',
+  'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Specialize_ProcType;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TFunc<R,P> = function(a: P): R;',
+  'var',
+  '  a: TFunc<word,double>;',
+  'procedure Fly;',
+  'implementation',
+  'var b: TFunc<byte,word>;',
+  'procedure Run;',
+  'var',
+  '  c: TFunc<shortint,string>;',
+  'begin',
+  '  a(3.3);',
+  '  b(4);',
+  '  c(''abc'');',
+  'end;',
+  'procedure Fly;',
+  'var d: TFunc<longint,boolean>;',
+  'begin',
+  '  d(true);',
   '  Run;',
   'end;',
   'begin',

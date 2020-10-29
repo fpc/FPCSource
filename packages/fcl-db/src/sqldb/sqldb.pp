@@ -1373,9 +1373,12 @@ end;
 
 destructor TSQLConnection.Destroy;
 begin
-  Connected:=False; // needed because we want to de-allocate statements
-  FreeAndNil(FStatements);
-  inherited Destroy;
+  try
+    Connected:=False; // needed because we want to de-allocate statements
+  Finally  
+    FreeAndNil(FStatements);
+    inherited Destroy;
+  end;
 end;
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;

@@ -801,6 +801,10 @@ var rtl = {
     return intf;
   },
 
+  trunc: function(a){
+    return a<0 ? Math.ceil(a) : Math.floor(a);
+  },
+
   checkMethodCall: function(obj,type){
     if (rtl.isObject(obj) && rtl.is(obj,type)) return;
     rtl.raiseE("EInvalidCast");

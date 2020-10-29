@@ -404,7 +404,8 @@ Var
     ptCustom, ptCustom, ptCustom, ptCustom, ptAnsiString,
     ptWideString, ptInt64, ptCustom, ptCustom, ptCustom,
     ptCustom, ptCustom, ptCustom, ptCustom, ptCustom,
-    ptCustom, ptAnsiString, ptDateTime, ptCurrency, ptWideString, ptWideString);
+    ptCustom, ptAnsiString, ptDateTime, ptCurrency, ptWideString, ptWideString,
+    ptDateTime, ptDateTime, ptCustom, ptCustom, ptCustom, ptCustom);
     
   PropTypeToVisibilityMap : TPropertyVisibilityMap = (
     vPrivate,

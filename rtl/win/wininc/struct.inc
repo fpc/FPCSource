@@ -7460,6 +7460,22 @@ Const
      TTIMEZONEINFORMATION = TIME_ZONE_INFORMATION;
      PTIMEZONEINFORMATION = ^TIME_ZONE_INFORMATION;
 
+     TIME_DYNAMIC_ZONE_INFORMATION = record
+       Bias: Longint;
+       StandardName: array[0..31] of WCHAR;
+       StandardDate: TSystemTime;
+       StandardBias: Longint;
+       DaylightName: array[0..31] of WCHAR;
+       DaylightDate: TSystemTime;
+       DaylightBias: Longint;
+       TimeZoneKeyName: array[0..127] of WCHAR;
+       DynamicDaylightTimeDisabled: ByteBool;
+     end;
+     LPTIME_DYNAMIC_ZONE_INFORMATION = ^TIME_DYNAMIC_ZONE_INFORMATION;
+     _TIME_DYNAMIC_ZONE_INFORMATION = TIME_DYNAMIC_ZONE_INFORMATION;
+     TDYNAMICTIMEZONEINFORMATION = TIME_DYNAMIC_ZONE_INFORMATION;
+     PDYNAMICTIMEZONEINFORMATION = ^TDYNAMICTIMEZONEINFORMATION;
+
      TOGGLEKEYS = record
           cbSize : DWORD;
           dwFlags : DWORD;

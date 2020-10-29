@@ -768,7 +768,7 @@
     ops     : 2;
     optypes : (ot_reg32,ot_reg32,ot_none,ot_none,ot_none,ot_none);
     code    : #50#1#111#15#16;
-    flags   : if_arm32 or if_armv4
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_CPS;

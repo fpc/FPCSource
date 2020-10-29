@@ -4157,10 +4157,10 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 # arm targets
 A*2Tandroid_Android
 A*2Taros_AROS
-A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
 A*2Tfreertos_FreeRTOS
 A*2Tgba_Game Boy Advance
+A*2Tios_iOS
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
 A*2Tnetbsd_NetBSD
@@ -4169,7 +4169,8 @@ A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
-a*2Tdarwin_Darwin/iOS
+a*2Tdarwin_Darwin/Mac OS X
+a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64
 # jvm targets

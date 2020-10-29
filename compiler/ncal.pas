@@ -4734,6 +4734,10 @@ implementation
         if para.parasym.varspez in [vs_var,vs_out] then
           exit(false);
 
+        { We cannot create a formaldef temp and assign something to it }
+        if para.parasym.vardef.typ=formaldef then
+          exit(false);
+
         { We don't need temps for parameters that are already temps, except if
           the passed temp could be put in a regvar while the parameter inside
           the routine cannot be (e.g., because its address is taken in the
@@ -4750,10 +4754,6 @@ implementation
         if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
            not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           exit(true);
-
-        { We cannot create a formaldef temp and assign something to it }
-        if para.parasym.vardef.typ=formaldef then
-          exit(false);
 
         { We try to handle complex expressions later by taking their address
           and storing this address in a temp (which is then dereferenced when
@@ -4912,6 +4912,9 @@ implementation
 
             result:=true;
           end
+        { for formaldefs, we do not need a temp., but it must be inherited if they are not regable }
+        else if (para.parasym.vardef.typ=formaldef) and not(tparavarsym(para.parasym).is_regvar(false)) then
+          make_not_regable(para.left,[ra_addr_regable]);
       end;
 
 

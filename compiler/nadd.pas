@@ -1884,7 +1884,8 @@ implementation
              floattype for results }
            if (right.resultdef.typ=floatdef) and
               (left.resultdef.typ=floatdef) and
-              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
+              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) and
+              not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) then
              begin
                if cs_excessprecision in current_settings.localswitches then
                  resultrealdef:=pbestrealtype^
@@ -3272,29 +3273,52 @@ implementation
           newstatement : tstatementnode;
           temp    : ttempcreatenode;
         begin
-          { add two var sets }
-          result:=internalstatements(newstatement);
+          { directly load the result set into the assignee if possible }
+          if assigned(aktassignmentnode) and
+              (aktassignmentnode.right=self) and
+              (aktassignmentnode.left.resultdef=resultdef) and
+              valid_for_var(aktassignmentnode.left,false) then
+            begin
+              result:=ccallnode.createintern(n,
+                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+                ccallparanode.create(aktassignmentnode.left.getcopy,
+                ccallparanode.create(right,
+                ccallparanode.create(left,nil))))
+              );
 
-          { create temp for result }
-          temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
-          addstatement(newstatement,temp);
+              { remove reused parts from original node }
+              left:=nil;
+              right:=nil;
 
-          addstatement(newstatement,ccallnode.createintern(n,
-            ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-            ccallparanode.create(ctemprefnode.create(temp),
-            ccallparanode.create(right,
-            ccallparanode.create(left,nil)))))
-          );
+              include(aktassignmentnode.flags,nf_assign_done_in_right);
+              firstpass(result);
+            end
+          else
+            begin
+              { add two var sets }
+              result:=internalstatements(newstatement);
 
-          { remove reused parts from original node }
-          left:=nil;
-          right:=nil;
-          { the last statement should return the value as
-            location and type, this is done be referencing the
-            temp and converting it first from a persistent temp to
-            normal temp }
-          addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-          addstatement(newstatement,ctemprefnode.create(temp));
+              { create temp for result }
+              temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+              addstatement(newstatement,temp);
+
+              addstatement(newstatement,ccallnode.createintern(n,
+                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+                ccallparanode.create(ctemprefnode.create(temp),
+                ccallparanode.create(right,
+                ccallparanode.create(left,nil)))))
+              );
+
+              { remove reused parts from original node }
+              left:=nil;
+              right:=nil;
+              { the last statement should return the value as
+                location and type, this is done be referencing the
+                temp and converting it first from a persistent temp to
+                normal temp }
+              addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+              addstatement(newstatement,ctemprefnode.create(temp));
+            end;
         end;
 
       var

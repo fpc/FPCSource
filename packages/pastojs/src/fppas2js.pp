@@ -659,6 +659,7 @@ type
     pbifnSet_Union,
     pbifnSpaceLeft,
     pbifnStringSetLength,
+    pbifnTrunc, // rtl.trunc
     pbifnUnitInit,
     // variables
     pbivnExceptObject,
@@ -843,6 +844,7 @@ const
     'unionSet', // pbifnSet_Union  rtl.unionSet +
     'spaceLeft', // pbifnSpaceLeft  rtl.spaceLeft
     'strSetLength', // pbifnStringSetLength  rtl.strSetLength
+    'trunc', // pbifnTrunc
     '$init', // pbifnUnitInit
     '$e', // pbivnExceptObject
     '$ir',  // pbivnIntfExprRefs
@@ -1112,6 +1114,13 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
+  TPas2JSStoredLocalVar = class(TPasElementBase)
+  public
+    Name: string;
+    Element: TPasElement;
+  end;
+  TPas2JSStoredLocalVarArray = array of TPas2JSStoredLocalVar;
+
   TPas2JSModuleScopeFlag = (
     p2msfPromiseSearched // TJSPromise searched
     );
@@ -1126,6 +1135,8 @@ type
   public
     FlagsJS: TPas2JSModuleScopeFlags;
     SystemVarRecs: TPasFunction;
+    StoreJSLocalVars: TPas2JSStoredLocalVarArray; // only with coStoreImplJS
+    procedure ClearStoreJSLocalVars;
     destructor Destroy; override;
     property JSPromiseClass: TPasClassType read FJSPromiseClass write SetJSPromiseClass;
   end;
@@ -1733,13 +1744,14 @@ type
     function AddLocalVar(aName: string; El: TPasElement; aKind: TCtxVarKind; AutoUnique: boolean): TFCLocalIdentifier;
     function AddLocalJSVar(aName: string; AutoUnique: boolean): TFCLocalIdentifier;
     procedure Add_InterfaceRelease(El: TPasElement);
-    function CreateLocalIdentifier(const Prefix: string): string;
+    function CreateLocalIdentifier(const Prefix: string; El: TPasElement; aKind: TCtxVarKind): string; virtual;
     function ToString: string; override;
     function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds): string; override;
     function IndexOfLocalVar(const aName: string): integer;
     function IndexOfLocalVar(El: TPasElement; const Filter: TCtxVarKinds): integer;
     function FindLocalVar(const aName: string; WithParents: boolean): TFCLocalIdentifier;
-    function FindLocalIdentifier(El: TPasElement; const Filter: TCtxVarKinds): TFCLocalIdentifier;
+    function FindPrecompiledVar(const aName: string; WithParents: boolean): TPas2JSStoredLocalVar; virtual;
+    function FindPrecompiledVar(El: TPasElement; WithParents: boolean): TPas2JSStoredLocalVar; virtual;
     procedure DoWriteStack(Index: integer); override;
   end;
 
@@ -1756,8 +1768,13 @@ type
   public
     SrcElements: TJSSourceElements;
     HeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
+    PrecompiledVars: TPas2JSStoredLocalVarArray; // copy from TPas2JSModuleScope, do not free
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
     procedure AddHeaderStatement(JS: TJSElement);
+    function FindPrecompiledVar(const aName: string; WithParents: boolean
+      ): TPas2JSStoredLocalVar; override;
+    function FindPrecompiledVar(El: TPasElement; WithParents: boolean
+      ): TPas2JSStoredLocalVar; override;
   end;
 
   { TInterfaceSectionContext }
@@ -2004,7 +2021,7 @@ type
     // simple JS expressions
     Function CreateMulNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
     Function CreateDivideNumber(El: TPasElement; JS: TJSElement; n: TMaxPrecInt): TJSElement; virtual;
-    Function CreateMathFloor(El: TPasElement; JS: TJSElement): TJSElement; virtual;
+    Function CreateTruncFloor(El: TPasElement; JS: TJSElement; FloorAndCeil: boolean): TJSElement; virtual;
     Function CreateDotNameExpr(PosEl: TPasElement; MExpr: TJSElement;
       const aName: TJSString): TJSDotMemberExpression; virtual;
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
@@ -2025,6 +2042,8 @@ type
     Function CreateGlobalElPath(El: TPasElement; AContext: TConvertContext): string; virtual;
     Function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds; AContext: TConvertContext): string;
     Procedure StoreImplJSLocal(El: TPasElement; AContext: TConvertContext); virtual;
+    Procedure StoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
+    Procedure RestoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -2515,8 +2534,18 @@ begin
     FJSPromiseClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
 end;
 
+procedure TPas2JSModuleScope.ClearStoreJSLocalVars;
+var
+  i: Integer;
+begin
+  for i:=0 to length(StoreJSLocalVars)-1 do
+    FreeAndNil(StoreJSLocalVars[i]);
+  StoreJSLocalVars:=nil;
+end;
+
 destructor TPas2JSModuleScope.Destroy;
 begin
+  ClearStoreJSLocalVars;
   JSPromiseClass:=nil;
   inherited Destroy;
 end;
@@ -7267,6 +7296,32 @@ begin
   inc(HeaderIndex);
 end;
 
+function TSectionContext.FindPrecompiledVar(const aName: string;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  i: Integer;
+begin
+  for i:=0 to length(PrecompiledVars)-1 do
+    if PrecompiledVars[i].Name=aName then
+      exit(PrecompiledVars[i]);
+  if not WithParents then
+    exit(nil);
+  Result:=inherited FindPrecompiledVar(aName,WithParents);
+end;
+
+function TSectionContext.FindPrecompiledVar(El: TPasElement;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  i: Integer;
+begin
+  for i:=0 to length(PrecompiledVars)-1 do
+    if PrecompiledVars[i].Element=El then
+      exit(PrecompiledVars[i]);
+  if not WithParents then
+    exit(nil);
+  Result:=inherited FindPrecompiledVar(El, WithParents);
+end;
+
 { TFunctionContext }
 
 constructor TFunctionContext.Create(PasEl: TPasElement; JSEl: TJSElement;
@@ -7299,12 +7354,7 @@ begin
   if Ident<>nil then
     begin
     if AutoUnique then
-      begin
-      l:=1;
-      while FindLocalVar(aName+IntToStr(l),true)<>nil do
-        inc(l);
-      aName:=aName+IntToStr(l);
-      end
+      aName:=CreateLocalIdentifier(aName,El,aKind)
     else
       begin
       V:=FindLocalVar(aName,false);
@@ -7315,7 +7365,7 @@ begin
       else
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TFunctionContext.AddLocalVar [20200608131330] "'+aName+'" El='+GetObjPath(El),' Old=',GetObjPath(Ident.Element));
+        writeln('TFunctionContext.AddLocalVar [20200608131330] Duplicate "'+aName+'" El='+GetObjPath(El),' Old=',GetObjPath(Ident.Element));
         {$ENDIF}
         raise EPas2JS.Create('[20200608131330] "'+aName+'" El='+GetObjPath(El));
         end;
@@ -7341,19 +7391,28 @@ begin
   IntfElReleases.Add(El);
 end;
 
-function TFunctionContext.CreateLocalIdentifier(const Prefix: string): string;
+function TFunctionContext.CreateLocalIdentifier(const Prefix: string;
+  El: TPasElement; aKind: TCtxVarKind): string;
 var
-  Ident: TFCLocalIdentifier;
   l: Integer;
+  PV: TPas2JSStoredLocalVar;
 begin
+  // check precompiled names
+  if aKind=cvkGlobal then
+    begin
+    PV:=FindPrecompiledVar(El,true);
+    if PV<>nil then
+      exit(PV.Name);
+    end;
+  // find new name
   Result:=Prefix;
-  Ident:=FindLocalVar(Result,true);
-  if Ident=nil then exit;
   l:=0;
-  repeat
+  while (FindLocalVar(Result,true)<>nil)
+      or ((aKind=cvkGlobal) and (FindPrecompiledVar(Result,true)<>nil)) do
+    begin
     inc(l);
     Result:=Prefix+IntToStr(l);
-  until FindLocalVar(Result,true)=nil;
+    end;
 end;
 
 function TFunctionContext.ToString: string;
@@ -7447,14 +7506,30 @@ begin
   Result:=ParentFC.FindLocalVar(aName,true);
 end;
 
-function TFunctionContext.FindLocalIdentifier(El: TPasElement;
-  const Filter: TCtxVarKinds): TFCLocalIdentifier;
+function TFunctionContext.FindPrecompiledVar(const aName: string;
+  WithParents: boolean): TPas2JSStoredLocalVar;
 var
-  i: Integer;
+  ParentFC: TFunctionContext;
 begin
-  i:=IndexOfLocalVar(El,Filter);
-  if i>=0 then
-    exit(LocalVars[i]);
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindPrecompiledVar(aName,true);
+end;
+
+function TFunctionContext.FindPrecompiledVar(El: TPasElement;
+  WithParents: boolean): TPas2JSStoredLocalVar;
+var
+  ParentFC: TFunctionContext;
+begin
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindPrecompiledVar(El,true);
 end;
 
 procedure TFunctionContext.DoWriteStack(Index: integer);
@@ -7811,6 +7886,7 @@ Unit with implementation:
     );
 *)
 Var
+  aResolver: TPas2JSResolver;
   OuterSrc , Src: TJSSourceElements;
   RegModuleCall, Call: TJSCallExpression;
   ArgArray: TJSArguments;
@@ -7824,8 +7900,14 @@ Var
   Lib: TPasLibrary;
   AssignSt: TJSSimpleAssignStatement;
   IntfSecCtx: TInterfaceSectionContext;
+  ModScope: TPas2JSModuleScope;
 begin
   Result:=Nil;
+  aResolver:=AContext.Resolver;
+  if aResolver<>nil then
+    ModScope:=El.CustomData as TPas2JSModuleScope
+  else
+    ModScope:=nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
   Result:=OuterSrc;
   ok:=false;
@@ -7886,6 +7968,9 @@ begin
       AddToSourceElements(Src,CreateVarStatement(ModVarName,
         CreatePrimitiveDotExpr('this',El),El));
 
+      if (ModScope<>nil) then
+        RestoreImplJSLocals(ModScope,IntfContext);
+
       if (El is TPasProgram) then
         begin // program
         Prg:=TPasProgram(El);
@@ -7943,6 +8028,9 @@ begin
         CreateInitSection(El,Src,IntfSecCtx);
 
         end;
+
+      if (ModScope<>nil) and (coStoreImplJS in Options) then
+        StoreImplJSLocals(ModScope,IntfContext);
     finally
       IntfContext.Free;
     end;
@@ -8664,8 +8752,8 @@ begin
       case El.OpCode of
       eopDiv:
         begin
-        // convert "a div b" to "Math.floor(a/b)"
-        Result:=CreateMathFloor(El,Result);
+        // convert "a div b" to "rtl.trunc(a/b)"
+        Result:=CreateTruncFloor(El,Result,true);
         end;
       end;
 
@@ -8864,7 +8952,7 @@ begin
         else if El.OpCode=eopShr then
           begin
           // BigInt shr const -> Math.floor(A/otherconst)
-          Result:=CreateMathFloor(El,CreateDivideNumber(El,A,TMaxPrecInt(1) shl BInt));
+          Result:=CreateTruncFloor(El,CreateDivideNumber(El,A,TMaxPrecInt(1) shl BInt),false);
           A:=nil;
           FreeAndNil(B);
           exit;
@@ -8943,22 +9031,22 @@ begin
       end;
     eopDivide:
       begin
-      // currency / currency  ->  Math.floor((currency/currency)*10000)
-      // currency / number  ->  Math.floor(currency/number)
-      // number / currency  ->  Math.floor(number/currency)
+      // currency / currency  ->  rtl.trunc((currency/currency)*10000)
+      // currency / number  ->  rtl.trunc(currency/number)
+      // number / currency  ->  rtl.trunc(number/currency)
       Result:=TJSMultiplicativeExpressionDiv(CreateElement(TJSMultiplicativeExpressionDiv,El));
       TJSBinaryExpression(Result).A:=A; A:=nil;
       TJSBinaryExpression(Result).B:=B; B:=nil;
       if (LeftResolved.BaseType=btCurrency) and (RightResolved.BaseType=btCurrency) then
         Result:=CreateMulNumber(El,Result,10000);
-      Result:=CreateMathFloor(El,Result);
+      Result:=CreateTruncFloor(El,Result,true);
       exit;
       end;
     eopPower:
       begin
-      // currency^^currency  ->  Math.floor(Math.pow(currency/10000,currency/10000)*10000)
-      // currency^^number  ->  Math.floor(Math.pow(currency/10000,number)*10000)
-      // number^^currency  ->  Math.floor(Math.pow(number,currency/10000)*10000)
+      // currency^^currency  ->  rtl.trunc(Math.pow(currency/10000,currency/10000)*10000)
+      // currency^^number  ->  rtl.trunc(Math.pow(currency/10000,number)*10000)
+      // number^^currency  ->  rtl.trunc(Math.pow(number,currency/10000)*10000)
       if LeftResolved.BaseType=btCurrency then
         A:=CreateDivideNumber(El,A,10000);
       if RightResolved.BaseType=btCurrency then
@@ -8968,7 +9056,7 @@ begin
       Call.AddArg(A); A:=nil;
       Call.AddArg(B); B:=nil;
       Result:=CreateMulNumber(El,Call,10000);
-      Result:=CreateMathFloor(El,Result);
+      Result:=CreateTruncFloor(El,Result,true);
       end
     else
       RaiseNotSupported(El,AContext,20180422104215);
@@ -9317,10 +9405,13 @@ begin
   Result:=nil;
   aResolver:=AContext.Resolver;
 
-  // Note: TPasParser guarantees that there is at most one TBinaryExpr between
+  // Note: TPasParser guarantees that there is at most one TBinaryExpr
+  //       and/or one TInlineSpecializeExpr between
   //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
 
   RightEl:=El.right;
+  if RightEl is TInlineSpecializeExpr then
+    RightEl:=TInlineSpecializeExpr(RightEl).NameExpr;
   if (RightEl.ClassType<>TPrimitiveExpr) then
     RaiseNotSupported(RightEl,AContext,20190131162250,'Left='+GetObjName(El.left)+' right='+GetObjName(RightEl));
   if not (RightEl.CustomData is TResolvedReference) then
@@ -9363,10 +9454,13 @@ var
 begin
   aResolver:=AContext.Resolver;
 
-  // Note: TPasParser guarantees that there is at most one TBinaryExpr between
+  // Note: TPasParser guarantees that there is at most one TBinaryExpr
+  //       and/or one TInlineSpecializeExpr between
   //       TParamsExpr and its NameExpr. E.g. a.b.c() = ((a.b).c)()
 
   RightEl:=El.right;
+  if RightEl is TInlineSpecializeExpr then
+    RightEl:=TInlineSpecializeExpr(RightEl).NameExpr;
   if (RightEl.ClassType<>TPrimitiveExpr) then
     begin
     {$IFDEF VerbosePas2JS}
@@ -10026,8 +10120,8 @@ begin
   if FromBT=btCurrency then
     begin
     if ToBT<>btCurrency then
-      // currency to integer -> Math.floor(value/10000)
-      Result:=CreateMathFloor(PosEl,CreateDivideNumber(PosEl,Result,10000));
+      // currency to integer -> rtl.trunc(value/10000)
+      Result:=CreateTruncFloor(PosEl,CreateDivideNumber(PosEl,Result,10000),true);
     end
   else if ToBT=btCurrency then
     // integer to currency -> value*10000
@@ -11960,13 +12054,13 @@ begin
       begin
       if JSBaseType=pbtJSValue then
         begin
-        // convert jsvalue to integer -> Math.floor(value)
+        // convert jsvalue to integer -> rtl.trunc(value)
         Result:=ConvertExpression(Param,AContext);
         // Note: convert Param first in case it raises an exception
         if to_bt=btCurrency then
-          // jsvalue to currency -> Math.floor(value*10000)
+          // jsvalue to currency -> rtl.trunc(value*10000)
           Result:=CreateMulNumber(Param,Result,10000);
-        Result:=CreateMathFloor(El,Result);
+        Result:=CreateTruncFloor(El,Result,true);
         exit;
         end;
       end
@@ -13613,7 +13707,7 @@ begin
     if Shift=32 then
       begin
       // JS bitwise operations work only 32bit -> use division for bigger shifts
-      Result:=CreateMathFloor(El,CreateDivideNumber(El,Result,$100000000));
+      Result:=CreateTruncFloor(El,CreateDivideNumber(El,Result,$100000000),false);
       end
     else
       begin
@@ -20738,7 +20832,7 @@ var
   C: TClass;
 begin
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr));
+  writeln('TPasToJSConverter.CreateCallHelperMethod Proc=',GetObjName(Proc),' Expr=',GetObjName(Expr),' Implicit=',Implicit);
   {$ENDIF}
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -21422,6 +21516,8 @@ begin
           else
             RaiseNotSupported(El,AContext,20180415101516);
           end;
+        if (LeftTypeEl.ClassType=TPasArrayType) and (El.Kind<>akDefault) then
+          aResolver.RaiseMsg(20201028212754,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
         end;
       end;
     if AssignContext.RightSide=nil then
@@ -21442,9 +21538,9 @@ begin
         // currency := currency
       else if AssignContext.RightResolved.BaseType in btAllJSFloats then
         begin
-        // currency := double  ->  currency := Math.floor(double*10000)
+        // currency := double  ->  currency := rtl.trunc(double*10000)
         AssignContext.RightSide:=CreateMulNumber(El,AssignContext.RightSide,10000);
-        AssignContext.RightSide:=CreateMathFloor(El,AssignContext.RightSide);
+        AssignContext.RightSide:=CreateTruncFloor(El,AssignContext.RightSide,true);
         end
       else if AssignContext.RightResolved.BaseType in btAllJSInteger then
         begin
@@ -21495,12 +21591,16 @@ begin
           begin
           // right side is dynamic array
           if (AssignContext.LeftResolved.BaseType=btContext)
-              and (AssignContext.LeftResolved.LoTypeEl is TPasArrayType)
-              and (not RightIsTemporaryVar)
-              and (not LeftIsConstSetter) then
+              and (AssignContext.LeftResolved.LoTypeEl is TPasArrayType) then
             begin
-            // DynArrayA := DynArrayB  ->  DynArrayA = rtl.arrayRef(DynArrayB)
-            AssignContext.RightSide:=CreateArrayRef(El.right,AssignContext.RightSide);
+            if El.Kind<>akDefault then
+              aResolver.RaiseMsg(20201028213335,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
+            if (not RightIsTemporaryVar)
+                and (not LeftIsConstSetter) then
+              begin
+              // DynArrayA := DynArrayB  ->  DynArrayA = rtl.arrayRef(DynArrayB)
+              AssignContext.RightSide:=CreateArrayRef(El.right,AssignContext.RightSide);
+              end;
             end;
           end;
         end
@@ -23667,11 +23767,12 @@ begin
   Mul.B:=CreateLiteralNumber(El,n);
 end;
 
-function TPasToJSConverter.CreateMathFloor(El: TPasElement; JS: TJSElement
-  ): TJSElement;
+function TPasToJSConverter.CreateTruncFloor(El: TPasElement; JS: TJSElement;
+  FloorAndCeil: boolean): TJSElement;
 // create Math.floor(JS)
 var
   Value: TJSValue;
+  Call: TJSCallExpression;
 begin
   if JS is TJSLiteral then
     begin
@@ -23699,18 +23800,24 @@ begin
         exit(JS);
         end;
       jstNumber:
+        begin
         if IsNan(Value.AsNumber) or IsInfinite(Value.AsNumber) then
-          exit(JS)
-        else
-          begin
-          Value.AsNumber:=Trunc(Value.AsNumber);
           exit(JS);
-          end;
+        if FloorAndCeil then
+          Value.AsNumber:=Trunc(Value.AsNumber)
+        else
+          Value.AsNumber:=Floor(Value.AsNumber);
+        exit(JS);
+        end;
     end;
     end;
-  Result:=CreateCallExpression(El);
-  TJSCallExpression(Result).Expr:=CreatePrimitiveDotExpr('Math.floor',El);
-  TJSCallExpression(Result).AddArg(JS);
+  Call:=CreateCallExpression(El);
+  Result:=Call;
+  if FloorAndCeil then
+    Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnTrunc),El)
+  else
+    Call.Expr:=CreatePrimitiveDotExpr('Math.floor',El);
+  Call.AddArg(JS);
 end;
 
 function TPasToJSConverter.CreateDotNameExpr(PosEl: TPasElement;
@@ -24496,6 +24603,44 @@ begin
     end;
 end;
 
+procedure TPasToJSConverter.StoreImplJSLocals(ModScope: TPas2JSModuleScope;
+  IntfContext: TSectionContext);
+var
+  i, StoredIndex: Integer;
+  CtxVar: TFCLocalIdentifier;
+  StoredVar: TPas2JSStoredLocalVar;
+  CurName: String;
+begin
+  ModScope.ClearStoreJSLocalVars;
+  SetLength(ModScope.StoreJSLocalVars,length(IntfContext.LocalVars));
+  StoredIndex:=0;
+  for i:=0 to length(IntfContext.LocalVars)-1 do
+    begin
+    CtxVar:=IntfContext.LocalVars[i];
+    if (CtxVar.Element=nil) or (CtxVar.Kind<>cvkGlobal) then
+      continue;
+    if CtxVar.Element.Parent is TProcedureBody then
+      continue;
+    CurName:=CtxVar.Name;
+    if (CurName='') or (CurName='this')
+        or (CurName=GetBIName(pbivnModule))
+        or (CurName=GetBIName(pbivnImplementation))
+      then continue;
+    StoredVar:=TPas2JSStoredLocalVar.Create;
+    StoredVar.Name:=CurName;
+    StoredVar.Element:=CtxVar.Element;
+    ModScope.StoreJSLocalVars[StoredIndex]:=StoredVar;
+    inc(StoredIndex);
+    end;
+  SetLength(ModScope.StoreJSLocalVars,StoredIndex);
+end;
+
+procedure TPasToJSConverter.RestoreImplJSLocals(ModScope: TPas2JSModuleScope;
+  IntfContext: TSectionContext);
+begin
+  IntfContext.PrecompiledVars:=ModScope.StoreJSLocalVars;
+end;
+
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;
   Args: TParamsExpr; TargetProc: TPasProcedureType; AContext: TConvertContext);
 // create a call, adding call by reference and default values
@@ -24551,9 +24696,12 @@ begin
       if TargetArg.ValueExpr=nil then
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateProcedureCallArgs missing default value: TargetProc=',TargetProc.Name,' i=',i);
+        writeln('TPasToJSConverter.CreateProcedureCallArgs missing default value: i=',i,' TargetProc=',GetObjPath(TargetProc),' Args=',GetObjPath(Args));
         {$ENDIF}
-        RaiseNotSupported(Args,AContext,20170201193601);
+        if Args=nil then
+          RaiseNotSupported(TargetProc,AContext,20201028203457)
+        else
+          RaiseNotSupported(Args,AContext,20170201193601);
         end;
       AContext.Access:=caRead;
       Arg:=ConvertExpression(TargetArg.ValueExpr,ArgContext);
@@ -26303,8 +26451,8 @@ begin
       Result:=GetBIName(pbivnLocalModuleRef)
     else
       RaiseNotSupported(El,AContext,20200608160225);
-    Result:=FuncContext.CreateLocalIdentifier(Result);
-    SectionContext.AddLocalVar(Result,El,cvkGlobal,false);
+    Result:=FuncContext.CreateLocalIdentifier(Result,El,cvkGlobal);
+    SectionContext.AddLocalVar(Result,El,cvkGlobal,true);
     if coStoreImplJS in Options then
       StoreImplJSLocal(El,AContext);
 
