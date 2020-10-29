@@ -210,6 +210,8 @@ type
       IF_T4,                  { disp8 - tuple - 4 }
       IF_T8,                  { disp8 - tuple - 8 }
       IF_T1S,                 { disp8 - tuple - 1 scalar }
+      IF_T1S8,
+      IF_T1S16,
       IF_T1F32,
       IF_T1F64,
       IF_TMDDUP,
