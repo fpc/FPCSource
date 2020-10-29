@@ -273,6 +273,12 @@ uses
       maxfpuregs = 0;
       FRAME_POINTER_SYM = '$fp';
       BASE_POINTER_SYM = '$bp';
+
+      { Global variable, that acts as the stack pointer in linear memory
+        (also called the "linear stack"). This stack is used for address-taken
+        local variables. This separate stack is needed, because the WASM
+        implementation's runtime call stack (which includes return addresses and
+        function parameters) is not visible in linear memory. }
       STACK_POINTER_SYM = '__stack_pointer';
 
 {*****************************************************************************
