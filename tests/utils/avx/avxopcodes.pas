@@ -3281,6 +3281,7 @@ function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; a
 var
   i: integer;
   sData: string;
+  sDestFile: string;
   sl: TStringList;
   slAsm: TStringList;
   LastOpCode: String;
@@ -3321,18 +3322,18 @@ begin
         NewOpCode := ansilowercase(sl[0]);
         if NewOpCode <> '' then
         begin
-          if NewOpCode <> LastOpCode then
-          begin
-            if LastOpCode <> '' then
-            begin
-              SaveFile(slAsm, LastOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-              writeln(format('%s%s%s', [aDestPath, LastOpCode, aFileExt]));
-
-              slAsm.Clear;
-              LastOpCode := NewOpCode;
-            end
-            else LastOpCode := NewOpCode;
-          end;
+          //if NewOpCode <> LastOpCode then
+          //begin
+          //  if LastOpCode <> '' then
+          //  begin
+          //    SaveFile(slAsm, LastOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
+          //    writeln(format('%s%s%s', [aDestPath, LastOpCode, aFileExt]));
+          //
+          //    slAsm.Clear;
+          //    LastOpCode := NewOpCode;
+          //  end
+          //  else LastOpCode := NewOpCode;
+          //end;
 
 
           if (not(aX64) and (sl[1] = '1')) or // i386
@@ -3346,14 +3347,22 @@ begin
               slAsm.Add('    ' + sl[0]);
             end
             else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+
+	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+
+
+            SaveFile(slAsm, sDestFile, aDestPath, aFileExt, aHeaderList, aFooterList);
+            writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+
+            slAsm.Clear;
           end;
         end;
       end;
 
       if NewOpCode <> '' then
       begin
-        SaveFile(slAsm, NewOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-        writeln(format('%s%s%s', [aDestPath, NewOpCode, aFileExt]));
+        //SaveFile(slAsm, NewOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
+        //writeln(format('%s%s%s', [aDestPath, NewOpCode, aFileExt]));
       end;
 
     finally
