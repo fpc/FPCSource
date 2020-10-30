@@ -524,6 +524,7 @@ implementation
                    include(secflags,SF_W);
                end;
            end;
+         system_i386_go32v2,
          system_i386_win32,
          system_x86_64_win64,
          system_i386_wince,
