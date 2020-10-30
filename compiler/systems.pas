@@ -344,6 +344,14 @@ interface
        { all native nt systems }
        systems_nativent = [system_i386_nativent];
 
+       { all i386 systems for which cmov instructions for alignment should not be used.
+         This is a problem for several emulators }
+       systems_i386_no_cmov_align = [system_i386_go32v2,
+                                     system_i386_watcom, system_i386_wdosx,
+                                     system_i386_os2, system_i386_emx,
+                                     system_i386_beos, system_i386_haiku,
+                                     system_i386_solaris];
+
        { systems supporting Objective-C }
        systems_objc_supported = systems_darwin;
 
