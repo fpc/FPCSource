@@ -57,5 +57,8 @@ type
 {$ifdef FPC_HAS_CPSTRING}
     CodePage  : TSystemCodePage;
 {$endif}
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+    FullName  : Pointer;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
   End;
 

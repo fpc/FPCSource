@@ -87,6 +87,13 @@
 {$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif VER2_6}
 
+{ for now, the presence of unicode strings is just an approximation,
+  USE_FILEREC_FULLNAME can be also enabled for other targets if
+  they need file names longer than 255 chars }
+{$if defined(FPC_HAS_FEATURE_UNICODESTRINGS)}
+{$define USE_FILEREC_FULLNAME}
+{$endif defined(FPC_HAS_FEATURE_UNICODESTRINGS)}
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -1372,6 +1379,7 @@ Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
 Procedure Truncate (var F:File);
+Function GetFullName(var f:File) : UnicodeString;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 
@@ -1431,6 +1439,7 @@ Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
+Function GetFullName(var T:Text) : UnicodeString;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************
