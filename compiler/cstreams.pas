@@ -104,11 +104,11 @@ type
 
   TCCustomFileStream = class(TCStream)
   protected
-    FFileName : String;
+    FFileName : AnsiString;
   public
-    constructor Create(const AFileName: string;{shortstring!} Mode: Word); virtual; abstract;
+    constructor Create(const AFileName: AnsiString; Mode: Word); virtual; abstract;
     function EOF: boolean; virtual; abstract;
-    property FileName : String Read FFilename;
+    property FileName : AnsiString Read FFilename;
   end;
 
 { TFileStream class }
@@ -119,7 +119,7 @@ type
   protected
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AFileName: string; Mode: Word); override;
+    constructor Create(const AFileName: AnsiString; Mode: Word); override;
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -378,7 +378,7 @@ implementation
 {*                             TCFileStream                                  *}
 {****************************************************************************}
 
-constructor TCFileStream.Create(const AFileName: string; Mode: Word);
+constructor TCFileStream.Create(const AFileName: AnsiString; Mode: Word);
 var
   oldfilemode : byte;
 begin
