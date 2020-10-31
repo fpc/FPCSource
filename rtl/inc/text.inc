@@ -129,7 +129,7 @@ Begin
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
 {$ifdef USE_FILEREC_FULLNAME}
   if length(s)>255 then
-    RawByteString(TextRec(t).FullName:=ToSingleByteFileSystemEncodedFileName(S);
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
 {$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
