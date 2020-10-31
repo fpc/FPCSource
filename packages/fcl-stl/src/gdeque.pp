@@ -19,10 +19,10 @@ interface
 type
   generic TDeque<T>=class
   private
-  type 
+  type
     PT=^T;
     TArr=array of T;
-  var 
+  var
     FData:TArr;
     FDataSize:SizeUInt;
     FCapacity:SizeUInt;
@@ -77,7 +77,7 @@ end;
 
 procedure TDeque.PushBack(value:T);inline;
 begin
-  if(FDataSize=FCapacity) then 
+  if(FDataSize=FCapacity) then
     IncreaseCapacity;
   FData[(FStart+FDataSize)mod FCapacity]:=value;
   inc(FDataSize);
@@ -85,11 +85,11 @@ end;
 
 procedure TDeque.PopFront();inline;
 begin
-  if(FDataSize>0) then 
+  if(FDataSize>0) then
   begin
     inc(FStart);
     dec(FDataSize);
-    if(FStart=FCapacity) then 
+    if(FStart=FCapacity) then
       FStart:=0;
   end;
 end;
@@ -167,7 +167,7 @@ begin
     FCapacity:=FCapacity+FCapacity div 16;
 
   SetLength(FData, FCapacity);
-  if (FStart>0) then 
+  if (FStart>0) then
     for i:=0 to FStart-1 do
       FData[OldEnd+i]:=FData[i];
 end;
@@ -175,11 +175,11 @@ end;
 procedure TDeque.Reserve(cap:SizeUInt);inline;
 var i,OldEnd:SizeUInt;
 begin
-  if(cap<FCapacity) then 
+  if(cap<FCapacity) then
     exit
-  else if(cap<=2*FCapacity) then 
+  else if(cap<=2*FCapacity) then
     IncreaseCapacity
-  else 
+  else
   begin
     OldEnd:=FCapacity;
     FCapacity:=cap;
@@ -200,7 +200,7 @@ procedure TDeque.Insert(Position:SizeUInt; Value: T);inline;
 var i:SizeUInt;
 begin
   pushBack(Value);
-  for i:=Size-1 downto Position+1 do 
+  for i:=Size-1 downto Position+1 do
   begin
     Items[i]:=Items[i-1];
   end;
@@ -210,12 +210,13 @@ end;
 procedure TDeque.Erase(Position:SizeUInt);inline;
 var i:SizeUInt;
 begin
-  if Position <= Size then 
+  if Position <= Size then
   begin
-    for i:=Position to Size-2 do
-    begin
-      Items[i]:=Items[i+1];
-    end;
+    if Size > 1 then
+      for i:=Position to Size-2 do
+      begin
+        Items[i]:=Items[i+1];
+      end;
     popBack();
   end;
 end;
