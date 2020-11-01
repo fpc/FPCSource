@@ -243,7 +243,7 @@ const
     );
 
   PCUDefaultConverterOptions: TPasToJsConverterOptions =
-    [coUseStrict,coStoreImplJS,coShortRefGlobals,coShortRefGenFunc];
+    [coUseStrict,coStoreImplJS,coShortRefGlobals];
   PCUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
@@ -255,8 +255,7 @@ const
     'RTLVersionCheckMain',
     'RTLVersionCheckSystem',
     'RTLVersionCheckUnit',
-    'ShortRefGlobals',
-    'ShortRefGenFuncs'
+    'ShortRefGlobals'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;

@@ -1387,8 +1387,7 @@ type
     coRTLVersionCheckMain, // insert rtl version check into main
     coRTLVersionCheckSystem, // insert rtl version check into system unit init
     coRTLVersionCheckUnit, // insert rtl version check into every unit init
-    coShortRefGlobals, // use short local variables for global identifiers
-    coShortRefGenFunc // create short local vars for generic methods
+    coShortRefGlobals // use short local variables for global identifiers
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
@@ -1544,6 +1543,7 @@ type
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
     function SpecializeParamsNeedDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
+    function IsSpecializedNonStaticMethod(ProcType: TPasProcedureType): boolean;
   protected
     const
       cJSValueConversion = 2*cTypeConversion;
@@ -2041,6 +2041,7 @@ type
     Function CreateStaticProcPath(El: TPasProcedure; AContext: TConvertContext): string; virtual;
     Function CreateGlobalElPath(El: TPasElement; AContext: TConvertContext): string; virtual;
     Function GetLocalName(El: TPasElement; const Filter: TCtxVarKinds; AContext: TConvertContext): string;
+    Function ProcCanHaveShortRef(Proc: TPasProcedure): boolean;
     Procedure StoreImplJSLocal(El: TPasElement; AContext: TConvertContext); virtual;
     Procedure StoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
     Procedure RestoreImplJSLocals(ModScope: TPas2JSModuleScope; IntfContext: TSectionContext); virtual;
@@ -5250,6 +5251,25 @@ begin
     end;
 end;
 
+function TPas2JSResolver.IsSpecializedNonStaticMethod(
+  ProcType: TPasProcedureType): boolean;
+var
+  Proc: TPasProcedure;
+  Scope: TPas2JSProcedureScope;
+begin
+  if not (ProcType.Parent is TPasProcedure) then
+    exit(false); // not a method
+  Proc:=TPasProcedure(ProcType.Parent);
+  if Proc.IsStatic or Proc.IsExternal then
+    exit(false);
+  if not (Proc.Parent is TPasMembersType) then
+    exit(false); // not a method
+  Scope:=TPas2JSProcedureScope(Proc.CustomData);
+  if Scope.SpecializedFromItem=nil then
+    exit(false);
+  Result:=true;
+end;
+
 function TPas2JSResolver.AddJSBaseType(const aName: string; Typ: TPas2jsBaseType
   ): TResElDataPas2JSBaseType;
 var
@@ -8281,7 +8301,7 @@ end;
 function TPasToJSConverter.ConvertInlineSpecializeExpr(
   El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement;
 begin
-  Result:=ConvertElement(El.NameExpr,AContext);
+  Result:=ConvertExpression(El.NameExpr,AContext);
 end;
 
 function TPasToJSConverter.GetExpressionValueType(El: TPasExpr;
@@ -9579,9 +9599,9 @@ begin
       exit(DotContext.JS);
       end;
   finally
-    DotContext.Free;
-    if RightJS=nil then
+    if (RightJS=nil) and (DotContext.JSElement=LeftJS) then
       LeftJS.Free;
+    DotContext.Free;
   end;
   if RightJS is TJSLiteral then
     begin
@@ -9756,6 +9776,7 @@ function TPasToJSConverter.ConvertIdentifierExpr(El: TPasExpr;
   const aName: string; AContext: TConvertContext): TJSElement;
 var
   AssignContext: TAssignContext;
+  ApplyParam: TJSElement;
 
   procedure CallImplicit(Decl: TPasElement);
   var
@@ -9787,6 +9808,13 @@ var
     Call:=nil;
     try
       CreateProcedureCall(Call,nil,ProcType,AContext);
+      if ApplyParam<>nil then
+        begin
+        Call.InsertArg(0,ApplyParam);
+        ApplyParam:=nil;
+        if AContext is TDotContext then
+          TDotContext(AContext).JS:=Call;
+        end;
       Call.Expr:=Result;
       if NeedIntfRef then
         // $ir.ref(id,fnname())
@@ -9794,8 +9822,38 @@ var
       Result:=Call;
     finally
       if Result<>Call then
+        begin
         Call.Free;
+        ApplyParam.Free;
+        end;
     end;
+  end;
+
+  function CreateShortRefImplictCall_Apply(TargetProc: TPasProcedure;
+    Ref: TResolvedReference): string;
+  var
+    ApplyPath: String;
+  begin
+    // ProcName; -> "$lp.apply(this,args);"  or  "$lp.apply($with,args);"
+    Result:=CreateStaticProcPath(TargetProc,AContext)+'.apply';
+
+    ApplyPath:=CreateReferencePath(TargetProc,AContext,rpkPath,false,Ref);
+    if AContext is TDotContext then
+      begin
+      ApplyParam:=AContext.JSElement;
+      AContext.JSElement:=nil;
+      if ApplyPath<>'' then
+        // e.g. "$class"
+        ApplyParam:=CreateDotNameExpr(El,ApplyParam,TJSString(ApplyPath));
+      end
+    else
+      begin
+      if ApplyPath='' then
+        RaiseNotSupported(El,AContext,20201101022637);
+      ApplyParam:=CreatePrimitiveDotExpr(ApplyPath,El);
+      end;
+    if ApplyParam=nil then
+      RaiseNotSupported(El,AContext,20201101021136);
   end;
 
   procedure CallTypeSetter;
@@ -9888,6 +9946,7 @@ begin
 
   Prop:=nil;
   AssignContext:=nil;
+  ApplyParam:=nil;
   IsImplicitCall:=rrfImplicitCallWithoutParams in Ref.Flags;
   if AContext.Access=caAssign then
     AssignContext:=AContext.AccessContext as TAssignContext;
@@ -10018,61 +10077,74 @@ begin
   //  end;
   {$ENDIF}
 
-  if Decl is TPasModule then
-    Name:=TransformModuleName(TPasModule(Decl),true,AContext)
-  else if (Decl is TPasResultElement) then
-    begin
-    Name:=ResolverResultVar;
-    Proc:=Decl.Parent.Parent as TPasProcedure;
-    FuncScope:=Proc.CustomData as TPas2JSProcedureScope;
-    if FuncScope.ImplProc<>nil then
-      FuncScope:=FuncScope.ImplProc.CustomData as TPas2JSProcedureScope;
-    if FuncScope.ResultVarName<>'' then
-      Name:=FuncScope.ResultVarName;
-    end
-  else if Decl.ClassType=TPasEnumValue then
-    begin
-    if UseEnumNumbers then
+  try
+    if Decl is TPasModule then
+      Name:=TransformModuleName(TPasModule(Decl),true,AContext)
+    else if (Decl is TPasResultElement) then
       begin
-      Result:=CreateLiteralNumber(El,(Decl.Parent as TPasEnumType).Values.IndexOf(Decl));
-      exit;
+      Name:=ResolverResultVar;
+      Proc:=Decl.Parent.Parent as TPasProcedure;
+      FuncScope:=Proc.CustomData as TPas2JSProcedureScope;
+      if FuncScope.ImplProc<>nil then
+        FuncScope:=FuncScope.ImplProc.CustomData as TPas2JSProcedureScope;
+      if FuncScope.ResultVarName<>'' then
+        Name:=FuncScope.ResultVarName;
+      end
+    else if Decl.ClassType=TPasEnumValue then
+      begin
+      if UseEnumNumbers then
+        begin
+        Result:=CreateLiteralNumber(El,(Decl.Parent as TPasEnumType).Values.IndexOf(Decl));
+        exit;
+        end
+      else
+        begin
+        // enums always need the full path
+        Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
+        end;
+      end
+    else if Decl.ClassType=TPasArgument then
+      Name:=TransformArgName(TPasArgument(Decl),AContext)
+    else if Decl is TPasProcedure then
+      begin
+      Proc:=TPasProcedure(Decl);
+      if (coShortRefGlobals in Options)
+          and aResolver.IsSpecializedNonStaticMethod(Proc.ProcType) then
+        Name:=CreateShortRefImplictCall_Apply(Proc,Ref)
+      else
+        Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
       end
     else
-      begin
-      // enums always need the full path
-      Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
-      end;
-    end
-  else if Decl.ClassType=TPasArgument then
-    Name:=TransformArgName(TPasArgument(Decl),AContext)
-  else
-    Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
-  if Name='' then
-    RaiseNotSupported(El,AContext,20180509134804,GetObjName(Decl));
+      Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
+    if Name='' then
+      RaiseNotSupported(El,AContext,20180509134804,GetObjName(Decl));
 
-  if Result=nil then
-    begin
-    if (Name[1]='[') and (Name[length(Name)]=']')
-        and (AContext is TDotContext)
-        and (AContext.JSElement<>nil) then
+    if Result=nil then
       begin
-      // e.g. Obj.A  with A having an external name '["name"]';
-      // -> Obj["name"]
-      if IsImplicitCall then
-        RaiseNotSupported(El,AContext,20180509134951,Name);
-      BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-      TDotContext(AContext).JS:=BracketExpr;
-      BracketExpr.MExpr:=AContext.JSElement;
-      Result:=CreateLiteralCustomValue(El,TJSString(copy(Name,2,length(Name)-2)));
-      BracketExpr.Name:=Result;
-      exit;
+      if (Name[1]='[') and (Name[length(Name)]=']')
+          and (AContext is TDotContext)
+          and (AContext.JSElement<>nil) then
+        begin
+        // e.g. Obj.A  with A having an external name '["name"]';
+        // -> Obj["name"]
+        if IsImplicitCall then
+          RaiseNotSupported(El,AContext,20180509134951,Name);
+        BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+        TDotContext(AContext).JS:=BracketExpr;
+        BracketExpr.MExpr:=AContext.JSElement;
+        Result:=CreateLiteralCustomValue(El,TJSString(copy(Name,2,length(Name)-2)));
+        BracketExpr.Name:=Result;
+        exit;
+        end;
+      Result:=CreatePrimitiveDotExpr(Name,El);
       end;
-    Result:=CreatePrimitiveDotExpr(Name,El);
-    end;
 
-  if IsImplicitCall then
-    CallImplicit(Decl);
-  CallTypeSetter;
+    if IsImplicitCall then
+      CallImplicit(Decl);
+    CallTypeSetter;
+  finally
+    ApplyParam.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertBoolConstExpression(El: TBoolConstExpr;
@@ -11270,10 +11342,43 @@ var
       Elements:=Call.Args.Elements;
   end;
 
+  procedure CreateShortRefApply(Value: TPasExpr; TargetProcType: TPasProcedureType);
+  var
+    TargetProc: TPasProcedure;
+    aName: String;
+    LeftJS: TJSElement;
+    Ref: TResolvedReference;
+  begin
+    // create  "$lp.apply(LeftJS,args);"
+    TargetProc:=TPasProcedure(TargetProcType.Parent);
+    aName:=CreateStaticProcPath(TargetProc,AContext);
+    Call.Expr:=CreatePrimitiveDotExpr(aName+'.apply',Value);
+    if DotBin<>nil then
+      begin
+      // a.b() -> "$lp.apply(a,args);"
+      LeftJS:=ConvertExpression(DotBin.left,AContext);
+      if LeftJS=nil then
+        RaiseNotSupported(DotBin,AContext,20201030235816);
+      end
+    else if Value.CustomData is TResolvedReference then
+      begin
+      // a() -> "$lp.apply(this,args);"  or  "$lp.apply($with,args);"
+      Ref:=TResolvedReference(Value.CustomData);
+      aName:=CreateReferencePath(TargetProc,AContext,rpkPath,false,Ref);
+      LeftJS:=CreatePrimitiveDotExpr(aName,Value);
+      if LeftJS=nil then
+        RaiseNotSupported(DotBin,AContext,20201031003202);
+      end
+    else
+      RaiseNotSupported(DotBin,AContext,202010310032046);
+    Elements.AddElement.Expr:=LeftJS;
+  end;
+
 var
   Decl: TPasElement;
   Ref: TResolvedReference;
   BuiltInProc: TResElDataBuiltInProc;
+  TargetProc: TPasProcedure;
   TargetProcType: TPasProcedureType;
   JsArrLit: TJSArrayLiteral;
   OldAccess: TCtxAccess;
@@ -11416,15 +11521,16 @@ begin
       end
     else if C.InheritsFrom(TPasProcedure) then
       begin
-      if aResolver.IsHelperMethod(Decl) then
+      TargetProc:=TPasProcedure(Decl);
+      if aResolver.IsHelperMethod(TargetProc) then
         begin
         // calling a helper method
-        Result:=CreateCallHelperMethod(TPasProcedure(Decl),El.Value,AContext);
+        Result:=CreateCallHelperMethod(TargetProc,El.Value,AContext);
         exit;
         end;
-      TargetProcType:=TPasProcedure(Decl).ProcType;
-      if aResolver.IsExternalBracketAccessor(Decl) then
+      if aResolver.IsExternalBracketAccessor(TargetProc) then
         exit(CreateExternalBracketAccessorCall(El,AContext));
+      TargetProcType:=TargetProc.ProcType;
       end
     else if (C=TPasClassType)
         or (C=TPasClassOfType)
@@ -11677,15 +11783,6 @@ begin
   OldAccess:=AContext.Access;
   try
     AContext.Access:=caRead;
-    if Call.Expr=nil then
-      begin
-      if DotBin<>nil then
-        Call.Expr:=ConvertSubIdentExprCustom(DotBin,AContext)
-      else
-        Call.Expr:=ConvertExpression(El.Value,AContext);
-      end;
-    //if Call.Expr is TPrimitiveExpr then
-    //  writeln('TPasToJSConverter.ConvertFuncParams ',TPrimitiveExpr(Call.Expr).GetDeclaration(true));
     if Call.Args=nil then
       begin
       // append ()
@@ -11694,12 +11791,26 @@ begin
       end
     else if Elements=nil then
       RaiseInconsistency(20180720154413,El);
+
+    if Call.Expr=nil then
+      begin
+      if (coShortRefGlobals in Options)
+          and aResolver.IsSpecializedNonStaticMethod(TargetProcType) then
+        CreateShortRefApply(Value,TargetProcType)
+      else if DotBin<>nil then
+        Call.Expr:=ConvertSubIdentExprCustom(DotBin,AContext)
+      else
+        Call.Expr:=ConvertExpression(Value,AContext);
+      end;
+    //if Call.Expr is TPrimitiveExpr then
+    //  writeln('TPasToJSConverter.ConvertFuncParams ',TPrimitiveExpr(Call.Expr).GetDeclaration(true));
     CreateProcedureCallArgs(Elements,El,TargetProcType,AContext);
     CallArgs:=Call.Args;
+
     if (Elements.Count=0)
-        and (CallArgs.Elements.Count>0)
-        then
+        and (CallArgs.Elements.Count>0) then
       begin
+      // for example: rrfNewInstance
       LastArg:=CallArgs.Elements[CallArgs.Elements.Count-1];
       if not (LastArg.Expr is TJSArrayLiteral) then
         RaiseNotSupported(El,AContext,20180720161317);
@@ -11708,6 +11819,7 @@ begin
         RaiseNotSupported(El,AContext,20180720161324);
       LastArg.Free;
       end;
+
     if CallArgs.Elements.Count=0 then
       begin
       CallArgs.Free;
@@ -14881,20 +14993,45 @@ Var
     i: Integer;
     P: TPasElement;
     C: TClass;
+    Proc: TPasProcedure;
+    aResolver: TPas2JSResolver;
   begin
+    aResolver:=AContext.Resolver;
     For i:=0 to Decls.Count-1 do
       begin
       P:=TPasElement(Decls[i]);
       if not IsElementUsed(P) then continue;
       C:=P.ClassType;
-      if (C=TPasClassType) and TPasClassType(P).IsForward then
-        continue;
       if (C=TPasClassType) or (C=TPasRecordType) or (C=TPasEnumType) then
         begin
+        if (C=TPasClassType) then
+          begin
+          if TPasClassType(P).IsForward then
+            continue;
+          if not aResolver.IsFullySpecialized(TPasClassType(P)) then
+            continue;
+          end
+        else if C=TPasRecordType then
+          begin
+          if not aResolver.IsFullySpecialized(TPasRecordType(P)) then
+            continue;
+          end;
         // add var $lt = null;
         CreateGlobalAliasNull(P,pbivnLocalTypeRef,SectionContext);
         if (C=TPasClassType) or (C=TPasRecordType) then
           InitForwards(TPasMembersType(P).Members,SectionContext);
+        end
+      else if C.InheritsFrom(TPasProcedure) then
+        begin
+        Proc:=TPasProcedure(P);
+        if Proc.IsForward or Proc.IsAbstract or Proc.IsExternal then
+          continue;
+        if TPas2JSProcedureScope(Proc.CustomData).SpecializedFromItem=nil then
+          continue;
+        if not aResolver.IsFullySpecialized(Proc) then
+          continue; // skip non specialized generics
+        // specialized proc: add var $lp = null;
+        CreateGlobalAliasNull(P,pbivnLocalProcRef,SectionContext);
         end;
       end;
   end;
@@ -16387,7 +16524,7 @@ Var
   FS : TJSFunctionDeclarationStatement;
   FD : TJSFuncDef;
   n, i, Line, Col:Integer;
-  AssignSt: TJSSimpleAssignStatement;
+  AssignSt, AssignSt2: TJSSimpleAssignStatement;
   FuncContext, ConstContext: TFunctionContext;
   ProcScope, ImplProcScope: TPas2JSProcedureScope;
   Arg, SelfArg: TPasArgument;
@@ -16396,7 +16533,7 @@ Var
   BodyPas: TProcedureBody;
   PosEl, ThisPas: TPasElement;
   Call: TJSCallExpression;
-  ClassPath: String;
+  ClassPath, aName: String;
   ArgResolved: TPasResolverResult;
   Lit: TJSLiteral;
   ConstSrcElems: TJSSourceElements;
@@ -16476,6 +16613,19 @@ begin
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
     Result:=AssignSt;
     AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext,ImplProc);
+
+    if (coShortRefGlobals in Options) then
+      begin
+      aName:=AContext.GetLocalName(El,[cvkGlobal]);
+      if aName<>'' then
+        begin
+        // this.FuncName = $lp = ...;
+        AssignSt2:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
+        AssignSt.Expr:=AssignSt2;
+        AssignSt:=AssignSt2;
+        AssignSt.LHS:=CreatePrimitiveDotExpr(aName,El);
+        end;
+      end;
     end;
 
   FS:=CreateFunctionSt(ImplProc,ImplProc.Body<>nil);
@@ -24070,16 +24220,6 @@ var
     Result:=(C=TPasFunction) or (C=TPasProcedure) or (C=TPasConstructor) or (C=TPasDestructor);
   end;
 
-  function ProcSelfIsClassType(Proc: TPasElement): boolean;
-  var
-    C: TClass;
-  begin
-    if Proc=nil then exit(false);
-    C:=Proc.ClassType;
-    Result:=((C=TPasClassFunction) or (C=TPasClassProcedure) or (C=TPasClassOperator))
-         and not TPasProcedure(Proc).IsStatic;
-  end;
-
   function ProcHasNoSelf(Proc: TPasProcedure): boolean;
   begin
     if Proc=nil then exit(false);
@@ -24164,6 +24304,43 @@ var
     Result:=false;
   end;
 
+  function ShortRefGlobal: boolean;
+  var
+    ElClass: TClass;
+    Proc: TPasProcedure;
+  begin
+    ElClass:=El.ClassType;
+    if ElClass.InheritsFrom(TPasType) then
+      begin
+      if El.Parent.ClassType=TProcedureBody then
+        exit(false);
+      CreateReferencePath:=CreateGlobalTypePath(TPasType(El),AContext);
+      exit(true);
+      end
+    else if ElClass.InheritsFrom(TPasProcedure) then
+      begin
+      Proc:=TPasProcedure(El);
+      if ProcCanHaveShortRef(Proc) then
+        begin
+        if aResolver.ProcHasSelf(Proc) then
+          begin
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.CreateReferencePath El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Kind=',Kind,' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
+          {$ENDIF}
+          aResolver.RaiseNotYetImplemented(20201030233511,El);
+          end;
+        CreateReferencePath:=CreateStaticProcPath(Proc,AContext);
+        exit(true);
+        end;
+      end
+    else if (ElClass=TPasEnumValue) then
+      begin
+      CreateReferencePath:=CreateGlobalElPath(El,AContext);
+      exit(true);
+      end;
+    Result:=false;
+  end;
+
 var
   FoundModule: TPasModule;
   ParentEl, CurEl: TPasElement;
@@ -24206,7 +24383,7 @@ begin
           Append_GetClass(El);
           end;
         end
-      else if ProcSelfIsClassType(El)
+      else if aResolver.IsMethod_SelfIsClass(El)
           and aResolver.ResolvedElIsClassOrRecordInstance(Dot.LeftResolved) then
         // accessing a class method from an object, 'this' must be the class/record
         Append_GetClass(El);
@@ -24251,7 +24428,7 @@ begin
       RaiseNotSupported(WithData.Expr,AContext,20190209092506,GetObjName(El));
     Prepend(Result,WithData.WithVarName);
     if not (wesfOnlyTypeMembers in WithData.Flags)
-        and ProcSelfIsClassType(El) then
+        and aResolver.IsMethod_SelfIsClass(El) then
       begin
       // with Obj do NonStaticClassMethod -> append .$class
       Append_GetClass(El);
@@ -24267,22 +24444,7 @@ begin
 
     if (coShortRefGlobals in Options) and (Kind=rpkPathAndName) then
       begin
-      ElClass:=El.ClassType;
-      if ElClass.InheritsFrom(TPasType) then
-        begin
-        Result:=CreateGlobalTypePath(TPasType(El),AContext);
-        exit;
-        end
-      else if ElClass.InheritsFrom(TPasProcedure) and ProcHasNoSelf(TPasProcedure(El)) then
-        begin
-        Result:=CreateStaticProcPath(TPasProcedure(El),AContext);
-        exit;
-        end
-      else if (ElClass=TPasEnumValue) then
-        begin
-        Result:=CreateGlobalElPath(El,AContext);
-        exit;
-        end;
+      if ShortRefGlobal then exit;
       end;
 
     El:=ImplToDecl(El);
@@ -24373,7 +24535,7 @@ begin
             if ProcSelfIsInstance(SelfContext.PasElement) then
               begin
               // inside a method -> Self is a class instance
-              if ProcSelfIsClassType(El) then
+              if aResolver.IsMethod_SelfIsClass(El) then
                 Append_GetClass(El); // accessing a class function -> this.$class.procname
               end;
             Prepend(Result,ShortName);
@@ -24444,6 +24606,8 @@ begin
     if Result<>'' then Result:=Result+'.';
   rpkPathAndName:
     begin
+    if (coShortRefGlobals in Options) then
+      if ShortRefGlobal then exit;
     ShortName:=TransformElToJSName(El,AContext);
     if Result='' then
       Result:=ShortName
@@ -24485,9 +24649,14 @@ end;
 function TPasToJSConverter.CreateStaticProcPath(El: TPasProcedure;
   AContext: TConvertContext): string;
 begin
-  if (not El.IsStatic) and (El.Parent is TPasMembersType) then
+  if El.IsAbstract or El.IsExternal then
+    RaiseNotSupported(El,AContext,20201101185117)
+  else if El.IsStatic
+      or (El.Parent is TPasSection)
+      or (TPas2JSProcedureScope(El.CustomData).SpecializedFromItem<>nil) then
+    Result:=CreateGlobalElPath(El,AContext)
+  else
     RaiseNotSupported(El,AContext,20200925104007);
-  Result:=CreateGlobalElPath(El,AContext);
 end;
 
 function TPasToJSConverter.CreateGlobalElPath(El: TPasElement;
@@ -24569,6 +24738,28 @@ begin
       end;
     end;
   Result:=AContext.GetLocalName(El,Filter);
+end;
+
+function TPasToJSConverter.ProcCanHaveShortRef(Proc: TPasProcedure): boolean;
+var
+  C: TClass;
+begin
+  // can not:
+  if Proc.IsExternal or Proc.IsVirtual then
+    exit(false);
+  C:=Proc.Parent.ClassType;
+  if C=TProcedureBody then
+    exit(false);
+
+  // can:
+  if C.InheritsFrom(TPasSection) then
+    exit(true);
+  if Proc.IsStatic then
+    exit(true);
+  if TPas2JSProcedureScope(Proc.CustomData).SpecializedFromItem<>nil then
+    exit(true);
+
+  Result:=false;
 end;
 
 procedure TPasToJSConverter.StoreImplJSLocal(El: TPasElement;
@@ -26511,8 +26702,6 @@ end;
 function TPasToJSConverter.ElNeedsGlobalAlias(El: TPasElement): boolean;
 var
   C: TClass;
-  Proc: TPasProcedure;
-  ProcScope: TPas2JSProcedureScope;
 begin
   Result:=false;
   if El=nil then exit;
@@ -26523,26 +26712,8 @@ begin
     exit(false)
   else if C.InheritsFrom(TPasType) then
     exit(true)
-  else if (C=TPasConstructor)
-      or (C=TPasDestructor)
-      or (C=TPasClassConstructor)
-      or (C=TPasClassDestructor)
-      or (C=TPasClassProcedure)
-      or (C=TPasClassOperator)
-      or (C=TPasClassFunction) then
-    exit(true)
-  else if (C=TPasProcedure) or (C=TPasFunction) or (C=TPasOperator) then
-    begin
-    Proc:=TPasProcedure(El);
-    if Proc.IsStatic or (Proc.Parent is TPasSection) then
-      exit(true);
-    if coShortRefGenFunc in Options then
-      begin
-      ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
-      if ProcScope.SpecializedFromItem<>nil then
-        exit(true);
-      end;
-    end
+  else if C.InheritsFrom(TPasProcedure) then
+    exit(ProcCanHaveShortRef(TPasProcedure(El)))
   else if C=TPasEnumValue then
     begin
     if not (coEnumNumbers in Options) then

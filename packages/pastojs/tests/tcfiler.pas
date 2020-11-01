@@ -422,7 +422,7 @@ var
 begin
   InitialParserOptions:=Parser.Options;
   Analyzer.Options:=Analyzer.Options+[paoSkipGenericProc];
-  Converter.Options:=Converter.Options+[coShortRefGlobals,coShortRefGenFunc];
+  Converter.Options:=Converter.Options+[coShortRefGlobals];
   ConvertUnit;
 
   FPCUWriter:=TPCUWriter.Create;
