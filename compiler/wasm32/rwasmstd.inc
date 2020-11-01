@@ -2,4 +2,5 @@
 'INVALID',
 'evalstacktopptr',
 'localsstackptr',
-'evalstacktop'
+'evalstacktop',
+'localframeptr'

@@ -18,3 +18,6 @@ R0,$01,$00,$00,evalstacktopptr
 R1,$01,$00,$01,localsstackptr
 ; generic fake evaluation stack register for use by the register allocator
 R2,$01,$00,$02,evalstacktop
+; fake register, representing the local frame pointer. Used for accessing
+; address-taken local variables on the linear stack: (localframeptr+offset).
+R3,$01,$00,$03,localframeptr
