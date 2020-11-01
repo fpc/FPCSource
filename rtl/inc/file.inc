@@ -519,9 +519,11 @@ Begin
       end
     else InOutRes:=103;
   end;
+{$ifdef USE_FILEREC_FULLNAME}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   UnicodeString(FileRec(f).FullName):='';
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif USE_FILEREC_FULLNAME}
 End;
 
 
