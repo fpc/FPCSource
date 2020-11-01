@@ -836,19 +836,13 @@ var
 {$ENDIF}
 
 function GetTickCount64: QWord;
-{$IFNDEF WINCE}
-var
-  lib: THandle;
-{$ENDIF}
 begin
 {$IFNDEF WINCE}
+  if Assigned(WinGetTickCount64) then
+    Exit(WinGetTickCount64());
   { on Vista and newer there is a GetTickCount64 implementation }
   if Win32MajorVersion >= 6 then begin
-    if not Assigned(WinGetTickCount64) then begin
-      lib := LoadLibrary('kernel32.dll');
-      WinGetTickCount64 := TGetTickCount64(
-                             GetProcAddress(lib, 'GetTickCount64'));
-    end;
+    WinGetTickCount64 := TGetTickCount64(GetProcAddress(GetModuleHandle('kernel32.dll'), 'GetTickCount64'));
     Result := WinGetTickCount64();
   end else
 {$ENDIF}
