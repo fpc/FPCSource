@@ -60,7 +60,15 @@ type
     procedure TestOptShortRefGlobals_Program;
     procedure TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
     procedure TestOptShortRefGlobals_Property;
+    // ToDo: ShortRefGlobals_ExternalAndAbstract ObjFPC+Delphi
     procedure TestOptShortRefGlobals_GenericFunction;
+    procedure TestOptShortRefGlobals_GenericMethod_Call_ObjFPC;
+    // ToDo: procedure TestOptShortRefGlobals_GenericMethod_Call_Delphi;
+    // ToDo: GenericStaticMethod_Call ObjFPC+Delphi
+    // ToDo: GenericMethod_CallInherited ObjFPC+Delphi
+    // ToDo: GenericMethod_External ObjFPC+Delphi
+    // ToDo: procedure TestOptShortRefGlobals_GenericHelperMethod_Call_Delphi;
+    // ToDo: proc var
     procedure TestOptShortRefGlobals_SameUnit_EnumType;
     procedure TestOptShortRefGlobals_SameUnit_ClassType;
     procedure TestOptShortRefGlobals_SameUnit_RecordType;
@@ -496,6 +504,118 @@ begin
     'this.Fly = function () {',
     '  $lp(null);',
     '};',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericMethod_Call_ObjFPC;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    generic function Fly<T>(a: word = 13): T;',
+    '    generic class function Jump<T>(b: word = 14): T;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic function TBird.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'generic class function TBird.Jump<T>(b: word): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    generic function Run<T>(c: word = 25): T;',
+  '    generic class function Sing<T>(d: word = 26): T;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize Run<Word>;',
+  '  specialize Run<Word>(1);',
+  '  specialize Sing<Word>;',
+  '  specialize Sing<Word>(2);',
+  '  specialize Fly<Word>;',
+  '  specialize Fly<Word>(3);',
+  '  specialize Jump<Word>;',
+  '  specialize Jump<Word>(4);',
+  '  Self.specialize Fly<Word>;',
+  '  Self.specialize Fly<Word>(5);',
+  '  Self.specialize Jump<Word>;',
+  '  Self.specialize Jump<Word>(6);',
+  '  with Self do begin',
+  '    specialize Fly<Word>;',
+  '    specialize Fly<Word>(7);',
+  '    specialize Jump<Word>;',
+  '    specialize Jump<Word>(8);',
+  '  end;',
+  'end;',
+  'generic function TEagle.Run<T>(c: word): T;',
+  'begin',
+  '  specialize Fly<T>;',
+  '  specialize Fly<T>(7);',
+  'end;',
+  'generic class function TEagle.Sing<T>(d: word): T;',
+  'begin',
+  '  specialize Jump<T>;',
+  '  specialize Jump<T>(8);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericMethod_Call',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lp = null;',
+    'var $lp1 = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lp2 = $lt1.Fly$G1;',
+    'var $lp3 = $lt1.Jump$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    $lp.apply(this, 25);',
+    '    $lp.apply(this, 1);',
+    '    $lp1.apply(this.$class, 26);',
+    '    $lp1.apply(this.$class, 2);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 3);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this.$class, 4);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 5);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this, 6);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 7);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this.$class, 8);',
+    '  };',
+    '  this.Run$G1 = $lp = function (c) {',
+    '    var Result = 0;',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 7);',
+    '    return Result;',
+    '  };',
+    '  this.Sing$G1 = $lp1 = function (d) {',
+    '    var Result = 0;',
+    '    $lp3.apply(this, 14);',
+    '    $lp3.apply(this, 8);',
+    '    return Result;',
+    '  };',
+    '});',
     '']),
     LinesToStr([
     '']),
