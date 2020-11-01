@@ -2341,8 +2341,9 @@ type
     function IsClassMethod(El: TPasElement): boolean;
     function IsClassField(El: TPasElement): boolean;
     function GetFunctionType(El: TPasElement): TPasFunctionType;
-    function MethodIsStatic(El: TPasProcedure): boolean;
+    function MethodIsStatic(El: TPasProcedure): boolean; // does not check if El is a method
     function IsMethod(El: TPasProcedure): boolean;
+    function IsMethod_SelfIsClass(El: TPasElement): boolean;
     function IsHelperMethod(El: TPasElement): boolean; virtual;
     function IsHelper(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
@@ -2372,6 +2373,7 @@ type
     function GetAttributeCallsEl(El: TPasElement): TPasExprArray; virtual;
     function GetAttributeCalls(Members: TFPList; Index: integer): TPasExprArray; virtual;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
+    function ProcHasSelf(El: TPasProcedure): boolean; // returns false for local procs
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
     function GetParentProc(El: TPasElement; GetDeclProc: boolean): TPasProcedure;
@@ -28418,7 +28420,7 @@ end;
 
 function TPasResolver.MethodIsStatic(El: TPasProcedure): boolean;
 begin
-  Result:=(ptmStatic in El.ProcType.Modifiers)
+  Result:=El.IsStatic
     or (El.ClassType=TPasClassConstructor)
     or (El.ClassType=TPasClassDestructor);
 end;
@@ -28433,6 +28435,16 @@ begin
   if not (El.CustomData is TPasProcedureScope) then exit;
   ProcScope:=TPasProcedureScope(El.CustomData);
   Result:=IsMethod(ProcScope.DeclarationProc);
+end;
+
+function TPasResolver.IsMethod_SelfIsClass(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  if (El=nil) then exit(false);
+  C:=El.ClassType;
+  Result:=((C=TPasClassProcedure) or (C=TPasClassFunction) or (C=TPasClassOperator))
+      and not TPasProcedure(El).IsStatic;
 end;
 
 function TPasResolver.IsHelperMethod(El: TPasElement): boolean;
@@ -28993,6 +29005,21 @@ end;
 function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;
 begin
   Result:=(El.Args.Count>0) and (TPasArgument(El.Args[0]).ValueExpr=nil);
+end;
+
+function TPasResolver.ProcHasSelf(El: TPasProcedure): boolean;
+var
+  C: TClass;
+begin
+  if El.IsStatic then
+    exit(false);
+  C:=El.Parent.ClassType;
+  if C.InheritsFrom(TPasSection) or (C=TProcedureBody) then
+    exit(false);
+  C:=El.ClassType;
+  if (C=TPasClassConstructor) or (C=TPasClassDestructor) then
+    exit(false);
+  Result:=true;
 end;
 
 function TPasResolver.IsProcOverride(AncestorProc, DescendantProc: TPasProcedure
