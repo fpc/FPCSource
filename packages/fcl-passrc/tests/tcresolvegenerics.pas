@@ -138,6 +138,7 @@ type
     procedure TestGenProc_FunctionDelphi;
     procedure TestGenProc_OverloadDuplicate;
     procedure TestGenProc_MissingTemplatesFail;
+    procedure TestGenProc_SpecializeNonGenericFail;
     procedure TestGenProc_Forward;
     procedure TestGenProc_External;
     procedure TestGenProc_UnitIntf;
@@ -2214,6 +2215,19 @@ begin
   'begin',
   '']);
   CheckParserException('Expected "<"',nParserExpectTokenError);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_SpecializeNonGenericFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  specialize Run<word>();',
+  '']);
+  CheckResolverException('Run expected, but Run<> found',nXExpectedButYFound);
 end;
 
 procedure TTestResolveGenerics.TestGenProc_Forward;

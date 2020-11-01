@@ -9519,6 +9519,20 @@ begin
     Result:=CreateDotNameExpr(El,LeftJS,TJSString(TransformElToJSName(RightRefDecl,AContext)));
     exit;
     end;
+  if RightRefDecl is TPasProcedure then
+    begin
+    Proc:=TPasProcedure(RightRefDecl);
+    if coShortRefGlobals in Options then
+      begin
+      if not aResolver.ProcHasSelf(Proc) then
+        begin
+        // a.StaticProc  ->  $lp(defaultargs)
+        // ToDo: check if left side has only types (no call nor field)
+        Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,aContext);
+        exit;
+        end;
+      end;
+    end;
 
   LeftJS:=nil;
   if aResolver.IsHelper(RightRefDecl.Parent) then
