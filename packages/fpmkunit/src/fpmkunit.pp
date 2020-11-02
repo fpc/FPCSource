@@ -2838,7 +2838,7 @@ begin
       powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
       arm:      result := GetGccDirArch('cpuarm','-marm -march=armv2');
       aarch64:  result := GetGccDirArch('cpuaarch64','-march=aarch64 -mcmodel=large');
-      m68k:     result := GetGccDirArch('cpum68k','');
+      m68k:     result := GetGccDirArch('cpum68k','-march=68020');
       mips:     result := GetGccDirArch('cpumips','-mips32 -EB -mabi=32');
       mipsel:   result := GetGccDirArch('cpumipsel','-mips32 -EL -mabi=32');
       riscv32:  result := GetGccDirArch('cpuriscv32','-march=rv32imafdc');
