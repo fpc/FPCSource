@@ -18723,8 +18723,7 @@ begin
   aResolver:=AContext.Resolver;
 
   Proc:=TPasProcedure(ResolvedEl.IdentEl);
-  if (not (Proc.Parent is TPasMembersType))
-      or (ptmStatic in Proc.ProcType.Modifiers) then
+  if not aResolver.ProcHasSelf(Proc) then
     begin
     // not an "of object" method -> simply use the function
     Result:=CreateReferencePathExpr(Proc,AContext);
@@ -18734,6 +18733,9 @@ begin
     end;
   IsHelper:=aResolver.IsHelperMethod(Proc);
   NeedClass:=aResolver.IsClassMethod(Proc) and not aResolver.MethodIsStatic(Proc);
+
+  if Expr is TInlineSpecializeExpr then
+    Expr:=TInlineSpecializeExpr(Expr).NameExpr;
 
   // an of-object method -> create "rtl.createCallback(Target,func)"
   TargetJS:=nil;
@@ -18819,8 +18821,17 @@ begin
     else
       begin
       // create  rtl.createCallback(target, "FunName")
-      FunName:=TransformElToJSName(Proc,AContext);
-      Call.AddArg(CreateLiteralString(Expr,FunName));
+      if (coShortRefGlobals in Options)
+          and (TPas2JSProcedureScope(Proc.CustomData).SpecializedFromItem<>nil) then
+        begin
+        FunName:=CreateStaticProcPath(Proc,AContext);
+        Call.AddArg(CreatePrimitiveDotExpr(FunName,Expr));
+        end
+      else
+        begin
+        FunName:=TransformElToJSName(Proc,AContext);
+        Call.AddArg(CreateLiteralString(Expr,FunName));
+        end;
       end;
 
     Result:=Call;
