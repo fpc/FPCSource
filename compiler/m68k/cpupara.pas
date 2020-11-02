@@ -483,10 +483,7 @@ unit cpupara;
           pass all unhandled parameters are done }
         for pass:=1 to 2 do
           begin
-            if pass=1 then
-              i:=0
-            else
-              i:=paras.count-1;
+            i:=0;
             while true do
               begin
                 hp:=tparavarsym(paras[i]);
@@ -631,22 +628,9 @@ unit cpupara;
                             end;
                         end;
                   end;
-                case pass of
-                  1:
-                    begin
-                      if i=paras.count-1 then
-                        break;
-                      inc(i);
-                    end;
-                  2:
-                    begin
-                      if i=0 then
-                        break;
-                      dec(i);
-                    end;
-                  else
-                    ;
-                end;
+                if i=paras.count-1 then
+                  break;
+                inc(i);
               end;
           end;
         result:=cur_stack_offset;
