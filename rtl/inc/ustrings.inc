@@ -1842,6 +1842,7 @@ end;
             if (IBYTE and $80) = 0 then
               begin
                 //One character US-ASCII, convert it to unicode
+(*
                 if IBYTE = 10 then
                   begin
                     If (PreChar<>13) and FALSE then
@@ -1871,6 +1872,7 @@ end;
                       end;
                   end
                 else
+*)
                   begin
                     Dest[OutputUnicode]:=WideChar(IBYTE);
                     inc(OutputUnicode);
@@ -1985,6 +1987,7 @@ end;
             if (IBYTE and $80) = 0 then
               begin
                 //One character US-ASCII, convert it to unicode
+(*
                 if IBYTE = 10 then
                   begin
                     if (PreChar<>13) and FALSE then
@@ -2002,6 +2005,7 @@ end;
                       end;
                   end
                 else
+*)
                   begin
                     inc(OutputUnicode);
                     PreChar:=IBYTE;
