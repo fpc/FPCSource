@@ -567,11 +567,6 @@ begin
                        ;
 
 
-          //TG TODO delete
-          if aInst = 'vpmovw2m' then
-          begin
-            sSuffix := sSuffix;
-          end;
 
           for il_Op := 1 to 4 do
           begin

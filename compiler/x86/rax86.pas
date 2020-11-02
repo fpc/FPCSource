@@ -1451,114 +1451,23 @@ var
 begin
   if opsize<>S_NO then
    exit;
-//  case ops of
-//    0 : ;
-//    1 :
-//      begin
-//        { "push es" must be stored as a long PM }
-//        if ((opcode=A_PUSH) or
-//            (opcode=A_POP)) and
-//           (operands[1].opr.typ=OPR_REGISTER) and
-//           is_segment_reg(operands[1].opr.reg) then
-//{$ifdef i8086}
-//          opsize:=S_W
-//{$else i8086}
-//          opsize:=S_L
-//{$endif i8086}
-//        else
-//          opsize:=tx86operand(operands[1]).opsize;
-//      end;
-//    2 :
-//      begin
-//        case opcode of
-//          A_MOVZX,A_MOVSX :
-//            begin
-//              if tx86operand(operands[1]).opsize=S_NO then
-//                begin
-//                  tx86operand(operands[1]).opsize:=S_B;
-//                  if (m_delphi in current_settings.modeswitches) then
-//                    Message(asmr_w_unable_to_determine_reference_size_using_byte)
-//                  else
-//                    Message(asmr_e_unable_to_determine_reference_size);
-//                end;
-//              case tx86operand(operands[1]).opsize of
-//                S_W :
-//                  case tx86operand(operands[2]).opsize of
-//                    S_L :
-//                      opsize:=S_WL;
-//{$ifdef x86_64}
-//                    S_Q :
-//                      opsize:=S_WQ;
-//{$endif}
-//                    else
-//                      ;
-//                  end;
-//                S_B :
-//                  begin
-//                    case tx86operand(operands[2]).opsize of
-//                      S_W :
-//                        opsize:=S_BW;
-//                      S_L :
-//                        opsize:=S_BL;
-//{$ifdef x86_64}
-//                      S_Q :
-//                        opsize:=S_BQ;
-//{$endif}
-//                      else
-//                        ;
-//                    end;
-//                  end;
-//                else
-//                  ;
-//              end;
-//            end;
-//          A_MOVSS,
-//          A_VMOVSS,
-//          A_MOVD : { movd is a move from a mmx register to a
-//                     32 bit register or memory, so no opsize is correct here PM }
-//            //exit;
-//            ;
-//          A_MOVQ :
-//            opsize:=S_IQ;
-//          A_CVTSI2SS,
-//          A_CVTSI2SD,
-//          A_VCVTPD2DQ,
-//          A_VCVTPD2PS,
-//          A_VCVTTPD2DQ,
-//          A_VCVTPD2UDQ,
-//          A_VCVTQQ2PS,
-//          A_VCVTTPD2UDQ,
-//          A_VCVTUQQ2PS,
-//
-//          A_OUT :
-//            opsize:=tx86operand(operands[1]).opsize;
-//          else
-//            opsize:=tx86operand(operands[2]).opsize;
-//        end;
-//      end;
-//    3 :
-//      begin
-//        case opcode of
-//          A_VCVTSI2SS,
-//          A_VCVTSI2SD,
-//          A_VCVTUSI2SS,
-//          A_VCVTUSI2SD:
-//            opsize:=tx86operand(operands[1]).opsize;
-//          A_VFPCLASSPD,
-//          A_VFPCLASSPS:
-//            opsize:=tx86operand(operands[2]).opsize;
-//        else
-//          opsize:=tx86operand(operands[ops]).opsize;
-//        end;
-//      end;
-//    4 :
-//        opsize:=tx86operand(operands[ops]).opsize;
-//
-//  end;
-
-//  iops := S_NO;
   case ops of
-    0,1: iops := opsize;
+    0 : ;
+    1 :
+      begin
+        { "push es" must be stored as a long PM }
+        if ((opcode=A_PUSH) or
+            (opcode=A_POP)) and
+           (operands[1].opr.typ=OPR_REGISTER) and
+           is_segment_reg(operands[1].opr.reg) then
+{$ifdef i8086}
+          opsize:=S_W
+{$else i8086}
+          opsize:=S_L
+{$endif i8086}
+        else
+          opsize:=tx86operand(operands[1]).opsize;
+      end;
     2 : begin
           case opcode of
             A_MOVZX,A_MOVSX :
@@ -1644,26 +1553,7 @@ begin
         end;
     4 :
         opsize:=tx86operand(operands[ops]).opsize;
-
-
   end;
-
-// todo delete (only test)
-//  if opsize <> iops then
-//   begin
-//     if not isBCastMemRef then
-//    Message1(asmr_w_adding_explicit_args_fXX, std_op2str[opcode] + 'no broadcast')
-//    else
-//     begin
-//       Message1(asmr_w_adding_explicit_args_fXX, std_op2str[opcode] + ' -broadcast- ' + GetEnumName(TypeInfo(topsize), ord(opsize)) + ':' + GetEnumName(TypeInfo(topsize), ord(iops)));
-//
-//
-////    writeln(GetEnumName(TypeInfo(topsize), ord(opsize)));
-////    writeln(GetEnumName(TypeInfo(topsize), ord(iops)));
-//     end;
-//
-//   end;
-//  opsize := iops;
 end;
 
 

@@ -34,12 +34,21 @@ uses SysUtils, AsmTestGenerator, Dialogs;
 { TAVXTestGenerator }
 
 constructor TAVXTestGenerator.Create;
+var
+  i: integer;	
 begin
   inherited;
 
   FOpCodeList := TStringList.Create;
+  FOpCodeList.Duplicates := dupIgnore;
+  FOpCodeList.Sorted := true;
 
   Init;
+
+
+  FOpCodeList.Sorted := false;
+  for i := 0 to FOpCodeList.Count - 1 do
+   FOpCodeList[i] := AnsiLowerCase(FOpCodeList[i]);
 end;
 
 destructor TAVXTestGenerator.Destroy;
@@ -2441,24 +2450,6 @@ begin
   FOpCodeList.Add('vpblendmw,1,1,1,xmmreg_mz,xmmreg,xmmrm,');
   FOpCodeList.Add('vpblendmw,1,1,1,ymmreg_mz,ymmreg,ymmrm,');
   FOpCodeList.Add('vpblendmw,1,1,1,zmmreg_mz,zmmreg,zmmrm,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,mem8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,reg8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,xmmreg_mz,xmmreg,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,mem8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,reg8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ymmreg_mz,xmmreg,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,mem8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,reg8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,zmmreg_mz,xmmreg,,');
   FOpCodeList.Add('vpbroadcastd,1,1,1,xmmreg_mz,mem32,,');
   FOpCodeList.Add('vpbroadcastd,1,1,1,xmmreg_mz,reg32,,');
   FOpCodeList.Add('vpbroadcastd,1,1,1,xmmreg_mz,xmmreg,,');
@@ -2483,21 +2474,6 @@ begin
   FOpCodeList.Add('vpbroadcastq,1,1,1,zmmreg_mz,mem64,,');
   FOpCodeList.Add('vpbroadcastq,1,1,1,zmmreg_mz,reg64,,');
   FOpCodeList.Add('vpbroadcastq,1,1,1,zmmreg_mz,xmmreg,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,xmmreg_mz,mem16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,xmmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,xmmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,xmmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,xmmreg_mz,xmmreg,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ymmreg_mz,mem16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ymmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ymmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ymmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ymmreg_mz,xmmreg,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,zmmreg_mz,mem16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,zmmreg_mz,reg16,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,zmmreg_mz,reg32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,zmmreg_mz,reg64,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,zmmreg_mz,xmmreg,,');
   FOpCodeList.Add('vpcmpb,1,1,1,kreg_m,xmmreg,xmmrm,imm8');
   FOpCodeList.Add('vpcmpb,1,1,1,kreg_m,ymmreg,ymmrm,imm8');
   FOpCodeList.Add('vpcmpb,1,1,1,kreg_m,zmmreg,zmmrm,imm8');
@@ -3322,20 +3298,6 @@ begin
         NewOpCode := ansilowercase(sl[0]);
         if NewOpCode <> '' then
         begin
-          //if NewOpCode <> LastOpCode then
-          //begin
-          //  if LastOpCode <> '' then
-          //  begin
-          //    SaveFile(slAsm, LastOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-          //    writeln(format('%s%s%s', [aDestPath, LastOpCode, aFileExt]));
-          //
-          //    slAsm.Clear;
-          //    LastOpCode := NewOpCode;
-          //  end
-          //  else LastOpCode := NewOpCode;
-          //end;
-
-
           if (not(aX64) and (sl[1] = '1')) or // i386
              (aX64 and (sl[2] = '1')) then    // x86_64
           begin
@@ -3358,13 +3320,6 @@ begin
           end;
         end;
       end;
-
-      if NewOpCode <> '' then
-      begin
-        //SaveFile(slAsm, NewOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-        //writeln(format('%s%s%s', [aDestPath, NewOpCode, aFileExt]));
-      end;
-
     finally
       FreeAndNil(slAsm);
     end;
