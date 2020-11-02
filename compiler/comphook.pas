@@ -173,6 +173,9 @@ implementation
 {$ifdef linux}
    ,termio
 {$endif linux}
+{$ifdef mswindows}
+   ,windows
+{$endif mswindows}
    ;
 
 {****************************************************************************
@@ -211,11 +214,12 @@ end;
 type
   TOutputColor = (oc_black,oc_red,oc_green,oc_orange,og_blue,oc_magenta,oc_cyan,oc_lightgray);
 
-{$ifdef linux}
+{$if defined(linux) or defined(MSWINDOWS)}
 const
   CachedIsATTY : Boolean = false;
   IsATTYValue : Boolean = false;
 
+{$ifdef linux}
 function IsATTY(var t : text) : Boolean;
   begin
     if not(CachedIsATTY) then
@@ -227,10 +231,33 @@ function IsATTY(var t : text) : Boolean;
   end;
 {$endif linux}
 
+{$ifdef MSWINDOWS}
+const ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;
+
+function IsATTY(var t : text) : Boolean;
+  const dwMode: dword = 0;
+  begin
+    if not(CachedIsATTY) then
+      begin
+        IsATTYValue := false;
+        if GetConsoleMode(TextRec(t).handle, dwMode) then
+        begin
+          dwMode := dwMode or ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+          if SetConsoleMode(TextRec(t).handle, dwMode) then
+            IsATTYValue := true;
+        end;
+        CachedIsATTY:=true;
+      end;
+    Result:=IsATTYValue;
+  end;
+{$endif MSWINDOWS}
+
+{$endif defined(linux) or defined(MSWINDOWS)}
+
 
 procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiString);
   begin
-{$ifdef linux}
+{$if defined(linux) or defined(mswindows)}
      if IsATTY(t) then
        begin
          case color of
@@ -252,9 +279,9 @@ procedure WriteColoredOutput(var t: Text;color: TOutputColor;const s : AnsiStrin
              write(t,#27'[1m'#27'[37m');
          end;
        end;
-{$endif linux}
+{$endif linux or mswindows}
     write(t,s);
-{$ifdef linux}
+{$if defined(linux) or defined(mswindows)}
     if IsATTY(t) then
       write(t,#27'[0m');
 {$endif linux}
