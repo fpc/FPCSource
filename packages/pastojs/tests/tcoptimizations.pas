@@ -65,10 +65,9 @@ type
     procedure TestOptShortRefGlobals_GenericMethod_Call;
     procedure TestOptShortRefGlobals_GenericStaticMethod_Call;
     // ToDo: GenericMethod_CallInherited ObjFPC+Delphi
-    // ToDo: procedure TestOptShortRefGlobals_GenericHelperMethod_Call_Delphi;
+    procedure TestOptShortRefGlobals_GenericClassHelperMethod;
     procedure TestOptShortRefGlobals_GenericMethod_ProcVar;
     procedure TestOptShortRefGlobals_GenericStaticMethod_ProcVar;
-    // ToDo: proc var
     procedure TestOptShortRefGlobals_SameUnit_EnumType;
     procedure TestOptShortRefGlobals_SameUnit_ClassType;
     procedure TestOptShortRefGlobals_SameUnit_RecordType;
@@ -829,6 +828,107 @@ begin
     '  this.Run$G1 = $lp = function (c) {',
     '    var Result = 0;',
     '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericClassHelperMethod;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '  end;',
+    '  TBirdHelper = class helper for TBird',
+    '    generic function Fly<T>(a: word = 13): T;',
+    '    generic class function Say<T>(a: word = 13): T;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic function TBirdHelper.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'generic class function TBirdHelper.Say<T>(a: word): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    class procedure Lay;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize Fly<Word>;',
+  '  specialize Fly<Word>(31);',
+  '  specialize Say<word>;',
+  '  specialize Say<Word>(32);',
+  '  self.specialize Fly<Word>;',
+  '  self.specialize Fly<Word>(41);',
+  '  self.specialize Say<Word>;',
+  '  self.specialize Say<Word>(42);',
+  '  with Self do begin',
+  '    specialize Fly<Word>;',
+  '    specialize Fly<Word>(51);',
+  '    specialize Say<Word>;',
+  '    specialize Say<Word>(52);',
+  '  end;',
+  'end;',
+  'class procedure TEagle.Lay;',
+  'begin',
+  '  specialize Say<Word>;',
+  '  specialize Say<Word>(32);',
+  '  self.specialize Say<Word>;',
+  '  self.specialize Say<Word>(42);',
+  '  with Self do begin',
+  '    specialize Say<Word>;',
+  '    specialize Say<Word>(52);',
+  '  end;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericClassHelperMethod',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lt2 = $lm.TBirdHelper;',
+    'var $lp = $lt2.Fly$G1;',
+    'var $lp1 = $lt2.Say$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 31);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 32);',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 41);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 42);',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 51);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 52);',
+    '  };',
+    '  this.Lay = function () {',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 32);',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 42);',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 52);',
     '  };',
     '});',
     '']),

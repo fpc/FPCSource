@@ -20993,7 +20993,7 @@ var
   Bin: TBinaryExpr;
   LeftResolved: TPasResolverResult;
   SelfJS: TJSElement;
-  PosEl: TPasExpr;
+  PosEl, NameExpr: TPasExpr;
   ProcPath: String;
   Call: TJSCallExpression;
   IdentEl: TPasElement;
@@ -21030,64 +21030,70 @@ begin
       PosEl:=Expr;
       aResolver.ComputeElement(Left,LeftResolved,[]);
       end
-    else if Expr is TBinaryExpr then
+    else
       begin
-      // e.g. "path.proc(args)" or "path.proc"
-      Bin:=TBinaryExpr(Expr);
-      if Bin.OpCode<>eopSubIdent then
-        RaiseNotSupported(Expr,AContext,20190201163152);
-      Left:=Bin.left;
-      aResolver.ComputeElement(Left,LeftResolved,[]);
-      PosEl:=Bin.right;
-      if PosEl.CustomData is TResolvedReference then
-        Ref:=TResolvedReference(PosEl.CustomData);
-      end
-    else if aResolver.IsNameExpr(Expr) then
-      begin
-      // e.g. "proc(args)"
-      PosEl:=Expr;
-      if not (Expr.CustomData is TResolvedReference) then
-        RaiseNotSupported(Expr,AContext,20190201163210);
-      Ref:=TResolvedReference(Expr.CustomData);
-      WithExprScope:=Ref.WithExprScope as TPas2JSWithExprScope;
-      if WithExprScope<>nil then
+      NameExpr:=Expr;
+      if NameExpr is TInlineSpecializeExpr then
+        NameExpr:=TInlineSpecializeExpr(NameExpr).NameExpr;
+      if NameExpr is TBinaryExpr then
         begin
-        // e.g. "with left do proc()"
-        // -> Left is the WithVarName
-        aResolver.ComputeElement(WithExprScope.Expr,LeftResolved,[]);
+        // e.g. "path.proc(args)" or "path.proc"
+        Bin:=TBinaryExpr(NameExpr);
+        if Bin.OpCode<>eopSubIdent then
+          RaiseNotSupported(NameExpr,AContext,20190201163152);
+        Left:=Bin.left;
+        aResolver.ComputeElement(Left,LeftResolved,[]);
+        PosEl:=Bin.right;
+        if PosEl.CustomData is TResolvedReference then
+          Ref:=TResolvedReference(PosEl.CustomData);
+        end
+      else if aResolver.IsNameExpr(NameExpr) then
+        begin
+        // e.g. "proc(args)"
+        PosEl:=NameExpr;
+        if not (NameExpr.CustomData is TResolvedReference) then
+          RaiseNotSupported(NameExpr,AContext,20190201163210);
+        Ref:=TResolvedReference(NameExpr.CustomData);
+        WithExprScope:=Ref.WithExprScope as TPas2JSWithExprScope;
+        if WithExprScope<>nil then
+          begin
+          // e.g. "with left do proc()"
+          // -> Left is the WithVarName
+          aResolver.ComputeElement(WithExprScope.Expr,LeftResolved,[]);
+          end
+        else
+          begin
+          // inside helper method, no explicit left expression
+          if IsStatic then
+            LeftResolved:=default(TPasResolverResult)
+          else
+            begin
+            SelfScope:=aResolver.GetSelfScope(NameExpr);
+            if SelfScope=nil then
+              RaiseNotSupported(PosEl,AContext,20190205171529);
+            if SelfScope.SelfArg=nil then
+              RaiseNotSupported(PosEl,AContext,20190205171902,GetObjName(SelfScope.Element));
+            aResolver.ComputeElement(SelfScope.SelfArg,LeftResolved,[]);
+            end;
+          end;
+        end
+      else if NameExpr is TParamsExpr then
+        begin
+        // implicit call, e.g. default property  a[]
+        PosEl:=NameExpr;
+        if not (NameExpr.CustomData is TResolvedReference) then
+          RaiseNotSupported(NameExpr,AContext,20190208105144);
+        Ref:=TResolvedReference(PosEl.CustomData);
+        if Ref.Declaration.ClassType<>TPasProperty then
+          RaiseNotSupported(NameExpr,AContext,20190208105222);
+        Left:=TParamsExpr(NameExpr).Value;
+        aResolver.ComputeElement(Left,LeftResolved,[]);
         end
       else
         begin
-        // inside helper method, no explicit left expression
-        if IsStatic then
-          LeftResolved:=default(TPasResolverResult)
-        else
-          begin
-          SelfScope:=aResolver.GetSelfScope(Expr);
-          if SelfScope=nil then
-            RaiseNotSupported(PosEl,AContext,20190205171529);
-          if SelfScope.SelfArg=nil then
-            RaiseNotSupported(PosEl,AContext,20190205171902,GetObjName(SelfScope.Element));
-          aResolver.ComputeElement(SelfScope.SelfArg,LeftResolved,[]);
-          end;
+        RaiseNotSupported(NameExpr,AContext,20190201163210);
+        LeftResolved:=default(TPasResolverResult);
         end;
-      end
-    else if Expr is TParamsExpr then
-      begin
-      // implicit call, e.g. default property  a[]
-      PosEl:=Expr;
-      if not (Expr.CustomData is TResolvedReference) then
-        RaiseNotSupported(Expr,AContext,20190208105144);
-      Ref:=TResolvedReference(PosEl.CustomData);
-      if Ref.Declaration.ClassType<>TPasProperty then
-        RaiseNotSupported(Expr,AContext,20190208105222);
-      Left:=TParamsExpr(Expr).Value;
-      aResolver.ComputeElement(Left,LeftResolved,[]);
-      end
-    else
-      begin
-      RaiseNotSupported(Expr,AContext,20190201163210);
-      LeftResolved:=default(TPasResolverResult);
       end;
 
     LoTypeEl:=LeftResolved.LoTypeEl;
@@ -21234,7 +21240,11 @@ begin
 
       // create HelperType.HelperCall.call(SelfJS)
       Call:=CreateCallExpression(Expr);
-      ProcPath:=CreateReferencePath(Proc,AContext,rpkPathAndName);
+      if (coShortRefGlobals in Options)
+          and (TPas2JSProcedureScope(Proc.CustomData).SpecializedFromItem<>nil) then
+        ProcPath:=CreateGlobalElPath(Proc,AContext)
+      else
+        ProcPath:=CreateReferencePath(Proc,AContext,rpkPathAndName);
       if not IsStatic then
         ProcPath:=ProcPath+'.call';
       Call.Expr:=CreatePrimitiveDotExpr(ProcPath,Expr);
