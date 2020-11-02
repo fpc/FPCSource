@@ -2388,6 +2388,8 @@ begin
           RaiseNotSupported(20180328224632,aClass,GetObjName(o));
         end;
     end;
+
+  UseAttributes(El);
 end;
 
 procedure TPasAnalyzer.UseClassConstructor(El: TPasMembersType);

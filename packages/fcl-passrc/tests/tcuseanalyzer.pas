@@ -3428,15 +3428,20 @@ begin
   '  TObject = class',
   '    constructor {#TObject_Create_used}Create;',
   '  end;',
+  '  {#TRedAttribute_notused}TRedAttribute = class',
+  '  end;',
   '  {#TCustomAttribute_used}TCustomAttribute = class',
   '  end;',
   '  [TCustom]',
   '  TBird = class;',
   '  TMyInt = word;',
   '  TBird = class end;',
-  'constructor TObject.Create; begin end;',
+  'constructor TObject.Create;',
   'begin',
-  '  if typeinfo(TBird)=nil then ;',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  b:=TBird.Create;',
   '']);
   AnalyzeWholeProgram;
 end;
