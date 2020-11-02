@@ -45,12 +45,12 @@ type
 const
   { only update this version if something change in the tppuheader:
      * the unit flags listed below
-     * the format of the header itslf
+     * the format of the header itself
     This number cannot become bigger than 255 (it's stored in a byte) }
   CurrentPPUVersion = 208;
   { for any other changes to the ppu format, increase this version number
     (it's a cardinal) }
-  CurrentPPULongVersion = 9;
+  CurrentPPULongVersion = 10;
 
 { unit flags }
   uf_big_endian          = $000004;
