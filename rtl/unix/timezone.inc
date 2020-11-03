@@ -63,7 +63,7 @@ begin
        begin
          case timerIsUTC of
            True: if (timer<transitions[i]) then break;
-           False: if (timer<transitions[i]+types[type_idxs[i]].offset) then break;
+           False: if (timer<transitions[i]+types[type_idxs[i-1]].offset) then break;
          end;
          inc(i);
        end;
