@@ -1671,8 +1671,26 @@ end;
 
 function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
 
+var
+  Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
+  UnixTime: Int64;
+  lc,lh: cint;
+  lTZInfo: TTZInfo;
 begin
-  Result := False; // ToDo
+  DecodeDate(DateTime, Year, Month, Day);
+  DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
+  UnixTime:=LocalToEpoch(Year, Month, Day, Hour, Minute, Second);
+  { check if time is in current global Tzinfo }
+  if (Tzinfo.validsince<UnixTime) and (UnixTime<Tzinfo.validuntil) then
+  begin
+    Result:=True;
+    Offset:=-TZInfo.seconds div 60;
+  end else
+  begin
+    Result:=GetLocalTimezone(UnixTime,lTZInfo,False);
+    if Result then
+      Offset:=-lTZInfo.seconds div 60;
+  end;
 end;
 
 {$ifdef android}

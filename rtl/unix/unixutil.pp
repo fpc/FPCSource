@@ -27,8 +27,25 @@ unit unixutil;
 
 interface
 
+uses BaseUnix;
+
+type
+  TTZInfo = record
+    daylight     : boolean;
+    name         : array[boolean] of pchar;
+    seconds      : Longint; // difference from UTC
+    validsince   : int64;   // UTC timestamp
+    validuntil   : int64;   // UTC timestamp
+    leap_correct : longint;
+    leap_hit     : longint;
+  end;
+
 var
-  Tzseconds : Longint;
+  Tzinfo : TTZInfo;
+  ReloadTzinfo : TProcedure;
+
+Function GetTzseconds : Longint;
+property Tzseconds : Longint read GetTzseconds;
 
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
@@ -40,6 +57,16 @@ Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); deprecate
 Function GregorianToJulian(Year,Month,Day:Longint):LongInt; deprecated 'use DateUtils.JulianDateToDateTime';
 
 implementation
+
+Function GetTzseconds : Longint;
+var
+  curtime: time_t;
+begin
+  curtime:=fptime;
+  if assigned(ReloadTzinfo) and ((curtime<Tzinfo.validsince+Tzinfo.seconds) or (curtime>Tzinfo.validuntil+Tzinfo.seconds)) then
+    ReloadTzinfo;
+  GetTzseconds:=Tzinfo.seconds;
+end;
 
 function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
