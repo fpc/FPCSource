@@ -68,21 +68,25 @@ begin
   cal:=ucal_open(PUnicodeChar(tz), Length(tz), PAnsiChar(locale), 0, err);
   if cal = nil then
     exit;
-  tzdaylight:=ucal_inDaylightTime(cal, err);
+  Tzinfo.daylight:=ucal_inDaylightTime(cal, err);
 
   SetLength(res, 200);
   SetLength(res, ucal_getTimeZoneDisplayName(cal, UCAL_SHORT_STANDARD, PAnsiChar(locale), PUnicodeChar(res), Length(res), err));
   TZStandardName:=utf8string(res);
-  tzname[False]:=PAnsiChar(TZStandardName);
+  Tzinfo.name[False]:=PAnsiChar(TZStandardName);
 
   SetLength(res, 200);
   SetLength(res, ucal_getTimeZoneDisplayName(cal, UCAL_SHORT_DST, PAnsiChar(locale), PUnicodeChar(res), Length(res), err));
   TZDaylightName:=utf8string(res);
-  tzname[True]:=PAnsiChar(TZDaylightName);
+  Tzinfo.name[True]:=PAnsiChar(TZDaylightName);
 
-  Tzseconds:=ucal_get(cal, UCAL_ZONE_OFFSET, err) div 1000;
-  if tzdaylight then
-    Tzseconds:=Tzseconds + ucal_get(cal, UCAL_DST_OFFSET, err) div 1000;
+  Tzinfo.seconds:=ucal_get(cal, UCAL_ZONE_OFFSET, err) div 1000;
+  if Tzinfo.daylight then
+    Tzinfo.seconds:=Tzinfo.seconds + ucal_get(cal, UCAL_DST_OFFSET, err) div 1000;
+
+  // ToDo: correct validsince/validuntil values
+  Tzinfo.validsince:=low(Tzinfo.validsince);
+  Tzinfo.validuntil:=high(Tzinfo.validuntil);
 
   ucal_close(cal);
 end;
