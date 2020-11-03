@@ -41,7 +41,7 @@ var
   zone_names   : pchar = Nil;
   leaps        : pleap = Nil;
 
-function find_transition(timer:longint):pttinfo;
+function find_transition(timer:longint;var trans_start,trans_end:longint):pttinfo;
 var
   i : longint;
 begin
@@ -52,6 +52,9 @@ begin
       inc(i);
      if (i=num_types) then
       i:=0;
+     { unknown transition boundaries }
+     trans_start:=low(trans_start);
+     trans_end:=high(trans_end);
    end
   else
    begin
@@ -62,65 +65,72 @@ begin
            break;
          inc(i);
        end;
+     trans_start:=transitions[i-1];
+     trans_end:=transitions[i];
      i:=type_idxs[i-1];
    end;
   find_transition:=@types[i];
 end;
 
 
-procedure GetLocalTimezone(timer:longint;var leap_correct,leap_hit:longint);
+function GetLocalTimezone(timer:cint;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
 var
   info : pttinfo;
-  i    : longint;
+  i,trans_start,trans_end : longint;
 begin
 { reset }
-  TZDaylight:=false;
-  TZSeconds:=0;
-  TZName[false]:=nil;
-  TZName[true]:=nil;
-  leap_correct:=0;
-  leap_hit:=0;
+  ATZInfo.Daylight:=false;
+  ATZInfo.Seconds:=0;
+  ATZInfo.Name[false]:=nil;
+  ATZInfo.Name[true]:=nil;
+  ATZInfo.validsince:=0;
+  ATZInfo.validuntil:=0;
+  ATZInfo.leap_correct:=0;
+  ATZInfo.leap_hit:=0;
 { get info }
-  info:=find_transition(timer);
-  if not assigned(info) then
+  info:=find_transition(timer,trans_start,trans_end);
+  GetLocalTimezone:=assigned(info);
+  if not GetLocalTimezone then
    exit;
-  TZDaylight:=info^.isdst;
-  TZSeconds:=info^.offset;
+  ATZInfo.validsince:=trans_start;
+  ATZInfo.validuntil:=trans_end;
+  ATZInfo.Daylight:=info^.isdst;
+  ATZInfo.Seconds:=info^.offset;
+  if not FullInfo then
+    Exit;
   i:=0;
   while (i<num_types) do
    begin
-     tzname[types[i].isdst]:=@zone_names[types[i].idx];
+     ATZInfo.name[types[i].isdst]:=@zone_names[types[i].idx];
      inc(i);
    end;
-  tzname[info^.isdst]:=@zone_names[info^.idx];
+  ATZInfo.name[info^.isdst]:=@zone_names[info^.idx];
   i:=num_leaps;
   repeat
     if i=0 then
      exit;
     dec(i);
   until (timer>leaps[i].transition);
-  leap_correct:=leaps[i].change;
+  ATZInfo.leap_correct:=leaps[i].change;
   if (timer=leaps[i].transition) and
      (((i=0) and (leaps[i].change>0)) or
       (leaps[i].change>leaps[i-1].change)) then
    begin
-     leap_hit:=1;
+     ATZInfo.leap_hit:=1;
      while (i>0) and
            (leaps[i].transition=leaps[i-1].transition+1) and
            (leaps[i].change=leaps[i-1].change+1) do
       begin
-        inc(leap_hit);
+        inc(ATZInfo.leap_hit);
         dec(i);
       end;
    end;
 end;
 
 
-procedure GetLocalTimezone(timer:longint);
-var
-  lc,lh : longint;
+procedure GetLocalTimezone(timer:cint);
 begin
-  GetLocalTimezone(timer,lc,lh);
+  GetLocalTimezone(timer,Tzinfo,true);
 end;
 
 Const
@@ -339,6 +349,7 @@ end;
 
 procedure InitLocalTime;
 begin
+  ReloadTzinfo:=@InitLocalTime;
   ReadTimezoneFile(GetTimezoneFile);
   GetLocalTimezone(fptime);
 end;

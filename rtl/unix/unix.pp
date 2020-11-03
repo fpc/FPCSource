@@ -16,7 +16,9 @@ Unit Unix;
 Interface
 
 Uses
-  BaseUnix,UnixType;
+  BaseUnix,UnixType,
+  UnixUtil  // tzseconds
+  ;
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
 
@@ -52,9 +54,10 @@ Const
 
 {** Time/Date Handling **}
 
-var
-  tzdaylight : boolean;
-  tzname     : array[boolean] of pchar;
+  function Gettzdaylight : boolean;
+  function Gettzname(const b : boolean) : pchar;
+  property tzdaylight : boolean read Gettzdaylight;
+  property tzname[b : boolean] : pchar read Gettzname;
 
 {************     Procedure/Functions     ************}
 
@@ -66,7 +69,7 @@ var
                        // it doesn't (yet) work for.
 
 { timezone support }
-procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
+function GetLocalTimezone(timer:cint;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
 procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
@@ -141,10 +144,10 @@ Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString):UnicodeStrin
 
 Implementation
 
-Uses 
-  UnixUtil  // tzseconds
-  {$ifndef FPC_USE_LIBC},Syscall{$endif}
-  ;
+{$ifndef FPC_USE_LIBC}
+Uses
+  Syscall;
+{$endif}
 
 {$i unxovl.inc}
 
@@ -156,6 +159,20 @@ Uses
 {$i unxfunc.inc}   { Platform specific implementations }
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
+
+{******************************************************************************
+                          timezone support
+******************************************************************************}
+
+function Gettzdaylight : boolean;
+begin
+  Gettzdaylight:=Tzinfo.daylight;
+end;
+
+function Gettzname(const b : boolean) : pchar;
+begin
+  Gettzname:=Tzinfo.name[b];
+end;
 
 {******************************************************************************
                           Process related calls
