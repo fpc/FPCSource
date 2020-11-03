@@ -1534,7 +1534,7 @@ end;
 function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
 begin
   if not GetLocalTimeOffset(DateTime, Result) then
-    Result:=GetLocalTimeOffset;
+    Result:=GetLocalTimeOffset();
 end;
 
 { Conversion of UTC to local time and vice versa }
