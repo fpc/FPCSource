@@ -274,6 +274,7 @@ begin
     mti386 : Result.MachineType:=cmti386;
     mtarm : Result.MachineType:=cmtarm;
     mtx86_64 : Result.MachineType:=cmtx8664;
+    mtaarch64 : Result.MachineType:=cmtaarch64;
   end;
 end;
 
