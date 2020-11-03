@@ -14,7 +14,7 @@ interface
 
 uses
   {$IFDEF MSWINDOWS}windows,{$ENDIF}
-  {$IFDEF UNIX}unixutil,{$ENDIF}
+  {$IFDEF UNIX}unix,{$ENDIF}
   sysutils,
   dateutils,
   math,

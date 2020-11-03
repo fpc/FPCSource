@@ -363,7 +363,7 @@ end;
 
 // unix
 
-  ,Errors, UnixUtil;
+  ,Errors, Unix;
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
@@ -461,7 +461,7 @@ end;
 
 function TZSeconds: Integer; inline;
 begin
-  Result := unixutil.TZSeconds;
+  Result := unix.TZSeconds;
 end;
 
 {$ENDIF}
