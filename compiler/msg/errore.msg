@@ -432,6 +432,7 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION is not supported by the
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supported by the target OS
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified controller
+scan_e_emptymacroname=02106_E_A macro/compiler variable name cannot be empty
 % \end{description}
 #
 # Parser

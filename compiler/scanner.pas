@@ -2256,6 +2256,11 @@ type
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        if hs='' then
+          begin
+            Message(scan_e_emptymacroname);
+            exit;
+          end;
         mac:=tmacro(search_macro(hs));
         if not assigned(mac) or (mac.owner <> current_module.localmacrosymtable) then
           begin
