@@ -2646,6 +2646,7 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Function GetFullName(var t:Text) : UnicodeString;
   begin
 {$ifdef USE_FILEREC_FULLNAME}
@@ -2655,6 +2656,7 @@ Function GetFullName(var t:Text) : UnicodeString;
 {$endif USE_FILEREC_FULLNAME}
     Result:=PFileTextRecChar(@TextRec(t).Name);
   end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {*****************************************************************************
                                Initializing

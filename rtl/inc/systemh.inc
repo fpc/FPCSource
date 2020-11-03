@@ -1379,7 +1379,9 @@ Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
 Procedure Truncate (var F:File);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Function GetFullName(var f:File) : UnicodeString;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 
@@ -1439,7 +1441,9 @@ Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Function GetFullName(var T:Text) : UnicodeString;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************

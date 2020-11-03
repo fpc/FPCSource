@@ -681,6 +681,7 @@ Begin
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Function GetFullName(var f:File) : UnicodeString;
   begin
 {$ifdef USE_FILEREC_FULLNAME}
@@ -690,4 +691,5 @@ Function GetFullName(var f:File) : UnicodeString;
 {$endif USE_FILEREC_FULLNAME}
     Result:=PFileTextRecChar(@FileRec(f).Name);
   end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
