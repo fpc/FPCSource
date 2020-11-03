@@ -613,7 +613,7 @@ implementation
 
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
-      function determine_generic_def(name:tidstring):tstoreddef;
+      function determine_generic_def(const name:tidstring):tstoreddef;
         var
           hashedid : THashedIDString;
           pd : tprocdef;

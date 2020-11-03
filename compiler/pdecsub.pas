@@ -683,7 +683,7 @@ implementation
             firstpart:=false;
           end;
 
-        function search_object_name(sp:TIDString;gen_error:boolean):tsym;
+        function search_object_name(const sp:TIDString;gen_error:boolean):tsym;
           var
             storepos:tfileposinfo;
             srsymtable:TSymtable;
