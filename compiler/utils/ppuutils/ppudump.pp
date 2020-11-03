@@ -1813,9 +1813,9 @@ end;
 procedure readcommonsym(const s:string; Def: TPpuDef = nil);
 var
   i: integer;
-  n: string;
+  n: ansistring;
 begin
-  n:=ppufile.getstring;
+  n:=readsymstr(ppufile);
   if Def <> nil then
     Def.Name:=n;
   i:=ppufile.getlongint;

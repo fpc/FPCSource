@@ -787,7 +787,11 @@ interface
       TRADirection = (rad_forward, rad_backwards, rad_backwards_reinit);
 
     type
+{$ifndef symansistr}
       TIDString = string[maxidlen];
+{$else}
+      TIDString = TSymStr;
+{$endif}
 
       tnormalset = set of byte; { 256 elements set }
       pnormalset = ^tnormalset;
