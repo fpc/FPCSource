@@ -1525,15 +1525,15 @@ begin
   Result:=0;
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
 begin
   Result:=False;
 end;
 {$ENDIF}
 
-function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
 begin
-  if not GetLocalTimeOffset(DateTime, Result) then
+  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result) then
     Result:=GetLocalTimeOffset();
 end;
 
@@ -1542,7 +1542,7 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT));
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
@@ -1559,7 +1559,7 @@ end;
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT));
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;

@@ -832,7 +832,7 @@ begin
 end;
 
 
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
 var
   Year: Integer;
 const
@@ -884,8 +884,14 @@ begin
 
   if (TZInfo.StandardDate.Month>0) and (TZInfo.DaylightDate.Month>0) then
   begin // there is DST
+    // DaylightDate and StandardDate are local times
     DSTStart := RelWeekDayToDateTime(TZInfo.DaylightDate);
     DSTEnd := RelWeekDayToDateTime(TZInfo.StandardDate);
+    if InputIsUTC then
+    begin
+      DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
+      DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
+    end;
     if (DateTime>DSTStart) and (DateTime<DSTEnd) then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else

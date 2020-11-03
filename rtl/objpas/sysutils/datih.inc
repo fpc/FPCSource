@@ -200,8 +200,8 @@ procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime); inline;
 procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;
 
 function GetLocalTimeOffset: Integer;
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
-function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean = False): Integer;
 
 Function FileDateToUTC (Filedate : Int64) : TDateTime;
 
