@@ -16,9 +16,8 @@ Unit Unix;
 Interface
 
 Uses
-  BaseUnix,UnixType,
-  UnixUtil  // tzseconds
-  ;
+  BaseUnix,UnixType;
+
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
 
@@ -54,6 +53,22 @@ Const
 
 {** Time/Date Handling **}
 
+type
+  TTZInfo = record
+    daylight     : boolean;
+    name         : array[boolean] of pchar;
+    seconds      : Longint; // difference from UTC
+    validsince   : int64;   // UTC timestamp
+    validuntil   : int64;   // UTC timestamp
+    leap_correct : longint;
+    leap_hit     : longint;
+  end;
+
+var
+  Tzinfo : TTZInfo;
+
+  Function GetTzseconds : Longint;
+  property Tzseconds : Longint read GetTzseconds;
   function Gettzdaylight : boolean;
   function Gettzname(const b : boolean) : pchar;
   property tzdaylight : boolean read Gettzdaylight;
@@ -69,12 +84,20 @@ Const
                        // it doesn't (yet) work for.
 
 { timezone support }
-function GetLocalTimezone(timer:cint;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
-procedure GetLocalTimezone(timer:cint);
+function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
+procedure GetLocalTimezone(timer:cint;timerIsUTC:Boolean);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 Procedure ReReadLocalTime;
 {$ENDIF}
+
+Procedure RefreshTZInfoIfNeeded;
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
+Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word); // use DateUtils.UnixToDateTime for cross-platform applications
+Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word); // use DateUtils.UnixToDateTime for cross-platform applications
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); // use DateUtils.DateTimetoJulianDate for cross-platform applications
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt; // use DateUtils.JulianDateToDateTime for cross-platform applications
 
 {**  Process Handling  **}
 
@@ -164,6 +187,11 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
                           timezone support
 ******************************************************************************}
 
+Function GetTzseconds : Longint;
+begin
+  GetTzseconds:=Tzinfo.seconds;
+end;
+
 function Gettzdaylight : boolean;
 begin
   Gettzdaylight:=Tzinfo.daylight;
@@ -173,6 +201,137 @@ function Gettzname(const b : boolean) : pchar;
 begin
   Gettzname:=Tzinfo.name[b];
 end;
+
+Const
+{Date Translation}
+  C1970=2440588;
+  D0   =   1461;
+  D1   = 146097;
+  D2   =1721119;
+
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
+Var
+  YYear,XYear,Temp,TempMonth : LongInt;
+Begin
+  Temp:=((JulianDN-D2) shl 2)-1;
+  JulianDN:=Temp Div D1;
+  XYear:=(Temp Mod D1) or 3;
+  YYear:=(XYear Div D0);
+  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
+  Day:=((Temp Mod 153)+5) Div 5;
+  TempMonth:=Temp Div 153;
+  If TempMonth>=10 Then
+   Begin
+     inc(YYear);
+     dec(TempMonth,12);
+   End;
+  inc(TempMonth,3);
+  Month := TempMonth;
+  Year:=YYear+(JulianDN*100);
+end;
+
+Procedure EpochToLocal(epoch:Int64;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into local time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+  lTZInfo: TTZInfo;
+Begin
+  { check if time is in current global Tzinfo }
+  if (Tzinfo.validsince<epoch) and (epoch<Tzinfo.validuntil) then
+    inc(Epoch,TZInfo.seconds)
+  else
+  begin
+    {$if declared(GetLocalTimezone)}
+    if GetLocalTimezone(epoch,true,lTZInfo,false) then
+      inc(Epoch,lTZInfo.seconds)
+    else { fallback }
+    {$endif}
+      inc(Epoch,TZInfo.seconds);
+  end;
+
+  EpochToUniversal(epoch,year,month,day,hour,minute,second);
+End;
+
+Procedure EpochToUniversal(epoch:Int64;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into universal time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+Begin
+  Datenum:=(Epoch Div 86400) + c1970;
+  JulianToGregorian(DateNum,Year,Month,day);
+  Epoch:=Abs(Epoch Mod 86400);
+  Hour:=Epoch Div 3600;
+  Epoch:=Epoch Mod 3600;
+  Minute:=Epoch Div 60;
+  Second:=Epoch Mod 60;
+End;
+
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):Int64;
+{
+  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
+   (seconds since 00:00, january 1 1970, corrected for local time zone)
+}
+Var
+  lTZInfo: TTZInfo;
+  UniversalEpoch: Int64;
+Begin
+  UniversalEpoch:=UniversalToEpoch(year,month,day,hour,minute,second);
+  { check if time is in current global Tzinfo }
+  if (Tzinfo.validsince<UniversalEpoch-Tzinfo.seconds) and (UniversalEpoch-Tzinfo.seconds<Tzinfo.validuntil) then
+    LocalToEpoch:=UniversalEpoch-TZInfo.seconds
+  else
+  begin
+    {$if declared(GetLocalTimezone)}
+    if GetLocalTimezone(LocalToEpoch,false,lTZInfo,false) then
+      LocalToEpoch:=UniversalEpoch-lTZInfo.seconds
+    else { fallback }
+    {$endif}
+      LocalToEpoch:=UniversalEpoch-TZInfo.seconds
+  end;
+End;
+
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):Int64;
+{
+  Transforms universal time (year,month,day,hour,minutes,second) to Epoch time
+   (seconds since 00:00, january 1 1970, corrected for local time zone)
+}
+Begin
+  UniversalToEpoch:=(Int64(GregorianToJulian(Year,Month,Day)-c1970)*86400)+
+                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second;
+End;
+
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
+Var
+  Century,XYear: LongInt;
+Begin
+  If Month<=2 Then
+   Begin
+     Dec(Year);
+     Inc(Month,12);
+   End;
+  Dec(Month,3);
+  Century:=(longint(Year Div 100)*D1) shr 2;
+  XYear:=(longint(Year Mod 100)*D0) shr 2;
+  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
+End;
+
+Procedure RefreshTZInfoIfNeeded;
+{$if declared(ReReadLocalTime)}
+var
+  curtime: time_t;
+begin
+  curtime:=fptime;
+  if ((curtime<Tzinfo.validsince+Tzinfo.seconds) or (curtime>Tzinfo.validuntil+Tzinfo.seconds)) then
+    GetLocalTimezone(fptime,false);
+end;
+{$else}
+begin
+end;
+{$endif}
 
 {******************************************************************************
                           Process related calls
@@ -446,6 +605,7 @@ end;
 {$IFNDEF DONT_READ_TIMEZONE}
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
+
 {$endif}
 {******************************************************************************
                            FileSystem calls
