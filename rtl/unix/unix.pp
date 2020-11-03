@@ -286,7 +286,7 @@ Begin
   else
   begin
     {$if declared(GetLocalTimezone)}
-    if GetLocalTimezone(LocalToEpoch,false,lTZInfo,false) then
+    if GetLocalTimezone(UniversalEpoch,false,lTZInfo,false) then
       LocalToEpoch:=UniversalEpoch-lTZInfo.seconds
     else { fallback }
     {$endif}
