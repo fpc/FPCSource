@@ -1620,7 +1620,7 @@ begin
  Result := -Tzseconds div 60; 
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
 
 var
   Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
@@ -1629,7 +1629,10 @@ var
 begin
   DecodeDate(DateTime, Year, Month, Day);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
-  UnixTime:=LocalToEpoch(Year, Month, Day, Hour, Minute, Second);
+  if InputIsUTC then
+    UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second)
+  else
+    UnixTime:=LocalToEpoch(Year, Month, Day, Hour, Minute, Second);
   { check if time is in current global Tzinfo }
   if (Tzinfo.validsince<UnixTime) and (UnixTime<Tzinfo.validuntil) then
   begin
