@@ -1531,5 +1531,5 @@ end;
 function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
 begin
   if not GetLocalTimeOffset(DateTime, Result) then
-    Result:=GetLocalTimeOffset;
+    Result:=GetLocalTimeOffset();
 end;
