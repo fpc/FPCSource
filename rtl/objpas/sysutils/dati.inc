@@ -273,6 +273,17 @@ begin
   result := systemTimeToDateTime(SystemTime);
 end;
 
+{   NowUTC returns the current UTC Date and Time if available on the OS. If not, local date is returned   }
+
+function NowUTC: TDateTime;
+var
+  SystemTime: TSystemTime;
+begin
+  if not GetUniversalTime(SystemTime) then
+    GetLocalTime(SystemTime);
+  result := systemTimeToDateTime(SystemTime);
+end;
+
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
@@ -1538,6 +1549,11 @@ begin
 end;
 
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+begin
+  Result:=False;
+end;
+
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 begin
   Result:=False;
 end;

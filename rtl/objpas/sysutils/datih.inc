@@ -128,6 +128,7 @@ function DayOfWeek(DateTime: TDateTime): integer;
 function Date: TDateTime;
 function Time: TDateTime;
 function Now: TDateTime;
+function NowUTC: TDateTime;
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer = 1);
 function IsLeapYear(Year: Word): boolean;
@@ -195,6 +196,7 @@ function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime; const
 function CurrentYear:Word;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 
 procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime); inline;
 procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;
