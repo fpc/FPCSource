@@ -228,17 +228,11 @@ type
     procedure TestPC_InlineSpecialize_LocalTypeInUnit;
     procedure TestPC_Specialize_Array;
     procedure TestPC_Specialize_ProcType;
-    // ToDo: specialize extern generic type in unit interface
-    // ToDo: specialize extern generic type in unit implementation
-    // ToDo: specialize extern generic type in proc decl
-    // ToDo: specialize extern generic type in proc body
-    // ToDo: inline specialize extern generic type in unit interface
-    // ToDo: inline specialize extern generic type in unit implementation
-    // ToDo: inline specialize extern generic type in proc decl
-    // ToDo: inline specialize extern generic type in proc body
     // ToDo: half specialize TBird<T> = class a: TAnt<word,T>; end;
     // ToDo: no specialize: TBird<T> = class a: TBird<T>; end;
+    procedure TestPC_Constraints;
     // ToDo: constraints
+    // ToDo: unit impl declarations used by generics
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -3503,6 +3497,35 @@ begin
   '  Run;',
   'end;',
   'begin',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Constraints;
+begin
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  TBird<T: class> = class',
+  '  end;',
+  '  TEagle<T: record> = class',
+  '  end;',
+  '  TAnt<T: constructor> = class',
+  '  end;',
+  '  TFish = class end;',
+  '  TBirdFish = TBird<TFish>;',
+  '  TAntFish = TAnt<TFish>;',
+  '  TWater<T: TFish> = class',
+  '  end;',
+  '  TRec = record end;',
+  'var',
+  '  bf: TBirdFish;',
+  '  af: TAntFish;',
+  '  er: TEagle<TRec>;',
+  '  wf: TWater<TFish>;',
+  'implementation',
   '']);
   WriteReadUnit;
 end;
