@@ -64,7 +64,7 @@ unit i_sinclairql;
             dirsep       : '/'; { ... the underlying tools (binutils/vlink/vasm) prefer Unix paths }
             assem        : as_m68k_as_aout;
             assemextern  : as_m68k_as_aout;
-            link         : ld_sinclairql;
+            link         : ld_none;
             linkextern   : ld_sinclairql;
             ar           : ar_gnu_ar;
             res          : res_ext;

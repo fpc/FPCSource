@@ -33,6 +33,7 @@ type
   PLinkerSinclairQL = ^TLinkerSinclairQL;
   TLinkerSinclairQL = class(texternallinker)
     private
+      Origin: DWord;
       UseVLink: boolean;
       function WriteResponseFile(isdll: boolean): boolean;
       procedure SetSinclairQLInfo;
@@ -52,6 +53,10 @@ implementation
        globtype,globals,systems,verbose,cscript,fmodule,i_sinclairql;
 
 
+    const
+       DefaultOrigin = $20000;
+
+
 constructor TLinkerSinclairQL.Create;
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
@@ -65,6 +70,11 @@ end;
 
 procedure TLinkerSinclairQL.SetSinclairQLInfo;
 begin
+  if ImageBaseSetExplicity then
+    Origin:=ImageBase
+  else
+    Origin:=DefaultOrigin;
+
   with Info do
    begin
     if not UseVLink then
@@ -73,7 +83,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b raw $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b rawbin1 $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -81,7 +91,7 @@ end;
 
 procedure TLinkerSinclairQL.SetDefaultInfo;
 begin
-  if target_info.system = system_m68k_Atari then
+  if target_info.system = system_m68k_sinclairql then
     SetSinclairQLInfo;
 end;
 
@@ -108,21 +118,21 @@ begin
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
-   begin
-    s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
-     s:=ScriptFixFileName(s);
-    LinkRes.Add('-L'+s);
-    HPath:=TCmdStrListItem(HPath.Next);
-   end;
+    begin
+      s:=HPath.Str;
+      if (cs_link_on_target in current_settings.globalswitches) then
+        s:=ScriptFixFileName(s);
+      LinkRes.Add('-L'+s);
+      HPath:=TCmdStrListItem(HPath.Next);
+    end;
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
-   begin
-    s:=HPath.Str;
-    if s<>'' then
-     LinkRes.Add('SEARCH_DIR("'+s+'")');
-    HPath:=TCmdStrListItem(HPath.Next);
-   end;
+    begin
+      s:=HPath.Str;
+      if s<>'' then
+        LinkRes.Add('SEARCH_DIR("'+s+'")');
+      HPath:=TCmdStrListItem(HPath.Next);
+    end;
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
@@ -132,72 +142,46 @@ begin
       LinkRes.AddFileName(maybequoted(s));
     end;
   while not ObjectFiles.Empty do
-   begin
-    s:=ObjectFiles.GetFirst;
-    if s<>'' then
-     begin
-      { vlink doesn't use SEARCH_DIR for object files }
-      if UseVLink then
-       s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName(maybequoted(s));
-     end;
-   end;
+    begin
+      s:=ObjectFiles.GetFirst;
+      if s<>'' then
+        begin
+          { vlink doesn't use SEARCH_DIR for object files }
+          if UseVLink then
+             s:=FindObjectFile(s,'',false);
+          LinkRes.AddFileName(maybequoted(s));
+       end;
+    end;
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
-   begin
-     { vlink doesn't need, and doesn't support GROUP }
-    if not UseVLink then
-     begin
-      LinkRes.Add(')');
-      LinkRes.Add('GROUP(');
-     end;
-    while not StaticLibFiles.Empty do
-     begin
-      S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(maybequoted(s));
-     end;
-   end;
+    begin
+      { vlink doesn't need, and doesn't support GROUP }
+      if not UseVLink then
+        begin
+          LinkRes.Add(')');
+          LinkRes.Add('GROUP(');
+        end;
+      while not StaticLibFiles.Empty do
+        begin
+          S:=StaticLibFiles.GetFirst;
+          LinkRes.AddFileName(maybequoted(s));
+        end;
+    end;
 
-  if not UseVLink then
-   begin
-    LinkRes.Add(')');
+  LinkRes.Add(')');
 
-    { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-      here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-    linklibc:=false;
-    while not SharedLibFiles.Empty do
-     begin
-      S:=SharedLibFiles.GetFirst;
-      if s<>'c' then
-       begin
-        i:=Pos(target_info.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        LinkRes.Add('-l'+s);
-       end
-      else
-       begin
-        LinkRes.Add('-l'+s);
-        linklibc:=true;
-       end;
-     end;
-    { be sure that libc&libgcc is the last lib }
-    if linklibc then
-     begin
-      LinkRes.Add('-lc');
-      LinkRes.Add('-lgcc');
-     end;
-   end
-  else
-   begin
-    while not SharedLibFiles.Empty do
-     begin
-      S:=SharedLibFiles.GetFirst;
-      LinkRes.Add('lib'+s+target_info.staticlibext);
-     end;
-    LinkRes.Add(')');
-   end;
+  with LinkRes do
+    begin
+      Add('');
+      Add('SECTIONS');
+      Add('{');
+      Add('  . = 0x'+hexstr(Origin,8)+';');
+      Add('  .text : { *(.text .text.* _CODE _CODE.* ) }');
+      Add('  .data : { *(.data .data.* .rodata .rodata.* .fpc.* ) }');
+      Add('  .bss  : { *(_BSS _BSS.*) *(.bss .bss.*) *(_BSSEND _BSSEND.*) *(_HEAP _HEAP.*) *(.stack .stack.*) *(_STACK _STACK.*) }');
+      Add('}');
+    end;
 
 { Write and Close response }
   linkres.writetodisk;
