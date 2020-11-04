@@ -1176,6 +1176,17 @@ begin
   GetEpochTime:=fptime;
 end;
 
+Procedure DoGetUniversalDateTime(var year, month, day, hour, min,  sec, msec, usec : word);
+
+var
+  tz:timeval;
+begin
+  fpgettimeofday(@tz,nil);
+  EpochToUniversal(tz.tv_sec,year,month,day,hour,min,sec);
+  msec:=tz.tv_usec div 1000;
+  usec:=tz.tv_usec mod 1000;
+end;
+
 // Now, adjusted to local time.
 
 Procedure DoGetLocalDateTime(var year, month, day, hour, min,  sec, msec, usec : word);
@@ -1612,6 +1623,14 @@ Procedure SysBeep;
 begin
   Write(#7);
   Flush(Output);
+end;
+
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+var
+  usecs : Word;
+begin
+  DoGetUniversalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
+  Result:=True;
 end;
 
 function GetLocalTimeOffset: Integer;
