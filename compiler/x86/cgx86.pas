@@ -2952,7 +2952,7 @@ unit cgx86;
         copy_avx:
           begin
             hlist:=TAsmList.create;
-            while (len>=32) and (srcref.alignment>=32) and (dstref.alignment>=32) do
+            while len>=32 do
               begin
                 r0:=getmmregister(list,OS_M256);
                 a_loadmm_ref_reg(list,OS_M256,OS_M256,srcref,r0,nil);
