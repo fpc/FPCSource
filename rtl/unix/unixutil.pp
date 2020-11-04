@@ -27,8 +27,6 @@ unit unixutil;
 
 interface
 
-uses BaseUnix;
-
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
