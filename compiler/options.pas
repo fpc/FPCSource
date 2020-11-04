@@ -3387,6 +3387,8 @@ begin
       lets disable the feature. }
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
+    system_m68k_sinclairql:
+      target_unsup_features:=[f_threading,f_dynlibs,f_commandargs,f_exitcode];
     system_z80_zxspectrum:
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     system_z80_msxdos:

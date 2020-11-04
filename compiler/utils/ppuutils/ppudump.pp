@@ -232,7 +232,8 @@ const
   { 109 } 'ZXSpectrum-Z80',
   { 110 } 'MSX-DOS-Z80',
   { 111 } 'Darwin-AArch64',
-  { 112 } 'AmstradCPC-Z80'
+  { 112 } 'AmstradCPC-Z80',
+  { 113 } 'SinclairQL-m68k'
   );
 
 const
