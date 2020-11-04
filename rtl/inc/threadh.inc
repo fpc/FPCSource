@@ -182,3 +182,7 @@ procedure RTLEventResetEvent(state:pRTLEvent);
 procedure RTLEventWaitFor(state:pRTLEvent);
 procedure RTLEventWaitFor(state:pRTLEvent;timeout : longint);
 
+{ lazy thread initialization support }
+procedure RegisterLazyInitThreadingProc(const proc: TProcedure);
+{ do not call LazyInitThreading directly}
+procedure LazyInitThreading;

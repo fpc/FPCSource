@@ -168,6 +168,8 @@ Uses
            pthread_key_create(@TLSKey,nil);
            InitThreadVars(@CRelocateThreadvar);
 {$endif HASTHREADVAR}
+          { lazy initialize thread support }
+           LazyInitThreading;
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread

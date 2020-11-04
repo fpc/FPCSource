@@ -343,6 +343,34 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+    lazy thread initialization support
+  ---------------------------------------------------------------------}
+
+var
+  LazyInitThreadingProcs : array of TProcedure = nil;
+procedure RegisterLazyInitThreadingProc(const proc: TProcedure);
+begin
+  if IsMultiThread then
+    begin
+    { multithreading is already enabled - execute directly }
+    proc();
+    end
+  else
+    begin
+    SetLength(LazyInitThreadingProcs,Length(LazyInitThreadingProcs)+1);
+    LazyInitThreadingProcs[high(LazyInitThreadingProcs)]:=proc;
+    end;
+end;
+
+procedure LazyInitThreading;
+var
+  i: Integer;
+begin
+  for i:=0 to high(LazyInitThreadingProcs) do
+    LazyInitThreadingProcs[i]();
+end;
+
+{ ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}
 
