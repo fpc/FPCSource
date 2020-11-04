@@ -156,6 +156,8 @@ function SysBeginThread(sa : Pointer;stacksize : SizeUInt;
      if not IsMultiThread then
      begin
        InitThreadVars(@SysRelocateThreadvar);
+      { lazy initialize thread support }
+       LazyInitThreading;
        IsMultithread:=true;
      end;
      { the only way to pass data to the newly created thread }
