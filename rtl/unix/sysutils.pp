@@ -1653,13 +1653,14 @@ begin
   else
     UnixTime:=LocalToEpoch(Year, Month, Day, Hour, Minute, Second);
   { check if time is in current global Tzinfo }
-  if (Tzinfo.validsince<UnixTime) and (UnixTime<Tzinfo.validuntil) then
+  lTzinfo:=Tzinfo;
+  if (lTzinfo.validsince<=UnixTime) and (UnixTime<lTzinfo.validuntil) then
   begin
     Result:=True;
-    Offset:=-TZInfo.seconds div 60;
+    Offset:=-lTZInfo.seconds div 60;
   end else
   begin
-    Result:=GetLocalTimezone(UnixTime,True,lTZInfo,False);
+    Result:=GetLocalTimezone(UnixTime,True,lTZInfo);
     if Result then
       Offset:=-lTZInfo.seconds div 60;
   end;

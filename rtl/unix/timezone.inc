@@ -75,64 +75,93 @@ begin
 end;
 
 
-function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
-var
-  info : pttinfo;
-  i,trans_start,trans_end : longint;
+procedure DoGetLocalTimezone(info:pttinfo;const trans_start,trans_end:longint;var ATZInfo:TTZInfo);
 begin
-{ reset }
-  ATZInfo.Daylight:=false;
-  ATZInfo.Seconds:=0;
-  ATZInfo.Name[false]:=nil;
-  ATZInfo.Name[true]:=nil;
-  ATZInfo.validsince:=0;
-  ATZInfo.validuntil:=0;
-  ATZInfo.leap_correct:=0;
-  ATZInfo.leap_hit:=0;
-{ get info }
-  info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
-  GetLocalTimezone:=assigned(info);
-  if not GetLocalTimezone then
-   exit;
   ATZInfo.validsince:=trans_start;
   ATZInfo.validuntil:=trans_end;
   ATZInfo.Daylight:=info^.isdst;
   ATZInfo.Seconds:=info^.offset;
-  if not FullInfo then
-    Exit;
+end;
+
+procedure DoGetLocalTimezoneEx(timer:cint;info:pttinfo;var ATZInfoEx:TTZInfoEx);
+var
+  i : longint;
+  names: array[Boolean] of pchar;
+begin
+  names[true]:=nil;
+  names[false]:=nil;
+  ATZInfoEx.leap_hit:=0;
+  ATZInfoEx.leap_correct:=0;
+
   i:=0;
   while (i<num_types) do
    begin
-     ATZInfo.name[types[i].isdst]:=@zone_names[types[i].idx];
+     names[types[i].isdst]:=@zone_names[types[i].idx];
      inc(i);
    end;
-  ATZInfo.name[info^.isdst]:=@zone_names[info^.idx];
+  names[info^.isdst]:=@zone_names[info^.idx];
+  ATZInfoEx.name[true]:=names[true];
+  ATZInfoEx.name[false]:=names[false];
   i:=num_leaps;
   repeat
     if i=0 then
      exit;
     dec(i);
   until (timer>leaps[i].transition);
-  ATZInfo.leap_correct:=leaps[i].change;
+  ATZInfoEx.leap_correct:=leaps[i].change;
   if (timer=leaps[i].transition) and
      (((i=0) and (leaps[i].change>0)) or
       (leaps[i].change>leaps[i-1].change)) then
    begin
-     ATZInfo.leap_hit:=1;
+     ATZInfoEx.leap_hit:=1;
      while (i>0) and
            (leaps[i].transition=leaps[i-1].transition+1) and
            (leaps[i].change=leaps[i-1].change+1) do
       begin
-        inc(ATZInfo.leap_hit);
+        inc(ATZInfoEx.leap_hit);
         dec(i);
       end;
    end;
 end;
 
-
-procedure GetLocalTimezone(timer:cint;timerIsUTC:Boolean);
+function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
+var
+  info: pttinfo;
+  trans_start,trans_end: longint;
 begin
-  GetLocalTimezone(timer,timerIsUTC,Tzinfo,true);
+  LockTZInfo;
+  info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
+  GetLocalTimezone:=assigned(info);
+  if GetLocalTimezone then
+    DoGetLocalTimezone(info,trans_start,trans_end,ATZInfo);
+  UnlockTZInfo;
+end;
+
+function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
+var
+  info: pttinfo;
+  trans_start,trans_end: longint;
+begin
+  LockTZInfo;
+  info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
+  GetLocalTimezone:=assigned(info);
+  if GetLocalTimezone then
+    begin
+    DoGetLocalTimezone(info,trans_start,trans_end,ATZInfo);
+    DoGetLocalTimezoneEx(timer,info,ATZInfoEx);
+    end;
+  UnlockTZInfo;
+end;
+
+procedure RefreshTZInfo;
+var
+  NewTZInfo: TTZInfo;
+  NewTZInfoEx: TTZInfoEx;
+begin
+  LockTZInfo;
+  if GetLocalTimezone(fptime,false,NewTZInfo,NewTZInfoEx) then
+    SetTZInfo(NewTZInfo,NewTZInfoEx);
+  UnlockTZInfo;
 end;
 
 Const
@@ -352,7 +381,7 @@ end;
 procedure InitLocalTime;
 begin
   ReadTimezoneFile(GetTimezoneFile);
-  GetLocalTimezone(fptime,false);
+  RefreshTZInfo;
 end;
 
 
@@ -381,6 +410,8 @@ end;
 Procedure ReReadLocalTime;
 
 begin
+  LockTZInfo;
   DoneLocalTime;
   InitLocalTime;
+  UnlockTZInfo;
 end;

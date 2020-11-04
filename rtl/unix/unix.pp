@@ -56,23 +56,27 @@ Const
 type
   TTZInfo = record
     daylight     : boolean;
-    name         : array[boolean] of pchar;
     seconds      : Longint; // difference from UTC
     validsince   : int64;   // UTC timestamp
     validuntil   : int64;   // UTC timestamp
+  end;
+  TTZInfoEx = record
+    name         : array[boolean] of RawByteString; { False = StandardName, True = DaylightName }
     leap_correct : longint;
     leap_hit     : longint;
   end;
 
-var
-  Tzinfo : TTZInfo;
-
   Function GetTzseconds : Longint;
   property Tzseconds : Longint read GetTzseconds;
   function Gettzdaylight : boolean;
-  function Gettzname(const b : boolean) : pchar;
   property tzdaylight : boolean read Gettzdaylight;
-  property tzname[b : boolean] : pchar read Gettzname;
+  function Gettzname(const b : boolean) : string;
+  property tzname[b : boolean] : string read Gettzname;
+  function GetTZInfo : TTZInfo;
+  property TZInfo : TTZInfo read GetTZInfo;
+  function GetTZInfoEx : TTZInfoEx;
+  property TZInfoEx : TTZInfoEx read GetTZInfoEx;
+  procedure SetTZInfo(const ATZInfo: TTZInfo; const ATZInfoEx: TTZInfoEx);
 
 {************     Procedure/Functions     ************}
 
@@ -84,14 +88,14 @@ var
                        // it doesn't (yet) work for.
 
 { timezone support }
-function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;FullInfo:Boolean):Boolean;
-procedure GetLocalTimezone(timer:cint;timerIsUTC:Boolean);
+function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
+function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
+procedure RefreshTZInfo;
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 Procedure ReReadLocalTime;
 {$ENDIF}
 
-Procedure RefreshTZInfoIfNeeded;
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
 Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word); // use DateUtils.UnixToDateTime for cross-platform applications
@@ -187,6 +191,31 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
                           timezone support
 ******************************************************************************}
 
+var
+  CurrentTZinfo : array [0..1] of TTZInfo;
+  CurrentTzinfoEx : array [0..1] of TTZInfoEx;
+  CurrentTZindex : LongInt = 0; // current index for CurrentTZinfo/CurrentTZinfoEx - can be only 0 or 1
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  UseTZThreading: Boolean = false;
+  TZInfoCS: TRTLCriticalSection;
+{$endif}
+
+procedure LockTZInfo;
+begin
+  {$if declared(UseTZThreading)}
+  if UseTZThreading then
+    EnterCriticalSection(TZInfoCS);
+  {$endif}
+end;
+
+procedure UnlockTZInfo;
+begin
+  {$if declared(UseTZThreading)}
+  if UseTZThreading then
+    LeaveCriticalSection(TZInfoCS);
+  {$endif}
+end;
+
 Function GetTzseconds : Longint;
 begin
   GetTzseconds:=Tzinfo.seconds;
@@ -197,9 +226,43 @@ begin
   Gettzdaylight:=Tzinfo.daylight;
 end;
 
-function Gettzname(const b : boolean) : pchar;
+function Gettzname(const b : boolean) : string;
 begin
-  Gettzname:=Tzinfo.name[b];
+  Gettzname:=TzinfoEx.name[b];
+end;
+
+function GetTZInfo : TTZInfo;
+var
+  curtime: time_t;
+begin
+  GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+  curtime:=fptime;
+  if not((GetTZInfo.validsince+GetTZInfo.seconds<=curtime) and (curtime<GetTZInfo.validuntil+GetTZInfo.seconds)) then
+    begin
+    RefreshTZInfo;
+    GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+    end;
+end;
+
+function GetTZInfoEx : TTZInfoEx;
+begin
+  GetTZInfoEx:=CurrentTzinfoEx[InterlockedExchangeAdd(CurrentTZindex, 0)];
+end;
+
+procedure SetTZInfo(const ATZInfo: TTZInfo; const ATZInfoEx: TTZInfoEx);
+var
+  OldTZindex,NewTZindex: longint;
+begin
+  LockTZInfo;
+  OldTZindex:=InterlockedExchangeAdd(CurrentTZindex,0);
+  if OldTZindex=0 then
+    NewTZindex:=1
+  else
+    NewTZindex:=0;
+  CurrentTzinfo[NewTZindex]:=ATZInfo;
+  CurrentTzinfoEx[NewTZindex]:=ATZInfoEx;
+  InterlockedExchangeAdd(CurrentTZindex,NewTZindex-OldTZindex);
+  UnlockTZInfo;
 end;
 
 Const
@@ -235,20 +298,22 @@ Procedure EpochToLocal(epoch:Int64;var year,month,day,hour,minute,second:Word);
   Transforms Epoch time into local time (hour, minute,seconds)
 }
 Var
-  DateNum: LongInt;
   lTZInfo: TTZInfo;
+  lseconds: LongInt;
 Begin
   { check if time is in current global Tzinfo }
-  if (Tzinfo.validsince<epoch) and (epoch<Tzinfo.validuntil) then
-    inc(Epoch,TZInfo.seconds)
+  lTZInfo:=TZInfo;
+  lseconds:=lTZInfo.seconds;
+  if (lTZInfo.validsince<=epoch) and (epoch<lTZInfo.validuntil) then
+    inc(Epoch,lseconds)
   else
   begin
     {$if declared(GetLocalTimezone)}
-    if GetLocalTimezone(epoch,true,lTZInfo,false) then
+    if GetLocalTimezone(epoch,true,lTZInfo) then
       inc(Epoch,lTZInfo.seconds)
     else { fallback }
     {$endif}
-      inc(Epoch,TZInfo.seconds);
+      inc(Epoch,lseconds);
   end;
 
   EpochToUniversal(epoch,year,month,day,hour,minute,second);
@@ -278,19 +343,22 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Int64;
 Var
   lTZInfo: TTZInfo;
   UniversalEpoch: Int64;
+  lseconds: LongInt;
 Begin
   UniversalEpoch:=UniversalToEpoch(year,month,day,hour,minute,second);
   { check if time is in current global Tzinfo }
-  if (Tzinfo.validsince<UniversalEpoch-Tzinfo.seconds) and (UniversalEpoch-Tzinfo.seconds<Tzinfo.validuntil) then
-    LocalToEpoch:=UniversalEpoch-TZInfo.seconds
+  lTZInfo:=TZInfo;
+  lseconds:=lTZInfo.seconds;
+  if (lTZInfo.validsince<=UniversalEpoch-lTZInfo.seconds) and (UniversalEpoch-lTZInfo.seconds<lTZInfo.validuntil) then
+    LocalToEpoch:=UniversalEpoch-lseconds
   else
   begin
     {$if declared(GetLocalTimezone)}
-    if GetLocalTimezone(UniversalEpoch,false,lTZInfo,false) then
+    if GetLocalTimezone(UniversalEpoch,false,lTZInfo) then
       LocalToEpoch:=UniversalEpoch-lTZInfo.seconds
     else { fallback }
     {$endif}
-      LocalToEpoch:=UniversalEpoch-TZInfo.seconds
+      LocalToEpoch:=UniversalEpoch-lseconds;
   end;
 End;
 
@@ -318,20 +386,6 @@ Begin
   XYear:=(longint(Year Mod 100)*D0) shr 2;
   GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
 End;
-
-Procedure RefreshTZInfoIfNeeded;
-{$if declared(ReReadLocalTime)}
-var
-  curtime: time_t;
-begin
-  curtime:=fptime;
-  if ((curtime<Tzinfo.validsince+Tzinfo.seconds) or (curtime>Tzinfo.validuntil+Tzinfo.seconds)) then
-    GetLocalTimezone(fptime,false);
-end;
-{$else}
-begin
-end;
-{$endif}
 
 {******************************************************************************
                           Process related calls
@@ -1408,7 +1462,18 @@ end;
   {$I unixandroid.inc}
 {$endif android}
 
+{$if declared(UseTZThreading)}
+procedure InitTZThreading;
+begin
+  UseTZThreading:=True;
+  InitCriticalSection(TZInfoCS);
+end;
+{$endif}
+
 Initialization
+{$if declared(UseTZThreading)}
+  RegisterLazyInitThreadingProc(@InitTZThreading);
+{$endif}
 {$IFNDEF DONT_READ_TIMEZONE}
   InitLocalTime;
 {$endif}
@@ -1419,5 +1484,9 @@ Initialization
 finalization
 {$IFNDEF DONT_READ_TIMEZONE}
   DoneLocalTime;
+{$endif}
+{$if declared(UseTZThreading)}
+  if UseTZThreading then
+    DoneCriticalSection(TZInfoCS);
 {$endif}
 End.
