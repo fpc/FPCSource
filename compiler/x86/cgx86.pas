@@ -1582,9 +1582,9 @@ unit cgx86;
                  if UseAVX then
                    begin
                      if GetRefAlignment(tmpref) = 64 then
-                       op := A_VMOVDQA
+                       op := A_VMOVDQA64
                      else
-                       op := A_VMOVDQU;
+                       op := A_VMOVDQU64;
                    end
                  else
                    { SSE doesn't support 512-bit vectors }
@@ -1674,9 +1674,9 @@ unit cgx86;
                  if UseAVX then
                  begin
                    if GetRefAlignment(tmpref) = 64 then
-                     op := A_VMOVDQA
+                     op := A_VMOVDQA64
                    else
-                     op := A_VMOVDQU;
+                     op := A_VMOVDQU64;
                  end else
                    { SSE doesn't support 512-bit vectors }
                    InternalError(2018012945);
@@ -2778,16 +2778,15 @@ unit cgx86;
       if cs_opt_size in current_settings.optimizerswitches then
         helpsize:=2*sizeof(aword);
 {$ifndef i8086}
-      if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
-         ((len mod 8)=0) and (len<=128) then
-         cm:=copy_avx512
-      else
       { avx helps only to reduce size, using it in general does at least not help on
         an i7-4770
         but using the xmm registers reduces register pressure (FK) }
       if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
-         ((len mod 8)=0) and (len<=48) {$ifndef i386}and (len<>8){$endif i386} then
-         cm:=copy_avx
+        ((len mod 8)=0) and (len<=48) {$ifndef i386}and (len<>8){$endif i386} then
+        cm:=copy_avx
+      else if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
+        ((len mod 8)=0) and (len<=128) {$ifndef i386}and (len<>8){$endif i386} then
+        cm:=copy_avx512
       else
       { I'am not sure what CPUs would benefit from using sse instructions for moves
         but using the xmm registers reduces register pressure (FK) }
