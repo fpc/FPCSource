@@ -353,9 +353,30 @@ end;
     lazy thread initialization support
   ---------------------------------------------------------------------}
 
+type
+  PLazyInitThreadingProcInfo = ^TLazyInitThreadingProcInfo;
+  TLazyInitThreadingProcInfo = Record
+    Next     : PLazyInitThreadingProcInfo;
+    Proc     : TProcedure;
+  End;
+const
+  LazyInitThreadingProcList: PLazyInitThreadingProcInfo = nil;
+
+procedure FinalizeLazyInitThreading;
 var
-  LazyInitThreadingProcs : array of TProcedure = nil;
+  p: PLazyInitThreadingProcInfo;
+begin
+  while assigned(LazyInitThreadingProcList) do
+    begin
+    p:=LazyInitThreadingProcList^.Next;
+    Dispose(LazyInitThreadingProcList);
+    LazyInitThreadingProcList:=p;
+    end;
+end;
+
 procedure RegisterLazyInitThreadingProc(const proc: TProcedure);
+var
+  p: PLazyInitThreadingProcInfo;
 begin
   if IsMultiThread then
     begin
@@ -364,17 +385,25 @@ begin
     end
   else
     begin
-    SetLength(LazyInitThreadingProcs,Length(LazyInitThreadingProcs)+1);
-    LazyInitThreadingProcs[high(LazyInitThreadingProcs)]:=proc;
+    if not assigned(LazyInitThreadingProcList) then
+      AddExitProc(@FinalizeLazyInitThreading);
+    new(p);
+    p^.Next:=LazyInitThreadingProcList;
+    p^.Proc:=proc;
+    LazyInitThreadingProcList:=p;
     end;
 end;
 
 procedure LazyInitThreading;
 var
-  i: Integer;
+  p: PLazyInitThreadingProcInfo;
 begin
-  for i:=0 to high(LazyInitThreadingProcs) do
-    LazyInitThreadingProcs[i]();
+  p:=LazyInitThreadingProcList;
+  while assigned(p) do
+    begin
+    p^.Proc();
+    p:=p^.Next;
+    end;
 end;
 
 { ---------------------------------------------------------------------
