@@ -1648,22 +1648,15 @@ var
 begin
   DecodeDate(DateTime, Year, Month, Day);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
-  if InputIsUTC then
-    UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second)
-  else
-    UnixTime:=LocalToEpoch(Year, Month, Day, Hour, Minute, Second);
-  { check if time is in current global Tzinfo }
-  lTzinfo:=Tzinfo;
-  if (lTzinfo.validsince<=UnixTime) and (UnixTime<lTzinfo.validuntil) then
-  begin
-    Result:=True;
+  UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second);
+
+  {$if declared(GetLocalTimezone)}
+  GetLocalTimeOffset:=GetLocalTimezone(UnixTime,InputIsUTC,lTZInfo);
+  if GetLocalTimeOffset then
     Offset:=-lTZInfo.seconds div 60;
-  end else
-  begin
-    Result:=GetLocalTimezone(UnixTime,True,lTZInfo);
-    if Result then
-      Offset:=-lTZInfo.seconds div 60;
-  end;
+  {$else}
+  GetLocalTimeOffset:=False;
+  {$endif}
 end;
 
 {$ifdef android}

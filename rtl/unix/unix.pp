@@ -91,7 +91,7 @@ type
 function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
 function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
 procedure RefreshTZInfo;
-procedure ReadTimezoneFile(fn:string);
+function  ReadTimezoneFile(fn:string) : Boolean;
 function  GetTimezoneFile:string;
 Procedure ReReadLocalTime;
 {$ENDIF}
@@ -299,22 +299,13 @@ Procedure EpochToLocal(epoch:Int64;var year,month,day,hour,minute,second:Word);
 }
 Var
   lTZInfo: TTZInfo;
-  lseconds: LongInt;
 Begin
-  { check if time is in current global Tzinfo }
-  lTZInfo:=TZInfo;
-  lseconds:=lTZInfo.seconds;
-  if (lTZInfo.validsince<=epoch) and (epoch<lTZInfo.validuntil) then
-    inc(Epoch,lseconds)
-  else
-  begin
-    {$if declared(GetLocalTimezone)}
-    if GetLocalTimezone(epoch,true,lTZInfo) then
-      inc(Epoch,lTZInfo.seconds)
-    else { fallback }
-    {$endif}
-      inc(Epoch,lseconds);
-  end;
+  {$if declared(GetLocalTimezone)}
+  if GetLocalTimezone(epoch,true,lTZInfo) then
+    inc(Epoch,lTZInfo.seconds)
+  else { fallback }
+  {$endif}
+    inc(Epoch,TZInfo.seconds);
 
   EpochToUniversal(epoch,year,month,day,hour,minute,second);
 End;
@@ -342,24 +333,16 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Int64;
 }
 Var
   lTZInfo: TTZInfo;
-  UniversalEpoch: Int64;
-  lseconds: LongInt;
+  LocalEpoch: Int64;
 Begin
-  UniversalEpoch:=UniversalToEpoch(year,month,day,hour,minute,second);
-  { check if time is in current global Tzinfo }
-  lTZInfo:=TZInfo;
-  lseconds:=lTZInfo.seconds;
-  if (lTZInfo.validsince<=UniversalEpoch-lTZInfo.seconds) and (UniversalEpoch-lTZInfo.seconds<lTZInfo.validuntil) then
-    LocalToEpoch:=UniversalEpoch-lseconds
-  else
-  begin
-    {$if declared(GetLocalTimezone)}
-    if GetLocalTimezone(UniversalEpoch,false,lTZInfo) then
-      LocalToEpoch:=UniversalEpoch-lTZInfo.seconds
-    else { fallback }
-    {$endif}
-      LocalToEpoch:=UniversalEpoch-lseconds;
-  end;
+  LocalEpoch:=UniversalToEpoch(year,month,day,hour,minute,second);
+
+  {$if declared(GetLocalTimezone)}
+  if GetLocalTimezone(LocalEpoch,false,lTZInfo) then
+    LocalToEpoch:=LocalEpoch-lTZInfo.seconds
+  else { fallback }
+  {$endif}
+    LocalToEpoch:=LocalEpoch-TZInfo.seconds;
 End;
 
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):Int64;
