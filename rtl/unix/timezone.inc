@@ -43,7 +43,24 @@ var
 
 function find_transition(timer:longint;timerIsUTC:Boolean;var trans_start,trans_end:longint):pttinfo;
 var
-  i : longint;
+  i,L,R,CompareRes : longint;
+
+  function DoCompare: longint;
+  var
+    timerUTC: LongInt;
+  begin
+    if not timerIsUTC then
+      timerUTC:=timer-types[type_idxs[i-1]].offset
+    else
+      timerUTC:=timer;
+    if timerUTC<transitions[i-1] then
+      Exit(-1)
+    else
+    if timerUTC>=transitions[i] then
+      Exit(1)
+    else
+      Exit(0);
+  end;
 begin
   if (num_transitions=0) or (timer<transitions[0]) then
    begin
@@ -58,15 +75,22 @@ begin
    end
   else
    begin
-     i:=1;
-     while i<=num_transitions-1 do
-       begin
-         case timerIsUTC of
-           True: if (timer<transitions[i]) then break;
-           False: if (timer<transitions[i]+types[type_idxs[i-1]].offset) then break;
-         end;
-         inc(i);
-       end;
+      // Use binary search.
+      L := 1;
+      R := num_transitions-1;
+      while (L<=R) do
+      begin
+        I := L + (R - L) div 2;
+        CompareRes := DoCompare;
+        if (CompareRes>0) then
+          L := I+1
+        else begin
+          R := I-1;
+          if (CompareRes=0) then
+             L:=I; // break cycle
+        end;
+      end;
+
      trans_start:=transitions[i-1];
      trans_end:=transitions[i];
      i:=type_idxs[i-1];
@@ -128,7 +152,17 @@ function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boo
 var
   info: pttinfo;
   trans_start,trans_end: longint;
+  timerUTC: cint;
 begin
+  { check if time is in current global Tzinfo }
+  ATZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+  if not timerIsUTC then
+    timerUTC:=timer-ATZInfo.seconds
+  else
+    timerUTC:=timer;
+  if (ATZInfo.validsince<=timerUTC) and (timerUTC<ATZInfo.validuntil) then
+    Exit(True);
+
   LockTZInfo;
   info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
   GetLocalTimezone:=assigned(info);
@@ -141,7 +175,21 @@ function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var 
 var
   info: pttinfo;
   trans_start,trans_end: longint;
+  timerUTC: cint;
 begin
+  { check if time is in current global Tzinfo }
+  ATZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+  if not timerIsUTC then
+    timerUTC:=timer-ATZInfo.seconds
+  else
+    timerUTC:=timer;
+  if (ATZInfo.validsince<=timerUTC) and (timerUTC<ATZInfo.validuntil) then
+    begin
+    ATZInfoEx:=TZInfoEx;
+    Exit(True);
+    end;
+
+  { not current - search through all }
   LockTZInfo;
   info:=find_transition(timer,timerIsUTC,trans_start,trans_end);
   GetLocalTimezone:=assigned(info);
@@ -178,7 +226,7 @@ begin
     TimeZoneDir:=TimeZoneDir+'/';
 end;
 
-procedure ReadTimezoneFile(fn:shortstring);
+function ReadTimezoneFile(fn:string) : Boolean;
 
   procedure decode(var l:longint);
   var
@@ -247,17 +295,24 @@ var
   i      : longint;
   chars  : longint;
 begin
+  LockTZInfo;
   if fn='' then
    fn:='localtime';
   if fn[1]<>'/' then
     fn:=TimeZoneDir+fn;
   f:=fpopen(fn,Open_RdOnly);
   if f<0 then
-   exit;
+  begin
+   UnlockTZInfo;
+   exit(False);
+  end;
   bufptr := @buf[bufsize-1]+1;
   i:=readbuf(tzhead,sizeof(tzhead));
   if i<>sizeof(tzhead) then
-   exit;
+  begin
+   UnlockTZInfo;
+   exit(False);
+  end;
   decode(tzhead.tzh_timecnt);
   decode(tzhead.tzh_typecnt);
   decode(tzhead.tzh_charcnt);
@@ -308,6 +363,8 @@ begin
    types[i].isgmt:=byte(readbufbyte<>0);
 
   fpclose(f);
+  ReadTimezoneFile:=True;
+  UnlockTZInfo;
 end;
 
 Const
