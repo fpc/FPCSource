@@ -112,7 +112,7 @@ begin
   ATZInfo.Seconds:=info^.offset;
 end;
 
-procedure DoGetLocalTimezoneEx(timer:cint;info:pttinfo;var ATZInfoEx:TTZInfoEx);
+procedure DoGetLocalTimezoneEx(timer:int64;info:pttinfo;var ATZInfoEx:TTZInfoEx);
 var
   i : longint;
   names: array[Boolean] of pchar;
