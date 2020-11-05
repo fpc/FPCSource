@@ -232,16 +232,20 @@ begin
 end;
 
 function GetTZInfo : TTZInfo;
+{$IFNDEF DONT_READ_TIMEZONE}
 var
   curtime: time_t;
+{$ENDIF}
 begin
   GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+{$IFNDEF DONT_READ_TIMEZONE}
   curtime:=fptime;
   if not((GetTZInfo.validsince+GetTZInfo.seconds<=curtime) and (curtime<GetTZInfo.validuntil+GetTZInfo.seconds)) then
     begin
     RefreshTZInfo;
     GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
     end;
+{$ENDIF}
 end;
 
 function GetTZInfoEx : TTZInfoEx;

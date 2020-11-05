@@ -53,7 +53,7 @@ var
   err: UErrorCode;
   cal: UCalendar;
   lTZInfo: TTZInfo;
-  lTZInfoEx: TTZInfo;
+  lTZInfoEx: TTZInfoEx;
 begin
   if not Assigned(GetIcuProc) then exit;
   if not GetIcuProc('ucal_open', ucal_open, 1) then exit;
@@ -122,17 +122,25 @@ function ReadTimeZoneFromLibC: boolean;
 var
   t: time_t;
   tt: Ptm;
+  lTZInfo: TTZInfo;
+  lTZInfoEx: TTZInfoEx;
 begin
   ReadTimeZoneFromLibC:=False;
-  tzname[false]:=c_tzname[0];
-  tzname[true]:=c_tzname[1];
+  lTZInfo:=default(TTZInfo);
+  lTZInfoEx:=default(TTZInfoEx);
+  lTZInfoEx.name[false]:=c_tzname[0];
+  lTZInfoEx.name[true]:=c_tzname[1];
   t:=fptime;
   tt:=localtime(@t);
   if tt <> nil then
     begin
-      tzdaylight:=tt^.tm_isdst <> 0;
-      tzseconds:=tt^.tm_gmtoff;
-      ReadTimeZoneFromLibC:=tzname[false] <> nil;
+      lTZInfo.daylight:=tt^.tm_isdst <> 0;
+      lTZInfo.seconds:=tt^.tm_gmtoff;
+      // ToDo: correct validsince/validuntil values
+      lTZInfo.validsince:=low(lTZInfo.validsince);
+      lTZInfo.validuntil:=high(lTZInfo.validuntil);
+      SetTZInfo(lTZInfo, lTZInfoEx);
+      ReadTimeZoneFromLibC:=lTZInfoEx.name[false] <> '';
     end;
 end;
 
