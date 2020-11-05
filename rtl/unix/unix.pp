@@ -88,8 +88,8 @@ type
                        // it doesn't (yet) work for.
 
 { timezone support }
-function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
-function GetLocalTimezone(timer:cint;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
+function GetLocalTimezone(timer:int64;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
+function GetLocalTimezone(timer:int64;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
 procedure RefreshTZInfo;
 function  ReadTimezoneFile(fn:string) : Boolean;
 function  GetTimezoneFile:string;
