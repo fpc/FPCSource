@@ -2782,10 +2782,10 @@ unit cgx86;
         an i7-4770
         but using the xmm registers reduces register pressure (FK) }
       if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
-        ((len mod 8)=0) and (len<=48) {$ifndef i386}and (len<>8){$endif i386} then
+        ((len mod 4)=0) and (len<=48) {$ifndef i386}and (len>=16){$endif i386} then
         cm:=copy_avx
       else if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
-        ((len mod 8)=0) and (len<=128) {$ifndef i386}and (len<>8){$endif i386} then
+        ((len mod 4)=0) and (len<=128) {$ifndef i386}and (len>=16){$endif i386} then
         cm:=copy_avx512
       else
       { I'am not sure what CPUs would benefit from using sse instructions for moves
@@ -2995,6 +2995,15 @@ unit cgx86;
                 inc(srcref.offset,8);
                 inc(dstref.offset,8);
                 dec(len,8);
+              end;
+            if len>=4 then
+              begin
+                r0:=getintregister(list,OS_32);
+                a_load_ref_reg(list,OS_32,OS_32,srcref,r0);
+                a_load_reg_ref(hlist,OS_32,OS_32,r0,dstref);
+                inc(srcref.offset,4);
+                inc(dstref.offset,4);
+                dec(len,4);
               end;
             list.concatList(hlist);
             hlist.free;
