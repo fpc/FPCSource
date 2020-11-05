@@ -2,6 +2,16 @@
 uses
   BaseUnix,unix;
 
+function LocalTimeIsDefined(Year, Month, Day, Hour, Minute, Second: word; const UTC: Boolean): Boolean;
+var
+  UnixTime: Int64;
+  lTZInfo: TTZInfo;
+begin
+  lTZInfo:=Default(TTZInfo);
+  UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second);
+  Result := GetLocalTimezone(UnixTime,UTC,lTZInfo);
+end;
+
 function GetOffset(Year, Month, Day, Hour, Minute, Second: word; const UTC: Boolean): Integer;
 var
   UnixTime: Int64;
@@ -28,9 +38,12 @@ begin
   end;
 
   if GetOffset(2019, 03, 31, 1, 59, 0, False)<>1 then Halt(11);
+  // 2019-03-31 02:00-03:00 CET is not defined
+  if LocalTimeIsDefined(2019, 03, 31, 2, 30, 0, False) then Halt(19);
   if GetOffset(2019, 03, 31, 3, 0, 0, False)<>2 then Halt(12);
 
-  if GetOffset(2019, 10, 27, 2, 59, 0, False)<>2 then Halt(13);
+  if GetOffset(2019, 10, 27, 1, 59, 0, False)<>2 then Halt(13);
+  // 2019-10-27 02:00-03:00 CET is ambiguos, therefore do not check
   if GetOffset(2019, 10, 27, 3, 0, 0, False)<>1 then Halt(14);
 
   if GetOffset(2019, 03, 31, 0, 59, 0, True)<>1 then Halt(15);
