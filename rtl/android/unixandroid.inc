@@ -128,19 +128,19 @@ begin
   ReadTimeZoneFromLibC:=False;
   lTZInfo:=default(TTZInfo);
   lTZInfoEx:=default(TTZInfoEx);
-  lTZInfoEx.name[false]:=c_tzname[0];
-  lTZInfoEx.name[true]:=c_tzname[1];
   t:=fptime;
   tt:=localtime(@t);
   if tt <> nil then
     begin
+      lTZInfoEx.name[false]:=utf8string(c_tzname[0]);
+      lTZInfoEx.name[true]:=utf8string(c_tzname[1]);
       lTZInfo.daylight:=tt^.tm_isdst <> 0;
       lTZInfo.seconds:=tt^.tm_gmtoff;
       // ToDo: correct validsince/validuntil values
       lTZInfo.validsince:=low(lTZInfo.validsince);
       lTZInfo.validuntil:=high(lTZInfo.validuntil);
       SetTZInfo(lTZInfo, lTZInfoEx);
-      ReadTimeZoneFromLibC:=lTZInfoEx.name[false] <> '';
+      ReadTimeZoneFromLibC:=c_tzname[0] <> nil;
     end;
 end;
 
