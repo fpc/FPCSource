@@ -1582,9 +1582,9 @@ unit cgx86;
                  if UseAVX then
                    begin
                      if GetRefAlignment(tmpref) = 64 then
-                       op := A_VMOVDQA
+                       op := A_VMOVDQA64
                      else
-                       op := A_VMOVDQU;
+                       op := A_VMOVDQU64;
                    end
                  else
                    { SSE doesn't support 512-bit vectors }
@@ -1674,9 +1674,9 @@ unit cgx86;
                  if UseAVX then
                  begin
                    if GetRefAlignment(tmpref) = 64 then
-                     op := A_VMOVDQA
+                     op := A_VMOVDQA64
                    else
-                     op := A_VMOVDQU;
+                     op := A_VMOVDQU64;
                  end else
                    { SSE doesn't support 512-bit vectors }
                    InternalError(2018012945);
@@ -2718,7 +2718,8 @@ unit cgx86;
         push_segment_size = S_W;
 {$endif}
 
-    type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
+    type
+      copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx,copy_avx512);
 
     var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
@@ -2779,10 +2780,13 @@ unit cgx86;
 {$ifndef i8086}
       { avx helps only to reduce size, using it in general does at least not help on
         an i7-4770
-        but using the xmm registers reduces register pressure(FK) }
+        but using the xmm registers reduces register pressure (FK) }
       if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
-         ({$ifdef i386}(len=8) or{$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
-         cm:=copy_avx
+        ((len mod 4)=0) and (len<=48) {$ifndef i386}and (len>=16){$endif i386} then
+        cm:=copy_avx
+      else if (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) and
+        ((len mod 4)=0) and (len<=128) {$ifndef i386}and (len>=16){$endif i386} then
+        cm:=copy_avx512
       else
       { I'am not sure what CPUs would benefit from using sse instructions for moves
         but using the xmm registers reduces register pressure (FK) }
@@ -2949,10 +2953,22 @@ unit cgx86;
               end;
           end;
 
+        copy_avx512,
         copy_avx:
           begin
             hlist:=TAsmList.create;
-            while (len>=32) and (srcref.alignment>=32) and (dstref.alignment>=32) do
+            if cm=copy_avx512 then
+              while len>=64 do
+                begin
+                  r0:=getmmregister(list,OS_M512);
+                  a_loadmm_ref_reg(list,OS_M512,OS_M512,srcref,r0,nil);
+                  a_loadmm_reg_ref(hlist,OS_M512,OS_M512,r0,dstref,nil);
+                  inc(srcref.offset,64);
+                  inc(dstref.offset,64);
+                  dec(len,64);
+                  Include(current_procinfo.flags,pi_uses_ymm);
+                end;
+            while len>=32 do
               begin
                 r0:=getmmregister(list,OS_M256);
                 a_loadmm_ref_reg(list,OS_M256,OS_M256,srcref,r0,nil);
@@ -2979,6 +2995,15 @@ unit cgx86;
                 inc(srcref.offset,8);
                 inc(dstref.offset,8);
                 dec(len,8);
+              end;
+            if len>=4 then
+              begin
+                r0:=getintregister(list,OS_32);
+                a_load_ref_reg(list,OS_32,OS_32,srcref,r0);
+                a_load_reg_ref(hlist,OS_32,OS_32,r0,dstref);
+                inc(srcref.offset,4);
+                inc(dstref.offset,4);
+                dec(len,4);
               end;
             list.concatList(hlist);
             hlist.free;

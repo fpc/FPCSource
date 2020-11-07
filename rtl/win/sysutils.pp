@@ -813,6 +813,12 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+begin
+  windows.GetSystemTime(SystemTime);
+  Result:=True;
+end;
+
 function GetLocalTimeOffset: Integer;
 
 var
@@ -832,7 +838,7 @@ begin
 end;
 
 
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
 var
   Year: Integer;
 const
@@ -884,9 +890,15 @@ begin
 
   if (TZInfo.StandardDate.Month>0) and (TZInfo.DaylightDate.Month>0) then
   begin // there is DST
+    // DaylightDate and StandardDate are local times
     DSTStart := RelWeekDayToDateTime(TZInfo.DaylightDate);
     DSTEnd := RelWeekDayToDateTime(TZInfo.StandardDate);
-    if (DateTime>DSTStart) and (DateTime<DSTEnd) then
+    if InputIsUTC then
+    begin
+      DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
+      DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
+    end;
+    if (DSTStart<=DateTime) and (DateTime<DSTEnd) then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else
       Offset := TZInfo.Bias+TZInfo.StandardBias;
@@ -911,19 +923,13 @@ var
 {$ENDIF}
 
 function GetTickCount64: QWord;
-{$IFNDEF WINCE}
-var
-  lib: THandle;
-{$ENDIF}
 begin
 {$IFNDEF WINCE}
+  if Assigned(WinGetTickCount64) then
+    Exit(WinGetTickCount64());
   { on Vista and newer there is a GetTickCount64 implementation }
   if Win32MajorVersion >= 6 then begin
-    if not Assigned(WinGetTickCount64) then begin
-      lib := LoadLibrary('kernel32.dll');
-      WinGetTickCount64 := TGetTickCount64(
-                             GetProcAddress(lib, 'GetTickCount64'));
-    end;
+    WinGetTickCount64 := TGetTickCount64(GetProcAddress(GetModuleHandle('kernel32.dll'), 'GetTickCount64'));
     Result := WinGetTickCount64();
   end else
 {$ENDIF}

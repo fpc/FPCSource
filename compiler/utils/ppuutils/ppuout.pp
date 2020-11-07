@@ -122,7 +122,7 @@ type
 
   public
     DefType: TPpuDefType;
-    Name: string;
+    Name: ansistring;
     FilePos: TPpuFilePos;
     // Symbol/definition reference
     Ref: TPpuRef;

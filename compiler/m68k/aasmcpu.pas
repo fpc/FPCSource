@@ -513,7 +513,8 @@ type
           A_FABS, A_FSABS, A_FDABS,
           A_FSQRT, A_FSSQRT, A_FDSQRT,
           A_FNEG, A_FSNEG, A_FDNEG,
-          A_FSIN, A_FCOS:
+          A_FSIN, A_FCOS,
+          A_FINT, A_FINTRZ:
              if ops = 1 then
                begin
                  if opnr = 0 then

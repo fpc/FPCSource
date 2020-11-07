@@ -3,6 +3,7 @@
 /*.o
 /*.ppu
 /*.s
+/bin
 /build-stamp.*
 compiler/*.bak
 compiler/*.exe

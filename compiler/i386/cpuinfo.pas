@@ -67,7 +67,8 @@ Type
       fpu_sse41,
       fpu_sse42,
       fpu_avx,
-      fpu_avx2
+      fpu_avx2,
+      fpu_avx512f
      );
 
    tcontrollertype =
@@ -122,7 +123,7 @@ Const
      'COREAVX2'
    );
 
-   fputypestr : array[tfputype] of string[6] = (
+   fputypestr : array[tfputype] of string[7] = (
      'NONE',
 //     'SOFT',
      'X87',
@@ -133,13 +134,14 @@ Const
      'SSE41',
      'SSE42',
      'AVX',
-     'AVX2'
+     'AVX2',
+     'AVX512F'
    );
 
-   sse_singlescalar = [fpu_sse..fpu_avx2];
-   sse_doublescalar = [fpu_sse2..fpu_avx2];
+   sse_singlescalar = [fpu_sse..fpu_avx512f];
+   sse_doublescalar = [fpu_sse2..fpu_avx512f];
 
-   fpu_avx_instructionsets = [fpu_avx,fpu_avx2];
+   fpu_avx_instructionsets = [fpu_avx,fpu_avx2,fpu_avx512f];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -174,7 +176,7 @@ type
 
    tfpuflags =
       (FPUX86_HAS_AVXUNIT,
-       FPUX86_HAS_32MMREGS
+       FPUX86_HAS_AVX512F
       );
 
  const
@@ -202,7 +204,8 @@ type
       { fpu_sse41    } [],
       { fpu_sse42    } [],
       { fpu_avx      } [FPUX86_HAS_AVXUNIT],
-      { fpu_avx2     } [FPUX86_HAS_AVXUNIT]
+      { fpu_avx2     } [FPUX86_HAS_AVXUNIT],
+      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_AVX512F]
    );
 
 Implementation

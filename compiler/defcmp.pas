@@ -2622,8 +2622,9 @@ implementation
     function equal_genfunc_paradefs(fwdef,currdef:tdef;fwpdst,currpdst:tsymtable): boolean;
       begin
         result:=false;
-        if (sp_generic_para in fwdef.typesym.symoptions) and
-            (sp_generic_para in currdef.typesym.symoptions) and
+        { for open array parameters, typesym might not be assigned }
+        if assigned(fwdef.typesym) and (sp_generic_para in fwdef.typesym.symoptions) and
+           assigned(currdef.typesym) and (sp_generic_para in currdef.typesym.symoptions) and
             (fwdef.owner=fwpdst) and
             (currdef.owner=currpdst) then
           begin

@@ -53,6 +53,9 @@ implementation
     {$ifndef NOTARGETMACOS}
       ,t_macos
     {$endif}
+    {$ifndef NOTARGETSINCLAIRQL}
+      ,t_sinclairql
+    {$endif}
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}

@@ -202,7 +202,8 @@
              system_z80_msxdos,         { 110 }
              system_aarch64_darwin,     { 111 }
              system_z80_amstradcpc,     { 112 }
-             system_wasm32_wasi         { 113 }
+             system_m68k_sinclairql,    { 113 }
+             system_wasm32_wasi         { 114 }
        );
 
      type
@@ -310,6 +311,7 @@
              ld_zxspectrum,
              ld_msxdos,
              ld_amstradcpc,
+             ld_sinclairql,
              ld_wasi
        );
 

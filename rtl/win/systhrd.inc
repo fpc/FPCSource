@@ -256,7 +256,12 @@ var
 {$endif DEBUG_MT}
         { Initialize multithreading if not done }
         SysInitTLS;
-        IsMultiThread:=true;
+        if not IsMultiThread then
+          begin
+           { lazy initialize thread support }
+            LazyInitThreading;
+            IsMultiThread:=true;
+          end;
 
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }

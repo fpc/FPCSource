@@ -107,11 +107,11 @@ const
       'fixedFMT',           // ftFmtBCD
       'string.uni',         // ftFixedWideChar
       'bin.hex:WideText',   // ftWideMemo
-      '',                   // ftOraTimeStamp
+      'SQLdateTime',        // ftOraTimeStamp
       '',                   // ftOraInterval
-      'i4',                 // ftLongWord
-      '',                   // ftShortint
-      '',                   // ftByte
+      'ui4',                // ftLongWord
+      'i1',                 // ftShortint
+      'ui1',                // ftByte
       ''                    // ftExtended
     );
 

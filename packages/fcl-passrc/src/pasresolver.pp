@@ -2341,8 +2341,9 @@ type
     function IsClassMethod(El: TPasElement): boolean;
     function IsClassField(El: TPasElement): boolean;
     function GetFunctionType(El: TPasElement): TPasFunctionType;
-    function MethodIsStatic(El: TPasProcedure): boolean;
+    function MethodIsStatic(El: TPasProcedure): boolean; // does not check if El is a method
     function IsMethod(El: TPasProcedure): boolean;
+    function IsMethod_SelfIsClass(El: TPasElement): boolean;
     function IsHelperMethod(El: TPasElement): boolean; virtual;
     function IsHelper(El: TPasElement): boolean;
     function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
@@ -2372,6 +2373,7 @@ type
     function GetAttributeCallsEl(El: TPasElement): TPasExprArray; virtual;
     function GetAttributeCalls(Members: TFPList; Index: integer): TPasExprArray; virtual;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
+    function ProcHasSelf(El: TPasProcedure): boolean; // returns false for local procs
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
     function GetParentProc(El: TPasElement; GetDeclProc: boolean): TPasProcedure;
@@ -10836,6 +10838,30 @@ procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
       end;
   end;
 
+  procedure CheckIncompatibleProc(const CallName: string;
+    FoundProcType: TPasProcedureType; TemplParamsCnt: integer);
+  var
+    FoundTemplCnt: Integer;
+    aName: String;
+  begin
+    CheckCallProcCompatibility(FoundProcType,Params,true);
+    if FoundProcType.GenericTemplateTypes<>nil then
+      FoundTemplCnt:=FoundProcType.GenericTemplateTypes.Count
+    else
+      FoundTemplCnt:=0;
+    if TemplParamsCnt<>FoundTemplCnt then
+      begin
+      if FoundProcType.Parent is TPasProcedure then
+        aName:=FoundProcType.Parent.Name
+      else
+        aName:=FoundProcType.Name;
+      if aName='' then
+        aName:=GetObjPath(FoundProcType);
+      RaiseMsg(20201101205447,nXExpectedButYFound,sXExpectedButYFound,
+               [aName,CallName+GetGenericParamCommas(TemplParamsCnt)],Params);
+      end;
+  end;
+
 var
   FindCallData: TFindCallElData;
   Abort: boolean;
@@ -10880,7 +10906,7 @@ begin
     WriteScopes;
     {$ENDIF}
     if FoundEl is TPasProcedure then
-      CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true)
+      CheckIncompatibleProc(CallName,TPasProcedure(FoundEl).ProcType,TemplParamsCnt)
     else if FoundEl is TPasProcedureType then
       CheckTypeCast(TPasProcedureType(FoundEl),Params,true)
     else if FoundEl.ClassType=TPasUnresolvedSymbolRef then
@@ -10903,7 +10929,7 @@ begin
       begin
       TypeEl:=ResolveAliasType(TPasVariable(FoundEl).VarType);
       if TypeEl is TPasProcedureType then
-        CheckCallProcCompatibility(TPasProcedureType(TypeEl),Params,true)
+        CheckIncompatibleProc(CallName,TPasProcedureType(TypeEl),TemplParamsCnt)
       else
         RaiseMsg(20170405003522,nIllegalQualifierAfter,sIllegalQualifierAfter,
                  ['(',TypeEl.ElementTypeName],Params);
@@ -10912,7 +10938,7 @@ begin
       begin
       TypeEl:=ResolveAliasType(TPasArgument(FoundEl).ArgType);
       if TypeEl is TPasProcedureType then
-        CheckCallProcCompatibility(TPasProcedureType(TypeEl),Params,true)
+        CheckIncompatibleProc(CallName,TPasProcedureType(TypeEl),TemplParamsCnt)
       else
         RaiseMsg(20180228145412,nIllegalQualifierAfter,sIllegalQualifierAfter,
                  ['(',TypeEl.ElementTypeName],Params);
@@ -28418,7 +28444,7 @@ end;
 
 function TPasResolver.MethodIsStatic(El: TPasProcedure): boolean;
 begin
-  Result:=(ptmStatic in El.ProcType.Modifiers)
+  Result:=El.IsStatic
     or (El.ClassType=TPasClassConstructor)
     or (El.ClassType=TPasClassDestructor);
 end;
@@ -28433,6 +28459,16 @@ begin
   if not (El.CustomData is TPasProcedureScope) then exit;
   ProcScope:=TPasProcedureScope(El.CustomData);
   Result:=IsMethod(ProcScope.DeclarationProc);
+end;
+
+function TPasResolver.IsMethod_SelfIsClass(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  if (El=nil) then exit(false);
+  C:=El.ClassType;
+  Result:=((C=TPasClassProcedure) or (C=TPasClassFunction) or (C=TPasClassOperator))
+      and not TPasProcedure(El).IsStatic;
 end;
 
 function TPasResolver.IsHelperMethod(El: TPasElement): boolean;
@@ -28993,6 +29029,21 @@ end;
 function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;
 begin
   Result:=(El.Args.Count>0) and (TPasArgument(El.Args[0]).ValueExpr=nil);
+end;
+
+function TPasResolver.ProcHasSelf(El: TPasProcedure): boolean;
+var
+  C: TClass;
+begin
+  if El.IsStatic then
+    exit(false);
+  C:=El.Parent.ClassType;
+  if C.InheritsFrom(TPasSection) or (C=TProcedureBody) then
+    exit(false);
+  C:=El.ClassType;
+  if (C=TPasClassConstructor) or (C=TPasClassDestructor) then
+    exit(false);
+  Result:=true;
 end;
 
 function TPasResolver.IsProcOverride(AncestorProc, DescendantProc: TPasProcedure

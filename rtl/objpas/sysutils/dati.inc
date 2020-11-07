@@ -271,6 +271,17 @@ begin
   result := systemTimeToDateTime(SystemTime);
 end;
 
+{   NowUTC returns the current UTC Date and Time if available on the OS. If not, local date is returned   }
+
+function NowUTC: TDateTime;
+var
+  SystemTime: TSystemTime;
+begin
+  if not GetUniversalTime(SystemTime) then
+    GetLocalTime(SystemTime);
+  result := systemTimeToDateTime(SystemTime);
+end;
+
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
@@ -1525,16 +1536,21 @@ begin
   Result:=0;
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+begin
+  Result:=False;
+end;
+
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 begin
   Result:=False;
 end;
 {$ENDIF}
 
-function GetLocalTimeOffset(const DateTime: TDateTime): Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
 begin
-  if not GetLocalTimeOffset(DateTime, Result) then
-    Result:=GetLocalTimeOffset;
+  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result) then
+    Result:=GetLocalTimeOffset();
 end;
 
 { Conversion of UTC to local time and vice versa }
@@ -1542,7 +1558,7 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT));
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
@@ -1559,7 +1575,7 @@ end;
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT));
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;

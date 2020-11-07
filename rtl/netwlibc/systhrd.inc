@@ -133,6 +133,8 @@
           { We're still running in single thread mode, setup the TLS }
            pthread_key_create(@TLSKey,nil);
            InitThreadVars(@SysRelocateThreadvar);
+          { lazy initialize thread support }
+           LazyInitThreading;
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread

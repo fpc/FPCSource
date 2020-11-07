@@ -243,7 +243,7 @@ const
     );
 
   PCUDefaultConverterOptions: TPasToJsConverterOptions =
-    [coUseStrict,coStoreImplJS,coShortRefGlobals,coShortRefGenFunc];
+    [coUseStrict,coStoreImplJS,coShortRefGlobals];
   PCUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
@@ -255,8 +255,7 @@ const
     'RTLVersionCheckMain',
     'RTLVersionCheckSystem',
     'RTLVersionCheckUnit',
-    'ShortRefGlobals',
-    'ShortRefGenFuncs'
+    'ShortRefGlobals'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;
@@ -3979,7 +3978,7 @@ begin
     TemplObj:=TJSONObject.Create;
     Arr.Add(TemplObj);
     WritePasElement(TemplObj,Templ,aContext);
-    WriteElementArray(TemplObj,Parent,'Constraints',Templ.Constraints,aContext,true);
+    WriteElementArray(TemplObj,Templ,'Constraints',Templ.Constraints,aContext,true);
     end;
 end;
 
@@ -8204,7 +8203,7 @@ begin
     GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,Parent));
     GenericTemplateTypes.Add(GenType);
     ReadPasElement(TemplObj,GenType,aContext);
-    ReadElementArray(TemplObj,Parent,'Constraints',GenType.Constraints,
+    ReadElementArray(TemplObj,GenType,'Constraints',GenType.Constraints,
       {$IFDEF CheckPasTreeRefCount}'TPasGenericTemplateType.Constraints'{$ELSE}true{$ENDIF},
       aContext);
     end;

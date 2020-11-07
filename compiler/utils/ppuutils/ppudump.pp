@@ -233,7 +233,8 @@ const
   { 110 } 'MSX-DOS-Z80',
   { 111 } 'Darwin-AArch64',
   { 112 } 'AmstradCPC-Z80',
-  { 113 } 'WASI-WASM32'
+  { 113 } 'SinclairQL-m68k',
+  { 114 } 'WASI-WASM32'
   );
 
 const
@@ -1814,9 +1815,9 @@ end;
 procedure readcommonsym(const s:string; Def: TPpuDef = nil);
 var
   i: integer;
-  n: string;
+  n: ansistring;
 begin
-  n:=ppufile.getstring;
+  n:=readsymstr(ppufile);
   if Def <> nil then
     Def.Name:=n;
   i:=ppufile.getlongint;

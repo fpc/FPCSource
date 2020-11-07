@@ -198,7 +198,7 @@ Put + after a boolean switch option to enable it, - to disable it
       -OoRemoveNotUsedPrivates[-] : Default is enabled
       -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc
       -OoRemoveNotUsedPublished[-] : Default is disabled
-      -OoShortRefGlobals[-]: Insert JS local var for types and modules. Default enabled in -O2
+      -OoShortRefGlobals[-]: Insert JS local var for types, modules and static functions. Default enabled in -O2
   -P&lt;x&gt;   : Set target processor. Case insensitive:
     -Pecmascript5  : default
     -Pecmascript6
@@ -3254,6 +3254,7 @@ end.
     </li>
     <li>{$DispatchField Msg}: enable checking <i>message number</i> methods for record field name "Msg"</li>
     <li>{$DispatchStrField MsgStr}: enable checking <i>message string</i> methods for record field name "Msg"</li>
+    <li>{$Optimization Name}: same as command line option -OoName</li>
     </ul>
     Defines:
     <ul>

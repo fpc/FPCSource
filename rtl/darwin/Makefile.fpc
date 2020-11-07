@@ -180,7 +180,7 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$
                  unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
-unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(SYSTEMUNIT)$(PPUEXT)
+unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp  baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dl$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT)
@@ -209,7 +209,7 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(P
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+sysutils$(PPUEXT) : objpas$(PPUEXT) initc$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     unixtype$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 

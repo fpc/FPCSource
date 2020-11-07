@@ -155,7 +155,7 @@ type
     private
      fnextfieldname: TIDString;
      function getcuroffset: asizeint;
-     procedure setnextfieldname(AValue: TIDString);
+     procedure setnextfieldname(const AValue: TIDString);
     protected
      { type of the aggregate }
      fdef: tdef;
@@ -217,7 +217,7 @@ type
     private
      function getcurragginfo: taggregateinformation;
      procedure set_next_field(AValue: tfieldvarsym);
-     procedure set_next_field_name(AValue: TIDString);
+     procedure set_next_field_name(const AValue: TIDString);
     protected
      { temporary list in which all data is collected }
      fasmlist: tasmlist;
@@ -538,7 +538,7 @@ implementation
       end;
 
 
-    procedure taggregateinformation.setnextfieldname(AValue: TIDString);
+    procedure taggregateinformation.setnextfieldname(const AValue: TIDString);
       begin
         if (fnextfieldname<>'') or
            not anonrecord then
@@ -862,7 +862,7 @@ implementation
      end;
 
 
-    procedure ttai_typedconstbuilder.set_next_field_name(AValue: TIDString);
+    procedure ttai_typedconstbuilder.set_next_field_name(const AValue: TIDString);
       var
         info: taggregateinformation;
       begin

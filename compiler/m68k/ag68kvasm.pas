@@ -99,7 +99,9 @@ unit ag68kvasm;
           { a.out doesn't support named sections }
           system_m68k_amiga: objtype:='-Felf';
           { atari never had a standard object format, a.out is limited, vasm/vlink author recommends vobj }
-          system_m68k_atari: objtype:='-Fvobj';
+          system_m68k_atari,
+          { same with the QL }
+          system_m68k_sinclairql: objtype:='-Fvobj';
         else
           internalerror(2016052601);
         end;
@@ -133,7 +135,7 @@ unit ag68kvasm;
          idtxt  : 'VASM';
          asmbin : 'vasmm68k_std';
          asmcmd:  '-quiet -elfregs -gas $OTYPE $ARCH -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_m68k_amiga,system_m68k_atari];
+         supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_sinclairql];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;

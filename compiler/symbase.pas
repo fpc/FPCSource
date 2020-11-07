@@ -71,15 +71,15 @@ interface
       { this object is the base for all symbol objects }
       TSymEntry = class(TFPHashObject)
       private
-         FRealName : pshortstring;
-         function  GetRealname:shortstring;
-         procedure SetRealname(const ANewName:shortstring);
+         FRealName : {$ifdef symansistr}TSymStr{$else}pshortstring{$endif};
+         function  GetRealname: TSymStr;
+         procedure SetRealname(const ANewName: TSymStr);
       public
          typ   : tsymtyp;
          SymId : longint;
          Owner : TSymtable;
          destructor destroy;override;
-         property RealName:shortstring read GetRealName write SetRealName;
+         property RealName: TSymStr read GetRealName write SetRealName;
       end;
 
 {************************************************
@@ -167,6 +167,10 @@ implementation
     procedure THashedIDString.SetId(const s:TIDString);
       begin
         FId:=s;
+{$ifdef symansistr}
+        if length(FId)>maxidlen then
+          SetLength(FId,maxidlen);
+{$endif}
         FHash:=FPHash(s);
       end;
 
@@ -180,7 +184,9 @@ implementation
 {$ifdef MEMDEBUG}
         memrealnames.start;
 {$endif MEMDEBUG}
+{$ifndef symansistr}
         stringdispose(Frealname);
+{$endif}
 {$ifdef MEMDEBUG}
         memrealnames.stop;
 {$endif MEMDEBUG}
@@ -188,24 +194,34 @@ implementation
       end;
 
 
-    function TSymEntry.GetRealname:shortstring;
+    function TSymEntry.GetRealname:TSymStr;
       begin
+{$ifndef symansistr}
         if not assigned(FRealname) then
           internalerror(200611011);
         result:=FRealname^;
+{$else}
+       if FRealName='' then
+         internalerror(200611011);
+       result:=FRealName;
+{$endif}
       end;
 
 
-    procedure TSymEntry.SetRealname(const ANewName:shortstring);
+    procedure TSymEntry.SetRealname(const ANewName:TSymStr);
       begin
+{$ifndef symansistr}
         stringdispose(FRealname);
         FRealname:=stringdup(ANewName);
+{$else}
+        FRealname:=ANewName;
+{$endif}
         if Hash<>$ffffffff then
           begin
-            if FRealname^[1]='$' then
-              Rename(Copy(FRealname^,2,255))
+            if ANewName[1]='$' then
+              Rename(Copy(ANewName,2,length(ANewName)))
             else
-              Rename(Upper(FRealname^));
+              Rename(Upper(ANewName));
           end;
       end;
 
