@@ -2943,6 +2943,10 @@ procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: string);
 
 begin
   case lowercase(OptName) of
+  'enumnumbers':
+    HandleBoolean(coEnumNumbers,true);
+  'usestrict':
+    HandleBoolean(coUseStrict,true);
   'jsshortrefglobals':
     HandleBoolean(coShortRefGlobals,true);
   else

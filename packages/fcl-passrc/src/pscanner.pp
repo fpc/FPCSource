@@ -3424,6 +3424,12 @@ begin
     if p=StartP then
       Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization']);
     OptName:=copy(Param,StartP,p-StartP);
+    if lowercase(LeftStr(OptName,2))='no' then
+      begin
+      Delete(OptName,1,2);
+      DoHandleOptimization(OptName,'-');
+      exit;
+      end;
     // skip whitespace
     while (p<=l) and (Param[p] in [' ',#9,#10,#13]) do
       inc(p);
