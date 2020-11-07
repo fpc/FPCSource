@@ -9828,6 +9828,8 @@ var
       CreateProcedureCall(Call,nil,ProcType,AContext);
       if ApplyParam<>nil then
         begin
+        if Call.Args=nil then
+          Call.Args:=TJSArguments(CreateElement(TJSArguments,ProcType));
         Call.InsertArg(0,ApplyParam);
         ApplyParam:=nil;
         if AContext is TDotContext then
