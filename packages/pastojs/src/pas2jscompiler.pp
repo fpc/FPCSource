@@ -3756,6 +3756,10 @@ begin
     begin
       Enable:=c='+';
       Delete(aValue,length(aValue),1);
+    end
+    else if lowercase(LeftStr(aValue,2))='no' then begin
+      Enable:=false;
+      Delete(aValue,1,2);
     end;
     Case LowerCase(aValue) of
      'enumnumbers': SetOption(coEnumValuesAsNumbers,Enable);
@@ -4738,7 +4742,8 @@ begin
   w('      -OoEnumNumbers[-]: write enum value as number instead of name. Default in -O1.');
   w('      -OoRemoveNotUsedPrivates[-]: Default is enabled');
   w('      -OoRemoveNotUsedDeclarations[-]: Default enabled for programs with -Jc');
-  w('      -OoShortRefGlobals[-]: Insert JS local var for types and modules. Default enabled in -O2');
+  w('      -OoRemoveNotUsedPublished[-] : Default is disabled');
+  w('      -OoShortRefGlobals[-]: Insert JS local var for types, modules and static functions. Default enabled in -O2');
   w('  -P<x>  : Set target processor. Case insensitive:');
   w('    -Pecmascript5: default');
   w('    -Pecmascript6');
