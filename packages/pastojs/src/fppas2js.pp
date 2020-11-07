@@ -15388,7 +15388,7 @@ begin
           RaiseNotSupported(El,AContext,20180405093512);
         end;
       NeedInitFunction:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext)
-                        or (IntfKind<>'');
+                        or (IntfKind<>'') or (coShortRefGlobals in Options);
       end;
 
     if NeedInitFunction then
