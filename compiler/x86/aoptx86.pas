@@ -6211,11 +6211,11 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
-
       var
-        hp1, hp2, hp3, hp4: tai;
+        hp1, hp2, hp3, hp4, hp5: tai;
       begin
         Result:=false;
+        hp5:=nil;
         { replace
             leal(q) x(<stackpointer>),<stackpointer>
             call   procname
@@ -6258,7 +6258,13 @@ unit aoptx86;
           GetNextInstruction(hp2, hp3) and
           { trick to skip label }
           ((hp3.typ=ait_instruction) or GetNextInstruction(hp3, hp3)) and
-          MatchInstruction(hp3,A_RET,[S_NO]) and
+          (MatchInstruction(hp3,A_RET,[S_NO]) or
+           (MatchInstruction(hp3,A_VZEROUPPER,[S_NO]) and
+            SetAndTest(hp3,hp5) and
+            GetNextInstruction(hp3,hp3) and
+            MatchInstruction(hp3,A_RET,[S_NO])
+           )
+          ) and
           (taicpu(hp3).ops=0) then
           begin
             taicpu(hp1).opcode := A_JMP;
@@ -6267,17 +6273,22 @@ unit aoptx86;
             RemoveCurrentP(p, hp4);
             RemoveInstruction(hp2);
             RemoveInstruction(hp3);
+            if Assigned(hp5) then
+              begin
+                AsmL.Remove(hp5);
+                ASmL.InsertBefore(hp5,hp1)
+              end;
             Result:=true;
           end;
       end;
 
 
     function TX86AsmOptimizer.PostPeepholeOptPush(var p : tai) : Boolean;
-
       var
-        hp1, hp2, hp3, hp4: tai;
+        hp1, hp2, hp3, hp4, hp5: tai;
       begin
         Result:=false;
+        hp5:=nil;
 {$ifdef x86_64}
         { replace
             push %rax
@@ -6309,7 +6320,13 @@ unit aoptx86;
           GetNextInstruction(hp2, hp3) and
           { trick to skip label }
           ((hp3.typ=ait_instruction) or GetNextInstruction(hp3, hp3)) and
-          MatchInstruction(hp3,A_RET,[S_NO]) and
+          (MatchInstruction(hp3,A_RET,[S_NO]) or
+           (MatchInstruction(hp3,A_VZEROUPPER,[S_NO]) and
+            SetAndTest(hp3,hp5) and
+            GetNextInstruction(hp3,hp3) and
+            MatchInstruction(hp3,A_RET,[S_NO])
+           )
+          ) and
           (taicpu(hp3).ops=0) then
           begin
             taicpu(hp1).opcode := A_JMP;
@@ -6318,6 +6335,11 @@ unit aoptx86;
             RemoveCurrentP(p, hp4);
             RemoveInstruction(hp2);
             RemoveInstruction(hp3);
+            if Assigned(hp5) then
+              begin
+                AsmL.Remove(hp5);
+                ASmL.InsertBefore(hp5,hp1)
+              end;
             Result:=true;
           end;
 {$endif x86_64}
@@ -6531,12 +6553,13 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
       var
-        hp1 : tai;
+        hp1,hp3 : tai;
 {$ifndef x86_64}
         hp2 : taicpu;
 {$endif x86_64}
       begin
         Result:=false;
+        hp3:=nil;
 {$ifndef x86_64}
         { don't do this on modern CPUs, this really hurts them due to
           broken call/ret pairing }
@@ -6569,7 +6592,13 @@ unit aoptx86;
         if ((cs_opt_level4 in current_settings.optimizerswitches) or
           (po_noreturn in current_procinfo.procdef.procoptions)) and
           GetNextInstruction(p, hp1) and
-          MatchInstruction(hp1,A_RET,[S_NO]) and
+          (MatchInstruction(hp1,A_RET,[S_NO]) or
+           (MatchInstruction(hp1,A_VZEROUPPER,[S_NO]) and
+            SetAndTest(hp1,hp3) and
+            GetNextInstruction(hp1,hp1) and
+            MatchInstruction(hp1,A_RET,[S_NO])
+           )
+          ) and
           (taicpu(hp1).ops=0) then
           begin
             if (cs_opt_level4 in current_settings.optimizerswitches) and
@@ -6583,6 +6612,11 @@ unit aoptx86;
             else
               DebugMsg(SPeepholeOptimization + 'CallRet2Call done',p);
             RemoveInstruction(hp1);
+            if Assigned(hp3) then
+              begin
+                AsmL.Remove(hp3);
+                AsmL.InsertBefore(hp3,p)
+              end;
             Result:=true;
           end;
       end;
