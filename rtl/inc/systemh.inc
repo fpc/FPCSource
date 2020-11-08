@@ -1293,7 +1293,9 @@ Function  HexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { Char functions }
+{$ifdef VER3_2}
 Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$endif VER3_2}
 Function  UpCase(c:Char):Char;
 Function  LowerCase(c:Char):Char; overload;
 function  Pos(const substr : shortstring;c:char; Offset: Sizeint = 1): SizeInt;

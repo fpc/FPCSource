@@ -290,13 +290,14 @@ implementation
               statement_syssym:=new_dispose_statement(false);
             end;
 
-          in_ord_x :
+          in_ord_x,
+          in_chr_byte:
             begin
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
-              p1:=geninlinenode(in_ord_x,false,p1);
+              p1:=geninlinenode(l,false,p1);
               statement_syssym := p1;
             end;
 
