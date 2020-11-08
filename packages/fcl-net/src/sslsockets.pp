@@ -51,9 +51,12 @@ Type
   protected
     Procedure SetSSLActive(aValue : Boolean);
     function DoVerifyCert: boolean; virtual;  // if event define's change not accceptable, suggest to set virtual
+    Function GetLastSSLErrorString : String; virtual; abstract;
+    Function GetLastSSLErrorCode : Integer; virtual; abstract;
   public
     constructor Create; override;
     Destructor Destroy; override;
+    Function GetLastErrorDescription : String;override;
     // Class factory methods
     Class Procedure SetDefaultHandlerClass(aClass : TSSLSocketHandlerClass);
     Class Function GetDefaultHandlerClass : TSSLSocketHandlerClass;
@@ -64,6 +67,8 @@ Type
     function CreateSelfSignedCertificate: Boolean; virtual;
     Property CertGenerator : TX509Certificate Read FCertGenerator;
     Property SSLActive: Boolean read FSSLActive;
+    Property LastSSLErrorString : String Read GetLastSSLErrorString;
+    Property LastSSLErrorCode : Integer Read GetLastSSLErrorCode;
   published
     property SSLType: TSSLType read FSSLType write FSSLType;
     property VerifyPeerCert: Boolean read FVerifyPeerCert Write FVerifyPeerCert;
@@ -92,6 +97,7 @@ Resourcestring
     'Please include opensslsockets unit in program and recompile it.';
   SErrNoX509Certificate =
     'Cannot create a X509 certificate without SLL support';
+  SSSLErrorCode = 'SSL error code: %d';
 
 { TSSLSocketHandler }
 
@@ -175,6 +181,19 @@ begin
   FreeAndNil(FCertificateData);
   FreeAndNil(FCertGenerator);
   inherited Destroy;
+end;
+
+function TSSLSocketHandler.GetLastErrorDescription: String;
+begin
+  Result:='';
+  if LastSSLErrorCode<>0 then
+    Result:=Format(SSSLErrorCode,[GetLastSSLErrorCode]);
+  if LastSSLErrorString<>'' then
+    begin
+    if (Result<>'') then
+      Result:=Result+': ';
+    Result:=Result+LastSSLErrorString;
+    end;
 end;
 
 class procedure TSSLSocketHandler.SetDefaultHandlerClass(aClass: TSSLSocketHandlerClass);
