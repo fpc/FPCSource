@@ -35,6 +35,7 @@ type
     private
       Origin: DWord;
       UseVLink: boolean;
+      ExeLength: longint;
       function WriteResponseFile(isdll: boolean): boolean;
       procedure SetSinclairQLInfo;
       function MakeSinclairQLExe: boolean;
@@ -54,7 +55,7 @@ implementation
 
 
     const
-       DefaultOrigin = $20000;
+       DefaultOrigin = $0;
 
 
 constructor TLinkerSinclairQL.Create;
@@ -83,7 +84,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b rawbin1 $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b rawseg -q $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -105,10 +106,8 @@ end;
 function TLinkerSinclairQL.WriteResponseFile(isdll: boolean): boolean;
 var
   linkres  : TLinkRes;
-  i        : longint;
   HPath    : TCmdStrListItem;
   s        : string;
-  linklibc : boolean;
 begin
   WriteResponseFile:=False;
 
@@ -177,9 +176,13 @@ begin
       Add('SECTIONS');
       Add('{');
       Add('  . = 0x'+hexstr(Origin,8)+';');
-      Add('  .text : { *(.text .text.* _CODE _CODE.* ) }');
-      Add('  .data : { *(.data .data.* .rodata .rodata.* .fpc.* ) }');
-      Add('  .bss  : { *(_BSS _BSS.*) *(.bss .bss.*) *(_BSSEND _BSSEND.*) *(_HEAP _HEAP.*) *(.stack .stack.*) *(_STACK _STACK.*) }');
+      Add('  .text : {');
+      Add('      _stext = .;');
+      Add('      *(.text .text.* _CODE _CODE.* ) ');
+      Add('      *(.data .data.* .rodata .rodata.* .fpc.* ) ');
+      Add('      *(_BSS _BSS.*) *(.bss .bss.*) *(_BSSEND _BSSEND.*) *(_HEAP _HEAP.*) *(.stack .stack.*) *(_STACK _STACK.*) ');
+      Add('      _etext = .;');
+      Add('  }');
       Add('}');
     end;
 
@@ -200,6 +203,9 @@ var
   GCSectionsStr : string;
   FlagsStr : string;
   ExeName: string;
+  fd,fs: file;
+  buf: pointer;
+  bufread,bufsize: longint;
 begin
   StripStr:='';
   GCSectionsStr:='';
@@ -213,12 +219,10 @@ begin
   if UseVLink then
     begin
       if create_smartlink_sections then
-        GCSectionsStr:='-gc-all -sc';
+        GCSectionsStr:='-gc-all';
     end;
 
   ExeName:=current_module.exefilename;
-  if apptype = app_gui then
-    Replace(ExeName,target_info.exeext,'.prg');
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -232,12 +236,57 @@ begin
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
   MakeSinclairQLExe:=DoExec(BinStr,CmdStr,true,false);
+
+  { Kludge:
+      With the above linker script, vlink will produce two files,
+      "exename. text" and "exename. text.rel text". The former is the
+      binary itself, the second is the relocation info. Here we copy
+      the two together. I'll try to get vlink to do this for me in the
+      future. (KB) }
+  if MakeSinclairQLExe then
+    begin
+      ExeLength:=0;
+      bufsize:=16384;
+{$push}
+{$i-}
+      buf:=GetMem(bufsize);
+      assign(fd,exename);
+      rewrite(fd,1);
+
+      assign(fs,exename+'. text');
+      reset(fs,1);
+      repeat
+        blockread(fs,buf^,bufsize,bufread);
+        blockwrite(fd,buf^,bufread);
+      until eof(fs);
+      close(fs);
+      // erase(fs);
+
+      assign(fs,exename+'. text.rel text');
+      reset(fs,1);
+      repeat
+        blockread(fs,buf^,bufsize,bufread);
+        blockwrite(fd,buf^,bufread);
+      until eof(fs);
+      close(fs);
+      // erase(fs);
+
+      ExeLength:=FileSize(fd);
+      close(fd);
+{$pop}
+      MakeSinclairQLExe:=not (ExeLength = 0);
+    end;
 end;
 
 
 function TLinkerSinclairQL.MakeExecutable:boolean;
+const
+  DefaultBootString = '10 $SYM=RESPR($BINSIZE):LBYTES"win1_$EXENAME",$SYM:CALL $SYM';
 var
   success : boolean;
+  bootfile : TScript;
+  ExeName: String;
+  BootStr: String;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename);
@@ -250,6 +299,24 @@ begin
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
+
+  if (success) then
+    begin
+      ExeName:=current_module.exefilename;
+      BootStr:=DefaultBootString;
+
+      Replace(BootStr,'$BINSIZE',tostr(ExeLength)); { FIX ME }
+      Replace(BootStr,'$EXENAME',ExeName);
+
+      Replace(ExeName,target_info.exeext,'');
+      Replace(BootStr,'$SYM',ExeName);
+
+      { Write bootfile }
+      bootfile:=TScript.Create(outputexedir+ExeName);
+      bootfile.Add(BootStr);
+      bootfile.writetodisk;
+      bootfile.Free;
+    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
