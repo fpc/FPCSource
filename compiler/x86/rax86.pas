@@ -1446,7 +1446,6 @@ procedure Tx86Instruction.SetInstructionOpsize;
   end;
 
 var
-  iops: topsize;
   isBCastMemRef: boolean;
 begin
   if opsize<>S_NO then
@@ -1484,10 +1483,10 @@ begin
                   S_W :
                     case tx86operand(operands[2]).opsize of
                       S_L :
-                        iops:=S_WL;
+                        opsize:=S_WL;
   {$ifdef x86_64}
                       S_Q :
-                        iops:=S_WQ;
+                        opsize:=S_WQ;
   {$endif}
                       else
                         ;
@@ -1496,12 +1495,12 @@ begin
                     begin
                       case tx86operand(operands[2]).opsize of
                         S_W :
-                          iops:=S_BW;
+                          opsize:=S_BW;
                         S_L :
-                          iops:=S_BL;
+                          opsize:=S_BL;
   {$ifdef x86_64}
                         S_Q :
-                          iops:=S_BQ;
+                          opsize:=S_BQ;
   {$endif}
                         else
                           ;
