@@ -128,7 +128,7 @@ Type
     Destructor Destroy; override;
     // Owned by the JWT. The JSON header.
     Property JOSE : TJOSE Read FJOSE Write SetJOSE;
-    // Owned by the JWT. The set of claims. The actuall class will depend on the descendant.
+    // Owned by the JWT. The set of claims. The actual class will depend on the descendant.
     Property Claims : TClaims Read FClaims Write SetClaims;
     Property Signature : String Read FSignature Write FSignature;
   end;
