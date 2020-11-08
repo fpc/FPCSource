@@ -122,8 +122,12 @@ var
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+
+procedure haltproc(e:longint); external name '_haltproc';
+
 procedure system_exit;
 begin
+  haltproc(exitcode);
 end;
 
 {*****************************************************************************
@@ -146,6 +150,19 @@ begin
   CheckInitialStkLen := StkLen;
 end;
 
+procedure PrintStr(const s: shortstring);
+begin
+  io_sstrg($00010001,-1,@s[1],ord(s[0]));
+end;
+
+procedure PrintStr2(const s: shortstring);
+var
+  i: smallint;
+begin
+  for i:=1 to ord(s[0]) do
+    io_sbyte($00010001,-1,s[i]);
+end;
+
 
 begin
   StackLength := CheckInitialStkLen (InitialStkLen);
@@ -160,7 +177,7 @@ begin
   InitUnicodeStringManager;
 {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 { Setup stdin, stdout and stderr }
-  SysInitStdIO;
+(*  SysInitStdIO;*)
 { Reset IO Error }
   InOutRes:=0;
 { Setup command line arguments }

@@ -18,12 +18,15 @@
  ****************************************************************************}
 
 
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
+  Result:=mt_alchp(size, nil, -1);
 end;
 
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  mt_rechp(p);
 end;
