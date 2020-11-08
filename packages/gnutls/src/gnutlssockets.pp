@@ -40,6 +40,8 @@ Type
     function InitSession(AsServer: Boolean): Boolean; virtual;
     function DoneSession: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
+    function GetLastSSLErrorCode: Integer; override;
+    function GetLastSSLErrorString: String; override;
   Public
     Constructor create; override;
     destructor destroy; override;
@@ -288,7 +290,7 @@ begin
     exit;
   Result:=DoHandShake;
   if Result and VerifyPeerCert then
-    Result:=(not DoVerifyCert);
+    Result:=DoVerifyCert;
   if Result then
     SetSSLActive(True);
 end;
@@ -480,8 +482,8 @@ begin
     Result:=LoadCertificate(CertificateData.Certificate,CertificateData.PrivateKey);
   if Result and Not CertificateData.TrustedCertificate.Empty then
     Result:=LoadTrustedCertificate(CertificateData.TrustedCertificate);
-  if Result and (CertificateData.CertCA.FileName<>'') then
-    Result:=Result and SetTrustedCertificateDir(CertificateData.CertCA.FileName);
+  if Result and (CertificateData.TrustedCertsDir<>'') then
+    Result:=Result and SetTrustedCertificateDir(CertificateData.TrustedCertsDir);
   // If nothing was set, set defaults.
   if not Assigned(FCred) then
     begin
@@ -594,6 +596,16 @@ begin
 end;
 
 Function TGNUTLSSocketHandler.GNUTLSLastError: integer;
+begin
+  Result:=FGNUTLSLastError;
+end;
+
+function TGNUTLSSocketHandler.GetLastSSLErrorString: String;
+begin
+  Result:=FGNUTLSLastErrorString;
+end;
+
+function TGNUTLSSocketHandler.GetLastSSLErrorCode: Integer;
 begin
   Result:=FGNUTLSLastError;
 end;
