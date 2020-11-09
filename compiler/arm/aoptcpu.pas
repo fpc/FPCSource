@@ -220,11 +220,11 @@ Implementation
     var
       p: taicpu;
     begin
-      p := taicpu(hp);
       Result := false;
       if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
         exit;
 
+      p := taicpu(hp);
       case p.opcode of
         { These operands do not write into a register at all }
         A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD,
