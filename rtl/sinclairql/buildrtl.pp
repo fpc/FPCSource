@@ -5,10 +5,10 @@ unit buildrtl;
     uses
       si_prc,
 
-      ctypes, strings,
-      rtlconsts, sysconst, math, types,
-      typinfo, sortbase, fgl, classes,
-      charset, character, getopts,
+      ctypes, {strings,}
+      rtlconsts, {sysconst,} {math,} {types,}
+      {typinfo,} sortbase, {fgl,} {classes,}
+      charset, {character,} {getopts,}
       fpwidestring;
 
   implementation
