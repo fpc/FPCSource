@@ -70,6 +70,8 @@ type
     function Recv(Const Buffer; Count: Integer): Integer; virtual;
     function Send(Const Buffer; Count: Integer): Integer; virtual;
     function BytesAvailable: Integer; virtual;
+    // Call this to get extra error info.
+    Function GetLastErrorDescription : String; virtual;
     Property Socket : TSocketStream Read FSocket;
     Property LastError : Integer Read FLastError;
   end;
@@ -289,7 +291,7 @@ resourcestring
   strSocketCreationFailed = 'Creation of socket failed: %s';
   strSocketBindFailed = 'Binding of socket failed: %s';
   strSocketListenFailed = 'Listening on port #%d failed, error: %d';
-  strSocketConnectFailed = 'Connect to %s failed.';
+  strSocketConnectFailed = 'Connect to %s failed: %s';
   strSocketAcceptFailed = 'Could not accept a client connection on socket: %d, error %d';
   strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
   strSocketIOTimeOut = 'Failed to set IO Timeout to %d';
@@ -380,6 +382,11 @@ begin
   { we need ioctlsocket here }
 end;
 
+function TSocketHandler.GetLastErrorDescription: String;
+begin
+  Result:='';
+end;
+
 
 Function TSocketHandler.Close: Boolean;
 begin
@@ -401,7 +408,7 @@ begin
     seAcceptFailed     : s := strSocketAcceptFailed;
     seAcceptWouldBLock : S := strSocketAcceptWouldBlock;
     seIOTimeout        : S := strSocketIOTimeOut;
-    seConnectTimeOut    : s := strSocketConnectTimeout;
+    seConnectTimeOut   : s := strSocketConnectTimeout;
   end;
   s := Format(s, MsgArgs);
   inherited Create(s);
@@ -1117,6 +1124,7 @@ Var
   IsError : Boolean;
   TimeOutResult : TCheckTimeOutResult;
   Err: Integer;
+  aErrMsg : String;
 {$IFDEF HAVENONBLOCKING}
   FDS: TFDSet;
   TimeV: TTimeVal;
@@ -1171,7 +1179,10 @@ begin
     if TimeoutResult=ctrTimeout then
       Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])])
     else
-      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
+      begin
+      aErrMsg:=FHandler.GetLastErrorDescription;
+      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort]),aErrMsg]);
+      end;
 end;
 
 { ---------------------------------------------------------------------
@@ -1203,7 +1214,7 @@ Var
 begin
   Str2UnixSockAddr(FFilename,UnixAddr,AddrLen);
   If  FpConnect(ASocket,@UnixAddr,AddrLen)<>0 then
-    Raise ESocketError.Create(seConnectFailed,[FFilename]);
+    Raise ESocketError.Create(seConnectFailed,[FFilename,'']);
 end;
 {$endif}
 end.

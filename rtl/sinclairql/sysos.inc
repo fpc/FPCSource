@@ -15,6 +15,8 @@
 
  **********************************************************************}
 
+{$i qdos.inc}
+
 procedure Error2InOutRes(errno: longint);
 begin
 end;

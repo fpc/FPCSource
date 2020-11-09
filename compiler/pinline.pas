@@ -382,7 +382,7 @@ implementation
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resultdef).pointeddef.size,s32inttype,true),nil);
+                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));

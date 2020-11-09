@@ -75,6 +75,8 @@ type
     procedure TestMixed;
     Procedure TestComment;
     procedure TestErrors;
+    procedure TestGarbageOK;
+    procedure TestGarbageFail;
   end;
 
   TTestReader = Class(TBaseTestReader)
@@ -448,6 +450,18 @@ begin
   DoTestError('[,,]');
   DoTestError('[1,,]');
 
+end;
+
+procedure TBaseTestReader.TestGarbageOK;
+begin
+  TestRead('"a"sss',['string:a']);
+  TestRead('[null]xxx',['sa','null','ea']);
+end;
+
+procedure TBaseTestReader.TestGarbageFail;
+begin
+  DoTestError('"a"sss',[joStrict]);
+  DoTestError('[null]aaa',[joStrict]);
 end;
 
 

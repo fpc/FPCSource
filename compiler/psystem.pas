@@ -70,6 +70,7 @@ implementation
         systemunit.insert(csyssym.create('Slice',in_slice_x));
         systemunit.insert(csyssym.create('Seg',in_seg_x));
         systemunit.insert(csyssym.create('Ord',in_ord_x));
+        systemunit.insert(csyssym.create('Chr',in_chr_byte));
         systemunit.insert(csyssym.create('Pred',in_pred_x));
         systemunit.insert(csyssym.create('Succ',in_succ_x));
         systemunit.insert(csyssym.create('Exclude',in_exclude_x_y));

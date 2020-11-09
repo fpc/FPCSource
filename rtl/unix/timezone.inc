@@ -104,7 +104,7 @@ begin
 end;
 
 
-procedure DoGetLocalTimezone(info:pttinfo;const trans_start,trans_end:longint;var ATZInfo:TTZInfo);
+procedure DoGetLocalTimezone(info:pttinfo;const trans_start,trans_end:int64;var ATZInfo:TTZInfo);
 begin
   ATZInfo.validsince:=trans_start;
   ATZInfo.validuntil:=trans_end;

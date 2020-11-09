@@ -1522,6 +1522,8 @@ const
                         end
                        else
                         begin
+                          if actasmtoken = AS_LPAREN then
+                            oper.initref;
                           if not oper.SetupVar(expr,false) then
                             begin
                               { not a variable, check special variables.. }

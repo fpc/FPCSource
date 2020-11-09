@@ -178,8 +178,6 @@ unit cgx86;
       winstackpagesize = 4096;
 {$endif NOTARGETWIN}
 
-    function UseAVX: boolean;
-
     function UseIncDec: boolean;
 
     { returns true, if the compiler should use leave instead of mov/pop }
@@ -195,12 +193,6 @@ unit cgx86;
        symcpu,
        paramgr,procinfo,
        tgobj,ncgutil;
-
-    function UseAVX: boolean;
-      begin
-        Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]){$endif i8086};
-      end;
-
 
     { modern CPUs prefer add/sub over inc/dec because add/sub break instructions dependencies on flags
       because they modify all flags }
