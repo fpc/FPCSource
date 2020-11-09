@@ -3402,9 +3402,8 @@ begin
     features:=features+target_unsup_features;
 
 {$if defined(atari) or defined(hasamiga)}
-   { enable vlink as default linker on Atari, Amiga, and MorphOS, but not for cross compilers (for now) }
-   if (target_info.system in [system_m68k_amiga,system_m68k_atari,
-                              system_powerpc_amiga]) and
+   { enable vlink as default linker on Atari and Amiga but not for cross compilers (for now) }
+   if (target_info.system in [system_m68k_amiga,system_m68k_atari,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
@@ -4508,6 +4507,11 @@ begin
             exclude(init_settings.moduleswitches,cs_fp_emulation);
             init_settings.fputype:=fpu_68881;
           end;
+      end;
+    system_m68k_sinclairql:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mc68000;
       end;
     system_m68k_palmos:
       begin
