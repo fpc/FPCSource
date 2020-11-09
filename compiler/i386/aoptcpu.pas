@@ -143,6 +143,8 @@ unit aoptcpu;
                   Result:=OptPass1Imul(p);
                 A_CMP:
                   Result:=OptPass1Cmp(p);
+                A_VPXORD,
+                A_VPXORQ,
                 A_VXORPS,
                 A_VXORPD,
                 A_VPXOR:

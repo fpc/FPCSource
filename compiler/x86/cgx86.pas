@@ -1891,6 +1891,9 @@ unit cgx86;
             if UseAVX then
               begin
                 asmop:=opmm2asmop_full_avx[op];
+                { A_VPXOR does not support the upper 16 registers }
+                if (asmop=A_VPXOR) and (FPUX86_HAS_32MMREGS in fpu_capabilities[current_settings.fputype]) then
+                  asmop:=A_VPXORD;
                 if size in [OS_M256,OS_M512] then
                   Include(current_procinfo.flags,pi_uses_ymm);
               end
