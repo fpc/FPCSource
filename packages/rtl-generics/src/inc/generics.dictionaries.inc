@@ -138,6 +138,7 @@ var
   i: SizeInt;
   LEnumerator: TEnumerator<TDictionaryPair>;
 begin
+  Result := nil;
   SetLength(Result, ACount);
   LEnumerator := DoGetEnumerator;
 
@@ -292,6 +293,7 @@ var
   i: SizeInt;
   LEnumerator: TPointersEnumerator;
 begin
+  Result := nil;
   SetLength(Result, GetCount);
 
   try
@@ -480,6 +482,7 @@ begin
   if ASizePow2 < 0 then
     OutOfMemoryError;
 
+  LNewItems := nil;
   SetLength(LNewItems, ASizePow2);
   UpdateItemsThreshold(ASizePow2);
 
