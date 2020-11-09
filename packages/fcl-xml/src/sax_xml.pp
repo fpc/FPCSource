@@ -175,17 +175,6 @@ begin
             '<':
               begin
                 Inc(BufferPos);
-                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
-                begin
-                  Inc(BufferPos, 8);
-                  EnterNewScannerContext(scCData);
-                end
-                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
-                begin
-                  Inc(BufferPos, 3);
-                  EnterNewScannerContext(scComment);
-                end
-                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -206,17 +195,6 @@ begin
             '<':
               begin
                 Inc(BufferPos);
-                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
-                begin
-                  Inc(BufferPos, 8);
-                  EnterNewScannerContext(scCData);
-                end
-                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
-                begin
-                  Inc(BufferPos, 3);
-                  EnterNewScannerContext(scComment);
-                end
-                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -232,17 +210,6 @@ begin
             '<':
               begin
                 Inc(BufferPos);
-                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
-                begin
-                  Inc(BufferPos, 8);
-                  EnterNewScannerContext(scCData);
-                end
-                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
-                begin
-                  Inc(BufferPos, 3);
-                  EnterNewScannerContext(scComment);
-                end
-                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -252,9 +219,15 @@ begin
             end;
           end;
         scCData:
-          if (Buffer[BufferPos] = ']') and (Buffer[BufferPos + 1]=']') and (Buffer[BufferPos + 2]='>') then 
+          if (Length(FRawTokenText) = 0) and (Buffer[BufferPos] = '-') then
           begin
-            Inc(BufferPos, 3);
+            Inc(BufferPos);
+            EnterNewScannerContext(scComment);
+          end
+          else if (Buffer[BufferPos] = '>') and (RightStr(FRawTokenText, 2) = ']]') then
+          begin
+            FRawTokenText := Copy(FRawTokenText, 8, Length(FRawTokenText)-9);  //delete '[CDATA[' and ']]' from text
+            Inc(BufferPos);
             EnterNewScannerContext(scUnknown);
           end
           else
@@ -263,9 +236,10 @@ begin
             Inc(BufferPos);
           end;
         scComment:
-          if (Buffer[BufferPos] = '-') and (Buffer[BufferPos + 1]='-') and (Buffer[BufferPos + 2]='>') then  
+          if (Buffer[BufferPos] = '>') and (RightStr(FRawTokenText, 2) = '--') then
           begin
-            Inc(BufferPos, 3);
+            FRawTokenText := Copy(FRawTokenText, 2, Length(FRawTokenText)-3);  //delete '-' and '--' from text
+            Inc(BufferPos);
             EnterNewScannerContext(scUnknown);
           end
           else
@@ -308,6 +282,11 @@ begin
                 FAttrNameRead := True;
                 FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
+              end;
+            '!':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scCData);
               end;
             '>':
               begin
