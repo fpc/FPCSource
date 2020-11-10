@@ -629,6 +629,15 @@ begin
                   Item.Values.Add('XMM18' + sSuffix);
                   Item.Values.Add('XMM27' + sSuffix);
                   Item.Values.Add('XMM31' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('XMM0');
+                    Item.Values.Add('XMM9');
+                    Item.Values.Add('XMM18');
+                    Item.Values.Add('XMM27');
+                    Item.Values.Add('XMM31');
+                  end;    
                 end
                 else
                 begin
@@ -637,6 +646,15 @@ begin
                   Item.Values.Add('XMM8' + sSuffix);
                   Item.Values.Add('XMM12' + sSuffix);
                   Item.Values.Add('XMM15' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('XMM0');
+                    Item.Values.Add('XMM4');
+                    Item.Values.Add('XMM8');
+                    Item.Values.Add('XMM12');
+                    Item.Values.Add('XMM15');
+                  end;    
                 end;
               end;
             end
@@ -674,17 +692,26 @@ begin
                 if FAVX512 then
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add('XMM9');
                   Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add('XMM18');
                   Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add('XMM27');
                   Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add('XMM31');
                 end
                 else
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add('XMM4');
                   Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add('XMM8');
                   Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add('XMM15');
                   Item.Values.Add('XMM15' + sSuffix);
                 end;
 
@@ -730,18 +757,28 @@ begin
                 if FAVX512 then
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add('XMM9');
                   Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add('XMM18');
                   Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add('XMM27');
                   Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add('XMM31');
                 end
                 else
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add('XMM4');
                   Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add('XMM8');
                   Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add('XMM12');
                   Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add('XMM15');
                 end;
 
                 //Item.Values.Add('[RIP]');
@@ -790,18 +827,28 @@ begin
                 if FAVX512 then
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add('XMM9');
                   Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add('XMM18');
                   Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add('XMM27');
                   Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add('XMM31');
                 end
                 else
                 begin
                   Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add('XMM0');
                   Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add('XMM4');
                   Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add('XMM8');
                   Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add('XMM12');
                   Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add('XMM15');
                 end;
 
                 //Item.Values.Add('[RIP]');
@@ -852,6 +899,15 @@ begin
                   Item.Values.Add('YMM18' + sSuffix);
                   Item.Values.Add('YMM27' + sSuffix);
                   Item.Values.Add('YMM31' + sSuffix);
+                  
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('YMM0');
+                    Item.Values.Add('YMM9');
+                    Item.Values.Add('YMM18');
+                    Item.Values.Add('YMM27');
+                    Item.Values.Add('YMM31');                      
+                  end;
                 end
                 else
                 begin
@@ -860,6 +916,15 @@ begin
                   Item.Values.Add('YMM8' + sSuffix);
                   Item.Values.Add('YMM12' + sSuffix);
                   Item.Values.Add('YMM15' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('YMM0');
+                    Item.Values.Add('YMM4');
+                    Item.Values.Add('YMM8');
+                    Item.Values.Add('YMM12');
+                    Item.Values.Add('YMM15');
+                  end;    
                 end;
               end;
             end
@@ -900,8 +965,17 @@ begin
                   Item.Values.Add('YMM0' + sSuffix);
                   Item.Values.Add('YMM9' + sSuffix);
                   Item.Values.Add('YMM18' + sSuffix);
-                  Item.Values.Add('YMM27' + sSuffix);
+                  Item.Values.Add('YMM27' +  sSuffix);
                   Item.Values.Add('YMM31' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('YMM0');
+                    Item.Values.Add('YMM9');
+                    Item.Values.Add('YMM18');
+                    Item.Values.Add('YMM27');
+                    Item.Values.Add('YMM31');
+                  end;    
                 end
                 else
                 begin
@@ -910,6 +984,15 @@ begin
                   Item.Values.Add('YMM8' + sSuffix);
                   Item.Values.Add('YMM12' + sSuffix);
                   Item.Values.Add('YMM15' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('YMM0');
+                    Item.Values.Add('YMM4');
+                    Item.Values.Add('YMM8');
+                    Item.Values.Add('YMM12');
+                    Item.Values.Add('YMM15');
+                  end;    
                 end;
 
                 MemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64Index, Item.Values);
@@ -957,6 +1040,15 @@ begin
                   Item.Values.Add('ZMM18' + sSuffix);
                   Item.Values.Add('ZMM27' + sSuffix);
                   Item.Values.Add('ZMM31' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('ZMM0');
+                    Item.Values.Add('ZMM9');
+                    Item.Values.Add('ZMM18');
+                    Item.Values.Add('ZMM27');
+                    Item.Values.Add('ZMM31');
+                  end;    
                 end
                 else
                 begin
@@ -1007,6 +1099,15 @@ begin
                   Item.Values.Add('ZMM18' + sSuffix);
                   Item.Values.Add('ZMM27' + sSuffix);
                   Item.Values.Add('ZMM31' + sSuffix);
+
+                  if sSuffix <> '' then
+                  begin
+                    Item.Values.Add('ZMM0');
+                    Item.Values.Add('ZMM9');
+                    Item.Values.Add('ZMM18');
+                    Item.Values.Add('ZMM27');
+                    Item.Values.Add('ZMM31');
+                  end;    
                 end
                 else
                 begin
@@ -1277,11 +1378,15 @@ begin
 
               if x64 then
               begin
-                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
+		VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
+		if sSuffix <> '' then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
+		if sSuffix <> '' then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
               end;
             end
             else if AnsiSameText(sl_Operand, 'XMEM64') or
@@ -1308,10 +1413,14 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
+                if sSuffix <> '' then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
+                if sSuffix <> '' then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
               end;
 
             end
@@ -1339,10 +1448,14 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
+                if sSuffix <> '' then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
+                if sSuffix <> '' then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
               end;
 
             end
@@ -1370,10 +1483,14 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
+		if sSuffix <> '' then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
+                if sSuffix <> '' then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
               end;
 
             end
@@ -1401,10 +1518,14 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
+		if sSuffix <> '' then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
+		if sSuffix <> '' then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
               end;
 
             end
@@ -1432,10 +1553,14 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
+		if sSuffix <> '' then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
+                if sSuffix <> '' then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
               end;
 
             end
