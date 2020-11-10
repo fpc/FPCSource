@@ -154,7 +154,7 @@ type
     rvcUnit
     );
   TP2JSResourceStringFile = (rsfNone,rsfUnit,rsfProgram);
-  TResourceMode = (rmNone,rmHTML,rmJS);
+  TResourceMode = (Skip,rmNone,rmHTML,rmJS);
 
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coWriteableConst,coUseStrict,coSourceMapXSSIHeader];
@@ -1101,6 +1101,8 @@ begin
   Scanner.CurrentValueSwitch[vsInterfaces]:=InterfaceTypeNames[Compiler.InterfaceType];
   if coAllowCAssignments in Compiler.Options then
     Scanner.Options:=Scanner.Options+[po_cassignments];
+  if Compiler.ResourceMode=rmNone then
+    Scanner.Options:= Scanner.Options+[po_DisableResources];
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
@@ -4717,8 +4719,8 @@ begin
   w('     -Jrnone: Do not write resource string file');
   w('     -Jrunit: Write resource string file per unit with all resource strings');
   w('     -Jrprogram: Write resource string file per program with all used resource strings in program');
-  w('   -Jr<x> Control writing of linked resources');
-  w('     -JRnone: Do not write resources');
+  w('   -JR<x> Control writing of linked resources');
+  w('     -JRnone: Skip resource directives');
   w('     -JRjs: Write resources in Javascript structure');
   w('     -JRhtml[=filename] : Write resources as preload links in HTML file (default is projectfile-res.html)');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
