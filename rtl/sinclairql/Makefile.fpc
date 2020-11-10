@@ -29,7 +29,7 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=ql
+target=sinclairql
 cpu=m68k
 
 [compiler]

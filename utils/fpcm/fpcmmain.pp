@@ -103,7 +103,7 @@ interface
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
         'dragonfly', 'win16', 'wasm', 'freertos', 'zxspectrum', 'msxdos',
-        'ios','amstradcpc','ql'
+        'ios','amstradcpc','sinclairql'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -113,7 +113,7 @@ interface
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_wasm','_freertos','_zxspectrum','_msxdos',
-        '_ios','_amstradcpc','_ql'
+        '_ios','_amstradcpc','_sinclairql'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }

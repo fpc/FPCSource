@@ -4151,7 +4151,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tnetbsd_NetBSD
 6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
-6*2Tql_Sinclair QL
+6*2Tsinclairql_Sinclair QL
 # i8086 targets
 8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (and compatible)
