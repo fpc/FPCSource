@@ -122,7 +122,7 @@ Type
     palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
-    win16,wasm,freertos,zxspectrum,msxdos,ios,amstradcpc,ql
+    win16,wasm,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql
   );
   TOSes = Set of TOS;
 
