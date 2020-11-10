@@ -134,7 +134,8 @@ const
     'ExtClassConstWithoutExpr',
     'StopOnUnitInterface',
     'IgnoreUnknownResource',
-    'AsyncProcs');
+    'AsyncProcs',
+    'DisableResources');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,

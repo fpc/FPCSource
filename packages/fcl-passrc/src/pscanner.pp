@@ -656,7 +656,8 @@ type
     po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
     po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
     po_IgnoreUnknownResource,// Ignore resources for which no handler is registered.
-    po_AsyncProcs            // allow async procedure modifier
+    po_AsyncProcs,            // allow async procedure modifier
+    po_DisableResources      // Disable resources altogether
     );
   TPOptions = set of TPOption;
 
@@ -4087,7 +4088,8 @@ begin
       'POINTERMATH':
         DoBoolDirective(bsPointerMath);
       'R' :
-        HandleResource(Param);
+        if not (po_DisableResources in Options) then
+          HandleResource(Param);
       'RANGECHECKS':
         DoBoolDirective(bsRangeChecks);
       'SCOPEDENUMS':
