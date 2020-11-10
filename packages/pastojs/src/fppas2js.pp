@@ -2877,6 +2877,17 @@ begin
         SetStr(CurFilename);
         exit;
       end;
+    '%filename%':
+      begin
+        SetStr(ExtractFileName(CurFilename));
+        exit;
+      end;
+    '%unit%',
+    '%module%':
+      begin
+        SetStr(CurModuleName);
+        exit;
+      end;
     '%line%':
       begin
         SetStr(IntToStr(CurRow));
