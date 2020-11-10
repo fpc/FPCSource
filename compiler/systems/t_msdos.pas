@@ -117,12 +117,12 @@ implementation
         exit;
       if tcalo_vectorized_dead_strip_start in options then
         secname:='1_START'
+      else if tcalo_vectorized_dead_strip_item in options then
+        secname:='2_ITEM'
+      else if tcalo_vectorized_dead_strip_end in options then
+        secname:='3_END'
       else
-        if tcalo_vectorized_dead_strip_end in options then
-          secname:='3_END'
-        else
-          if tcalo_vectorized_dead_strip_item in options then
-            secname:='2_ITEM';
+	secname:='4_INV';
       secname:=make_mangledname(basename,st,secname);
     end;
 
