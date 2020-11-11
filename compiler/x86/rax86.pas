@@ -1540,8 +1540,8 @@ begin
                     ;
                 end;
               end;
-            //A_MOVSS,
-            //A_VMOVSS,
+            A_MOVSS,
+            A_VMOVSS,
             A_MOVD : { movd is a move from a mmx register to a
                        32 bit register or memory, so no opsize is correct here PM }
               exit;
