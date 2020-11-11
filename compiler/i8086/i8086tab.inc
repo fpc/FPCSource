@@ -19989,7 +19989,7 @@
     opcode  : A_VFNMADD231SD;
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
-    code    : #223#241#242#243#249#1#189#61#80;
+    code    : #223#232#234#241#242#243#249#1#189#61#80;
     flags   : [if_fma,if_t1s]
   ),
   (

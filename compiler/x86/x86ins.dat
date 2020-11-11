@@ -6782,7 +6782,7 @@ zmmreg_mz,zmmreg,bmem32                   \350\351\361\371\1\xBC\75\120         
 
 [VFNMADD231SD]
 (Ch_Mop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,xmmrm                       \337\361\362\363\371\1\xBD\75\120         FMA,T1S
+xmmreg,xmmreg,xmmrm                       \337\350\352\361\362\363\371\1\xBD\75\120 FMA,T1S
 xmmreg_mz,xmmreg,xmmreg_er                \350\352\361\362\363\371\1\xBD\75\120     FMA
 
 [VFNMADD231SS]
