@@ -544,6 +544,21 @@ begin
                   end;
                 end;
               end;
+            msiMemRegx16y32z64:
+              begin
+                for j := 1 to ops do
+                begin
+                  if operands[j].Opr.Typ = OPR_REGISTER then
+                  begin
+                    case getsubreg(operands[j].opr.reg) of
+                      R_SUBMMX: memrefsize := 16;
+                      R_SUBMMY: memrefsize := 32;
+                      R_SUBMMZ: memrefsize := 64;
+                      else Message(asmr_e_unable_to_determine_reference_size);
+                    end;
+                  end;
+                end;
+              end;
             msiMemRegx32y64:
               begin
                 for j := 1 to ops do
@@ -553,6 +568,21 @@ begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: memrefsize := 32;
                       R_SUBMMY: memrefsize := 64;
+                      else Message(asmr_e_unable_to_determine_reference_size);
+                    end;
+                  end;
+                end;
+              end;
+            msiMemRegx32y64z128:
+              begin
+                for j := 1 to ops do
+                begin
+                  if operands[j].Opr.Typ = OPR_REGISTER then
+                  begin
+                    case getsubreg(operands[j].opr.reg) of
+                      R_SUBMMX: memrefsize := 32;
+                      R_SUBMMY: memrefsize := 64;
+                      R_SUBMMZ: memrefsize := 128;
                       else Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
@@ -712,7 +742,7 @@ begin
             msiMultiple:
               ;
             else
-              Internalerror(2019081005);
+              Internalerror(2020111001);
           end;
 
           if memrefsize > -1 then
