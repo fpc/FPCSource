@@ -687,18 +687,16 @@ function TUnicodeSearchRec.GetTimeStamp: TDateTime;
 begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := FileDateToDateTime(Time);
 {$endif}
+    Result := FileDateToDateTime(Time);
 end;
 
 function TUnicodeSearchRec.GetTimeStampUTC: TDateTime;
 begin
 {$if declared(FindDataTimeToUTC)}
   if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := FileDateToUTC(Time);
 {$endif}
+    Result := FileDateToUTC(Time);
 end;
 
 { TRawbyteSearchRec }
@@ -707,18 +705,16 @@ function TRawbyteSearchRec.GetTimeStamp: TDateTime;
 begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := FileDateToDateTime(Time);
 {$endif}
+    Result := FileDateToDateTime(Time);
 end;
 
 function TRawbyteSearchRec.GetTimeStampUTC: TDateTime;
 begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := FileDateToUTC(Time);
 {$endif}
+    Result := FileDateToUTC(Time);
 end;
 
 { TUnicodeSymLinkRec }
@@ -727,9 +723,8 @@ function TUnicodeSymLinkRec.GetTimeStamp: TDateTime;
 begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := 0;
 {$endif}
+    Result := 0;
 end;
 
 { TRawbyteSymLinkRec }
@@ -738,9 +733,8 @@ function TRawbyteSymLinkRec.GetTimeStamp: TDateTime;
 begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
-{$else}
-  Result := 0;
 {$endif}
+    Result := 0;
 end;
 
 
