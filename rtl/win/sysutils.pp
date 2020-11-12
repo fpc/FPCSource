@@ -35,6 +35,7 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE HAS_FILEDATETIME}
 {$DEFINE OS_FILESETDATEBYNAME}
 
 // this target has an fileflush implementation, don't include dummy
@@ -664,6 +665,24 @@ begin
   Result:=-1;
 end;
 
+Function FileGetDate (Handle : THandle; out FileDateTime: TDateTime) : Boolean;
+Var
+  FT : TFileTime;
+begin
+  Result :=
+     GetFileTime(Handle,nil,nil,@ft) and
+     FindDataTimeToDateTime(FT, FileDateTime);
+end;
+
+Function FileGetDateUTC (Handle : THandle; out FileDateTimeUTC: TDateTime) : Boolean;
+Var
+  FT : TFileTime;
+begin
+  Result :=
+     GetFileTime(Handle,nil,nil,@ft) and
+     FindDataTimeToUTC(FT, FileDateTimeUTC);
+end;
+
 Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Var
   FT: TFileTime;
@@ -673,6 +692,30 @@ begin
     SetFileTime(Handle, nil, nil, @FT) then
     Exit;
   Result := GetLastError;
+end;
+
+Function FileSetDate (Handle : THandle; const Age: TDateTime) : Boolean;
+var
+  FT: TFiletime;
+  LT: TFiletime;
+  ST: TSystemTime;
+begin
+  DateTimeToSystemTime(Age,ST);
+  Result :=
+        SystemTimeToFileTime(ST,LT)
+    and LocalFileTimeToFileTime(LT,FT)
+    and SetFileTime(Handle,nil,nil,@FT);
+end;
+
+Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Boolean;
+var
+  FT: TFiletime;
+  ST: TSystemTime;
+begin
+  DateTimeToSystemTime(AgeUTC,ST);
+  Result :=
+    SystemTimeToFileTime(ST,FT) and
+    SetFileTime(Handle,nil,nil,@FT);
 end;
 
 {$IFDEF OS_FILESETDATEBYNAME}
