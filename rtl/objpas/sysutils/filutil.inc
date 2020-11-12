@@ -133,7 +133,7 @@ begin
   Result:=FindFirst(FileName,A,Info)=0;
   if Result then
     begin
-      FileDateTimeUTC:=FileDateToUTC(Info.Time);
+      FileDateTimeUTC:=FileDateToUniversal(Info.Time);
       FindClose(Info);
     end;
 end;
@@ -696,7 +696,7 @@ begin
 {$if declared(FindDataTimeToUTC)}
   if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
 {$endif}
-    Result := FileDateToUTC(Time);
+    Result := FileDateToUniversal(Time);
 end;
 
 { TRawbyteSearchRec }
@@ -714,7 +714,7 @@ begin
 {$if declared(FindDataTimeToDateTime)}
   if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
 {$endif}
-    Result := FileDateToUTC(Time);
+    Result := FileDateToUniversal(Time);
 end;
 
 { TUnicodeSymLinkRec }
@@ -821,3 +821,37 @@ Function GetFileAsString(Const aFileName : UnicodeString; aEncoding : TEncoding)
 begin
   Result:=aEncoding.GetString(GetFileContents(aFileName))
 end;
+
+{$IFNDEF HAS_FILEDATETIME}
+Function FileGetDate (Handle : THandle; out FileDateTime: TDateTime) : Boolean;
+Var
+  aDate : Int64;
+begin
+  aDate:=FileGetDate(Handle);
+  Result:=aDate>=0;
+  if Result then
+    FileDateTime:=FileDateToDateTime(aDate);
+end;
+
+Function FileGetDateUTC (Handle : THandle; out FileDateTimeUTC: TDateTime) : Boolean;
+Var
+  aDate : Int64;
+begin
+  aDate:=FileGetDate(Handle);
+  Result:=aDate>=0;
+  if Result then
+    FileDateTimeUTC:=FileDateToUniversal(aDate);
+end;
+
+Function FileSetDate (Handle : THandle; const Age: TDateTime) : Boolean;
+begin
+  Result := FileSetDate(DateTimeToFileDate(Age));
+end;
+
+Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Boolean;
+begin
+  Result := FileSetDate(DateTimeToFileDate(AgeUTC));
+end;
+
+
+{$ENDIF}
