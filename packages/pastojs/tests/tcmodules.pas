@@ -294,6 +294,7 @@ type
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
+    Procedure TestWideChar_VarArg;
     Procedure TestForCharDo;
     Procedure TestForCharInDo;
 
@@ -7435,6 +7436,7 @@ begin
   'const',
   '  a = #$00F3;',
   '  c: char = ''1'';',
+  '  wc: widechar = ''ä'';',
   'begin',
   '  c:=#0;',
   '  c:=#1;',
@@ -7462,7 +7464,8 @@ begin
   CheckSource('TestCharConst',
     LinesToStr([
     'this.a="ó";',
-    'this.c="1";'
+    'this.c="1";',
+    'this.wc="ä";'
     ]),
     LinesToStr([
     '$mod.c="\x00";',
@@ -7918,6 +7921,56 @@ begin
     'if ($mod.c.charCodeAt() in $mod.s) ;',
     'if ($mod.crg2.charCodeAt() in $mod.s) ;',
     '$mod.c = "a";',
+    '']));
+end;
+
+procedure TTestModule.TestWideChar_VarArg;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(var c: char);',
+  'begin',
+  'end;',
+  'procedure Run(var c: widechar);',
+  'begin',
+  'end;',
+  'var',
+  '  c: char;',
+  '  wc: widechar;',
+  'begin',
+  '  Fly(wc);',
+  '  Run(c);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestWideChar_VarArg',
+    LinesToStr([ // statements
+    'this.Fly = function (c) {',
+    '};',
+    'this.Run = function (c) {',
+    '};',
+    'this.c = "";',
+    'this.wc = "";',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.Fly({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.wc;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.wc = v;',
+    '    }',
+    '});',
+    '$mod.Run({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.c;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.c = v;',
+    '    }',
+    '});',
+    '',
     '']));
 end;
 
