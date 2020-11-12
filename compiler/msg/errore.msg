@@ -3575,7 +3575,7 @@ option_features_only_for_system_unit=11060_E_Feature switches are only supported
 % To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
 % system unit through the ppu of the system unit.
 option_debug_info_requires_external_linker=11061_N_The selected debug format is not supported by the internal linker, switching to external linking
-option_valgrind_heaptrc_mismatch=11062_E_You can't use both options ($1) ($2) at same time.
+option_valgrind_heaptrc_mismatch=11062_E_You can not use both options ($1) ($2) at same time.
 %\end{description}
 # EndOfTeX
 
