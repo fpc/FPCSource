@@ -25829,7 +25829,7 @@ begin
       end;
     if (Param.ArgType=nil) then
       exit(cExact); // untyped argument
-    if (ParamResolved.BaseType=ExprResolved.BaseType) then
+    if GetActualBaseType(ParamResolved.BaseType)=GetActualBaseType(ExprResolved.BaseType) then
       begin
       if msDelphi in CurrentParser.CurrentModeswitches then
         begin
@@ -27921,6 +27921,8 @@ end;
 
 function TPasResolver.IsSameType(TypeA, TypeB: TPasType;
   ResolveAlias: TPRResolveAlias): boolean;
+var
+  btA, btB: TResolverBaseType;
 begin
   if (TypeA=nil) or (TypeB=nil) then exit(false);
   case ResolveAlias of
@@ -27939,7 +27941,11 @@ begin
   if (TypeA.ClassType=TPasUnresolvedSymbolRef)
       and (TypeB.ClassType=TPasUnresolvedSymbolRef) then
     begin
-    Result:=CompareText(TypeA.Name,TypeB.Name)=0;
+    if CompareText(TypeA.Name,TypeB.Name)=0 then
+      exit(true);
+    btA:=TResElDataBaseType(TypeA.CustomData).BaseType;
+    btB:=TResElDataBaseType(TypeB.CustomData).BaseType;
+    Result:=GetActualBaseType(btA)=GetActualBaseType(btB);
     exit;
     end;
   Result:=false;
