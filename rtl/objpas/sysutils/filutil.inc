@@ -338,6 +338,16 @@ begin
 end;
 {$endif}
 
+Function FileSetDate (Const FileName : RawByteString;const FileDateTime : TDateTime) : Longint;
+begin
+  Result:=FileSetDate(UnicodeString(FileName),FileDateTime);
+end;
+
+Function FileSetDateUTC (Const FileName : RawByteString;const FileDateTimeUTC : TDateTime) : Longint;
+begin
+  Result:=FileSetDateUTC(UnicodeString(FileName),FileDateTimeUTC);
+end;
+
 
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 Var
@@ -843,15 +853,25 @@ begin
     FileDateTimeUTC:=FileDateToUniversal(aDate);
 end;
 
-Function FileSetDate (Handle : THandle; const Age: TDateTime) : Longint;
+Function FileSetDate (Handle : THandle; const FileDateTime: TDateTime) : Longint;
 begin
-  Result := FileSetDate(Handle,DateTimeToFileDate(Age));
+  Result := FileSetDate(Handle,DateTimeToFileDate(FileDateTime));
 end;
 
-Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Longint;
+Function FileSetDateUTC (Handle : THandle; const FileDateTimeUTC: TDateTime) : Longint;
 begin
-  Result := FileSetDate(Handle,UniversalToFileDate(AgeUTC));
+  Result := FileSetDate(Handle,UniversalToFileDate(FileDateTimeUTC));
 end;
 
+
+Function FileSetDate (Const FileName : UnicodeString;const FileDateTime : TDateTime) : Longint;
+begin
+  Result:=FileSetDate(FileName,DateTimeToFileDate(FileDateTime));
+end;
+
+Function FileSetDateUTC (Const FileName : UnicodeString;const FileDateTimeUTC : TDateTime) : Longint;
+begin
+  Result:=FileSetDate(FileName,UniversalToFileDate(FileDateTimeUTC));
+end;
 
 {$ENDIF}

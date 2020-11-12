@@ -694,13 +694,13 @@ begin
   Result := GetLastError;
 end;
 
-Function FileSetDate (Handle : THandle; const Age: TDateTime) : Longint;
+Function FileSetDate (Handle : THandle; const FileDateTime: TDateTime) : Longint;
 var
   FT: TFiletime;
   LT: TFiletime;
   ST: TSystemTime;
 begin
-  DateTimeToSystemTime(Age,ST);
+  DateTimeToSystemTime(FileDateTime,ST);
   if SystemTimeToFileTime(ST,LT) and LocalFileTimeToFileTime(LT,FT)
     and SetFileTime(Handle,nil,nil,@FT) then
     Result:=0
@@ -708,12 +708,12 @@ begin
     Result:=GetLastError;
 end;
 
-Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Longint;
+Function FileSetDateUTC (Handle : THandle; const FileDateTimeUTC: TDateTime) : Longint;
 var
   FT: TFiletime;
   ST: TSystemTime;
 begin
-  DateTimeToSystemTime(AgeUTC,ST);
+  DateTimeToSystemTime(FileDateTimeUTC,ST);
   if SystemTimeToFileTime(ST,FT) and SetFileTime(Handle,nil,nil,@FT) then
     Result:=0
   else
@@ -731,6 +731,40 @@ begin
   If (Fd<>feInvalidHandle) then
     try
       Result:=FileSetDate(fd,Age);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+
+Function FileSetDate (Const FileName : UnicodeString;const FileDateTime : TDateTime) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDate(fd,FileDateTime);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+
+Function FileSetDateUTC (Const FileName : UnicodeString;const FileDateTimeUTC : TDateTime) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDateUTC(fd,FileDateTimeUTC);
     finally
       FileClose(fd);
     end
