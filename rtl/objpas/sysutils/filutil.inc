@@ -338,16 +338,6 @@ begin
 end;
 {$endif}
 
-Function FileSetDate (Const FileName : RawByteString;const FileDateTime : TDateTime) : Longint;
-begin
-  Result:=FileSetDate(UnicodeString(FileName),FileDateTime);
-end;
-
-Function FileSetDateUTC (Const FileName : RawByteString;const FileDateTimeUTC : TDateTime) : Longint;
-begin
-  Result:=FileSetDateUTC(UnicodeString(FileName),FileDateTimeUTC);
-end;
-
 
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 Var
@@ -875,3 +865,13 @@ begin
 end;
 
 {$ENDIF}
+
+Function FileSetDate (Const FileName : RawByteString;const FileDateTime : TDateTime) : Longint;
+begin
+  Result:=FileSetDate(UnicodeString(FileName),FileDateTime);
+end;
+
+Function FileSetDateUTC (Const FileName : RawByteString;const FileDateTimeUTC : TDateTime) : Longint;
+begin
+  Result:=FileSetDateUTC(UnicodeString(FileName),FileDateTimeUTC);
+end;
