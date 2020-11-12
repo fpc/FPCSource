@@ -843,14 +843,14 @@ begin
     FileDateTimeUTC:=FileDateToUniversal(aDate);
 end;
 
-Function FileSetDate (Handle : THandle; const Age: TDateTime) : Boolean;
+Function FileSetDate (Handle : THandle; const Age: TDateTime) : Longint;
 begin
-  Result := FileSetDate(DateTimeToFileDate(Age));
+  Result := FileSetDate(Handle,DateTimeToFileDate(Age));
 end;
 
-Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Boolean;
+Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Longint;
 begin
-  Result := FileSetDate(DateTimeToFileDate(AgeUTC));
+  Result := FileSetDate(Handle,UniversalToFileDate(AgeUTC));
 end;
 
 

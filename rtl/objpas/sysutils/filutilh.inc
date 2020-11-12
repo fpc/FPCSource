@@ -235,8 +235,8 @@ Function FileGetDate (Handle : THandle) : Int64;
 Function FileGetDate (Handle : THandle; out FileDateTime: TDateTime) : Boolean;
 Function FileGetDateUTC (Handle : THandle; out FileDateTimeUTC: TDateTime) : Boolean;
 Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
-Function FileSetDate (Handle : THandle; const Age: TDateTime) : Boolean;
-Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Boolean;
+Function FileSetDate (Handle : THandle; const Age: TDateTime) : Longint;
+Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Longint;
 Function GetFileHandle(var f : File):THandle;
 Function GetFileHandle(var f : Text):THandle;
 

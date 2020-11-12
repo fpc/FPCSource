@@ -694,28 +694,30 @@ begin
   Result := GetLastError;
 end;
 
-Function FileSetDate (Handle : THandle; const Age: TDateTime) : Boolean;
+Function FileSetDate (Handle : THandle; const Age: TDateTime) : Longint;
 var
   FT: TFiletime;
   LT: TFiletime;
   ST: TSystemTime;
 begin
   DateTimeToSystemTime(Age,ST);
-  Result :=
-        SystemTimeToFileTime(ST,LT)
-    and LocalFileTimeToFileTime(LT,FT)
-    and SetFileTime(Handle,nil,nil,@FT);
+  if SystemTimeToFileTime(ST,LT) and LocalFileTimeToFileTime(LT,FT)
+    and SetFileTime(Handle,nil,nil,@FT) then
+    Result:=0
+  else
+    Result:=GetLastError;
 end;
 
-Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Boolean;
+Function FileSetDateUTC (Handle : THandle; const AgeUTC: TDateTime) : Longint;
 var
   FT: TFiletime;
   ST: TSystemTime;
 begin
   DateTimeToSystemTime(AgeUTC,ST);
-  Result :=
-    SystemTimeToFileTime(ST,FT) and
-    SetFileTime(Handle,nil,nil,@FT);
+  if SystemTimeToFileTime(ST,FT) and SetFileTime(Handle,nil,nil,@FT) then
+    Result:=0
+  else
+    Result:=GetLastError;
 end;
 
 {$IFDEF OS_FILESETDATEBYNAME}
