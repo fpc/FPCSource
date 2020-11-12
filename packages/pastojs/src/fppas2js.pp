@@ -26517,6 +26517,12 @@ begin
       begin
       bt:=TResElDataBaseType(El.CustomData).BaseType;
       case bt of
+      btWideChar: bt:=btChar;
+      btUnicodeString: bt:=btString;
+      btCurrency: bt:=btIntDouble;
+      end;
+
+      case bt of
       btShortInt,btByte,
       btSmallInt,btWord,
       btLongint,btLongWord,
@@ -26528,11 +26534,6 @@ begin
         begin
         // create rtl.basename
         Result:=GetBIName(pbivnRTL)+'.'+lowercase(AContext.Resolver.BaseTypeNames[bt]);
-        exit;
-        end;
-      btCurrency:
-        begin
-        Result:=GetBIName(pbivnRTL)+'.'+lowercase(AContext.Resolver.BaseTypeNames[btIntDouble]);
         exit;
         end;
       btCustom:
