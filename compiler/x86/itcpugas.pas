@@ -29,7 +29,7 @@ interface
       cgbase,cpubase;
 
     type
-      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM);
+      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX);
 
     const
       { include mnemonic strings }
@@ -75,6 +75,10 @@ interface
      att_sizemmsuffix : array[0..14] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM,S_ZMM
      );
+     att_sizemmxsuffix : array[0..14] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_NO,S_NO
+     );
+
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','q','bw','bl','wl',
@@ -103,6 +107,10 @@ interface
      att_sizemmsuffix : array[0..12] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM,S_ZMM
      );
+     att_sizemmxsuffix : array[0..12] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_NO,S_NO
+     );
+
 
 {$endif x86_64}
 

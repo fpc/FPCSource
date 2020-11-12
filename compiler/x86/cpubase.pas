@@ -509,7 +509,7 @@ implementation
             end;
           R_ADDRESSREGISTER:
             case reg of
-              NR_K0..NR_K7: reg_cgsize:=OS_64;
+              NR_K0..NR_K7: reg_cgsize:=OS_NO;
               else internalerror(2003031801);
             end;
           else
