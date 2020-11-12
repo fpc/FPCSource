@@ -532,7 +532,7 @@ begin
   CheckNegative(RemLength,'RemLength');
   CheckRange(StartIndex,0,Length);
   MoveIndex:=StartIndex+RemLength;
-  CheckRange(MoveIndex,0,Length-1);
+  CheckRange(MoveIndex,0,Length);
   if (Length-Moveindex)>0 then
     Move(FData[MoveIndex],FData[StartIndex],(Length-MoveIndex)*SizeOf(SBChar));
   Length:=Length-RemLength;
