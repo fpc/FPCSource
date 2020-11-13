@@ -13068,7 +13068,7 @@ begin
   bt:=ParamResolved.BaseType;
   if bt=btRange then
     bt:=ParamResolved.SubType;
-  if bt=btChar then
+  if bt in [btChar,btWideChar] then
     begin
     if Param is TParamsExpr then
       begin
