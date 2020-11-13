@@ -7937,9 +7937,11 @@ begin
   'var',
   '  c: char;',
   '  wc: widechar;',
+  '  w: word;',
   'begin',
   '  Fly(wc);',
   '  Run(c);',
+  '  wc:=WideChar(w);',
   '']);
   ConvertProgram;
   CheckSource('TestWideChar_VarArg',
@@ -7950,6 +7952,7 @@ begin
     '};',
     'this.c = "";',
     'this.wc = "";',
+    'this.w = 0;',
     '']),
     LinesToStr([ // this.$main
     '$mod.Fly({',
@@ -7970,6 +7973,7 @@ begin
     '      this.p.c = v;',
     '    }',
     '});',
+    '$mod.wc = String.fromCharCode($mod.w);',
     '',
     '']));
 end;
