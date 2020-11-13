@@ -294,7 +294,7 @@ type
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
-    Procedure TestWideChar_VarArg;
+    Procedure TestWideChar;
     Procedure TestForCharDo;
     Procedure TestForCharInDo;
 
@@ -7924,7 +7924,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestWideChar_VarArg;
+procedure TTestModule.TestWideChar;
 begin
   StartProgram(false);
   Add([
@@ -7942,6 +7942,7 @@ begin
   '  Fly(wc);',
   '  Run(c);',
   '  wc:=WideChar(w);',
+  '  w:=ord(wc);',
   '']);
   ConvertProgram;
   CheckSource('TestWideChar_VarArg',
@@ -7974,6 +7975,7 @@ begin
     '    }',
     '});',
     '$mod.wc = String.fromCharCode($mod.w);',
+    '$mod.w = $mod.wc.charCodeAt();',
     '',
     '']));
 end;
