@@ -92,12 +92,12 @@ type
   protected
     property Aborted: Boolean read FAborted;
     property Line: Integer read GetLine;
-    Property AutoCommit : Boolean Read FAutoCommit Write FAutoCommit;
-    property CommentsInSQL: Boolean read FCommentsInSQL write FCommentsInSQL;
-    property UseSetTerm: Boolean read FUseSetTerm write FUseSetTerm;
-    property UseCommit: Boolean read FUseCommit write FUseCommit;
-    property UseDefines: Boolean read FUseDefines write FUseDefines;
-    Property UseDollarString : Boolean Read FUseDollarString Write SetUseDollarString;
+    Property AutoCommit : Boolean Read FAutoCommit Write FAutoCommit default false;
+    property CommentsInSQL: Boolean read FCommentsInSQL write FCommentsInSQL default true;
+    property UseSetTerm: Boolean read FUseSetTerm write FUseSetTerm default true;
+    property UseCommit: Boolean read FUseCommit write FUseCommit Default true;
+    property UseDefines: Boolean read FUseDefines write FUseDefines default true;
+    Property UseDollarString : Boolean Read FUseDollarString Write SetUseDollarString default false;
     Property DollarStrings : TStrings Read FDollarStrings Write SetDollarStrings;
     property Defines : TStrings Read FDefines Write SetDefines;
     property Directives: TStrings read FDirectives write SetDirectives;
