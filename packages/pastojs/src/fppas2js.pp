@@ -12305,9 +12305,9 @@ begin
         end;
       end;
     end
-  else if to_bt=btChar then
+  else if to_bt in [btChar,btWideChar] then
     begin
-    if from_bt=btChar then
+    if from_bt in [btChar,btWideChar] then
       begin
       // char to char
       Result:=ConvertExpression(Param,AContext);
