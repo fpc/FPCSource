@@ -78,6 +78,7 @@ type
     procedure TestM_Class;
     procedure TestM_ClassForward;
     procedure TestM_Class_Property;
+    procedure TestM_ClassForward_Generic;
     procedure TestM_Class_PropertyProtected;
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_PropertyOverride2;
@@ -1151,6 +1152,30 @@ begin
   Add('  Obj.A:=Obj.A;');
   Add('  Obj.C:=Obj.C;');
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassForward_Generic;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'type',
+  '  {tobject_used}TObject = class',
+  '  end;',
+  '  TBird = class;',
+  '  TAnt = class end;',
+  '  TBird = class end;',
+  'implementation',
+  'type',
+  '  TBird2 = class;',
+  '  TAnt2 = class end;',
+  '  TBird2 = class end;',
+  'var Bird2: TBird2;',
+  'begin',
+  '  if Bird2=nil then;',
+  '']);
+  AnalyzeUnit;
 end;
 
 procedure TTestUseAnalyzer.TestM_Class_PropertyProtected;
