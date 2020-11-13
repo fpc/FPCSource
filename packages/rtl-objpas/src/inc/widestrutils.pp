@@ -43,8 +43,11 @@ function HasExtendCharacter(const S: RawByteString): boolean;
 function DetectUTF8Encoding(const S: RawByteString): TEncodeType;
 function IsUTF8String(const S: RawByteString): boolean;
 
+type
+  TBufferUTF8State = (u8sUnknown, u8sYes, u8sNo);
+
 //PartialAllowed must be set to true if the buffer is smaller than the file.
-function IsBufferUtf8(buf:PAnsiChar;PartialAllowed:boolean):boolean;
+function IsBufferUTF8(buf: PAnsiChar; bufSize: SizeInt; PartialAllowed: boolean): TBufferUTF8State;
 
 implementation
 
@@ -76,34 +79,37 @@ begin
   result:=(byte(thechar) and (128+64))=128;
 end;
 
-function IsBufferUtf8(buf:PAnsiChar;PartialAllowed:boolean):boolean;
+function IsBufferUTF8(buf: PAnsiChar; bufSize: SizeInt; PartialAllowed: boolean): TBufferUTF8State;
 {Buffer contains only valid UTF-8 characters, no secondary alone,
 no primary without the correct nr of secondary}
-var p:PAnsiChar;
-    utf8bytes:integer;
-    hadutf8bytes:boolean;
+var
+  p: PAnsiChar;
+  i: SizeInt;
+  utf8bytes: integer;
+  hadutf8bytes: boolean;
 begin
   p:=buf;
   hadutf8bytes:=false;
-  result:=false;
+  result:=u8sUnknown;
   utf8bytes:=0;
-  while p^<>#0 do
+  for i:= 1 to bufSize do
   begin
     if utf8bytes>0 then
     begin  {Expecting secondary AnsiChar}
       hadutf8bytes:=true;
-      if not IsSecondaryUTF8Char(p^) then exit;  {Fail!}
+      if not IsSecondaryUTF8Char(p^) then exit(u8sNo);  {Fail!}
       dec(utf8bytes);
     end
     else
     if IsFirstUTF8Char(p^) then
       utf8bytes:=bytesFromUTF8[p^]
     else
-    //if IsSecondaryUTF8Char(p^) then //Alexey: redundant check
-      exit;  {Fail!}
+    if IsSecondaryUTF8Char(p^) then
+      exit(u8sNo);  {Fail!}
     inc(p);
   end;
-    result:=hadutf8bytes and (PartialAllowed or (utf8bytes=0));
+  if hadutf8bytes and (PartialAllowed or (utf8bytes=0)) then
+    result:=u8sYes;
 end;
 
 function WideReplaceStr(const AText, AFromText, AToText: WideString): WideString; inline;
@@ -195,7 +201,7 @@ begin
   if FirstExtChar=0 then
     Result := etUSASCII
   else
-  if IsBufferUtf8(@S[FirstExtChar], false) then
+  if IsBufferUtf8(@S[FirstExtChar], Length(S)-FirstExtChar+1, false)=u8sYes then
     Result := etUTF8
   else
     Result := etANSI;
