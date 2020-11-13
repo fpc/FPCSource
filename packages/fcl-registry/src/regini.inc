@@ -318,5 +318,6 @@ end;
 procedure TRegIniFile.CloseSection;
 begin
   CloseKey(CurrentKey);
+  fCurrentKey:=0;
 end;
 
