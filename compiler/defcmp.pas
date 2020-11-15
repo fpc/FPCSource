@@ -289,7 +289,8 @@ implementation
              if assigned(tstoreddef(def_from).genconstraintdata) or
                  assigned(tstoreddef(def_to).genconstraintdata) then
                begin
-                 if def_from.typ<>def_to.typ then
+                 { constants could get another deftype (e.g. niln) }
+                 if (def_from.typ<>def_to.typ) and not(fromtreetype in nodetype_const) then
                    begin
                      { not compatible anyway }
                      doconv:=tc_not_possible;
