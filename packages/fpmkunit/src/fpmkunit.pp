@@ -158,7 +158,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmBuildInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo,rmDocProject);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -250,6 +250,7 @@ Const
 
   FPMakePPFile = 'fpmake.pp';
   ManifestFile = 'manifest.xml';
+  DocProjectFileExt = '-docs.xml';
   PkgListFileBase = 'pkg-';
   PkgListFileExt = '.lst';
 
@@ -330,6 +331,14 @@ Type
 
   { TCommands }
 
+  { TCommandEnumerator }
+
+  TCommandEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TCommand;
+    property Current: TCommand read GetCurrent;
+  end;
+
   TCommands = Class(TNamedCollection)
   private
     FDefaultAt: TCommandAt;
@@ -343,6 +352,7 @@ Type
     Function AddCommand(At : TCommandAt; Const Cmd : String) : TCommand;
     Function AddCommand(At : TCommandAt; Const Cmd,Options : String) : TCommand;
     Function AddCommand(At : TCommandAt; Const Cmd,Options, Dest,Source : String) : TCommand;
+    Function GetEnumerator : TCommandEnumerator;
     Property CommandItems[Index : Integer] : TCommand Read GetCommandItem Write SetCommandItem;
     Property Commands[Dest : String] : TCommand Read GetCommand; default;
     Property DefaultAt : TCommandAt Read FDefaultAt Write FDefaultAt;
@@ -440,7 +450,8 @@ Type
                         neaBeforeClean, neaAfterClean, neaBeforeArchive, neaAfterArchive,
                         neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
                         neaBeforeUnInstall, neaAfterUnInstall,
-                        neaBeforeCreateBuildEngine, neaAfterCreateBuildengine);
+                        neaBeforeCreateBuildEngine, neaAfterCreateBuildengine,
+                        neaBeforeDocProject, neaAfterDocProject);
 
   TNotifyEventActionSet = set of TNotifyEventAction;
 
@@ -456,11 +467,21 @@ Type
     procedure CallEvent(Sender: TObject);
   end;
 
+  { TNotifyEventEnumerator }
+
+  TNotifyEventEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TNotifyEventItem;
+    property Current: TNotifyEventItem read GetCurrent;
+  end;
+
+
   TNotifyEventCollection = class(TCollection)
   private
     FSupportedActionSet: TNotifyEventActionSet;
   public
     constructor create(ASupportedActionSet: TNotifyEventActionSet);
+    Function GetEnumerator : TNotifyEventEnumerator;
     procedure AppendEvent(AnAction: TNotifyEventAction; AnEvent: TNotifyEvent);
     procedure AppendProcEvent(AnACtion: TNotifyEventAction; AnProcEvent: TNotifyProcEvent);
     procedure CallEvents(AnAction: TNotifyEventAction; Sender: TObject);
@@ -538,6 +559,15 @@ Type
     property Targets: TTargets read FTargets;
   end;
 
+
+  { TPackageVariantEnumerator }
+
+  TPackageVariantEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TPackageVariant;
+    property Current: TPackageVariant read GetCurrent;
+  end;
+
   { TPackageVariants }
 
   TPackageVariants = class(TNamedCollection)
@@ -554,6 +584,7 @@ Type
     procedure SetDefaultPackageVariantName(AValue: string);
   public
     function Add(AName: String): TPackageVariant; overload; virtual;
+    Function GetEnumerator :  TPackageVariantEnumerator;
     property Name: string read FName write FName;
     property MasterPackage: TPackage read FMasterPackage;
     property DefaultPackageVariant: TPackageVariant read GetDefaultPackageVariant;
@@ -687,6 +718,15 @@ Type
     Property AfterClean : TNotifyEvent Read FAfterClean Write FAfterClean;
   end;
 
+
+  { TTargetEnumerator }
+
+  TTargetEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TTarget;
+    property Current: TTarget read GetCurrent;
+  end;
+
   { TTargets }
 
   TTargets = Class(TNamedCollection)
@@ -730,6 +770,7 @@ Type
     Function AddExampleProgram(Const AProgramName : String;const CPUs:TCPUs) : TTarget;inline;
 {$endif cpu_only_overloads}
     Function AddExampleProgram(Const AProgramName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+    Function GetEnumerator : TTargetEnumerator;
     Property Targets[AName : String] : TTarget Read GetTarget; default;
     Property TargetItems[Index : Integer] : TTarget Read GetTargetItem Write SetTargetItem;
   end;
@@ -751,6 +792,14 @@ Type
 
   { TSources }
 
+  { TSourceEnumerator }
+
+  TSourceEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TSource;
+    property Current: TSource read GetCurrent;
+  end;
+
   TSources = Class(TNamedCollection)
   private
     function GetSourceItem(Index : Integer): TSource;
@@ -762,6 +811,7 @@ Type
     Function AddExample(const AFiles : String) : TSource;
     Function AddExample(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddTest(const AFiles : String) : TSource;
+    Function GetEnumerator : TSourceEnumerator;
     procedure AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
     procedure AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
     procedure AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
@@ -960,6 +1010,14 @@ Type
     Property AfterPkgListProc : TNotifyProcEvent Read FAfterPkgListProc Write FAfterPkgListProc;
   end;
 
+  { TPackageEnumerator }
+
+  TPackageEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TPackage;
+    property Current: TPackage read GetCurrent;
+  end;
+
   { TPackages }
 
   TPackages = Class(TNamedCollection)
@@ -969,6 +1027,7 @@ Type
     procedure SetPackageItem(AIndex : Integer; const AValue: TPackage);
   Public
     Function AddPackage(Const AName : String) : TPackage;
+    Function GetEnumerator : TPackageEnumerator;
     Property Packages[AName : String] : TPackage Read GetPackage ; Default;
     Property PackageItems[AIndex : Integer] : TPackage Read GetPackageItem Write SetPackageItem;
   end;
@@ -981,6 +1040,7 @@ Type
     FBuildMode: TBuildMode;
     FCompiler: String;
     FCopy: String;
+    FFPDocOptions: String;
     FFPDocOutputDir: String;
     FFPUnitSourcePath: String;
     FIgnoreInvalidOptions: Boolean;
@@ -1000,6 +1060,8 @@ Type
     FLibInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FSingleFPDocFile: Boolean;
+    FSingleDocProjectFile: Boolean;
     FSearchPath: TStrings;
     FSkipCrossPrograms: boolean;
     FThreadsAmount: integer;
@@ -1102,7 +1164,9 @@ Type
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
     Property FPDocOutputDir : String Read GetFPDocOutputDir Write FFPDocOutputDir;
+    Property FPDocOptions : String Read FFPDocOptions Write FFPDocOptions;
     Property FPUnitSourcePath: String read GetFPUnitSourcePath Write FFPUnitSourcePath;
+
     // Command tools. If not set, internal commands  will be used.
     Property Compiler : String Read GetCompiler Write FCompiler; // Compiler. Defaults to fpc
     Property Copy : String Read FCopy Write FCopy;             // copy $(FILES) to $(DEST)
@@ -1116,6 +1180,7 @@ Type
     Property UseEnvironment : Boolean read FUseEnvironment write FUseEnvironment;
     Property IgnoreInvalidOptions: Boolean read FIgnoreInvalidOptions write FIgnoreInvalidOptions;
     Property BuildMode: TBuildMode read FBuildMode write FBuildMode;
+    Property SingleFPDocFile : Boolean Read FSingleFPDocFile Write FSingleFPDocFile;
     // Installation optioms
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
     Property SkipCrossPrograms: boolean read FSkipCrossPrograms write FSkipCrossPrograms;
@@ -1198,6 +1263,8 @@ Type
     procedure AddDependencyPaths(L: TStrings; DependencyType: TDependencyType; ATarget: TTarget);
     procedure AddDependencyUnitPaths(L:TStrings;APackage: TPackage);
     procedure AddDependencyTransmittedOptions(Args: TStrings; APackage: TPackage);
+    procedure GetDocProject(Proj: TStrings; P: TPackage; aIndent: string); virtual;
+
   Public
     Constructor Create(AOwner : TComponent); override;
     destructor Destroy;override;
@@ -1265,6 +1332,7 @@ Type
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages; Package: TPackage);
     procedure PkgList(Packages: TPackages);
+    procedure FPDocProject(Packages: TPackages; SingleDocFile : Boolean);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
     Procedure Log(Level : TVerboseLevel; Msg : String);
@@ -1274,6 +1342,7 @@ Type
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
     Property StartDir: String Read FStartDir;
+
     // Events
     Property NotifyEventCollection: TNotifyEventCollection read FNotifyEventCollection;
     Property OnLog : TLogEvent Read FOnLog Write FOnlog;
@@ -1312,7 +1381,8 @@ Type
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
     Procedure PkgList; virtual;
-    Procedure Info;
+    Procedure FPDocProject; virtual;
+    Procedure Info; virtual;
     procedure AddAutoPackageVariantsToPackage(APackage: TPackage); virtual;
   Public
     Constructor Create(AOwner : TComponent); virtual;
@@ -1466,7 +1536,7 @@ Function FixPath (const APath : String) : String; inline; deprecated 'Use the ov
 Function FixPath (const APath : String; AIsDir : Boolean) : String;
 Function IsRelativePath(const APath : String) : boolean;
 Procedure ChangeDir(const APath : String);
-Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
+Procedure SplitCommand(Const Cmd : String; out Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
@@ -1714,6 +1784,7 @@ ResourceString
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoCleanPackagecomplete = 'Clean of package %s completed';
   SInfoManifestPackage    = 'Creating manifest for package %s';
+  SInfoPackageDocProject  = 'Creating fpdoc project file for package %s';
   SInfoPkgListPackage    = 'Adding package %s to the package list';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoDeletedFile        = 'Deleted file "%s"';
@@ -1788,6 +1859,7 @@ ResourceString
   SHelpHelp           = 'This message.';
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
   SHelpPkgList        = 'Create list of all packages suitable for FPC installer.';
+  SHelpFPDocProject   = 'Create fpdoc project file(s) for all packages';
   SHelpZipInstall     = 'Install all units in the package(s) into an archive.';
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
@@ -1811,6 +1883,8 @@ ResourceString
   SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
+  sHelpSingleFpdocFile = 'Create a single fpdoc project file for all projects';
+  sHelpDocOptionsFile = 'Name=Value File with options for fpdoc project file';
   sHelpFPUnitSrcPath  = 'Sourcepath to replace in fpunits.cfg on installation.';
   sHelpThreads        = 'Enable the indicated amount of worker threads.';
   sHelpUseEnvironment = 'Use environment to pass options to compiler.';
@@ -2594,7 +2668,7 @@ Const
   WhiteSpace = [#9,#10,#13,' '];
   QuoteChars = ['''','"'];
 
-procedure SplitCommand(const Cmd : String; var Exe, Options : String);
+procedure SplitCommand(const Cmd : String; out Exe, Options : String);
 
 Var
   I : Integer;
@@ -2831,6 +2905,49 @@ begin
     GPluginManager := TfpmPluginManager.Create;
   Result := GPluginManager;
 end;
+
+{ TPackageEnumerator }
+
+function TPackageEnumerator.GetCurrent: TPackage;
+begin
+  Result:=TPackage(Inherited GetCurrent);
+end;
+
+{ TCommandEnumerator }
+
+function TCommandEnumerator.GetCurrent: TCommand;
+begin
+  Result:= TCommand(Inherited GetCurrent);
+end;
+
+{ TNotifyEventEnumerator }
+
+function TNotifyEventEnumerator.GetCurrent: TNotifyEventItem;
+begin
+  Result:= TNotifyEventItem( Inherited GetCurrent);
+end;
+
+{ TPackageVariantEnumerator }
+
+function TPackageVariantEnumerator.GetCurrent: TPackageVariant;
+begin
+  Result:= TPackageVariant( Inherited GetCurrent);
+end;
+
+{ TTargetEnumerator }
+
+function TTargetEnumerator.GetCurrent: TTarget;
+begin
+  Result:=TTarget(Inherited GetCurrent);
+end;
+
+{ TSourceEnumerator }
+
+function TSourceEnumerator.GetCurrent: TSource;
+begin
+  Result:=TSource(Inherited GetCurrent);
+end;
+
 
 { TResourceFiles }
 
@@ -3077,6 +3194,11 @@ begin
   result.Name := AName;
   if FDefaultPackageVariantName='' then
     FDefaultPackageVariantName:=AName;
+end;
+
+function TPackageVariants.GetEnumerator: TPackageVariantEnumerator;
+begin
+  Result:= TPackageVariantEnumerator.Create(Self);
 end;
 
 
@@ -3329,13 +3451,13 @@ begin
   Result.TargetType:=ttFPDoc;
 end;
 
-Function TTargets.AddUnit(Const AUnitName : String) : TTarget;
+function TTargets.AddUnit(const AUnitName: String): TTarget;
 begin
   Result:=AddUnit(AUnitName,AllCPUs,AllOSes);
 end;
 
 
-Function TTargets.AddUnit(Const AUnitName : String;const OSes:TOSes) : TTarget;
+function TTargets.AddUnit(const AUnitName: String; const OSes: TOSes): TTarget;
 begin
   Result:=AddUnit(AUnitName,AllCPUs,OSes);
 end;
@@ -3349,7 +3471,8 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TTargets.AddUnit(Const AUnitName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+function TTargets.AddUnit(const AUnitName: String; const CPUs: TCPUs;
+  const OSes: TOSes): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=AUnitName;
@@ -3359,25 +3482,29 @@ begin
 end;
 
 
-Function TTargets.AddImplicitUnit(Const AUnitName : String;InstallUnit:boolean=true) : TTarget;
+function TTargets.AddImplicitUnit(const AUnitName: String; InstallUnit: boolean
+  ): TTarget;
 begin
   Result:=AddImplicitUnit(AUnitName,AllCPUs,AllOSes,InstallUnit);
 end;
 
 
-Function TTargets.AddImplicitUnit(Const AUnitName : String;const OSes:TOSes;InstallUnit:boolean=true) : TTarget;
+function TTargets.AddImplicitUnit(const AUnitName: String; const OSes: TOSes;
+  InstallUnit: boolean): TTarget;
 begin
   Result:=AddImplicitUnit(AUnitName,AllCPUs,OSes,InstallUnit);
 end;
 
 
-Function TTargets.AddImplicitUnit(Const AUnitName : String;const CPUs:TCPUs;InstallUnit:boolean=true) : TTarget;
+function TTargets.AddImplicitUnit(const AUnitName: String; const CPUs: TCPUs;
+  InstallUnit: boolean): TTarget;
 begin
   Result:=AddImplicitUnit(AUnitName,CPUs,AllOSes,InstallUnit);
 end;
 
 
-Function TTargets.AddImplicitUnit(Const AUnitName : String;const CPUs:TCPUs;const OSes:TOSes;InstallUnit:boolean=true) : TTarget;
+function TTargets.AddImplicitUnit(const AUnitName: String; const CPUs: TCPUs;
+  const OSes: TOSes; InstallUnit: boolean): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=AUnitName;
@@ -3390,13 +3517,14 @@ begin
 end;
 
 
-Function TTargets.AddProgram(Const AProgramName : String) : TTarget;
+function TTargets.AddProgram(const AProgramName: String): TTarget;
 begin
   Result:=AddProgram(AProgramName,AllCPUs,AllOSes);
 end;
 
 
-Function TTargets.AddProgram(Const AProgramName : String;const OSes:TOSes) : TTarget;
+function TTargets.AddProgram(const AProgramName: String; const OSes: TOSes
+  ): TTarget;
 begin
   Result:=AddProgram(AProgramName,AllCPUs,OSes);
 end;
@@ -3410,7 +3538,8 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TTargets.AddProgram(Const AProgramName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+function TTargets.AddProgram(const AProgramName: String; const CPUs: TCPUs;
+  const OSes: TOSes): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=AProgramName;
@@ -3420,13 +3549,14 @@ begin
 end;
 
 
-Function TTargets.AddLibrary(Const ALibraryName : String) : TTarget;
+function TTargets.AddLibrary(const ALibraryName: String): TTarget;
 begin
   Result:=AddLibrary(ALibraryName,AllCPUs,AllOSes);
 end;
 
 
-Function TTargets.AddLibrary(Const ALibraryName : String;const OSes:TOSes) : TTarget;
+function TTargets.AddLibrary(const ALibraryName: String; const OSes: TOSes
+  ): TTarget;
 begin
   Result:=AddLibrary(ALibraryName,AllCPUs,OSes);
 end;
@@ -3440,7 +3570,8 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TTargets.AddLibrary(Const ALibraryName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+function TTargets.AddLibrary(const ALibraryName: String; const CPUs: TCPUs;
+  const OSes: TOSes): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=ALibraryName;
@@ -3450,13 +3581,14 @@ begin
 end;
 
 
-Function TTargets.AddExampleUnit(Const AUnitName : String) : TTarget;
+function TTargets.AddExampleUnit(const AUnitName: String): TTarget;
 begin
   Result:=AddExampleUnit(AUnitName,AllCPUs,AllOSes);
 end;
 
 
-Function TTargets.AddExampleUnit(Const AUnitName : String;const OSes:TOSes) : TTarget;
+function TTargets.AddExampleUnit(const AUnitName: String; const OSes: TOSes
+  ): TTarget;
 begin
   Result:=AddExampleUnit(AUnitName,AllCPUs,OSes);
 end;
@@ -3470,7 +3602,8 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TTargets.AddExampleUnit(Const AUnitName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+function TTargets.AddExampleUnit(const AUnitName: String; const CPUs: TCPUs;
+  const OSes: TOSes): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=AUnitName;
@@ -3480,13 +3613,14 @@ begin
 end;
 
 
-Function TTargets.AddExampleProgram(Const AProgramName : String) : TTarget;
+function TTargets.AddExampleProgram(const AProgramName: String): TTarget;
 begin
   Result:=AddExampleProgram(AProgramName,AllCPUs,AllOSes);
 end;
 
 
-Function TTargets.AddExampleProgram(Const AProgramName : String;const OSes:TOSes) : TTarget;
+function TTargets.AddExampleProgram(const AProgramName: String;
+  const OSes: TOSes): TTarget;
 begin
   Result:=AddExampleProgram(AProgramName,AllCPUs,OSes);
 end;
@@ -3500,13 +3634,19 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TTargets.AddExampleProgram(Const AProgramName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+function TTargets.AddExampleProgram(const AProgramName: String;
+  const CPUs: TCPUs; const OSes: TOSes): TTarget;
 begin
   Result:=Add as TTarget;
   Result.Name:=AProgramName;
   Result.CPUs:=CPUs;
   Result.OSes:=OSes;
   Result.TargetType:=ttExampleProgram;
+end;
+
+function TTargets.GetEnumerator: TTargetEnumerator;
+begin
+  Result:= TTargetEnumerator.Create(Self);
 end;
 
 
@@ -3572,6 +3712,11 @@ begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
   Result.FSourceType:=stTest;
+end;
+
+function TSources.GetEnumerator: TSourceEnumerator;
+begin
+  Result:=TSourceEnumerator.Create(Self);
 end;
 
 procedure TSources.AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
@@ -4069,6 +4214,67 @@ begin
     end;
 end;
 
+procedure TBuildEngine.GetDocProject(Proj: TStrings; P : TPackage; aIndent: string);
+
+  Procedure AddLn(S : String);
+
+  begin
+     Proj.Add(aIndent+S);
+  end;
+
+  Procedure AddLn(Fmt : String; Args : array of const);
+
+  begin
+    Proj.Add(aIndent+Fmt,Args);
+  end;
+
+Var
+  T : TTarget;
+  S, O, FN : String;
+  SL : TStringList;
+  L : TUnsortedDuplicatesStringList;
+  I : Integer;
+
+begin
+  GPathPrefix:=P.Directory;
+  AddPackageMacrosToDictionary(P,P.Dictionary);
+  ResolveFileNames(P,Defaults.CPU,Defaults.OS,False,True);
+
+  AddLn('<package name="%s" output="" content="%s.xct">',[quotexml(P.Name),quotexml(P.Name)]);
+  Addln('  <units>');
+  SL:=TStringList.Create;
+  For T in P.Targets do
+    if (T.TargetType=ttUnit) and (T.TargetSourceFileName<>'') then
+      begin
+      SL.Clear;
+      Writeln(T.Name,' -> ',T.TargetSourceFileName);
+      FN:=AddPathPrefix(P,T.TargetSourceFileName);
+      SL.Add('-d'+CPUToString(Defaults.CPU));
+      SL.Add('-d'+OSToString(Defaults.OS));
+      SL.Add('-M'+ModeToString(T.Mode));
+      // Include Path
+      L:=TUnsortedDuplicatesStringList.Create;
+      L.Duplicates:=dupIgnore;
+      AddDependencyPaths(L,depInclude,T);
+      AddConditionalStrings(P, L,P.IncludePath,Defaults.CPU,Defaults.OS);
+      AddConditionalStrings(P, L,T.IncludePath,Defaults.CPU,Defaults.OS);
+      for i:=0 to L.Count-1 do
+        SL.Add('-Fi'+AddPathPrefix(P,L[i]));
+      FreeAndNil(L);
+      if P.HaveOptions Then
+        SL.AddStrings(P.Options);
+      if T.HaveOptions then
+        SL.AddStrings(T.Options);
+      O:='';
+      for S in SL do
+        O:=O+' '+MaybeQuoted(P.Dictionary.ReplaceStrings(S));
+      Delete(O,1,1);
+      AddLn('    <unit file="%s" options="%s"/>',[FN,QuoteXML(O)]);
+      end;
+  Addln('  </units>');
+  AddLn('</package>');
+end;
+
 procedure TPackage.AddPackageVariant(APackageVariant: TPackageVariants);
 begin
   if not assigned(APackageVariant.FMasterPackage) then
@@ -4346,6 +4552,11 @@ begin
     Result:=Add as TPackage;
     Result.Name:=AName;
     end;
+end;
+
+function TPackages.GetEnumerator: TPackageEnumerator;
+begin
+  Result:= TPackageEnumerator.Create(Self);
 end;
 
 
@@ -4700,7 +4911,7 @@ begin
 end;
 
 
-procedure TCustomDefaults.LocalInit(Const AFileName : String);
+procedure TCustomDefaults.LocalInit(const AFileName: String);
 Var
   FN : String;
 begin
@@ -4767,7 +4978,7 @@ begin
 end;
 
 
-procedure TCustomDefaults.LoadFromFile(Const AFileName: String);
+procedure TCustomDefaults.LoadFromFile(const AFileName: String);
 Var
   F : TFileStream;
 begin
@@ -4780,7 +4991,7 @@ begin
 end;
 
 
-procedure TCustomDefaults.SaveToFile(Const AFileName: String);
+procedure TCustomDefaults.SaveToFile(const AFileName: String);
 Var
   F : TFileStream;
 begin
@@ -5267,6 +5478,8 @@ begin
       FRunMode:=rmUnInstall
     else if CheckCommand(I,'in','info') then
       FRunMode:=rmInfo
+    else if CheckCommand(I,'dp','fpdocproject') then
+      FRunMode:=rmDocProject
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','cpu') then
@@ -5349,6 +5562,10 @@ begin
       Defaults.IgnoreInvalidOptions:=true
     else if CheckOption(I,'df','doc-folder') then
       Defaults.FPDocOutputDir:=OptionArg(I)
+    else if CheckCommand(I,'do','doc-options') then
+      Defaults.FPDocOptions:=OptionArg(I)
+    else if CheckCommand(I,'sd','single-docfile') then
+      Defaults.SingleFPDocFile:=True
     else if CheckOption(I,'fsp','fpunitsrcpath') then
       Defaults.FPUnitSourcePath:=OptionArg(I)
     else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
@@ -5409,6 +5626,7 @@ begin
   LogCmd('manifest',SHelpManifest);
   LogCmd('zipinstall',SHelpZipInstall);
   LogCmd('pkglist',SHelpPkgList);
+  LogCmd('fpdocproject',SHelpFPDocProject);
   Log(vlInfo,SHelpCmdOptions);
   LogOption('h','help',SHelpHelp);
   LogOption('l','list-commands',SHelpList);
@@ -5438,6 +5656,8 @@ begin
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
   LogArgOption('df', 'doc-folder', sHelpFpdocOutputDir);
+  LogArgOption('sd','single-docfile', sHelpSingleFpdocFile);
+  LogArgOption('do','doc-options', sHelpDocOptionsFile);
   LogArgOption('fsp', 'fpunitsrcpath', sHelpFPUnitSrcPath);
   LogArgOption('zp', 'zipprefix', sHelpZipPrefix);
 {$ifndef NO_THREADING}
@@ -5546,6 +5766,13 @@ begin
   NotifyEventCollection.CallEvents(neaAfterPkgList, self);
 end;
 
+procedure TCustomInstaller.FPDocProject;
+begin
+  NotifyEventCollection.CallEvents(neaBeforeDocProject, self);
+  BuildEngine.FPDocProject(Packages,Defaults.SingleFPDocFile);
+  NotifyEventCollection.CallEvents(neaAfterDocProject, self);
+end;
+
 procedure TCustomInstaller.AddAutoPackageVariantsToPackage(APackage: TPackage);
 var
   i: Integer;
@@ -5586,6 +5813,7 @@ begin
       rmPkgList : PkgList;
       rmUnInstall : UnInstall;
       rmInfo      : Info;
+      rmDocProject : FPDocProject;
     end;
   except
     On E : Exception do
@@ -8551,6 +8779,87 @@ begin
   NotifyEventCollection.CallEvents(neaAfterPkgList, Self);
 end;
 
+procedure TBuildEngine.FPDocProject(Packages: TPackages; SingleDocFile: Boolean);
+
+  Procedure AddHeader(L,Opts : Tstrings);
+
+  Var
+    I : Integer;
+    N,V : String;
+
+  begin
+    L.Add('<?xml version="1.0" encoding="utf-8"?>');
+    L.Add('<docproject>');
+    L.Add('  <options>');
+    L.Add('    <option name="ostarget" value="'+QuoteXML(CPUToString(Defaults.CPU))+'"/>');
+    L.Add('    <option name="cputarget" value="'+QuoteXML(OSToString(Defaults.OS))+'"/>');
+    L.Add('    <option name="parse-impl" value="false"/>');
+    L.Add('    <option name="dont-trim" value="false"/>');
+    if assigned(Opts) then
+      begin
+      For I:=0 to Opts.Count-1 do
+        begin
+        Opts.GetNameValue(I,N,V);
+        L.Add('    <option name="%s" value="%s"/>',[QuoteXML(N),QuoteXML(V)]);
+        end;
+      end;
+    L.Add('  </options>');
+    L.Add('  <packages>');
+  end;
+
+  Procedure AddFooter(L : Tstrings);
+  begin
+    L.Add('  </packages>');
+    L.Add('</docproject>');
+  end;
+
+Var
+  L,LOpts : TStringList;
+  FN : String;
+  P : TPackage;
+
+begin
+  LOpts:=Nil;
+  L:=TStringList.Create;
+  Try
+    if Defaults.FPDocOptions<>'' then
+       begin
+       LOpts:=TStringList.Create;
+       LOpts.LoadFromFile(Defaults.FPDocOptions);
+       end;
+    if SingleDocFile then
+      begin
+      FN:='fpmake'+DocProjectFileExt;
+      if Defaults.FPDocOutputDir<>'' then
+        FN:=IncludeTrailingPathDelimiter(Defaults.FPDocOutputDir)+FN;
+      Log(vlDebug, Format(SDbgGenerating, [FN]));
+      AddHeader(L,Lopts);
+      Log(vlInfo, Format(SInfoPackageDocProject,['<all>']));
+      For P in Packages do
+        GetDocProject(L,P,'    ');
+      AddFooter(L);
+      L.SaveToFile(FN);
+      end
+   else
+     For P in Packages do
+       begin
+       L.Clear;
+       FN:=P.Name+DocProjectFileExt;
+       if Defaults.FPDocOutputDir<>'' then
+         FN:=IncludeTrailingPathDelimiter(Defaults.FPDocOutputDir)+FN;
+       Log(vlDebug, Format(SDbgGenerating, [FN]));
+       AddHeader(L,Lopts);
+       Log(vlInfo, Format(SInfoPackageDocProject,[P.Name]));
+       GetDocProject(L,P,'    ');
+       AddFooter(L);
+       L.SaveToFile(FN);
+       end;
+  Finally
+    L.Free;
+    Lopts.Free;
+  end;
+end;
+
 procedure TBuildEngine.Clean(Packages: TPackages; AllTargets: boolean);
 Var
   I : Integer;
@@ -9056,7 +9365,7 @@ begin
 end;
 
 
-Function TCommands.AddCommand(const Cmd: String) : TCommand;
+function TCommands.AddCommand(const Cmd: String): TCommand;
 begin
   Result:=AddCommand(fdefaultAt,Cmd,'','','');
 end;
@@ -9074,7 +9383,7 @@ begin
 end;
 
 
-Function TCommands.AddCommand(At: TCommandAt; const Cmd: String) : TCommand;
+function TCommands.AddCommand(At: TCommandAt; const Cmd: String): TCommand;
 begin
   Result:=AddCommand(At,Cmd,'','','');
 end;
@@ -9095,6 +9404,11 @@ begin
   Result.At:=At;
   Result.SourceFile:=Source;
   Result.DestFile:=Dest;
+end;
+
+function TCommands.GetEnumerator: TCommandEnumerator;
+begin
+  Result:=TCommandEnumerator.Create(Self);
 end;
 
 
@@ -9335,6 +9649,11 @@ begin
   inherited create(TNotifyEventItem);
 end;
 
+function TNotifyEventCollection.GetEnumerator: TNotifyEventEnumerator;
+begin
+  Result:= TNotifyEventEnumerator.Create(Self);
+end;
+
 procedure TNotifyEventCollection.AppendEvent(AnAction: TNotifyEventAction; AnEvent: TNotifyEvent);
 var
   item: TNotifyEventItem;
@@ -9346,7 +9665,8 @@ begin
   item.OnAction:=AnAction;
 end;
 
-procedure TNotifyEventCollection.AppendProcEvent(AnAction: TNotifyEventAction; AnProcEvent: TNotifyProcEvent);
+procedure TNotifyEventCollection.AppendProcEvent(AnACtion: TNotifyEventAction;
+  AnProcEvent: TNotifyProcEvent);
 var
   item: TNotifyEventItem;
 begin
