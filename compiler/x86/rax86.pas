@@ -1554,64 +1554,16 @@ procedure Tx86Instruction.SetInstructionOpsize;
                    result := true;
                  end;
             end;
-
-            if (result) and
-               (ops > 0) and
-               (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
-               (gas_needsuffix[opcode] in [AttSufMMS, AttSufMMX]) then
-            begin
-              // external gas assembler need suffix (different opsizes possible)
-              // - in fpc not exists datatypes for vector-variables
-              //   =>> all memsize = ok, but any special opcodes (marked with attSufMMS,attSUFMMX) needed in any combination of operandtypes the exact opsize
-              //      =>> check instructions-opsize and use the correct vector-mem-opsize
-
-              for i := 1 to ops do
-               if tx86operand(operands[i]).opr.typ in [OPR_REGISTER] then
-               begin
-                 ValidOpSizes := [];
-
-                 case tx86operand(operands[i]).opsize of
-                   S_XMM: iSizeMask := RegXMMSizeMask;
-                   S_YMM: iSizeMask := RegYMMSizeMask;
-                   S_ZMM: iSizeMask := RegZMMSizeMask;
-                     else iSizeMask := 0;
-                 end;
-
-                 if iSizemask and OT_BITS128 = OT_BITS128 then include(ValidOpSizes, S_XMM);
-                 if iSizemask and OT_BITS256 = OT_BITS256 then include(ValidOpSizes, S_YMM);
-                 if iSizemask and OT_BITS512 = OT_BITS512 then include(ValidOpSizes, S_ZMM);
-
-                 if (ValidOpsizes <> []) then
-                 begin
-                   if not(opsize in ValidOpSizes) then
-                   begin
-                     // instructions-opsize is invalid =>> use smallest valid opsize
-                     if iSizemask and OT_BITS128 = OT_BITS128 then opsize := S_XMM
-                      else if iSizemask and OT_BITS256 = OT_BITS256 then opsize := S_YMM
-                      else if iSizemask and OT_BITS512 = OT_BITS512 then opsize := S_ZMM;
-                   end;
-                 end
-                 else ; // empty ValidOpsize =>> nothing todo???
-
-                 break;
-               end;
-            end;
           end
-          else if
-             (gas_needsuffix[opcode] = AttSufNone) and
-             (not(MemRefSize in [msiMemRegSize])) then
-          begin
-            // external gnu-assembler: no suffix =>> use instructions.opsize to define memory-reference size
-            // Tx86Instruction: local variable: operand.opsize
-
-            for i := 1 to ops do
-             if tx86operand(operands[i]).opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-             begin
-               opsize := tx86operand(operands[i]).opsize;
-               result := true;
-               break;
-             end;
-          end;
+	  else if gas_needsuffix[opcode] = AttSufMMS then
+ 	  begin
+ 	    // spezial handling - use source operand
+            if ops > 0 then
+	    begin	    
+              opsize:=tx86operand(operands[1]).opsize;
+              result := true;
+            end;  
+	  end;	  
         end;
       end;
     end;
@@ -1692,8 +1644,26 @@ begin
               opsize:=tx86operand(operands[2]).opsize;
           end;
         end;
-    3,4 : if not CheckSSEAVX then
-           opsize:=tx86operand(operands[ops]).opsize;
+    3 :
+        begin
+          //case opcode of
+            //A_VCVTSI2SS,
+            //A_VCVTSI2SD,
+            //A_VCVTUSI2SS,
+            //A_VCVTUSI2SD:
+            //  opsize:=tx86operand(operands[1]).opsize;
+            //A_VFPCLASSPD,
+            //A_VFPCLASSPS:
+            //  iops:=tx86operand(operands[2]).opsize;
+            //else
+            begin
+              if not CheckSSEAVX then
+               opsize:=tx86operand(operands[ops]).opsize;
+            end;
+          //end;
+        end;
+    4 :
+        opsize:=tx86operand(operands[ops]).opsize;
   end;
 end;
 

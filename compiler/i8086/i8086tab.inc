@@ -22508,12 +22508,19 @@
   (
     opcode  : A_VCVTUSI2SD;
     ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
+    code    : #220#232#248#1#123#61#80;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCVTUSI2SD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits32,ot_none);
     code    : #220#232#248#1#123#61#80;
     flags   : [if_avx512,if_t1s]
   ),
   (
-    opcode  : A_VCVTUSI2SD;
+    opcode  : A_VCVTUSI2SS;
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
     code    : #220#232#234#248#1#123#61#80;
