@@ -4259,20 +4259,27 @@ xmmreg_mz,xmmreg,mem64                    \334\350\352\362\370\1\x5A\75\120     
 xmmreg_mz,xmmreg,xmmreg_er                \334\350\352\362\370\1\x5A\75\120         AVX,SANDYBRIDGE
 
 
-[VCVTSI2SD,vcvtsi2sdX]
+
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTSI2SD,vcvtsi2sdS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,reg32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
-xmmreg,xmmreg,mem32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
+;xmmreg,xmmreg,reg32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
+;xmmreg,xmmreg,mem32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
+;xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
+;xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
+xmmreg,xmmreg_er,reg32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
 xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
+xmmreg,xmmreg_er,mem32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
+xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,T1S
 
 
-[VCVTSI2SS,vcvtsi2ssX]
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTSI2SS,vcvtsi2ssS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,reg32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
-xmmreg,xmmreg,mem32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
+xmmreg,xmmreg_er,reg32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
 xmmreg,xmmreg_er,reg64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg_er,mem64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
+xmmreg,xmmreg_er,mem32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
+xmmreg,xmmreg_er,mem64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,T1S
 
 
 [VCVTSS2SD]
@@ -7507,16 +7514,23 @@ ymmreg_mz,mem512                          \334\350\351\352\370\1\x7A\110        
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\x7A\110            AVX512,BCST8,TFV
 ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\x7A\110            AVX512
 
-[VCVTUSI2SD,vcvtusi2sdX]
-(Ch_All)
-xmmreg,xmmreg_er,mem64                     \334\350\352\370\1\x7B\75\120               AVX512,T1S
-xmmreg,xmmreg_er,reg64                     \334\350\352\370\1\x7B\75\120               AVX512
-xmmreg,xmmreg_er,rm32                     \334\350\370\1\x7B\75\120                    AVX512,T1S
 
-[VCVTUSI2SS,vcvtusi2ssX]
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTUSI2SD,vcvtusi2sdS]
 (Ch_All)
-xmmreg,xmmreg_er,rm64                     \333\350\352\370\1\x7B\75\120                AVX512,T1S
-xmmreg,xmmreg_er,rm32                     \333\350\370\1\x7B\75\120                    AVX512,T1S
+xmmreg,xmmreg_er,reg32                    \334\350\370\1\x7B\75\120                 AVX512
+xmmreg,xmmreg_er,reg64                    \334\350\352\370\1\x7B\75\120             AVX512,X86_64
+xmmreg,xmmreg_er,mem32                    \334\350\370\1\x7B\75\120                 AVX512,T1S
+xmmreg,xmmreg_er,mem64                    \334\350\352\370\1\x7B\75\120             AVX512,T1S
+
+
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTUSI2SS,vcvtusi2ssS]
+(Ch_All)
+xmmreg,xmmreg_er,reg32                    \333\350\370\1\x7B\75\120                 AVX512
+xmmreg,xmmreg_er,reg64                    \333\350\352\370\1\x7B\75\120             AVX512,X86_64
+xmmreg,xmmreg_er,mem32                    \333\350\370\1\x7B\75\120                 AVX512,T1S
+xmmreg,xmmreg_er,mem64                    \333\350\352\370\1\x7B\75\120             AVX512,T1S
 
 [VDBPSADBW]
 (Ch_All)

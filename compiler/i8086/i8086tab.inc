@@ -10867,30 +10867,44 @@
   (
     opcode  : A_VCVTSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_reg32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
     code    : #220#232#242#248#1#42#61#80;
-    flags   : [if_avx,if_sandybridge,if_sd]
+    flags   : [if_avx,if_sandybridge]
   ),
   (
     opcode  : A_VCVTSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits32,ot_none);
     code    : #220#232#242#248#1#42#61#80;
-    flags   : [if_avx,if_sandybridge,if_sd,if_t1s]
+    flags   : [if_avx,if_sandybridge,if_t1s]
+  ),
+  (
+    opcode  : A_VCVTSI2SD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#242#243#248#1#42#61#80;
+    flags   : [if_avx,if_sandybridge,if_t1s]
   ),
   (
     opcode  : A_VCVTSI2SS;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_reg32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
     code    : #219#232#242#248#1#42#61#80;
-    flags   : [if_avx,if_sandybridge,if_sd]
+    flags   : [if_avx,if_sandybridge]
   ),
   (
     opcode  : A_VCVTSI2SS;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits32,ot_none);
     code    : #219#232#242#248#1#42#61#80;
-    flags   : [if_avx,if_sandybridge,if_sd,if_t1s]
+    flags   : [if_avx,if_sandybridge,if_t1s]
+  ),
+  (
+    opcode  : A_VCVTSI2SS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
+    code    : #219#232#234#242#243#248#1#42#61#80;
+    flags   : [if_avx,if_sandybridge,if_t1s]
   ),
   (
     opcode  : A_VCVTSS2SD;
@@ -22515,36 +22529,43 @@
   (
     opcode  : A_VCVTUSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
-    code    : #220#232#234#248#1#123#61#80;
-    flags   : [if_avx512,if_t1s]
-  ),
-  (
-    opcode  : A_VCVTUSI2SD;
-    ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg64,ot_none);
-    code    : #220#232#234#248#1#123#61#80;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
+    code    : #220#232#248#1#123#61#80;
     flags   : [if_avx512]
   ),
   (
     opcode  : A_VCVTUSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_rm_gpr or ot_bits32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits32,ot_none);
     code    : #220#232#248#1#123#61#80;
     flags   : [if_avx512,if_t1s]
   ),
   (
-    opcode  : A_VCVTUSI2SS;
+    opcode  : A_VCVTUSI2SD;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_rm_gpr or ot_bits64,ot_none);
-    code    : #219#232#234#248#1#123#61#80;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#123#61#80;
     flags   : [if_avx512,if_t1s]
   ),
   (
     opcode  : A_VCVTUSI2SS;
     ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_rm_gpr or ot_bits32,ot_none);
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
     code    : #219#232#248#1#123#61#80;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCVTUSI2SS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#123#61#80;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCVTUSI2SS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg_er,ot_memory or ot_bits64,ot_none);
+    code    : #219#232#234#248#1#123#61#80;
     flags   : [if_avx512,if_t1s]
   ),
   (

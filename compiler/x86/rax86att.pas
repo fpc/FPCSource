@@ -1039,7 +1039,7 @@ Implementation
                        actopsize:=att_sizefpusuffix[sufidx]
                       else if gas_needsuffix[actopcode]=attsufFPUint then
                        actopsize:=att_sizefpuintsuffix[sufidx]
-                      else if gas_needsuffix[actopcode]=attsufMM then
+                      else if gas_needsuffix[actopcode]in[attsufMM,attsufMMS] then
                        actopsize:=att_sizemmsuffix[sufidx]
                       else if gas_needsuffix[actopcode]=attsufMMX then
                        actopsize:=att_sizemmXsuffix[sufidx]

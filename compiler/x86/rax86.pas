@@ -239,7 +239,7 @@ begin
           ;
       end;
     end
-  else if gas_needsuffix[opcode] in [AttSufMM, AttSufMMX] then
+  else if gas_needsuffix[opcode] in [AttSufMM, AttSufMMX, AttSufMMS] then
   begin
     if (opr.typ=OPR_Reference) then
     begin
@@ -1469,7 +1469,16 @@ procedure Tx86Instruction.SetInstructionOpsize;
                    result := true;
                  end;
             end;
-          end;
+          end
+	  else if gas_needsuffix[opcode] = AttSufMMS then
+ 	  begin
+ 	    // spezial handling - use source operand
+            if ops > 0 then
+	    begin	    
+              opsize:=tx86operand(operands[1]).opsize;
+              result := true;
+            end;  
+	  end;	  
         end;
       end;
     end;
@@ -1569,7 +1578,7 @@ begin
             //A_VCVTSI2SD,
             //A_VCVTUSI2SS,
             //A_VCVTUSI2SD:
-            //  iops:=tx86operand(operands[1]).opsize;
+            //  opsize:=tx86operand(operands[1]).opsize;
             //A_VFPCLASSPD,
             //A_VFPCLASSPS:
             //  iops:=tx86operand(operands[2]).opsize;
