@@ -29,7 +29,7 @@ interface
       cgbase,cpubase;
 
     type
-      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX);
+      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX,AttSufMMS);
 
     const
       { include mnemonic strings }

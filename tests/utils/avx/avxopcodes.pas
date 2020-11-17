@@ -1923,10 +1923,14 @@ begin
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,mem512,,');
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,8b64,,');
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,zmmreg_er,,');
-  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,rm32,');
-  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,rm64,');
-  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,rm32,');
-  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,rm64,');
+  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,reg32,');
+  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,mem32,');
+  FOpCodeList.Add('vcvtusi2sd,0,1,1,xmmreg,xmmreg_er,reg64,');
+  FOpCodeList.Add('vcvtusi2sd,0,1,1,xmmreg,xmmreg_er,mem64,');
+  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,reg32,');
+  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,mem32,');
+  FOpCodeList.Add('vcvtusi2ss,0,1,1,xmmreg,xmmreg_er,reg64,');
+  FOpCodeList.Add('vcvtusi2ss,0,1,1,xmmreg,xmmreg_er,mem64,');
   FOpCodeList.Add('vdbpsadbw,1,1,1,xmmreg_mz,xmmreg,xmmrm,imm8');
   FOpCodeList.Add('vdbpsadbw,1,1,1,ymmreg_mz,ymmreg,ymmrm,imm8');
   FOpCodeList.Add('vdbpsadbw,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
