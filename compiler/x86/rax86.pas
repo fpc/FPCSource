@@ -1455,7 +1455,15 @@ procedure Tx86Instruction.SetInstructionOpsize;
         end
         else
         begin
-          if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
+	  if (gas_needsuffix[opcode] = AttSufMMS) and (ops > 0) then
+ 	  begin
+ 	    // special handling = use source operand for calculate instructions-opsize
+            // e.g. vcvtsi2sd, vcvtsi2ss, vcvtusi2sd, vcvtusi2ss
+            
+            opsize:=tx86operand(operands[1]).opsize;
+            result := true;  
+	  end
+          else if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
           begin
             case ops of
               2: begin
@@ -1469,16 +1477,7 @@ procedure Tx86Instruction.SetInstructionOpsize;
                    result := true;
                  end;
             end;
-          end
-	  else if gas_needsuffix[opcode] = AttSufMMS then
- 	  begin
- 	    // spezial handling - use source operand
-            if ops > 0 then
-	    begin	    
-              opsize:=tx86operand(operands[1]).opsize;
-              result := true;
-            end;  
-	  end;	  
+          end;
         end;
       end;
     end;
