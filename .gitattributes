@@ -4319,14 +4319,19 @@ packages/fcl-sound/src/fpwavreader.pas svneol=native#text/plain
 packages/fcl-sound/src/fpwavwriter.pas svneol=native#text/plain
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16.wav.raw -text
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16_tag.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16_tag.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_16_tag.wav.raw -text
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_24.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_24.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_24.wav.raw -text
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_32.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_32.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_32.wav.raw -text
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_8.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_8.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/44k_mono_8.wav.raw -text svneol=unset#application/octet-stream
 packages/fcl-sound/tests/tcwavreader.pas svneol=native#text/plain
 packages/fcl-sound/tests/testfclsound.lpi svneol=native#text/plain
 packages/fcl-sound/tests/testfclsound.lpr svneol=native#text/plain
