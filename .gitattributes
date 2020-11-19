@@ -4344,6 +4344,9 @@ packages/fcl-sound/tests/data/wav/reader/valid/44k_stereo_32.wav.raw -text
 packages/fcl-sound/tests/data/wav/reader/valid/44k_stereo_8.wav -text svneol=unset#audio/x-wav
 packages/fcl-sound/tests/data/wav/reader/valid/44k_stereo_8.wav.info.txt svneol=native#text/plain
 packages/fcl-sound/tests/data/wav/reader/valid/44k_stereo_8.wav.raw -text svneol=unset#application/octet-stream
+packages/fcl-sound/tests/data/wav/reader/valid/euphoric_tape.wav -text svneol=unset#audio/x-wav
+packages/fcl-sound/tests/data/wav/reader/valid/euphoric_tape.wav.info.txt svneol=native#text/plain
+packages/fcl-sound/tests/data/wav/reader/valid/euphoric_tape.wav.raw -text svneol=unset#application/octet-stream
 packages/fcl-sound/tests/tcwavreader.pas svneol=native#text/plain
 packages/fcl-sound/tests/testfclsound.lpi svneol=native#text/plain
 packages/fcl-sound/tests/testfclsound.lpr svneol=native#text/plain
