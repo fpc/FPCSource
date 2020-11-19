@@ -1105,42 +1105,54 @@ var
   Drives   : byte = 4;
   DriveStr : array[4..26] of pchar;
 
-Function AddDisk(const path:string) : Byte;
+Function GetDriveStr(Drive : Byte) : Pchar;
+
 begin
-  if not (DriveStr[Drives]=nil) then
+  case Drive of
+    Low(FixDriveStr)..High(FixDriveStr):
+      Result := FixDriveStr[Drive];
+    Low(DriveStr)..High(DriveStr):
+      Result := DriveStr[Drive];
+    else
+      Result := nil;
+  end;
+end;
+
+Function DiskFree(Drive: Byte): int64;
+var
+  p : PChar;
+  fs : TStatfs;
+Begin
+  p:=GetDriveStr(Drive);
+  if (p<>nil) and (fpStatFS(p, @fs)<>-1) then
+    DiskFree := int64(fs.bavail)*int64(fs.bsize)
+  else
+    DiskFree := -1;
+End;
+
+Function DiskSize(Drive: Byte): int64;
+var
+  p : PChar;
+  fs : TStatfs;
+Begin
+  p:=GetDriveStr(Drive);
+  if (p<>nil) and (fpStatFS(p, @fs)<>-1) then
+    DiskSize := int64(fs.blocks)*int64(fs.bsize)
+  else
+    DiskSize := -1;
+End;
+
+Function AddDisk(const path: string): Byte;
+begin
+  if DriveStr[Drives]<>nil then
    FreeMem(DriveStr[Drives]);
   GetMem(DriveStr[Drives],length(Path)+1);
   StrPCopy(DriveStr[Drives],path);
   Result:=Drives;
   inc(Drives);
-  if Drives>26 then
-   Drives:=4;
+  if Drives>High(DriveStr) then
+   Drives:=Low(DriveStr);
 end;
-
-
-Function DiskFree(Drive: Byte): int64;
-var
-  fs : tstatfs;
-Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
-     ((Drive in [Low(DriveStr)..High(DriveStr)]) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
-   Diskfree:=int64(fs.bavail)*int64(fs.bsize)
-  else
-   Diskfree:=-1;
-End;
-
-
-
-Function DiskSize(Drive: Byte): int64;
-var
-  fs : tstatfs;
-Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
-     ((Drive in [Low(DriveStr)..High(DriveStr)]) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
-   DiskSize:=int64(fs.blocks)*int64(fs.bsize)
-  else
-   DiskSize:=-1;
-End;
 
 
 Procedure FreeDriveStr;

@@ -1863,7 +1863,11 @@ begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_use_heaptrc)
                          else
-                           include(init_settings.globalswitches,cs_use_heaptrc);
+                           begin
+                             if cs_gdb_valgrind in init_settings.globalswitches then
+                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                             include(init_settings.globalswitches,cs_use_heaptrc);
+                           end;
                        end;
                      'l' :
                        begin
@@ -1905,7 +1909,11 @@ begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_gdb_valgrind)
                          else
-                           include(init_settings.globalswitches,cs_gdb_valgrind);
+                           begin
+                             if cs_use_heaptrc in init_settings.globalswitches then
+                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                             include(init_settings.globalswitches,cs_gdb_valgrind);
+                           end;
                        end;
                      'w' :
                        begin
@@ -3402,9 +3410,8 @@ begin
     features:=features+target_unsup_features;
 
 {$if defined(atari) or defined(hasamiga)}
-   { enable vlink as default linker on Atari, Amiga, and MorphOS, but not for cross compilers (for now) }
-   if (target_info.system in [system_m68k_amiga,system_m68k_atari,
-                              system_powerpc_amiga]) and
+   { enable vlink as default linker on Atari and Amiga but not for cross compilers (for now) }
+   if (target_info.system in [system_m68k_amiga,system_m68k_atari,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
@@ -4309,6 +4316,14 @@ begin
 {$endif cpufpemu}
 
 {$ifdef i386}
+  if target_info.system in systems_i386_default_486 then
+    begin
+      { Avoid use of MMX/CMOVcc instructions on older systems.
+        Some systems might not handle these instructions correctly,
+        Used emulators might also be problematic. PM }
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_486;
+    end;
   case target_info.system of
     system_i386_android:
       begin
@@ -4515,6 +4530,11 @@ begin
             exclude(init_settings.moduleswitches,cs_fp_emulation);
             init_settings.fputype:=fpu_68881;
           end;
+      end;
+    system_m68k_sinclairql:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mc68000;
       end;
     system_m68k_palmos:
       begin

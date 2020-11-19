@@ -378,6 +378,8 @@ Implementation
 {$ifdef ARM}
             and not (getsupreg(taicpu(p).oper[0]^.reg) in [RS_PC, RS_R14, RS_STACK_POINTER_REG])
             and (getsupreg(taicpu(p).oper[1]^.reg) <> RS_PC)
+            { Thumb does not support references with base and index one being SP }
+            and (not(GenerateThumbCode) or (getsupreg(taicpu(p).oper[1]^.reg) <> RS_STACK_POINTER_REG))
 {$endif ARM}
 {$ifdef AARCH64}
             and (getsupreg(taicpu(p).oper[0]^.reg) <> RS_STACK_POINTER_REG)

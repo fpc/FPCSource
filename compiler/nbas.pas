@@ -1381,6 +1381,12 @@ implementation
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
         inc(current_procinfo.estimatedtempsize,size);
+        { if a temp. create node is loaded from a ppu, it could be that the unit was compiled with other settings which
+          enabled a certain type to be stored in a register while the current settings do not support this, so correct this here
+          if needed
+        }
+        if not(tstoreddef(tempinfo^.typedef).is_fpuregable) and not(tstoreddef(tempinfo^.typedef).is_intregable) and (ti_may_be_in_reg in tempflags) then
+          excludetempflag(ti_may_be_in_reg);
       end;
 
 

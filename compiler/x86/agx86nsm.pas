@@ -390,7 +390,7 @@ interface
             begin
               if (ops=1) and (opcode<>A_RET) then
                writer.AsmWrite(sizestr(s,dest));
-              writer.AsmWrite(tostr(longint(o.val)));
+              writer.AsmWrite(tostr(o.val));
             end;
           top_ref :
             begin
@@ -634,8 +634,14 @@ interface
         if target_info.system in systems_darwin then
           writer.AsmWrite(':private_extern')
         else
-          { no colon }
-          writer.AsmWrite(' hidden')
+          case sym.typ of
+            AT_FUNCTION:
+              writer.AsmWrite(':function hidden');
+            AT_DATA:
+              writer.AsmWrite(':data hidden');
+            else
+              Internalerror(2020111301);
+          end;
       end;
 
     procedure TX86NasmAssembler.ResetSectionsList;
@@ -1000,9 +1006,10 @@ interface
                if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
-                  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                   if tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_symbol(hp).sym);
+                  writer.AsmLn;
                 end;
                writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                if SmartAsm then

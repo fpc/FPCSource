@@ -314,10 +314,6 @@
   {$define cpucapabilities}
 {$endif z80}
 
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
-
 {$ifdef riscv64}
   {$define riscv}
   {$define cpu64bit}

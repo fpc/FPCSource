@@ -1269,6 +1269,20 @@ begin
 {$endif unix}
 end;
 
+Function UniversalToFileDate(DateTime : TDateTime) : int64;
+{$ifndef unix}
+begin
+  Result := DateTimeToFileDate(UniversalTimeToLocal(DateTime));
+end;
+{$else unix}
+Var YY,MM,DD,H,m,s,msec : Word;
+begin
+  Decodedate (DateTime,YY,MM,DD);
+  DecodeTime (DateTime,h,m,s,msec);
+  Result:=UniversalToEpoch(yy,mm,dd,h,m,s);
+end;
+{$endif unix}
+
 function CurrentYear: Word;
 var
   SysTime: TSystemTime;
@@ -1297,7 +1311,7 @@ begin
 end;
 {$endif unix}
 
-Function FileDateToUTC (Filedate : Int64) : TDateTime;
+Function FileDateToUniversal (Filedate : Int64) : TDateTime;
 
 {$ifndef unix}
 begin

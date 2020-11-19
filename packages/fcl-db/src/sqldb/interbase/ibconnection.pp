@@ -41,7 +41,7 @@ type
   { TIBCursor }
 
   TIBCursor = Class(TSQLCursor)
-    protected
+  protected
     Status               : TStatusVector;
     TransactionHandle    : pointer;
     StatementHandle      : pointer;
@@ -784,6 +784,7 @@ begin
     begin
     AllocSQLDA(SQLDA,-1);
     AllocSQLDA(in_SQLDA,-1);
+    SetLength(FieldBinding,0);
     end;
   FreeAndNil(cursor);
 end;
@@ -900,6 +901,7 @@ procedure TIBConnection.UnPrepareStatement(cursor : TSQLCursor);
 
 begin
   with cursor as TIBcursor do
+  begin
     if assigned(StatementHandle) Then
       begin
         if isc_dsql_free_statement(@Status[0], @StatementHandle, DSQL_Drop) <> 0 then
@@ -907,6 +909,9 @@ begin
         StatementHandle := nil;
         FPrepared := False;
       end;
+    FreeSQLDABuffer(SQLDA);
+    FreeSQLDABuffer(in_SQLDA);
+  end;
 end;
 
 procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
@@ -917,6 +922,7 @@ begin
 {$push}
 {$R-}
   if assigned(aSQLDA) then
+    begin
     for x := 0 to aSQLDA^.SQLN - 1 do
       begin
       reAllocMem(aSQLDA^.SQLVar[x].SQLData,0);
@@ -926,6 +932,7 @@ begin
         aSQLDA^.SQLVar[x].sqlind := nil;
         end
       end;
+    end;
 {$pop}
 end;
 
@@ -950,9 +957,8 @@ procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
 begin
   with cursor as TIBCursor do
     begin
-    FreeSQLDABuffer(SQLDA);
-    FreeSQLDABuffer(in_SQLDA);
-    SetLength(FieldBinding,0);
+    if isc_dsql_free_statement(@Status, @StatementHandle, DSQL_close)<>0 then
+      CheckError('Close Cursor', Status);
     end;
 end;
 
@@ -972,6 +978,8 @@ begin
       out_SQLDA := nil;
     if isc_dsql_execute2(@Status[0], @TransactionHandle, @StatementHandle, 1, in_SQLDA, out_SQLDA) <> 0 then
       CheckError('Execute', Status);
+    if isc_dsql_set_cursor_name(@Status[0], @StatementHandle, 'sqldbcursor', 0) <> 0 then
+      CheckError('Open Cursor', Status);
   end;
 end;
 

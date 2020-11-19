@@ -33,7 +33,7 @@ unit i_sinclairql;
           (
             system       : system_m68k_sinclairql;
             name         : 'Sinclair QL';
-            shortname    : 'ql';
+            shortname    : 'sinclairql';
             flags        : [tf_use_8_3,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_under_development];
             cpu          : cpu_m68k;
@@ -60,10 +60,10 @@ unit i_sinclairql;
             importlibprefix : 'libimp';
             importlibext : '.a';
             Cprefix      : '_';
-            newline      : #13#10;
+            newline      : #10;
             dirsep       : '/'; { ... the underlying tools (binutils/vlink/vasm) prefer Unix paths }
-            assem        : as_m68k_as_aout;
-            assemextern  : as_m68k_as_aout;
+            assem        : as_m68k_vasm;
+            assemextern  : as_m68k_vasm;
             link         : ld_none;
             linkextern   : ld_sinclairql;
             ar           : ar_gnu_ar;
@@ -90,7 +90,7 @@ unit i_sinclairql;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 16384;
+            stacksize    : 8192;
             stackalign   : 2;
             abi : abi_default;
             llvmdatalayout : 'todo';

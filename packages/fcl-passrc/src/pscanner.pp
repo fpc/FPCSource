@@ -656,7 +656,8 @@ type
     po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
     po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
     po_IgnoreUnknownResource,// Ignore resources for which no handler is registered.
-    po_AsyncProcs            // allow async procedure modifier
+    po_AsyncProcs,            // allow async procedure modifier
+    po_DisableResources      // Disable resources altogether
     );
   TPOptions = set of TPOption;
 
@@ -702,6 +703,7 @@ type
     FAllowedModeSwitches: TModeSwitches;
     FAllowedValueSwitches: TValueSwitches;
     FConditionEval: TCondDirectiveEvaluator;
+    FCurModulename: string;
     FCurrentBoolSwitches: TBoolSwitches;
     FCurrentModeSwitches: TModeSwitches;
     FCurrentValueSwitches: TValueSwitchArray;
@@ -863,6 +865,7 @@ type
     property Files: TStrings read FFiles;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
+    property CurModuleName: string read FCurModulename Write FCurModuleName;
     property CurLine: string read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
@@ -4087,7 +4090,8 @@ begin
       'POINTERMATH':
         DoBoolDirective(bsPointerMath);
       'R' :
-        HandleResource(Param);
+        if not (po_DisableResources in Options) then
+          HandleResource(Param);
       'RANGECHECKS':
         DoBoolDirective(bsRangeChecks);
       'SCOPEDENUMS':

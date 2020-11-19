@@ -3060,6 +3060,7 @@ begin
   FCurModule:=Module;
   HasFinished:=true;
   try
+    Scanner.CurModuleName:=AUnitName;
     if Assigned(Engine.Package) then
       begin
       Module.PackageName := Engine.Package.Name;
@@ -3231,6 +3232,7 @@ begin
   HasFinished:=true;
   FCurModule:=Module;
   try
+    Scanner.CurModuleName:=N;
     if Assigned(Engine.Package) then
     begin
       Module.PackageName := Engine.Package.Name;
@@ -3307,6 +3309,7 @@ begin
   HasFinished:=true;
   FCurModule:=Module;
   try
+    Scanner.CurModuleName:=N;
     if Assigned(Engine.Package) then
     begin
       Module.PackageName := Engine.Package.Name;

@@ -160,7 +160,9 @@ function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const Form
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
 Function DateTimeToFileDate(DateTime : TDateTime) : int64;
+Function UniversalToFileDate(DateTime : TDateTime) : int64;
 Function FileDateToDateTime (Filedate : Int64) :TDateTime;
+Function FileDateToUniversal (Filedate : Int64) :TDateTime;
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
@@ -204,8 +206,6 @@ procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline
 function GetLocalTimeOffset: Integer;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean = False): Integer;
-
-Function FileDateToUTC (Filedate : Int64) : TDateTime;
 
 { UTC <-> Local time }
 Function UniversalTimeToLocal(UT: TDateTime): TDateTime;

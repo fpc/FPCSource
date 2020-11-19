@@ -294,6 +294,7 @@ type
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
+    Procedure TestWideChar;
     Procedure TestForCharDo;
     Procedure TestForCharInDo;
 
@@ -883,6 +884,7 @@ type
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
+    Procedure TestAsync_ClassInterface;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -7435,6 +7437,7 @@ begin
   'const',
   '  a = #$00F3;',
   '  c: char = ''1'';',
+  '  wc: widechar = ''ä'';',
   'begin',
   '  c:=#0;',
   '  c:=#1;',
@@ -7462,7 +7465,8 @@ begin
   CheckSource('TestCharConst',
     LinesToStr([
     'this.a="ó";',
-    'this.c="1";'
+    'this.c="1";',
+    'this.wc="ä";'
     ]),
     LinesToStr([
     '$mod.c="\x00";',
@@ -7918,6 +7922,62 @@ begin
     'if ($mod.c.charCodeAt() in $mod.s) ;',
     'if ($mod.crg2.charCodeAt() in $mod.s) ;',
     '$mod.c = "a";',
+    '']));
+end;
+
+procedure TTestModule.TestWideChar;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(var c: char);',
+  'begin',
+  'end;',
+  'procedure Run(var c: widechar);',
+  'begin',
+  'end;',
+  'var',
+  '  c: char;',
+  '  wc: widechar;',
+  '  w: word;',
+  'begin',
+  '  Fly(wc);',
+  '  Run(c);',
+  '  wc:=WideChar(w);',
+  '  w:=ord(wc);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestWideChar_VarArg',
+    LinesToStr([ // statements
+    'this.Fly = function (c) {',
+    '};',
+    'this.Run = function (c) {',
+    '};',
+    'this.c = "";',
+    'this.wc = "";',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.Fly({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.wc;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.wc = v;',
+    '    }',
+    '});',
+    '$mod.Run({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.c;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.c = v;',
+    '    }',
+    '});',
+    '$mod.wc = String.fromCharCode($mod.w);',
+    '$mod.w = $mod.wc.charCodeAt();',
+    '',
     '']));
 end;
 
@@ -32173,6 +32233,7 @@ begin
   '  Run;',
   '  Run(3);',
   '']);
+  CheckResolverUnexpectedHints();
   ConvertProgram;
   CheckSource('TestAsync_Proc',
     LinesToStr([ // statements
@@ -32237,6 +32298,7 @@ begin
   '    if Fly()=p then ;',
   '  end;',
   '']);
+  CheckResolverUnexpectedHints();
   ConvertProgram;
   CheckSource('TestAsync_CallResultIsPromise',
     LinesToStr([ // statements
@@ -32395,6 +32457,7 @@ begin
     LinesToStr([
     '$mod.Run(1);'
     ]));
+  SetExpectedPasResolverError('Await without promise',nAwaitWithoutPromise);
 end;
 
 procedure TTestModule.TestAWait_ExternalClassPromise;
@@ -32443,17 +32506,18 @@ begin
     '']),
     LinesToStr([
     ]));
+  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestModule.TestAsync_AnonymousProc;
 begin
   StartProgram(false);
   Add([
+  '{$mode objfpc}',
   '{$modeswitch externalclass}',
   'type',
   '  TJSPromise = class external name ''Promise''',
   '  end;',
-  '{$mode objfpc}',
   'type',
   '  TFunc = reference to function(x: double): word; async;',
   'function Crawl(d: double = 1.3): word; async;',
@@ -32485,6 +32549,7 @@ begin
     '$mod.Func = async function (c) {',
     '};',
     '']));
+  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestModule.TestAsync_ProcType;
@@ -32501,6 +32566,11 @@ begin
   'end;',
   'procedure Run(e:longint); async;',
   'begin',
+  'end;',
+  'procedure Fly(p: TProc); async;',
+  'begin',
+  '  await(p);',
+  '  await(p());',
   'end;',
   'var',
   '  RefFunc: TRefFunc;',
@@ -32522,6 +32592,7 @@ begin
   '  if Proc=ProcB then ;',
   '  ']);
   ConvertProgram;
+  CheckResolverUnexpectedHints();
   CheckSource('TestAsync_ProcType',
     LinesToStr([ // statements
     'this.Crawl = async function (d) {',
@@ -32529,6 +32600,10 @@ begin
     '  return Result;',
     '};',
     'this.Run = async function (e) {',
+    '};',
+    'this.Fly = async function (p) {',
+    '  await p(7);',
+    '  await p(7);',
     '};',
     'this.RefFunc = null;',
     'this.Func = null;',
@@ -32638,6 +32713,54 @@ begin
     '']),
     LinesToStr([
     '']));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestAsync_ClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  'function Run: IUnknown; async;',
+  'begin',
+  'end;',
+  'procedure Fly;',
+  'var p: TJSPromise;',
+  'begin',
+  '  Run;',
+  '  Run();',
+  '  p:=Run;',
+  '  p:=Run();',
+  'end;',
+  'begin',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_ClassInterface',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'this.Run = async function () {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.Fly = function () {',
+    '  var p = null;',
+    '  $mod.Run();',
+    '  $mod.Run();',
+    '  p = $mod.Run();',
+    '  p = $mod.Run();',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
 end;
 
 

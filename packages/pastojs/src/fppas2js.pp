@@ -771,7 +771,7 @@ const
     'intfAsIntfT', // rtl.intfAsIntfT
     'createInterface', // rtl.createInterface
     'createTGUID', // rtl.createTGUID
-    'ref', // $ir.ref
+    'ref', // $ir.ref  pbifnIntfExprRefsAdd
     'createIntfRefs', // rtl.createIntfRefs
     'free', // $ir.free
     'getIntfGUIDR', // rtl.getIntfGUIDR
@@ -1053,13 +1053,15 @@ type
 type
   TPasToJsPlatform = (
     PlatformBrowser,
-    PlatformNodeJS
+    PlatformNodeJS,
+    PlatformElectron
     );
   TPasToJsPlatforms = set of TPasToJsPlatform;
 const
   PasToJsPlatformNames: array[TPasToJsPlatform] of string = (
    'Browser',
-   'NodeJS'
+   'NodeJS',
+   'Electron'
     );
 type
   TPasToJsProcessor = (
@@ -2875,6 +2877,17 @@ begin
     '%file%':
       begin
         SetStr(CurFilename);
+        exit;
+      end;
+    '%filename%':
+      begin
+        SetStr(ExtractFileName(CurFilename));
+        exit;
+      end;
+    '%unit%',
+    '%module%':
+      begin
+        SetStr(CurModuleName);
         exit;
       end;
     '%line%':
@@ -5867,9 +5880,10 @@ end;
 
 function TPas2JSResolver.BI_AWait_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
-// await(const Expr: T): T
 // await(T; p: TJSPromise): T;
 // await(AsyncProc);
+// await(Proc);
+// await(const Expr: T): T
 const
   Signature2 = 'function await(aType,TJSPromise):aType';
 var
@@ -6015,9 +6029,10 @@ var
   P: TPasExprArray;
   Param, PathEnd: TPasExpr;
   Ref: TResolvedReference;
-  Decl: TPasElement;
-  ResolvedEl: TPasResolverResult;
-  Implicit: Boolean;
+  Decl, IdentEl, SubEl: TPasElement;
+  ResolvedEl, ParamResolved: TPasResolverResult;
+  Implicit, IsPromise: Boolean;
+  TypeEl: TPasType;
 begin
   if Proc=nil then ;
   P:=Params.Params;
@@ -6034,7 +6049,7 @@ begin
       Ref:=TResolvedReference(PathEnd.CustomData);
       Decl:=Ref.Declaration;
       Implicit:=false;
-      if Decl is TPasVariable then
+      if (Decl is TPasVariable) or (Decl.ClassType=TPasArgument) then
         begin
         ComputeElement(Decl,ResolvedEl,[rcNoImplicitProcType]);
         if IsProcedureType(ResolvedEl,true) then
@@ -6047,6 +6062,31 @@ begin
         Exclude(Ref.Flags,rrfNoImplicitCallWithoutParams);
         Include(Ref.Flags,rrfImplicitCallWithoutParams);
         end;
+      end
+    else
+      begin
+      ComputeElement(Param,ParamResolved,[]);
+      IsPromise:=false;
+      TypeEl:=ParamResolved.LoTypeEl;
+      IdentEl:=ParamResolved.IdentEl;
+      if TypeEl.ClassType=TPasClassType then
+        IsPromise:=IsExternalClass_Name(TPasClassType(TypeEl),'Promise')
+      else if (ParamResolved.BaseType=btProc) and (IdentEl=nil)
+          and (TypeEl is TPasProcedureType) then
+        IsPromise:=TPasProcedureType(TypeEl).IsAsync
+      else if IdentEl is TPasProcedure then
+        IsPromise:=TPasProcedure(ParamResolved.IdentEl).IsAsync
+      else if IdentEl is TPasResultElement then
+        begin
+        SubEl:=TPasResultElement(IdentEl).Parent;
+        if (SubEl is TPasFunctionType) then
+          IsPromise:=TPasFunctionType(SubEl).IsAsync;
+        end;
+      {$IFDEF VerbosePas2JS}
+      writeln('TPas2JSResolver.BI_AWait_OnFinishParamsExpr Param=',GetObjPath(Param),' ParamResolved=',GetResolverResultDbg(ParamResolved));
+      {$ENDIF}
+      if not IsPromise then
+        LogMsg(20201116000324,mtHint,nAwaitWithoutPromise,sAwaitWithoutPromise,[],Param);
       end;
     end;
 
@@ -9818,6 +9858,7 @@ var
 
     NeedIntfRef:=false;
     if (ProcType is TPasFunctionType)
+        and not ProcType.IsAsync
         and AContext.Resolver.IsInterfaceType(
           TPasFunctionType(ProcType).ResultEl.ResultType,citCom)
     then
@@ -10393,6 +10434,7 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
         CreateProcedureCall(Call,ParamsExpr,AncestorProc.ProcType,AContext);
 
       if (AncestorProc is TPasFunction)
+          and not AncestorProc.IsAsync
           and AContext.Resolver.IsInterfaceType(
               TPasFunction(AncestorProc).FuncType.ResultEl.ResultType,citCom) then
         Call:=CreateIntfRef(Call,AContext,El);
@@ -11408,7 +11450,7 @@ var
   C: TClass;
   aName, ArgName: String;
   aClassTypeEl: TPasClassType;
-  ParamTypeEl, TypeEl: TPasType;
+  ParamTypeEl: TPasType;
   NeedIntfRef: Boolean;
   DestRange, SrcRange: TResEvalValue;
   LastArg: TJSArrayLiteralElement;
@@ -11788,10 +11830,8 @@ begin
   NeedIntfRef:=false;
   if (TargetProcType is TPasFunctionType) and (aResolver<>nil) then
     begin
-    TypeEl:=aResolver.ResolveAliasType(TPasFunctionType(TargetProcType).ResultEl.ResultType);
-    if (TypeEl is TPasClassType)
-        and (TPasClassType(TypeEl).ObjKind=okInterface)
-        and (TPasClassType(TypeEl).InterfaceType=citCom) then
+    if aResolver.IsInterfaceType(TPasFunctionType(TargetProcType).ResultEl.ResultType,citCom)
+        and not TargetProcType.IsAsync then
       NeedIntfRef:=true;
     end;
 
@@ -12294,9 +12334,9 @@ begin
         end;
       end;
     end
-  else if to_bt=btChar then
+  else if to_bt in [btChar,btWideChar] then
     begin
-    if from_bt=btChar then
+    if from_bt in [btChar,btWideChar] then
       begin
       // char to char
       Result:=ConvertExpression(Param,AContext);
@@ -13057,7 +13097,7 @@ begin
   bt:=ParamResolved.BaseType;
   if bt=btRange then
     bt:=ParamResolved.SubType;
-  if bt=btChar then
+  if bt in [btChar,btWideChar] then
     begin
     if Param is TParamsExpr then
       begin
@@ -26506,6 +26546,12 @@ begin
       begin
       bt:=TResElDataBaseType(El.CustomData).BaseType;
       case bt of
+      btWideChar: bt:=btChar;
+      btUnicodeString: bt:=btString;
+      btCurrency: bt:=btIntDouble;
+      end;
+
+      case bt of
       btShortInt,btByte,
       btSmallInt,btWord,
       btLongint,btLongWord,
@@ -26517,11 +26563,6 @@ begin
         begin
         // create rtl.basename
         Result:=GetBIName(pbivnRTL)+'.'+lowercase(AContext.Resolver.BaseTypeNames[bt]);
-        exit;
-        end;
-      btCurrency:
-        begin
-        Result:=GetBIName(pbivnRTL)+'.'+lowercase(AContext.Resolver.BaseTypeNames[btIntDouble]);
         exit;
         end;
       btCustom:
