@@ -233,7 +233,7 @@ type
   Published
     Procedure TestReservedWords;
 
-    // program/units
+    // program, units, includes
     Procedure TestEmptyProgram;
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
@@ -32700,7 +32700,7 @@ begin
   'function TObject.Run(w: word = 3): word; async;',
   'begin',
   'end;',
-  'function TBird.Run(w: word = 3): word; async;',
+  'function TBird.Run(w: word = 3): word;', // async modifier not needed in impl
   'var p: TJSPromise;',
   'begin',
   '  p:=inherited;',

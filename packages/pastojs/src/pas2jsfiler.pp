@@ -280,7 +280,9 @@ const
     'Published',
     'Automated',
     'StrictPrivate',
-    'StrictProtected'
+    'StrictProtected',
+    'Required',
+    'Optional'
     );
 
   PCUMemberHintNames: array[TPasMemberHint] of string = (
@@ -440,7 +442,8 @@ const
     'Static',
     'Varargs',
     'ReferenceTo',
-    'Async'
+    'Async',
+    'Far'
     );
 
   PCUProcedureMessageTypeNames: array[TProcedureMessageType] of string = (

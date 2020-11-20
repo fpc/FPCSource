@@ -122,6 +122,10 @@ type
     procedure TestCallingConventionSysV_ABI_CDec;
     procedure TestCallingConventionSysV_ABI_Default;
     procedure TestCallingConventionVectorCall;
+    procedure TestCallingConventionSysCall;
+    procedure TestCallingConventionSysCallExecbase;
+    procedure TestCallingConventionSysCallUtilitybase;
+    procedure TestCallingConventionSysCallConsoleDevice;
     Procedure TestProcedurePublic;
     Procedure TestProcedurePublicIdent;
     Procedure TestFunctionPublic;
@@ -812,6 +816,30 @@ begin
   AssertProc([],[],ccVectorCall,0);
 end;
 
+procedure TTestProcedureFunction.TestCallingConventionSysCall;
+begin
+  ParseProcedure('; syscall abc');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallExecbase;
+begin
+  ParseProcedure('; syscall _execBase 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallUtilitybase;
+begin
+  ParseProcedure('; syscall _utilityBase 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallConsoleDevice;
+begin
+  ParseProcedure('; syscall ConsoleDevice 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
 procedure TTestProcedureFunction.TestCallingConventionHardFloat;
 begin
   ParseProcedure('; HardFloat');
@@ -1005,14 +1033,14 @@ procedure TTestProcedureFunction.TestProcedureFar;
 begin
   AddDeclaration('procedure A; far;');
   ParseProcedure;
-  AssertProc([pmfar],[],ccDefault,0);
+  AssertProc([pmfar],[ptmfar],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestFunctionFar;
 begin
   AddDeclaration('function A : integer; far;');
   ParseFunction;
-  AssertFunc([pmfar],[],ccDefault,0);
+  AssertFunc([pmfar],[ptmfar],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestProcedureCdeclForward;

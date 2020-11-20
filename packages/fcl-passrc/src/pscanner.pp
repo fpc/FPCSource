@@ -490,12 +490,15 @@ type
   TBaseFileResolver = class
   private
     FBaseDirectory: string;
+    FMode: TModeSwitch;
+    FModuleDirectory: string;
     FResourcePaths,
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   Protected
     function FindIncludeFileName(const aFilename: string): String; virtual; abstract;
     procedure SetBaseDirectory(AValue: string); virtual;
+    procedure SetModuleDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
     Property IncludePaths: TStringList Read FIncludePaths;
     Property ResourcePaths: TStringList Read FResourcePaths;
@@ -507,8 +510,10 @@ type
     function FindResourceFileName(const AName: string): String; virtual; abstract;
     function FindSourceFile(const AName: string): TLineReader; virtual; abstract;
     function FindIncludeFile(const AName: string): TLineReader; virtual; abstract;
-    Property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
-    property BaseDirectory: string read FBaseDirectory write SetBaseDirectory;
+    property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // e.g. current path of include file
+    property Mode: TModeSwitch read FMode write FMode;
+    property ModuleDirectory: string read FModuleDirectory write SetModuleDirectory; // e.g. path of module file
+    property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
   end;
   TBaseFileResolverClass = Class of TBaseFileResolver;
 
@@ -821,6 +826,7 @@ type
     procedure HandleWarn(Param: String); virtual;
     procedure HandleWarnIdentifier(Identifier, Value: String); virtual;
     procedure PushStackItem; virtual;
+    procedure PopStackItem; virtual;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
     procedure ClearFiles;
@@ -1637,6 +1643,7 @@ begin
   '$':
     begin
     FToken:=tkNumber;
+    inc(FTokenEnd);
     {$ifdef UsePChar}
     while FTokenEnd^ in HexDigits do inc(FTokenEnd);
     {$else}
@@ -2453,8 +2460,16 @@ end;
 
 procedure TBaseFileResolver.SetBaseDirectory(AValue: string);
 begin
+  AValue:=IncludeTrailingPathDelimiter(AValue);
   if FBaseDirectory=AValue then Exit;
   FBaseDirectory:=AValue;
+end;
+
+procedure TBaseFileResolver.SetModuleDirectory(AValue: string);
+begin
+  AValue:=IncludeTrailingPathDelimiter(AValue);
+  if FModuleDirectory=AValue then Exit;
+  FModuleDirectory:=AValue;
 end;
 
 procedure TBaseFileResolver.SetStrictFileCase(AValue: Boolean);
@@ -2463,12 +2478,12 @@ begin
   FStrictFileCase:=AValue;
 end;
 
-
 constructor TBaseFileResolver.Create;
 begin
   inherited Create;
   FIncludePaths := TStringList.Create;
   FResourcePaths := TStringList.Create;
+  FMode:=msFPC;
 end;
 
 destructor TBaseFileResolver.Destroy;
@@ -2555,15 +2570,27 @@ function TFileResolver.FindIncludeFileName(const AName: string): String;
 
   begin
     Result:='';
+    // search in BaseDirectory (not in mode Delphi)
+    if (BaseDirectory<>'')
+        and ((ModuleDirectory='') or not (Mode in [msDelphi,msDelphiUnicode])) then
+      begin
+      Result:=SearchLowUpCase(BaseDirectory+FN);
+      if Result<>'' then exit;
+      end;
+    // search in ModuleDirectory
+    if (ModuleDirectory<>'') then
+      begin
+      Result:=SearchLowUpCase(ModuleDirectory+FN);
+      if Result<>'' then exit;
+      end;
+    // search in include paths
     I:=0;
-    While (Result='') and (I<FIncludePaths.Count) do
+    While (I<FIncludePaths.Count) do
       begin
       Result:=SearchLowUpCase(FIncludePaths[i]+FN);
+      if Result<>'' then exit;
       Inc(I);
       end;
-    // search in BaseDirectory
-    if (Result='') and (BaseDirectory<>'') then
-      Result:=SearchLowUpCase(BaseDirectory+FN);
   end;
 
 var
@@ -2757,6 +2784,8 @@ begin
       Inc(J);
       end;
     end;
+  if (I=-1) and (BaseDirectory<>'') then
+    I:=FStreams.IndexOf(IncludeTrailingPathDelimiter(BaseDirectory)+aName);
   If (I<>-1) then
     Result:=FStreams.Objects[i] as TStream;
 end;
@@ -2914,13 +2943,21 @@ begin
 end;
 
 procedure TPascalScanner.OpenFile(AFilename: string);
+
+Var
+  aPath : String;
+
 begin
   Clearfiles;
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
   AddFile(FCurFilename);
   {$IFDEF HASFS}
-  FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
+  aPath:=ExtractFilePath(FCurFilename);
+  if (aPath<>'') then
+    aPath:=IncludeTrailingPathDelimiter(aPath);
+  FileResolver.ModuleDirectory := aPath;
+  FileResolver.BaseDirectory := aPath;
   {$ENDIF}
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
@@ -2970,9 +3007,29 @@ begin
       Result:=tkoperator;
 end;
 
-function TPascalScanner.FetchToken: TToken;
+Procedure TPascalScanner.PopStackItem;
+
 var
   IncludeStackItem: TIncludeStackItem;
+begin
+  IncludeStackItem :=
+    TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
+  FIncludeStack.Delete(FIncludeStack.Count - 1);
+  CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
+  FCurSourceFile := IncludeStackItem.SourceFile;
+  FCurFilename := IncludeStackItem.Filename;
+  FileResolver.BaseDirectory:=ExtractFilePath(FCurFilename);
+  FCurToken := IncludeStackItem.Token;
+  FCurTokenString := IncludeStackItem.TokenString;
+  FCurLine := IncludeStackItem.Line;
+  FCurRow := IncludeStackItem.Row;
+  FCurColumnOffset := IncludeStackItem.ColumnOffset;
+  FTokenPos := IncludeStackItem.TokenPos;
+  IncludeStackItem.Free;
+end;
+
+function TPascalScanner.FetchToken: TToken;
+
 begin
   FPreviousToken:=FCurToken;
   while true do
@@ -2983,19 +3040,7 @@ begin
       begin
       if FIncludeStack.Count > 0 then
         begin
-        IncludeStackItem :=
-          TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
-        FIncludeStack.Delete(FIncludeStack.Count - 1);
-        CurSourceFile.{$ifdef pas2js}Destroy{$else}Free{$endif};
-        FCurSourceFile := IncludeStackItem.SourceFile;
-        FCurFilename := IncludeStackItem.Filename;
-        FCurToken := IncludeStackItem.Token;
-        FCurTokenString := IncludeStackItem.TokenString;
-        FCurLine := IncludeStackItem.Line;
-        FCurRow := IncludeStackItem.Row;
-        FCurColumnOffset := IncludeStackItem.ColumnOffset;
-        FTokenPos := IncludeStackItem.TokenPos;
-        IncludeStackItem.Free;
+        PopStackitem;
         Result := FCurToken;
         end
       else
@@ -3330,6 +3375,8 @@ procedure TPascalScanner.HandleIncludeFile(Param: String);
 
 var
   NewSourceFile: TLineReader;
+  aFileName : string;
+
 begin
   Param:=Trim(Param);
   if Length(Param)>1 then
@@ -3345,11 +3392,16 @@ begin
   if not Assigned(NewSourceFile) then
     Error(nErrIncludeFileNotFound, SErrIncludeFileNotFound, [Param]);
 
+
   PushStackItem;
   FCurSourceFile:=NewSourceFile;
   FCurFilename := Param;
-  if FCurSourceFile is TFileLineReader then
-    FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
+  if FCurSourceFile is TLineReader then
+    begin
+    aFileName:=TLineReader(FCurSourceFile).Filename;
+    FileResolver.BaseDirectory := ExtractFilePath(aFileName);
+    FCurFilename := aFileName; // nicer error messages
+    end;
   AddFile(FCurFilename);
   If LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(FCurFileName)],True);
@@ -3690,6 +3742,7 @@ procedure TPascalScanner.HandleMode(const Param: String);
         SetNonToken(tkotherwise);
       end;
     Handled:=false;
+    FileResolver.Mode:=LangMode;
     if Assigned(OnModeChanged) then
       OnModeChanged(Self,LangMode,false,Handled);
   end;
