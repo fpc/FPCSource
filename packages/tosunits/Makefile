@@ -347,7 +347,7 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-override PACKAGE_NAME=ami-extra
+override PACKAGE_NAME=tosunits
 override PACKAGE_VERSION=3.3.1
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
