@@ -1184,7 +1184,7 @@ HKCR
         { we can't pass pascal ansistrings to COM routines so we've to convert them
           to/from widestring. This array contains the mapping to do so
         }
-        StringMap : array[0..255] of record passtr : pansistring; comstr : pwidechar; end;
+        StringMap : array[0..255] of record passtr : pansistring; paswstr : punicodestring; comstr : pwidechar; end;
         invokekind,
         i : longint;
         invokeresult : HResult;
@@ -1210,7 +1210,7 @@ HKCR
               writeln('DispatchInvoke: Params = ',hexstr(Params));
 {$endif DEBUG_COMDISPATCH}
               { get plain type }
-              CurrType:=CallDesc^.ArgTypes[i] and $3f;
+              CurrType:=CallDesc^.ArgTypes[i] and $7f;
               { a skipped parameter? Don't increment Params pointer if so. }
               if CurrType=varError then
                 begin
@@ -1230,8 +1230,23 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                         StringMap[NextString].ComStr:=StringToOleStr(PString(Params^)^);
                         StringMap[NextString].PasStr:=PString(Params^);
+                        StringMap[NextString].PasWStr:=Nil;
                         Arguments[i].VType:=varOleStr or varByRef;
-                        Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
+                        inc(NextString);
+                        inc(PPointer(Params));
+                      end;
+                    varUStrArg:
+                      begin
+{$ifdef DEBUG_COMDISPATCH}
+                        if printcom then
+                        writeln('Translating var unicodestring argument ',PUnicodeString(Params^)^);
+{$endif DEBUG_COMDISPATCH}
+                        StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params^)^);
+                        StringMap[NextString].PasStr:=Nil;
+                        StringMap[NextString].PasWStr:=PUnicodeString(Params^);
+                        Arguments[i].VType:=varOleStr or varByRef;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
                         inc(NextString);
                         inc(PPointer(Params));
                       end;
@@ -1282,6 +1297,22 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                       StringMap[NextString].ComStr:=StringToOleStr(PString(Params)^);
                       StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
+                      Arguments[i].VType:=varOleStr;
+                      Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                      inc(NextString);
+                      inc(PPointer(Params));
+                    end;
+
+                  varUStrArg:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                    if printcom then
+                      writeln('Translating unicodestring argument ',PUnicodeString(Params)^);
+{$endif DEBUG_COMDISPATCH}
+                      StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params)^);
+                      StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
                       Arguments[i].VType:=varOleStr;
                       Arguments[i].VPointer:=StringMap[NextString].ComStr;
                       inc(NextString);
@@ -1373,9 +1404,12 @@ HKCR
             DispatchInvokeError(invokeresult,exceptioninfo);
 
           { translate strings back }
-          for i:=0 to NextString-1 do
+          for i:=0 to NextString-1 do begin
             if assigned(StringMap[i].passtr) then
-              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^);
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^)
+            else if assigned(StringMap[i].paswstr) then
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].paswstr^);
+          end;
         finally
           for i:=0 to NextString-1 do
             SysFreeString(StringMap[i].ComStr);

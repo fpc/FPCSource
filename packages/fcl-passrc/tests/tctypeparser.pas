@@ -363,9 +363,13 @@ type
     Procedure TestAdvRec_ProcOverrideFail;
     Procedure TestAdvRec_ProcMessageFail;
     Procedure TestAdvRec_DestructorFail;
+    Procedure TestAdvRec_CaseInVar;
+    Procedure TestAdvRec_EmptySections;
     Procedure TestAdvRecordInFunction;
     Procedure TestAdvRecordInAnonFunction;
     Procedure TestAdvRecordClassOperator;
+    Procedure TestAdvRecordInitOperator;
+    Procedure TestAdvRecordGenericFunction;
   end;
 
   { TTestProcedureTypeParser }
@@ -2612,6 +2616,29 @@ begin
   ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
 end;
 
+procedure TTestRecordTypeParser.TestAdvRec_CaseInVar;
+
+// Found in System.UITypes.pas
+
+begin
+  StartRecord(true);
+  AddMember('var');
+  AddMember('Case Integer of');
+  AddMember('  1 : (x: integer);');
+  AddMember('  2 : (y,z: integer)');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_EmptySections;
+begin
+  StartRecord(true);
+  AddMember('const');
+  AddMember('type');
+  AddMember('var');
+  AddMember('  x: integer;');
+  ParseRecord;
+end;
+
 procedure TTestRecordTypeParser.TestAdvRecordInFunction;
 
 // Src from bug report 36179
@@ -2685,6 +2712,51 @@ Const
     'begin'+sLineBreak+
     'end.';
 
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInitOperator;
+// Source from bug id 36180
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    class operator initialize (var self: TMyRecord);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'class operator TMyRecord.initialize (a, b: TMyRecord);'+sLineBreak+
+    'begin'+sLineBreak+
+    '  result := (@a = @b);'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordGenericFunction;
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    generic class procedure doit<T> (a: T);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'generic class procedure TMyRecord.DoIt<T>(a: T);'+sLineBreak+
+    'begin'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
 begin
   Source.Text:=Src;
   ParseModule;   // We're just interested in that it parses.

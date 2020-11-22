@@ -534,6 +534,7 @@ type
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
     DestType: TPasType;
+    SubType: TPasType;
     Expr: TPasExpr;
   end;
 
@@ -1168,7 +1169,8 @@ type
     otBitwiseAnd, otbitwiseXor,
     otLogicalAnd, otLogicalNot, otLogicalXor,
     otRightShift,
-    otEnumerator, otIn
+    otEnumerator, otIn,
+    otInitialize // Management operator
     );
   TOperatorTypes = set of TOperatorType;
 
@@ -1750,13 +1752,13 @@ const
            '>',':=','<>','<=','>=','**',
            '><','Inc','Dec','mod','-','+','Or','div',
            'shl','or','and','xor','and','not','xor',
-           'shr','enumerator','in');
+           'shr','enumerator','in','');
   OperatorNames : Array[TOperatorType] of string
        =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
            'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
            'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
-           'rightshift','enumerator','in');
+           'rightshift','enumerator','in','initialize');
 
   AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
 
@@ -2835,7 +2837,9 @@ begin
         Result := Result + ', ';
       Result := Result + TPasArgument(ProcType.Args[i]).ArgType.Name;
       end;
-    Result := Result + '): ' + TPasFunctionType(ProcType).ResultEl.ResultType.Name;
+    Result := Result + ')';
+    if (OperatorType<>otInitialize) and Assigned(TPasFunctionType(ProcType).ResultEl.ResultType) then
+       Result:=Result+': ' + TPasFunctionType(ProcType).ResultEl.ResultType.Name;
     If WithPath then
       begin
       S:=Self.ParentPath;
@@ -3303,6 +3307,7 @@ end;
 
 destructor TPasAliasType.Destroy;
 begin
+  ReleaseAndNil(TPasElement(SubType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.SubType'{$ENDIF});
   ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
   ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'TPasAliasType.Expr'{$ENDIF});
   inherited Destroy;
