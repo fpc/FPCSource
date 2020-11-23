@@ -11746,6 +11746,7 @@ rtl/objpas/sysutils/sysutilh.inc svneol=native#text/plain
 rtl/objpas/sysutils/sysutils.inc svneol=native#text/plain
 rtl/objpas/sysutils/syswide.inc svneol=native#text/plain
 rtl/objpas/sysutils/syswideh.inc svneol=native#text/plain
+rtl/objpas/sysutils/tzenv.inc svneol=native#text/plain
 rtl/objpas/types.pp svneol=native#text/plain
 rtl/objpas/typinfo.pp svneol=native#text/plain
 rtl/objpas/unicodedata.inc svneol=native#text/pascal
