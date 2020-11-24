@@ -2800,7 +2800,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 {$define TSBCharArray:=Array of SBChar}
 {$define PSBChar:=PAnsiChar}
 {$define SBRAWString:=RawByteString}
-{$define TStringBuilder:=TAnsiStringBuilder}
+{$define TGenericStringBuilder:=TAnsiStringBuilder}
 
 {$i syssb.inc}
 {$undef SBChar}
@@ -2808,7 +2808,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 {$undef TSBCharArray}
 {$undef PSBChar}
 {$undef SBRAWString}
-{$undef TStringBuilder}
+{$undef TGenericStringBuilder}
 
 // Unicode version declaration
 
@@ -2818,14 +2818,14 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 {$define TSBCharArray:=Array of SBChar}
 {$define PSBChar:=PWideChar}
 {$define SBRAWString:=UnicodeString}
-{$define TStringBuilder:=TUnicodeStringBuilder}
+{$define TGenericStringBuilder:=TUnicodeStringBuilder}
 {$i syssb.inc}
 {$undef SBChar}
 {$undef SBString}
 {$undef TSBCharArray}
 {$undef PSBChar}
 {$undef SBRAWString}
-{$undef TStringBuilder}
+{$undef TGenericStringBuilder}
 {$undef SBUNICODE}
 
 
