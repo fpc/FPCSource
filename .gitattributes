@@ -14945,6 +14945,7 @@ tests/test/tfma1.inc svneol=native#text/plain
 tests/test/tfma1a64.pp svneol=native#text/pascal
 tests/test/tfma1arm.pp svneol=native#text/pascal
 tests/test/tfma1x86.pp svneol=native#text/pascal
+tests/test/tfma1xtensa.pp svneol=native#text/pascal
 tests/test/tforin1.pp svneol=native#text/pascal
 tests/test/tforin10.pp svneol=native#text/plain
 tests/test/tforin11.pp svneol=native#text/plain
