@@ -49,6 +49,7 @@ implementation
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -631,6 +632,8 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$I tzenv.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   Regs: Registers;
@@ -910,6 +913,7 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   InitDelay;
   OnBeep:=@SysBeep;
+  InitTZ;
 Finalization
   FreeTerminateProcs;
   DoneExceptions;
