@@ -35,7 +35,6 @@ type
     private
       Origin: DWord;
       UseVLink: boolean;
-      ExeLength: longint;
       function WriteResponseFile(isdll: boolean): boolean;
       procedure SetSinclairQLInfo;
       function MakeSinclairQLExe: boolean;
@@ -53,6 +52,37 @@ implementation
        sysutils,cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,cscript,fmodule,i_sinclairql;
 
+    type
+      TQLHeader = packed record
+        hdr_id: array[0..17] of char;
+        hdr_reserved: byte;
+        hdr_length: byte;
+        hdr_access: byte;
+        hdr_type: byte;
+        hdr_data: dword;
+        hdr_extra: dword;
+      end;
+
+      TXTccData = packed record
+        xtcc_id: array[0..3] of char;
+        xtcc_data: dword;
+      end;
+
+    const
+      DefaultQLHeader: TQLHeader = (
+        hdr_id: ']!QDOS File Header';
+        hdr_reserved: 0;
+        hdr_length: $f;
+        hdr_access: 0;
+        hdr_type: 1;
+        hdr_data: 0;
+        hdr_extra: 0;
+      );
+
+      DefaultXTccData: TXTCCData = (
+        xtcc_id: 'XTcc';
+        xtcc_data: 0;
+      );
 
     const
        DefaultOrigin = $0;
@@ -85,7 +115,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b rawseg -q $FLAGS $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b rawseg -q $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -213,6 +243,7 @@ var
   DynLinkStr : string;
   GCSectionsStr : string;
   FlagsStr : string;
+  MapStr : string;
   ExeName: string;
   fd,fs: file;
   fhdr: text;
@@ -222,12 +253,19 @@ var
   HeaderLine: string;
   HeaderSize: longint;
   code: word;
+  QLHeader: TQLHeader;
+  XTccData: TXTccData;
+  BinSize: longint;
+  DataSpace: DWord;
 begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
   FlagsStr:='';
+  MapStr:='';
 
+  if (cs_link_map in current_settings.globalswitches) then
+    MapStr:='-M'+maybequoted(ScriptFixFilename(current_module.mapfilename));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
   if rlinkpath<>'' then
@@ -247,6 +285,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$FLAGS',FlagsStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -259,7 +298,10 @@ begin
       and the relocation info. Here we copy the two together. (KB) }
   if MakeSinclairQLExe then
     begin
-      ExeLength:=0;
+      QLHeader:=DefaultQLHeader;
+      XTccData:=DefaultXTccData;
+
+      BinSize:=0;
       bufsize:=16384;
 {$push}
 {$i-}
@@ -279,6 +321,19 @@ begin
 
       assign(fs,ExeName+'.'+ProgramHeaderName);
       reset(fs,1);
+      BinSize := FileSize(fs);
+
+      { We assume .bss size is total size indicated by linker minus emmited binary.
+        DataSpace size is .bss + stack space }
+      DataSpace := NToBE(DWord(HeaderSize - BinSize + StackSize));
+
+      { Option: prepend QEmuLator and QPC2 v5 compatible header to EXE }
+      if sinclairql_metadata_format='QHDR' then
+        begin
+          QLHeader.hdr_data:=DataSpace;
+          blockwrite(fd, QLHeader, sizeof(QLHeader));
+        end;
+
       repeat
         blockread(fs,buf^,bufsize,bufread);
         blockwrite(fd,buf^,bufread);
@@ -295,25 +350,29 @@ begin
       close(fs);
       // erase(fs);
 
-      ExeLength:=FileSize(fd);
+      { Option: append cross compilation data space marker, this can be picked up by
+        a special version of InfoZIP (compiled with -DQLZIP and option -Q) or by any
+        of the XTcc unpack utilities }
+      if sinclairql_metadata_format='XTCC' then
+        begin
+          XTccData.xtcc_data:=DataSpace;
+          blockwrite(fd, XTccData, sizeof(XTccData));
+        end;
+
       close(fd);
 {$pop}
       FreeMem(buf);
-      if HeaderSize > ExeLength then
-        ExeLength:=HeaderSize;
-      MakeSinclairQLExe:=(code = 0) and not (ExeLength = 0);
+
+      MakeSinclairQLExe:=(code = 0) and not (BinSize = 0) and (IOResult = 0);
     end;
 end;
 
 
 function TLinkerSinclairQL.MakeExecutable:boolean;
-const
-  DefaultBootString = '10 $SYM=RESPR($BINSIZE):LBYTES"win1_$EXENAME",$SYM:CALL $SYM';
 var
   success : boolean;
   bootfile : TScript;
   ExeName: String;
-  BootStr: String;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename);
@@ -326,24 +385,6 @@ begin
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
-
-  if (success) then
-    begin
-      ExeName:=current_module.exefilename;
-      BootStr:=DefaultBootString;
-
-      Replace(BootStr,'$BINSIZE',tostr(ExeLength));
-      Replace(BootStr,'$EXENAME',ExeName);
-
-      Replace(ExeName,target_info.exeext,'');
-      Replace(BootStr,'$SYM',ExeName);
-
-      { Write bootfile }
-      bootfile:=TScript.Create(outputexedir+ExeName);
-      bootfile.Add(BootStr);
-      bootfile.writetodisk;
-      bootfile.Free;
-    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
