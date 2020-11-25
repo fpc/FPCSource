@@ -1179,6 +1179,7 @@ var
   i: SizeInt;
   LEnumerator: TEnumerator<T>;
 begin
+  Result := nil;
   SetLength(Result, ACount);
 
   try
@@ -1620,6 +1621,7 @@ begin
   if (ACount < 0) or (AIndex < 0) or (AIndex + ACount > Count) then
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
 
+  LDeleted := nil;
   SetLength(LDeleted, ACount);
   System.Move(FItems[AIndex], LDeleted[0], ACount * SizeOf(T));
 
@@ -2021,6 +2023,9 @@ end;
 
 function TQueue<T>.DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): T;
 begin
+  if Count = 0 then
+    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
+
   Result := FItems[AIndex];
   FItems[AIndex] := Default(T);
   Inc(FLow);
@@ -2151,7 +2156,7 @@ end;
 
 function TStack<T>.DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): T;
 begin
-  if AIndex < 0 then
+  if (AIndex < 0) or (Count = 0) then
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
 
   Result := FItems[AIndex];

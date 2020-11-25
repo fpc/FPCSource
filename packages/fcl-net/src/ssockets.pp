@@ -1143,7 +1143,7 @@ begin
   TimeOutResult:=ctrError;
   {$ifdef unix}
   Err:=ESysEINTR;
-  While IsError and (Err in [ESysEINTR, ESysEAGAIN]) do
+  While IsError and ((Err=ESysEINTR) or (Err=ESysEAGAIN)) do
   {$endif}
     begin
     IsError:=fpConnect(Handle, @addr, sizeof(addr))<>0;
