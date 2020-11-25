@@ -3441,12 +3441,27 @@ begin
 
         for i := 0 to aOpCodeList.Count - 1 do
         begin
-          sl.Clear;
-          sl.CommaText := aOpCodeList[i];
-
-          while sl.Count < 8 do sl.Add('');
-
-          NewOpCode := ansilowercase(sl[0]);
+          if (not(aX64) and (sl[1] = '1')) or // i386
+             (aX64 and (sl[2] = '1')) then    // x86_64
+          begin
+	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+            
+	    if (sl[4]  = '') and
+               (sl[5]  = '') and
+               (sl[6]  = '') and
+               (sl[7]  = '') then
+            begin                                        // Opcode with no Params, e.g. VZEROALL
+              slAsm.Add('    ' + sl[0]);
+            end
+            else 
+	    begin
+              if aMREF then
+	      begin	      
+ 	        TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+		sDestFile := 'MREF_' + sDestFile;
+	      end
+   	      else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	    end;	    
 
           FoundNewOpcode := false;
           for j := 0 to slFilemask.Count - 1 do
