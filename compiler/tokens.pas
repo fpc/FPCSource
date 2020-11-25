@@ -608,7 +608,7 @@ const
       (str:'LOGICALOR'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'NODEFAULT'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'OBJCCLASS'     ;special:false;keyword:[m_objectivec1];op:NOTOKEN),
-      (str:'OTHERWISE'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
+      (str:'OTHERWISE'     ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
       (str:'PROCEDURE'     ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'PROTECTED'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'PUBLISHED'     ;special:false;keyword:[m_none];op:NOTOKEN),
