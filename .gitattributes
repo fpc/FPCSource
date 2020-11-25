@@ -13847,6 +13847,7 @@ tests/test/packages/webtbs/tw14265.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw1808.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw3820.pp svneol=native#text/plain
 tests/test/packages/win-base/tdispvar1.pp svneol=native#text/plain
+tests/test/packages/win-base/tdispvar2.pp svneol=native#text/pascal
 tests/test/packages/zlib/tzlib1.pp svneol=native#text/plain
 tests/test/t4cc1.pp svneol=native#text/plain
 tests/test/t4cc2.pp svneol=native#text/plain
