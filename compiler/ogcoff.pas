@@ -877,6 +877,64 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
+    function encodeBase64(p:aword):string;
+      const
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+                   'abcdefghijklmnopqrstuvwxyz' +
+                   '0123456789+/';
+      var
+        i,
+        idx,
+        rem : longint;
+      begin
+        setlength(result,6);
+
+        idx := 6;
+        for i:=0 to 5 do
+          begin
+            rem:=p mod 64;
+            p:=p div 64;
+            result[idx]:=alphabet[rem+1];
+            dec(idx);
+          end;
+
+        if p<>0 then
+          internalerror(2020091601);
+      end;
+
+
+    function decodeBase64(const s:string;out p:longint):boolean;
+      var
+        i : longint;
+        v : aword;
+      begin
+        if length(s)>6 then
+          exit(false);
+
+        p:=0;
+        for i:=1 to length(s) do
+          begin
+            v:=0;
+            if (s[i]>='A') and (s[i]<='Z') then // 0..25
+              v:=Ord(s[i])-Ord('A')
+            else if (s[i]>='a') and (s[i]<='z') then // 26..51
+              v:=Ord(s[i])-Ord('a')+26
+            else if (s[i]>='0') and (s[i]<='9') then // 52..61
+              v:=Ord(s[i])-Ord('0')+52
+            else if s[i]='+' then // 62
+              v:=62
+            else if s[i]='/' then // 63
+              v:=63
+            else
+              exit(false);
+
+            p:=(p*64)+v;
+          end;
+
+        result:=true;
+      end;
+
+
 {****************************************************************************
                                TCoffObjSection
 ****************************************************************************}
@@ -1544,7 +1602,12 @@ const pemagic : array[0..3] of byte = (
                strpos:=FCoffStrs.size+4;
                FCoffStrs.writestr(s);
                FCoffStrs.writestr(#0);
-               s:='/'+ToStr(strpos);
+               if strpos>=10000000 then
+                 s:='//'+encodeBase64(strpos)
+               else
+                 s:='/'+ToStr(strpos);
+               if length(s)>8 then
+                 internalerror(2020091501);
              end;
             move(s[1],sechdr.name,length(s));
             if not win32 then
@@ -2187,13 +2250,26 @@ const pemagic : array[0..3] of byte = (
                secname:=strpas(secnamebuf);
                if secname[1]='/' then
                  begin
-                   Val(Copy(secname,2,8),strpos,code);
-                   if code=0 then
-                     secname:=Read_str(strpos)
+                   if secname[2]='/' then
+                     begin
+                       if not decodeBase64(copy(secname,3,8),strpos) then
+                         begin
+                           InputError('Error reading COFF Section Headers');
+                           secname:='error';
+                         end
+                       else
+                         secname:=Read_str(strpos);
+                     end
                    else
                      begin
-                       InputError('Error reading COFF Section Headers');
-                       secname:='error';
+                       Val(Copy(secname,2,8),strpos,code);
+                       if code=0 then
+                         secname:=Read_str(strpos)
+                       else
+                         begin
+                           InputError('Error reading COFF Section Headers');
+                           secname:='error';
+                         end;
                      end;
                  end;
                if win32 then
