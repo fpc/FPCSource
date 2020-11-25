@@ -101,7 +101,7 @@ type
    PWordarray = ^TWordArray;
    TWordArray = array[0..{$ifdef CPU16}16382{$else}16383{$endif}] of Word;
 
-   TBytes = array of Byte;   
+   TBytes = array of Byte;
 
    { exceptions }
    Exception = class(TObject)
@@ -120,10 +120,9 @@ type
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
         AHelpContext: Longint);
       Function ToString : String; override;  
-      { !!!! }
+
       property HelpContext : longint read fhelpcontext write fhelpcontext;
       property Message : string read fmessage write fmessage;
-      
    end;
 
    ExceptClass = class of Exception;
@@ -141,7 +140,7 @@ type
    end;
 
    { integer math exceptions }
-   EInterror    = Class(EExternal);
+   EIntError    = Class(EExternal);
    EDivByZero   = Class(EIntError);
    ERangeError  = Class(EIntError);
    EIntOverflow = Class(EIntError);
