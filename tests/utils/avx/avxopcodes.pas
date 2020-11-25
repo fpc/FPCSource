@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -16,13 +16,14 @@ type
   protected
     procedure Init;
 
-    function InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
     destructor Destroy; override;
 
     function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
+//    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
     property OpCodeList: TStringList read FOpCodeList write FOpCodeList;
   end;
@@ -3256,7 +3257,7 @@ begin
   
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
+function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
   i: integer;
@@ -3369,6 +3370,30 @@ begin
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
                 end;
+         tfFPCMRef: 
+                begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program $$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+                  slHeader.Add(' procedure 1;');
+                  slHeader.Add(' begin');
+                  slHeader.Add('   asm');
+                  for i := 1 to 10 do
+                   slHeader.Add('    NOP');
+                  
+			  
+                  for i := 1 to 10 do
+                   slFooter.Add('    NOP');
+
+		  slFooter.Add('  end;');
+		  slFooter.Add(' end;');
+                  slFooter.Add('begin');
+                  slFooter.Add('end.');
+                end;
          tfFPCInc: begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
@@ -3444,7 +3469,7 @@ begin
                 end;
       end;
 
-      InternalMakeTestFiles(aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
+      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
 
     finally
       FreeAndNil(slFooter);

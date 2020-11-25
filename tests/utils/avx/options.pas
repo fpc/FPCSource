@@ -35,6 +35,7 @@ type
     FX64: boolean;
     FOutputFormat: Char;
     FPath: string;
+    FMemRef: boolean;
   public
     constructor Create;
 
@@ -45,6 +46,7 @@ type
     property X64: boolean read FX64 write FX64;
     property AVX512: boolean read FAVX512 write FAVX512;
     property Path: string read FPath write FPath;
+    property MemRef: boolean read FMemref write FMemRef;
   end;
 
 implementation
@@ -60,6 +62,7 @@ begin
   FAVX512        := false;
   FOutputFormat  := '?';
   FPath          := '';
+  FMemRef        := false;
 end;
 
 procedure TOptions.LoadParams;
@@ -90,6 +93,8 @@ begin
                else if sValue = 'nasm' then FOutputFormat := 'n'
                else if sValue = 'fasm' then FOutputFormat := 'F'
                else if sValue = 'fpcinc' then FOutputFormat := 'I'
+               else if sValue = 'fpcmref' then FOutputFormat := 'm'
+
                else IsInvalidParam := true;
          'p': if sValue = 'x8664' then
               begin
