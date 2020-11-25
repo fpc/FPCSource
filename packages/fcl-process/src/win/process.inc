@@ -44,49 +44,43 @@ end;
 Function GetStartupFlags (P : TProcessnamemacro): Cardinal;
 
 begin
-  With P do
-    begin
-    Result:=0;
-    if poUsePipes in Options then
-       Result:=Result or Startf_UseStdHandles;
-    if suoUseShowWindow in StartupOptions then
-      Result:=Result or startf_USESHOWWINDOW;
-    if suoUSESIZE in StartupOptions then
-      Result:=Result or startf_usesize;
-    if suoUsePosition in StartupOptions then
-      Result:=Result or startf_USEPOSITION;
-    if suoUSECOUNTCHARS in Startupoptions then
-      Result:=Result or startf_usecountchars;
-    if suoUsefIllAttribute in StartupOptions then
-      Result:=Result or startf_USEFILLATTRIBUTE;
-    end;
+  Result:=0;
+  if poUsePipes in P.Options then
+     Result:=Result or Startf_UseStdHandles;
+  if suoUseShowWindow in P.StartupOptions then
+    Result:=Result or startf_USESHOWWINDOW;
+  if suoUSESIZE in P.StartupOptions then
+    Result:=Result or startf_usesize;
+  if suoUsePosition in P.StartupOptions then
+    Result:=Result or startf_USEPOSITION;
+  if suoUSECOUNTCHARS in P.Startupoptions then
+    Result:=Result or startf_usecountchars;
+  if suoUsefIllAttribute in P.StartupOptions then
+    Result:=Result or startf_USEFILLATTRIBUTE;
 end;
 
 Function GetCreationFlags(P : TProcessnamemacro) : Cardinal;
 
 begin
-  With P do
-    begin
-    Result:=CREATE_UNICODE_ENVIRONMENT;
-    if poNoConsole in Options then
-      Result:=Result or CREATE_NO_WINDOW;
-    if poNewConsole in Options then
-      Result:=Result or Create_new_console;
-    if poNewProcessGroup in Options then
-      Result:=Result or CREATE_NEW_PROCESS_GROUP;
-    If poRunSuspended in Options Then
-      Result:=Result or Create_Suspended;
-    if poDebugProcess in Options Then
-      Result:=Result or DEBUG_PROCESS;
-    if poDebugOnlyThisProcess in Options Then
-      Result:=Result or DEBUG_ONLY_THIS_PROCESS;
-    if poDefaultErrorMode in Options Then
-      Result:=Result or CREATE_DEFAULT_ERROR_MODE;
-    if poDetached in Options Then
-      Result:=Result or DETACHED_PROCESS;
+  Result:=CREATE_UNICODE_ENVIRONMENT;
+  if poNoConsole in P.Options then
+    Result:=Result or CREATE_NO_WINDOW;
+  if poNewConsole in P.Options then
+    Result:=Result or Create_new_console;
+  if poNewProcessGroup in P.Options then
+    Result:=Result or CREATE_NEW_PROCESS_GROUP;
+  If poRunSuspended in P.Options Then
+    Result:=Result or Create_Suspended;
+  if poDebugProcess in P.Options Then
+    Result:=Result or DEBUG_PROCESS;
+  if poDebugOnlyThisProcess in P.Options Then
+    Result:=Result or DEBUG_ONLY_THIS_PROCESS;
+  if poDefaultErrorMode in P.Options Then
+    Result:=Result or CREATE_DEFAULT_ERROR_MODE;
+  if poDetached in P.Options Then
+    Result:=Result or DETACHED_PROCESS;
 
-    result:=result or PriorityConstants[FProcessPriority];
-    end;
+  result:=result or PriorityConstants[P.FProcessPriority];
 end;
 
 function WStrAsUniquePWideChar(var s: UnicodeString): PWideChar;
@@ -137,31 +131,28 @@ Const
 
 begin
   FillChar(SI,SizeOf(SI),0);
-  With SI do
+  SI.cb:=SizeOf(SI);
+  SI.dwFlags:=GetStartupFlags(P);
+  if P.FShowWindow<>swoNone then
+   SI.dwFlags:=SI.dwFlags or Startf_UseShowWindow
+  else
+    SI.dwFlags:=SI.dwFlags and not Startf_UseShowWindow;
+  SI.wShowWindow:=SWC[P.FShowWindow];
+  if (poUsePipes in P.Options) then
     begin
-    cb:=SizeOf(SI);
-    dwFlags:=GetStartupFlags(P);
-    if P.FShowWindow<>swoNone then
-     dwFlags:=dwFlags or Startf_UseShowWindow
-    else
-      dwFlags:=dwFlags and not Startf_UseShowWindow;
-    wShowWindow:=SWC[P.FShowWindow];
-    if (poUsePipes in P.Options) then
-      begin
-      dwFlags:=dwFlags or Startf_UseStdHandles;
-      end;
-    if P.FillAttribute<>0 then
-      begin
-      dwFlags:=dwFlags or Startf_UseFillAttribute;
-      dwFillAttribute:=P.FillAttribute;
-      end;
-     dwXCountChars:=P.WindowColumns;
-     dwYCountChars:=P.WindowRows;
-     dwYsize:=P.WindowHeight;
-     dwXsize:=P.WindowWidth;
-     dwy:=P.WindowTop;
-     dwX:=P.WindowLeft;
-     end;
+    SI.dwFlags:=SI.dwFlags or Startf_UseStdHandles;
+    end;
+  if P.FillAttribute<>0 then
+    begin
+    SI.dwFlags:=SI.dwFlags or Startf_UseFillAttribute;
+    SI.dwFillAttribute:=P.FillAttribute;
+    end;
+   SI.dwXCountChars:=P.WindowColumns;
+   SI.dwYCountChars:=P.WindowRows;
+   SI.dwYsize:=P.WindowHeight;
+   SI.dwXsize:=P.WindowWidth;
+   SI.dwy:=P.WindowTop;
+   SI.dwX:=P.WindowLeft;
 end;
 
 { The handles that are to be passed to the child process must be

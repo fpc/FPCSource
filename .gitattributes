@@ -11711,6 +11711,7 @@ rtl/win/systhrd.inc svneol=native#text/plain
 rtl/win/systlsdir.inc svneol=native#text/plain
 rtl/win/sysutils.pp svneol=native#text/plain
 rtl/win/syswin.inc svneol=native#text/plain
+rtl/win/syswinh.inc svneol=native#text/plain
 rtl/win/tthread.inc svneol=native#text/plain
 rtl/win/windirs.pp svneol=native#text/plain
 rtl/win/wininc/Makefile svneol=native#text/plain

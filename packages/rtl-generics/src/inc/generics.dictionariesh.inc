@@ -262,6 +262,7 @@ type
     procedure Clear; override;
     procedure TrimExcess;
     function TryGetValue(constref AKey: TKey; out AValue: TValue): Boolean;
+    function TryAdd(constref AKey: TKey; constref AValue: TValue): Boolean;
     procedure AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
     function ContainsKey(constref AKey: TKey): Boolean; inline;
     function ContainsValue(constref AValue: TValue): Boolean; overload;
