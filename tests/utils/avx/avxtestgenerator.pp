@@ -58,6 +58,7 @@ begin
           'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path);
           'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path);
           'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path);
+          'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path);
         end;
       end;
     finally
