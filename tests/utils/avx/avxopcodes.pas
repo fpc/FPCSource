@@ -8,9 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef, tfFPCCDisp8);
-
-  { TAVXTestGenerator }
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -18,17 +16,13 @@ type
   protected
     procedure Init;
 
-    function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
-
-    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
-    function InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
     destructor Destroy; override;
 
-    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask: String): boolean;
-    procedure ListMemRefState;
+    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 //    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
     property OpCodeList: TStringList read FOpCodeList write FOpCodeList;
@@ -3296,7 +3290,7 @@ begin
   end;
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
+function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
   i,j: integer;
@@ -3556,7 +3550,7 @@ begin
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
                 end;
-         tfFPCMRef:
+         tfFPCMRef: 
                 begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
@@ -3565,99 +3559,13 @@ begin
 
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
-
-                  slHeader.Add('type');
-                  slHeader.Add('  rec = record');
-
-                  slHeader.Add('    rByte: byte;');
-                  slHeader.Add('    rWord: word;');
-                  slHeader.Add('    rDWord: dword;');
-                  slHeader.Add('    rQWord: qword;');
-                  slHeader.Add('    rOWord: array[0..15] of byte;');
-                  slHeader.Add('    rYWord: array[0..31] of byte;');
-                  slHeader.Add('    rZWord: array[0..63] of byte;');
-
-                  slHeader.Add('  end;');
-
-
-		  slHeader.Add('var');
-                  slHeader.Add('   gRec: rec;');
-		  slHeader.Add('   gByte: byte;');
-		  slHeader.Add('   gWord: word;');
-		  slHeader.Add('  gDWord: dword;');
-		  slHeader.Add('  gQWord: qword;');
-		  slHeader.Add('  gOWord: array[0..15] of byte;');
-		  slHeader.Add('  gYWord: array[0..31] of byte;');
-		  slHeader.Add('  gZWord: array[0..63] of byte;');
-
-		  slHeader.Add('const');
-		  slHeader.Add('   cgByte: byte = 0;');
-		  slHeader.Add('   cgWord: word = 0;');
-		  slHeader.Add('  cgDWord: dword = 0;');
-		  slHeader.Add('  cgQWord: qword = 0;');
-		  slHeader.Add('  cgOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-		  slHeader.Add('  cgYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-		  slHeader.Add('  cgZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-//  slHeader.Add('  cgZWord: array[0..63] of byte;');
-
-                  slHeader.Add(' procedure dummyproc;');
-		  slHeader.Add(' var');
-                  slHeader.Add('     lRec: rec;');
-		  slHeader.Add('     lByte: byte;');
-		  slHeader.Add('     lWord: word;');
-		  slHeader.Add('    lDWord: dword;');
-		  slHeader.Add('    lQWord: qword;');
-		  slHeader.Add('    lOWord: array[0..15] of byte;');
-		  slHeader.Add('    lYWord: array[0..31] of byte;');
-		  slHeader.Add('    lSingle: single;');
-
-		  slHeader.Add('    lDouble: double;');
-		  slHeader.Add('    lZWord: array[0..63] of byte;');
-
-                  slHeader.Add(' const');
-		  slHeader.Add('     clByte: byte = 0;');
-		  slHeader.Add('     clWord: word = 0;');
-		  slHeader.Add('    clDWord: dword = 0;');
-		  slHeader.Add('    clQWord: qword = 0;');
-		  slHeader.Add('    clOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-		  slHeader.Add('    clYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-		  slHeader.Add('    clZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
-                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
-
-
-
+                  slHeader.Add(' procedure 1;');
                   slHeader.Add(' begin');
                   slHeader.Add('   asm');
                   for i := 1 to 10 do
                    slHeader.Add('    NOP');
-
-
+                  
+			  
                   for i := 1 to 10 do
                    slFooter.Add('    NOP');
 
@@ -3665,126 +3573,6 @@ begin
 		  slFooter.Add(' end;');
                   slFooter.Add('begin');
                   slFooter.Add('end.');
-                end;
-         tfFPCCDisp8:
-                begin
-                  writeln(format('outputformat: fpc  platform: %s  path: %s',
-                                 [cPlatform[aX64], aDestPath]));
-
-                  FileExt := '.pp';
-
-                  slHeader.Add('Program $$$OPCODE$$$;');
-                  slHeader.Add('{$asmmode intel}');
-                  slHeader.Add('{$mode objfpc}{$H+}');
-
-                  slHeader.Add('uses sysutils;');
-
-                  slHeader.Add('const');
-                  slHeader.Add('  cDataBlockByte: Array[0..255] of byte = ( $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E, $0F,');
-                  slHeader.Add('                                            $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F,');
-                  slHeader.Add('                                            $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F,');
-                  slHeader.Add('                                            $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $3A, $3B, $3C, $3D, $3E, $3F,');
-                  slHeader.Add('                                            $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $4A, $4B, $4C, $4D, $4E, $4F,');
-                  slHeader.Add('                                            $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $5A, $5B, $5C, $5D, $5E, $5F,');
-                  slHeader.Add('                                            $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $6A, $6B, $6C, $6D, $6E, $6F,');
-                  slHeader.Add('                                            $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $7A, $7B, $7C, $7D, $7E, $7F,');
-                  slHeader.Add('                                            $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $8A, $8B, $8C, $8D, $8E, $8F,');
-                  slHeader.Add('                                            $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $9A, $9B, $9C, $9D, $9E, $9F,');
-                  slHeader.Add('                                            $A0, $A1, $A2, $A3, $A4, $A5, $A6, $A7, $A8, $A9, $AA, $AB, $AC, $AD, $AE, $AF,');
-                  slHeader.Add('                                            $B0, $B1, $B2, $B3, $B4, $B5, $B6, $B7, $B8, $B9, $BA, $BB, $BC, $BD, $BE, $BF,');
-                  slHeader.Add('                                            $C0, $C1, $C2, $C3, $C4, $C5, $C6, $C7, $C8, $C9, $CA, $CB, $CC, $CD, $CE, $CF,');
-                  slHeader.Add('                                            $D0, $D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8, $D9, $DA, $DB, $DC, $DD, $DE, $DF,');
-                  slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
-                  slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
-                  slHeader.Add('var');
-                  slHeader.Add('  DataBlock: Array[0..$3FFF] of dword;');
-                  slHeader.Add('  i: integer;');
-
-                  slHeader.Add('procedure writelnK7;');
-                  slHeader.Add('var');
-                  slHeader.Add('  iK7: dword;');
-                  slHeader.Add('begin');
-                  slHeader.Add('  asm');
-                  slHeader.Add('    kmovd  iK7, k7');
-                  slHeader.Add('  end;');
-                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(iK7));');
-                  slHeader.Add('end;');
-
-                  slHeader.Add('procedure writelnOK;');
-                  slHeader.Add('begin');
-                  slHeader.Add('  writeln('' OK '');');
-                  slHeader.Add('end;');
-
-
-                  slHeader.Add('begin');
-                  slHeader.Add('  for i := 0 to high(DataBlock) do');
-                  slHeader.Add('   DataBlock[i] := cDataBlockByte[i mod 256];');
-
-                  slHeader.Add('  write(Paramstr(0) + '': '');');
-
-                  slHeader.Add('  try');
-                  slHeader.Add('    asm');
-
-                  slHeader.Add('      vpxord   zmm0,  zmm0,  zmm0');
-                  slHeader.Add('      vpxord   xmm1,  xmm1,  xmm1');
-                  slHeader.Add('      vpxord   xmm2,  xmm2,  xmm2');
-                  slHeader.Add('      vpxord   xmm3,  xmm3,  xmm3');
-                  slHeader.Add('      vpxord   xmm4,  xmm4,  xmm4');
-                  slHeader.Add('      vpcmpeqb   k1,  zmm0,  zmm0');
-
-                  if aX64 then
-                  begin
-                    slHeader.Add('      lea       rax, @@CHECKRESULT');
-                    slHeader.Add('      kmovq      k6, rax');
-
-                    slHeader.Add('      lea       rax, DataBlock');
-                    slHeader.Add('      push      rax');
-                  end
-                  else
-                  begin
-                    slHeader.Add('      lea       eax, @@CHECKRESULT');
-                    slHeader.Add('      kmovd      k6, eax');
-
-                    slHeader.Add('      lea       eax, DataBlock');
-                    slHeader.Add('      push      eax');
-                  end;
-
-
-                  for i := 1 to 10 do
-                   slHeader.Add('NOP');
-
-
-                  for i := 1 to 10 do
-                   slFooter.Add('NOP');
-
-                  slFooter.Add('      call writelnOK');
-                  slFooter.Add('      jmp  @@END');
-
-
-                  slFooter.Add('  @@CHECKRESULT:   ');
-                  slFooter.Add('      kmovd  eax, k7');
-                  slFooter.Add('      call writelnK7');
-                  slFooter.Add('  @@END:   ');
-
-
-                  if aX64 then slFooter.Add('        pop rax')
-                   else slFooter.Add('        pop eax');
-
-
-                  slFooter.Add('    end;');
-                  slFooter.Add('  except');
-                  slFooter.Add('    on E: EInvalidOp do');
-                  slFooter.Add('      begin');
-                  slFooter.Add('        writeln(''Error - Invalid Op: '' + E.Message);');
-                  slFooter.Add('      end;');
-
-                  slFooter.Add('    on E: Exception do');
-                  slFooter.Add('      begin');
-                  slFooter.Add('        writeln(''Fehler: '' + E.Message);');
-                  slFooter.Add('      end;');
-                  slFooter.Add('  end;');
-                  slFooter.Add('end.');
-
                 end;
          tfFPCInc: begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
@@ -3861,10 +3649,7 @@ begin
                 end;
       end;
 
-      case aTyp of
-        tfFPCCDisp8: InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
-                else InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
-      end;
+      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
 
     finally
       FreeAndNil(slFooter);

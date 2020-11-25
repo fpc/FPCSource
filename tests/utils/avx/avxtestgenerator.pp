@@ -57,13 +57,11 @@ begin
         //exit;
 
         case OutputFormat of
-          'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path, Filemask);
-          'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path, Filemask);
-          'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path, Filemask);
-          'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path, Filemask);
-          'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path, Filemask);
-          'd': MakeTestFiles(tfFPCCDisp8, x64, true, false, Path, Filemask);
-          'l': ListMemRefState;
+          'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path);
+          'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path);
+          'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path);
+          'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path);
+          'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path);
         end;
       end;
     finally
