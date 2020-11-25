@@ -238,6 +238,13 @@ begin
          AddConditionalLinkerPath('cpupowerpc', powerpc, result);
          AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
          end
+       else if CPU in [arm, aarch64] then
+         begin
+         AddConditionalLinkerPath('cpuarm', arm, result);
+         AddConditionalLinkerPath('cpuaarch64', aarch64, result);
+         end
+       else
+         result := '-Fl'+GetDefaultLibGCCDir(CPU, OS, S);
        end;
     darwin :
        begin
