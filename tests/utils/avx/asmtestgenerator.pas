@@ -88,7 +88,7 @@ type
     procedure VectorMemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
-    function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
+    function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String; var aDatatyp: string): TStringList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1864,7 +1864,7 @@ end;
 
 
 function TAsmTestGenerator.InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3,
-  aOp4: String): TStringList;
+  aOp4: String; var aDatatyp: string): TStringList;
 var
   i: integer;
   Item: TOperandListItem;
@@ -1903,6 +1903,8 @@ var
 
 begin
   result := TStringList.Create;
+
+  aDatatyp := '';
 
   OItem1 := TOperandListItem.Create;
   try
@@ -1983,6 +1985,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
+              aDatatyp := 'array[0..15] of byte';
+	      
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -1999,6 +2003,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'byte ';
 
+              aDatatyp := 'byte';
+	      
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2017,6 +2023,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'word ';
 
+	      aDataTyp := 'word';
+	      
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2047,6 +2055,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'yword ';
+	      aDatatyp := 'array [0..31] of byte';
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2078,6 +2087,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'zword ';
 
+              aDatatyp := 'array[0..63] of byte';
+
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2088,8 +2099,13 @@ begin
               Item.OpTyp    := otMEM8;
               Item.OpActive := true;
 
-	      if UsePrefix then sl_Prefix := 'byte ';
+	      if UsePrefix then
+	      begin	     
+		sl_Prefix := 'byte ';
+	      end;
 
+              aDatatyp := 'byte';
+	      
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2101,7 +2117,12 @@ begin
               Item.OpTyp    := otMEM16;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'word ';
+              if UsePrefix then
+	      begin 	      
+		sl_Prefix := 'word ';
+              end;
+
+              aDataTyp := 'word';
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2116,6 +2137,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'dword ';
+              aDataTyp := 'dword';
+
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2131,6 +2154,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'qword ';
 
+	      aDataTyp := 'qword';
+
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2144,6 +2169,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'oword ';
+
+	      aDatatyp := 'oword';
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2159,6 +2186,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'yword ';
 
+	      aDatatyp := 'yword';
+
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2172,6 +2201,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'zword ';
+
+	      aDatatyp := 'zword';
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2219,6 +2250,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'dword ';
 
+	      aDatatyp := 'dword';
+
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
               Item.Values.Add(sl_Prefix + ' [v1]');
@@ -2230,6 +2263,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'qword ';
+
+	      aDatatyp := 'qword';
 
               Item.Values.Add('v1');
               Item.Values.Add(sl_Prefix + ' v1');
@@ -2252,6 +2287,7 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
+	      aDatatyp := 'array[0.15] of byte';
             end
             else if AnsiSameText(sl_Operand, 'XMEM64') or
                     AnsiSameText(sl_Operand, 'XMEM64_M') then
@@ -2261,6 +2297,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'oword ';
+
+
 
             end
             else if AnsiSameText(sl_Operand, 'YMEM32') or
@@ -2905,8 +2943,9 @@ begin
 end;
 
 class procedure TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
-  aOp4: String; aSL: TStringList);
+  aOp4: String;  aSL: TStringList);
 var
+  sDataTyp: string;	
   sl: TStringList;
 begin
   with TAsmTestGenerator.Create do
@@ -2915,7 +2954,7 @@ begin
     FAVX512 := aAVX512;
     FSAE    := aSAE;
 
-    sl := InternalCalcTestData(aInst, aOp1, aOp2, aOp3, aOp4);
+    sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4, sDataTyp);
     try
       aSL.AddStrings(sl);
     finally
