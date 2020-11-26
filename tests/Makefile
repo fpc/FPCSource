@@ -2383,6 +2383,9 @@ endif
 ifdef EMULATOR
 override DOTESTOPT+=-M$(EMULATOR)
 endif
+ifdef EMULATOR_OPTS
+override DOTESTOPT+=-N$(EMULATOR_OPTS)
+endif
 ifdef USEENV
 override DOTESTENV:=$(DOTESTOPT)
 override DOTESTOPT=!DOTESTENV
