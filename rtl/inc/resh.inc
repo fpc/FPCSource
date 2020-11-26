@@ -78,6 +78,12 @@ Function FreeResource(ResData: TFPResourceHGLOBAL): LongBool;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName, ResourceType: AnsiString): TFPResourceHandle;
 Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
+{$ifndef Win16}
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PChar): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PChar; const ResourceType: AnsiString): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PChar; Language : word): TFPResourceHandle;
+{$endif Win16}
 {$endif}
 
 type
