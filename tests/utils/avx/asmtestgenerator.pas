@@ -94,7 +94,7 @@ type
     destructor Destroy; override;
 
     class procedure CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
-    class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList; var aLocalVarDataTyp: string);
 
     class procedure CalcTestInstFile;
 
@@ -2943,9 +2943,8 @@ begin
 end;
 
 class procedure TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
-  aOp4: String;  aSL: TStringList);
+  aOp4: String;  aSL: TStringList; var aLocalVarDataTyp: string);
 var
-  sDataTyp: string;	
   sl: TStringList;
 begin
   with TAsmTestGenerator.Create do
@@ -2954,7 +2953,7 @@ begin
     FAVX512 := aAVX512;
     FSAE    := aSAE;
 
-    sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4, sDataTyp);
+    sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4, aLocalVarDataTyp);
     try
       aSL.AddStrings(sl);
     finally

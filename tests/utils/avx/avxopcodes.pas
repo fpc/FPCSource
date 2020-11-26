@@ -3260,6 +3260,7 @@ var
   i: integer;
   sData: string;
   sDestFile: string;
+  sLocalVarDataTyp: string;
   sl: TStringList;
   slAsm: TStringList;
   LastOpCode: String;
@@ -3316,8 +3317,13 @@ begin
 	    begin
               if aMREF then
 	      begin	      
- 	        TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+ 	        TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm, sLocalVarDataTyp);
 		sDestFile := 'MREF_' + sDestFile;
+                
+		if trim(sLocalVarDataTyp) = '' then
+		 sLocalVarDataTyp := 'byte';
+ 
+                aHeaderList.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
 	      end
    	      else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	    end;	    
@@ -3383,7 +3389,9 @@ begin
 
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
-                  slHeader.Add(' procedure 1;');
+                  slHeader.Add(' procedure dummyproc;');
+		  slHeader.Add(' var');
+		  slHeader.Add('    v1: $$$LOCALVARDATATYP$$$;');
                   slHeader.Add(' begin');
                   slHeader.Add('   asm');
                   for i := 1 to 10 do
