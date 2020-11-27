@@ -1954,6 +1954,33 @@ begin
              ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
                           localscale,localgetoffset,localforceref);
              ai.oper[i-1]^.localoper^.localsegment:=localsegment;
+
+             if MemRefInfo(opcode).ExistsSSEAVX then
+             begin
+               asize := 0;
+
+               case operands[i].size of
+                 OS_32,OS_M32: if (operands[i].HasType) or
+                                  (MemRefInfo(opcode).MemRefSize = msiMem32) or
+                                  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST32)
+                                  //(((tx86operand(operands[i]).vopext and OTVE_VECTOR_BCST) = OTVE_VECTOR_BCST) and
+                                  //  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST32)
+                                  //)
+                                   then
+                                asize:=OT_BITS32;
+                 OS_64,OS_M64: if (operands[i].HasType) or
+                                  (MemRefInfo(opcode).MemRefSize = msiMem64) or
+                                  //(((tx86operand(operands[i]).vopext and OTVE_VECTOR_BCST) = OTVE_VECTOR_BCST) and
+                                  //  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64)
+                                  //) then
+                                  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64) then
+                                asize:=OT_BITS64;
+                          else;
+               end;
+
+               if asize<>0 then
+                 ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
+             end;
            end;
        OPR_REFERENCE:
          begin
