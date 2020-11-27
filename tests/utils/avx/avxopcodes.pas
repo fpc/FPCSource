@@ -3263,6 +3263,7 @@ var
   sLocalVarDataTyp: string;
   sl: TStringList;
   slAsm: TStringList;
+  slLocalHeader: TStringList;
   LastOpCode: String;
   NewOpCode: String;
 
@@ -3305,31 +3306,40 @@ begin
              (aX64 and (sl[2] = '1')) then    // x86_64
           begin
 	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
-            
-	    if (sl[4]  = '') and
-               (sl[5]  = '') and
-               (sl[6]  = '') and
-               (sl[7]  = '') then
-            begin                                        // Opcode with no Params, e.g. VZEROALL
-              slAsm.Add('    ' + sl[0]);
-            end
-            else 
-	    begin
-              if aMREF then
-	      begin	      
- 	        TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm, sLocalVarDataTyp);
-		sDestFile := 'MREF_' + sDestFile;
-                
-		if trim(sLocalVarDataTyp) = '' then
-		 sLocalVarDataTyp := 'byte';
- 
-                aHeaderList.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
-	      end
-   	      else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-	    end;	    
 
-            SaveFile(slAsm, sDestFile, aDestPath, aFileExt, aHeaderList, aFooterList);
-            writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+            slLocalHeader := TStringList.Create;
+            try
+              slLocalHeader.Text := aHeaderList.text;
+
+	      if (sl[4]  = '') and
+                 (sl[5]  = '') and
+                 (sl[6]  = '') and
+                 (sl[7]  = '') then
+              begin                                        // Opcode with no Params, e.g. VZEROALL
+                slAsm.Add('    ' + sl[0]);
+              end
+              else
+	      begin
+                if aMREF then
+	        begin
+                  sLocalVarDataTyp := '';
+ 	          TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm, sLocalVarDataTyp);
+		  sDestFile := 'MREF_' + sDestFile;
+
+		  if trim(sLocalVarDataTyp) = '' then
+		   sLocalVarDataTyp := 'byte';
+
+                  slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
+	        end
+   	        else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	      end;
+
+              SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+              writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+
+            finally
+              FreeAndNil(slLocalHeader);
+            end;
 
             slAsm.Clear;
           end;
