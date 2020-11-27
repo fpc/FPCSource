@@ -583,6 +583,10 @@ implementation
        globals,systems,
        verbose,paramgr,symsym,
        tgobj,cutils,procinfo;
+       globals,systems,fmodule,
+       verbose,paramgr,symsym,symtable,
+       tgobj,cutils,procinfo,
+       cpuinfo;
 
 {*****************************************************************************
                             basic functionallity
@@ -1943,6 +1947,17 @@ implementation
       var
         tmpreg : tregister;
       begin
+        if assigned(ref.symbol)
+          { for avrtiny, the code generator generates a ref which is Z relative and while using it,
+            Z is changed, so the following code breaks }
+          {$ifdef avr}and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]){$endif avr} then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
@@ -1967,8 +1982,17 @@ implementation
       var
         tmpreg : tregister;
       begin
-        tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        if assigned(ref.symbol)
+          { for avrtiny, the code generator generates a ref which is Z relative and while using it,
+            Z is changed, so the following code breaks }
+          {$ifdef avr}and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]){$endif avr} then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         if op in [OP_NEG,OP_NOT] then
           begin
             if reg<>NR_NO then
