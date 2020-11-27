@@ -200,10 +200,10 @@ begin
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_ER,');
   FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vaddps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vaddps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vaddps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -228,9 +228,9 @@ begin
   FOpCodeList.Add('vandnpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandnpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vandnps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandnps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vandnps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -240,9 +240,9 @@ begin
   FOpCodeList.Add('vandpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vandps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vandps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
