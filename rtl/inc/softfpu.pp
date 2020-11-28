@@ -556,6 +556,17 @@ implementation
 
 
 {$if not(defined(fpc_softfpu_interface))}
+
+{$ifdef FPC}
+  { disable range and overflow checking explicitly }
+  { This might be more essential for x80 and 128-bit
+    floating point types and could, maybe be
+    restricted to code handle flatx80 and float128 }
+  {$push}
+  {$R-}
+  {$Q-}
+{$endif FPC}
+
 (*****************************************************************************)
 (*----------------------------------------------------------------------------*)
 (* Primitive arithmetic functions, including multi-word arithmetic, and       *)
@@ -9366,5 +9377,11 @@ end;
 {$if not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
 
 end.
+
+{$ifdef FPC}
+  { restore context modified at implmentation start
+    to possibly re-enable range and overflow checking explicitly}
+  {$pop}
+{$endif FPC}
 
 {$endif not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
