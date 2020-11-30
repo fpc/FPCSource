@@ -1975,6 +1975,15 @@ begin
                                   //) then
                                   (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64) then
                                 asize:=OT_BITS64;
+                      OS_M128: if (operands[i].HasType) or
+                                  (MemRefInfo(opcode).MemRefSize = msiMem128) then
+				asize:=OT_BITS128;
+                      OS_M256: if (operands[i].HasType) or
+                                  (MemRefInfo(opcode).MemRefSize = msiMem256) then
+				asize:=OT_BITS256;
+                      OS_M512: if (operands[i].HasType) or
+                                  (MemRefInfo(opcode).MemRefSize = msiMem512) then
+				asize:=OT_BITS512;
                           else;
                end;
 
