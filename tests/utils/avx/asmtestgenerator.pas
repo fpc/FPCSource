@@ -88,13 +88,13 @@ type
     procedure VectorMemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
-    function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String; var aDatatyp: string): TStringList;
+    function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
   public
     constructor Create;
     destructor Destroy; override;
 
     class procedure CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
-    class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList; var aLocalVarDataTyp: string);
+    class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
 
     class procedure CalcTestInstFile;
 
@@ -1864,7 +1864,7 @@ end;
 
 
 function TAsmTestGenerator.InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3,
-  aOp4: String; var aDatatyp: string): TStringList;
+  aOp4: String): TStringList;
 var
   i: integer;
   Item: TOperandListItem;
@@ -1903,8 +1903,6 @@ var
 
 begin
   result := TStringList.Create;
-
-  aDatatyp := '';
 
   OItem1 := TOperandListItem.Create;
   try
@@ -1985,11 +1983,12 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
-              aDatatyp := 'array[0..15] of byte';
-	      
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add(' lOWord');
+              Item.Values.Add(' gOWord');
+
+              Item.Values.Add(' oword lOWord');
+              Item.Values.Add(' oword gOWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
                     (AnsiSameText(sl_Operand, 'XMMRM8_M')) or
@@ -2003,12 +2002,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'byte ';
 
-              aDatatyp := 'byte';
-	      
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
-
+              Item.Values.Add('lbyte');
+              Item.Values.Add('gbyte');
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
                     (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
@@ -2021,14 +2016,8 @@ begin
               Item.OpTyp    := otXMMRM16;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'word ';
-
-	      aDataTyp := 'word';
-	      
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
-
+              Item.Values.Add('lword');
+              Item.Values.Add('gword');
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) or
                     (AnsiSameText(sl_Operand, 'YMMREG_M')) or
@@ -2054,12 +2043,8 @@ begin
               Item.OpTyp    := otYMMRM;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'yword ';
-	      aDatatyp := 'array [0..31] of byte';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lYWord');
+              Item.Values.Add('gYWord');
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
@@ -2085,13 +2070,8 @@ begin
               Item.OpTyp    := otZMMRM;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'zword ';
-
-              aDatatyp := 'array[0..63] of byte';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lZWord');
+              Item.Values.Add('gZWord');
             end
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
@@ -2099,16 +2079,8 @@ begin
               Item.OpTyp    := otMEM8;
               Item.OpActive := true;
 
-	      if UsePrefix then
-	      begin	     
-		sl_Prefix := 'byte ';
-	      end;
-
-              aDatatyp := 'byte';
-	      
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lByte');
+              Item.Values.Add('gByte');
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -2117,16 +2089,8 @@ begin
               Item.OpTyp    := otMEM16;
               Item.OpActive := true;
 
-              if UsePrefix then
-	      begin 	      
-		sl_Prefix := 'word ';
-              end;
-
-              aDataTyp := 'word';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lWord');
+              Item.Values.Add('gWord');
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
                     AnsiSameText(sl_Operand, 'MEM32_M') or
@@ -2136,13 +2100,8 @@ begin
               Item.OpTyp    := otMEM32;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'dword ';
-              aDataTyp := 'dword';
-
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lDWord');
+              Item.Values.Add('gDWord');
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -2152,13 +2111,8 @@ begin
               Item.OpTyp    := otMEM64;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'qword ';
-
-	      aDataTyp := 'qword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lQWord');
+              Item.Values.Add('gQWord');
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
                     (AnsiSameText(sl_Operand, 'MEM128_M')) or
@@ -2168,13 +2122,8 @@ begin
               Item.OpTyp    := otMEM128;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'oword ';
-
-	      aDatatyp := 'oword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lOWord');
+              Item.Values.Add('gOWord');
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -2184,13 +2133,8 @@ begin
               Item.OpTyp    := otMEM256;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'yword ';
-
-	      aDatatyp := 'yword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lYWord');
+              Item.Values.Add('gYWord');
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -2200,13 +2144,8 @@ begin
               Item.OpTyp    := otMEM512;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'zword ';
-
-	      aDatatyp := 'zword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lZWord');
+              Item.Values.Add('gZWord');
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
             begin
@@ -2246,15 +2185,8 @@ begin
               Item.OpTyp    := otRM32;
               Item.OpActive := true;
 
-              Item.Values.AddStrings(FReg32Base);
-
-              if UsePrefix then sl_Prefix := 'dword ';
-
-	      aDatatyp := 'dword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lDWord');
+              Item.Values.Add('gDWord');
             end
             else if AnsiSameText(sl_Operand, 'RM64') then
             begin
@@ -2262,13 +2194,8 @@ begin
               Item.OpTyp    := otRM64;
               Item.OpActive := true;
 
-              if UsePrefix then sl_Prefix := 'qword ';
-
-	      aDatatyp := 'qword';
-
-              Item.Values.Add('v1');
-              Item.Values.Add(sl_Prefix + ' v1');
-              Item.Values.Add(sl_Prefix + ' [v1]');
+              Item.Values.Add('lQWord');
+              Item.Values.Add('gQWord');
             end
             else if AnsiSameText(sl_Operand, 'IMM8') then
             begin
@@ -2284,10 +2211,6 @@ begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otXMEM32;
               Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'oword ';
-
-	      aDatatyp := 'array[0.15] of byte';
             end
             else if AnsiSameText(sl_Operand, 'XMEM64') or
                     AnsiSameText(sl_Operand, 'XMEM64_M') then
@@ -2295,11 +2218,6 @@ begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otXMEM64;
               Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'oword ';
-
-
-
             end
             else if AnsiSameText(sl_Operand, 'YMEM32') or
                     AnsiSameText(sl_Operand, 'YMEM32_M') then
@@ -2307,9 +2225,6 @@ begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otYMEM32;
               Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'yword ';
-
             end
             else if AnsiSameText(sl_Operand, 'YMEM64') or
                     AnsiSameText(sl_Operand, 'YMEM64_M') then
@@ -2347,8 +2262,8 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to2}');
-              Item.Values.Add('dword v1 {1to2}');
+              Item.Values.Add('lDWord {1to2}');
+              Item.Values.Add('gDWord {1to2}');
             end
             else if AnsiSameText(sl_Operand, '4B32') then
             begin
@@ -2356,8 +2271,8 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to4}');
-              Item.Values.Add('dword v1 {1to4}');
+              Item.Values.Add('lDWord {1to4}');
+              Item.Values.Add('gDWord {1to4}');
             end
             else if AnsiSameText(sl_Operand, '8B32') then
             begin
@@ -2365,8 +2280,8 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to8}');
-              Item.Values.Add('dword v1 {1to8}');
+              Item.Values.Add('lDWord {1to8}');
+              Item.Values.Add('gDWord {1to8}');
             end
             else if AnsiSameText(sl_Operand, '16B32') then
             begin
@@ -2374,8 +2289,8 @@ begin
               Item.OpTyp    := otB32;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to16}');
-              Item.Values.Add('dword v1 {1to16}');
+              Item.Values.Add('lDWord {1to16}');
+              Item.Values.Add('gDWord {1to16}');
            end
             else if AnsiSameText(sl_Operand, '2B64') then
             begin
@@ -2383,8 +2298,8 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to2}');
-              Item.Values.Add('qword v1 {1to2}');
+              Item.Values.Add('lQWord {1to2}');
+              Item.Values.Add('gQWord {1to2}');
             end
             else if AnsiSameText(sl_Operand, '4B64') then
             begin
@@ -2392,8 +2307,8 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to4}');
-              Item.Values.Add('qword v1 {1to4}');
+              Item.Values.Add('lQWord {1to4}');
+              Item.Values.Add('gQWord {1to4}');
             end
             else if AnsiSameText(sl_Operand, '8B64') then
             begin
@@ -2401,8 +2316,8 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to8}');
-              Item.Values.Add('qword v1 {1to8}');
+              Item.Values.Add('lQWord {1to8}');
+              Item.Values.Add('gQWord {1to8}');
             end
             else if AnsiSameText(sl_Operand, '16B64') then
             begin
@@ -2410,8 +2325,8 @@ begin
               Item.OpTyp    := otB64;
               Item.OpActive := true;
 
-              Item.Values.Add('v1 {1to16}');
-              Item.Values.Add('qword v1 {1to16}');
+              Item.Values.Add('lQWord {1to16}');
+              Item.Values.Add('gQWord {1to16}');
            end
             else if AnsiSameText(sl_Operand, 'KREG') or
                     AnsiSameText(sl_Operand, 'KREG_M') then
@@ -2943,7 +2858,7 @@ begin
 end;
 
 class procedure TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
-  aOp4: String;  aSL: TStringList; var aLocalVarDataTyp: string);
+  aOp4: String;  aSL: TStringList);
 var
   sl: TStringList;
 begin
@@ -2953,7 +2868,7 @@ begin
     FAVX512 := aAVX512;
     FSAE    := aSAE;
 
-    sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4, aLocalVarDataTyp);
+    sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4);
     try
       aSL.AddStrings(sl);
     finally

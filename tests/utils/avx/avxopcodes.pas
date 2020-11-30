@@ -602,9 +602,9 @@ begin
   FOpCodeList.Add('vminpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vminpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_SAE,');
   FOpCodeList.Add('vminps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vminps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
@@ -3323,7 +3323,7 @@ begin
                 if aMREF then
 	        begin
                   sLocalVarDataTyp := '';
- 	          TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm, sLocalVarDataTyp);
+ 	          TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 		  sDestFile := 'MREF_' + sDestFile;
 
 		  if trim(sLocalVarDataTyp) = '' then
@@ -3399,9 +3399,30 @@ begin
 
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
+
+
+		  slHeader.Add('var');
+		  slHeader.Add('   gByte: byte;');
+		  slHeader.Add('   gWord: word;');
+		  slHeader.Add('  gDWord: dword;');
+		  slHeader.Add('  gQWord: qword;');
+		  slHeader.Add('  gOWord: array[0..15] of byte;');
+		  slHeader.Add('  gYWord: array[0..31] of byte;');
+		  slHeader.Add('  gZWord: array[0..63] of byte;');
+
                   slHeader.Add(' procedure dummyproc;');
 		  slHeader.Add(' var');
-		  slHeader.Add('    v1: $$$LOCALVARDATATYP$$$;');
+		  slHeader.Add('     lByte: byte;');
+		  slHeader.Add('     lWord: word;');
+		  slHeader.Add('    lDWord: dword;');
+		  slHeader.Add('    lQWord: qword;');
+		  slHeader.Add('    lOWord: array[0..15] of byte;');
+		  slHeader.Add('    lYWord: array[0..31] of byte;');
+		  slHeader.Add('    lZWord: array[0..63] of byte;');
+
+		  slHeader.Add('    lSingle: single;');
+		  slHeader.Add('    lDouble: double;');
+
                   slHeader.Add(' begin');
                   slHeader.Add('   asm');
                   for i := 1 to 10 do
