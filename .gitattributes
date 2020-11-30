@@ -6022,6 +6022,7 @@ packages/ide/fp.pas svneol=native#text/plain
 packages/ide/fp.term -text svneol=unset#application/octet-stream
 packages/ide/fp32.ico -text
 packages/ide/fp32.rc -text
+packages/ide/fparm.lpi svneol=native#text/plain
 packages/ide/fpcalc.pas svneol=native#text/plain
 packages/ide/fpcatch.pas svneol=native#text/plain
 packages/ide/fpcodcmp.pas svneol=native#text/plain
