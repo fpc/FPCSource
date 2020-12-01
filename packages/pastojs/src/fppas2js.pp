@@ -981,7 +981,7 @@ const
      'yield'
     );
   // reserved words, not usable as global identifiers, can be used as sub identifiers
-  JSReservedGlobalWords: array[0..51] of string = (
+  JSReservedGlobalWords: array[0..52] of string = (
      // keep sorted, first uppercase, then lowercase !
      'Array',
      'ArrayBuffer',
@@ -992,6 +992,7 @@ const
      'EvalError',
      'Float32Array',
      'Float64Array',
+     'FormData',
      'Generator',
      'GeneratorFunction',
      'Infinity',
@@ -1787,7 +1788,7 @@ type
     ImplContext: TSectionContext;
     ImplHeaderStatements: TFPList;
     ImplSrcElements: TJSSourceElements;
-    ImplHeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
+    ImplHeaderIndex: integer; // index in ImplSrcElements.Statements
     destructor Destroy; override;
     procedure AddImplHeaderStatement(JS: TJSElement);
   end;
@@ -8112,30 +8113,33 @@ begin
           AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfSecCtx));
 
         ImplFunc:=CreateImplementationSection(El,IntfSecCtx);
-        if ImplFunc=nil then
+        // add $mod.$implcode = ImplFunc;
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreateMemberExpression([ModVarName,GetBIName(pbivnImplCode)]);
+        AssignSt.Expr:=ImplFunc;
+        AddToSourceElements(Src,AssignSt);
+
+        // append initialization section
+        CreateInitSection(El,Src,IntfSecCtx);
+
+        if TJSSourceElements(ImplFunc.AFunction.Body.A).Statements.Count=0 then
           begin
+          // empty implementation
+
           // remove unneeded $impl from interface
           RemoveFromSourceElements(Src,ImplVarSt);
-          if IntfSecCtx.HeaderIndex>0 then
-            dec(IntfSecCtx.HeaderIndex);
-          if IntfSecCtx.ImplHeaderIndex>0 then
-            dec(IntfSecCtx.ImplHeaderIndex);
+          // remove unneeded $mod.$implcode = function(){}
+          RemoveFromSourceElements(Src,AssignSt);
           HasImplUsesClause:=length(El.ImplementationSection.UsesClause)>0;
           end
         else
           begin
-          // add $mod.$implcode = ImplFunc;
-          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-          AssignSt.LHS:=CreateMemberExpression([ModVarName,GetBIName(pbivnImplCode)]);
-          AssignSt.Expr:=ImplFunc;
-          AddToSourceElements(Src,AssignSt);
           HasImplUsesClause:=true;
           end;
+
         if HasImplUsesClause then
           // add implementation uses list: [<implementation uses1>,<uses2>, ...]
           ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
-
-        CreateInitSection(El,Src,IntfSecCtx);
 
         end;
 
@@ -9733,11 +9737,30 @@ end;
 function TPasToJSConverter.CreateSubDeclJSNameExpr(El: TPasElement;
   JSName: string; AContext: TConvertContext; PosEl: TPasElement): TJSElement;
 var
+  C: TClass;
+  VarKinds: TCtxVarKinds;
   ParentName: String;
 begin
-  if AContext.IsGlobal then
+  C:=El.ClassType;
+  if C.InheritsFrom(TPasType) or (C=TPasConst) then
+    VarKinds:=[cvkGlobal]
+  else if C.InheritsFrom(TPasVariable) then
     begin
-    ParentName:=GetLocalName(El.Parent,[cvkGlobal,cvkCurType],AContext);
+    VarKinds:=[cvkCurType];
+    if ([vmClass, vmStatic]*TPasVariable(El).VarModifiers<>[]) then
+      VarKinds:=[cvkGlobal]
+    else if El.Parent is TPasMembersType then
+      VarKinds:=[cvkCurType]
+    else
+      VarKinds:=[cvkGlobal];
+    end
+  else if (El.Parent is TProcedureBody) then
+    VarKinds:=[]
+  else
+    VarKinds:=[cvkGlobal];
+  if VarKinds<>[] then
+    begin
+    ParentName:=GetLocalName(El.Parent,VarKinds,AContext);
     if ParentName='' then
       ParentName:='this';
     if JSName[1]='[' then
@@ -14826,7 +14849,7 @@ begin
     ObjLit.Name:=TJSString(TransformElToJSName(El,AContext));
     ObjLit.Expr:=CreateVarInit(El,AContext);
     end
-  else if AContext.IsGlobal then
+  else if AContext.IsGlobal or (El.Parent is TPasMembersType) then
     begin
     // create 'this.A=initvalue'
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
@@ -15354,7 +15377,7 @@ var
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
   NeedInitFunction, HasConstructor, IsJSFunction, NeedClassExt,
-    SpecializeDelay: Boolean;
+    SpecializeDelay, NeedTypeInfo: Boolean;
   Proc: TPasProcedure;
 begin
   Result:=nil;
@@ -15463,6 +15486,7 @@ begin
       end;
 
     NeedInitFunction:=true;
+    NeedTypeInfo:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext);
     IntfKind:='';
     if El.ObjKind=okInterface then
       begin
@@ -15473,8 +15497,7 @@ begin
         else
           RaiseNotSupported(El,AContext,20180405093512);
         end;
-      NeedInitFunction:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext)
-                        or (IntfKind<>'') or (coShortRefGlobals in Options);
+      NeedInitFunction:=NeedTypeInfo or (IntfKind<>'') or (coShortRefGlobals in Options);
       end;
 
     if NeedInitFunction then
@@ -15616,11 +15639,14 @@ begin
           AddClassSupportedInterfaces(El,Src,FuncContext);
         AddClassMessageIds(El,Src,FuncContext,pbivnMessageInt);
         AddClassMessageIds(El,Src,FuncContext,pbivnMessageStr);
-        // add RTTI init function
-        if SpecializeDelay then
-          AddClassRTTI(El,DelaySrc,DelayFuncContext)
-        else
-          AddClassRTTI(El,Src,FuncContext);
+        if NeedTypeInfo then
+          begin
+          // add RTTI init function
+          if SpecializeDelay then
+            AddClassRTTI(El,DelaySrc,DelayFuncContext)
+          else
+            AddClassRTTI(El,Src,FuncContext);
+          end;
         end;
 
       end;// end of init function
@@ -17471,14 +17497,15 @@ begin
     if ImplDecl<>nil then
       RaiseInconsistency(20170910175032,El); // elements should have been added directly
     IntfContext.ImplHeaderIndex:=ImplContext.HeaderIndex;
-    if Src.Statements.Count=0 then
-      exit; // no implementation
     Result:=FunDecl;
   finally
     IntfContext.ImplContext:=nil;
     ImplContext.Free;
     if Result=nil then
+      begin
       FunDecl.Free;
+      IntfContext.ImplSrcElements:=nil;
+      end;
   end;
 end;
 
@@ -18588,7 +18615,7 @@ begin
   try
     New_FuncContext.ThisVar.Element:=El;
     New_FuncContext.ThisVar.Kind:=cvkCurType;
-    New_FuncContext.IsGlobal:=true;
+    New_FuncContext.IsGlobal:=false;
 
     // add class members
     For I:=0 to El.Members.Count-1 do
@@ -18600,8 +18627,10 @@ begin
           and (ClassVarModifiersType*TPasVariable(P).VarModifiers=[]) then
         begin
         if Kind=mfInit then
+        begin
           // mfInit: init var
-          NewEl:=CreateVarDecl(TPasVariable(P),New_FuncContext) // can be nil
+          NewEl:=CreateVarDecl(TPasVariable(P),New_FuncContext); // can be nil
+        end
         else
           begin
           // mfFinalize: clear reference
@@ -19445,6 +19474,8 @@ var
   Bracket: TJSBracketMemberExpression;
 begin
   El:=ResolveSimpleAliasType(El);
+  if El is TPasSpecializeType then
+    El:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
   aName:=GetTypeInfoName(El,AContext,ErrorEl);
   if aName=GetBIName(pbivnRTTILocal) then
     Result:=CreatePrimitiveDotExpr(aName,El)

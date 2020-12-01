@@ -843,6 +843,7 @@ type
     Procedure TestRTTI_Interface_COM;
     Procedure TestRTTI_ClassHelper;
     Procedure TestRTTI_ExternalClass;
+    Procedure TestRTTI_Unit;
 
     // Resourcestring
     Procedure TestResourcestringProgram;
@@ -16980,6 +16981,7 @@ end;
 
 procedure TTestModule.TestExternalClass_SameNamePublishedProperty;
 begin
+  WithTypeInfo:=true;
   StartProgram(false);
   Add([
   '{$modeswitch externalclass}',
@@ -16999,6 +17001,9 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_SameNamePublishedProperty',
     LinesToStr([ // statements
+    'this.$rtti.$ExtClass("JSwiper", {',
+    '  jsclass: "Swiper"',
+    '});',
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FSwiper = null;',
@@ -30681,7 +30686,7 @@ begin
   Add('{$modeswitch externalclass}');
   Add('type');
   Add('  TRec = record end;');
-  // ToDo: ^PRec
+  // ToDo: ^TRec
   Add('  TObject = class end;');
   Add('  TClass = class of tobject;');
   Add('var');
@@ -30691,7 +30696,7 @@ begin
   Add('  tiClass: ttypeinfoclass;');
   Add('  aClass: tclass;');
   Add('  tiClassRef: ttypeinfoclassref;');
-  // ToDo: ^PRec
+  // ToDo: ^TRec
   Add('  tiPointer: ttypeinfopointer;');
   Add('begin');
   Add('  tirecord:=typeinfo(trec);');
@@ -31107,6 +31112,66 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TJSArray"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Unit;
+begin
+  WithTypeInfo:=true;
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$mode delphi}',
+    'type',
+    '  TWordArray = array of word;',
+    '  TArray<T> = array of T;',
+    '']),
+    '');
+  StartUnit(true,[supTypeInfo,supTInterfacedObject]);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'uses unit2;',
+  'type',
+  '  IBird = interface',
+  '    function Swoop: TWordArray;',
+  '    function Glide: TArray<word>;',
+  '  end;',
+  'procedure Fly;',
+  'implementation',
+  'procedure Fly;',
+  'var',
+  '  ta: tTypeInfoDynArray;',
+  '  ti: tTypeInfoInterface;',
+  'begin',
+  '  ta:=typeinfo(TWordArray);',
+  '  ta:=typeinfo(TArray<word>);',
+  '  ti:=typeinfo(IBird);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestRTTI_ExternalClass',
+    LinesToStr([ // statements
+    'rtl.createInterface(',
+    '  this,',
+    '  "IBird",',
+    '  "{3B98AAAC-6116-3E17-AA85-F16786D85B09}",',
+    '  ["Swoop", "Glide"],',
+    '  pas.system.IUnknown,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Swoop", 1, null, pas.unit2.$rtti["TWordArray"]);',
+    '    $r.addMethod("Glide", 1, null, pas.unit2.$rtti["TArray<System.Word>"]);',
+    '  }',
+    ');',
+    'this.Fly = function () {',
+    '  var ta = null;',
+    '  var ti = null;',
+    '  ta = pas.unit2.$rtti["TWordArray"];',
+    '  ta = pas.unit2.$rtti["TArray<System.Word>"];',
+    '  ti = $mod.$rtti["IBird"];',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

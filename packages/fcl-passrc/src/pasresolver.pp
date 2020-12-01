@@ -872,6 +872,7 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+    procedure ClearIdentifiers(FreeItems: boolean);
     function FindLocalIdentifier(const Identifier: String): TPasIdentifier; inline;
     function FindIdentifier(const Identifier: String): TPasIdentifier; virtual;
     function RemoveLocalIdentifier(El: TPasElement): boolean; virtual;
@@ -4412,19 +4413,34 @@ end;
 
 destructor TPasIdentifierScope.Destroy;
 begin
-  {$IFDEF VerbosePasResolverMem}
-  writeln('TPasIdentifierScope.Destroy START ',ClassName);
-  {$ENDIF}
-  FItems.ForEachCall(@OnClearItem,nil);
-  {$ifdef pas2js}
-  FItems:=nil;
-  {$else}
-  FItems.Clear;
-  FreeAndNil(FItems);
-  {$endif}
+  ClearIdentifiers(true);
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasIdentifierScope.Destroy END ',ClassName);
+  {$ENDIF}
+end;
+
+procedure TPasIdentifierScope.ClearIdentifiers(FreeItems: boolean);
+begin
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TPasIdentifierScope.Clear START ',ClassName);
+  {$ENDIF}
+
+  FItems.ForEachCall(@OnClearItem,nil);
+
+  {$ifdef pas2js}
+  if FreeItems then
+    FItems:=nil
+  else
+    FItems.Clear;
+  {$else}
+  FItems.Clear;
+  if FreeItems then
+    FreeAndNil(FItems);
+  {$endif}
+
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TPasIdentifierScope.Clear END ',ClassName);
   {$ENDIF}
 end;
 
@@ -20905,10 +20921,26 @@ function TPasResolver.FindElementFor(const aName: String; AParent: TPasElement;
   TypeParamCount: integer): TPasElement;
 // called by TPasParser for direct types, e.g. type t = ns1.unit1.tobj.tsub
 var
+  ErrorEl: TPasElement;
+
+  procedure CheckGenericRefWithoutParams(GenEl: TPasGenericType);
+  // called when TypeParamCount=0  check if reference to a generic type is allowed with
+  begin
+    if (GenEl.GenericTemplateTypes=nil) or (GenEl.GenericTemplateTypes.Count=0) then
+      exit;
+    // referrring to a generic type without params
+    if not (msDelphi in CurrentParser.CurrentModeswitches)
+        and (AParent<>nil)
+        and AParent.HasParent(GenEl) then
+      exit; // mode objfpc: inside the generic type it can be referred without params
+    RaiseMsg(20201129005025,nGenericsWithoutSpecializationAsType,sGenericsWithoutSpecializationAsType,['variable'],ErrorEl);
+  end;
+
+var
   p: SizeInt;
   RightPath, CurName, LeftPath: String;
   NeedPop: Boolean;
-  CurScopeEl, NextEl, ErrorEl, BestEl: TPasElement;
+  CurScopeEl, NextEl, BestEl: TPasElement;
   CurSection: TPasSection;
   i: Integer;
   UsesUnit: TPasUsesUnit;
@@ -20980,11 +21012,17 @@ begin
         RaiseInternalError(20190801104033); // caller forgot to handle "With"
       end
     else
+      begin
       NextEl:=FindElementWithoutParams(CurName,ErrorEl,true,true);
+      if (NextEl is TPasGenericType) and (RightPath='') then
+        CheckGenericRefWithoutParams(TPasGenericType(NextEl));
+      end;
     {$IFDEF VerbosePasResolver}
     //if RightPath<>'' then
     //  writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ... NextEl=',GetObjName(NextEl));
     {$ENDIF}
+    if NextEl=nil then
+      RaiseIdentifierNotFound(20201129004745,CurName,ErrorEl);
     if NextEl is TPasModule then
       begin
       if CurScopeEl is TPasModule then
@@ -21038,10 +21076,8 @@ begin
       else
         CurScopeEl:=BestEl;
       end
-    else if NextEl<>nil then
-      CurScopeEl:=NextEl
     else
-      RaiseIdentifierNotFound(20170328001941,CurName,ErrorEl);
+      CurScopeEl:=NextEl;
 
     // restore scope
     if NeedPop then
@@ -21056,6 +21092,7 @@ end;
 
 function TPasResolver.FindElementWithoutParams(const AName: String;
   ErrorPosEl: TPasElement; NoProcsWithArgs, NoGenerics: boolean): TPasElement;
+// ErrorPosEl=nil means to use scanner position as error position
 var
   Data: TPRFindData;
 begin
@@ -21070,6 +21107,7 @@ end;
 function TPasResolver.FindElementWithoutParams(const AName: String; out
   Data: TPRFindData; ErrorPosEl: TPasElement; NoProcsWithArgs,
   NoGenerics: boolean): TPasElement;
+// ErrorPosEl=nil means to use scanner position as error position
 var
   Abort: boolean;
 begin

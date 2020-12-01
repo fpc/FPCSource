@@ -243,8 +243,9 @@ const
     'Goto'
     );
 
+  PCUMinConverterOptions = [coStoreImplJS,coShortRefGlobals];
   PCUDefaultConverterOptions: TPasToJsConverterOptions =
-    [coUseStrict,coStoreImplJS,coShortRefGlobals];
+    PCUMinConverterOptions+[coUseStrict];
   PCUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
@@ -999,6 +1000,7 @@ type
     FElementRefsArray: TPCUFilerElementRefArray; // TPCUFilerElementRef by Id
     FJSON: TJSONObject;
     FPendingIdentifierScopes: TObjectList; // list of TPCUReaderPendingIdentifierScope
+    FIntfSectionObj: TJSONObject;
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_PointerType_DestType(RefEl: TPasElement; Data: TObject);
@@ -1043,6 +1045,7 @@ type
     procedure DeletePendingSpecialize(PendSpec: TPCUReaderPendingSpecialized);
     function PromiseSpecialize(SpecId: integer; const SpecName: string; RefEl, ErrorEl: TPasElement): TPCUReaderPendingSpecialized; virtual;
     procedure ResolveSpecializedElements(Complete: boolean);
+    function IsSpecialize(ChildEl: TPasElement): boolean;
   protected
     // json
     procedure RaiseMsg(Id: int64; const Msg: string = ''); overload; override;
@@ -1095,6 +1098,7 @@ type
     procedure ReadSpecialization(Obj: TJSONObject; GenEl: TPasGenericType; ParamIDs: TJSONArray); virtual;
     procedure ReadExternalReferences(Obj: TJSONObject; El: TPasElement); virtual;
     procedure ReadUsedUnitsInit(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
+    procedure ReadIndirectUsedUnits(Obj: TJSONObject; Section: TPasSection; aComplete: boolean); virtual;
     procedure ReadUsedUnitsFinish(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     procedure ReadSectionScope(Obj: TJSONObject; Scope: TPas2JSSectionScope; aContext: TPCUReaderContext); virtual;
     procedure ReadSection(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
@@ -1300,7 +1304,7 @@ implementation
 procedure RegisterPCUFormat;
 begin
   if PCUFormat=nil then
-    PCUFormat:=PrecompileFormats.Add('pcu','all used pcu must match exactly',TPCUReader,TPCUWriter);
+    PCUFormat:=PrecompileFormats.Add('pcu','all used pcu must match exactly together',TPCUReader,TPCUWriter);
 end;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
@@ -2164,7 +2168,7 @@ begin
   ParserOptions:=PCUDefaultParserOptions;
   ModeSwitches:=PCUDefaultModeSwitches;
   BoolSwitches:=PCUDefaultBoolSwitches;
-  ConverterOptions:=PCUDefaultConverterOptions-[coStoreImplJS];
+  ConverterOptions:=PCUDefaultConverterOptions;
   TargetPlatform:=PCUDefaultTargetPlatform;
   TargetProcessor:=PCUDefaultTargetProcessor;
 end;
@@ -2588,7 +2592,7 @@ procedure TPCUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
     if Section=nil then exit;
     if Section.Parent<>aModule then
       RaiseMsg(20180205153912,aModule,PropName);
-    aContext.Section:=Section; // set Section before calling virtual method
+    aContext.Section:=Section; // set Section before calling virtual WriteSection
     aContext.SectionObj:=nil;
     aContext.IndirectUsesArr:=nil;
     WriteSection(Obj,Section,PropName,aContext);
@@ -3467,7 +3471,7 @@ begin
     end
   else if (El.ClassType=TPasModule) or (El is TPasUnitModule) then
     begin
-    // indirect used unit
+    // indirectly used unit (refs to directly used units are created in WriteSection)
     if aContext.IndirectUsesArr=nil then
       begin
       if aContext.SectionObj=nil then
@@ -5208,7 +5212,12 @@ begin
   // set AncestorScope
   aClassAncestor:=Resolver.ResolveAliasType(Scope.DirectAncestor);
   if not (aClassAncestor is TPasClassType) then
+    begin
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUReader.Set_ClassScope_DirectAncestor ',GetObjPath(Scope.DirectAncestor),' ClassAnc=',GetObjPath(aClassAncestor));
+    {$ENDIF}
     RaiseMsg(20180214114322,Scope.Element,GetObjName(RefEl));
+    end;
   AncestorScope:=aClassAncestor.CustomData as TPas2JSClassScope;
   Scope.AncestorScope:=AncestorScope;
   if (AncestorScope<>nil) and (pcsfPublished in Scope.AncestorScope.Flags) then
@@ -5526,7 +5535,8 @@ begin
       RaiseMsg(20200531101105,PendSpec.GenericEl,PendSpec.SpecName);// nothing uses this specialize
     end;
   if PendSpec.GenericEl=nil then
-    RaiseMsg(20200531101333,RefEl,PendSpec.SpecName);
+    // not yet ready
+    exit;
   Obj:=PendSpec.Obj;
   if Obj=nil then
     RaiseMsg(20200531101128,PendSpec.GenericEl,PendSpec.SpecName); // specialize missing in JSON
@@ -5640,6 +5650,17 @@ begin
     // a pending specialize cannot resolve its params
     RaiseMsg(20200531101924,UnresolvedSpec.GenericEl,UnresolvedSpec.SpecName+' Id='+IntToStr(UnresolvedSpec.Id)+' RefEl='+GetObjPath(UnresolvedSpec.RefEl)+' GenericEl='+GetObjPath(UnresolvedSpec.GenericEl));
     end;
+end;
+
+function TPCUReader.IsSpecialize(ChildEl: TPasElement): boolean;
+begin
+  if (ChildEl is TPasGenericType)
+      and Resolver.IsSpecialized(TPasGenericType(ChildEl)) then
+    exit(true);
+  if (ChildEl is TPasProcedure)
+      and (TPas2JSProcedureScope(ChildEl.CustomData).SpecializedFromItem<>nil) then
+    exit(true);
+  Result:=false;
 end;
 
 procedure TPCUReader.RaiseMsg(Id: int64; const Msg: string);
@@ -6597,8 +6618,7 @@ begin
     for k:=0 to Members.Count-1 do
       begin
       ChildEl:=TPasElement(Members[k]);
-      if (ChildEl is TPasGenericType)
-          and Resolver.IsSpecialized(TPasGenericType(ChildEl)) then
+      if IsSpecialize(ChildEl) then
         // skip specialized type
       else if Index=j then
         break
@@ -6643,6 +6663,8 @@ end;
 
 procedure TPCUReader.ReadSpecialization(Obj: TJSONObject;
   GenEl: TPasGenericType; ParamIDs: TJSONArray);
+// called by ReadSpecializations
+// create a specialization promise
 var
   i, Id: Integer;
   ErrorEl: TPasElement;
@@ -6796,6 +6818,50 @@ begin
   if aContext=nil then ;
 end;
 
+procedure TPCUReader.ReadIndirectUsedUnits(Obj: TJSONObject;
+  Section: TPasSection; aComplete: boolean);
+// read external refs from indirectly used units
+var
+  i: Integer;
+  Arr: TJSONArray;
+  Data: TJSONData;
+  UsesObj: TJSONObject;
+  Name: string;
+  Module: TPasModule;
+  UsedScope: TPas2JSSectionScope;
+begin
+  if ReadArray(Obj,'IndirectUses',Arr,Section) then
+    begin
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONObject) then
+        RaiseMsg(20180314155716,Section,GetObjName(Data));
+      UsesObj:=TJSONObject(Data);
+      if not ReadString(UsesObj,'Name',Name,Section) then
+        RaiseMsg(20180314155756,Section);
+      if not IsValidIdent(Name,true,true) then
+        RaiseMsg(20180314155800,Section,Name);
+      Module:=Resolver.FindModule(Name,nil,nil);
+      if Module=nil then
+        RaiseMsg(20180314155840,Section,Name);
+      if Module.InterfaceSection=nil then
+        begin
+        if not aComplete then
+          continue;
+        {$IF defined(VerbosePCUFiler) or defined(VerbosePJUFiler)}
+        writeln('TPCUReader.ReadUsedUnitsFinish Resolver.RootElement=',GetObjPath(Resolver.RootElement),' Section=',GetObjPath(Section));
+        {$ENDIF}
+        RaiseMsg(20180314155953,Section,'indirect unit "'+Name+'"');
+        end;
+      UsedScope:=Module.InterfaceSection.CustomData as TPas2JSSectionScope;
+      if not UsedScope.Finished then
+        RaiseMsg(20180314155954,Section,'indirect unit "'+Name+'"');
+      ReadExternalReferences(UsesObj,Module);
+      end;
+    end;
+end;
+
 procedure TPCUReader.ReadUsedUnitsFinish(Obj: TJSONObject;
   Section: TPasSection; aContext: TPCUReaderContext);
 var
@@ -6806,10 +6872,9 @@ var
   Module: TPasModule;
   Data: TJSONData;
   UsesObj, ModuleObj: TJSONObject;
-  Name: string;
 begin
   Scope:=Section.CustomData as TPas2JSSectionScope;
-  // read external refs from used units
+  // read external refs from directly used units
   if ReadArray(Obj,'Uses',Arr,Section) then
     begin
     Scope:=Section.CustomData as TPas2JSSectionScope;
@@ -6836,29 +6901,15 @@ begin
     end;
 
   // read external refs from indirectly used units
-  if ReadArray(Obj,'IndirectUses',Arr,Section) then
+  if Section.ClassType=TInterfaceSection then
+    FIntfSectionObj:=Obj
+  else if Section.ClassType=TImplementationSection then
     begin
-    for i:=0 to Arr.Count-1 do
-      begin
-      Data:=Arr[i];
-      if not (Data is TJSONObject) then
-        RaiseMsg(20180314155716,Section,GetObjName(Data));
-      UsesObj:=TJSONObject(Data);
-      if not ReadString(UsesObj,'Name',Name,Section) then
-        RaiseMsg(20180314155756,Section);
-      if not IsValidIdent(Name,true,true) then
-        RaiseMsg(20180314155800,Section,Name);
-      Module:=Resolver.FindModule(Name,nil,nil);
-      if Module=nil then
-        RaiseMsg(20180314155840,Section,Name);
-      if Module.InterfaceSection=nil then
-        RaiseMsg(20180314155953,Section,'indirect unit "'+Name+'"');
-      UsedScope:=Module.InterfaceSection.CustomData as TPas2JSSectionScope;
-      if not UsedScope.Finished then
-        RaiseMsg(20180314155953,Section,'indirect unit "'+Name+'"');
-      ReadExternalReferences(UsesObj,Module);
-      end;
-    end;
+    ReadIndirectUsedUnits(FIntfSectionObj,Section,true);
+    ReadIndirectUsedUnits(Obj,Section,true);
+    end
+  else
+    ReadIndirectUsedUnits(Obj,Section,true);
 
   Scope.UsesFinished:=true;
 
@@ -6899,14 +6950,19 @@ begin
     if Section.PendingUsedIntf<>nil then
       RaiseMsg(20180308160639,Section,GetObjName(Section.PendingUsedIntf));
     end;
-  // read external references
-  ReadUsedUnitsFinish(Obj,Section,aContext);
-  // read scope, needs external refs
-  ReadSectionScope(Obj,Scope,aContext);
-  aContext.BoolSwitches:=Scope.BoolSwitches;
-  aContext.ModeSwitches:=Scope.ModeSwitches;
-  // read declarations, needs external refs
-  ReadDeclarations(Obj,Section,aContext);
+  Resolver.PushScope(Scope);
+  try
+    // read external references
+    ReadUsedUnitsFinish(Obj,Section,aContext);
+    // read scope, needs external refs
+    ReadSectionScope(Obj,Scope,aContext);
+    aContext.BoolSwitches:=Scope.BoolSwitches;
+    aContext.ModeSwitches:=Scope.ModeSwitches;
+    // read declarations, needs external refs
+    ReadDeclarations(Obj,Section,aContext);
+  finally
+    Resolver.PopScope;
+  end;
 
   Scope.Finished:=true;
   if Section is TInterfaceSection then
@@ -6962,10 +7018,31 @@ end;
 
 function TPCUReader.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement): TPasElement;
+var
+  Scope: TPasScope;
+  Kind: TPasIdentifierKind;
 begin
   Result:=AClass.Create(AName,AParent);
   Result.SourceFilename:=SourceFilename;
   {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('CreateElement');{$ENDIF}
+  if (AName<>'')
+      and (AClass<>TPasArgument)
+      and (AClass<>TPasResultElement)
+      and (AClass<>TPasGenericTemplateType) then
+    begin
+    Scope:=Resolver.TopScope;
+    if Scope is TPasIdentifierScope then
+      begin
+      // add identifier to scope
+      // Note: Resolver needs this for specializations
+      // The scope identifiers will be later replaced with the values from the
+      // pcu, see ResolvePendingIdentifierScopes
+      Kind:=PCUDefaultIdentifierKind;
+      if Result is TPasProcedure then
+        Kind:=pikProc;
+      TPasIdentifierScope(Scope).AddIdentifier(AName,Result,Kind);
+      end;
+    end;
 end;
 
 function TPCUReader.ReadElementProperty(Obj: TJSONObject; Parent: TPasElement;
@@ -7449,8 +7526,9 @@ var
   Ref: TPCUFilerElementRef;
 begin
   {$IFDEF VerbosePCUFiler}
-  writeln('TPCUReader.ReadIdentifierScope ',Arr.Count);
+  writeln('TPCUReader.ReadIdentifierScopeArray ',Arr.Count);
   {$ENDIF}
+  Scope.ClearIdentifiers(false);
   for i:=0 to Arr.Count-1 do
     begin
     Data:=Arr[i];
@@ -7459,7 +7537,7 @@ begin
       Id:=Data.AsInteger;
       Ref:=GetElRef(Id,DefKind,DefName);
       {$IFDEF VerbosePCUFiler}
-      writeln('TPCUReader.ReadIdentifierScope Id=',Id,' ',DefName,' ',DefKind,' ',GetObjName(Ref.Element));
+      writeln('TPCUReader.ReadIdentifierScopeArray Id=',Id,' ',DefName,' ',DefKind,' ',GetObjName(Ref.Element));
       {$ENDIF}
       Scope.AddIdentifier(DefName,Ref.Element,DefKind);
       end
@@ -8239,6 +8317,7 @@ var
   SpecName: string;
   i, SpecId: Integer;
   Data: TPasSpecializeTypeData;
+  PendSpec: TPCUReaderPendingSpecialized;
 begin
   ReadAliasType(Obj,El,aContext);
   if not (El.DestType is TPasGenericType) then
@@ -8274,7 +8353,11 @@ begin
     RaiseMsg(20200530134152,El);
 
   if Data.SpecializedType=nil then
-    PromiseSpecialize(SpecId,SpecName,El,El);
+    begin
+    PendSpec:=PromiseSpecialize(SpecId,SpecName,El,El);
+    // specialize now
+    CreateSpecializedElement(PendSpec);
+    end;
 end;
 
 procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
@@ -8366,9 +8449,14 @@ begin
 
   ReadPasElement(Obj,El,aContext);
   ReadEnumTypeScope(Obj,Scope,aContext);
-  ReadElementList(Obj,El,'Values',El.Values,
-    {$IFDEF CheckPasTreeRefCount}'TPasEnumType.Values'{$ELSE}true{$ENDIF},
-    aContext);
+  Resolver.PushScope(Scope);
+  try
+    ReadElementList(Obj,El,'Values',El.Values,
+      {$IFDEF CheckPasTreeRefCount}'TPasEnumType.Values'{$ELSE}true{$ENDIF},
+      aContext);
+  finally
+    Resolver.PopScope;
+  end;
 end;
 
 procedure TPCUReader.ReadSetType(Obj: TJSONObject; El: TPasSetType;
@@ -8427,28 +8515,33 @@ begin
   ReadPasElement(Obj,El,aContext);
   ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
-  ReadElementList(Obj,El,'Members',El.Members,
-    {$IFDEF CheckPasTreeRefCount}'TPasRecordType.Members'{$ELSE}true{$ENDIF},
-    aContext);
 
-  // VariantEl: TPasElement can be TPasVariable or TPasType
-  Data:=Obj.Find('VariantEl');
-  if Data is TJSONIntegerNumber then
-    begin
-    Id:=Data.AsInteger;
-    PromiseSetElReference(Id,@Set_RecordType_VariantEl,El,El);
-    end
-  else if Data is TJSONObject then
-    begin
-    SubObj:=TJSONObject(Data);
-    El.VariantEl:=ReadNewElement(SubObj,El);
-    ReadElement(SubObj,El.VariantEl,aContext);
-    end;
+  Resolver.PushScope(Scope);
+  try
+    ReadElementList(Obj,El,'Members',El.Members,
+      {$IFDEF CheckPasTreeRefCount}'TPasRecordType.Members'{$ELSE}true{$ENDIF},
+      aContext);
 
-  ReadElementList(Obj,El,'Variants',El.Variants,
-    {$IFDEF CheckPasTreeRefCount}'TPasRecordType.Variants'{$ELSE}true{$ENDIF},
-    aContext);
+    // VariantEl: TPasElement can be TPasVariable or TPasType
+    Data:=Obj.Find('VariantEl');
+    if Data is TJSONIntegerNumber then
+      begin
+      Id:=Data.AsInteger;
+      PromiseSetElReference(Id,@Set_RecordType_VariantEl,El,El);
+      end
+    else if Data is TJSONObject then
+      begin
+      SubObj:=TJSONObject(Data);
+      El.VariantEl:=ReadNewElement(SubObj,El);
+      ReadElement(SubObj,El.VariantEl,aContext);
+      end;
 
+    ReadElementList(Obj,El,'Variants',El.Variants,
+      {$IFDEF CheckPasTreeRefCount}'TPasRecordType.Variants'{$ELSE}true{$ENDIF},
+      aContext);
+  finally
+    Resolver.PopScope;
+  end;
   ReadRecordScope(Obj,Scope,aContext);
   Resolver.FinishSpecializedClassOrRecIntf(Scope);
   Resolver.FinishSpecializations(Scope);
@@ -8790,33 +8883,37 @@ begin
 
   if Scope<>nil then
     begin
-    ReadClassScope(Obj,Scope,aContext);
+    Resolver.PushScope(Scope);
+    try
+      ReadClassScope(Obj,Scope,aContext);
 
-    // read Members
-    ReadElementList(Obj,El,'Members',El.Members,
-      {$IFDEF CheckPasTreeRefCount}'TPasClassType.Members'{$ELSE}true{$ENDIF},
-      aContext);
+      // read Members
+      ReadElementList(Obj,El,'Members',El.Members,
+        {$IFDEF CheckPasTreeRefCount}'TPasClassType.Members'{$ELSE}true{$ENDIF},
+        aContext);
 
-    ReadClassScopeAbstractProcs(Obj,Scope);
-    ReadClassScopeInterfaces(Obj,Scope);
-    ReadClassScopeDispatchProcs(Obj,Scope);
+      ReadClassScopeAbstractProcs(Obj,Scope);
+      ReadClassScopeInterfaces(Obj,Scope);
+      ReadClassScopeDispatchProcs(Obj,Scope);
 
-    if El.ObjKind in okAllHelpers then
-      begin
-      // restore cached helpers in interface
-      Parent:=El.Parent;
-      while Parent<>nil do
+      if El.ObjKind in okAllHelpers then
         begin
-        if Parent.ClassType=TInterfaceSection then
+        // restore cached helpers in interface
+        Parent:=El.Parent;
+        while Parent<>nil do
           begin
-          SectionScope:=Parent.CustomData as TPasSectionScope;
-          Resolver.AddHelper(El,SectionScope.Helpers);
-          break;
+          if Parent.ClassType=TInterfaceSection then
+            begin
+            SectionScope:=Parent.CustomData as TPasSectionScope;
+            Resolver.AddHelper(El,SectionScope.Helpers);
+            break;
+            end;
+          Parent:=Parent.Parent;
           end;
-        Parent:=Parent.Parent;
         end;
-      end;
-
+    finally
+      Resolver.PopScope;
+    end;
     Resolver.FinishSpecializedClassOrRecIntf(Scope);
     Resolver.FinishSpecializations(Scope);
     ReadSpecializations(Obj,El);
@@ -8903,6 +9000,14 @@ var
 begin
   ReadPasElement(Obj,El,aContext);
   ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
+
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    begin
+    Scope:=TPas2JSProcTypeScope(Resolver.CreateScope(El,TPas2JSProcTypeScope));
+    El.CustomData:=Scope;
+    ReadProcTypeScope(Obj,Scope,aContext);
+    end;
+
   ReadElementList(Obj,El,'Args',El.Args,
     {$IFDEF CheckPasTreeRefCount}'TPasProcedureType.Args'{$ELSE}true{$ENDIF},
     aContext);
@@ -8921,13 +9026,6 @@ begin
       RaiseMsg(20180210212130,El,'Call "'+s+'"');
     end;
   El.Modifiers:=ReadProcTypeModifiers(Obj,El,'Modifiers',GetDefaultProcTypeModifiers(El));
-
-  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
-    begin
-    Scope:=TPas2JSProcTypeScope(Resolver.CreateScope(El,TPas2JSProcTypeScope));
-    El.CustomData:=Scope;
-    ReadProcTypeScope(Obj,Scope,aContext);
-    end;
 
   ReadSpecializations(Obj,El);
 end;
@@ -9059,9 +9157,17 @@ begin
   El.DispIDExpr:=ReadExpr(Obj,El,'DispId',aContext);
   El.StoredAccessor:=ReadExpr(Obj,El,'Stored',aContext);
   El.DefaultExpr:=ReadExpr(Obj,El,'DefaultValue',aContext);
-  ReadElementList(Obj,El,'Args',El.Args,
-    {$IFDEF CheckPasTreeRefCount}'TPasProperty.Args'{$ELSE}true{$ENDIF},
-    aContext);
+
+  if Scope<>nil then
+    Resolver.PushScope(Scope);
+  try
+    ReadElementList(Obj,El,'Args',El.Args,
+      {$IFDEF CheckPasTreeRefCount}'TPasProperty.Args'{$ELSE}true{$ENDIF},
+      aContext);
+  finally
+    if Scope<>nil then
+      Resolver.PopScope;
+  end;
   //ReadAccessorName: string; // not used by resolver
   //WriteAccessorName: string; // not used by resolver
   //ImplementsName: string; // not used by resolver
@@ -9292,41 +9398,46 @@ begin
   if DeclProc=nil then
     DeclProc:=El;
 
-  if Resolver.ProcCanBePrecompiled(DeclProc) then
-    begin
-    // normal proc (non generic)
-    ImplJS:=TPas2JSPrecompiledJS.Create;
-    ImplScope.ImplJS:=ImplJS;
-    ReadPrecompiledJS(Obj,El,ImplJS,aContext);
-    end
-  else
-    begin
-    // generic proc
-    if ReadObject(Obj,'Body',BodyObj,El) then
+  Resolver.PushScope(ImplScope);
+  try
+    if Resolver.ProcCanBePrecompiled(DeclProc) then
       begin
-      OldInGeneric:=aContext.InGeneric;
-      aContext.InGeneric:=true;
-      ProcBody:=TProcedureBody(CreateElement(TProcedureBody,'',El));
-      El.Body:=ProcBody;
-      ProcBody.SourceFilename:=El.SourceFilename;
-      ProcBody.SourceLinenumber:=El.SourceLinenumber;
-      ProcBody.SourceEndLinenumber:=El.SourceEndLinenumber;
-      ReadDeclarations(BodyObj,ProcBody,aContext);
-      if ReadObject(BodyObj,'Impl',BodyBodyObj,ProcBody) then
+      // normal proc (non generic)
+      ImplJS:=TPas2JSPrecompiledJS.Create;
+      ImplScope.ImplJS:=ImplJS;
+      ReadPrecompiledJS(Obj,El,ImplJS,aContext);
+      end
+    else
+      begin
+      // generic proc
+      if ReadObject(Obj,'Body',BodyObj,El) then
         begin
-        ImplEl:=ReadNewElement(BodyBodyObj,ProcBody);
-        if not (ImplEl is TPasImplBlock) then
+        OldInGeneric:=aContext.InGeneric;
+        aContext.InGeneric:=true;
+        ProcBody:=TProcedureBody(CreateElement(TProcedureBody,'',El));
+        El.Body:=ProcBody;
+        ProcBody.SourceFilename:=El.SourceFilename;
+        ProcBody.SourceLinenumber:=El.SourceLinenumber;
+        ProcBody.SourceEndLinenumber:=El.SourceEndLinenumber;
+        ReadDeclarations(BodyObj,ProcBody,aContext);
+        if ReadObject(BodyObj,'Impl',BodyBodyObj,ProcBody) then
           begin
-          s:=GetObjName(ImplEl);
-          ImplEl.Release;
-          RaiseMsg(20191231171840,ProcBody,s);
+          ImplEl:=ReadNewElement(BodyBodyObj,ProcBody);
+          if not (ImplEl is TPasImplBlock) then
+            begin
+            s:=GetObjName(ImplEl);
+            ImplEl.Release;
+            RaiseMsg(20191231171840,ProcBody,s);
+            end;
+          ProcBody.Body:=TPasImplBlock(ImplEl);
+          ReadElement(BodyBodyObj,ImplEl,aContext);
           end;
-        ProcBody.Body:=TPasImplBlock(ImplEl);
-        ReadElement(BodyBodyObj,ImplEl,aContext);
+        aContext.InGeneric:=OldInGeneric;
         end;
-      aContext.InGeneric:=OldInGeneric;
       end;
-    end;
+  finally
+    Resolver.PopScope;
+  end;
 end;
 
 procedure TPCUReader.ReadProcedure(Obj: TJSONObject; El: TPasProcedure;
@@ -9828,7 +9939,7 @@ begin
     'InitParserOpts': InitialFlags.ParserOptions:=ReadParserOptions(Obj,nil,aName,PCUDefaultParserOptions);
     'InitModeSwitches': InitialFlags.ModeSwitches:=ReadModeSwitches(Obj,nil,aName,PCUDefaultModeSwitches);
     'InitBoolSwitches': InitialFlags.BoolSwitches:=ReadBoolSwitches(Obj,nil,aName,PCUDefaultBoolSwitches);
-    'InitConverterOpts': InitialFlags.ConverterOptions:=ReadConverterOptions(Obj,nil,aName,PCUDefaultConverterOptions-[coStoreImplJS]);
+    'InitConverterOpts': InitialFlags.ConverterOptions:=ReadConverterOptions(Obj,nil,aName,PCUDefaultConverterOptions);
     'FinalParserOpts': Parser.Options:=ReadParserOptions(Obj,nil,aName,InitialFlags.ParserOptions);
     'FinalModeSwitches': Scanner.CurrentModeSwitches:=ReadModeSwitches(Obj,nil,aName,InitialFlags.ModeSwitches);
     'FinalBoolSwitches': Scanner.CurrentBoolSwitches:=ReadBoolSwitches(Obj,nil,aName,InitialFlags.BoolSwitches);

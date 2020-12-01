@@ -4268,23 +4268,33 @@ Var
   SL : TStringList;
   L : TUnsortedDuplicatesStringList;
   I : Integer;
+  iCPU : TCPU;
+  iOS : TOS;
 
 begin
   GPathPrefix:=P.Directory;
   AddPackageMacrosToDictionary(P,P.Dictionary);
+  // First target OS
   ResolveFileNames(P,Defaults.CPU,Defaults.OS,False,True);
-
+  // Then other OSes
+  for ICPU:=Low(TCPU) to high(TCPU) do
+    for IOS:=Low(TOS) to high(TOS) do
+       if (IOS<>Defaults.OS) or (iCPU<>Defaults.CPU) then
+         if OSCPUSupported[IOS,ICPU] then
+            ResolveFileNames(P,ICPU,IOS,false);
   AddLn('<package name="%s" output="" content="%s.xct">',[quotexml(P.Name),quotexml(P.Name)]);
   Addln('  <units>');
   SL:=TStringList.Create;
   For T in P.Targets do
-    if (T.TargetType=ttUnit) and (T.TargetSourceFileName<>'') then
+    if (T.TargetType in [ttUnit,ttImplicitUnit]) and (T.TargetSourceFileName<>'') then
       begin
       SL.Clear;
-      Writeln(T.Name,' -> ',T.TargetSourceFileName);
+      // Writeln(T.Name,' -> ',T.TargetSourceFileName);
       FN:=AddPathPrefix(P,T.TargetSourceFileName);
       SL.Add('-d'+CPUToString(Defaults.CPU));
       SL.Add('-d'+OSToString(Defaults.OS));
+      if Defaults.OS in AllUnixOSes then
+        SL.Add('-dUNIX');
       SL.Add('-M'+ModeToString(T.Mode));
       // Include Path
       L:=TUnsortedDuplicatesStringList.Create;
@@ -7106,8 +7116,11 @@ begin
           synchronised from the thread that wrote them; the critical section there
           acts as a read/write barrier }
         ReadBarrier;
-
+{$ifdef NO_THREADING}
+      Args.Add('-Fl'+FCachedlibcPath);
+{$ELSE}      
       Args.Add('-Fl'+volatile(FCachedlibcPath));
+{$ENDIF}      
     end;
 
   // Custom options which are added by dependencies
