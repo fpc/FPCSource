@@ -1451,12 +1451,13 @@ procedure Tx86Instruction.SetInstructionOpsize;
 
         if bBroadcastMemRef then
         begin
-          case MemRefSizeBCST of
-            msbBCST32: opsize := S_L;
-            msbBCST64: opsize := S_Q;
-                  else opsize := S_NO;
-          end;
+          //case MemRefSizeBCST of
+          //  msbBCST32: opsize := S_L;
+          //  msbBCST64: opsize := S_Q;
+          //        else opsize := S_NO;
+          //end;
 
+          opsize := S_NO;
           result := true;
         end
         else
@@ -1476,7 +1477,8 @@ procedure Tx86Instruction.SetInstructionOpsize;
                    opsize:=tx86operand(operands[1]).opsize;
                    result := true;
                  end;
-              3: begin
+              3,4:
+                 begin
                    if (tx86operand(operands[1]).opr.typ <> OPR_CONSTANT) then
                     opsize:=tx86operand(operands[1]).opsize
                      else opsize:=tx86operand(operands[2]).opsize;
@@ -1489,9 +1491,9 @@ procedure Tx86Instruction.SetInstructionOpsize;
             //bExistMemRef:=false;
 
             for i := 1 to ops do
-             if tx86operand(operands[1]).opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+             if tx86operand(operands[i]).opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
              begin
-               opsize := tx86operand(operands[1]).opsize;
+               opsize := tx86operand(operands[i]).opsize;
                result := true;
                break;
              end;
@@ -1604,8 +1606,8 @@ begin
             end;
           //end;
         end;
-    4 :
-        opsize:=tx86operand(operands[ops]).opsize;
+    4 : if not CheckSSEAVX then
+         opsize:=tx86operand(operands[ops]).opsize;
   end;
 end;
 
@@ -1970,6 +1972,25 @@ begin
              ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
                           localscale,localgetoffset,localforceref);
              ai.oper[i-1]^.localoper^.localsegment:=localsegment;
+
+             // check for embedded broadcast
+             if MemRefInfo(opcode).ExistsSSEAVX then
+             begin
+               asize := 0;
+
+               if ((operands[i] as tx86operand).vopext <> 0) and
+                  (MemRefInfo(opcode).MemRefSizeBCST in [msbBCST32,msbBCST64]) then
+               begin
+                 case operands[i].size of
+                   OS_32,OS_M32: asize:=OT_BITS32;
+                   OS_64,OS_M64: asize:=OT_BITS64;
+                   else;
+                 end;
+               end;
+
+               if asize<>0 then
+                ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
+             end;
 
     //         if MemRefInfo(opcode).ExistsSSEAVX then
     //         begin
