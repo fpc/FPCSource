@@ -1827,6 +1827,30 @@ implementation
           for i:=0 to p^.ops-1 do
            begin
              insot:=p^.optypes[i];
+             if ((insot and (OT_XMMRM or OT_REG_EXTRA_MASK)) = OT_XMMRM) OR
+                ((insot and (OT_YMMRM or OT_REG_EXTRA_MASK)) = OT_YMMRM) OR
+                ((insot and (OT_ZMMRM or OT_REG_EXTRA_MASK)) = OT_ZMMRM) then
+             begin
+               if (insot and OT_SIZE_MASK) = 0 then
+               begin
+                 case insot and (OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
+                   //OT_XMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize128
+                   //           then insot := insot or OT_BITS128;
+                   //OT_YMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize256
+                   //           then insot := insot or OT_BITS256;
+                   //OT_ZMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize512
+                   //           then insot := insot or OT_BITS512;
+
+                   OT_MEM128: insot := insot or OT_BITS128;
+                   OT_MEM256: insot := insot or OT_BITS256;
+                   OT_MEM512: insot := insot or OT_BITS512;
+
+                   else
+                     ;
+                 end;
+               end;
+             end;
+
              currot:=oper[i]^.ot;
 
              { Check the operand flags }

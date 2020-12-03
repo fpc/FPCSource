@@ -21556,7 +21556,7 @@
   (
     opcode  : A_VCVTPD2UDQ;
     ops     : 2;
-    optypes : (ot_ymmreg_mz,ot_zmmrm_er,ot_none,ot_none);
+    optypes : (ot_ymmreg_mz,ot_zmmrm,ot_none,ot_none);
     code    : #232#233#234#248#1#121#72;
     flags   : [if_avx512,if_tfv]
   ),
@@ -22497,13 +22497,6 @@
     optypes : (ot_ymmreg_mz,ot_bmem64,ot_none,ot_none);
     code    : #220#232#233#234#248#1#122#72;
     flags   : [if_avx512,if_bcst8,if_tfv]
-  ),
-  (
-    opcode  : A_VCVTUSI2SD;
-    ops     : 3;
-    optypes : (ot_xmmreg,ot_xmmreg_er,ot_reg32,ot_none);
-    code    : #220#232#248#1#123#61#80;
-    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCVTUSI2SD;
