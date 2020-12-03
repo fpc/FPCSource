@@ -1831,9 +1831,17 @@ implementation
                if (insot and OT_SIZE_MASK) = 0 then
                begin
                  case insot and (OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
-                   OT_XMMRM: insot := insot or OT_BITS128;
-                   OT_YMMRM: insot := insot or OT_BITS256;
-                   OT_ZMMRM: insot := insot or OT_BITS512;
+                   //OT_XMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize128
+                   //           then insot := insot or OT_BITS128;
+                   //OT_YMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize256
+                   //           then insot := insot or OT_BITS256;
+                   //OT_ZMMRM: if InsTabMemRefSizeInfoCache^[opcode].MemRefSize <> msiMultipleMinSize512
+                   //           then insot := insot or OT_BITS512;
+
+                   OT_MEM128: insot := insot or OT_BITS128;
+                   OT_MEM256: insot := insot or OT_BITS256;
+                   OT_MEM512: insot := insot or OT_BITS512;
+
                    else
                      ;
                  end;
