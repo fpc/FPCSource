@@ -726,13 +726,13 @@ begin
             msiYMem64,
             msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                          // the vector-register have indices with base of the memory-address in the memory-operand
-            msiMultipleMinSize8,
-            msiMultipleMinSize16,
-            msiMultipleMinSize32,
-            msiMultipleMinSize64,
-            msiMultipleMinSize128,
-            msiMultipleMinSize256,
-            msiMultipleMinSize512: ; // ignore
+              msiMultipleMinSize8: memrefsize := 8;
+             msiMultipleMinSize16: memrefsize := 16;
+             msiMultipleMinSize32: memrefsize := 32;
+             msiMultipleMinSize64: memrefsize := 64;
+            msiMultipleMinSize128: memrefsize := 128;
+            msiMultipleMinSize256: memrefsize := 256;
+            msiMultipleMinSize512: memrefsize := 512;
             msiNoSize,
             msiNoMemRef,
             msiUnknown,
@@ -2005,24 +2005,25 @@ begin
     //                              //(((tx86operand(operands[i]).vopext and OTVE_VECTOR_BCST) = OTVE_VECTOR_BCST) and
     //                              //  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST32)
     //                              //)
-    //                               then
+    //                             then
     //                            asize:=OT_BITS32;
     //             OS_64,OS_M64: if (operands[i].HasType) or
+    //                              (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64)
     //                              (MemRefInfo(opcode).MemRefSize = msiMem64) or
     //                              //(((tx86operand(operands[i]).vopext and OTVE_VECTOR_BCST) = OTVE_VECTOR_BCST) and
     //                              //  (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64)
     //                              //) then
     //                              (MemRefInfo(opcode).MemRefSizeBCST = msbBCST64) then
-    //                            asize:=OT_BITS64;
+    //                             asize:=OT_BITS64;
     //                  OS_M128: if (operands[i].HasType) or
     //                              (MemRefInfo(opcode).MemRefSize = msiMem128) then
-				//asize:=OT_BITS128;
+    //				//asize:=OT_BITS128;
     //                  OS_M256: if (operands[i].HasType) or
     //                              (MemRefInfo(opcode).MemRefSize = msiMem256) then
-				//asize:=OT_BITS256;
+    //				//asize:=OT_BITS256;
     //                  OS_M512: if (operands[i].HasType) or
     //                              (MemRefInfo(opcode).MemRefSize = msiMem512) then
-				//asize:=OT_BITS512;
+    //				//asize:=OT_BITS512;
     //                      else;
     //           end;
     //
