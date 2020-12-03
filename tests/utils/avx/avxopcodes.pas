@@ -399,9 +399,9 @@ begin
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,XMMREG,2B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,YMMRM,IMM8');
-  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,4B32,IMM8');
+  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,4B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,MEM512,IMM8');
-  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,8B32,IMM8');
+  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,8B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,ZMMREG_SAE,IMM8');
   FOpCodeList.Add('vcmppd,1,1,0,XMMREG,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vcmppd,1,1,0,YMMREG,YMMREG,YMMRM,IMM8');
