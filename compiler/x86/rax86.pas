@@ -72,7 +72,7 @@ type
     procedure FixupOpcode;virtual;
     { opcode adding }
     function ConcatInstruction(p : TAsmList) : tai;override;
-    function getstring: string;
+    function getstring(aAddMemRefSize: boolean = true): string;
     { returns true, if the opcode might have an extension as used by AVX512 }
     function MightHaveExtension : boolean;
   end;
@@ -457,19 +457,21 @@ var
   multiplicator: integer;
   bcst1,bcst2: string;
 
-  function ScanLowestActiveBit(aValue: int64): int64;
+  function ScanLowestOpsize(aValue: int64): int64;
   var
     i: integer;
   begin
     result := 0;
 
-    for i := 0 to 63 do
-     if aValue and (1 shl i) <> 0 then
-     begin
-       result := 1 shl i;
-       break;
-     end;
+    if aValue and OT_BITS8 = OT_BITS8 then result := 8
+     else if aValue and OT_BITS16  = OT_BITS16  then result := 16
+     else if aValue and OT_BITS32  = OT_BITS32  then result := 32
+     else if aValue and OT_BITS64  = OT_BITS64  then result := 64
+     else if aValue and OT_BITS128 = OT_BITS128 then result := 128
+     else if aValue and OT_BITS256 = OT_BITS256 then result := 256
+     else if aValue and OT_BITS512 = OT_BITS512 then result := 512;
   end;
+
 
 begin
   ExistsMemRefNoSize := false;
@@ -762,15 +764,15 @@ begin
                   begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegXMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegXMMSizeMask);
                                   break;
                                 end;
                       R_SUBMMY: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegYMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegYMMSizeMask);
                                   break;
                                 end;
                       R_SUBMMZ: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegZMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegZMMSizeMask);
                                   break;
                                 end;
                            else;
@@ -861,7 +863,8 @@ begin
               if memoffset < 0 then
               begin
                 Message2(asmr_w_check_mem_operand_negative_offset,
-                         std_op2str[opcode],
+                         //std_op2str[opcode],
+			 getstring(false),
                          ToStr(memoffset));
               end
               else if ((tx86operand(operands[i]).hastype) and (memopsize < memrefsize)) or
@@ -872,7 +875,8 @@ begin
                   if memoffset = 0 then
                   begin
                     Message3(asmr_w_check_mem_operand_size3,
-                             std_op2str[opcode],
+                             //std_op2str[opcode],
+			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize)
                              );
@@ -880,7 +884,8 @@ begin
                   else
                   begin
                     Message4(asmr_w_check_mem_operand_size_offset,
-                             std_op2str[opcode],
+                             //std_op2str[opcode],
+			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize),
                              ToStr(memoffset)
@@ -933,7 +938,7 @@ begin
                                 tx86operand(operands[i]).opsize := S_B;
                                 tx86operand(operands[i]).size   := OS_8;
 
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"8 bit memory operand"');
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
                               end;
                       msiMem16:
                               begin
@@ -945,7 +950,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_W;
                                  tx86operand(operands[i]).size   := OS_16;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"16 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
                                end;
                       msiMem32:
                                begin
@@ -957,7 +962,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_L;
                                  tx86operand(operands[i]).size   := OS_32;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"32 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
                                end;
                       msiMem64:
                                begin
@@ -969,7 +974,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_Q;
                                  tx86operand(operands[i]).size   := OS_M64;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"64 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
                                end;
                       msiMem128:
                                begin
@@ -981,7 +986,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_XMM;
                                  tx86operand(operands[i]).size   := OS_M128;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"128 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
                                end;
                       msiMem256:
                                begin
@@ -995,7 +1000,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M256;
                                  opsize := S_YMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"256 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
                                end;
                       msiMem512:
                                begin
@@ -1009,7 +1014,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M512;
                                  opsize := S_ZMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"512 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
                                end;
 
                     msiMemRegSize:
@@ -2172,7 +2177,7 @@ begin
   result:=ai;
 end;
 
-function Tx86Instruction.getstring: string;
+function Tx86Instruction.getstring(aAddMemRefSize: boolean): string;
 var
   i : longint;
   s, sval : string;
@@ -2184,7 +2189,7 @@ begin
    begin
      with operands[i] as Tx86Operand do
        begin
-         if i=0 then
+         if i=1 then
           s:=s+' '
          else
           s:=s+',';
@@ -2234,7 +2239,9 @@ begin
                OPR_LOCAL,
             OPR_REFERENCE: begin
                              s:=s + 'mem';
-                             addsize:=true;
+
+                             if aAddMemRefSize then
+                              addsize:=true;
                            end;
                       else s:=s + '???';
          end;
