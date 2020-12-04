@@ -456,6 +456,21 @@ var
   mmregs: Set of TSubregister;
   multiplicator: integer;
   bcst1,bcst2: string;
+
+  function ScanLowestActiveBit(aValue: int64): int64;
+  var
+    i: integer;
+  begin
+    result := 0;
+
+    for i := 0 to 63 do
+     if aValue and (1 shl i) <> 0 then
+     begin
+       result := 1 shl i;
+       break;
+     end;
+  end;
+
 begin
   ExistsMemRefNoSize := false;
   ExistsMemRef       := false;
@@ -726,13 +741,57 @@ begin
             msiYMem64,
             msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                          // the vector-register have indices with base of the memory-address in the memory-operand
-              msiMultipleMinSize8: memrefsize := 8;
-             msiMultipleMinSize16: memrefsize := 16;
-             msiMultipleMinSize32: memrefsize := 32;
-             msiMultipleMinSize64: memrefsize := 64;
-            msiMultipleMinSize128: memrefsize := 128;
-            msiMultipleMinSize256: memrefsize := 256;
-            msiMultipleMinSize512: memrefsize := 512;
+            //  msiMultipleMinSize8: memrefsize := 8;
+            // msiMultipleMinSize16: memrefsize := 16;
+            // msiMultipleMinSize32: memrefsize := 32;
+            // msiMultipleMinSize64: memrefsize := 64;
+            //msiMultipleMinSize128: memrefsize := 128;
+            //msiMultipleMinSize256: memrefsize := 256;
+            //msiMultipleMinSize512: memrefsize := 512;
+            msiMultipleMinSize8,
+           msiMultipleMinSize16,
+           msiMultipleMinSize32,
+           msiMultipleMinSize64,
+          msiMultipleMinSize128,
+          msiMultipleMinSize256,
+          msiMultipleMinSize512:
+              begin
+                for j := 1 to ops do
+                begin
+                  if operands[j].Opr.Typ = OPR_REGISTER then
+                  begin
+                    case getsubreg(operands[j].opr.reg) of
+                      R_SUBMMX: begin
+                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegXMMSizeMask);
+                                  break;
+                                end;
+                      R_SUBMMY: begin
+                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegYMMSizeMask);
+                                  break;
+                                end;
+                      R_SUBMMZ: begin
+                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegZMMSizeMask);
+                                  break;
+                                end;
+                           else;
+                    end;
+                  end;
+                end;
+
+                if memrefsize = -1 then
+                begin
+                  case MemRefInfo(opcode).MemRefSize of
+                      msiMultipleMinSize8: memrefsize := 8;
+                     msiMultipleMinSize16: memrefsize := 16;
+                     msiMultipleMinSize32: memrefsize := 32;
+                     msiMultipleMinSize64: memrefsize := 64;
+                    msiMultipleMinSize128: memrefsize := 128;
+                    msiMultipleMinSize256: memrefsize := 256;
+                    msiMultipleMinSize512: memrefsize := 512;
+                                     else;
+                  end;
+                end;
+              end;
             msiNoSize,
             msiNoMemRef,
             msiUnknown,
