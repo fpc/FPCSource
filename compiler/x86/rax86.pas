@@ -457,19 +457,21 @@ var
   multiplicator: integer;
   bcst1,bcst2: string;
 
-  function ScanLowestActiveBit(aValue: int64): int64;
+  function ScanLowestOpsize(aValue: int64): int64;
   var
     i: integer;
   begin
     result := 0;
 
-    for i := 0 to 63 do
-     if aValue and (1 shl i) <> 0 then
-     begin
-       result := 1 shl i;
-       break;
-     end;
+    if aValue and OT_BITS8 = OT_BITS8 then result := 8
+     else if aValue and OT_BITS16  = OT_BITS16  then result := 16
+     else if aValue and OT_BITS32  = OT_BITS32  then result := 32
+     else if aValue and OT_BITS64  = OT_BITS64  then result := 64
+     else if aValue and OT_BITS128 = OT_BITS128 then result := 128
+     else if aValue and OT_BITS256 = OT_BITS256 then result := 256
+     else if aValue and OT_BITS512 = OT_BITS512 then result := 512;
   end;
+
 
 begin
   ExistsMemRefNoSize := false;
@@ -762,15 +764,15 @@ begin
                   begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegXMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegXMMSizeMask);
                                   break;
                                 end;
                       R_SUBMMY: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegYMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegYMMSizeMask);
                                   break;
                                 end;
                       R_SUBMMZ: begin
-                                  memrefsize := ScanLowestActiveBit(MemRefInfo(opcode).RegZMMSizeMask);
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegZMMSizeMask);
                                   break;
                                 end;
                            else;
@@ -873,6 +875,7 @@ begin
                   if memoffset = 0 then
                   begin
                     Message3(asmr_w_check_mem_operand_size3,
+                             //std_op2str[opcode],
 			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize)
@@ -881,6 +884,7 @@ begin
                   else
                   begin
                     Message4(asmr_w_check_mem_operand_size_offset,
+                             //std_op2str[opcode],
 			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize),

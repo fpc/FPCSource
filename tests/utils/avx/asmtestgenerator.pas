@@ -2735,9 +2735,22 @@ begin
 
               Item.Values.Add(' lOWord');
               Item.Values.Add(' gOWord');
+              Item.Values.Add(' clOWord');
+              Item.Values.Add(' cgOWord');
 
               Item.Values.Add(' oword lOWord');
               Item.Values.Add(' oword gOWord');
+              Item.Values.Add(' oword clOWord');
+              Item.Values.Add(' oword cgOWord');
+
+              Item.Values.Add(' byte lOWord');
+              Item.Values.Add(' byte gOWord');
+              Item.Values.Add(' byte clOWord');
+              Item.Values.Add(' byte cgOWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
 
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
@@ -2754,6 +2767,15 @@ begin
 
               Item.Values.Add('lbyte');
               Item.Values.Add('gbyte');
+              Item.Values.Add('clbyte');
+              Item.Values.Add('cgbyte');
+
+              Item.Values.Add('byte lbyte');
+              Item.Values.Add('byte gbyte');
+              Item.Values.Add('byte clbyte');
+              Item.Values.Add('byte cgbyte');
+
+
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
                     (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
@@ -2768,6 +2790,14 @@ begin
 
               Item.Values.Add('lword');
               Item.Values.Add('gword');
+              Item.Values.Add('clword');
+              Item.Values.Add('cgword');
+
+              Item.Values.Add('word lword');
+              Item.Values.Add('word gword');
+              Item.Values.Add('word clword');
+              Item.Values.Add('word cgword');
+
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) or
                     (AnsiSameText(sl_Operand, 'YMMREG_M')) or
@@ -2795,6 +2825,14 @@ begin
 
               Item.Values.Add('lYWord');
               Item.Values.Add('gYWord');
+              Item.Values.Add('clYWord');
+              Item.Values.Add('cgYWord');
+
+              Item.Values.Add('yword lYWord');
+              Item.Values.Add('yword gYWord');
+              Item.Values.Add('yword clYWord');
+              Item.Values.Add('yword cgYWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
@@ -2822,6 +2860,14 @@ begin
 
               Item.Values.Add('lZWord');
               Item.Values.Add('gZWord');
+              Item.Values.Add('clZWord');
+              Item.Values.Add('cgZWord');
+
+              Item.Values.Add('zword lZWord');
+              Item.Values.Add('zword gZWord');
+              Item.Values.Add('zword clZWord');
+              Item.Values.Add('zword cgZWord');
+
             end
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
@@ -2831,6 +2877,14 @@ begin
 
               Item.Values.Add('lByte');
               Item.Values.Add('gByte');
+              Item.Values.Add('clByte');
+              Item.Values.Add('cgByte');
+
+              Item.Values.Add('byte lByte');
+              Item.Values.Add('byte gByte');
+              Item.Values.Add('byte clByte');
+              Item.Values.Add('byte cgByte');
+
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -2841,6 +2895,14 @@ begin
 
               Item.Values.Add('lWord');
               Item.Values.Add('gWord');
+              Item.Values.Add('clWord');
+              Item.Values.Add('cgWord');
+
+              Item.Values.Add('word lWord');
+              Item.Values.Add('word gWord');
+              Item.Values.Add('word clWord');
+              Item.Values.Add('word cgWord');
+
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
                     AnsiSameText(sl_Operand, 'MEM32_M') or
@@ -2852,6 +2914,14 @@ begin
 
               Item.Values.Add('lDWord');
               Item.Values.Add('gDWord');
+              Item.Values.Add('clDWord');
+              Item.Values.Add('cgDWord');
+
+              Item.Values.Add('dword lDWord');
+              Item.Values.Add('dword gDWord');
+              Item.Values.Add('dword clDWord');
+              Item.Values.Add('dword cgDWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -2863,6 +2933,14 @@ begin
 
               Item.Values.Add('lQWord');
               Item.Values.Add('gQWord');
+              Item.Values.Add('clQWord');
+              Item.Values.Add('cgQWord');
+
+              Item.Values.Add('qword lQWord');
+              Item.Values.Add('qword gQWord');
+              Item.Values.Add('qword clQWord');
+              Item.Values.Add('qword cgQWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
                     (AnsiSameText(sl_Operand, 'MEM128_M')) or
@@ -2874,6 +2952,14 @@ begin
 
               Item.Values.Add('lOWord');
               Item.Values.Add('gOWord');
+              Item.Values.Add('clOWord');
+              Item.Values.Add('cgOWord');
+
+              Item.Values.Add('oword lOWord');
+              Item.Values.Add('oword gOWord');
+              Item.Values.Add('oword clOWord');
+              Item.Values.Add('oword cgOWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -2885,6 +2971,14 @@ begin
 
               Item.Values.Add('lYWord');
               Item.Values.Add('gYWord');
+              Item.Values.Add('clYWord');
+              Item.Values.Add('cgYWord');
+
+              Item.Values.Add('yword lYWord');
+              Item.Values.Add('yword gYWord');
+              Item.Values.Add('yword clYWord');
+              Item.Values.Add('yword cgYWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -2896,6 +2990,14 @@ begin
 
               Item.Values.Add('lZWord');
               Item.Values.Add('gZWord');
+              Item.Values.Add('clZWord');
+              Item.Values.Add('cgZWord');
+
+              Item.Values.Add('zword lZWord');
+              Item.Values.Add('zword gZWord');
+              Item.Values.Add('zword clZWord');
+              Item.Values.Add('zword cgZWord');
+
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
             begin
