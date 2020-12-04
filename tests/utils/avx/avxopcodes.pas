@@ -3400,8 +3400,22 @@ begin
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
 
+                  slHeader.Add('type');
+                  slHeader.Add('  rec = record');
+
+                  slHeader.Add('    rByte: byte;');
+                  slHeader.Add('    rWord: word;');
+                  slHeader.Add('    rDWord: dword;');
+                  slHeader.Add('    rQWord: qword;');
+                  slHeader.Add('    rOWord: array[0..15] of byte;');
+                  slHeader.Add('    rYWord: array[0..31] of byte;');
+                  slHeader.Add('    rZWord: array[0..63] of byte;');
+
+                  slHeader.Add('  end;');
+
 
 		  slHeader.Add('var');
+                  slHeader.Add('   gRec: rec;');
 		  slHeader.Add('   gByte: byte;');
 		  slHeader.Add('   gWord: word;');
 		  slHeader.Add('  gDWord: dword;');
@@ -3410,18 +3424,67 @@ begin
 		  slHeader.Add('  gYWord: array[0..31] of byte;');
 		  slHeader.Add('  gZWord: array[0..63] of byte;');
 
+		  slHeader.Add('const');
+		  slHeader.Add('   cgByte: byte = 0;');
+		  slHeader.Add('   cgWord: word = 0;');
+		  slHeader.Add('  cgDWord: dword = 0;');
+		  slHeader.Add('  cgQWord: qword = 0;');
+		  slHeader.Add('  cgOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('  cgYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('  cgZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+//  slHeader.Add('  cgZWord: array[0..63] of byte;');
+
                   slHeader.Add(' procedure dummyproc;');
 		  slHeader.Add(' var');
+                  slHeader.Add('     lRec: rec;');
 		  slHeader.Add('     lByte: byte;');
 		  slHeader.Add('     lWord: word;');
 		  slHeader.Add('    lDWord: dword;');
 		  slHeader.Add('    lQWord: qword;');
 		  slHeader.Add('    lOWord: array[0..15] of byte;');
 		  slHeader.Add('    lYWord: array[0..31] of byte;');
+		  slHeader.Add('    lSingle: single;');
+
+		  slHeader.Add('    lDouble: double;');
 		  slHeader.Add('    lZWord: array[0..63] of byte;');
 
-		  slHeader.Add('    lSingle: single;');
-		  slHeader.Add('    lDouble: double;');
+                  slHeader.Add(' const');
+		  slHeader.Add('     clByte: byte = 0;');
+		  slHeader.Add('     clWord: word = 0;');
+		  slHeader.Add('    clDWord: dword = 0;');
+		  slHeader.Add('    clQWord: qword = 0;');
+		  slHeader.Add('    clOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('    clYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('    clZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+
 
                   slHeader.Add(' begin');
                   slHeader.Add('   asm');
