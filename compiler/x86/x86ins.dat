@@ -4188,6 +4188,7 @@ xmmreg_mz,bmem64                          \334\350\352\364\370\1\xE6\110        
 ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\xE6\110            AVX512,BCST8,TFV
 ;ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\xE6\110            AVX512
+ymmreg_mz,zmmrm                           \334\350\351\352\370\1\xE6\110            AVX512,TFV
 
 
 ; VCVTPD2PS xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct

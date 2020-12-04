@@ -376,6 +376,9 @@ interface
         ExistsSSEAVX             : boolean;
         ConstSize                : TConstSizeInfo;
         BCSTTypes                : Set of TMemRefSizeInfoBCSTType;
+        RegXMMSizeMask           : int64;
+        RegYMMSizeMask           : int64;
+        RegZMMSizeMask           : int64;
       end;
 
 
@@ -5342,6 +5345,7 @@ implementation
 
             inc(insentry);
           end;
+
           if InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX then
           begin
             case RegBCSTSizeMask of
@@ -5493,6 +5497,11 @@ implementation
           begin
             InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiNoMemRef;
           end;
+
+          InsTabMemRefSizeInfoCache^[AsmOp].RegXMMSizeMask:=RegXMMSizeMask;
+          InsTabMemRefSizeInfoCache^[AsmOp].RegYMMSizeMask:=RegYMMSizeMask;
+          InsTabMemRefSizeInfoCache^[AsmOp].RegZMMSizeMask:=RegZMMSizeMask;
+
         end;
       end;
 
