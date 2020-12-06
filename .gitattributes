@@ -675,6 +675,7 @@ compiler/ppcmips64el.lpi svneol=native#text/plain
 compiler/ppcmipsel.lpi svneol=native#text/plain
 compiler/ppcppc.lpi svneol=native#text/plain
 compiler/ppcppc64.lpi svneol=native#text/plain
+compiler/ppcppc64le.lpi svneol=native#text/plain
 compiler/ppcriscv32.lpi svneol=native#text/plain
 compiler/ppcriscv64.lpi svneol=native#text/plain
 compiler/ppcsparc.lpi svneol=native#text/plain
