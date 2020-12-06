@@ -15356,6 +15356,7 @@ tests/test/tmacprocvar.pp svneol=native#text/plain
 tests/test/tmainnam.pp svneol=native#text/plain
 tests/test/tmath1.pp svneol=native#text/plain
 tests/test/tmcbool2.pp svneol=native#text/plain
+tests/test/tminmax.pp svneol=native#text/pascal
 tests/test/tmmx1.pp svneol=native#text/plain
 tests/test/tmoperator1.pp svneol=native#text/pascal
 tests/test/tmoperator10.pp svneol=native#text/pascal
