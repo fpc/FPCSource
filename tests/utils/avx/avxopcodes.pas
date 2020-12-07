@@ -186,6 +186,17 @@ begin
 
 
 
+
+
+
+
+
+
+
+
+
+
+
   FOpCodeList.Add('ADCX,1,1,0,REG32,RM32,,,');
   FOpCodeList.Add('ADCX,1,1,0,REG64,RM64,,,');
   FOpCodeList.Add('ADOX,1,1,0,REG32,RM32,,,');
