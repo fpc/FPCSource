@@ -1304,6 +1304,41 @@ begin
                     Internalerror(2019081008);
                 end;
               end;
+          OPR_LOCAL:
+                if not(ExistsBCST) then
+                begin
+                  case MemRefInfo(opcode).MemRefSize of
+                      msiMultipleMinSize8:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
+                              end;
+                      msiMultipleMinSize16:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
+                              end;
+                      msiMultipleMinSize32:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
+                              end;
+                      msiMultipleMinSize64:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
+                              end;
+                      msiMultipleMinSize128:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
+                              end;
+                      msiMultipleMinSize256:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
+                              end;
+                      msiMultipleMinSize512:
+                              begin
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
+                              end;
+                      else;
+                  end;
+                end;
           OPR_CONSTANT:
                 case MemRefInfo(opcode).ConstSize of
                    csiMem8: begin
@@ -2226,11 +2261,7 @@ begin
                              else
                                if getregtype(opr.reg)=R_ADDRESSREGISTER then
                                begin
-                                 // 14102020 TG TODO CHECK
-                                 if (opr.reg >= NR_K0) and (opr.reg >= NR_K7) then
-                                 begin
-                                   s:=s+'k' + regnr;
-                                 end;
+                                 s:=s+'k' + regnr;
                                end;
 
                            end;
