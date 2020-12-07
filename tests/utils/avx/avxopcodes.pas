@@ -116,41 +116,41 @@ begin
 
 
   FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('COMISD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('DIVSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('MAXSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('MINSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MINSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MINSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('MULSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('SUBSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,MEM64,,,');
 
 
 
