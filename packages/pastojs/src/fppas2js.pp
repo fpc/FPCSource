@@ -1559,6 +1559,8 @@ type
       override;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem);
       override;
+    procedure SpecializeProcedure(GenEl, SpecEl: TPasProcedure;
+      SpecializedItem: TPRSpecializedItem); override;
     function SpecializeParamsNeedDelay(SpecializedItem: TPRSpecializedItem): TPasElement; virtual;
     function IsSpecializedNonStaticMethod(ProcType: TPasProcedureType): boolean;
   protected
@@ -5265,6 +5267,22 @@ begin
       end;
       end;
     end;
+end;
+
+procedure TPas2JSResolver.SpecializeProcedure(GenEl, SpecEl: TPasProcedure;
+  SpecializedItem: TPRSpecializedItem);
+var
+  GenProcScope, SpecProcScope: TPas2JSProcedureScope;
+begin
+  GenProcScope:=GenEl.CustomData as TPas2JSProcedureScope;
+  SpecProcScope:=SpecEl.CustomData as TPas2JSProcedureScope;
+  if SpecializedItem=nil then
+    begin
+    SpecProcScope.OverloadName:=GenProcScope.OverloadName;
+    SpecProcScope.JSName:=GenProcScope.JSName;
+    // SpecProcScope.ResultVarName is set on demand
+    end;
+  inherited SpecializeProcedure(GenEl, SpecEl, SpecializedItem);
 end;
 
 function TPas2JSResolver.SpecializeParamsNeedDelay(
@@ -21148,7 +21166,12 @@ var
       if ProcScope.ImplProc<>nil then
         ProcScope:=ProcScope.ImplProc.CustomData as TPas2JSProcedureScope;
       if ProcScope.SelfArg=nil then
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('CreateReference Proc=',GetObjPath(Proc),' Left=',GetObjPath(Left),' LeftResolved=',GetResolverResultDbg(LeftResolved),' ProcScope.DeclarationProc=',GetObjPath(ProcScope.DeclarationProc));
+        {$ENDIF}
         RaiseNotSupported(PosEl,AContext,20190209214906,GetObjName(Proc));
+        end;
       Result:=CreateProcCallArgRef(Left,LeftResolved,ProcScope.SelfArg,AContext);
       end;
   end;

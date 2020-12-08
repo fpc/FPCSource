@@ -154,6 +154,25 @@ type
      in_fma_extended     = 135,
      in_fma_float128     = 136,
 
+     { the min/max intrinsics must follow the x86 sse
+       behaviour of min/max regarding handling
+       NaN: in case of a NaN the result is always the second
+       operand. This allows a simple translation of
+       if a>b then result:=a else result:=b;
+       statements into these intrinsics
+
+       The min/max intrinsics are not supposed to
+       be exposed to the user but only
+       used internally by the compiler/optimizer }
+     in_max_single       = 137,
+     in_max_double       = 138,
+     in_min_single       = 139,
+     in_min_double       = 140,
+     in_min_dword        = 141,
+     in_min_longint      = 142,
+     in_max_dword        = 143,
+     in_max_longint      = 144,
+
 { MMX functions }
 { these contants are used by the mmx unit }
 

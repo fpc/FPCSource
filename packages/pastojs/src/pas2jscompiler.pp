@@ -595,13 +595,13 @@ type
     function CreateMacroEngine: TPas2jsMacroEngine;virtual;
     function CreateSrcMap(const aFileName: String): TPas2JSSrcMap; virtual;
     function CreateOptimizer: TPas2JSAnalyzer;
-    // These are mandatory !
-    function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;
-    function CreateFS: TPas2JSFS; virtual; abstract;
+    function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;// mandatory !
+    function CreateFS: TPas2JSFS; virtual; abstract; // mandatory !
     function FormatPath(Const aPath: String): String;
     function FullFormatPath(Const aPath: String): String;
     procedure WritePrecompiledFormats; virtual;
     procedure WriteHelpLine(S: String);
+    function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile;
     // Override these for PCU format
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; virtual;
     // Command-line option handling
@@ -2292,7 +2292,7 @@ begin
     if SrcMapInclude and FS.FileExists(LocalFilename) then
     begin
       // include source in SrcMap
-      aFile:=FS.LoadFile(LocalFilename);
+      aFile:=LoadFile(LocalFilename);
       SrcMap.SourceContents[i]:=aFile.Source;
     end;
     // translate local file name
@@ -2761,10 +2761,9 @@ procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile; Combined
   end;
 
 Var
-  aFileWriter : TPas2JSMapper;
-  isSingleFile : Boolean;
-  ResFileName,MapFilename : String;
-
+  aFileWriter: TPas2JSMapper;
+  isSingleFile, JSFileWritten: Boolean;
+  ResFileName,MapFilename: String;
 begin
   aFileWriter:=CombinedFileWriter;
   try
@@ -2795,8 +2794,7 @@ begin
         PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
 
       // Give chance to descendants to write file
-      if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
-        exit;// descendant has written -> finished
+      JSFileWritten:=DoWriteJSFile(aFile.JSFilename,aFileWriter);
 
       if (aFile.JSFilename='') and (MainJSFile='.') then
         WriteToStandardOutput(aFileWriter);
@@ -2807,7 +2805,8 @@ begin
       CheckOutputDir(aFileWriter.DestFileName);
 
       MapFilename:=aFileWriter.DestFilename+'.map';
-      WriteJSToFile(MapFileName,aFileWriter);
+      if not JSFileWritten then
+        WriteJSToFile(MapFileName,aFileWriter);
       if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
         if FResourceStrings.StringsCount>0 then
           WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.jrs'));
@@ -4549,6 +4548,7 @@ begin
     on E: Exception do begin
       if ShowDebug then
         Log.LogExceptionBackTrace(E);
+      Log.Log(mtFatal,E.Message);
       raise; // reraise unexpected exception
     end else begin
       if ShowDebug then
@@ -4627,6 +4627,20 @@ begin
     end;
   end;
   Log.LogRaw(s);
+end;
+
+function TPas2jsCompiler.LoadFile(Filename: string; Binary: boolean
+  ): TPas2jsFile;
+begin
+  try
+    Result:=FS.LoadFile(Filename,Binary);
+  except
+    on E: Exception do
+      begin
+      Log.Log(mtError,E.Message);
+      Terminate(ExitCodeFileNotFound);
+      end
+  end;
 end;
 
 procedure TPas2jsCompiler.WriteHelp;
@@ -5150,7 +5164,7 @@ begin
         Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
         raise EFileNotFoundError.Create('');
       end;
-      aFile:=FS.LoadFile(Filename);
+      aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
       aWriter.WriteFile(aFile.Source,Filename);
     end

@@ -302,6 +302,9 @@ implementation
     {$ifdef i8086}
       cpuinfo,
     {$endif i8086}
+    {$if defined(xtensa) or defined(i386)}
+      cpuinfo,
+    {$endif defined(xtensa) or defined(i386)}
       cgbase,procinfo
       ;
 
@@ -1554,8 +1557,13 @@ implementation
 
 
     function tifnode.internalsimplify(warn: boolean) : tnode;
+      var
+        thenstmnt, elsestmnt: tnode;
+        in_nr: tinlinenumber;
+        paratype: tdef;
       begin
         result:=nil;
+        in_nr:=Default(tinlinenumber);
         { optimize constant expressions }
         if (left.nodetype=ordconstn) then
           begin
@@ -1580,6 +1588,62 @@ implementation
                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                end;
           end;
+{$ifndef llvm}
+{$if defined(i386) or defined(x86_64) or defined(xtensa)}
+        { use min/max intrinsic? }
+        if (cs_opt_level2 in current_settings.optimizerswitches) and
+           (left.nodetype in [gtn,gten,ltn,lten]) and IsSingleStatement(right,thenstmnt) and IsSingleStatement(t1,elsestmnt) and
+          (thenstmnt.nodetype=assignn) and (elsestmnt.nodetype=assignn) and
+          not(might_have_sideeffects(left)) and
+          tassignmentnode(thenstmnt).left.isequal(tassignmentnode(elsestmnt).left) and
+{$if defined(i386) or defined(x86_64)}
+          { for now, limit it to fastmath mode as NaN handling is not implemented properly yet }
+          (cs_opt_fastmath in current_settings.optimizerswitches) and
+{$ifdef i386}
+          (((current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef))
+          ) and
+{$else i386}
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+{$endif i386}
+{$endif defined(i386) or defined(x86_64)}
+{$if defined(xtensa)}
+          (CPUXTENSA_HAS_MINMAX in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
+{$endif defined(xtensa)}
+          ((tassignmentnode(thenstmnt).right.isequal(taddnode(left).left) and (tassignmentnode(elsestmnt).right.isequal(taddnode(left).right))) or
+           (tassignmentnode(thenstmnt).right.isequal(taddnode(left).right) and (tassignmentnode(elsestmnt).right.isequal(taddnode(left).left)))) then
+          begin
+            paratype:=tassignmentnode(thenstmnt).left.resultdef;
+            if (left.nodetype in [gtn,gten]) and
+              (tassignmentnode(thenstmnt).right.isequal(taddnode(left).left) and (tassignmentnode(elsestmnt).right.isequal(taddnode(left).right))) then
+              begin
+                if is_double(paratype) then
+                  in_nr:=in_max_double
+                else if is_single(paratype) then
+                  in_nr:=in_max_single
+                else if is_u32bitint(paratype) then
+                  in_nr:=in_max_dword
+                else if is_s32bitint(paratype) then
+                  in_nr:=in_max_longint;
+              end
+            else
+              begin
+                if is_double(paratype) then
+                  in_nr:=in_min_double
+                else if is_single(paratype) then
+                  in_nr:=in_min_single
+                else if is_u32bitint(paratype) then
+                  in_nr:=in_min_dword
+                else if is_s32bitint(paratype) then
+                  in_nr:=in_min_longint;
+              end;
+            Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
+              cinlinenode.create(in_nr,false,ccallparanode.create(taddnode(left).right.getcopy,
+                    ccallparanode.create(taddnode(left).left.getcopy,nil)))
+              );
+          end;
+{$endif defined(i386) or defined(x86_64) or defined(xtensa)}
+{$endif llvm}
       end;
 
 
