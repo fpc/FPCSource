@@ -324,19 +324,27 @@ implementation
       begin
         case getregtype(reg) of
           R_INTREGISTER:
-           if getsubreg(reg)=R_SUBD then
-             registertobastype:=wbt_i32
-           else
-             registertobastype:=wbt_i64;
+            case getsubreg(reg) of
+              R_SUBD:
+                registertobastype:=wbt_i32;
+              R_SUBQ:
+                registertobastype:=wbt_i64;
+              else
+                internalerror(2020120801);
+            end;
 
           R_ADDRESSREGISTER:
             registertobastype:=wbt_i32;
 
           R_FPUREGISTER:
-           if getsubreg(reg)=R_SUBFS then
-             registertobastype:=wbt_f32
-           else
-             registertobastype:=wbt_f64
+            case getsubreg(reg) of
+              R_SUBFS:
+                registertobastype:=wbt_f32;
+              R_SUBFD:
+                registertobastype:=wbt_f64;
+              else
+                internalerror(2020120802);
+            end;
           else
            internalerror(2010122912);
         end;
