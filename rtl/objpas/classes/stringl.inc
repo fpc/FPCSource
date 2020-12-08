@@ -547,6 +547,11 @@ var
   end;
 
   Function CheckQuoted : Boolean;
+  { Paraphrased from Delphi XE2 help:
+    Strings must be separated by Delimiter characters or spaces.
+    They may be enclosed in QuoteChars.
+    QuoteChars in the string must be repeated to distinguish them from the QuoteChars enclosing the string.
+  }
 
   begin
     Result:=(AValue[i]=aQuoteChar) and (aQuoteChar<>#0);
@@ -567,60 +572,29 @@ var
     i:=j+1;
   end;
 
+  Procedure MaybeSkipSpaces; inline;
+
+  begin
+    if Not aStrictDelimiter then
+      while (i<=len) and (Ord(AValue[i])<=Ord(' ')) do
+        inc(i);
+  end;
+
 begin
- BeginUpdate;
-
- i:=1;
- j:=1;
- aNotFirst:=false;
-
- { Paraphrased from Delphi XE2 help:
- Strings must be separated by Delimiter characters or spaces.
- They may be enclosed in QuoteChars.
- QuoteChars in the string must be repeated to distinguish them from the QuoteChars enclosing the string.
- }
- try
-  if DoClear then
-    Clear;
-  len:=length(AValue);
-  If aStrictDelimiter then
-    begin
+  BeginUpdate;
+  i:=1;
+  j:=1;
+  aNotFirst:=false;
+  try
+    if DoClear then
+      Clear;
+    len:=length(AValue);
     while i<=len do
       begin
       // skip delimiter
       if aNotFirst and (i<=len) and (AValue[i]=aDelimiter) then
         inc(i);
-      // read next string
-      if i>len then
-        begin
-        if aNotFirst then Add('');
-        end
-      else
-        begin
-        If not CheckQuoted then
-          begin
-          // next string is not quoted; read until delimiter
-          j:=i;
-          while (j<=len) and
-                (AValue[j]<>aDelimiter) do inc(j);
-          Add( Copy(AValue,i,j-i));
-          i:=j;
-          end;
-        end;
-      aNotFirst:=true;
-      end;
-    end
-  else 
-    begin
-    while i<=len do
-      begin
-      // skip delimiter
-      if aNotFirst and (i<=len) and (AValue[i]=aDelimiter) then
-        inc(i);
-
-      // skip spaces
-      while (i<=len) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
-    
+      MaybeSkipSpaces;
       // read next string
       if i>len then
         begin
@@ -634,19 +608,16 @@ begin
           // next string is not quoted; read until control character/space/delimiter
           j:=i;
           while (j<=len) and
-                (Ord(AValue[j])>Ord(' ')) and
+                (aStrictDelimiter or (Ord(AValue[j])>Ord(' '))) and
                 (AValue[j]<>aDelimiter) do
             inc(j);
           Add( Copy(AValue,i,j-i));
           i:=j;
           end;
         end;
-      // skip spaces
-      while (i<=len) and (Ord(AValue[i])<=Ord(' ')) do
-        inc(i);
+      MaybeSkipSpaces;
       aNotFirst:=true;
       end; // While I<=Len
-    end; // If StrictDelimiter
  finally
    EndUpdate;
  end;

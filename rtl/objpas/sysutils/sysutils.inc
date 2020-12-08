@@ -39,7 +39,7 @@
 
   { variant error codes }
   {$i varerror.inc}
-  
+
   { Type helpers}
   {$i syshelp.inc}
 
@@ -144,7 +144,7 @@ end;
   {$i sysuni.inc}
   {$i sysencoding.inc}
 {$endif FPC_HAS_UNICODESTRING}
-  
+
   { threading stuff }
   {$i sysuthrd.inc}
 
@@ -161,7 +161,7 @@ end;
       end;
 
     procedure FreeMemAndNil(var p);
-    
+
     var
       temp:Pointer;
     begin
@@ -169,7 +169,7 @@ end;
       Pointer(P):=nil;
       FreeMem(temp);
     end;
-    
+
   { Interfaces support }
   {$i sysuintf.inc}
 
@@ -300,7 +300,7 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: CodePointer; FrameCount:
 Var
   i : longint;
   hstdout : ^text;
-  
+
 begin
   if WriteErrorsToStdErr then
     hstdout:=@stderr
@@ -802,7 +802,7 @@ begin
 end;
 
 function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
-var 
+var
   ComLineA : array of RawByteString;
   I        : Integer;
 begin
@@ -818,9 +818,9 @@ end;
 {$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 begin
-  if val then 
+  if val then
     Result := ifTrue
   else
-    Result:=ifFalse;  
+    Result:=ifFalse;
 end;
 {$ENDIF}

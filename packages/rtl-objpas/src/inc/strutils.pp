@@ -355,7 +355,7 @@ type
     i: SizeInt;
   begin
     i:=0;
-    while (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) and (i < aPos) do begin
+    while (i<aPos) and (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) do begin
       inc(i);
     end;
     Result:=i;
@@ -493,7 +493,7 @@ type
     i: SizeInt;
   begin
     i:=0;
-    while (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) and (i < aPos) do begin
+    while (i<aPos) and (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) do begin
       inc(i);
     end;
     Result:=i;
