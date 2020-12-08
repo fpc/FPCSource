@@ -404,17 +404,25 @@ implementation
                     wbt := registertobastype(ra.reg);
                     case getregtype(ra.reg) of
                       R_INTREGISTER:
-                        if getsubreg(ra.reg)=R_SUBD then
-                          size:=4
-                        else
-                          size:=8;
+                        case getsubreg(ra.reg) of
+                          R_SUBD:
+                            size:=4;
+                          R_SUBQ:
+                            size:=8;
+                          else
+                            internalerror(2020120803);
+                        end;
                       R_ADDRESSREGISTER:
                         size:=4;
                       R_FPUREGISTER:
-                        if getsubreg(ra.reg)=R_SUBFS then
-                          size:=4
-                        else
-                          size:=8;
+                        case getsubreg(ra.reg) of
+                          R_SUBFS:
+                            size:=4;
+                          R_SUBFD:
+                            size:=8;
+                          else
+                            internalerror(2020120804);
+                        end;
                       else
                         internalerror(2010122912);
                     end;
