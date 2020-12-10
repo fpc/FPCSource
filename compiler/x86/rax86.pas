@@ -743,13 +743,6 @@ begin
             msiYMem64,
             msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                          // the vector-register have indices with base of the memory-address in the memory-operand
-            //  msiMultipleMinSize8: memrefsize := 8;
-            // msiMultipleMinSize16: memrefsize := 16;
-            // msiMultipleMinSize32: memrefsize := 32;
-            // msiMultipleMinSize64: memrefsize := 64;
-            //msiMultipleMinSize128: memrefsize := 128;
-            //msiMultipleMinSize256: memrefsize := 256;
-            //msiMultipleMinSize512: memrefsize := 512;
             msiMultipleMinSize8,
            msiMultipleMinSize16,
            msiMultipleMinSize32,
@@ -908,7 +901,8 @@ begin
       if (tx86operand(operands[i]).opsize = S_NO) then
       begin
         case operands[i].Opr.Typ of
-          OPR_REFERENCE:
+          OPR_REFERENCE,
+          OPR_LOCAL:
                 begin
                   if ExistsBCST then
                   begin
@@ -1304,41 +1298,6 @@ begin
                     Internalerror(2019081008);
                 end;
               end;
-          OPR_LOCAL:
-                if not(ExistsBCST) then
-                begin
-                  case MemRefInfo(opcode).MemRefSize of
-                      msiMultipleMinSize8:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
-                              end;
-                      msiMultipleMinSize16:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
-                              end;
-                      msiMultipleMinSize32:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
-                              end;
-                      msiMultipleMinSize64:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
-                              end;
-                      msiMultipleMinSize128:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
-                              end;
-                      msiMultipleMinSize256:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
-                              end;
-                      msiMultipleMinSize512:
-                              begin
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
-                              end;
-                      else;
-                  end;
-                end;
           OPR_CONSTANT:
                 case MemRefInfo(opcode).ConstSize of
                    csiMem8: begin
@@ -1550,12 +1509,6 @@ procedure Tx86Instruction.SetInstructionOpsize;
 
         if bBroadcastMemRef then
         begin
-          //case MemRefSizeBCST of
-          //  msbBCST32: opsize := S_L;
-          //  msbBCST64: opsize := S_Q;
-          //        else opsize := S_NO;
-          //end;
-
           opsize := S_NO;
           result := true;
         end
