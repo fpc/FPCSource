@@ -789,8 +789,11 @@ Unit racpugas;
                           else
                             Message1(sym_e_unknown_id,expr);
                         end
-                       else
-                         MaybeAddGotAddrMode;
+                       else if oper.opr.typ<>OPR_LOCAL then
+                         begin
+                           oper.InitRef;
+                           MaybeAddGotAddrMode;
+                         end;
                      end;
                   end;
                   if actasmtoken=AS_DOT then

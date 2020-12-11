@@ -67,6 +67,8 @@ unit racpu;
       begin
         if ops<1 then
           internalerror(2014122001);
+        if (ops=1) and (operands[1].opr.typ=OPR_REFERENCE) then
+          exit(OS_NO);
         if operands[1].opr.typ<>OPR_REGISTER then
           internalerror(2014122002);
         result:=reg_cgsize(operands[1].opr.reg);

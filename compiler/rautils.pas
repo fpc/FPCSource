@@ -1085,7 +1085,7 @@ end;
 
 procedure TOperand.InitRef;
 {*********************************************************************}
-{  Description: This routine first check if the opcode is of     }
+{  Description: This routine first check if the opcode is of          }
 {  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
 {  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
 {  the operand type to OPR_REFERENCE, as well as setting up the ref   }

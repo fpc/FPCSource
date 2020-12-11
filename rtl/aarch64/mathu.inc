@@ -103,21 +103,23 @@ function GetExceptionMask: TFPUExceptionMask;
     if ((fpcr and fpu_ide)=0) then
       result := result+[exDenormalized];
     }
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
     result:=softfloat_exception_mask;
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-  {
   var
     newfpcr: dword;
-  }
   begin
-    { as I am not aware of any hardware exception supporting AArch64 implementation,
-      and else the trapping enable flags are RAZ, work solely with softfloat_exception_mask (FK)
-    }
+    { clear "exception happened" flags }
+    ClearExceptions(false);
     softfloat_exception_mask:=mask;
-    {
+
+    { at least the ThunderX AArch64 support apperently hardware exceptions,
+      so set fpcr correctly, thought it might be WI on most implementations it does not hurt
+    }
     newfpcr:=fpu_exception_mask;
     if exInvalidOp in Mask then
       newfpcr:=newfpcr and not(fpu_ioe);
@@ -131,14 +133,10 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       newfpcr:=newfpcr and not(fpu_ixe);
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
-    }
-    { clear "exception happened" flags }
-    ClearExceptions(false);
-    { set new exception mask }
-//    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
-    { unsupported mask bits will remain 0 -> read exception mask again }
-//    result:=GetExceptionMask;
-//    softfloat_exception_mask:=result;
+    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
+
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
     result:=softfloat_exception_mask;
   end;
 
