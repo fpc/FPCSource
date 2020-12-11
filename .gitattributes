@@ -13944,6 +13944,7 @@ tests/test/cg/tderef.pp svneol=native#text/plain
 tests/test/cg/tdivz1.pp svneol=native#text/plain
 tests/test/cg/tdivz2.pp svneol=native#text/plain
 tests/test/cg/texit.pp svneol=native#text/plain
+tests/test/cg/texit2.pp svneol=native#text/plain
 tests/test/cg/tfor.pp svneol=native#text/plain
 tests/test/cg/tfor2.pp svneol=native#text/pascal
 tests/test/cg/tformfnc.pp svneol=native#text/plain
