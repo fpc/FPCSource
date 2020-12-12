@@ -97,19 +97,75 @@ type
     class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
 
     class procedure CalcTestInstFile;
+    class procedure ListMemRefState;
 
     property x64: boolean read Fx64;
   end;
 
 implementation
 
-uses SysUtils, Dialogs;
+uses SysUtils, Dialogs, typinfo;
+
+type
+  TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
+
+  TMemRefSizeInfo = (msiUnknown, msiUnsupported, msiNoSize, msiNoMemRef,
+                     msiMultiple, msiMultipleMinSize8, msiMultipleMinSize16, msiMultipleMinSize32,
+                     msiMultipleMinSize64, msiMultipleMinSize128, msiMultipleminSize256, msiMultipleMinSize512,
+                     msiMemRegSize, msiMemRegx16y32, msiMemRegx16y32z64, msiMemRegx32y64, msiMemRegx32y64z128, msiMemRegx64y128, msiMemRegx64y128z256,
+                     msiMemRegx64y256, msiMemRegx64y256z512,
+                     msiMem8, msiMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
+                     msiXMem32, msiXMem64, msiYMem32, msiYMem64, msiZMem32, msiZMem64,
+                     msiVMemMultiple, msiVMemRegSize,
+                     msiMemRegConst128,msiMemRegConst256,msiMemRegConst512);
+
+  TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
+  TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16);
+
+  TEVEXTupleState = (etsUnknown, etsIsTuple, etsNotTuple);
+  TConstSizeInfo  = (csiUnknown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
+
+
+  TInsTabMemRefSizeInfoRec = record
+    MemRefSize               : TMemRefSizeInfo;
+    MemRefSizeBCST           : TMemRefSizeInfoBCST;
+    BCSTXMMMultiplicator     : byte;
+    ExistsSSEAVX             : boolean;
+    ConstSize                : TConstSizeInfo;
+    BCSTTypes                : Set of TMemRefSizeInfoBCSTType;
+    RegXMMSizeMask           : int64;
+    RegYMMSizeMask           : int64;
+    RegZMMSizeMask           : int64;
+  end;
+
+
+  TInsTabMemRefSizeInfoCache=array[TasmOp] of TInsTabMemRefSizeInfoRec;
+  PInsTabMemRefSizeInfoCache=^TInsTabMemRefSizeInfoCache;
+
+  TInsTabCache=array[TasmOp] of longint;
+  PInsTabCache=^TInsTabCache;
+
 
 const
   instabentries = {$i ../../../compiler/x86_64/x8664nop.inc}
 
+  MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultipleMinSize8,
+                                             msiMultipleMinSize16, msiMultipleMinSize32,
+                                             msiMultipleMinSize64, msiMultipleMinSize128,
+                                             msiMultipleMinSize256, msiMultipleMinSize512,
+                                             msiVMemMultiple];
+
+  MemRefSizeInfoVMems: Set of TMemRefSizeInfo = [msiXMem32, msiXMem64, msiYMem32, msiYMem64,
+                                                 msiZMem32, msiZMem64,
+                                                 msiVMemMultiple, msiVMemRegSize];
+
+
+var
+  InsTabCache : PInsTabCache;
+  InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
+
 type
-      TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
+
 
     op2strtable=array[tasmop] of string[16];
 
@@ -466,6 +522,629 @@ const
       std_op2str:op2strtable={$i ../../../compiler/x86_64/x8664int.inc}
 
   InsTab:array[0..instabentries-1] of TInsEntry={$i ../../../compiler/x86_64/x8664tab.inc}
+
+  procedure BuildInsTabCache;
+  var
+    i : longint;
+  begin
+    new(instabcache);
+    FillChar(instabcache^,sizeof(tinstabcache),$ff);
+    i:=0;
+    while (i<InsTabEntries) do
+     begin
+       if InsTabCache^[InsTab[i].OPcode]=-1 then
+        InsTabCache^[InsTab[i].OPcode]:=i;
+       inc(i);
+     end;
+  end;
+
+  procedure BuildInsTabMemRefSizeInfoCache;
+  var
+    AsmOp: TasmOp;
+    i,j: longint;
+    insentry  : PInsEntry;
+
+    MRefInfo: TMemRefSizeInfo;
+    SConstInfo: TConstSizeInfo;
+    actRegSize: int64;
+    actMemSize: int64;
+    actConstSize: int64;
+    actRegCount: integer;
+    actMemCount: integer;
+    actConstCount: integer;
+    actRegTypes  : int64;
+    actRegMemTypes: int64;
+    NewRegSize: int64;
+
+    actVMemCount  : integer;
+    actVMemTypes  : int64;
+
+    RegMMXSizeMask: int64;
+    RegXMMSizeMask: int64;
+    RegYMMSizeMask: int64;
+    RegZMMSizeMask: int64;
+
+    RegMMXConstSizeMask: int64;
+    RegXMMConstSizeMask: int64;
+    RegYMMConstSizeMask: int64;
+    RegZMMConstSizeMask: int64;
+
+    RegBCSTSizeMask: int64;
+    RegBCSTXMMSizeMask: int64;
+    RegBCSTYMMSizeMask: int64;
+    RegBCSTZMMSizeMask: int64;
+    ExistsMemRef      : boolean;
+
+    bitcount          : integer;
+    ExistsCode336     : boolean;
+    ExistsCode337     : boolean;
+    ExistsSSEAVXReg   : boolean;
+
+    function bitcnt(aValue: int64): integer;
+    var
+      i: integer;
+    begin
+      result := 0;
+
+      for i := 0 to 63 do
+      begin
+        if (aValue mod 2) = 1 then
+        begin
+          inc(result);
+        end;
+
+        aValue := aValue shr 1;
+      end;
+    end;
+
+  begin
+    new(InsTabMemRefSizeInfoCache);
+    FillChar(InsTabMemRefSizeInfoCache^,sizeof(TInsTabMemRefSizeInfoCache),0);
+
+    for AsmOp := low(TAsmOp) to high(TAsmOp) do
+    begin
+      i := InsTabCache^[AsmOp];
+
+      if i >= 0 then
+      begin
+        InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize           := msiUnknown;
+        InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbUnknown;
+        InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 0;
+        InsTabMemRefSizeInfoCache^[AsmOp].ConstSize            := csiUnknown;
+        InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX         := false;
+        InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes            := [];
+
+        insentry:=@instab[i];
+        RegMMXSizeMask := 0;
+        RegXMMSizeMask := 0;
+        RegYMMSizeMask := 0;
+        RegZMMSizeMask := 0;
+
+        RegMMXConstSizeMask := 0;
+        RegXMMConstSizeMask := 0;
+        RegYMMConstSizeMask := 0;
+        RegZMMConstSizeMask := 0;
+
+        RegBCSTSizeMask:= 0;
+        RegBCSTXMMSizeMask := 0;
+        RegBCSTYMMSizeMask := 0;
+        RegBCSTZMMSizeMask := 0;
+        ExistsMemRef       := false;
+
+        while (insentry^.opcode=AsmOp) do
+        begin
+          MRefInfo         := msiUnknown;
+
+          actRegSize       := 0;
+          actRegCount      := 0;
+          actRegTypes      := 0;
+          NewRegSize       := 0;
+
+          actMemSize       := 0;
+          actMemCount      := 0;
+          actRegMemTypes   := 0;
+
+          actVMemCount     := 0;
+          actVMemTypes     := 0;
+
+          actConstSize     := 0;
+          actConstCount    := 0;
+
+          ExistsCode336   := false; // indicate fixed operand size 32 bit
+          ExistsCode337   := false; // indicate fixed operand size 64 bit
+          ExistsSSEAVXReg := false;
+
+          // parse insentry^.code for &336 and &337
+          // &336 (octal) = 222 (decimal) == fixed operand size 32 bit
+          // &337 (octal) = 223 (decimal) == fixed operand size 64 bit
+          for i := low(insentry^.code) to high(insentry^.code) do
+          begin
+            case insentry^.code[i] of
+              #222: ExistsCode336 := true;
+              #223: ExistsCode337 := true;
+              #0,#1,#2,#3: break;
+            end;
+          end;
+
+          for i := 0 to insentry^.ops -1 do
+          begin
+            if (insentry^.optypes[i] and OT_REGISTER) = OT_REGISTER then
+             case insentry^.optypes[i] and (OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+                OT_XMMREG,
+                OT_YMMREG,
+                OT_ZMMREG: ExistsSSEAVXReg := true;
+                      else;
+             end;
+          end;
+
+
+          for j := 0 to insentry^.ops -1 do
+          begin
+            if ((insentry^.optypes[j] and OT_XMEM32) = OT_XMEM32) OR
+               ((insentry^.optypes[j] and OT_XMEM64) = OT_XMEM64) OR
+               ((insentry^.optypes[j] and OT_YMEM32) = OT_YMEM32) OR
+               ((insentry^.optypes[j] and OT_YMEM64) = OT_YMEM64) OR
+               ((insentry^.optypes[j] and OT_ZMEM32) = OT_ZMEM32) OR
+               ((insentry^.optypes[j] and OT_ZMEM64) = OT_ZMEM64) then
+            begin
+              inc(actVMemCount);
+
+              case insentry^.optypes[j] and (OT_XMEM32 OR OT_XMEM64 OR OT_YMEM32 OR OT_YMEM64 OR OT_ZMEM32 OR OT_ZMEM64) of
+                OT_XMEM32: actVMemTypes := actVMemTypes or OT_XMEM32;
+                OT_XMEM64: actVMemTypes := actVMemTypes or OT_XMEM64;
+                OT_YMEM32: actVMemTypes := actVMemTypes or OT_YMEM32;
+                OT_YMEM64: actVMemTypes := actVMemTypes or OT_YMEM64;
+                OT_ZMEM32: actVMemTypes := actVMemTypes or OT_ZMEM32;
+                OT_ZMEM64: actVMemTypes := actVMemTypes or OT_ZMEM64;
+                      else;
+              end;
+            end
+            else if (insentry^.optypes[j] and OT_REGISTER) = OT_REGISTER then
+            begin
+              inc(actRegCount);
+
+                NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
+                if NewRegSize = 0 then
+                  begin
+                    case insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+                      OT_MMXREG: begin
+                                   NewRegSize := OT_BITS64;
+                                 end;
+                      OT_XMMREG: begin
+                                   NewRegSize := OT_BITS128;
+                                   InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                 end;
+                      OT_YMMREG: begin
+                                   NewRegSize := OT_BITS256;
+                                   InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                 end;
+                      OT_ZMMREG: begin
+                                   NewRegSize := OT_BITS512;
+                                   InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                 end;
+                        OT_KREG: begin
+                                   InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                 end;
+
+                            else NewRegSize := not(0);
+                    end;
+                end;
+
+              actRegSize  := actRegSize or NewRegSize;
+              actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK));
+              end
+            else if ((insentry^.optypes[j] and OT_MEMORY) <> 0) then
+              begin
+                inc(actMemCount);
+
+
+                if ExistsSSEAVXReg and ExistsCode336 then
+                  actMemSize := actMemSize or OT_BITS32
+                else if ExistsSSEAVXReg and ExistsCode337 then
+                  actMemSize := actMemSize or OT_BITS64
+                else
+                  actMemSize:=actMemSize or (insentry^.optypes[j] and (OT_SIZE_MASK OR OT_VECTORBCST));
+
+                if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
+                  begin
+                    actRegMemTypes  := actRegMemTypes or insentry^.optypes[j];
+                  end;
+              end
+            else if ((insentry^.optypes[j] and OT_IMMEDIATE) = OT_IMMEDIATE) then
+            begin
+              inc(actConstCount);
+
+              actConstSize    := actConstSize or (insentry^.optypes[j] and OT_SIZE_MASK);
+            end
+          end;
+
+          if actConstCount > 0 then
+          begin
+            case actConstSize of
+              0: SConstInfo := csiNoSize;
+              OT_BITS8: SConstInfo := csiMem8;
+              OT_BITS16: SConstInfo := csiMem16;
+              OT_BITS32: SConstInfo := csiMem32;
+              OT_BITS64: SConstInfo := csiMem64;
+              else SConstInfo := csiMultiple;
+            end;
+
+            if InsTabMemRefSizeInfoCache^[AsmOp].ConstSize = csiUnknown then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].ConstSize := SConstInfo;
+            end
+            else if InsTabMemRefSizeInfoCache^[AsmOp].ConstSize <> SConstInfo then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].ConstSize := csiMultiple;
+            end;
+          end;
+
+          if actVMemCount > 0 then
+          begin
+            if actVMemCount = 1 then
+            begin
+              if actVMemTypes > 0 then
+              begin
+                case actVMemTypes of
+                  OT_XMEM32: MRefInfo := msiXMem32;
+                  OT_XMEM64: MRefInfo := msiXMem64;
+                  OT_YMEM32: MRefInfo := msiYMem32;
+                  OT_YMEM64: MRefInfo := msiYMem64;
+                  OT_ZMEM32: MRefInfo := msiZMem32;
+                  OT_ZMEM64: MRefInfo := msiZMem64;
+                        else;
+                end;
+
+                case actRegTypes of
+                  OT_XMMREG: case MRefInfo of
+                               msiXMem32,
+                               msiXMem64: RegXMMSizeMask := RegXMMSizeMask or OT_BITS128;
+                               msiYMem32,
+                               msiYMem64: RegXMMSizeMask := RegXMMSizeMask or OT_BITS256;
+                               msiZMem32,
+                               msiZMem64: RegXMMSizeMask := RegXMMSizeMask or OT_BITS512;
+                                     else;
+                             end;
+                  OT_YMMREG: case MRefInfo of
+                               msiXMem32,
+                               msiXMem64: RegYMMSizeMask := RegYMMSizeMask or OT_BITS128;
+                               msiYMem32,
+                               msiYMem64: RegYMMSizeMask := RegYMMSizeMask or OT_BITS256;
+                               msiZMem32,
+                               msiZMem64: RegYMMSizeMask := RegYMMSizeMask or OT_BITS512;
+                                     else;
+                             end;
+                  OT_ZMMREG: case MRefInfo of
+                               msiXMem32,
+                               msiXMem64: RegZMMSizeMask := RegZMMSizeMask or OT_BITS128;
+                               msiYMem32,
+                               msiYMem64: RegZMMSizeMask := RegZMMSizeMask or OT_BITS256;
+                               msiZMem32,
+                               msiZMem64: RegZMMSizeMask := RegZMMSizeMask or OT_BITS512;
+                                     else;
+                             end;
+
+                        //else InternalError(777209);
+                end;
+
+
+                if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnknown then
+                begin
+                  InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
+                end
+                else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
+                begin
+                  if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in [msiXMem32, msiXMem64, msiYMem32, msiYMem64, msiZMem32, msiZMem64] then
+                  begin
+                    InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiVMemMultiple;
+                  end
+                  else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> msiVMemMultiple then;
+                end;
+
+              end;
+            end
+            else;
+          end
+          else
+            begin
+              if (actMemCount=2) and ((AsmOp=A_MOVS) or (AsmOp=A_CMPS)) then actMemCount:=1;
+
+              ExistsMemRef := ExistsMemRef or (actMemCount > 0);
+
+              case actMemCount of
+                0: ; // nothing todo
+                1: begin
+                     MRefInfo := msiUnknown;
+
+                     if not(ExistsCode336 or ExistsCode337) then
+                       case actRegMemTypes and (OT_MMXRM or OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
+                         OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
+                         OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
+                         OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
+                         OT_ZMMRM: actMemSize := actMemSize or OT_BITS512;
+                       end;
+
+                     case actMemSize of
+                                0: MRefInfo := msiNoSize;
+                         OT_BITS8: MRefInfo := msiMem8;
+                        OT_BITS16: MRefInfo := msiMem16;
+                        OT_BITS32: MRefInfo := msiMem32;
+                       OT_BITSB32: MRefInfo := msiBMem32;
+                        OT_BITS64: MRefInfo := msiMem64;
+                       OT_BITSB64: MRefInfo := msiBMem64;
+                       OT_BITS128: MRefInfo := msiMem128;
+                       OT_BITS256: MRefInfo := msiMem256;
+                       OT_BITS512: MRefInfo := msiMem512;
+                       OT_BITS80,
+                       OT_FAR,
+                       OT_NEAR,
+                       OT_SHORT: ; // ignore
+                       else
+                         begin
+                           bitcount := bitcnt(actMemSize);
+
+                           if bitcount > 1 then MRefInfo := msiMultiple
+                           else;
+                         end;
+                     end;
+
+                     if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnknown then
+                       begin
+                         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
+                       end
+                     else
+                     begin
+                       // ignore broadcast-memory
+                       if not(MRefInfo in [msiBMem32, msiBMem64]) then
+                       begin
+                         if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
+                         begin
+                           with InsTabMemRefSizeInfoCache^[AsmOp] do
+                           begin
+                             if ((MemRefSize in [msiMem8, msiMULTIPLEMinSize8]) OR (MRefInfo = msiMem8))   then MemRefSize := msiMultipleMinSize8
+                             else if ((MemRefSize in [ msiMem16,  msiMULTIPLEMinSize16])  OR (MRefInfo =  msiMem16)) then MemRefSize := msiMultipleMinSize16
+                             else if ((MemRefSize in [ msiMem32,  msiMULTIPLEMinSize32])  OR (MRefInfo =  msiMem32)) then MemRefSize := msiMultipleMinSize32
+                             else if ((MemRefSize in [ msiMem64,  msiMULTIPLEMinSize64])  OR (MRefInfo =  msiMem64)) then MemRefSize := msiMultipleMinSize64
+                             else if ((MemRefSize in [msiMem128, msiMULTIPLEMinSize128])  OR (MRefInfo = msiMem128)) then MemRefSize := msiMultipleMinSize128
+                             else if ((MemRefSize in [msiMem256, msiMULTIPLEMinSize256])  OR (MRefInfo = msiMem256)) then MemRefSize := msiMultipleMinSize256
+                             else if ((MemRefSize in [msiMem512, msiMULTIPLEMinSize512])  OR (MRefInfo = msiMem512)) then MemRefSize := msiMultipleMinSize512
+                             else MemRefSize := msiMultiple;
+                           end;
+                         end;
+                       end;
+                     end;
+
+                     //if not(MRefInfo in [msiBMem32, msiBMem64]) and (actRegCount > 0) then
+                     if actRegCount > 0 then
+                     begin
+                       if MRefInfo in [msiBMem32, msiBMem64] then
+                       begin
+                         if IF_BCST2  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to2];
+                         if IF_BCST4  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to4];
+                         if IF_BCST8  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to8];
+                         if IF_BCST16 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to16];
+
+                         //InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes
+
+                         // BROADCAST - OPERAND
+                         RegBCSTSizeMask := RegBCSTSizeMask or actMemSize;
+
+                         case actRegTypes and (OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_REG_EXTRA_MASK) of
+                           OT_XMMREG: RegBCSTXMMSizeMask := RegBCSTXMMSizeMask or actMemSize;
+                           OT_YMMREG: RegBCSTYMMSizeMask := RegBCSTYMMSizeMask or actMemSize;
+                           OT_ZMMREG: RegBCSTZMMSizeMask := RegBCSTZMMSizeMask or actMemSize;
+                                 else begin
+
+                                        RegBCSTXMMSizeMask := not(0);
+                                        RegBCSTYMMSizeMask := not(0);
+                                        RegBCSTZMMSizeMask := not(0);
+                                      end;
+                         end;
+                       end
+                       else
+                       case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_REG_EXTRA_MASK) of
+                         OT_MMXREG: if actConstCount > 0 then RegMMXConstSizeMask := RegMMXConstSizeMask or actMemSize
+                                     else RegMMXSizeMask := RegMMXSizeMask or actMemSize;
+                         OT_XMMREG: if actConstCount > 0 then RegXMMConstSizeMask := RegXMMConstSizeMask or actMemSize
+                                     else RegXMMSizeMask := RegXMMSizeMask or actMemSize;
+                         OT_YMMREG: if actConstCount > 0 then RegYMMConstSizeMask := RegYMMConstSizeMask or actMemSize
+                                     else RegYMMSizeMask := RegYMMSizeMask or actMemSize;
+                         OT_ZMMREG: if actConstCount > 0 then RegZMMConstSizeMask := RegZMMConstSizeMask or actMemSize
+                                     else RegZMMSizeMask := RegZMMSizeMask or actMemSize;
+                               else begin
+                                      RegMMXSizeMask := not(0);
+                                      RegXMMSizeMask := not(0);
+                                      RegYMMSizeMask := not(0);
+                                      RegZMMSizeMask := not(0);
+
+                                      RegMMXConstSizeMask := not(0);
+                                      RegXMMConstSizeMask := not(0);
+                                      RegYMMConstSizeMask := not(0);
+                                      RegZMMConstSizeMask := not(0);
+                                    end;
+                       end;
+                     end
+                     else
+
+
+                   end
+                else;
+              end;
+            end;
+
+          inc(insentry);
+        end;
+
+        if InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX then
+        begin
+          case RegBCSTSizeMask of
+                    0: ; // ignore;
+            OT_BITSB32: begin
+                          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST32;
+                          InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 4;
+                        end;
+            OT_BITSB64: begin
+                          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST64;
+                          InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 2;
+                        end;
+                  else begin
+                         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST := msbMultiple;
+                       end;
+          end;
+        end;
+
+
+        if (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples) and
+           (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
+        begin
+          if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiVMemMultiple then
+          begin
+            if ((RegXMMSizeMask = OT_BITS128) or (RegXMMSizeMask = 0))     and
+               ((RegYMMSizeMask = OT_BITS256) or (RegYMMSizeMask = 0))     and
+               ((RegZMMSizeMask = OT_BITS512) or (RegZMMSizeMask = 0))     and
+               ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) <> 0) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiVMemRegSize;
+            end;
+          end
+          else if (RegMMXSizeMask or RegMMXConstSizeMask) <> 0 then
+          begin
+            if ((RegMMXSizeMask or RegMMXConstSizeMask) = OT_BITS64)  and
+               ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS128) and
+               ((RegYMMSizeMask or RegYMMConstSizeMask) = 0)          and
+               ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
+            end;
+          end
+          else if (((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS128) or ((RegXMMSizeMask or RegXMMConstSizeMask) = 0)) and
+                  (((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) or ((RegYMMSizeMask or RegYMMConstSizeMask) = 0)) and
+                  (((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS512) or ((RegZMMSizeMask or RegZMMConstSizeMask) = 0)) and
+                  (((RegXMMSizeMask or RegXMMConstSizeMask or
+                     RegYMMSizeMask or RegYMMConstSizeMask or
+                     RegZMMSizeMask or RegZMMConstSizeMask)) <> 0) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
+          end
+          else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
+                  (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) and
+                  (RegZMMSizeMask or RegZMMConstSizeMask = 0) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
+          end
+          else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
+                  (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) and
+                  (RegZMMSizeMask or RegZMMConstSizeMask = OT_BITS64) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32z64;
+          end
+          else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS32) and
+                  ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS64) then
+          begin
+            if ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64;
+            end
+            else if ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS128) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64z128;
+            end;
+          end
+          else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                  ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) and
+                  ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
+          end
+          else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                  ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) and
+                  ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS256) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128z256;
+          end
+          else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                  ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) and
+                  ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
+          end
+          else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                  ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) and
+                  ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS512) then
+          begin
+            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256z512;
+          end
+          else if ((RegXMMConstSizeMask = 0) or (RegXMMConstSizeMask = OT_BITS128))     and
+                  ((RegYMMConstSizeMask = 0) or (RegYMMConstSizeMask = OT_BITS256))     and
+                  ((RegZMMConstSizeMask = 0) or (RegZMMConstSizeMask = OT_BITS512))     and
+                  ((RegXMMConstSizeMask or RegYMMConstSizeMask or RegZMMConstSizeMask) <> 0) and
+                  (
+                   ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS128) or
+                   ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS256) or
+                   ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS512)
+                  ) then
+          begin
+            case RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask of
+              OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst128;
+              OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst256;
+              OT_BITS512: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst512;
+                     else InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMultiple;
+            end;
+          end
+          else
+          begin
+            if not(
+                   (AsmOp = A_CVTSI2SS) or
+                   (AsmOp = A_CVTSI2SD) or
+                   (AsmOp = A_CVTPD2DQ) or
+                   (AsmOp = A_VCVTPD2DQ) or
+                   (AsmOp = A_VCVTPD2PS) or
+                   (AsmOp = A_VCVTSI2SD) or
+                   (AsmOp = A_VCVTSI2SS) or
+                   (AsmOp = A_VCVTTPD2DQ) or
+                   (AsmOp = A_VCVTPD2UDQ) or
+                   (AsmOp = A_VCVTQQ2PS) or
+                   (AsmOp = A_VCVTTPD2UDQ) or
+                   (AsmOp = A_VCVTUQQ2PS) or
+                   (AsmOp = A_VCVTUSI2SD) or
+                   (AsmOp = A_VCVTUSI2SS) or
+
+
+                   // TODO check
+                   (AsmOp = A_VCMPSS)
+
+
+                  ) then;
+
+          end;
+
+        end
+        else if (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) and
+                (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnknown) and
+                (not(ExistsMemRef)) then
+        begin
+          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiNoMemRef;
+        end;
+
+        InsTabMemRefSizeInfoCache^[AsmOp].RegXMMSizeMask:=RegXMMSizeMask;
+        InsTabMemRefSizeInfoCache^[AsmOp].RegYMMSizeMask:=RegYMMSizeMask;
+        InsTabMemRefSizeInfoCache^[AsmOp].RegZMMSizeMask:=RegZMMSizeMask;
+
+      end;
+    end;
+
+    for AsmOp := low(TAsmOp) to high(TAsmOp) do
+    begin
+
+
+      // only supported intructiones with SSE- or AVX-operands
+      if not(InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) then
+      begin
+        InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize  := msiUnknown;
+        InsTabMemRefSizeInfoCache^[AsmOp].ConstSize   := csiUnknown;
+      end;
+    end;
+  end;
 
 { TOperandListItem }
 
@@ -2001,6 +2680,32 @@ begin
               Item.Values.Add(' lRec');
               Item.Values.Add(' gRec');
 
+              Item.Values.Add(' oword lRec');
+              Item.Values.Add(' oword gRec');
+
+              Item.Values.Add(' oword lRec.rOWord');
+              Item.Values.Add(' oword gRec.rOWord');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
@@ -2025,6 +2730,35 @@ begin
               Item.Values.Add('byte clbyte');
               Item.Values.Add('byte cgbyte');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' byte lRec');
+              Item.Values.Add(' byte gRec');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
@@ -2047,6 +2781,33 @@ begin
               Item.Values.Add('word gword');
               Item.Values.Add('word clword');
               Item.Values.Add('word cgword');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' word lRec');
+              Item.Values.Add(' word gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) or
@@ -2083,6 +2844,33 @@ begin
               Item.Values.Add('yword clYWord');
               Item.Values.Add('yword cgYWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' yword lRec');
+              Item.Values.Add(' yword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
@@ -2118,6 +2906,33 @@ begin
               Item.Values.Add('zword clZWord');
               Item.Values.Add('zword cgZWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' zword lRec');
+              Item.Values.Add(' zword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
@@ -2135,6 +2950,32 @@ begin
               Item.Values.Add('byte clByte');
               Item.Values.Add('byte cgByte');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' byte lRec');
+              Item.Values.Add(' byte gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -2152,6 +2993,33 @@ begin
               Item.Values.Add('word gWord');
               Item.Values.Add('word clWord');
               Item.Values.Add('word cgWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' word lRec');
+              Item.Values.Add(' word gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
@@ -2172,6 +3040,33 @@ begin
               Item.Values.Add('dword clDWord');
               Item.Values.Add('dword cgDWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' dword lRec');
+              Item.Values.Add(' dword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -2190,6 +3085,33 @@ begin
               Item.Values.Add('qword gQWord');
               Item.Values.Add('qword clQWord');
               Item.Values.Add('qword cgQWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' qword lRec');
+              Item.Values.Add(' qword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
@@ -2210,6 +3132,33 @@ begin
               Item.Values.Add('oword clOWord');
               Item.Values.Add('oword cgOWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' oword lRec');
+              Item.Values.Add(' oword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -2229,6 +3178,33 @@ begin
               Item.Values.Add('yword clYWord');
               Item.Values.Add('yword cgYWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' yword lRec');
+              Item.Values.Add(' yword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -2247,6 +3223,13 @@ begin
               Item.Values.Add('zword gZWord');
               Item.Values.Add('zword clZWord');
               Item.Values.Add('zword cgZWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' zword lRec');
+              Item.Values.Add(' zword gRec');
+
 
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
@@ -3129,6 +4112,68 @@ begin
   finally
     FreeAndnil(sl);
   end;
+end;
+
+class procedure TAsmTestGenerator.ListMemRefState;
+var
+  i: integer;
+  mrsize: TMemRefSizeInfo;
+  opcode: tasmop;
+  sl: TStringList;
+  slEmpty: TStringList;
+begin
+  BuildInsTabCache;
+  BuildInsTabMemRefSizeInfoCache;
+
+  slEmpty := TStringList.Create;
+  try
+    for mrsize := low(TMemRefSizeInfo) to high(TMemRefSizeInfo) do
+    begin
+
+      sl := TStringList.Create;
+      try
+        for opcode:=low(tasmop) to high(tasmop) do
+        begin
+          if InsTabMemRefSizeInfoCache^[opcode].MemRefSize = mrsize then
+           sl.add(format('%-25s:   %s', [GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)), std_op2str[opcode]]));
+        end;
+
+        sl.Sort;
+
+        if sl.Count > 0 then
+        begin
+          writeln;
+
+          writeln(sl.text);
+        end
+        else slEmpty.Add(GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)));
+
+
+      finally
+        FreeAndNil(sl);
+      end;
+    end;
+
+    slEmpty.Sort;
+    writeln('');
+    writeln(slEmpty.Text);
+  finally
+    FreeAndNil(slEmpty);
+  end;
+
+  if assigned(instabcache) then
+  begin
+    dispose(instabcache);
+    instabcache:=nil;
+  end;
+
+  if assigned(InsTabMemRefSizeInfoCache) then
+  begin
+    dispose(InsTabMemRefSizeInfoCache);
+    InsTabMemRefSizeInfoCache:=nil;
+  end;
+
+
 end;
 
 end.

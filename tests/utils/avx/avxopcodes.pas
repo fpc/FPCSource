@@ -10,6 +10,8 @@ type
 
   TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef);
 
+  { TAVXTestGenerator }
+
   TAVXTestGenerator = class(TObject)
   private
     FOpCodeList: TStringList;
@@ -23,6 +25,7 @@ type
     destructor Destroy; override;
 
     function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
+    procedure ListMemRefState;
 //    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
     property OpCodeList: TStringList read FOpCodeList write FOpCodeList;
@@ -3583,6 +3586,11 @@ begin
   finally
     FreeAndNil(slHeader);
   end;
+end;
+
+procedure TAVXTestGenerator.ListMemRefState;
+begin
+  TAsmTestGenerator.ListMemRefState;
 end;
 
 end.
