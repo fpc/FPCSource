@@ -134,7 +134,6 @@ uses SysUtils, Dialogs, typinfo;
 
 type
   TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
-  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX,AttSufMMS);
 
   TMemRefSizeInfo = (msiUnknown, msiUnsupported, msiNoSize, msiNoMemRef,
                      msiMultiple, msiMultipleMinSize8, msiMultipleMinSize16, msiMultipleMinSize32,
@@ -191,6 +190,21 @@ const
                           otMem8, otMem16, otMem32, otMem64, otMem128, otMem256, otMem512,
                           otRM32, otRM64];
   BMEMTYPES: TOpMemType = [otB32, otB64];
+
+var
+  InsTabCache : PInsTabCache;
+  InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
+
+  MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultipleMinSize8,
+                                             msiMultipleMinSize16, msiMultipleMinSize32,
+                                             msiMultipleMinSize64, msiMultipleMinSize128,
+                                             msiMultipleMinSize256, msiMultipleMinSize512,
+                                             msiVMemMultiple];
+
+  MemRefSizeInfoVMems: Set of TMemRefSizeInfo = [msiXMem32, msiXMem64, msiYMem32, msiYMem64,
+                                                 msiZMem32, msiZMem64,
+                                                 msiVMemMultiple, msiVMemRegSize];
+
 
 var
   InsTabCache : PInsTabCache;
@@ -639,8 +653,6 @@ const
 
       if i >= 0 then
       begin
-
-
         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize           := msiUnknown;
         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbUnknown;
         InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 0;
@@ -649,7 +661,6 @@ const
         InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes            := [];
 
         insentry:=@instab[i];
-
         RegMMXSizeMask := 0;
         RegXMMSizeMask := 0;
         RegYMMSizeMask := 0;
@@ -2751,6 +2762,32 @@ begin
               Item.Values.Add(' lRec');
               Item.Values.Add(' gRec');
 
+              Item.Values.Add(' oword lRec');
+              Item.Values.Add(' oword gRec');
+
+              Item.Values.Add(' oword lRec.rOWord');
+              Item.Values.Add(' oword gRec.rOWord');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
@@ -2775,6 +2812,35 @@ begin
               Item.Values.Add('byte clbyte');
               Item.Values.Add('byte cgbyte');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' byte lRec');
+              Item.Values.Add(' byte gRec');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
@@ -2797,6 +2863,33 @@ begin
               Item.Values.Add('word gword');
               Item.Values.Add('word clword');
               Item.Values.Add('word cgword');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' word lRec');
+              Item.Values.Add(' word gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) or
@@ -2833,6 +2926,33 @@ begin
               Item.Values.Add('yword clYWord');
               Item.Values.Add('yword cgYWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' yword lRec');
+              Item.Values.Add(' yword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
@@ -2868,6 +2988,33 @@ begin
               Item.Values.Add('zword clZWord');
               Item.Values.Add('zword cgZWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' zword lRec');
+              Item.Values.Add(' zword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
@@ -2885,6 +3032,32 @@ begin
               Item.Values.Add('byte clByte');
               Item.Values.Add('byte cgByte');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' byte lRec');
+              Item.Values.Add(' byte gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -2902,6 +3075,33 @@ begin
               Item.Values.Add('word gWord');
               Item.Values.Add('word clWord');
               Item.Values.Add('word cgWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' word lRec');
+              Item.Values.Add(' word gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
@@ -2922,6 +3122,33 @@ begin
               Item.Values.Add('dword clDWord');
               Item.Values.Add('dword cgDWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' dword lRec');
+              Item.Values.Add(' dword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -2940,6 +3167,33 @@ begin
               Item.Values.Add('qword gQWord');
               Item.Values.Add('qword clQWord');
               Item.Values.Add('qword cgQWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' qword lRec');
+              Item.Values.Add(' qword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
 
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
@@ -2960,6 +3214,33 @@ begin
               Item.Values.Add('oword clOWord');
               Item.Values.Add('oword cgOWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' oword lRec');
+              Item.Values.Add(' oword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -2979,6 +3260,33 @@ begin
               Item.Values.Add('yword clYWord');
               Item.Values.Add('yword cgYWord');
 
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' yword lRec');
+              Item.Values.Add(' yword gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+
+              Item.Values.Add(' lRec.rWord');
+              Item.Values.Add(' gRec.rWord');
+
+              Item.Values.Add(' lRec.rDWord');
+              Item.Values.Add(' gRec.rDWord');
+
+              Item.Values.Add(' lRec.rQWord');
+              Item.Values.Add(' gRec.rQWord');
+
+              Item.Values.Add(' lRec.rOWord');
+              Item.Values.Add(' gRec.rOWord');
+
+              Item.Values.Add(' lRec.rYWord');
+              Item.Values.Add(' gRec.rYWord');
+
+              Item.Values.Add(' lRec.rZWord');
+              Item.Values.Add(' gRec.rZWord');
+
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -2997,6 +3305,13 @@ begin
               Item.Values.Add('zword gZWord');
               Item.Values.Add('zword clZWord');
               Item.Values.Add('zword cgZWord');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' zword lRec');
+              Item.Values.Add(' zword gRec');
+
 
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
@@ -7081,7 +7396,6 @@ end;
 class procedure TAsmTestGenerator.ListMemRefState;
 var
   i: integer;
-  sGasSufffix: string;
   mrsize: TMemRefSizeInfo;
   opcode: tasmop;
   sl: TStringList;
@@ -7100,13 +7414,7 @@ begin
         for opcode:=low(tasmop) to high(tasmop) do
         begin
           if InsTabMemRefSizeInfoCache^[opcode].MemRefSize = mrsize then
-          begin
-            sGasSufffix:='';
-            if gas_needsuffix[opcode] <> AttSufNone then
-             sGasSufffix:=GetEnumName(Typeinfo(TAttSuffix), ord(gas_needsuffix[opcode]));
-
-            sl.add(format('%-25s:   %s: %s', [GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)), std_op2str[opcode], sGasSufffix]));
-          end;
+           sl.add(format('%-25s:   %s', [GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)), std_op2str[opcode]]));
         end;
 
         sl.Sort;
