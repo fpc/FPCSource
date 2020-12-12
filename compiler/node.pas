@@ -896,7 +896,9 @@ implementation
                 first:=false;
               write(t, i);
             end;
-        write(t,'], cmplx = ',node_complexity(self));
+        write(t,']');
+        if (nf_pass1_done in flags) then
+          write(t,', cmplx = ',node_complexity(self));
       end;
 
 
@@ -941,8 +943,9 @@ implementation
               else
                 Write(T, ',', i)
             end;
-
-        write(t,'" complexity="',node_complexity(self),'"');
+        write(t,'"');
+        if (nf_pass1_done in flags) then
+          write(t,' complexity="',node_complexity(self),'"');
       end;
 
     procedure tnode.XMLPrintNodeData(var T: Text);

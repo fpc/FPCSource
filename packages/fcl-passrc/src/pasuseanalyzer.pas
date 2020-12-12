@@ -1313,6 +1313,9 @@ begin
   UseElement(El,rraNone,true);
 
   UseAttributes(El);
+
+  if El.Parent is TPasMembersType then
+    UseTypeInfo(El.Parent);
 end;
 
 procedure TPasAnalyzer.UseAttributes(El: TPasElement);
@@ -2677,6 +2680,7 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitSectionHints ',GetElModName(Section));
   {$ENDIF}
+  if Section=nil then exit;
   // initialization, program or library sections
   aModule:=Section.GetModule;
   UsesClause:=Section.UsesClause;

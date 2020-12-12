@@ -430,6 +430,12 @@ implementation
                       ra_alloc :
                         begin
                           ttgwasm(tg).allocLocalVarToRef(wbt, spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
+                          {
+                          tg.gettemp(templist,
+                                   size,1,
+                                   tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+
+                          }
                           (*wasmloc.
                           pidx := fidx;
                           idx := wasmloc.alloc(wbt);
