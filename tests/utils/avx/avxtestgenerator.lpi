@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -22,9 +22,16 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="-ffpcmref -px8664 -o\home\torsten\tmp\fpc\fpc"/>
+        <CommandLineParams Value="-l"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-l"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="4">
       <Unit0>

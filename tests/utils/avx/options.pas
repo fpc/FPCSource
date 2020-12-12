@@ -101,6 +101,7 @@ begin
                 Fx64 := true;
               end
               else IsInvalidParam := true;
+         'l': FOutputFormat := 'l';
          'z': FAVX512 := true;
          'o': if sValue <> '' then
               begin
