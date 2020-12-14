@@ -106,9 +106,6 @@ unit cgutils;
          indexoffset: aint;
          checkcast: boolean;
 {$endif jvm}
-{$ifdef wasm}
-        islocal: boolean;  // true (local variable), false (memory offset)
-{$endif wasm}
          volatility: tvolatilityset;
          alignment : byte;
       end;

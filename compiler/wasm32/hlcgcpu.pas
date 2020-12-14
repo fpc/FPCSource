@@ -243,8 +243,6 @@ uses
       procedure concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
-
-      procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
     end;
 
 implementation
@@ -1017,7 +1015,7 @@ implementation
     begin
       result:=0;
       { fake location that indicates the value is already on the stack? }
-      if (ref.base=NR_EVAL_STACK_BASE) or (ref.islocal) then
+      if (ref.base=NR_EVAL_STACK_BASE) or (ref.base=NR_LOCAL_STACK_POINTER_REG) then
         exit;
 
       // setting up memory offset
@@ -1580,14 +1578,6 @@ implementation
         a_call_name(list,pd,pd.mangledname,[],nil,false);
         { both parameters are removed, no function result }
         decstack(list,2);
-      end;
-
-    procedure thlcgwasm.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
-      begin
-        // mark all callee side parameters AS local!
-        inherited paravarsym_set_initialloc_to_paraloc(vs);
-        if (vs.initialloc.loc = LOC_REFERENCE) then
-          vs.initialloc.reference.islocal := true;
       end;
 
   procedure thlcgwasm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
@@ -2187,7 +2177,7 @@ implementation
       getputmemf32 : array [boolean] of TAsmOp = (a_f32_store, a_f32_load);
       getputmemf64 : array [boolean] of TAsmOp = (a_f64_store, a_f64_load);
     begin
-      if (not ref.islocal) or assigned(ref.symbol) then
+      if (ref.base<>NR_LOCAL_STACK_POINTER_REG) or assigned(ref.symbol) then
         begin
           { -> either a global (static) field, or a regular field. If a regular
             field, then ref.base contains the self pointer, otherwise
