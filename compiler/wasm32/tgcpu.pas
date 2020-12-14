@@ -397,7 +397,7 @@ unit tgcpu;
 
     procedure ttgwasm.localVarToRef(idx: integer; size: integer; out ref: treference);
       begin
-        reference_reset_base(ref, current_procinfo.framepointer,idx,ctempposinvalid,size,[]);
+        reference_reset_base(ref,NR_LOCAL_STACK_POINTER_REG,idx,ctempposinvalid,size,[]);
         ref.islocal := true;
         updateFirstTemp;
       end;
