@@ -143,6 +143,8 @@ uses
         can use the offset field to indicate the order, which is used by ncal
         to sort the parameters }
       NR_EVAL_STACK_BASE = NR_R0;
+      { used as base register in references to indicate that it's a local }
+      NR_LOCAL_STACK_POINTER_REG = NR_R1;
 
       maxvarregs = 1;
       maxfpuvarregs = 1;
