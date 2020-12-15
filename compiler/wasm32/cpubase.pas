@@ -145,6 +145,9 @@ uses
       NR_EVAL_STACK_BASE = NR_R0;
       { used as base register in references to indicate that it's a local }
       NR_LOCAL_STACK_POINTER_REG = NR_R1;
+      { fake register, representing the local frame pointer. Used for accessing
+        address-taken local variables on the linear stack: (localframeptr+offset). }
+      NR_LOCAL_FRAME_POINTER_REG = NR_R3;
 
       maxvarregs = 1;
       maxfpuvarregs = 1;
