@@ -4260,10 +4260,6 @@ xmmreg_mz,xmmreg,xmmreg_er                \334\350\352\362\370\1\x5A\75\120     
 ; special handling - gas suffix "S" =>> instructions-opsize = source-operand
 [VCVTSI2SD,vcvtsi2sdS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-;xmmreg,xmmreg,reg32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
-;xmmreg,xmmreg,mem32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
-;xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-;xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
 xmmreg,xmmreg_er,reg32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
 xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
 xmmreg,xmmreg_er,mem32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
@@ -7509,10 +7505,8 @@ xmmreg_mz,xmmrm                           \334\350\352\370\1\x7A\110            
 xmmreg_mz,bmem64                          \334\350\352\370\1\x7A\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \334\350\352\364\370\1\x7A\110            AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \334\350\352\364\370\1\x7A\110            AVX512
-;ymmreg_mz,mem512                          \334\350\351\352\370\1\x7A\110            AVX512,TFV
 ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\x7A\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\x7A\110            AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\x7A\110            AVX512
 
 
 ; special handling - gas suffix "S" =>> instructions-opsize = source-operand
