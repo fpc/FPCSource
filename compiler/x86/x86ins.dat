@@ -4171,15 +4171,11 @@ zmmreg_mz,zmmreg_er                       \350\351\370\1\x5B\110                
 (Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \334\350\352\362\364\370\1\xE6\110        AVX,SANDYBRIDGE,TFV
 xmmreg_mz,xmmrm                           \334\350\352\362\370\1\xE6\110            AVX,SANDYBRIDGE,TFV
-xmmreg_mz,ymmreg                           \334\350\352\362\364\370\1\xE6\110       AVX,SANDYBRIDGE
+xmmreg_mz,ymmreg                          \334\350\352\362\364\370\1\xE6\110        AVX,SANDYBRIDGE
 xmmreg_mz,bmem64                          \334\350\352\370\1\xE6\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \334\350\352\364\370\1\xE6\110            AVX512,BCST4,TFV
-
-;ymmreg_mz,mem512                          \334\350\351\352\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\xE6\110            AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\xE6\110            AVX512
-ymmreg_mz,zmmrm                           \334\350\351\352\370\1\xE6\110            AVX512,TFV
 
 ; VCVTPD2PS xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
@@ -4190,10 +4186,8 @@ xmmreg_mz,ymmreg                          \350\352\361\362\364\370\1\x5A\110    
 xmmreg_mz,xmmrm                           \350\352\361\362\370\1\x5A\110            AVX,SANDYBRIDGE,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x5A\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\361\364\370\1\x5A\110            AVX512,BCST4,TFV
-;ymmreg_mz,mem512                          \350\351\352\361\370\1\x5A\110            AVX512,TFV
 ymmreg_mz,zmmrm_er                        \350\351\352\361\370\1\x5A\110            AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\361\370\1\x5A\110            AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x5A\110            AVX512
 
 [VCVTPH2PS]
 (Ch_Wop2, Ch_Rop1)
@@ -4288,10 +4282,8 @@ xmmreg_mz,ymmreg                          \350\352\361\362\364\370\1\xE6\110    
 xmmreg_mz,xmmrm                           \350\352\361\362\370\1\xE6\110            AVX,SANDYBRIDGE,AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\xE6\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\361\364\370\1\xE6\110            AVX512,BCST4,TFV
-;ymmreg_mz,mem512                          \350\351\352\361\370\1\xE6\110            AVX512,TFV
-ymmreg_mz,zmmrm_sae                        \350\351\352\361\370\1\xE6\110            AVX512,TFV
+ymmreg_mz,zmmrm_sae                       \350\351\352\361\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\361\370\1\xE6\110            AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\xE6\110            AVX512
 
 [VCVTTPS2DQ]
 (Ch_Wop2, Ch_Rop1)
@@ -7293,19 +7285,16 @@ zmmreg_mz,mem512                          \350\351\352\361\370\1\x7B\110        
 zmmreg_mz,bmem64                          \350\351\352\361\370\1\x7B\110            AVX512,TFV
 zmmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x7B\110            AVX512
 
+
+; VCVTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                               map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTPD2UDQ, vcvtpd2udqN]
-<<<<<<< HEAD
-(Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x79\110                    AVX512,TFV
-=======
 (Ch_All)
->>>>>>> working on new testmethods and bug-fixing size of (memref-operands | global and local variable
 xmmreg_mz,mem256                          \350\352\364\370\1\x79\110                AVX512,TFV
 xmmreg_mz,xmmrm                           \350\352\370\1\x79\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x79\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x79\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x79\110                AVX512
-;ymmreg_mz,mem512                          \350\351\352\370\1\x79\110                AVX512,TFV
 ymmreg_mz,zmmrm_er                        \350\351\352\370\1\x79\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x79\110                AVX512,BCST8,TFV
 
@@ -7363,25 +7352,15 @@ zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\xE6\110        
 
 ; VCVTQQ2PS xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
-;           
 [VCVTQQ2PS,vcvtqq2psN]
-<<<<<<< HEAD
-(Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x5B\110                    AVX512,TFV
-=======
-(Ch_All)
-;xmmreg_mz,mem128                          \350\352\370\1\x5B\110                    AVX512,TFV
->>>>>>> working on new testmethods and bug-fixing size of (memref-operands | global and local variable
+
 xmmreg_mz,mem256                          \350\352\364\370\1\x5B\110                AVX512,TFV
-;xmmreg_mz,xmmreg                          \350\352\370\1\x5B\110                    AVX512
 xmmreg_mz,xmmrm                           \350\352\370\1\x5B\110                    AVX512
 xmmreg_mz,bmem64                          \350\352\370\1\x5B\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x5B\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x5B\110                AVX512
-;ymmreg_mz,mem512                          \350\351\352\370\1\x5B\110                AVX512,TFV
 ymmreg_mz,zmmrm_er                        \350\351\352\370\1\x5B\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x5B\110                AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_er                       \350\351\352\370\1\x5B\110                AVX512
 
 [VCVTSD2USI]
 (Ch_Wop2, Ch_Rop1)
@@ -7411,23 +7390,15 @@ zmmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\x7A\110        
 ; VCVTTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                                map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTTPD2UDQ,vcvttpd2udqN]
-<<<<<<< HEAD
-(Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x78\110                    AVX512,TFV
-=======
 (Ch_All)
 ;xmmreg_mz,mem128                          \350\352\370\1\x78\110                    AVX512,TFV
->>>>>>> working on new testmethods and bug-fixing size of (memref-operands | global and local variable
 xmmreg_mz,mem256                          \350\352\364\370\1\x78\110                AVX512,TFV
-;xmmreg_mz,xmmreg                          \350\352\370\1\x78\110                    AVX512
 xmmreg_mz,xmmrm                           \350\352\370\1\x78\110                    AVX512
 xmmreg_mz,bmem64                          \350\352\370\1\x78\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x78\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x78\110                AVX512
-;ymmreg_mz,mem512                          \350\351\352\370\1\x78\110                AVX512,TFV
 ymmreg_mz,zmmrm_sae                          \350\351\352\370\1\x78\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x78\110                AVX512,BCST8,TFV
-;ymmreg_mz,zmmreg_sae                      \350\351\352\370\1\x78\110                AVX512
 
 [VCVTTPD2UQQ]
 (Ch_Wop2, Ch_Rop1)
@@ -7516,6 +7487,8 @@ zmmreg_mz,mem512                          \333\350\351\352\370\1\x7A\110        
 zmmreg_mz,bmem64                          \333\350\351\352\370\1\x7A\110            AVX512,TFV
 zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\x7A\110            AVX512
 
+; VCVTTUQQ2PSQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                                 map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTUQQ2PS,vcvtuqq2psN]
 (Ch_All)
 xmmreg_mz,mem256                          \334\350\352\364\370\1\x7A\110            AVX512,TFV
