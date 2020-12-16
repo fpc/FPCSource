@@ -64,14 +64,19 @@ unit tgcpu;
        { ttgwasm }
 
        ttgwasm = class(ttgobj)
-        //protected
+        private
+         procedure updateFirstTemp;
+
+         procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
+         procedure deallocLocalVar(wbt: TWasmBasicType; idx: integer);
+         procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
+        protected
         // procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
         // function getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
          procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
-
-         procedure updateFirstTemp;
         public
          localvars: TWasmLocalVars;
+
          constructor create; override;
          destructor destroy; override;
          procedure setfirsttemp(l : asizeint); override;
@@ -79,10 +84,6 @@ unit tgcpu;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
          procedure ungettemp(list: TAsmList; const ref : treference); override;
-
-         procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
-         procedure deallocLocalVar(wbt: TWasmBasicType; idx: integer);
-         procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
        end;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
