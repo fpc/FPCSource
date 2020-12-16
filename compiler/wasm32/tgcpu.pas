@@ -68,7 +68,6 @@ unit tgcpu;
          procedure updateFirstTemp;
 
          procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
-         procedure deallocLocalVar(wbt: TWasmBasicType; idx: integer);
          procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
         protected
         // procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
@@ -399,11 +398,6 @@ unit tgcpu;
       begin
         idx := localvars.alloc(wbt);
         localVarToRef(idx, 1, ref);
-      end;
-
-    procedure ttgwasm.deallocLocalVar(wbt: TWasmBasicType; idx: integer);
-      begin
-        localvars.dealloc(wbt, idx);
       end;
 
     procedure ttgwasm.localVarToRef(idx: integer; size: integer; out ref: treference);
