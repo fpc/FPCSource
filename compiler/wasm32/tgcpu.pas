@@ -454,10 +454,12 @@ unit tgcpu;
 
     procedure TWasmLocalVars.dealloc(index: integer);
       var
-        bt: TWasmBasicType;
+        lc : TWasmLocal;
       begin
-        for bt in TWasmBasicType do
-          dealloc(bt,index);
+        lc := first;
+        while Assigned(lc) and (lc.index <> index) do
+          lc := lc.nextseq;
+        if Assigned(lc) then lc.inuse := false;
       end;
 
 
