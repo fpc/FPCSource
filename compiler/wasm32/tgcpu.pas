@@ -69,8 +69,6 @@ unit tgcpu;
 
          procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
          procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
-        protected
-         procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         public
          localvars: TWasmLocalVars;
 
@@ -145,21 +143,6 @@ unit tgcpu;
 
 
     { ttgwasm }
-
-    procedure ttgwasm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
-      begin
-        inherited;
-        //Internalerror(2019091802);
-        { the WebAssembly only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
-          FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
-          There are no problems with reusing the same slot for a value of a different
-          type. There are no alignment requirements either. }
-        {if size<4 then
-          size:=4;
-        if not(size in [4,8]) then
-          internalerror(2010121401);
-        inherited alloctemp(list, size shr 2, 1, temptype, def, false, ref);}
-      end;
 
     procedure ttgwasm.updateFirstTemp;
     begin
