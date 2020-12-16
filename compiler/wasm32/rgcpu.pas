@@ -30,7 +30,7 @@ unit rgcpu;
       aasmbase,aasmcpu,aasmtai,aasmdata,
       cgbase,cgutils, procinfo,
       cpubase,
-      rgobj, tgcpu;
+      rgobj;
 
     type
       tspilltemps = array[tregistertype] of ^Tspill_temp_list;
@@ -53,7 +53,8 @@ implementation
       verbose,cutils,
       globtype,globals,
       cgobj,
-      tgobj;
+      tgobj,
+      symtype,symdef;
 
     { trgcpu }
 
@@ -320,36 +321,6 @@ implementation
         until not removedsomething;
       end;
 
-    function registertobastype(const reg: TRegister): TWasmBasicType;
-      begin
-        case getregtype(reg) of
-          R_INTREGISTER:
-            case getsubreg(reg) of
-              R_SUBD:
-                registertobastype:=wbt_i32;
-              R_SUBQ:
-                registertobastype:=wbt_i64;
-              else
-                internalerror(2020120801);
-            end;
-
-          R_ADDRESSREGISTER:
-            registertobastype:=wbt_i32;
-
-          R_FPUREGISTER:
-            case getsubreg(reg) of
-              R_SUBFS:
-                registertobastype:=wbt_f32;
-              R_SUBFD:
-                registertobastype:=wbt_f64;
-              else
-                internalerror(2020120802);
-            end;
-          else
-           internalerror(2010122912);
-        end;
-      end;
-
     class procedure trgcpu.do_all_register_allocation(list: TAsmList; headertai: tai);
       var
         spill_temps : tspilltemps;
@@ -363,12 +334,12 @@ implementation
         lastins   : TLinkedListItem;
         //locavail  : array[TWasmBasicType] of tlocalalloc; // used or not
 
-        wbt     : TWasmBasicType;
         ra      : tai_regalloc;
         idx     : integer;
         fidx    : integer;
         pidx    : integer;
         t: treftemppos;
+        def: tdef;
 
       begin
         { Since there are no actual registers, we simply spill everything. We
@@ -401,25 +372,39 @@ implementation
               ait_regalloc:
                   begin
                     ra := tai_regalloc(p);
-                    wbt := registertobastype(ra.reg);
                     case getregtype(ra.reg) of
                       R_INTREGISTER:
                         case getsubreg(ra.reg) of
                           R_SUBD:
-                            size:=4;
+                            begin
+                              size:=4;
+                              def:=s32inttype;
+                            end;
                           R_SUBQ:
-                            size:=8;
+                            begin
+                              size:=8;
+                              def:=s64inttype;
+                            end;
                           else
                             internalerror(2020120803);
                         end;
                       R_ADDRESSREGISTER:
-                        size:=4;
+                        begin
+                          size:=4;
+                          def:=voidpointertype;
+                        end;
                       R_FPUREGISTER:
                         case getsubreg(ra.reg) of
                           R_SUBFS:
-                            size:=4;
+                            begin
+                              size:=4;
+                              def:=s32floattype;
+                            end;
                           R_SUBFD:
-                            size:=8;
+                            begin
+                              size:=8;
+                              def:=s64floattype;
+                            end;
                           else
                             internalerror(2020120804);
                         end;
@@ -428,36 +413,12 @@ implementation
                     end;
                     case ra.ratype of
                       ra_alloc :
-                        begin
-                          ttgwasm(tg).allocLocalVarToRef(wbt, spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
-                          {
-                          tg.gettemp(templist,
-                                   size,1,
-                                   tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
-
-                          }
-                          (*wasmloc.
-                          pidx := fidx;
-                          idx := wasmloc.alloc(wbt);
-                          if idx<0 then
-                            internalerror(201909173); // ran out of local variables! ...  must be dynamic
-
-                          //spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)].temppos := idx;
-                          //spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)].isfloat := true;
-                          //tg.gettemp(templist,
-                                     //size,1,
-                                     //tt_regallocator,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
-                          t.val:=idx;
-                          reference_reset_base(spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)],current_procinfo.framepointer,idx,t,size,[]);
-                          wasm
-
-                          if fidx<>pidx then // new local variable allocated
-                            templist.Concat( tai_local.create(wbt));*)
-                        end;
+                        tg.gethltemp(templist,def,
+                                     size,
+                                     tt_regallocator,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
                       ra_dealloc :
                         begin
-                          ttgwasm(tg).deallocLocalVar(wbt, spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)].offset);
-                          //tg.ungettemp(templist,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
+                          tg.ungettemp(templist,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
                           { don't invalidate the temp reference, may still be used one instruction
                             later }
                         end;

@@ -58,6 +58,7 @@ unit tgcpu;
         destructor Destroy; override;
         function alloc(bt: TWasmBasicType): integer;
         procedure dealloc(bt: TWasmBasicType; index: integer);
+        procedure dealloc(index: integer);
       end;
 
        { ttgwasm }
@@ -77,6 +78,7 @@ unit tgcpu;
          procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
+         procedure ungettemp(list: TAsmList; const ref : treference); override;
 
          procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
          procedure deallocLocalVar(wbt: TWasmBasicType; idx: integer);
@@ -382,6 +384,14 @@ unit tgcpu;
         inherited;
       end;
 
+    procedure ttgwasm.ungettemp(list: TAsmList; const ref: treference);
+      begin
+        if ref.base=NR_LOCAL_STACK_POINTER_REG then
+          localvars.dealloc(ref.offset)
+        else
+          inherited;
+      end;
+
     procedure ttgwasm.allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
       var
         idx : integer;
@@ -441,6 +451,13 @@ unit tgcpu;
         if Assigned(lc) then lc.inuse := false;
       end;
 
+    procedure TWasmLocalVars.dealloc(index: integer);
+      var
+        bt: TWasmBasicType;
+      begin
+        for bt in TWasmBasicType do
+          dealloc(bt,index);
+      end;
 
 
 initialization

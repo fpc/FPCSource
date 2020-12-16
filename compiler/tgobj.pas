@@ -99,7 +99,7 @@ unit tgobj;
           procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; out ref : treference);
           procedure gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
-          procedure ungettemp(list: TAsmList; const ref : treference);
+          procedure ungettemp(list: TAsmList; const ref : treference); virtual;
 
           function sizeoftemp(list: TAsmList; const ref: treference): asizeint;
           function changetemptype(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
