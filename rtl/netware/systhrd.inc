@@ -244,13 +244,20 @@ begin
   SysThreadGetPriority := 0;
 end;
 
-
-
 function  SysGetCurrentThreadId : dword;
 begin
   SysGetCurrentThreadId := CGetThreadID;
 end;
 
+procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
+procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
 
 { netware requires all allocated semaphores }
 { to be closed before terminating the nlm, otherwise }
@@ -469,6 +476,8 @@ begin
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;

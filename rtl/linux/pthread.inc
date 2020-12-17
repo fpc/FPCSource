@@ -143,33 +143,41 @@ Type
     function pthread_mutex_unlock(__mutex:ppthread_mutex_t):longint;cdecl;external;
     function pthread_mutexattr_init(__attr:ppthread_mutexattr_t):longint;cdecl;external;
     function pthread_mutexattr_destroy(__attr:ppthread_mutexattr_t):longint;cdecl;external;
+{$ifndef ANDROID}
     function pthread_mutexattr_setkind_np(__attr:ppthread_mutexattr_t; __kind:longint):longint;cdecl;external;
     function pthread_mutexattr_getkind_np(__attr:ppthread_mutexattr_t; __kind:plongint):longint;cdecl;external;
+{$endif}
     function pthread_cond_init(__cond:ppthread_cond_t; __cond_attr:ppthread_condattr_t):longint;cdecl;external;
     function pthread_cond_destroy(__cond:ppthread_cond_t):longint;cdecl;external;
     function pthread_cond_signal(__cond:ppthread_cond_t):longint;cdecl;external;
     function pthread_cond_broadcast(__cond:ppthread_cond_t):longint;cdecl;external;
     function pthread_cond_wait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t):longint;cdecl;external;
     function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):longint;cdecl;external;
+{$ifndef ANDROID}
     function pthread_condattr_init(__attr:ppthread_condattr_t):longint;cdecl;external;
     function pthread_condattr_destroy(__attr:ppthread_condattr_t):longint;cdecl;external;
     function pthread_condattr_setclock(__attr:ppthread_condattr_t; __clock_id: longint):longint;cdecl;external;
+{$endif}
     function pthread_key_create(__key:ppthread_key_t; __destr_function:__destr_function_t):longint;cdecl;external;
     function pthread_key_delete(__key:pthread_key_t):longint;cdecl;external;
     function pthread_setspecific(__key:pthread_key_t; __pointer:pointer):longint;cdecl;external;
     function pthread_getspecific(__key:pthread_key_t):pointer;cdecl;external;
 {    function pthread_once(__once_control:ppthread_once_t; __init_routine:tprocedure ):longint;cdecl;external;}
+{$ifndef ANDROID}
     function pthread_setcancelstate(__state:longint; __oldstate:plongint):longint;cdecl;external;
     function pthread_setcanceltype(__type:longint; __oldtype:plongint):longint;cdecl;external;
     function pthread_cancel(__thread:pthread_t):longint;cdecl;external;
     procedure pthread_testcancel;cdecl;external;
+{$endif}
 {    procedure _pthread_cleanup_push(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_routine; __arg:pointer);cdecl;external; }
 {    procedure _pthread_cleanup_push_defer(__buffer:p_pthread_cleanup_buffer;__routine:t_pthread_cleanup_push_defer_routine; __arg:pointer);cdecl;external;}
 {    function pthread_sigmask(__how:longint; __newmask:plibc_sigset; __oldmask:plibc_sigset):longint;cdecl;external;}
     function pthread_kill(__thread:pthread_t; __signo:longint):longint;cdecl;external;
 {    function sigwait(__set:plibc_sigset; __sig:plongint):longint;cdecl;external;}
+{$ifndef ANDROID}
     function pthread_atfork(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;external;
     procedure pthread_kill_other_threads_np;cdecl;external;
+{$endif}
     function pthread_sigmask(how: cint; nset: plibc_sigset; oset: plibc_sigset): cint; cdecl; external;
 
     function sem_init (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;external;
@@ -183,6 +191,7 @@ Type
     function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;
 
     function pthread_mutexattr_settype (__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;external;
+    function pthread_setname_np(thread: pthread_t; name: PAnsiChar):cint;cdecl;external;
 
 {$else}
 Var
@@ -264,6 +273,7 @@ Var
     sem_getvalue :   function (__sem:Psem_t; __sval:Plongint):longint;cdecl;
 
     pthread_mutexattr_settype : function(__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;
+    pthread_setname_np : function(thread: pthread_t; name: PAnsiChar):cint;cdecl;
 
 
 Var
@@ -355,6 +365,7 @@ begin
   Pointer(sem_post     ) := dlsym(PthreadDLL,'sem_post');
   Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
   Pointer(pthread_mutexattr_settype) := dlsym(PthreadDLL,'pthread_mutexattr_settype');
+  Pointer(pthread_setname_np) := dlsym(PthreadDLL,'pthread_setname_np');
 end;
 
 Function UnLoadPthreads : Boolean;

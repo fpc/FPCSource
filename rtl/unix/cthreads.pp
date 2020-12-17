@@ -481,6 +481,51 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
+  procedure CSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+{$if defined(Linux) or defined(Android)}
+    var
+      CuttedName: AnsiString;
+{$endif}
+    begin
+{$if defined(Linux) or defined(Android)}
+      if ThreadName = '' then
+        Exit;
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        // length restricted to 16 characters including terminating null byte
+        CuttedName:=Copy(ThreadName, 1, 15);
+        if threadHandle=TThreadID(-1) then
+        begin
+          pthread_setname_np(pthread_self(), @CuttedName[1]);
+        end
+        else
+        begin
+          pthread_setname_np(pthread_t(threadHandle), @CuttedName[1]);
+        end;
+      end;
+{$else}
+       {$Warning SetThreadDebugName needs to be implemented}
+{$endif}
+    end;
+
+
+  procedure CSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+{$if defined(Linux) or defined(Android)}
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        CSetThreadDebugNameA(threadHandle, AnsiString(ThreadName));
+      end;
+{$else}
+       {$Warning SetThreadDebugName needs to be implemented}
+{$endif}
+    end;
+
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -938,6 +983,8 @@ begin
     ThreadSetPriority      :=@CThreadSetPriority;
     ThreadGetPriority      :=@CThreadGetPriority;
     GetCurrentThreadId     :=@CGetCurrentThreadId;
+    SetThreadDebugNameA    :=@CSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@CSetThreadDebugNameU;
     InitCriticalSection    :=@CInitCriticalSection;
     DoneCriticalSection    :=@CDoneCriticalSection;
     EnterCriticalSection   :=@CEnterCriticalSection;

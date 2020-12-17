@@ -52,6 +52,13 @@ function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
+function WinGetCurrentThread: THandle; stdcall; external KernelDLL name 'GetCurrentThread';
+function WinOpenThread(dwDesiredAccess: DWord; bInheritHandle: Boolean; dwThreadId: DWord): THandle; stdcall; external KernelDLL name 'OpenThread';
+function WinIsDebuggerPresent: Boolean; stdcall; external KernelDLL name 'IsDebuggerPresent';
+type
+  TSetThreadDescription = function(threadHandle: THandle; lpThreadDescription: PWideChar): HResult; stdcall;
+var
+  WinSetThreadDescription: TSetThreadDescription;
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
@@ -338,6 +345,98 @@ var
       SysGetCurrentThreadId:=Win32GetCurrentThreadId;
     end;
 
+{$ifndef WINCE}
+    { following method is supported on older Windows versions AND currently only supported method by GDB }
+    procedure RaiseMSVCExceptionMethod(threadHandle: TThreadID; const ThreadName: AnsiString);
+    const
+      MS_VC_EXCEPTION: DWord = $406D1388;
+    type
+      THREADNAME_INFO = record
+        dwType: DWord; // Must be 0x1000.
+        szName: PAnsiChar; // Pointer to name (in user addr space).
+        dwThreadID: DWord; // Thread ID (-1=caller thread).
+        dwFlags: DWord; // Reserved for future use, must be zero.
+      end;
+    var
+      thrdinfo: THREADNAME_INFO;
+    begin
+      thrdinfo.dwType:=$1000;
+      thrdinfo.szName:=@ThreadName[1];
+      thrdinfo.dwThreadID:=threadHandle;
+      thrdinfo.dwFlags:=0;
+      try
+        RaiseException(MS_VC_EXCEPTION, 0, SizeOf(thrdinfo) div SizeOf(DWord), @thrdinfo);
+      except
+        {do nothing}
+      end;
+    end;
+
+    { following method needs at least Windows 10 version 1607 or Windows Server 2016 }
+    procedure SetThreadDescriptionMethod(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    var
+      thrdhandle: THandle;
+      ClosingNeeded: Boolean;
+    begin
+      if threadHandle=TThreadID(-1) then
+      begin
+        thrdhandle:=WinGetCurrentThread;
+        ClosingNeeded:=False;
+      end
+      else
+      begin
+        thrdhandle:=WinOpenThread($0400, False, threadHandle);
+        ClosingNeeded:=True;
+      end;
+
+      WinSetThreadDescription(thrdhandle, @ThreadName[1]);
+
+      if ClosingNeeded then
+      begin
+        CloseHandle(thrdhandle);
+      end;
+    end;
+{$endif WINCE}
+
+    procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+    begin
+{$ifndef WINCE}
+      if ThreadName = '' then
+        Exit;
+
+      if WinIsDebuggerPresent then
+      begin
+        RaiseMSVCExceptionMethod(threadHandle, ThreadName);
+      end;
+
+      if Assigned(WinSetThreadDescription) then
+      begin
+        SetThreadDescriptionMethod(threadHandle, UnicodeString(ThreadName));
+      end;
+{$else WINCE}
+      {$Warning SetThreadDebugNameA needs to be implemented}
+{$endif WINCE}
+    end;
+
+    procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+{$ifndef WINCE}
+      if ThreadName = '' then
+        Exit;
+
+      if WinIsDebuggerPresent then
+      begin
+        RaiseMSVCExceptionMethod(threadHandle, AnsiString(ThreadName));
+      end;
+
+      if Assigned(WinSetThreadDescription) then
+      begin
+        SetThreadDescriptionMethod(threadHandle, ThreadName);
+      end;
+{$else WINCE}
+      {$Warning SetThreadDebugNameU needs to be implemented}
+{$endif WINCE}
+    end;
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -497,10 +596,10 @@ Var
   WinThreadManager : TThreadManager;
 
 Procedure InitSystemThreads;public name '_FPC_InitSystemThreads';
-{$IFDEF SUPPORT_WIN95}
+{$ifndef WINCE}
 var
   KernelHandle : THandle;
-{$ENDIF SUPPORT_WIN95}
+{$endif}
 begin
   With WinThreadManager do
     begin
@@ -512,11 +611,13 @@ begin
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
     ThreadSwitch           :=@SysThreadSwitch;
-    CloseThread		   :=@SysCloseThread;
+    CloseThread            :=@SysCloseThread;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
@@ -544,13 +645,24 @@ begin
   if IsLibrary then
 {$endif}
     SysInitTLS;
+
+{$ifndef WINCE}
+  KernelHandle:=GetModuleHandle(KernelDLL);
+{$endif}
+
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
-  KernelHandle:=GetModuleHandle(KernelDLL);
   if KernelHandle<>0 then
     WinTryEnterCriticalSection:=TTryEnterCriticalSection(WinGetProcAddress(KernelHandle,'TryEnterCriticalSection'));
   if not assigned(WinTryEnterCriticalSection) then
     WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
 {$ENDIF SUPPORT_WIN95}
+
+{$ifndef WINCE}
+  if KernelHandle<>0 then
+  begin
+    WinSetThreadDescription:=TSetThreadDescription(WinGetProcAddress(KernelHandle, 'SetThreadDescription'));
+  end;
+{$endif WINCE}
 end;
 

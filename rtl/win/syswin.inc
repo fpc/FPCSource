@@ -130,14 +130,6 @@ type
   TExceptClsProc=function(code: Longint): Pointer; { ExceptClass }
 
 
-procedure RaiseException(
-  dwExceptionCode: DWORD;
-  dwExceptionFlags: DWORD;
-  dwArgCount: DWORD;
-  lpArguments: Pointer);  // msdn: *ULONG_PTR
-  stdcall; external 'kernel32.dll' name 'RaiseException';
-
-
 function RunErrorCode(const rec: TExceptionRecord): longint;
 begin
   { negative result means 'FPU reset required' }

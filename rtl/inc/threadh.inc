@@ -45,6 +45,10 @@ type
   TThreadSetPriorityHandler = Function (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
   TThreadGetPriorityHandler = Function (threadHandle : TThreadID): longint;
   TGetCurrentThreadIdHandler = Function : TThreadID;
+  TThreadSetThreadDebugNameHandlerA = procedure(threadHandle: TThreadID; const ThreadName: AnsiString);
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+  TThreadSetThreadDebugNameHandlerU = procedure(threadHandle: TThreadID; const ThreadName: UnicodeString);
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
   TCriticalSectionHandler = Procedure (var cs);
   TCriticalSectionHandlerTryEnter = function (var cs):longint;
   TInitThreadVarHandler = Procedure(var offset : {$ifdef cpu16}word{$else}dword{$endif};size : dword);
@@ -78,6 +82,10 @@ type
     ThreadSetPriority      : TThreadSetPriorityHandler;
     ThreadGetPriority      : TThreadGetPriorityHandler;
     GetCurrentThreadId     : TGetCurrentThreadIdHandler;
+    SetThreadDebugNameA    : TThreadSetThreadDebugNameHandlerA;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+    SetThreadDebugNameU    : TThreadSetThreadDebugNameHandlerU;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
     InitCriticalSection    : TCriticalSectionHandler;
     DoneCriticalSection    : TCriticalSectionHandler;
     EnterCriticalSection   : TCriticalSectionHandler;
@@ -147,6 +155,10 @@ function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint)
 function  ThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
 function  ThreadGetPriority (threadHandle : TThreadID): longint;
 function  GetCurrentThreadId : TThreadID;
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: AnsiString);
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: UnicodeString);
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 
 { this allows to do a lot of things in MT safe way }
