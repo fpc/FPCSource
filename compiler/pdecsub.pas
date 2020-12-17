@@ -535,6 +535,7 @@ implementation
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
+        addgendummy,
         hadspecialize,
         firstpart,
         found,
@@ -855,6 +856,7 @@ implementation
         srsym:=nil;
         genericparams:=nil;
         hadspecialize:=false;
+        addgendummy:=false;
 
         if not assigned(genericdef) then
           begin
@@ -1059,6 +1061,7 @@ implementation
                                as if nothing happened }
                              hidesym(srsym);
                              searchagain:=true;
+                             addgendummy:=true;
                            end
                          else
                           begin
@@ -1094,6 +1097,8 @@ implementation
                   aprocsym:=cprocsym.create('$'+lower(sp))
                 else
                   aprocsym:=cprocsym.create(orgsp);
+                if addgendummy then
+                  include(aprocsym.symoptions,sp_generic_dummy);
                 symtablestack.top.insert(aprocsym);
               end;
           end;
