@@ -1259,6 +1259,7 @@ uses
         doconsume : boolean;
         constraintdata : tgenericconstraintdata;
         old_block_type : tblock_type;
+        fileinfo : tfileposinfo;
       begin
         result:=tfphashobjectlist.create(false);
         firstidx:=0;
@@ -1274,6 +1275,7 @@ uses
               result.add(orgpattern,generictype);
             end;
           consume(_ID);
+          fileinfo:=current_tokenpos;
           if try_to_consume(_COLON) then
             begin
               if not allowconstraints then
@@ -1281,6 +1283,7 @@ uses
                 Message(parser_e_illegal_expression{ parser_e_generic_constraints_not_allowed_here});
               { construct a name which can be used for a type specification }
               constraintdata:=tgenericconstraintdata.create;
+              constraintdata.fileinfo:=fileinfo;
               defname:='';
               str(current_module.deflist.count,defname);
               defname:='$gendef'+defname;
@@ -1395,6 +1398,7 @@ uses
                     genconstraintdata:=tgenericconstraintdata.create;
                     genconstraintdata.flags:=constraintdata.flags;
                     genconstraintdata.interfaces.assign(constraintdata.interfaces);
+                    genconstraintdata.fileinfo:=constraintdata.fileinfo;
                     include(defoptions,df_genconstraint);
                   end;
 

@@ -440,7 +440,7 @@ implementation
                   is_open_string(p1.resultdef)
                  )) or
                  { keep the function call if it is a type parameter to avoid arithmetic errors due to constant folding }
-                 (p1.resultdef.typ=undefineddef) then
+                 is_typeparam(p1.resultdef) then
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
@@ -2959,11 +2959,11 @@ implementation
                wasgenericdummy:=false;
                if assigned(srsym) and
                    (sp_generic_dummy in srsym.symoptions) and
+                   (srsym.typ=typesym) and
                    (
                      (
                        (m_delphi in current_settings.modeswitches) and
                        not (token in [_LT, _LSHARPBRACKET]) and
-                       (srsym.typ=typesym) and
                        (ttypesym(srsym).typedef.typ=undefineddef)
                      )
                      or
