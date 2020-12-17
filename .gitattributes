@@ -12933,6 +12933,7 @@ tests/tbs/tb0666b.pp svneol=native#text/pascal
 tests/tbs/tb0668a.pp svneol=native#text/pascal
 tests/tbs/tb0668b.pp svneol=native#text/pascal
 tests/tbs/tb0669.pp svneol=native#text/pascal
+tests/tbs/tb0670.pp svneol=native#text/pascal
 tests/tbs/tb0676.pp svneol=native#text/pascal
 tests/tbs/tb0677.pp svneol=native#text/pascal
 tests/tbs/tb0678.pp svneol=native#text/pascal

@@ -1172,52 +1172,8 @@ implementation
           begin
              v:=tordconstnode(left).value;
              def:=left.resultdef;
-             case torddef(left.resultdef).ordtype of
-               pasbool1,
-               pasbool8,
-               pasbool16,
-               pasbool32,
-               pasbool64:
-                 v:=byte(not(boolean(int64(v))));
-               bool8bit,
-               bool16bit,
-               bool32bit,
-               bool64bit:
-                 begin
-                   if v=0 then
-                     v:=-1
-                   else
-                     v:=0;
-                 end;
-               uchar,
-               uwidechar,
-               u8bit,
-               s8bit,
-               u16bit,
-               s16bit,
-               s32bit,
-               u32bit,
-               s64bit,
-               u64bit:
-                 begin
-                   { unsigned, equal or bigger than the native int size? }
-                   if (torddef(left.resultdef).ordtype in [u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
-                      (is_nativeord(left.resultdef) or is_oversizedord(left.resultdef)) then
-                     begin
-                       { Delphi-compatible: not dword = dword (not word = longint) }
-                       { Extension: not qword = qword                              }
-                       v:=qword(not qword(v));
-                       { will be truncated by the ordconstnode for u32bit }
-                     end
-                   else
-                     begin
-                       v:=int64(not int64(v));
-                       def:=get_common_intdef(torddef(left.resultdef),torddef(sinttype),false);
-                     end;
-                 end;
-               else
-                 CGMessage(type_e_mismatch);
-             end;
+             if not calc_not_ordvalue(v,def) then
+               CGMessage(type_e_mismatch);
              { not-nodes are not range checked by the code generator -> also
                don't range check while inlining; the resultdef is a bit tricky
                though: the node's resultdef gets changed in most cases compared
