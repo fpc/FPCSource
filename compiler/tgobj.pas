@@ -184,7 +184,7 @@ implementation
        tempfreelist:=nil;
        templist:=nil;
        { we could create a new child class for this but I don't if it is worth the effort (FK) }
-{$if defined(powerpc) or defined(powerpc64) or defined(avr) or defined(jvm) or defined(aarch64) or defined(xtensa)}
+{$if defined(powerpc) or defined(powerpc64) or defined(avr) or defined(jvm) or defined(aarch64) or defined(xtensa) or defined(wasm32)}
        direction:=1;
 {$else}
        direction:=-1;

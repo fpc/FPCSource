@@ -153,7 +153,6 @@ unit tgcpu;
     constructor ttgwasm.create;
       begin
         inherited create;
-        direction := 1; // temp variables are allocated as "locals", and it starts with 0 and goes beyond!
         localvars:=TWasmLocalVars.Create;
       end;
 
