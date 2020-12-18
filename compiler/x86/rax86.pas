@@ -1537,6 +1537,23 @@ procedure Tx86Instruction.SetInstructionOpsize;
                    result := true;
                  end;
             end;
+
+            if result  and (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) then
+            begin
+              for i := 1 to ops do
+               if tx86operand(operands[i]).opr.typ in [OPR_REGISTER] then
+               begin
+                 case tx86operand(operands[i]).opsize of
+                   S_XMM: ;
+                   S_YMM:;
+                   S_ZMM:;
+                 end;
+                 //opsize := tx86operand(operands[i]).opsize;
+                 //result := true;
+
+                 break;
+               end;
+            end;
           end
           else if not(MemRefSize in [msiMemRegSize]) then
           begin
