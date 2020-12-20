@@ -1310,10 +1310,6 @@ begin
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
           ChangeFileExt(current_module.exefilename,'.elf')+' '+
           ChangeFileExt(current_module.exefilename,'.bin'),true,false);
-{$ifdef ARM}
-      if success and (current_settings.controllertype = ct_raspi2) then
-        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+ FixedExeFileName + ' kernel7.img',true,false);
-{$endif ARM}
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
