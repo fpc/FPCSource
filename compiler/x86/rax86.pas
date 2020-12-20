@@ -1494,8 +1494,10 @@ procedure Tx86Instruction.SetInstructionOpsize;
   function CheckSSEAVX: Boolean;
   var
     i: integer;
+    iSizeMask: int64;
     bBroadcastMemRef: boolean;
     bExistMemRef: boolean;
+    ValidOpSizes: Set of topsize;
   begin
     Result := False;
 
@@ -1538,18 +1540,43 @@ procedure Tx86Instruction.SetInstructionOpsize;
                  end;
             end;
 
-            if result  and (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) then
+            if (result) and
+               (ops > 0) and
+               (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
+               (gas_needsuffix[opcode] in [AttSufMMS, AttSufMMX]) then
             begin
+              // external gas assembler need suffix (different opsizes possible)
+              // - in fpc not exists datatypes for vector-variables
+              //   =>> all memsize = ok, but any special opcodes (marked with attSufMMS,attSUFMMX) needed in any combination of operandtypes the exact opsize
+              //      =>> check instructions-opsize and use the correct vector-mem-opsize
+
               for i := 1 to ops do
                if tx86operand(operands[i]).opr.typ in [OPR_REGISTER] then
                begin
+                 ValidOpSizes := [];
+
                  case tx86operand(operands[i]).opsize of
-                   S_XMM: ;
-                   S_YMM:;
-                   S_ZMM:;
+                   S_XMM: iSizeMask := RegXMMSizeMask;
+                   S_YMM: iSizeMask := RegYMMSizeMask;
+                   S_ZMM: iSizeMask := RegZMMSizeMask;
+                     else iSizeMask := 0;
                  end;
-                 //opsize := tx86operand(operands[i]).opsize;
-                 //result := true;
+
+                 if iSizemask and OT_BITS128 = OT_BITS128 then include(ValidOpSizes, S_XMM);
+                 if iSizemask and OT_BITS256 = OT_BITS256 then include(ValidOpSizes, S_YMM);
+                 if iSizemask and OT_BITS512 = OT_BITS512 then include(ValidOpSizes, S_ZMM);
+
+                 if (ValidOpsizes <> []) then
+                 begin
+                   if not(opsize in ValidOpSizes) then
+                   begin
+                     // instructions-opsize is invalid =>> use smallest valid opsize
+                     if iSizemask and OT_BITS128 = OT_BITS128 then opsize := S_XMM
+                      else if iSizemask and OT_BITS256 = OT_BITS256 then opsize := S_YMM
+                      else if iSizemask and OT_BITS512 = OT_BITS512 then opsize := S_ZMM;
+                   end;
+                 end
+                 else ; // empty ValidOpsize =>> nothing todo???
 
                  break;
                end;
