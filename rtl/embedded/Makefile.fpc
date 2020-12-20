@@ -377,3 +377,8 @@ fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEX
 	
 intrinsics$(PPUEXT) : $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/intrinsics.pp
+# AVR specific units
+
+avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(ARCH)/avrsim.pp
+ 
