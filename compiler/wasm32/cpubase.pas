@@ -148,6 +148,7 @@ uses
       { fake register, representing the local frame pointer. Used for accessing
         address-taken local variables on the linear stack: (localframeptr+offset). }
       NR_LOCAL_FRAME_POINTER_REG = NR_R3;
+      RS_LOCAL_FRAME_POINTER_REG = RS_R3;
 
       maxvarregs = 1;
       maxfpuvarregs = 1;
