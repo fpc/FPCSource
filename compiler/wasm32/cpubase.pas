@@ -154,13 +154,13 @@ uses
       maxfpuvarregs = 1;
 
       { Integer Super registers first and last }
-      first_int_imreg = 2;
+      first_int_imreg = 4;
 
       { Float Super register first and last }
-      first_fpu_imreg     = 2;
+      first_fpu_imreg     = 4;
 
       { MM Super register first and last }
-      first_mm_imreg     = 2;
+      first_mm_imreg     = 4;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rwasmnum.inc}
