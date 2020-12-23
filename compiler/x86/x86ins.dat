@@ -7643,7 +7643,7 @@ xmmreg_mz,xmmreg,xmmreg_sae,imm8          \350\361\372\1\x55\75\120\27          
 
 ; VFPCLASSPD kreg_m,mem256 and mem512 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
-[VFPCLASSPD,vfpclasspdX]
+[VFPCLASSPD,vfpclasspdS]
 (Ch_All)
 kreg_m,mem256,imm8                        \350\352\361\364\372\1\x66\110\26         AVX512,TFV
 kreg_m,mem512,imm8                        \350\351\352\361\372\1\x66\110\26         AVX512,TFV
@@ -7656,7 +7656,7 @@ kreg_m,bmem64,imm8                        \350\351\352\361\372\1\x66\110\26     
 
 ; VFPCLASSPS kreg_m,mem256 and mem512 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
-[VFPCLASSPS,vfpclasspsX]
+[VFPCLASSPS,vfpclasspsS]
 (Ch_All)
 kreg_m,mem256,imm8                        \350\361\364\372\1\x66\110\26             AVX512,TFV
 kreg_m,mem512,imm8                        \350\351\361\372\1\x66\110\26             AVX512,TFV

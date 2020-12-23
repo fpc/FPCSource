@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -22,14 +22,14 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-O- \home\torsten\tmp\vpinsrb.pp -Fu\home\torsten\avx512\rtl\units\x86_64-linux"/>
+        <CommandLineParams Value="-O- \tmp\vaddpd.pp -Fu\home\torsten\avx512\rtl\units\x86_64-linux"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-O- \home\torsten\tmp\vpinsrb.pp -Fu\home\torsten\avx512\rtl\units\x86_64-linux"/>
+            <CommandLineParams Value="-O- \tmp\vaddpd.pp -Fu\home\torsten\avx512\rtl\units\x86_64-linux"/>
             <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
