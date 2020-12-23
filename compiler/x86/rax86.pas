@@ -1519,9 +1519,23 @@ procedure Tx86Instruction.SetInstructionOpsize;
 	  if (gas_needsuffix[opcode] = AttSufMMS) and (ops > 0) then
  	  begin
  	    // special handling = use source operand for calculate instructions-opsize
-            // e.g. vcvtsi2sd, vcvtsi2ss, vcvtusi2sd, vcvtusi2ss
+            // e.g. vcvtsi2sd, vcvtsi2ss, vcvtusi2sd, vcvtusi2ss,
+            //      vfpclass..
             
             opsize:=tx86operand(operands[1]).opsize;
+
+            if (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
+               (not(opsize in [S_XMM, S_YMM, S_ZMM])) then
+            begin
+              // special handling for external gas assembler, special opcodes (e.g. vfpclassps/pd)
+              case MemRefSize of
+                msiMultipleMinSize128: opsize := S_XMM;
+                msiMultipleMinSize256: opsize := S_YMM;
+                msiMultipleMinSize512: opsize := S_ZMM;
+                                 else;
+              end;
+            end;
+
             result := true;  
 	  end
           else if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
