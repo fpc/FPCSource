@@ -1521,8 +1521,11 @@ procedure Tx86Instruction.SetInstructionOpsize;
  	    // special handling = use source operand for calculate instructions-opsize
             // e.g. vcvtsi2sd, vcvtsi2ss, vcvtusi2sd, vcvtusi2ss,
             //      vfpclass..
-            
-            opsize:=tx86operand(operands[1]).opsize;
+
+            if (ops > 2) and
+               (tx86operand(operands[1]).opr.typ = OPR_CONSTANT) then
+             opsize:=tx86operand(operands[2]).opsize
+              else opsize:=tx86operand(operands[1]).opsize;
 
             if (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
                (not(opsize in [S_XMM, S_YMM, S_ZMM])) then
