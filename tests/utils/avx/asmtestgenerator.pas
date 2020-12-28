@@ -1209,6 +1209,8 @@ var
   sl_RegCombi1: string;
   sl_RegCombi2: string;
   sl_RegCombi3: string;
+  MaskRegNeeded:boolean;
+
 
   function PrepareOperandTyp(const aTyp: String): String;
   begin
@@ -1249,6 +1251,18 @@ begin
                        (UpperCase(aInst) = 'VCMPSS')
 
                        ;
+
+            
+          MaskRegNeeded := (Uppercase(aInst) = 'VGATHERDPD') or
+                           (Uppercase(aInst) = 'VGATHERDPS') or
+                           (Uppercase(aInst) = 'VGATHERDQPD') or
+                           (Uppercase(aInst) = 'VGATHERDQPS') or
+                           (Uppercase(aInst) = 'VPGATHERDD') or
+                           (Uppercase(aInst) = 'VPGATHERDQ') or
+                           (Uppercase(aInst) = 'VPGATHERQD') or
+                           (Uppercase(aInst) = 'VPGATHERQQ') or
+			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
+			   (Pos('VSCATTER', Uppercase(aInst)) = 1);
 
 
 
@@ -1314,7 +1328,8 @@ begin
                   Item.Values.Add('XMM27' + sSuffix);
                   Item.Values.Add('XMM31' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('XMM0');
                     Item.Values.Add('XMM9');
@@ -1331,7 +1346,8 @@ begin
                   Item.Values.Add('XMM12' + sSuffix);
                   Item.Values.Add('XMM15' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('XMM0');
                     Item.Values.Add('XMM4');
@@ -1353,8 +1369,8 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'oword ';
-
-              sSuffix := '';
+	      
+	      sSuffix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
@@ -1584,7 +1600,8 @@ begin
                   Item.Values.Add('YMM27' + sSuffix);
                   Item.Values.Add('YMM31' + sSuffix);
                   
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
                     Item.Values.Add('YMM9');
@@ -1601,7 +1618,8 @@ begin
                   Item.Values.Add('YMM12' + sSuffix);
                   Item.Values.Add('YMM15' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
                     Item.Values.Add('YMM4');
@@ -1652,7 +1670,8 @@ begin
                   Item.Values.Add('YMM27' +  sSuffix);
                   Item.Values.Add('YMM31' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
                     Item.Values.Add('YMM9');
@@ -1669,7 +1688,8 @@ begin
                   Item.Values.Add('YMM12' + sSuffix);
                   Item.Values.Add('YMM15' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
                     Item.Values.Add('YMM4');
@@ -1725,7 +1745,8 @@ begin
                   Item.Values.Add('ZMM27' + sSuffix);
                   Item.Values.Add('ZMM31' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('ZMM0');
                     Item.Values.Add('ZMM9');
@@ -1784,7 +1805,8 @@ begin
                   Item.Values.Add('ZMM27' + sSuffix);
                   Item.Values.Add('ZMM31' + sSuffix);
 
-                  if sSuffix <> '' then
+                  if (sSuffix <> '') and
+		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('ZMM0');
                     Item.Values.Add('ZMM9');
@@ -2063,13 +2085,15 @@ begin
               if x64 then
               begin
 		VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false) then
  		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false) then
                  VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
               end;
             end
@@ -2097,13 +2121,17 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
  		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
  		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
               end;
 
@@ -2132,13 +2160,17 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
               end;
 
@@ -2167,13 +2199,17 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
                  VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
               end;
 
@@ -2202,13 +2238,17 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
                  VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
                  VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
               end;
 
@@ -2237,13 +2277,17 @@ begin
               if x64 then
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
-		if sSuffix <> '' then
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
                  VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
               end
               else
               begin
                 VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
-                if sSuffix <> '' then
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
               end;
 
