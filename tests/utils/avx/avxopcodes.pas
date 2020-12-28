@@ -18,13 +18,13 @@ type
   protected
     procedure Init;
 
-    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
     destructor Destroy; override;
 
-    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
+    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask: String): boolean;
     procedure ListMemRefState;
 //    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
@@ -924,9 +924,9 @@ begin
   FOpCodeList.Add('vpextrd,1,1,1,RM32,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrq,1,1,1,RM64,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrw,1,1,1,MEM16,XMMREG,IMM8,');
-  FOpCodeList.Add('vpextrw,1,1,1,REG16,XMMREG,IMM8,');
+  //FOpCodeList.Add('vpextrw,1,1,1,REG16,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrw,1,1,1,REG32,XMMREG,IMM8,');
-  FOpCodeList.Add('vpextrw,1,1,1,REG64,XMMREG,IMM8,');
+  //FOpCodeList.Add('vpextrw,1,1,1,REG64,XMMREG,IMM8,');
   FOpCodeList.Add('vphaddd,1,1,0,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('vphaddd,1,1,0,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('vphaddsw,1,1,0,XMMREG,XMMREG,XMMRM,');
@@ -1401,20 +1401,20 @@ begin
   FOpCodeList.Add('vpblendd,1,1,0,XMMREG,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,MEM8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,MEM8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,MEM8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vpbroadcastd,1,1,1,XMMREG_MZ,MEM32,,');
@@ -1437,18 +1437,18 @@ begin
   FOpCodeList.Add('vpbroadcastq,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,MEM16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,MEM16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,MEM16,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vperm2i128,1,1,0,YMMREG,YMMREG,YMMRM,IMM8');
   FOpCodeList.Add('vpermd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1530,7 +1530,7 @@ begin
   FOpCodeList.Add('vgatherqpd,1,1,1,XMMREG_M,XMEM64,,');
   FOpCodeList.Add('vgatherqpd,1,1,0,YMMREG,YMEM64,YMMREG,');
   FOpCodeList.Add('vgatherqpd,1,1,1,YMMREG_M,YMEM64,,');
-  FOpCodeList.Add('vgatherqpd,1,1,1,ZMMREG_M,ZMEM32,,');
+  FOpCodeList.Add('vgatherqpd,1,1,1,ZMMREG_M,ZMEM64,,');
   FOpCodeList.Add('vgatherqps,1,1,0,XMMREG,XMEM32,XMMREG,');
   FOpCodeList.Add('vgatherqps,1,1,0,XMMREG,YMEM32,XMMREG,');
   FOpCodeList.Add('vgatherqps,1,1,1,XMMREG_M,XMEM32,,');
@@ -3257,18 +3257,20 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
+function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
-  i: integer;
+  i,j: integer;
   sData: string;
   sDestFile: string;
   sLocalVarDataTyp: string;
   sl: TStringList;
   slAsm: TStringList;
   slLocalHeader: TStringList;
+  slFilemask: TStringList;
   LastOpCode: String;
   NewOpCode: String;
+  FoundNewOpcode: boolean;
 
   function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
   begin
@@ -3292,61 +3294,78 @@ begin
   try
     slAsm := TStringList.Create;
     try
-      LastOpCode := '';
+      slFilemask := TStringList.Create;
+      try
+        slFilemask.CommaText := ansilowercase(aFilemask);
 
-      for i := 0 to aOpCodeList.Count - 1 do
-      //for i := 0 to 0 do
-      begin
-        sl.Clear;
-        sl.CommaText := aOpCodeList[i];
+        LastOpCode := '';
 
-        while sl.Count < 8 do sl.Add('');
-
-        NewOpCode := ansilowercase(sl[0]);
-        if NewOpCode <> '' then
+        for i := 0 to aOpCodeList.Count - 1 do
         begin
-          if (not(aX64) and (sl[1] = '1')) or // i386
-             (aX64 and (sl[2] = '1')) then    // x86_64
+          sl.Clear;
+          sl.CommaText := aOpCodeList[i];
+
+          while sl.Count < 8 do sl.Add('');
+
+          NewOpCode := ansilowercase(sl[0]);
+
+          FoundNewOpcode := false;
+          for j := 0 to slFilemask.Count - 1 do
           begin
-	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+            if Pos(slFilemask[j], NewOpCode) = 1 then
+             FoundNewOpcode := true;
+          end;
 
-            slLocalHeader := TStringList.Create;
-            try
-              slLocalHeader.Text := aHeaderList.text;
+          if not(FoundNewOpcode) and (slFilemask.Count > 0) then
+           NewOpcode := '';
 
-	      if (sl[4]  = '') and
-                 (sl[5]  = '') and
-                 (sl[6]  = '') and
-                 (sl[7]  = '') then
-              begin                                        // Opcode with no Params, e.g. VZEROALL
-                slAsm.Add('    ' + sl[0]);
-              end
-              else
-	      begin
-                if aMREF then
+          if NewOpCode <> '' then
+          begin
+            if (not(aX64) and (sl[1] = '1')) or // i386
+               (aX64 and (sl[2] = '1')) then    // x86_64
+            begin
+	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+
+              slLocalHeader := TStringList.Create;
+              try
+                slLocalHeader.Text := aHeaderList.text;
+
+	        if (sl[4]  = '') and
+                   (sl[5]  = '') and
+                   (sl[6]  = '') and
+                   (sl[7]  = '') then
+                begin                                        // Opcode with no Params, e.g. VZEROALL
+                  slAsm.Add('    ' + sl[0]);
+                end
+                else
 	        begin
-                  sLocalVarDataTyp := '';
- 	          TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-		  sDestFile := 'MREF_' + sDestFile;
+                  if aMREF then
+	          begin
+                    sLocalVarDataTyp := '';
+ 	            TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+		    sDestFile := 'MREF_' + sDestFile;
 
-		  if trim(sLocalVarDataTyp) = '' then
-		   sLocalVarDataTyp := 'byte';
+		    if trim(sLocalVarDataTyp) = '' then
+		     sLocalVarDataTyp := 'byte';
 
-                  slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
-	        end
-   	        else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-	      end;
+                    slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
+	          end
+   	          else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	        end;
 
-              SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
-              writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+                SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
 
-            finally
-              FreeAndNil(slLocalHeader);
+              finally
+                FreeAndNil(slLocalHeader);
+              end;
+
+              slAsm.Clear;
             end;
-
-            slAsm.Clear;
           end;
         end;
+      finally
+        FreeAndNil(slFilemask);
       end;
     finally
       FreeAndNil(slAsm);
@@ -3357,7 +3376,7 @@ begin
 end;
 
 function TAVXTestGenerator.MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean;
-  aDestPath: String): boolean;
+  aDestPath, aFilemask: String): boolean;
 var
   slHeader: TStringList;
   slFooter: TStringList;
@@ -3578,7 +3597,7 @@ begin
                 end;
       end;
 
-      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
+      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
 
     finally
       FreeAndNil(slFooter);
