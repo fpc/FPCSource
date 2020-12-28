@@ -188,9 +188,14 @@ unit tgcpu;
       var
         wbt: TWasmBasicType;
       begin
-        if Assigned(def) and defToWasmBasic(def, wbt) then begin
-          allocLocalVarToRef(wbt, ref);
-        end else
+        if temptype=tt_regallocator then
+          begin
+            if Assigned(def) and defToWasmBasic(def, wbt) then
+              allocLocalVarToRef(wbt, ref)
+            else
+              internalerror(2020121801);
+          end
+        else
           inherited;
       end;
 
