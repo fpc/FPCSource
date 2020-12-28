@@ -235,8 +235,8 @@ uses
       NR_STACK_POINTER_REG = NR_R1;
       RS_STACK_POINTER_REG = RS_R1;
       {# Frame pointer register }
-      NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
-      RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
+      NR_FRAME_POINTER_REG = NR_LOCAL_FRAME_POINTER_REG;
+      RS_FRAME_POINTER_REG = RS_LOCAL_FRAME_POINTER_REG;
 
       { WebAssembly results are returned on the evaluation stack, not via a register }
 
