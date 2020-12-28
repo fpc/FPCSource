@@ -386,8 +386,6 @@ interface
         { put numerator in register }
         cgsize:=def_cgsize(resultdef);
         opsize:=TCGSize2OpSize[cgsize];
-        if not (cgsize in [OS_32,OS_S32,OS_64,OS_S64]) then
-          InternalError(2013102702);
         rega:=newreg(R_INTREGISTER,RS_EAX,cgsize2subreg(R_INTREGISTER,cgsize));
         regd:=newreg(R_INTREGISTER,RS_EDX,cgsize2subreg(R_INTREGISTER,cgsize));
 
@@ -626,7 +624,7 @@ interface
                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg2,hreg2);
               end;
             emit_reg_reg(A_ADD,opsize,hreg1,hreg2);
-            emit_const_reg(A_AND,opsize,not((aint(1) shl power)-1),hreg2);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,not((aint(1) shl power)-1),hreg2);
             emit_reg_reg(A_SUB,opsize,hreg2,hreg1);
             location.register:=hreg1;
           end

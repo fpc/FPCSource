@@ -1710,7 +1710,8 @@ type
     function CreateClassIntfMap(El: TPasClassType; Index: integer): TPasClassIntfMap;
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure;
-      IsOverride: boolean);
+      IsOverride: boolean // override or class intf implementation
+      );
     procedure CheckPointerCycle(El: TPasPointerType);
     procedure CheckGenericTemplateTypes(El: TPasGenericType); virtual;
     procedure ComputeUnaryNot(El: TUnaryExpr; var ResolvedEl: TPasResolverResult;
@@ -6453,6 +6454,10 @@ begin
               RaiseMsg(20180322143202,nNoMatchingImplForIntfMethodXFound,
                 sNoMatchingImplForIntfMethodXFound,
                 [GetProcTypeDescription(IntfProc.ProcType,[prptdUseName,prptdAddPaths,prptdResolveSimpleAlias])],El); // ToDo: jump to interface list
+            // check calling conventions
+            //writeln('TPasResolver.FinishClassType Intf=',GetObjPath(IntfProc),' Found=',GetObjPath(FindData.Found));
+            CheckProcSignatureMatch(IntfProc,TPasProcedure(FindData.Found),true);
+
             Map.Procs[j]:=FindData.Found;
             end;
           Map:=Map.AncestorMap;
@@ -9396,7 +9401,7 @@ var
   DeclName, ImplName: String;
   ImplResult, DeclResult: TPasType;
   ImplTemplType, DeclTemplType: TPasGenericTemplateType;
-  NewImplPTMods: TProcTypeModifiers;
+  NewImplPTMods, DeclPTMods, ImplPTMods: TProcTypeModifiers;
   ptm: TProcTypeModifier;
   NewImplProcMods: TProcedureModifiers;
   pm: TProcedureModifier;
@@ -9408,6 +9413,9 @@ begin
   ImplArgs:=ImplProc.ProcType.Args;
   if DeclArgs.Count<>ImplArgs.Count then
     RaiseNotYetImplemented(20190912110642,ImplProc);
+
+  DeclPTMods:=DeclProc.ProcType.Modifiers;
+  ImplPTMods:=ImplProc.ProcType.Modifiers;
 
   DeclTemplates:=GetProcTemplateTypes(DeclProc);
   ImplTemplates:=GetProcTemplateTypes(ImplProc);
@@ -9465,33 +9473,36 @@ begin
     if CheckElTypeCompatibility(ImplResult,DeclResult,prraSimple)>cGenericExact then
       RaiseIncompatibleType(20170216151734,nResultTypeMismatchExpectedButFound,
         [],DeclResult,ImplResult,ImplProc);
-
-    if ImplProc.IsAsync and not DeclProc.IsAsync then
-      RaiseMsg(20200524111856,nXModifierMismatchY,sXModifierMismatchY,['procedure type','async'],ImplProc);
     end;
 
   // calling convention
   if ImplProc.CallingConvention<>DeclProc.CallingConvention then
     RaiseMsg(20170216151731,nCallingConventionMismatch,sCallingConventionMismatch,[],ImplProc);
 
-  // proc modifiers
-  NewImplProcMods:=ImplProc.Modifiers-DeclProc.Modifiers-[pmAssembler];
-  if not IsOverride then
+  // modifiers
+  if IsOverride then
+    begin
+    // override/class-intf-impl: calling conventions must match
+    NewImplPTMods:=ImplPTMods><DeclPTMods;
+    for ptm in NewImplPTMods do
+      RaiseMsg(20201227213020,nXModifierMismatchY,sXModifierMismatchY,
+        ['procedure type',ProcTypeModifiers[ptm]],ImplProc.ProcType);
+    end
+  else
     begin
     // implementation proc must not add modifiers, except "assembler"
+    NewImplProcMods:=ImplProc.Modifiers-DeclProc.Modifiers-[pmAssembler];
     if NewImplProcMods<>[] then
       for pm in NewImplProcMods do
         RaiseMsg(20200518182445,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
           [ModifierNames[pm]],ImplProc.ProcType);
+    // implementation proc must not add modifiers
+    NewImplPTMods:=ImplPTMods-DeclPTMods;
+    if NewImplPTMods<>[] then
+      for ptm in NewImplPTMods do
+        RaiseMsg(20200425154821,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
+          [ProcTypeModifiers[ptm]],ImplProc.ProcType);
     end;
-
-  // proc type modifiers
-  NewImplPTMods:=ImplProc.ProcType.Modifiers-DeclProc.ProcType.Modifiers;
-  // implementation proc must not add modifiers
-  if NewImplPTMods<>[] then
-    for ptm in NewImplPTMods do
-      RaiseMsg(20200425154821,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
-        [ProcTypeModifiers[ptm]],ImplProc.ProcType);
 end;
 
 procedure TPasResolver.ResolveImplBlock(Block: TPasImplBlock);
@@ -10982,7 +10993,7 @@ begin
     FoundEl:=GetSpecializedEl(NameExpr,FoundEl,TemplParams);
     if FoundEl is TPasProcedure then
       begin
-      // check if params fit the implicit specialized function
+      // check if params fit the explicit specialized function, e.g. Run<Word>()
       CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
       end;
     end
@@ -10996,7 +11007,7 @@ begin
       try
         CheckTemplParams(GenTemplates,InferenceParams);
         FoundEl:=GetSpecializedEl(NameExpr,FoundEl,InferenceParams);
-        // check if params fit the implicit specialized function
+        // check if params fit the implicit specialized function, e.g. Run()
         CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
       finally
         ReleaseElementList(InferenceParams{$IFDEF CheckPasTreeRefCount},RefIdInferenceParamsExpr{$ENDIF});
@@ -11023,13 +11034,12 @@ begin
       else
         begin
         // typecast to user type
-        CheckTypeCast(TypeEl,Params,true); // emit warnings
+        CheckTypeCast(TypeEl,Params,true); // emit warnings, and errors for specializations
         end;
     end;
 
   // FoundEl compatible element -> create reference
   Ref:=CreateReference(FoundEl,NameExpr,rraRead);
-
   if FindCallData.StartScope.ClassType=ScopeClass_WithExpr then
     Ref.WithExprScope:=TPasWithExprScope(FindCallData.StartScope);
   FindData:=Default(TPRFindData);
@@ -15704,7 +15714,7 @@ begin
       end;
     {$endif}
     revkUnicodeString:
-      if length(TResEvalUTF16(Value).S)=1 then
+      if (length(TResEvalUTF16(Value).S)=1) and (bt in btAllChars) then
         begin
         w:=TResEvalUTF16(Value).S[1];
         {$ifdef FPC_HAS_CPSTRING}
@@ -16652,7 +16662,27 @@ end;
 
 function TPasResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): string;
 
+  function Get_ProcName(aProc: TPasProcedure): string; forward;
   function GetTypeName(aType: TPasType): string; forward;
+
+  function GetParentName(El: TPasElement): string;
+  begin
+    if El.Parent is TPasType then
+      Result:=GetTypeName(TPasType(El.Parent))
+    else if El is TPasUnresolvedSymbolRef then
+      Result:='System'
+    else if El.Parent is TPasProcedure then
+      Result:=Get_ProcName(TPasProcedure(El.Parent))
+    else
+      Result:=El.GetModule.Name;
+  end;
+
+  function Get_ProcName(aProc: TPasProcedure): string;
+  begin
+    Result:=GetParentName(aProc);
+    if aProc.Name<>'' then
+      Result:=Result+'.'+aProc.Name;
+  end;
 
   function GetSpecParams(Item: TPRSpecializedItem): string;
   var
@@ -16692,13 +16722,7 @@ function TPasResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): strin
       end
     else
       begin
-      if aType.Parent is TPasType then
-        Result:=GetTypeName(TPasType(aType.Parent))
-      else if aType is TPasUnresolvedSymbolRef then
-        Result:='System'
-      else
-        Result:=aType.GetModule.Name;
-      Result:=Result+'.'+aType.Name;
+      Result:=GetParentName(aType)+'.'+aType.Name;
       if (aType.CustomData is TPasGenericScope) and (Pos('<',aType.Name)<1) then
         begin
         ChildItem:=TPasGenericScope(aType.CustomData).SpecializedFromItem;
@@ -26738,7 +26762,7 @@ function TPasResolver.CheckTypeCastRes(const FromResolved,
   end;
 
 var
-  ToTypeEl, ToType, FromType, FromTypeEl: TPasType;
+  ToTypeEl, FromTypeEl: TPasType;
   ToTypeBaseType: TResolverBaseType;
   C: TClass;
   ToProcType, FromProcType: TPasProcedureType;
@@ -26763,9 +26787,12 @@ begin
       begin
       if ToTypeEl.CustomData is TResElDataBaseType then
         begin
-        // base type cast, e.g. double(aninteger)
+        // type cast to base type, e.g. double(aninteger)
         if ToTypeEl=FromResolved.LoTypeEl then
           exit(cExact);
+        if (FromResolved.BaseType=btContext)
+            and (FromResolved.LoTypeEl.ClassType=TPasGenericTemplateType) then
+          exit(cExact); // e.g. double(T) -> will be checked when specialized
         ToTypeBaseType:=(ToTypeEl.CustomData as TResElDataBaseType).BaseType;
         if ToTypeBaseType=FromResolved.BaseType then
           Result:=cExact
@@ -26950,6 +26977,9 @@ begin
       // e.g. T(var)
       TemplType:=TPasGenericTemplateType(ToTypeEl);
       FromTypeEl:=FromResolved.LoTypeEl;
+      if (FromTypeEl<>nil)
+          and (FromTypeEl.ClassType=TPasGenericTemplateType) then
+        exit(cExact); // e.g. T(S)  -> will be checked when specialized
       for i:=0 to length(TemplType.Constraints)-1 do
         begin
         ConEl:=TemplType.Constraints[i];
@@ -26984,9 +27014,9 @@ begin
           if (FromResolved.IdentEl is TPasType) then
             RaiseMsg(20170404162604,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
           // type cast  classof(classof-var)  upwards or downwards
-          ToType:=TPasClassOfType(ToTypeEl).DestType;
-          FromType:=TPasClassOfType(FromResolved.LoTypeEl).DestType;
-          Result:=CheckClassesAreRelated(ToType,FromType);
+          ToTypeEl:=TPasClassOfType(ToTypeEl).DestType;
+          FromTypeEl:=TPasClassOfType(FromResolved.LoTypeEl).DestType;
+          Result:=CheckClassesAreRelated(ToTypeEl,FromTypeEl);
           end;
         end
       else if FromResolved.BaseType=btPointer then
@@ -27171,9 +27201,8 @@ begin
             and (ToTypeEl=ToResolved.IdentEl) then
           begin
           // for example  class-of(Self) in a class function
-          ToType:=TPasClassOfType(ToTypeEl).DestType;
-          FromType:=TPasClassType(FromTypeEl);
-          Result:=CheckClassesAreRelated(ToType,FromType);
+          ToTypeEl:=TPasClassOfType(ToTypeEl).DestType;
+          Result:=CheckClassesAreRelated(ToTypeEl,FromTypeEl);
           end;
         end;
       end;
@@ -27225,6 +27254,11 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckTypeCastArray From=',GetTypeDescription(FromType),' ToType=',GetTypeDescription(ToType));
   {$ENDIF}
+  if not RaiseOnError then
+    begin
+    if (ToType.GenericTemplateTypes<>nil) and (ToType.GenericTemplateTypes.Count>0) then
+      exit(cCompatible); // is later checked when specialized
+    end;
   StartFromType:=FromType;
   StartToType:=ToType;
   Result:=cIncompatible;
@@ -27254,10 +27288,11 @@ begin
         break; // ToType has more dimensions
         end;
       // have same dimension -> check ElType
+      Include(FromElTypeRes.Flags,rrfReadable);
+      FromElTypeRes.IdentEl:=nil;
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.CheckTypeCastArray check ElType From=',GetResolverResultDbg(FromElTypeRes),' To=',GetResolverResultDbg(ToElTypeRes));
       {$ENDIF}
-      Include(FromElTypeRes.Flags,rrfReadable);
       Result:=CheckTypeCastRes(FromElTypeRes,ToElTypeRes,ErrorEl,false);
       break;
       end

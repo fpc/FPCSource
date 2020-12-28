@@ -282,6 +282,7 @@ type
     Procedure TestChar_Compare;
     Procedure TestChar_BuiltInProcs;
     Procedure TestStringConst;
+    Procedure TestStringConst_InvalidUTF16;
     Procedure TestStringConstSurrogate;
     Procedure TestString_Length;
     Procedure TestString_Compare;
@@ -889,6 +890,7 @@ type
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
     Procedure TestAsync_ClassInterface;
+    Procedure TestAsync_ClassInterface_AsyncMissmatchFail;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -983,6 +985,28 @@ var
     end;
   end;
 
+  function HasSpecialChar(s: string): boolean;
+  var
+    i: Integer;
+  begin
+    for i:=1 to length(s) do
+      if s[i] in [#0..#31,#127..#255] then
+        exit(true);
+    Result:=false;
+  end;
+
+  function HashSpecialChars(s: string): string;
+  var
+    i: Integer;
+  begin
+    Result:='';
+    for i:=1 to length(s) do
+      if s[i] in [#0..#31,#127..#255] then
+        Result:=Result+'#'+hexstr(ord(s[i]),2)
+      else
+        Result:=Result+s[i];
+  end;
+
   procedure DiffFound;
   var
     ActLineStartP, ActLineEndP, p, StartPos: PChar;
@@ -1011,8 +1035,12 @@ var
         ActLineEndP:=FindLineEnd(ActualP);
         ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
         writeln('- ',ActLine);
+        if HasSpecialChar(ActLine) then
+          writeln('- ',HashSpecialChars(ActLine));
         // write expected line
         writeln('+ ',ExpLine);
+        if HasSpecialChar(ExpLine) then
+          writeln('- ',HashSpecialChars(ExpLine));
         // write empty line with pointer ^
         for i:=1 to 2+ExpectedP-StartPos do write(' ');
         writeln('^');
@@ -7467,6 +7495,7 @@ begin
   '  c:=#$DFFF;', // invalid UTF-16
   '  c:=#$FFFF;', // last UCS-2
   '  c:=high(c);', // last UCS-2
+  '  c:=#269;',
   '']);
   ConvertProgram;
   CheckSource('TestCharConst',
@@ -7497,6 +7526,7 @@ begin
     '$mod.c="\uDFFF";',
     '$mod.c="\uFFFF";',
     '$mod.c="\uFFFF";',
+    '$mod.c = "č";',
     '']));
 end;
 
@@ -7607,9 +7637,16 @@ begin
   '  s:=''"''''"'';',
   '  s:=#$20AC;', // euro
   '  s:=#$10437;', // outside BMP
+  '  s:=''abc''#$20AC;', // ascii,#
+  '  s:=''ä''#$20AC;', // non ascii,#
+  '  s:=#$20AC''abc'';', // #, ascii
+  '  s:=#$20AC''ä'';', // #, non ascii
   '  s:=default(string);',
   '  s:=concat(s);',
-  '  s:=concat(s,''a'',s)',
+  '  s:=concat(s,''a'',s);',
+  '  s:=#250#269;',
+  //'  s:=#$2F804;',
+  // ToDo: \uD87E\uDC04 -> \u{2F804}
   '']);
   ConvertProgram;
   CheckSource('TestStringConst',
@@ -7631,9 +7668,47 @@ begin
     '$mod.s=''"\''"'';',
     '$mod.s="€";',
     '$mod.s="'#$F0#$90#$90#$B7'";',
+    '$mod.s = "abc€";',
+    '$mod.s = "ä€";',
+    '$mod.s = "€abc";',
+    '$mod.s = "€ä";',
     '$mod.s="";',
     '$mod.s = $mod.s;',
     '$mod.s = $mod.s.concat("a", $mod.s);',
+    '$mod.s = "úč";',
+    '']));
+end;
+
+procedure TTestModule.TestStringConst_InvalidUTF16;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a: char = #$D87E;',
+  '  b: string = #$D87E;',
+  '  c: string = #$D87E#43;',
+  'begin',
+  '  c:=''abc''#$D87E;',
+  '  c:=#0#1#2;',
+  '  c:=#127;',
+  '  c:=#128;',
+  '  c:=#255;',
+  '  c:=#256;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestStringConst',
+    LinesToStr([
+    'this.a = "\uD87E";',
+    'this.b = "\uD87E";',
+    'this.c = "\uD87E+";',
+    '']),
+    LinesToStr([
+    '$mod.c = "abc\uD87E";',
+    '$mod.c = "\x00\x01\x02";',
+    '$mod.c = "'#127'";',
+    '$mod.c = "'#$c2#$80'";',
+    '$mod.c = "'#$c3#$BF'";',
+    '$mod.c = "'#$c4#$80'";',
     '']));
 end;
 
@@ -32868,8 +32943,18 @@ begin
   '    function _AddRef: longint;',
   '    function _Release: longint;',
   '  end;',
+  'function Say(i: IUnknown): IUnknown; async;',
+  'begin',
+  'end;',
   'function Run: IUnknown; async;',
   'begin',
+  '  Result:=await(Run);',
+  '  Result:=await(Run());',
+  '  Result:=await(Run) as IUnknown;',
+  '  Result:=await(Say(nil));',
+  '  Result:=await(Say(await(Run())));',
+  '  Result:=await(Say(await(Run()) as IUnknown));',
+  '  Result:=await(Say(await(Run()) as IUnknown)) as IUnknown;',
   'end;',
   'procedure Fly;',
   'var p: TJSPromise;',
@@ -32885,8 +32970,25 @@ begin
   CheckSource('TestAsync_ClassInterface',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'this.Say = async function (i) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
     'this.Run = async function () {',
     '  var Result = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    Result = rtl.setIntfL(Result, await $mod.Run());',
+    '    Result = rtl.setIntfL(Result, await $mod.Run());',
+    '    Result = rtl.setIntfL(Result, rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(null));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(await $mod.Run()));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown)));',
+    '    Result = rtl.setIntfL(Result, rtl.intfAsIntfT(await $mod.Say(rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown)), $mod.IUnknown));',
+    '    $ok = true;',
+    '  } finally {',
+    '    if (!$ok) rtl._Release(Result);',
+    '  };',
     '  return Result;',
     '};',
     'this.Fly = function () {',
@@ -32902,6 +33004,29 @@ begin
   CheckResolverUnexpectedHints();
 end;
 
+procedure TTestModule.TestAsync_ClassInterface_AsyncMissmatchFail;
+begin
+  StartProgram(true,[supTInterfacedObject]);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  IBird = interface',
+  '    procedure Run;',
+  '  end;',
+  '  TBird = class(TInterfacedObject,IBird)',
+  '    procedure Run; async;',
+  '  end;',
+  'procedure TBird.Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  ']);
+  SetExpectedPasResolverError('procedure type modifier "async" mismatch',nXModifierMismatchY);
+  ConvertProgram;
+end;
 
 Initialization
   RegisterTests([TTestModule]);

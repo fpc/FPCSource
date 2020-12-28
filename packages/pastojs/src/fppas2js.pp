@@ -6198,7 +6198,8 @@ begin
   cInterfaceToString:=cTypeConversion+1;
 
   {$IFDEF FPC_HAS_CPSTRING}
-  ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
+  ExprEvaluator.DefaultSourceCodePage:=CP_UTF8;
+  ExprEvaluator.DefaultStringCodePage:=CP_UTF16;
   {$ENDIF}
   FExternalNames:=TPasResHashList.Create;
   StoreSrcColumns:=true;
@@ -6517,6 +6518,7 @@ function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
     #decimal
     #$hex
     ^l  l is a letter a-z
+    Note that invalid UTF-8 sequences are checked by the scanner
 }
 var
   p, StartP, i, l: integer;
@@ -6544,7 +6546,7 @@ begin
         '''':
           begin
           if p>StartP then
-            Result:=Result+StrToJSString(copy(S,StartP,p-StartP));
+            Result:=Result+StrToJSString(copy(S,StartP,p-StartP)); // todo error on invalid UTF-8 sequence
           inc(p);
           StartP:=p;
           if (p>l) or (S[p]<>'''') then
@@ -6558,10 +6560,11 @@ begin
         end;
       until false;
       if p>StartP then
-        Result:=Result+StrToJSString(copy(S,StartP,p-StartP));
+        Result:=Result+StrToJSString(copy(S,StartP,p-StartP)); // todo error on invalid UTF-8 sequence
       end;
     '#':
       begin
+      // word sequence
       inc(p);
       if p>l then
         RaiseInternalError(20170207155121);
@@ -6586,7 +6589,6 @@ begin
           end;
         if p=StartP then
           RaiseInternalError(20170207164956);
-        Result:=Result+CodePointToJSString(i);
         end
       else
         begin
@@ -6606,8 +6608,8 @@ begin
           end;
         if p=StartP then
           RaiseInternalError(20170207171148);
-        Result:=Result+CodePointToJSString(i);
         end;
+      Result:=Result+CodePointToJSString(i);
       end;
     '^':
       begin

@@ -1535,36 +1535,42 @@ implementation
         prefix:='';
         if not assigned(st) then
          internalerror(200204212);
-        { sub procedures }
-        while (st.symtabletype in [localsymtable,parasymtable]) do
-         begin
-           if st.defowner.typ<>procdef then
-            internalerror(200204173);
-           { Add the full mangledname of procedure to prevent
-             conflicts with 2 overloads having both a nested procedure
-             with the same name, see tb0314 (PFV) }
-           s:=tprocdef(st.defowner).procsym.name;
-           s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
-           if prefix<>'' then
-             prefix:=s+'_'+prefix
-           else
-             prefix:=s;
-           if length(prefix)>100 then
-             begin
-               crc:=0;
-               crc:=UpdateCrc32(crc,prefix[1],length(prefix));
-               prefix:='$CRC'+hexstr(crc,8);
-             end;
-           st:=st.defowner.owner;
-         end;
-        { object/classes symtable, nested type definitions in classes require the while loop }
-        while st.symtabletype in [ObjectSymtable,recordsymtable] do
-         begin
-           if not (st.defowner.typ in [objectdef,recorddef]) then
-            internalerror(200204174);
-           prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
-           st:=st.defowner.owner;
-         end;
+        repeat
+          { sub procedures }
+          while (st.symtabletype in [localsymtable,parasymtable]) do
+           begin
+             if st.defowner.typ<>procdef then
+              internalerror(200204173);
+             { Add the full mangledname of the routine to prevent
+               conflicts with two overloads both having a local entity
+               -- routine (tb0314), class, interface -- with the same name }
+             s:=tprocdef(st.defowner).procsym.name;
+             s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
+             if prefix<>'' then
+               prefix:=s+'_'+prefix
+             else
+               prefix:=s;
+             if length(prefix)>100 then
+               begin
+                 crc:=0;
+                 crc:=UpdateCrc32(crc,prefix[1],length(prefix));
+                 prefix:='$CRC'+hexstr(crc,8);
+               end;
+             st:=st.defowner.owner;
+           end;
+          { object/classes symtable, nested type definitions in classes require the while loop }
+          while st.symtabletype in [ObjectSymtable,recordsymtable] do
+           begin
+             if not (st.defowner.typ in [objectdef,recorddef]) then
+              internalerror(200204174);
+             prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
+             st:=st.defowner.owner;
+           end;
+          { local classes & interfaces are possible (because of closures) }
+          if st.symtabletype<>localsymtable then
+            break;
+          prefix:='$'+prefix;
+        until false;
         { symtable must now be static or global }
         if not(st.symtabletype in [staticsymtable,globalsymtable]) then
           internalerror(200204175);
@@ -5811,7 +5817,7 @@ implementation
 {$endif}
         if (typ=procdef) and
            (newtyp=procvardef) and
-           (owner.symtabletype=ObjectSymtable) then
+           (owner.symtabletype in [ObjectSymtable,recordsymtable]) then
           include(tprocvardef(result).procoptions,po_methodpointer);
       end;
 
@@ -6636,7 +6642,7 @@ implementation
       begin
         { don't check assigned(_class), that's also the case for nested
           procedures inside methods }
-        result:=(owner.symtabletype=ObjectSymtable)and not no_self_node;
+        result:=(owner.symtabletype in [recordsymtable,ObjectSymtable]) and not no_self_node;
       end;
 
 

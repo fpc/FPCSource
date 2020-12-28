@@ -1309,21 +1309,35 @@ implementation
           begin
             secondpass(left);
             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            location_reset(location,LOC_MMREGISTER,left.location.size);
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             if UseAVX then
-              case tfloatdef(resultdef).floattype of
+              case tfloatdef(left.resultdef).floattype of
                 s32real:
                   begin
-                    { using left.location.register here as 3rd parameter is crucial to break dependency chains }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSS,S_NO,3,left.location.register,left.location.register,location.register));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSS,S_NO,location.register,left.location.register,location.register));
+{$ifndef i8086}
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESS,S_NO,3,left.location.register,left.location.register,location.register))
+                    else
+{$endif not i8086}
+                      begin
+                        { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSS,S_NO,3,left.location.register,left.location.register,location.register));
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSS,S_NO,location.register,left.location.register,location.register));
+                      end;
                   end;
                 s64real:
                   begin
-                    { using left.location.register here as 3rd parameter is crucial to break dependency chains }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSD,S_NO,3,left.location.register,left.location.register,location.register));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSD,S_NO,location.register,left.location.register,location.register));
+{$ifndef i8086}
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESD,S_NO,3,left.location.register,left.location.register,location.register))
+                    else
+{$endif not i8086}
+                      begin
+                        { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSD,S_NO,3,left.location.register,left.location.register,location.register));
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSD,S_NO,location.register,left.location.register,location.register));
+                      end;
                   end;
                 else
                   internalerror(2017052102);
@@ -1332,7 +1346,7 @@ implementation
               begin
                 extrareg:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
-                case tfloatdef(resultdef).floattype of
+                case tfloatdef(left.resultdef).floattype of
                   s32real:
                     begin
                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_ROUNDSS,S_NO,3,left.location.register,extrareg));
@@ -1347,6 +1361,8 @@ implementation
                     internalerror(2017052103);
                 end;
               end;
+            if tfloatdef(left.resultdef).floattype<>tfloatdef(resultdef).floattype then
+              hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register,location.register,mms_movescalar);
           end
         else
           internalerror(2017052101);
