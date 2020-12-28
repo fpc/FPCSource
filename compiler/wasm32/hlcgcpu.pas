@@ -1673,8 +1673,9 @@ implementation
       pd:=tcpuprocdef(current_procinfo.procdef);
       g_procdef(list,pd);
 
-      tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_persistent,pd.frame_pointer_ref);
-      tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_persistent,pd.base_pointer_ref);
+      { hack: we use tt_regallocator to force a local }
+      tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_regallocator,pd.frame_pointer_ref);
+      tg.gethltemp(list,voidpointertype,voidpointertype.size,tt_regallocator,pd.base_pointer_ref);
 
       { the localsize is based on tg.lasttemp -> already in terms of stack
         slots rather than bytes }
