@@ -44,6 +44,7 @@ begin
         writeln('-h  help');
         writeln('-f  [fpc,fpcmref,nasm,fasm,fpcinc] outputformat');
         writeln('-l  list opcode-memrefsize-states');
+        writeln('-m  create only these testfile(s) (e.g. -mvgather,vpgather)');
         writeln('-o  destination path');
         writeln('-p  [x8664] codegenerator for x86_64 platform');
         writeln('-z  avx512');
@@ -56,11 +57,11 @@ begin
         //exit;
 
         case OutputFormat of
-          'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path);
-          'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path);
-          'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path);
-          'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path);
-          'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path);
+          'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path, Filemask);
+          'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path, Filemask);
+          'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path, Filemask);
+          'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path, Filemask);
+          'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path, Filemask);
           'l': ListMemRefState;
         end;
       end;

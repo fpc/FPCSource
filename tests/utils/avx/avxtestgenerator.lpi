@@ -22,13 +22,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-l"/>
+        <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-l"/>
+            <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
           </local>
         </Mode0>
       </Modes>
@@ -60,7 +60,15 @@
       <Filename Value="avxtestgenerator"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="1">
+      <Item1>
+        <Name Value="Unknown"/>
+      </Item1>
+    </Exceptions>
+  </Debugging>
 </CONFIG>

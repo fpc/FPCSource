@@ -36,6 +36,7 @@ type
     FOutputFormat: Char;
     FPath: string;
     FMemRef: boolean;
+    FFilemask: string;
   public
     constructor Create;
 
@@ -47,6 +48,7 @@ type
     property AVX512: boolean read FAVX512 write FAVX512;
     property Path: string read FPath write FPath;
     property MemRef: boolean read FMemref write FMemRef;
+    property Filemask: string read FFilemask write FFilemask;
   end;
 
 implementation
@@ -63,6 +65,7 @@ begin
   FOutputFormat  := '?';
   FPath          := '';
   FMemRef        := false;
+  FFilemask      := '';
 end;
 
 procedure TOptions.LoadParams;
@@ -103,6 +106,7 @@ begin
               else IsInvalidParam := true;
          'l': FOutputFormat := 'l';
          'z': FAVX512 := true;
+	 'm': FFilemask := sValue;
          'o': if sValue <> '' then
               begin
                 FPath :=  IncludeTrailingBackslash(sValue);
