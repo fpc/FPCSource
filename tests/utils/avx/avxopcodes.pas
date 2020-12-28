@@ -18,13 +18,13 @@ type
   protected
     procedure Init;
 
-    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
     destructor Destroy; override;
 
-    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
+    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask: String): boolean;
     procedure ListMemRefState;
 //    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
@@ -3304,7 +3304,7 @@ begin
   end;
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
+function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
   i,j: integer;
@@ -3314,22 +3314,10 @@ var
   sl: TStringList;
   slAsm: TStringList;
   slLocalHeader: TStringList;
+  slFilemask: TStringList;
   LastOpCode: String;
   NewOpCode: String;
   FoundNewOpcode: boolean;
-
-  //function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
-  //begin
-  //  result := false;
-  //
-  //  if aAsmList.Count > 0 then
-  //  begin
-  //    aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
-  //    aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
-  //
-  //    aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
-  //  end;
-  //end;
 
 begin
   result := false;
@@ -3454,56 +3442,27 @@ begin
 
         for i := 0 to aOpCodeList.Count - 1 do
         begin
-          if (not(aX64) and (sl[1] = '1')) or // i386
-             (aX64 and (sl[2] = '1')) then    // x86_64
+          sl.Clear;
+          sl.CommaText := aOpCodeList[i];
+
+          while sl.Count < 8 do sl.Add('');
+
+          NewOpCode := ansilowercase(sl[0]);
+
+          FoundNewOpcode := false;
+          for j := 0 to slFilemask.Count - 1 do
           begin
-	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+            if Pos(slFilemask[j], NewOpCode) = 1 then
+             FoundNewOpcode := true;
+          end;
 
-            slLocalHeader := TStringList.Create;
-            try
-              slLocalHeader.Text := aHeaderList.text;
-
-	      if (sl[4]  = '') and
-                 (sl[5]  = '') and
-                 (sl[6]  = '') and
-                 (sl[7]  = '') then
-              begin                                        // Opcode with no Params, e.g. VZEROALL
-                slAsm.Add('    ' + sl[0]);
-              end
-              else
-	      begin
-                if aMREF then
-	        begin
-                  sLocalVarDataTyp := '';
- 	          TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-		  sDestFile := 'MREF_' + sDestFile;
-
-		  if trim(sLocalVarDataTyp) = '' then
-		   sLocalVarDataTyp := 'byte';
-
-                  slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
-	        end
-   	        else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-	      end;
-
-              SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
-              writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
-
-            finally
-              FreeAndNil(slLocalHeader);
-            end;
+          if not(FoundNewOpcode) and (slFilemask.Count > 0) then
+           NewOpcode := '';
 
           if NewOpCode <> '' then
           begin
-            if (
-                (not(aX64) and (sl[1] = '1')) or // i386
-                (aX64 and (sl[2] = '1'))
-               ) and
-               (
-                sl[3] = '1'
-               )
-
-                then    // x86_64
+            if (not(aX64) and (sl[1] = '1')) or // i386
+               (aX64 and (sl[2] = '1')) then    // x86_64
             begin
 	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
 
@@ -3520,15 +3479,23 @@ begin
                 end
                 else
 	        begin
-   	          TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+                  if aMREF then
+	          begin
+                    sLocalVarDataTyp := '';
+ 	            TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+		    sDestFile := 'MREF_' + sDestFile;
+
+		    if trim(sLocalVarDataTyp) = '' then
+		     sLocalVarDataTyp := 'byte';
+
+                    slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
+	          end
+   	          else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
-                if trim(slAsm.Text) <> '' then
-                begin
-                  sDestFile := 'CDISP8_' + sDestFile;
-                  SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
-                  writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
-                end;
+                SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+
               finally
                 FreeAndNil(slLocalHeader);
               end;
@@ -3770,7 +3737,7 @@ begin
                 end;
       end;
 
-      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
+      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
 
     finally
       FreeAndNil(slFooter);
