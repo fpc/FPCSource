@@ -1253,18 +1253,10 @@ begin
                        ;
 
             
-          MaskRegNeeded := (Uppercase(aInst) = 'VGATHERDPD') or
-                           (Uppercase(aInst) = 'VGATHERDPS') or
-                           (Uppercase(aInst) = 'VGATHERDQPD') or
-                           (Uppercase(aInst) = 'VGATHERDQPS') or
-                           (Uppercase(aInst) = 'VPGATHERDD') or
-                           (Uppercase(aInst) = 'VPGATHERDQ') or
-                           (Uppercase(aInst) = 'VPGATHERQD') or
-                           (Uppercase(aInst) = 'VPGATHERQQ') or
+          MaskRegNeeded := (Pos('VGATHER', Uppercase(aInst)) = 1) or
+                           (Pos('VPGATHER', Uppercase(aInst)) = 1) or
 			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
 			   (Pos('VSCATTER', Uppercase(aInst)) = 1);
-
-
 
           for il_Op := 1 to 4 do
           begin
