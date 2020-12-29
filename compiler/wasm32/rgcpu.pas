@@ -54,7 +54,7 @@ implementation
       globtype,globals,
       cgobj,
       tgobj,
-      symtype,symdef;
+      symtype,symdef,symcpu;
 
     { trgcpu }
 
@@ -67,10 +67,13 @@ implementation
           operand, so there is no danger of superregister conflicts }
         for l:=0 to instr.ops-1 do
           if instr.oper[l]^.typ=top_reg then
-            begin
-              reg:=instr.oper[l]^.reg;
-              instr.loadref(l,spilltemps[getregtype(reg)]^[getsupreg(reg)]);
-            end;
+            if instr.oper[l]^.reg=NR_LOCAL_FRAME_POINTER_REG then
+              instr.loadref(l,tcpuprocdef(current_procinfo.procdef).frame_pointer_ref)
+            else
+              begin
+                reg:=instr.oper[l]^.reg;
+                instr.loadref(l,spilltemps[getregtype(reg)]^[getsupreg(reg)]);
+              end;
       end;
 
 
