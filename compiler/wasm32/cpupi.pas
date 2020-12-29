@@ -44,8 +44,8 @@ interface
 implementation
 
     uses
-      systems,globals, tgcpu,aasmdata,aasmcpu,aasmtai,
-      tgobj,paramgr,symconst;
+      systems,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,
+      tgobj,paramgr,symconst,symcpu;
 
     procedure tcpuprocinfo.postprocess_code;
 
@@ -63,6 +63,28 @@ implementation
                 begin
                   result:=tai_local(hp);
                   exit;
+                end;
+              hp:=tai(hp.Next);
+            end;
+        end;
+
+      procedure replace_local_frame_pointer(asmlist: TAsmList);
+        var
+          hp: tai;
+          instr: taicpu;
+          l: Integer;
+        begin
+          if not assigned(asmlist) then
+            exit;
+          hp:=tai(asmlist.first);
+          while assigned(hp) do
+            begin
+              if hp.typ=ait_instruction then
+                begin
+                  instr:=taicpu(hp);
+                  for l:=0 to instr.ops-1 do
+                    if (instr.oper[l]^.typ=top_reg) and (instr.oper[l]^.reg=NR_LOCAL_FRAME_POINTER_REG) then
+                      instr.loadref(l,tcpuprocdef(current_procinfo.procdef).frame_pointer_ref);
                 end;
               hp:=tai(hp.Next);
             end;
@@ -92,6 +114,8 @@ implementation
               last_tai_local:=tai_local(last_tai_local.Next);
             last_tai_local.last:=true;
           end;
+
+        replace_local_frame_pointer(aktproccode);
 
         inherited postprocess_code;
       end;
