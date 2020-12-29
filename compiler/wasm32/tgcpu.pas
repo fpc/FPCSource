@@ -75,7 +75,6 @@ unit tgcpu;
          constructor create; override;
          destructor destroy; override;
          procedure setfirsttemp(l : asizeint); override;
-         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
          procedure ungettemp(list: TAsmList; const ref : treference); override;
@@ -167,20 +166,6 @@ unit tgcpu;
         firsttemp:=l;
         lasttemp:=l;
         localvars.varindex := l; //?
-      end;
-
-
-    procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
-      var
-        wbt : TWasmBasicType;
-        idx : integer;
-      begin
-        if defToWasmBasic(def, wbt) then
-          alloclocalVarToRef(wbt, ref)
-        else begin
-          //Internalerror(2019091801); // no support of structural type
-          inherited;
-        end;
       end;
 
 
