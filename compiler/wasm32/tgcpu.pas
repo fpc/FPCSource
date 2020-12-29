@@ -78,6 +78,8 @@ unit tgcpu;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
          procedure ungettemp(list: TAsmList; const ref : treference); override;
+         procedure allocframepointer(list: TAsmList; out ref: treference);
+         procedure allocbasepointer(list: TAsmList; out ref: treference);
        end;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
@@ -195,6 +197,16 @@ unit tgcpu;
           localvars.dealloc(ref.offset)
         else
           inherited;
+      end;
+
+    procedure ttgwasm.allocframepointer(list: TAsmList; out ref: treference);
+      begin
+        allocLocalVarToRef(wbt_i32,ref);
+      end;
+
+    procedure ttgwasm.allocbasepointer(list: TAsmList; out ref: treference);
+      begin
+        allocLocalVarToRef(wbt_i32,ref);
       end;
 
     procedure ttgwasm.allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
