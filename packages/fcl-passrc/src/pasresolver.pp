@@ -4734,7 +4734,7 @@ end;
 
 procedure TPasResolver.GetParamsOfNameExpr(El: TPasExpr; out
   ParentParams: TPRParentParams);
-// Checks is El is the name expression of a call or array access
+// Checks if El is the name expression of a call or array access
 // For example: a.b.El()  a.El[]
 // Note: TPasParser guarantees that there is at most one TBinaryExpr
 //       and one TInlineSpecializeExpr between El and TParamsExpr
@@ -10176,7 +10176,6 @@ begin
   if ParentParams.InlineSpec<>nil then
     begin
     TypeCnt:=InlParams.Count;
-    // ToDo: generic functions without params
     DeclEl:=FindGenericEl(aName,TypeCnt,FindData,El);
     if DeclEl<>nil then
       begin
@@ -10207,9 +10206,19 @@ begin
       begin
       TemplTypes:=GetProcTemplateTypes(Proc);
       if (TemplTypes<>nil) then
+        begin
         // implicit function specialization without bracket
+        {$IFDEF VerbosePasResolver}
+        DeclEl:=El;
+        while DeclEl.Parent is TPasExpr do
+          DeclEl:=DeclEl.Parent;
+        {AllowWriteln}
+        writeln('TPasResolver.ResolveNameExpr ',WritePasElTree(TPasExpr(DeclEl),'  '));
+        {AllowWriteln-}
+        {$ENDIF}
         RaiseMsg(20191007222004,nCouldNotInferTypeArgXForMethodY,
           sCouldNotInferTypeArgXForMethodY,[TPasGenericTemplateType(TemplTypes[0]).Name,Proc.Name],El);
+        end;
       end;
 
     if El.Parent.ClassType=TPasProperty then
@@ -10757,7 +10766,7 @@ begin
   else if Value.ClassType=TInlineSpecializeExpr then
     begin
     // e.g. Name<>()
-    ResolveInlineSpecializeExpr(TInlineSpecializeExpr(Value),rraRead);
+    ResolveInlineSpecializeExpr(TInlineSpecializeExpr(Value),Access);
     end
   else if Value.ClassType=TParamsExpr then
     begin
@@ -27370,7 +27379,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
             end
           else if ParentNeedsExprResult(Expr) then
             begin
-            // a procedure
+            // a procedure address
             exit;
             end;
           if rcSetReferenceFlags in Flags then
@@ -28235,6 +28244,8 @@ begin
     else
       Result:=true;
     end
+  else if C=TInlineSpecializeExpr then
+    Result:=ParentNeedsExprResult(TInlineSpecializeExpr(P))
   else if C.InheritsFrom(TPasExpr) then
     Result:=true
   else if (C=TPasEnumValue)
