@@ -2089,7 +2089,7 @@ begin
              begin
                asize := 0;
 
-               if ((operands[i] as tx86operand).vopext <> 0) and
+               if ((operands[i] as tx86operand).vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST) and
                   (MemRefInfo(opcode).MemRefSizeBCST in [msbBCST32,msbBCST64]) then
                begin
                  case operands[i].size of
