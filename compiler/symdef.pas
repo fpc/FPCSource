@@ -170,6 +170,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           function GetTypeName:string;override;
+          function alignment : shortint;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -3289,6 +3290,12 @@ implementation
     function tvariantdef.getcopy : tstoreddef;
       begin
         result:=cvariantdef.create(varianttype);
+      end;
+
+
+    function tvariantdef.alignment: shortint;
+      begin
+        result:=search_system_type('TVARDATA').typedef.alignment;
       end;
 
 
