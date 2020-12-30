@@ -320,7 +320,7 @@ begin
      else
       begin
         if status.use_gccoutput then
-          hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '+s
+          hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+s
         else
           hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
       end;
