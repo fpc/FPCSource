@@ -654,6 +654,17 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
+const
+  BeepChars: array [1..2] of char = #7'$';
+
+procedure sysBeep;
+var
+  Regs: Registers;
+begin
+  Regs.dx := Ofs (BeepChars);
+  Regs.ah := 9;
+  MsDos (Regs);
+end;
 
 {****************************************************************************
                               Locale Functions
@@ -898,6 +909,7 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   InitDelay;
+  OnBeep:=@SysBeep;
 Finalization
   FreeTerminateProcs;
   DoneExceptions;
