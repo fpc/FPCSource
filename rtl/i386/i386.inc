@@ -1299,6 +1299,14 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
+  MM_Invalid = 1;
+  MM_Denormal = 2;
+  MM_DivisionByZero = 4;
+  MM_Overflow = 8;
+  MM_Underflow = $10;
+  MM_Precicion = $20;
+  MM_ExceptionMask = $3f;
+
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
