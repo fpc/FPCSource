@@ -198,9 +198,6 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
-  {$ifndef VER2_6}
-  FarPointer = Pointer;
-  {$endif}
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
@@ -221,7 +218,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
@@ -236,7 +232,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
@@ -251,7 +246,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUSPARC}
 
 {$ifdef CPUSPARC64}
@@ -264,7 +258,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUSPARC64}
 
 {$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
@@ -280,7 +273,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUMIPS32}
 
 
@@ -298,7 +290,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUARM}
 
 {$ifdef CPUAVR}
@@ -317,7 +308,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  FarPointer = Pointer;
 {$endif CPUAVR}
 
 {$ifdef CPUAARCH64}
@@ -328,8 +318,11 @@ Type
 
   ValReal = Double;
 
-  FarPointer = Pointer;
 {$endif CPUAARCH64}
+
+{$if not declared(FarPointer)}
+   FarPointer = Pointer;
+{$endif}
 
 
 {$ifdef CPU64}
