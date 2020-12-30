@@ -124,7 +124,7 @@ begin
   else
     begin
     D:=ADirectory;
-    if Copy(D,1,1)<>'/' then
+    if (D<>ExpandFileName(D)) then
       D:=BaseDir+D;
     if not DirectoryExists(D) then
       Raise HTTPError.CreateFmt(SErrInvalidDirectory,[D]);
