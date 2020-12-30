@@ -37,6 +37,7 @@ unit tgcpu;
 
       TWasmLocal = class
         inuse    : Boolean;
+        noreuse  : Boolean;
         index    : integer;
         typ      : TWasmBasicType;
         next     : TWasmLocal; // next in the same basic type
@@ -57,6 +58,7 @@ unit tgcpu;
         constructor Create(astartindex: Integer = 0);
         destructor Destroy; override;
         function alloc(bt: TWasmBasicType): integer;
+        function allocnoreuse(bt: TWasmBasicType): integer;
         procedure dealloc(bt: TWasmBasicType; index: integer);
         procedure dealloc(index: integer);
       end;
@@ -231,7 +233,7 @@ unit tgcpu;
       begin
         lc := locv[bt];
         t := nil;
-        while Assigned(lc) and (lc.inuse) do begin
+        while Assigned(lc) and ((lc.inuse) or (lc.noreuse)) do begin
           t := lc;
           lc := lc.next;
         end;
@@ -251,6 +253,35 @@ unit tgcpu;
         end;
         alloc := lc.index;
 
+      end;
+
+    function TWasmLocalVars.allocnoreuse(bt: TWasmBasicType): integer;
+      var
+        i : integer;
+        lc : TWasmLocal;
+        t  : TWasmLocal;
+      begin
+        lc := locv[bt];
+        t := nil;
+        while Assigned(lc) do
+          begin
+            t := lc;
+            lc := lc.next;
+          end;
+        lc := TWasmLocal.Create(bt, varindex);
+        if Assigned(t) then
+          t.next := lc
+        else
+          locv[bt]:=lc;
+        lc.inuse:=true;
+        lc.noreuse:=true;
+        inc(varindex);
+        if Assigned(last) then
+          last.nextseq := lc;
+        if not Assigned(first) then
+          first := lc;
+        last := lc;
+        allocnoreuse := lc.index;
       end;
 
     procedure TWasmLocalVars.dealloc(bt: TWasmBasicType; index: integer);
