@@ -15,6 +15,7 @@
 
  **********************************************************************}
 
+{ $define SYSTEM_DEBUG}
 
 { use a trampoline which pushes the return address for proper unwinding }
 Procedure SignalToHandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
@@ -33,9 +34,8 @@ function GetFPUState(const SigContext : TSigContext) : word;
     else
       GetFPUState:=0;
   {$ifdef SYSTEM_DEBUG}
-    writeln('xx:',sigcontext.twd,' ',sigcontext.cwd);
-  {$endif SYSTEM_DEBUG}
-  {$ifdef SYSTEM_DEBUG}
+    if assigned(SigContext.fpstate) then
+    writeln('Tag: ',sigcontext.fpstate^.twd,' Cw: ',sigcontext.fpstate^.cwd);
     Writeln(stderr,'FpuState = ',result);
   {$endif SYSTEM_DEBUG}
   end;
@@ -70,37 +70,56 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                 begin
                   { first check the more precise options }
                   if (FpuState and FPU_DivisionByZero)<>0 then
-                    res:=200
+                    res:=208
                   else if (FpuState and FPU_Overflow)<>0 then
                     res:=205
                   else if (FpuState and FPU_Underflow)<>0 then
                     res:=206
                   else if (FpuState and FPU_Denormal)<>0 then
-                    res:=216
+                    res:=206
                   else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
                     res:=207
                   else
                     res:=207;  {'Coprocessor Error'}
+                end
+              else
+                begin
+                  MMState:=getMMState(SigContext^);
+                  if (MMState and MM_ExceptionMask)<>0 then
+                    begin
+                      { first check the more precise options }
+                      if (MMState and MM_DivisionByZero)<>0 then
+                        res:=208
+                      else if (MMState and MM_Invalid)<>0 Then
+                        res:=207
+                      else if (MMState and MM_Overflow)<>0 then
+                        res:=205
+                      else if (MMState and MM_Underflow)<>0 then
+                        res:=206
+                      else if (MMState and MM_Denormal)<>0 then
+                        res:=206
+                      else
+                        res:=207;  {'Coprocessor Error'}
+                    end;
                 end;
-                MMState:=getMMState(SigContext^);
-                if (MMState and MM_ExceptionMask)<>0 then
+              if assigned(SigContext^.fpstate) then
+                with SigContext^.fpstate^ do
                   begin
-                    { first check the more precise options }
-                    if (MMState and MM_DivisionByZero)<>0 then
-                      res:=208
-                    else if (MMState and MM_Invalid)<>0 Then
-                      res:=207
-                    else if (MMState and MM_Overflow)<>0 then
-                      res:=205
-                    else if (MMState and MM_Underflow)<>0 then
-                      res:=206
-                    else if (MMState and MM_Denormal)<>0 then
-                      res:=216
-                    else
-                      res:=207;  {'Coprocessor Error'}
+  {$ifdef SYSTEM_DEBUG}
+                    Writeln(stderr,'fpstate^.swd = ',swd);
+  {$endif SYSTEM_DEBUG}
+                    { actually, I am not sure if we should really touch the controll word }
+                    cwd:=Default8087CW;
+                    { found by trial and error that setting to 0 means empty }
+                    twd:=$0;
+                    { clear top }
+                    swd:=swd and not($3700);
+                    { exceptions are handled, clear all flags
+                      as we return from SignalToRunerrer, we have to clear the exception flags in the context }
+                    mxcsr:=mxcsr and not(MM_ExceptionMask);
+                    swd:=swd and not($37ff);
                   end;
             end;
-          SysResetFPU;
         end;
       SIGILL,
       SIGBUS,

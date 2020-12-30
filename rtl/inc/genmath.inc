@@ -138,7 +138,7 @@ Begin
      HandleError(207)
   else
   if (float_flag_divbyzero in unmasked_flags) then
-     HandleError(200)
+     HandleError(208)
   else
   if (float_flag_overflow in unmasked_flags) then
      HandleError(205)

@@ -32,6 +32,14 @@ type
     element : array[0..3] of dword;
   end;
 
+  tfpx_sw_bytes = record
+    magic1 : dword;
+    extended_size : dword;
+    xfeatures : qword;
+    xstate_size : dword;
+    padding : array[0..6] of dword;
+  end;
+
 
   pfpstate = ^tfpstate;
   tfpstate = record
@@ -43,7 +51,13 @@ type
     reserved : dword;
     fxsr_st : array[0..7] of tfpxreg;
     xmmreg : array[0..7] of txmmreg;
-    padding : array[0..55] of dword;
+    case byte of
+       1: (padding : array[0..43] of dword;
+           case byte of
+             1: (padding2 : array[0..11] of dword);
+             2: (sw_reserved : tfpx_sw_bytes);
+          );
+       2: (padding1 : array[0..43] of dword);
   end;
 
   PSigContext = ^TSigContext;

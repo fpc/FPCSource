@@ -64,7 +64,7 @@
             else if (FpuStatus and FPU_Denormal)<>0 then
               OutError:=216
             else if (FpuStatus and FPU_DivisionByZero)<>0 then
-              OutError:=200
+              OutError:=208
             else if (FpuStatus and FPU_Overflow)<>0 then
               OutError:=205
             else if (FpuStatus and FPU_Underflow)<>0 then

@@ -1170,7 +1170,7 @@ begin
     case cardinal(ExceptionRecord^.ExceptionCode) of
       STATUS_INTEGER_DIVIDE_BY_ZERO,
       STATUS_FLOAT_DIVIDE_BY_ZERO :
-        res := 200;
+        res := 208;
       STATUS_ARRAY_BOUNDS_EXCEEDED :
         begin
           res := 201;
