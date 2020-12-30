@@ -70,6 +70,7 @@ unit tgcpu;
          procedure updateFirstTemp;
 
          procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
+         procedure allocLocalVarNoReuseToRef(wbt: TWasmBasicType; out ref: treference);
          procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
         public
          localvars: TWasmLocalVars;
@@ -203,12 +204,12 @@ unit tgcpu;
 
     procedure ttgwasm.allocframepointer(list: TAsmList; out ref: treference);
       begin
-        allocLocalVarToRef(wbt_i32,ref);
+        allocLocalVarNoReuseToRef(wbt_i32,ref);
       end;
 
     procedure ttgwasm.allocbasepointer(list: TAsmList; out ref: treference);
       begin
-        allocLocalVarToRef(wbt_i32,ref);
+        allocLocalVarNoReuseToRef(wbt_i32,ref);
       end;
 
     procedure ttgwasm.allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
@@ -216,6 +217,14 @@ unit tgcpu;
         idx : integer;
       begin
         idx := localvars.alloc(wbt);
+        localVarToRef(idx, 1, ref);
+      end;
+
+    procedure ttgwasm.allocLocalVarNoReuseToRef(wbt: TWasmBasicType; out ref: treference);
+      var
+        idx : integer;
+      begin
+        idx := localvars.allocnoreuse(wbt);
         localVarToRef(idx, 1, ref);
       end;
 
