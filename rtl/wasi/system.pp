@@ -31,7 +31,6 @@ type
 
 var
   our_iov: __wasi_ciovec_t;
-  our_nwritten: longint;
 
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
@@ -51,6 +50,8 @@ begin
 end;
 
 procedure DebugWrite(const P: PChar);
+var
+  our_nwritten: longint;
 begin
   our_iov.buf := P;
   our_iov.buf_len := StrLen(P);
