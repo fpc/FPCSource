@@ -29,9 +29,6 @@ type
     buf_len: __wasi_size_t;
   end;
 
-var
-  our_iov: __wasi_ciovec_t;
-
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
@@ -51,6 +48,7 @@ end;
 
 procedure DebugWrite(const P: PChar);
 var
+  our_iov: __wasi_ciovec_t;
   our_nwritten: longint;
 begin
   our_iov.buf := P;
