@@ -75,6 +75,11 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+# OpenBSD defaults to libc, no syscalls
+ifeq ($(FPC_USE_SYSCALL),)
+override FPCOPT+=-dFPC_USE_LIBC
+endif
+
 CPU_UNITS=
 SYSINIT_UNITS=si_prc si_c si_dll si_g
 
