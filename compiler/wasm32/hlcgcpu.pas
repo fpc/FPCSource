@@ -1055,12 +1055,7 @@ implementation
               { regular field -> load self on the stack }
               a_load_reg_stack(list,voidpointertype,ref.base);
               if dup then
-                begin
-                  internalerror(2019083002);
-                  //todo: add duplicate
-                  //list.concat(taicpu.op_none(a_dup));
-                  incstack(list,1);
-                end;
+                a_load_reg_stack(list,voidpointertype,ref.base);
               { field name/type encoded in symbol, no index/offset }
               result:=1;
               ref.base:=NR_NO;
