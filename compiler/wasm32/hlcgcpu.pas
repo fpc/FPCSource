@@ -1139,16 +1139,21 @@ implementation
       extra_dslots: longint;
       tmpsref, tmpdref: treference;
     begin
-      tmpsref:=sref;
-      tmpdref:=dref;
-      { make sure the destination reference is on top, since in the end the
-        order has to be "destref, value" -> first create "destref, sourceref" }
-      extra_dslots:=prepare_stack_for_ref(list,tmpdref,false);
-      extra_sslots:=prepare_stack_for_ref(list,tmpsref,false);
-      a_load_ref_stack(list,fromsize,tmpsref,extra_sslots);
-      if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,fromsize,tosize,assigned(tmpdref.symbol));
-      a_load_stack_ref(list,tosize,tmpdref,extra_dslots);
+      if sref.base<>NR_EVAL_STACK_BASE then
+        begin
+          tmpsref:=sref;
+          tmpdref:=dref;
+          { make sure the destination reference is on top, since in the end the
+            order has to be "destref, value" -> first create "destref, sourceref" }
+          extra_dslots:=prepare_stack_for_ref(list,tmpdref,false);
+          extra_sslots:=prepare_stack_for_ref(list,tmpsref,false);
+          a_load_ref_stack(list,fromsize,tmpsref,extra_sslots);
+          if def2regtyp(fromsize)=R_INTREGISTER then
+            resize_stack_int_val(list,fromsize,tosize,assigned(tmpdref.symbol));
+          a_load_stack_ref(list,tosize,tmpdref,extra_dslots);
+        end
+      else
+        inherited;
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
