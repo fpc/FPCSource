@@ -33,7 +33,6 @@ var
   our_iov: __wasi_ciovec_t;
   our_nwritten: longint;
   i: size_t;
-  gp: pchar;
 
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
@@ -41,10 +40,12 @@ function fd_write(fd: __wasi_fd_t;
                   nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_unstable';
 
 function StrLen(P: PChar): size_t;
+var
+  lp: pchar;
 begin
-  gp := p;
+  lp := p;
   i := 0;
-  while gp[i]<>#0 do
+  while lp[i]<>#0 do
     Inc(i);
   StrLen := i;
 end;
