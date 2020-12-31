@@ -32,7 +32,6 @@ type
 var
   our_iov: __wasi_ciovec_t;
   our_nwritten: longint;
-  i: size_t;
 
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
@@ -42,6 +41,7 @@ function fd_write(fd: __wasi_fd_t;
 function StrLen(P: PChar): size_t;
 var
   lp: pchar;
+  i: size_t;
 begin
   lp := p;
   i := 0;
