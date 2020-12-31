@@ -4943,7 +4943,7 @@ procedure TPasParser.ParseArgList(Parent: TPasElement; Args: TFPList; EndToken: 
       end;
   end;
 var
-  IsUntyped, ok, LastHadDefaultValue: Boolean;
+  OldForceCaret,IsUntyped, ok, LastHadDefaultValue: Boolean;
   Name : String;
   Value : TPasExpr;
   i, OldArgCount: Integer;
@@ -5022,9 +5022,11 @@ begin
     if not IsUntyped then
       begin
       Arg := TPasArgument(Args[OldArgCount]);
-      ArgType := ParseType(Arg,CurSourcePos);
+      ArgType:=Nil;
       ok:=false;
+      oldForceCaret:=Scanner.SetForceCaret(True);
       try
+        ArgType := ParseType(Arg,CurSourcePos);
         NextToken;
         if CurToken = tkEqual then
           begin
@@ -5048,6 +5050,7 @@ begin
         UngetToken;
         ok:=true;
       finally
+        Scanner.SetForceCaret(oldForceCaret);
         if (not ok) and (ArgType<>nil) then
           ArgType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       end;
@@ -5344,6 +5347,7 @@ Var
   OK: Boolean;
   IsProcType: Boolean; // false = procedure, true = procedure type
   IsAnonymous: Boolean;
+  OldForceCaret : Boolean;
   PTM: TProcTypeModifier;
   ModTokenCount: Integer;
   LastToken: TToken;
@@ -5361,7 +5365,12 @@ begin
       if CurToken = tkColon then
         begin
         ResultEl:=TPasFunctionType(Element).ResultEl;
-        ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
+        OldForceCaret:=Scanner.SetForceCaret(True);
+        try
+          ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
+        finally
+          Scanner.SetForceCaret(OldForceCaret);
+        end;
         end
       // In Delphi mode, the signature in the implementation section can be
       // without result as it was declared
