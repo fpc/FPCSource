@@ -962,6 +962,7 @@ packages/amunits/Makefile svneol=native#text/plain
 packages/amunits/Makefile.fpc svneol=native#text/plain
 packages/amunits/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/amunits/README.txt svneol=native#text/plain
+packages/amunits/examples/amicube.pas svneol=native#text/plain
 packages/amunits/examples/asltest.pas svneol=native#text/plain
 packages/amunits/examples/bezier.pas svneol=native#text/plain
 packages/amunits/examples/bezier2.pas svneol=native#text/plain
