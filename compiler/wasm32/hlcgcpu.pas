@@ -2263,7 +2263,11 @@ implementation
             OS_32:
               list.concat(taicpu.op_none(a_i64_extend_u_i32));
             OS_S32:
-              list.concat(taicpu.op_none(a_i64_extend_s_i32))
+              list.concat(taicpu.op_none(a_i64_extend_s_i32));
+            OS_64,OS_S64:
+              ;
+            else
+              internalerror(2021010301);
           end;
         end;
       { Conversions between 32 and 64 bit types have been completely handled
@@ -2281,6 +2285,10 @@ implementation
           a_op_const_stack(list,OP_AND,s32inttype,65535);
         OS_S16:
           list.concat(taicpu.op_none(a_i32_extend_s_16));
+        OS_32,OS_S32,OS_64,OS_S64:
+          ;
+        else
+          internalerror(2021010302);
       end;
     end;
 
