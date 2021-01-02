@@ -316,7 +316,6 @@ implementation
         writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
       else
 
-      cpu := taicpu(hp);
       if cpu.ops<>0 then
         begin
           for i:=0 to cpu.ops-1 do
