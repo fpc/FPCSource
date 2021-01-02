@@ -8,6 +8,9 @@ interface
 
 {$I systemh.inc}
 
+const
+  maxExitCode = 65535;
+
 {$else FULL_RTL}
 type
   integer = longint;
@@ -43,6 +46,9 @@ type
   end;
 
 {$ifdef FULL_RTL}
+
+{$I system.inc}
+
 {$else FULL_RTL}
 procedure fpc_lib_exit; compilerproc;
 begin
