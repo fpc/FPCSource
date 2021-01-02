@@ -87,6 +87,15 @@ uses
 
       TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
 
+      { TWasmFuncType }
+
+      TWasmFuncType = class
+        params: array of TWasmBasicType;
+        results: array of TWasmBasicType;
+        procedure add_param(param: TWasmBasicType);
+        procedure add_result(res: TWasmBasicType);
+      end;
+
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[31];
 
@@ -374,6 +383,22 @@ uses
       begin
         result:=C_None;
         internalerror(2015082701);
+      end;
+
+{*****************************************************************************
+                                  TWasmFuncType
+*****************************************************************************}
+
+    procedure TWasmFuncType.add_param(param: TWasmBasicType);
+      begin
+        SetLength(params,Length(params)+1);
+        params[High(params)]:=param;
+      end;
+
+    procedure TWasmFuncType.add_result(res: TWasmBasicType);
+      begin
+        SetLength(results,Length(results)+1);
+        results[High(results)]:=res;
       end;
 
 end.

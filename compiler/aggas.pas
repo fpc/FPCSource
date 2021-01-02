@@ -808,16 +808,14 @@ implementation
         end;
 
 {$ifdef WASM}
-      procedure WriteFuncType(hp:tai_functype);
+      procedure WriteFuncType(functype: TWasmFuncType);
         var
           wasm_basic_typ: TWasmBasicType;
           first: boolean;
         begin
-          writer.AsmWrite(#9'.functype'#9);
-          writer.AsmWrite(tai_functype(hp).funcname);
-          writer.AsmWrite(' (');
+          writer.AsmWrite('(');
           first:=true;
-          for wasm_basic_typ in tai_functype(hp).params do
+          for wasm_basic_typ in functype.params do
             begin
               if first then
                 first:=false
@@ -827,7 +825,7 @@ implementation
             end;
           writer.AsmWrite(') -> (');
           first:=true;
-          for wasm_basic_typ in tai_functype(hp).results do
+          for wasm_basic_typ in functype.results do
             begin
               if first then
                 first:=false
@@ -835,7 +833,17 @@ implementation
                 writer.AsmWrite(',');
               writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
             end;
-          writer.AsmWriteLn(')');
+          writer.AsmWrite(')');
+        end;
+
+
+      procedure WriteFuncTypeDirective(hp:tai_functype);
+        begin
+          writer.AsmWrite(#9'.functype'#9);
+          writer.AsmWrite(hp.funcname);
+          writer.AsmWrite(' ');
+          WriteFuncType(hp.functype);
+          writer.AsmLn;
         end;
 
 
@@ -1627,7 +1635,7 @@ implementation
                  writer.AsmLn;
              end;
            ait_functype:
-             WriteFuncType(tai_functype(hp));
+             WriteFuncTypeDirective(tai_functype(hp));
            ait_importexport:
              WriteImportExport(tai_impexp(hp));
 {$endif WASM}

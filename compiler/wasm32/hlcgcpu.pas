@@ -2059,13 +2059,13 @@ implementation
                 prm := tcpuparavarsym(pd.paras[i]);
                 case prm.paraloc[callerside].Size of
                   OS_8..OS_32, OS_S8..OS_S32:
-                    functype.add_param(wbt_i32);
+                    functype.functype.add_param(wbt_i32);
                   OS_64, OS_S64:
-                    functype.add_param(wbt_i64);
+                    functype.functype.add_param(wbt_i64);
                   OS_F32:
-                    functype.add_param(wbt_f32);
+                    functype.functype.add_param(wbt_f32);
                   OS_F64:
-                    functype.add_param(wbt_f64);
+                    functype.functype.add_param(wbt_f64);
                 else
                   begin
 {$ifdef EXTDEBUG}
@@ -2083,13 +2083,13 @@ implementation
               bt:=wbt_i32;
             case bt of
               wbt_i64:
-                functype.add_result(wbt_i64);
+                functype.functype.add_result(wbt_i64);
               wbt_f32:
-                functype.add_result(wbt_f32);
+                functype.functype.add_result(wbt_f32);
               wbt_f64:
-                functype.add_result(wbt_f64);
+                functype.functype.add_result(wbt_f64);
             else
-              functype.add_result(wbt_i32);
+              functype.functype.add_result(wbt_i32);
             end;
           end;
         list.Concat(functype);

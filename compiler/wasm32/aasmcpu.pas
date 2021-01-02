@@ -114,11 +114,9 @@ uses
 
       tai_functype = class(tai)
         funcname: string;
-        params: array of TWasmBasicType;
-        results: array of TWasmBasicType;
+        functype: TWasmFuncType;
         constructor create(const afuncname: string = '');
-        procedure add_param(param: TWasmBasicType);
-        procedure add_result(res: TWasmBasicType);
+        destructor destroy;override;
       end;
 
     procedure InitAsm;
@@ -136,20 +134,14 @@ implementation
         inherited Create;
         typ:=ait_functype;
         funcname:=afuncname;
+        functype:=TWasmFuncType.Create;
       end;
 
 
-    procedure tai_functype.add_param(param: TWasmBasicType);
+    destructor tai_functype.destroy;
       begin
-        SetLength(params,Length(params)+1);
-        params[High(params)]:=param;
-      end;
-
-
-    procedure tai_functype.add_result(res: TWasmBasicType);
-      begin
-       SetLength(results,Length(results)+1);
-       results[High(results)]:=res;
+        functype.free;
+        inherited;
       end;
 
     { tai_local }
