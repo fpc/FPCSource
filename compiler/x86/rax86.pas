@@ -1597,9 +1597,12 @@ procedure Tx86Instruction.SetInstructionOpsize;
                end;
             end;
           end
-          else if not(MemRefSize in [msiMemRegSize]) then
+          else if
+             (gas_needsuffix[opcode] = AttSufNone) and
+             (not(MemRefSize in [msiMemRegSize])) then
           begin
-            //bExistMemRef:=false;
+            // external gnu-assembler: no suffix =>> use instructions.opsize to define memory-reference size
+            // Tx86Instruction: local variable: operand.opsize
 
             for i := 1 to ops do
              if tx86operand(operands[i]).opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
