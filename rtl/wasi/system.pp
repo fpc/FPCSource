@@ -2,6 +2,13 @@ unit system;
 
 interface
 
+{$define FPC_IS_SYSTEM}
+
+{$ifdef FULL_RTL}
+
+{$I systemh.inc}
+
+{$else FULL_RTL}
 type
   integer = longint;
   hresult = integer; 
@@ -12,12 +19,21 @@ type
   pchar = ^Char;
 
 procedure fpc_lib_exit; compilerproc;
+{$endif FULL_RTL}
+
 procedure DebugWrite(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
 procedure DebugWriteHexDigit(d: Byte);
 procedure DebugWriteHexByte(b: Byte);
 
 implementation
+
+{$ifdef FULL_RTL}
+{$else FULL_RTL}
+procedure fpc_lib_exit; compilerproc;
+begin
+end;
+{$endif FULL_RTL}
 
 type
   P__wasi_size_t = ^__wasi_size_t;
@@ -77,10 +93,6 @@ procedure DebugWriteHexByte(b: Byte);
 begin
   DebugWriteHexDigit(b shr 4);
   DebugWriteHexDigit(b and 15);
-end;
-
-procedure fpc_lib_exit; compilerproc;
-begin
 end;
 
 end.
