@@ -1152,40 +1152,35 @@ implementation
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+    var
+      tmpref: treference;
     begin
       { you can't take the address of references, that are on the local stack }
       if (ref.base=NR_EVAL_STACK_BASE) or (ref.index=NR_EVAL_STACK_BASE) or
          (ref.base=NR_LOCAL_STACK_POINTER_REG) or (ref.index=NR_LOCAL_STACK_POINTER_REG) then
         internalerror(2021010101);
 
-      if (ref.base=NR_NO) and (ref.index=NR_NO) then
-        begin
-          // pushing address on stack
-          list.Concat(taicpu.op_ref(a_i32_const, ref));
-          incstack(list, 1);
-          // reading back to the register
-          a_load_stack_reg(list, tosize, r);
-        end
-      else if (ref.base<>NR_NO) and (ref.index=NR_NO) and not assigned(ref.symbol) then
+      tmpref:=ref;
+      tmpref.base:=NR_NO;
+      tmpref.index:=NR_NO;
+      list.Concat(taicpu.op_ref(a_i32_const, tmpref));
+      if ref.base<>NR_NO then
         begin
           list.Concat(taicpu.op_reg(a_get_local,ref.base));
-          list.Concat(taicpu.op_const(a_i32_const, ref.offset));
-          // todo: index?
           list.Concat(taicpu.op_none(a_i32_add));
-          incstack(list, 1);
-          a_load_stack_reg(list, tosize, r);
-        end
-      else
-        begin
-          list.Concat(taicpu.op_reg(a_get_local, ref.base));
-          list.Concat(taicpu.op_const(a_i32_const, ref.offset));
-          list.Concat(taicpu.op_none(a_i32_add));
-          incstack(list, 1);
-          a_load_stack_reg(list, tosize, r);
-
-          //todo:
-          //a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
         end;
+      if ref.index<>NR_NO then
+        begin
+          list.Concat(taicpu.op_reg(a_get_local,ref.index));
+          if ref.scalefactor>1 then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,ref.scalefactor));
+              list.Concat(taicpu.op_none(a_i32_mul));
+            end;
+          list.Concat(taicpu.op_none(a_i32_add));
+        end;
+      incstack(list, 1);
+      a_load_stack_reg(list, tosize, r);
     end;
 
   procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
