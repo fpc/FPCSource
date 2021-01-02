@@ -52,6 +52,7 @@
         'f32.le', 'f64.le', 'f32.gt', 'f64.gt', 'f32.ge', 'f64.gt',
         // conversion
         'i32.wrap/i64', 'i64.extend_s/i32', 'i64.extend_u/i32',
+        'i32.extend_s/8','i32.extend_s/16','i64.extend_s/8','i64.extend_s/16','i64.extend_s/32',
         'i32.trunc_s/f32', 'i32.trunc_s/f64', 'i64.trunc_s/f32', 'i64.trunc_s/f64',
         'i32.trunc_u/f32', 'i32.trunc_u/f64', 'i64.trunc_u/f32', 'i64.trunc_u/f64',
         'f32.demote/f64', 'f64.promote/f32',

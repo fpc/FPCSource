@@ -2245,13 +2245,26 @@ implementation
       else if tocgsize in [OS_S64,OS_64] then
         begin
           { extend }
-          if tocgsize = OS_S64 then
-            list.concat(taicpu.op_none(a_i64_extend_s_i32))
-          else
-            list.concat(taicpu.op_none(a_i64_extend_u_i32));
-          { if it was an unsigned 32 bit value, remove sign extension }
-          if fromcgsize=OS_32 then
-            a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
+          case fromcgsize of
+            OS_8:
+              begin
+                a_op_const_stack(list,OP_AND,s32inttype,255);
+                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+              end;
+            OS_S8:
+              list.concat(taicpu.op_none(a_i64_extend_s_8));
+            OS_16:
+              begin
+                a_op_const_stack(list,OP_AND,s32inttype,65535);
+                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+              end;
+            OS_S16:
+              list.concat(taicpu.op_none(a_i64_extend_s_16));
+            OS_32:
+              list.concat(taicpu.op_none(a_i64_extend_u_i32));
+            OS_S32:
+              list.concat(taicpu.op_none(a_i64_extend_s_i32))
+          end;
         end;
       { Conversions between 32 and 64 bit types have been completely handled
         above. We still may have to truncate or sign extend in case the
@@ -2259,40 +2272,16 @@ implementation
         sign. In case the destination is a widechar and the source is not, we
         also have to insert a conversion to widechar.
        }
-      if (not(fromcgsize in [OS_S64,OS_64,OS_32,OS_S32]) or
-          not(tocgsize in [OS_S64,OS_64,OS_32,OS_S32])) and
-         ((tcgsize2size[fromcgsize]>tcgsize2size[tocgsize]) or
-          ((tcgsize2size[fromcgsize]=tcgsize2size[tocgsize]) and
-           (fromcgsize<>tocgsize)) or
-          { needs to mask out the sign in the top 16 bits }
-          ((fromcgsize=OS_S8) and
-           (tocgsize=OS_16)) or
-          ((tosize=cwidechartype) and
-           (fromsize<>cwidechartype))) then
-        case tocgsize of
-          OS_8:
-            //todo: conversion
-            //a_op_const_stack(list,OP_AND,s32inttype,255);
-            ;
-          OS_S8:
-            //todo: conversion
-            //list.concat(taicpu.op_none(a_i2b));
-            ;
-          OS_16:
-            //todo: conversion
-            //if (tosize.typ=orddef) and
-            //   (torddef(tosize).ordtype=uwidechar) then
-            //  list.concat(taicpu.op_none(a_i2c))
-            //else
-            //  a_op_const_stack(list,OP_AND,s32inttype,65535);
-            ;
-          OS_S16:
-            //todo: conversion
-            //list.concat(taicpu.op_none(a_i2s));
-            ;
-          else
-            ;
-        end;
+      case fromcgsize of
+        OS_8:
+          a_op_const_stack(list,OP_AND,s32inttype,255);
+        OS_S8:
+          list.concat(taicpu.op_none(a_i32_extend_s_8));
+        OS_16:
+          a_op_const_stack(list,OP_AND,s32inttype,65535);
+        OS_S16:
+          list.concat(taicpu.op_none(a_i32_extend_s_16));
+      end;
     end;
 
     procedure thlcgwasm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);

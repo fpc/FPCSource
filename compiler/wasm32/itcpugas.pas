@@ -67,7 +67,8 @@ interface
       'f32.eq', 'f64.eq', 'f32.ne', 'f64.ne', 'f32.lt', 'f64.lt',
       'f32.le', 'f64.le', 'f32.gt', 'f64.gt', 'f32.ge', 'f64.gt',
       // conversion
-      'i32.wrap/i64', 'i64.extend_s/i32', 'i64.extend_u/i32',
+      'i32.wrap_i64', 'i64.extend_i32_s', 'i64.extend_i32_u',
+      'i32.extend8_s','i32.extend16_s','i64.extend8_s','i64.extend16_s','i64.extend32_s',
       'i32.trunc_s/f32', 'i32.trunc_s/f64', 'i64.trunc_s/f32', 'i64.trunc_s/f64',
       'i32.trunc_u/f32', 'i32.trunc_u/f64', 'i64.trunc_u/f32', 'i64.trunc_u/f64',
       'f32.demote/f64', 'f64.promote/f32',

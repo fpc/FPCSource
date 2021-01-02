@@ -69,6 +69,7 @@ uses
       a_f32_le, a_f64_le, a_f32_gt, a_f64_gt, a_f32_ge, a_f64_ge,
       // conversion
       a_i32_wrap_i64, a_i64_extend_s_i32, a_i64_extend_u_i32,
+      a_i32_extend_s_8,a_i32_extend_s_16,a_i64_extend_s_8,a_i64_extend_s_16,a_i64_extend_s_32,
       a_i32_trunc_s_f32, a_i32_trunc_s_f64, a_i64_trunc_s_f32, a_i64_trunc_s_f64,
       a_i32_trunc_u_f32, a_i32_trunc_u_f64, a_i64_trunc_u_f32, a_i64_trunc_u_f64,
       a_f32_demote_f64, a_f64_promote_f32,

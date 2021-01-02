@@ -130,7 +130,7 @@ implementation
                (torddef(resultdef).ordtype=s64bit) then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i64_rem_s));
-                thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,2);
+                thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
               end
             else
               begin
