@@ -304,7 +304,6 @@ implementation
               else
                 ;
             end;
-            { 2 slots for 64 bit integers and floats, 1 slot for the rest }
             inc(paraofs);
           end;
         parasize:=paraofs;
