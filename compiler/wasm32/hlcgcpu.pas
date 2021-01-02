@@ -1153,12 +1153,6 @@ implementation
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
-      { only allowed for types that are not implicit pointers in Pascal (in
-        that case, ref contains a pointer to the actual data and we simply
-        return that pointer) }
-      //if not wasmAlwayInMem(fromsize) then
-      //  internalerror(2010120534);
-
       if assigned(ref.symbol) then begin
         // pushing address on stack
         list.Concat(taicpu.op_ref(a_i32_const, ref));
