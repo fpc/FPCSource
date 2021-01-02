@@ -15,6 +15,7 @@ procedure fpc_lib_exit; compilerproc;
 procedure DebugWrite(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
 procedure DebugWriteHexDigit(d: Byte);
+procedure DebugWriteHexByte(b: Byte);
 
 implementation
 
@@ -70,6 +71,12 @@ const
   HexDigits: array [0..15] of Char = '0123456789ABCDEF';
 begin
   DebugWriteChar(HexDigits[d]);
+end;
+
+procedure DebugWriteHexByte(b: Byte);
+begin
+  DebugWriteHexDigit(b shr 4);
+  DebugWriteHexDigit(b and 15);
 end;
 
 procedure fpc_lib_exit; compilerproc;
