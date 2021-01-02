@@ -865,6 +865,8 @@ implementation
         case hp.typ of
           ait_importexport:
             inc(cnt);
+          else
+            ;
         end;
         hp := tai_impexp(hp.Next);
       end;
@@ -884,6 +886,8 @@ implementation
             writer.AsmWrite(#9#9);
             writer.AsmWriteLn(GetWasmName(x.intname));
           end;
+          else
+            ;
         end;
         hp := tai_impexp(hp.Next);
       end;
@@ -901,12 +905,16 @@ implementation
             writer.AsmWrite('" (');
             case x.symstype of
               ie_Func: writer.AsmWrite('func');
+              else
+                ;
             end;
             writer.AsmWrite(' ');
             writer.AsmWrite(GetWasmName(x.intname));
             writer.AsmWrite('))');
             writer.AsmLn;
           end;
+          else
+            ;
         end;
         hp := tai_impexp(hp.Next);
       end;
@@ -1054,6 +1062,8 @@ implementation
                   WriteConstString(tai_label(hp), tai_string(dt));
                   hp:=dt;
                 end;
+                else
+                  ;
               end;
             end;
           end;
