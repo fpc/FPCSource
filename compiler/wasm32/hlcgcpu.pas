@@ -1161,7 +1161,7 @@ implementation
           // reading back to the register
           a_load_stack_reg(list, tosize, r);
         end
-      else if (ref.base = NR_LOCAL_FRAME_POINTER_REG) then
+      else if (ref.base=NR_LOCAL_FRAME_POINTER_REG) and (ref.index=NR_NO) and not assigned(ref.symbol) then
         begin
           list.Concat(taicpu.op_reg(a_get_local,NR_LOCAL_FRAME_POINTER_REG));
           list.Concat(taicpu.op_const(a_i32_const, ref.offset));
