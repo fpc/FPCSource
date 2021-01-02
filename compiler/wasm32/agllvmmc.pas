@@ -329,7 +329,7 @@ implementation
          id     : as_wasm32_llvm_mc;
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
-         asmcmd : '--assemble --arch=wasm32 --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext --filetype=obj -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_wasm,system_wasm32_wasi];
          flags : [];
          labelprefix : '.L';

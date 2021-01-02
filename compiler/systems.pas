@@ -85,7 +85,7 @@ interface
           id          : tasm;
           idtxt       : string[12];
           asmbin      : string[16];
-          asmcmd      : string[70];
+          asmcmd      : string[100];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
