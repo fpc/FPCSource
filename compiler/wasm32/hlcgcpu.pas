@@ -1153,6 +1153,11 @@ implementation
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
+      { you can't take the address of references, that are on the local stack }
+      if (ref.base=NR_EVAL_STACK_BASE) or (ref.index=NR_EVAL_STACK_BASE) or
+         (ref.base=NR_LOCAL_STACK_POINTER_REG) or (ref.index=NR_LOCAL_STACK_POINTER_REG) then
+        internalerror(2021010101);
+
       if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
           // pushing address on stack
