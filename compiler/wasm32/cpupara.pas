@@ -200,8 +200,9 @@ implementation
 
     function tcpuparamanager.param_use_paraloc(const cgpara: tcgpara): boolean;
       begin
-        { all parameters are copied by the VM to local variable locations }
-        result:=true;
+        { all parameters are copied to the linear stack, so that their address
+          can be taken }
+        result:=false;
       end;
 
     function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
