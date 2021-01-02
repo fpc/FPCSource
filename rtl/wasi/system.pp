@@ -22,6 +22,7 @@ procedure fpc_lib_exit; compilerproc;
 {$endif FULL_RTL}
 
 procedure DebugWrite(const P: PChar);
+procedure DebugWriteLn(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
 procedure DebugWriteHexDigit(d: Byte);
 procedure DebugWriteHexByte(b: Byte);
@@ -71,6 +72,12 @@ begin
   our_iov.buf := P;
   our_iov.buf_len := StrLen(P);
   fd_write(1, @our_iov, 1, @our_nwritten);
+end;
+
+procedure DebugWriteLn(const P: PChar);
+begin
+  DebugWrite(P);
+  DebugWriteChar(#10);
 end;
 
 procedure DebugWriteChar(Ch: Char);
