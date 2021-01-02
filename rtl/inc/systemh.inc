@@ -388,6 +388,19 @@ Type
   FarPointer = Pointer;
 {$endif CPUZ80}
 
+{$ifdef CPUWASM32}
+  {$define DEFAULT_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    ValReal = Double;
+  {$endif}
+
+  FarPointer = Pointer;
+{$endif CPUWASM32}
+
 
 { By default enable a simple implementation of Random for 8/16 bit CPUs }
 {$if (defined(CPU16) or defined(CPU8)) and not defined(FPC_NO_SIMPLE_RANDOM)}
