@@ -115,7 +115,7 @@ uses
       tai_functype = class(tai)
         funcname: string;
         functype: TWasmFuncType;
-        constructor create(const afuncname: string = '');
+        constructor create(const afuncname: string; afunctype: TWasmFuncType);
         destructor destroy;override;
       end;
 
@@ -129,12 +129,12 @@ implementation
 
     { tai_functype }
 
-    constructor tai_functype.create(const afuncname: string = '');
+    constructor tai_functype.create(const afuncname: string; afunctype: TWasmFuncType);
       begin
         inherited Create;
         typ:=ait_functype;
         funcname:=afuncname;
-        functype:=TWasmFuncType.Create;
+        functype:=afunctype;
       end;
 
 

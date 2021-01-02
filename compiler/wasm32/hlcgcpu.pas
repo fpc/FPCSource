@@ -2044,56 +2044,10 @@ implementation
       internalerror(2012090206);
     end;
 
-    procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef);
-      var
-        functype: tai_functype;
-        i: integer;
-        prm: tcpuparavarsym;
-        bt: TWasmBasicType;
-      begin
-        functype:=tai_functype.create(pd.mangledname);
-        if Assigned(pd.paras) and (pd.paras.Count>0) then
-          begin
-            for i:=0 to pd.paras.Count-1 do
-              begin
-                prm := tcpuparavarsym(pd.paras[i]);
-                case prm.paraloc[callerside].Size of
-                  OS_8..OS_32, OS_S8..OS_S32:
-                    functype.functype.add_param(wbt_i32);
-                  OS_64, OS_S64:
-                    functype.functype.add_param(wbt_i64);
-                  OS_F32:
-                    functype.functype.add_param(wbt_f32);
-                  OS_F64:
-                    functype.functype.add_param(wbt_f64);
-                else
-                  begin
-{$ifdef EXTDEBUG}
-                    Writeln('Unsupported caller side parameter type: ', prm.paraloc[callerside].Size);
-{$endif EXTDEBUG}
-                    // unsupported calleeside parameter type
-                    Internalerror(2019093001);
-                  end;
-                end;
-              end;
-          end;
-        if Assigned(pd.returndef) and (pd.returndef.size>0) then
-          begin
-            if not defToWasmBasic(pd.returndef,bt) then
-              bt:=wbt_i32;
-            case bt of
-              wbt_i64:
-                functype.functype.add_result(wbt_i64);
-              wbt_f32:
-                functype.functype.add_result(wbt_f32);
-              wbt_f64:
-                functype.functype.add_result(wbt_f64);
-            else
-              functype.functype.add_result(wbt_i32);
-            end;
-          end;
-        list.Concat(functype);
-      end;
+  procedure thlcgwasm.g_procdef(list: TAsmList; pd: tprocdef);
+    begin
+      list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype));
+    end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var

@@ -27,6 +27,7 @@ interface
 
 uses
   globtype,
+  cpubase,
   aasmdata,
   symtype,
   symdef,symsym,
@@ -105,6 +106,7 @@ type
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
     destructor destroy; override;
+    function create_functype: TWasmFuncType;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -201,11 +203,12 @@ const
 implementation
 
   uses
-    verbose,cutils,cclasses,globals,
+    verbose,cutils,cclasses,globals,cgbase,
     symconst,symbase,symtable,symcreat,wasmdef,
     pdecsub,pparautl,paramgr,
     // high-level code generator is needed to get access to type index for ncall
-    hlcgobj,hlcgcpu
+    hlcgobj,hlcgcpu,
+    tgcpu
     ;
 
 
@@ -263,6 +266,57 @@ implementation
       exprasmlist.free;
       inherited destroy;
     end;
+
+
+  function tcpuprocdef.create_functype: TWasmFuncType;
+    var
+      i: Integer;
+      prm: tcpuparavarsym;
+      bt: TWasmBasicType;
+    begin
+      result:=TWasmFuncType.Create;
+      if Assigned(paras) and (paras.Count>0) then
+        begin
+          for i:=0 to paras.Count-1 do
+            begin
+              prm := tcpuparavarsym(paras[i]);
+              case prm.paraloc[callerside].Size of
+                OS_8..OS_32, OS_S8..OS_S32:
+                  result.add_param(wbt_i32);
+                OS_64, OS_S64:
+                  result.add_param(wbt_i64);
+                OS_F32:
+                  result.add_param(wbt_f32);
+                OS_F64:
+                  result.add_param(wbt_f64);
+              else
+                begin
+{$ifdef EXTDEBUG}
+                  Writeln('Unsupported caller side parameter type: ', prm.paraloc[callerside].Size);
+{$endif EXTDEBUG}
+                  // unsupported calleeside parameter type
+                  Internalerror(2019093001);
+                end;
+              end;
+            end;
+        end;
+      if Assigned(returndef) and (returndef.size>0) then
+        begin
+          if not defToWasmBasic(returndef,bt) then
+            bt:=wbt_i32;
+          case bt of
+            wbt_i64:
+              result.add_result(wbt_i64);
+            wbt_f32:
+              result.add_result(wbt_f32);
+            wbt_f64:
+              result.add_result(wbt_f64);
+          else
+            result.add_result(wbt_i32);
+          end;
+        end;
+    end;
+
 
 {****************************************************************************
                              tcpuprocvardef
