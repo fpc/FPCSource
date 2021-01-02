@@ -1400,7 +1400,6 @@ implementation
         list.concat(taicpu.op_const(a_i32_const, 0));
         list.concat(taicpu.op_const(a_br,loopContBr+blocks))
       end else begin
-        //Internalerror(2019091806); // unexpected jump
         Internalerror(2019091806); // unexpected jump
       end;
     end;
