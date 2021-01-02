@@ -386,7 +386,7 @@ implementation
   function thlcgwasm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       a_load_reg_stack(list, ptrsinttype, reg);
-      current_asmdata.CurrAsmList.Concat(taicpu.op_callindirect( WasmGetTypeCode(pd)) );
+      current_asmdata.CurrAsmList.Concat(taicpu.op_callindirect(tcpuprocdef(pd).create_functype));
       result:=hlcg.get_call_result_cgpara(pd, nil);
     end;
 

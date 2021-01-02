@@ -32,7 +32,10 @@ interface
 
     uses
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcfi,
+      cpubase,aasmbase,aasmtai,aasmdata,aasmcfi,
+{$ifdef wasm}
+      aasmcpu,
+{$endif wasm}
       assemble;
 
     type
@@ -66,6 +69,9 @@ interface
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         destructor destroy; override;
+{$ifdef WASM}
+        procedure WriteFuncType(functype: TWasmFuncType);
+{$endif WASM}
        private
         setcount: longint;
         procedure WriteDecodedSleb128(a: int64);
@@ -118,10 +124,7 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
-{$ifdef wasm}
-      aasmcpu,
-{$endif wasm}
-      cpubase,objcasm;
+      objcasm;
 
     const
       line_length = 70;
@@ -720,6 +723,37 @@ implementation
       end;
 
 
+{$ifdef WASM}
+    procedure TGNUAssembler.WriteFuncType(functype: TWasmFuncType);
+      var
+        wasm_basic_typ: TWasmBasicType;
+        first: boolean;
+      begin
+        writer.AsmWrite('(');
+        first:=true;
+        for wasm_basic_typ in functype.params do
+          begin
+            if first then
+              first:=false
+            else
+              writer.AsmWrite(',');
+            writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+          end;
+        writer.AsmWrite(') -> (');
+        first:=true;
+        for wasm_basic_typ in functype.results do
+          begin
+            if first then
+              first:=false
+            else
+              writer.AsmWrite(',');
+            writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+          end;
+        writer.AsmWrite(')');
+      end;
+{$endif WASM}
+
+
     procedure TGNUAssembler.WriteTree(p:TAsmList);
 
       function needsObject(hp : tai_symbol) : boolean;
@@ -808,35 +842,6 @@ implementation
         end;
 
 {$ifdef WASM}
-      procedure WriteFuncType(functype: TWasmFuncType);
-        var
-          wasm_basic_typ: TWasmBasicType;
-          first: boolean;
-        begin
-          writer.AsmWrite('(');
-          first:=true;
-          for wasm_basic_typ in functype.params do
-            begin
-              if first then
-                first:=false
-              else
-                writer.AsmWrite(',');
-              writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
-            end;
-          writer.AsmWrite(') -> (');
-          first:=true;
-          for wasm_basic_typ in functype.results do
-            begin
-              if first then
-                first:=false
-              else
-                writer.AsmWrite(',');
-              writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
-            end;
-          writer.AsmWrite(')');
-        end;
-
-
       procedure WriteFuncTypeDirective(hp:tai_functype);
         begin
           writer.AsmWrite(#9'.functype'#9);
