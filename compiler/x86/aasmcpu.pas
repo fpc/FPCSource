@@ -685,6 +685,7 @@ interface
 implementation
 
      uses
+       typinfo,
        cutils,
        globals,
        systems,
@@ -2307,7 +2308,7 @@ implementation
     function is_16_bit_ref(const ref:treference):boolean;
       var
         ir,br : Tregister;
-        isub,bsub : tsubregister;
+        isub,bsub : cgbase.tsubregister;
       begin
         if (ref.index<>NR_NO) and (getregtype(ref.index)=R_MMREGISTER) then
           exit(false);
@@ -2467,15 +2468,15 @@ implementation
         // ax cx dx bx si di bp sp   -- in x86reg.dat
         // ax cx dx bx sp bp si di   -- needed order
           (0, 1, 2, 3, 6, 7, 5, 4);
-        maxsupreg: array[tregistertype] of tsuperregister=
+        maxsupreg: array[cgbase.tregistertype] of cgbase.tsuperregister=
 {$ifdef x86_64}
           (0, 16, 9, 8, 32, 32, 8, 0, 0, 0);
 {$else x86_64}
           (0,  8, 9, 8,  8, 32, 8, 0, 0, 0);
 {$endif x86_64}
       var
-        rs: tsuperregister;
-        rt: tregistertype;
+        rs: cgbase.tsuperregister;
+        rt: cgbase.tregistertype;
       begin
         rs:=getsupreg(r);
         rt:=getregtype(r);
@@ -2532,7 +2533,7 @@ implementation
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
-        isub,bsub : tsubregister;
+        isub,bsub : cgbase.tsubregister;
       begin
         result:=false;
         ir:=input.ref^.index;
@@ -4617,7 +4618,7 @@ implementation
       end;
 
 
-    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
+    function taicpu.is_same_reg_move(regtype: cgbase.Tregistertype):boolean;
       begin
         result:=(((opcode=A_MOV) or (opcode=A_XCHG)) and
                  (regtype = R_INTREGISTER) and
@@ -5479,6 +5480,17 @@ implementation
           InsTabMemRefSizeInfoCache^[AsmOp].RegYMMSizeMask:=RegYMMSizeMask;
           InsTabMemRefSizeInfoCache^[AsmOp].RegZMMSizeMask:=RegZMMSizeMask;
 
+          if (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) and
+             (gas_needsuffix[AsmOp] <> AttSufNONE) and
+             (not(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples)) then
+          begin
+            // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat');
+            //InternalError(20210102);
+            Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
+                     std_op2str[AsmOp],
+                     GetEnumName(typeinfo(TAttSuffix), ord(gas_needsuffix[AsmOp])),
+                     GetEnumName(typeinfo(TMemRefSizeInfo), ord(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize)));
+          end;
         end;
       end;
 

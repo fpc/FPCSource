@@ -2907,6 +2907,7 @@ asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
 asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
 asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (expected: {$1} found: {$2})
+asmr_e_not_supported_combination_attsuffix_memrefsize_type=07143_E_Not supported combination opcode: $1 - att-suffix-type {$2} and memrefsize-type {$3}
 #
 # Assembler/binary writers
 #
