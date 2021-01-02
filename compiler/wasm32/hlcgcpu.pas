@@ -1010,8 +1010,6 @@ implementation
 
 
   function thlcgwasm.prepare_stack_for_ref(list: TAsmList; var ref: treference; dup: boolean): longint;
-    var
-      href: treference;
     begin
       result:=0;
       { fake location that indicates the value is already on the stack? }
