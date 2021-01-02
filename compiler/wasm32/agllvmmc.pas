@@ -326,10 +326,6 @@ implementation
             end;
         end;
 
-      if (cpu.opcode = a_call_indirect) then
-        // special wat2wasm syntax "call_indirect (type x)"
-        writer.AsmWrite(')');
-
       writer.AsmLn;
     end;
 
