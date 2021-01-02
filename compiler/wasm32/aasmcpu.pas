@@ -203,6 +203,16 @@ implementation
         inherited create(op);
         ops:=1;
         loadref(0,_op1);
+        if op in [a_get_local,a_set_local,a_tee_local] then
+          begin
+            if (_op1.base<>NR_LOCAL_STACK_POINTER_REG) or (_op1.index<>NR_NO) then
+              internalerror(2021010201);
+          end
+        else
+          begin
+            if (_op1.base<>NR_NO) or (_op1.index<>NR_NO) then
+              internalerror(2021010201);
+          end;
       end;
 
 
