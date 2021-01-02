@@ -36,12 +36,10 @@ function fd_write(fd: __wasi_fd_t;
 
 function StrLen(P: PChar): size_t;
 var
-  lp: pchar;
   i: size_t;
 begin
-  lp := p;
   i := 0;
-  while lp[i]<>#0 do
+  while p[i]<>#0 do
     Inc(i);
   StrLen := i;
 end;
