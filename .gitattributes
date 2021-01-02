@@ -12192,6 +12192,7 @@ rtl/wasi/sysos.inc svneol=native#text/plain
 rtl/wasi/sysosh.inc svneol=native#text/plain
 rtl/wasi/system.pp svneol=native#text/plain
 rtl/wasm32/cpuh.inc svneol=native#text/plain
+rtl/wasm32/makefile.cpu svneol=native#text/plain
 rtl/wasm32/setjumph.inc svneol=native#text/plain
 rtl/wasm32/wasm32.inc svneol=native#text/plain
 rtl/watcom/Makefile svneol=native#text/plain
