@@ -622,6 +622,9 @@ endif
 ifeq ($(FULL_TARGET),aarch64-ios)
 override TARGET_DIRS+=darwin
 endif
+ifeq ($(FULL_TARGET),wasm32-wasi)
+override TARGET_DIRS+=wasi
+endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 override TARGET_DIRS+=linux
 endif
@@ -2205,6 +2208,9 @@ TARGET_DIRS_ANDROID=1
 endif
 ifeq ($(FULL_TARGET),aarch64-ios)
 TARGET_DIRS_DARWIN=1
+endif
+ifeq ($(FULL_TARGET),wasm32-wasi)
+TARGET_DIRS_WASI=1
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 TARGET_DIRS_LINUX=1
@@ -3948,6 +3954,51 @@ win16_makefiles:
 win16:
 	$(MAKE) -C win16 all
 .PHONY: win16_all win16_debug win16_smart win16_release win16_units win16_examples win16_shared win16_install win16_sourceinstall win16_exampleinstall win16_distinstall win16_zipinstall win16_zipsourceinstall win16_zipexampleinstall win16_zipdistinstall win16_clean win16_distclean win16_cleanall win16_info win16_makefiles win16
+endif
+ifdef TARGET_DIRS_WASI
+wasi_all:
+	$(MAKE) -C wasi all
+wasi_debug:
+	$(MAKE) -C wasi debug
+wasi_smart:
+	$(MAKE) -C wasi smart
+wasi_release:
+	$(MAKE) -C wasi release
+wasi_units:
+	$(MAKE) -C wasi units
+wasi_examples:
+	$(MAKE) -C wasi examples
+wasi_shared:
+	$(MAKE) -C wasi shared
+wasi_install:
+	$(MAKE) -C wasi install
+wasi_sourceinstall:
+	$(MAKE) -C wasi sourceinstall
+wasi_exampleinstall:
+	$(MAKE) -C wasi exampleinstall
+wasi_distinstall:
+	$(MAKE) -C wasi distinstall
+wasi_zipinstall:
+	$(MAKE) -C wasi zipinstall
+wasi_zipsourceinstall:
+	$(MAKE) -C wasi zipsourceinstall
+wasi_zipexampleinstall:
+	$(MAKE) -C wasi zipexampleinstall
+wasi_zipdistinstall:
+	$(MAKE) -C wasi zipdistinstall
+wasi_clean:
+	$(MAKE) -C wasi clean
+wasi_distclean:
+	$(MAKE) -C wasi distclean
+wasi_cleanall:
+	$(MAKE) -C wasi cleanall
+wasi_info:
+	$(MAKE) -C wasi info
+wasi_makefiles:
+	$(MAKE) -C wasi makefiles
+wasi:
+	$(MAKE) -C wasi all
+.PHONY: wasi_all wasi_debug wasi_smart wasi_release wasi_units wasi_examples wasi_shared wasi_install wasi_sourceinstall wasi_exampleinstall wasi_distinstall wasi_zipinstall wasi_zipsourceinstall wasi_zipexampleinstall wasi_zipdistinstall wasi_clean wasi_distclean wasi_cleanall wasi_info wasi_makefiles wasi
 endif
 ifdef TARGET_DIRS_ZXSPECTRUM
 zxspectrum_all:
