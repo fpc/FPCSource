@@ -62,7 +62,6 @@ uses
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
-      function a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
 
       { move instructions - a_load_FROM_TO }
@@ -235,8 +234,6 @@ uses
       { in case of an OS_32 OP_DIV, we have to use an OS_S64 OP_IDIV because the
         JVM does not support unsigned divisions }
       procedure maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
-      { common implementation of a_call_* }
-      function a_call_name_intern(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; inheritedcall: boolean): tcgpara;
 
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -374,12 +371,8 @@ implementation
 
   function thlcgwasm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
-      result:=a_call_name_intern(list,pd,s,forceresdef,false);
-    end;
-
-  function thlcgwasm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
-    begin
-      result:=a_call_name_intern(list,pd,s,nil,true);
+      list.concat(taicpu.op_sym(a_call,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)));
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
 
@@ -2547,76 +2540,6 @@ implementation
         end
       else
         isdivu32:=false;
-    end;
-
-  function thlcgwasm.a_call_name_intern(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; inheritedcall: boolean): tcgpara;
-    var
-      opc: tasmop;
-    begin
-      {
-        invoke types:
-          * invokeinterface: call method from an interface (must also specify
-              number of parameters in terms of stack slot count!)
-          * invokespecial: invoke a constructor, method in a superclass,
-              or private instance method
-          * invokestatic: invoke a class method (private or not)
-          * invokevirtual: invoke a regular method
-      }
-      case pd.owner.symtabletype of
-        globalsymtable,
-        staticsymtable,
-        localsymtable:
-          { regular and nested procedures are turned into static methods }
-          opc:=a_call;
-        objectsymtable:
-          begin
-            Internalerror(2019083004); // no support for symbol table calls
-            opc:=a_call_indirect; // todo: need a reference to a (funccall) table
-
-            //case tobjectdef(pd.owner.defowner).objecttype of
-            //
-            //  odt_javaclass:
-            //    begin
-            //      if (po_classmethod in pd.procoptions) or
-            //         (pd.proctypeoption=potype_operator) then
-            //        opc:=a_invokestatic
-            //      else if (pd.visibility=vis_strictprivate) or
-            //         (pd.proctypeoption=potype_constructor) or
-            //         inheritedcall then
-            //        opc:=a_invokespecial
-            //      else
-            //        opc:=a_invokevirtual;
-            //    end;
-            //  odt_interfacejava:
-            //    { static interface methods are not allowed }
-            //    opc:=a_invokeinterface;
-            //  else
-            //    internalerror(2010122601);
-            //end;
-          end;
-        recordsymtable:
-          begin
-            if (po_staticmethod in pd.procoptions) or
-               (pd.proctypeoption=potype_operator) then
-              opc:=a_call
-            else if (pd.visibility=vis_strictprivate) or
-               (pd.proctypeoption=potype_constructor) or
-               inheritedcall then
-              opc:=a_call
-            else
-              opc:=a_call_indirect;
-          end
-        else
-          internalerror(2010122602);
-      end;
-      if (opc<>a_call_indirect) then
-        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
-      else
-        begin
-          pd.init_paraloc_info(calleeside);
-          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),pd.calleeargareasize));
-        end;
-      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure create_hlcodegen_cpu;
