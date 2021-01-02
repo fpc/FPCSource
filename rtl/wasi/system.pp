@@ -13,6 +13,7 @@ type
 
 procedure fpc_lib_exit; compilerproc;
 procedure DebugWrite(const P: PChar);
+procedure DebugWriteChar(Ch: Char);
 
 implementation
 
@@ -52,6 +53,15 @@ begin
   our_iov.buf := P;
   our_iov.buf_len := StrLen(P);
   fd_write(1, @our_iov, 1, @our_nwritten);
+end;
+
+procedure DebugWriteChar(Ch: Char);
+var
+  CharArr: array [0..1] of Char;
+begin
+  CharArr[0] := Ch;
+  CharArr[1] := #0;
+  DebugWrite(@CharArr);
 end;
 
 procedure fpc_lib_exit; compilerproc;
