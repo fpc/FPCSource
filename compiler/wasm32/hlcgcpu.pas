@@ -1153,29 +1153,34 @@ implementation
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
-      if assigned(ref.symbol) then begin
-        // pushing address on stack
-        list.Concat(taicpu.op_ref(a_i32_const, ref));
-        incstack(list, 1);
-        // reading back to the register
-        a_load_stack_reg(list, tosize, r);
-      end else if (ref.base = NR_LOCAL_FRAME_POINTER_REG) then begin
-        list.Concat(taicpu.op_reg(a_get_local,NR_LOCAL_FRAME_POINTER_REG));
-        list.Concat(taicpu.op_const(a_i32_const, ref.offset));
-        // todo: index?
-        list.Concat(taicpu.op_none(a_i32_add));
-        incstack(list, 1);
-        a_load_stack_reg(list, tosize, r);
-      end else begin
-        list.Concat(taicpu.op_reg(a_get_local, ref.base));
-        list.Concat(taicpu.op_const(a_i32_const, ref.offset));
-        list.Concat(taicpu.op_none(a_i32_add));
-        incstack(list, 1);
-        a_load_stack_reg(list, tosize, r);
+      if assigned(ref.symbol) then
+        begin
+          // pushing address on stack
+          list.Concat(taicpu.op_ref(a_i32_const, ref));
+          incstack(list, 1);
+          // reading back to the register
+          a_load_stack_reg(list, tosize, r);
+        end
+      else if (ref.base = NR_LOCAL_FRAME_POINTER_REG) then
+        begin
+          list.Concat(taicpu.op_reg(a_get_local,NR_LOCAL_FRAME_POINTER_REG));
+          list.Concat(taicpu.op_const(a_i32_const, ref.offset));
+          // todo: index?
+          list.Concat(taicpu.op_none(a_i32_add));
+          incstack(list, 1);
+          a_load_stack_reg(list, tosize, r);
+        end
+      else
+        begin
+          list.Concat(taicpu.op_reg(a_get_local, ref.base));
+          list.Concat(taicpu.op_const(a_i32_const, ref.offset));
+          list.Concat(taicpu.op_none(a_i32_add));
+          incstack(list, 1);
+          a_load_stack_reg(list, tosize, r);
 
-        //todo:
-        //a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
-      end;
+          //todo:
+          //a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
+        end;
     end;
 
   procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
