@@ -1153,7 +1153,7 @@ implementation
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
-      if assigned(ref.symbol) then
+      if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
           // pushing address on stack
           list.Concat(taicpu.op_ref(a_i32_const, ref));
