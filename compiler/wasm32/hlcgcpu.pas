@@ -1158,7 +1158,7 @@ implementation
          (ref.base=NR_LOCAL_STACK_POINTER_REG) or (ref.index=NR_LOCAL_STACK_POINTER_REG) then
         internalerror(2021010101);
 
-      if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+      if (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
           // pushing address on stack
           list.Concat(taicpu.op_ref(a_i32_const, ref));
