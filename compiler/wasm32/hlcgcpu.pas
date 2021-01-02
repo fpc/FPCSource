@@ -437,6 +437,7 @@ implementation
   procedure thlcgwasm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
     var
       tmpref: treference;
+      extra_slots: LongInt;
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER,
@@ -445,7 +446,8 @@ implementation
         LOC_REFERENCE,LOC_CREFERENCE:
           begin
             tmpref:=loc.reference;
-            a_load_ref_stack(list,size,loc.reference,prepare_stack_for_ref(list,tmpref,false));
+            extra_slots:=prepare_stack_for_ref(list,tmpref,false);
+            a_load_ref_stack(list,size,tmpref,extra_slots);
           end;
         LOC_CONSTANT:
           a_load_const_stack(list,size,loc.value,def2regtyp(size));
