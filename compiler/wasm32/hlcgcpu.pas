@@ -210,7 +210,7 @@ uses
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
-      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
+      //procedure g_copyvalueparas(p: TObject; arg: pointer); override;
 
       procedure inittempvariables(list:TAsmList);override;
 
@@ -963,36 +963,36 @@ implementation
     end;
 
 
-  procedure thlcgwasm.g_copyvalueparas(p: TObject; arg: pointer);
-    var
-      list: tasmlist;
-      tmpref: treference;
-    begin
-      { zero-extend < 32 bit primitive types (FPC can zero-extend when calling,
-        but that doesn't help when we're called from Java code or indirectly
-        as a procvar -- exceptions: widechar (Java-specific type) and ordinal
-        types whose upper bound does not set the sign bit }
-      if (tsym(p).typ=paravarsym) and
-         (tparavarsym(p).varspez in [vs_value,vs_const]) and
-         (tparavarsym(p).vardef.typ=orddef) and
-         not is_pasbool(tparavarsym(p).vardef) and
-         not is_widechar(tparavarsym(p).vardef) and
-         (tparavarsym(p).vardef.size<4) and
-         not is_signed(tparavarsym(p).vardef) and
-         (torddef(tparavarsym(p).vardef).high>=(1 shl (tparavarsym(p).vardef.size*8-1))) then
-        begin
-          list:=TAsmList(arg);
-          { store value in new location to keep Android verifier happy }
-          tg.gethltemp(list,tparavarsym(p).vardef,tparavarsym(p).vardef.size,tt_persistent,tmpref);
-          a_load_loc_stack(list,tparavarsym(p).vardef,tparavarsym(p).initialloc);
-          a_op_const_stack(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1);
-          a_load_stack_ref(list,tparavarsym(p).vardef,tmpref,prepare_stack_for_ref(list,tmpref,false));
-          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4,tmpref.volatility);
-          tparavarsym(p).localloc.reference:=tmpref;
-        end;
-
-      inherited g_copyvalueparas(p, arg);
-    end;
+  //procedure thlcgwasm.g_copyvalueparas(p: TObject; arg: pointer);
+  //  var
+  //    list: tasmlist;
+  //    tmpref: treference;
+  //  begin
+  //    { zero-extend < 32 bit primitive types (FPC can zero-extend when calling,
+  //      but that doesn't help when we're called from Java code or indirectly
+  //      as a procvar -- exceptions: widechar (Java-specific type) and ordinal
+  //      types whose upper bound does not set the sign bit }
+  //    if (tsym(p).typ=paravarsym) and
+  //       (tparavarsym(p).varspez in [vs_value,vs_const]) and
+  //       (tparavarsym(p).vardef.typ=orddef) and
+  //       not is_pasbool(tparavarsym(p).vardef) and
+  //       not is_widechar(tparavarsym(p).vardef) and
+  //       (tparavarsym(p).vardef.size<4) and
+  //       not is_signed(tparavarsym(p).vardef) and
+  //       (torddef(tparavarsym(p).vardef).high>=(1 shl (tparavarsym(p).vardef.size*8-1))) then
+  //      begin
+  //        list:=TAsmList(arg);
+  //        { store value in new location to keep Android verifier happy }
+  //        tg.gethltemp(list,tparavarsym(p).vardef,tparavarsym(p).vardef.size,tt_persistent,tmpref);
+  //        a_load_loc_stack(list,tparavarsym(p).vardef,tparavarsym(p).initialloc);
+  //        a_op_const_stack(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1);
+  //        a_load_stack_ref(list,tparavarsym(p).vardef,tmpref,prepare_stack_for_ref(list,tmpref,false));
+  //        location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4,tmpref.volatility);
+  //        tparavarsym(p).localloc.reference:=tmpref;
+  //      end;
+  //
+  //    inherited g_copyvalueparas(p, arg);
+  //  end;
 
 
   procedure thlcgwasm.inittempvariables(list: TAsmList);
