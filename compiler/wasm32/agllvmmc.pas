@@ -304,19 +304,14 @@ implementation
       writer.AsmWrite(#9#9);
       writer.AsmWrite(gas_op2str[cpu.opcode]);
 
-      if (cpu.opcode = a_call_indirect) then begin
-        writer.AsmWrite(#9);
-        owner.WriteFuncType(cpu.functype);
-        writer.AsmLn;
-        exit;
-      end;
-
-
-      if (cpu.opcode = a_if)  then
+      if cpu.opcode = a_call_indirect then
+        begin
+          writer.AsmWrite(#9);
+          owner.WriteFuncType(cpu.functype);
+        end
+      else if (cpu.opcode = a_if) then
         writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
-      else
-
-      if cpu.ops<>0 then
+      else if cpu.ops<>0 then
         begin
           for i:=0 to cpu.ops-1 do
             begin
@@ -324,7 +319,6 @@ implementation
               writer.AsmWrite(getopstr(cpu.oper[i]^));
             end;
         end;
-
       writer.AsmLn;
     end;
 
