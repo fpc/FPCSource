@@ -2240,7 +2240,6 @@ implementation
             begin
               { truncate }
               list.concat(taicpu.op_none(a_i32_wrap_i64));
-              decstack(list,1);
             end;
         end
       else if tocgsize in [OS_S64,OS_64] then
@@ -2250,7 +2249,6 @@ implementation
             list.concat(taicpu.op_none(a_i64_extend_s_i32))
           else
             list.concat(taicpu.op_none(a_i64_extend_u_i32));
-          incstack(list,1);
           { if it was an unsigned 32 bit value, remove sign extension }
           if fromcgsize=OS_32 then
             a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
