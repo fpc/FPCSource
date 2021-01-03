@@ -19296,6 +19296,7 @@ utils/fpdoc/Makefile.fpc.fpcmake svneol=native#text/plain
 utils/fpdoc/README.txt svneol=native#text/plain
 utils/fpdoc/css.inc svneol=native#text/plain
 utils/fpdoc/dglobals.pp svneol=native#text/plain
+utils/fpdoc/dw_basehtml.pp svneol=native#text/plain
 utils/fpdoc/dw_basemd.pp svneol=native#text/plain
 utils/fpdoc/dw_chm.pp svneol=native#text/plain
 utils/fpdoc/dw_dxml.pp svneol=native#text/plain
