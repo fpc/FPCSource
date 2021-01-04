@@ -73,6 +73,7 @@ begin
     current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_eqz));
 
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
+  thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 end;
 
 procedure twasmwhilerepeatnode.pass_generate_code;
