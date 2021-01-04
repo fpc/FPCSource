@@ -310,7 +310,7 @@ implementation
           owner.WriteFuncType(cpu.functype);
         end
       else if (cpu.opcode = a_if) then
-        writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
+        writer.AsmWrite(' i32') //todo: this is a hardcode, but shouldn't
       else if cpu.ops<>0 then
         begin
           for i:=0 to cpu.ops-1 do
