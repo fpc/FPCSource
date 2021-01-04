@@ -178,7 +178,7 @@ uses
       { this routine expects that all values are already massaged into the
         required form (sign bits xor'ed for gt/lt comparisons for OS_32/OS_64,
         see http://stackoverflow.com/questions/4068973/c-performing-signed-comparison-in-unsigned-variables-without-casting ) }
-      procedure a_cmp_stack_stack(list : TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
+      procedure a_cmp_stack_stack(list : TAsmlist; size: tdef; cmp_op: topcmp);
       { these 2 routines perform the massaging expected by the previous one }
       procedure maybe_adjust_cmp_stackval(list : TAsmlist; size: tdef; cmp_op: topcmp);
       function maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: tcgint): tcgint;
@@ -803,7 +803,7 @@ implementation
       *)
     end;
 
-    procedure thlcgwasm.a_cmp_stack_stack(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
+    procedure thlcgwasm.a_cmp_stack_stack(list: TAsmlist; size: tdef; cmp_op: topcmp);
       const
         opcmp32: array[topcmp] of tasmop = (
           A_None,     { OC_NONE, }
@@ -1337,7 +1337,7 @@ implementation
         a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op,l);
+      a_cmp_stack_stack(list,size,cmp_op);
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
@@ -1345,7 +1345,7 @@ implementation
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op,l);
+      a_cmp_stack_stack(list,size,cmp_op);
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
@@ -1363,7 +1363,7 @@ implementation
         Internalerror(2019083003);
       end;
       maybe_adjust_cmp_stackval(list,size,cmp_op);
-      a_cmp_stack_stack(list,size,cmp_op,l);
+      a_cmp_stack_stack(list,size,cmp_op);
     end;
 
   procedure thlcgwasm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
@@ -1376,7 +1376,7 @@ implementation
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
-      a_cmp_stack_stack(list,size,cmp_op,l);
+      a_cmp_stack_stack(list,size,cmp_op);
     end;
 
   procedure thlcgwasm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
@@ -1385,7 +1385,7 @@ implementation
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_reg_stack(list,size,reg1);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
-      a_cmp_stack_stack(list,size,cmp_op,l);
+      a_cmp_stack_stack(list,size,cmp_op);
     end;
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
