@@ -42,7 +42,7 @@ uses
       fevalstackheight,
       fmaxevalstackheight: longint;
      public
-      blocks: integer;
+      br_blocks: integer;
       loopContBr: integer; // the value is different depending of the condition test
                            // if it's in the beggning the jump should be done to the loop (1)
                            // if the condition at the end, the jump should done to the end of block (0)
@@ -308,13 +308,13 @@ implementation
 
   procedure thlcgwasm.incblock;
   begin
-    inc(blocks);
+    inc(br_blocks);
   end;
 
   procedure thlcgwasm.decblock;
   begin
-    dec(blocks);
-    if blocks<0 then Internalerror(2019091807); // out of block
+    dec(br_blocks);
+    if br_blocks<0 then Internalerror(2019091807); // out of block
   end;
 
     procedure thlcgwasm.incstack(list: TAsmList; slots: longint);
@@ -1389,16 +1389,16 @@ implementation
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
       //todo: for proper jumping it's necessary to check
-      //      all active blocks (if, block, loops)
+      //      all active br_blocks (if, block, loops)
       //      and jump to the proper one.
       //list.concat(taicpu.op_const(a_i32_const, 0));
       if l = current_procinfo.CurrBreakLabel then begin
         // todo: this should be moved to node generator pass2
         list.concat(taicpu.op_const(a_i32_const, 0));
-        list.concat(taicpu.op_const(a_br,2+blocks))
+        list.concat(taicpu.op_const(a_br,2+br_blocks))
       end else if l = current_procinfo.CurrContinueLabel then begin
         list.concat(taicpu.op_const(a_i32_const, 0));
-        list.concat(taicpu.op_const(a_br,loopContBr+blocks))
+        list.concat(taicpu.op_const(a_br,loopContBr+br_blocks))
       end else begin
         Internalerror(2019091806); // unexpected jump
       end;
