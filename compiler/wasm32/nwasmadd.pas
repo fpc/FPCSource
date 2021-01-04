@@ -262,6 +262,7 @@ interface
         begin
           secondpass(left);
           current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+          thlcgwasm(hlcg).incblock;
 
           case nodetype of
               andn :
@@ -276,6 +277,7 @@ interface
                    // for "and" must end evaluation immediately
                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+                   thlcgwasm(hlcg).decblock;
                 end;
               orn :
                 begin
@@ -290,6 +292,7 @@ interface
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+                   thlcgwasm(hlcg).decblock;
                 end;
               else
                 Internalerror(2019091902);
