@@ -849,12 +849,12 @@ implementation
                 OS_S32,OS_32:
                   begin
                     list.concat(taicpu.op_none(opcmp32[cmp_op]));
-                    decstack(list,2);
+                    decstack(list,1);
                   end;
                 OS_64,OS_S64:
                   begin
                     list.concat(taicpu.op_none(opcmp64[cmp_op]));
-                    decstack(list,2);
+                    decstack(list,1);
                   end;
                 else
                   internalerror(2010120538);
