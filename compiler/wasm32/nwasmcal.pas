@@ -40,6 +40,7 @@ interface
 
        twasmcallnode = class(tcgcallnode)
        protected
+         procedure extra_post_call_code; override;
          procedure do_release_unused_return_value; override;
          procedure set_result_location(realresdef: tstoreddef); override;
        end;
@@ -52,13 +53,17 @@ implementation
 
       { twasmcallnode }
 
+    procedure twasmcallnode.extra_post_call_code;
+      begin
+        thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
+      end;
+
     procedure twasmcallnode.do_release_unused_return_value;
       begin
         if is_void(resultdef) then
           exit;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
-        // todo: decstack
-        //thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
       end;
 
     procedure twasmcallnode.set_result_location(realresdef: tstoreddef);
