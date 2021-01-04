@@ -233,7 +233,7 @@ interface
 
     procedure twasmaddnode.second_cmpboolean;
       begin
-        //second_generic_compare(true);
+        second_generic_compare(true);
       end;
 
 
