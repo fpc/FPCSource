@@ -198,8 +198,6 @@ uses
       property maxevalstackheight: longint read fmaxevalstackheight;
 
      protected
-      procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
-      procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
       //procedure g_copyvalueparas(p: TObject; arg: pointer); override;
@@ -2237,27 +2235,6 @@ implementation
         incstack(list,-totalremovesize);
     end;
 
-
-  procedure thlcgwasm.allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
-    var
-      tmpref: treference;
-    begin
-      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
-      tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
-      { only copy the reference, not the actual data }
-      a_load_ref_ref(list,ptruinttype,ptruinttype,tmpref,ref);
-      { remains live since there's still a reference to the created
-        entity }
-      tg.ungettemp(list,tmpref);
-    end;
-
-
-  procedure thlcgwasm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
-    begin
-      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
-      { only copy the reference, not the actual data }
-      a_load_ref_ref(list,ptruinttype,ptruinttype,initref,destbaseref);
-    end;
 
   procedure thlcgwasm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
     begin
