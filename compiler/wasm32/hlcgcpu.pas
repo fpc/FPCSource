@@ -1657,15 +1657,23 @@ implementation
       list.Concat(tai_local.create(wbt_i32,BASE_POINTER_SYM)); //TWasmBasicType
 
       list.Concat(taicpu.op_sym(a_get_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+      incstack(list,1);
       list.Concat(taicpu.op_ref(a_set_local,pd.base_pointer_ref));
+      decstack(list,1);
 
       if (localsize>0) then begin
         list.Concat(taicpu.op_ref(a_get_local,pd.base_pointer_ref));
+        incstack(list,1);
         list.concat(taicpu.op_const(a_i32_const, localsize ));
+        incstack(list,1);
         list.concat(taicpu.op_none(a_i32_sub));
+        decstack(list,1);
         list.Concat(taicpu.op_ref(a_set_local,pd.frame_pointer_ref));
+        decstack(list,1);
         list.Concat(taicpu.op_ref(a_get_local,pd.frame_pointer_ref));
+        incstack(list,1);
         list.Concat(taicpu.op_sym(a_set_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+        decstack(list,1);
       end;
 
       //list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
@@ -1677,7 +1685,9 @@ implementation
     begin
       pd:=tcpuprocdef(current_procinfo.procdef);
       list.Concat(taicpu.op_ref(a_get_local,pd.base_pointer_ref));
+      incstack(list,1);
       list.Concat(taicpu.op_sym(a_set_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+      decstack(list,1);
 
       list.concat(taicpu.op_none(a_return));
       list.concat(taicpu.op_none(a_end_function));
