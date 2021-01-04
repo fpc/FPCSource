@@ -534,7 +534,6 @@ implementation
       if trunc32 then
         begin
           list.concat(taicpu.op_none(a_i32_trunc_s_f32)); // todo: there are several truncs
-          decstack(list,1);
         end;
     end;
 
