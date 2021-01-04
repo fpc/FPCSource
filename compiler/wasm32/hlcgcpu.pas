@@ -389,7 +389,8 @@ implementation
   procedure thlcgwasm.a_load_const_stack(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType);
     begin
       case typ of
-        R_INTREGISTER:
+        R_INTREGISTER,
+        R_ADDRESSREGISTER:
           begin
             case def_cgsize(size) of
               OS_8,OS_16,OS_32,
@@ -405,12 +406,6 @@ implementation
               else
                 internalerror(2010110702);
             end;
-          end;
-        R_ADDRESSREGISTER:
-          begin
-            if a<>0 then
-              internalerror(2010110701);
-            list.concat(taicpu.op_none(a_none));
           end;
         else
           internalerror(2010110703);
