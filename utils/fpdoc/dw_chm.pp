@@ -2,7 +2,7 @@ unit dw_chm;
 
 interface
 
-uses Classes, DOM, DOM_HTML,
+uses Classes, DOM,
     dGlobals, PasTree, dwriter, dw_html, chmwriter, chmtypes, chmsitemap;
 
 type
@@ -63,7 +63,7 @@ type
 
 implementation
 
-uses SysUtils, HTMWrite;
+uses SysUtils, HTMWrite, dw_basehtml;
 
 { TCHmFileNameAllocator }
 
@@ -152,11 +152,18 @@ end;
 
 procedure TFpDocChmWriter.FileAdded ( AStream: TStream;
   const AEntry: TFileEntryRec ) ;
+var FTsave : boolean;  
 begin
   // Exclude Full text index for files starting from the dot
   if Pos('.', AEntry.Name) <> 1 then
-    inherited FileAdded(AStream, AEntry);
-
+    inherited FileAdded(AStream, AEntry)
+  else
+    begin
+      FTsave:=FullTextSearch;
+      FullTextSearch:=False;
+      inherited FileAdded(AStream, AEntry);
+      FullTextSearch:=FTsave;
+    end;
 end;
 
 { TCHMHTMLWriter }
@@ -179,12 +186,12 @@ begin
     DoLog('Note: --index-page not assigned. Using default "index.html"');
   end;
   
-  if FCSSFile <> '' then
+  if CSSFile <> '' then
   begin
-    if not FileExists(FCSSFile) Then
-      Raise Exception.CreateFmt('Can''t find CSS file "%S"',[FCSSFILE]);
+    if not FileExists(CSSFile) Then
+      Raise Exception.CreateFmt('Can''t find CSS file "%S"',[CSSFILE]);
     TempStream := TMemoryStream.Create;
-    TempStream.LoadFromFile(FCSSFile);
+    TempStream.LoadFromFile(CSSFile);
     TempStream.Position := 0;
     FChm.AddStreamToArchive('fpdoc.css', '/', TempStream, True);
     TempStream.Free;

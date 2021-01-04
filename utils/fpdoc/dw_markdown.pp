@@ -1,9 +1,8 @@
 {
     FPDoc  -  Free Pascal Documentation Tool
-    Copyright (C) 2000 - 2005 by
-      Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    Copyright (C) 2021 by Michael Van Canneyt
 
-    * HTML/XHTML output generator
+    * Markdown generator, multi-file
 
     See the file COPYING, included in this distribution,
     for details about the copyright.
@@ -1909,13 +1908,19 @@ end;
 class procedure TMarkdownWriter.Usage(List: TStrings);
 begin
   List.add('--header=file');
-  List.Add(SHTMLUsageHeader);
+  List.Add(SMDUsageHeader);
   List.add('--footer=file');
-  List.Add(SHTMLUsageFooter);
+  List.Add(SMDUsageFooter);
   List.Add('--index-colcount=N');
-  List.Add(SHTMLIndexColcount);
+  List.Add(SMDIndexColcount);
   List.Add('--image-url=url');
-  List.Add(SHTMLImageUrl);
+  List.Add(SMDImageUrl);
+  List.Add('--theme=name');
+  List.Add(SMDTheme);
+  List.Add('--navigation=scheme');
+  List.Add(SMDNavigation);
+  List.Add(SMDNavSubtree);
+  List.Add(SMDNavTree);
 end;
 
 class procedure TMarkdownWriter.SplitImport(var AFilename, ALinkPrefix: String);

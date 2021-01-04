@@ -1514,13 +1514,15 @@ implementation
             begin
               if srsym.typ=typesym then
                 spezdef:=ttypesym(srsym).typedef
+              else if tprocsym(srsym).procdeflist.count>0 then
+                spezdef:=tdef(tprocsym(srsym).procdeflist[0])
               else
-                spezdef:=tdef(tprocsym(srsym).procdeflist[0]);
-              if (spezdef.typ=errordef) and (sp_generic_dummy in srsym.symoptions) then
+                spezdef:=nil;
+              if (not assigned(spezdef) or (spezdef.typ=errordef)) and (sp_generic_dummy in srsym.symoptions) then
                 symname:=srsym.RealName
               else
                 symname:='';
-              spezdef:=generate_specialization_phase1(spezcontext,spezdef,symname);
+              spezdef:=generate_specialization_phase1(spezcontext,spezdef,symname,srsym.owner);
               case spezdef.typ of
                 errordef:
                   begin
@@ -2994,7 +2996,7 @@ implementation
                      begin
                        {$push}
                        {$warn 5036 off}
-                       hdef:=generate_specialization_phase1(spezcontext,nil,nil,orgstoredpattern,dummypos);
+                       hdef:=generate_specialization_phase1(spezcontext,nil,nil,orgstoredpattern,nil,dummypos);
                        {$pop}
                        if hdef=generrordef then
                          begin
@@ -3048,12 +3050,20 @@ implementation
                wasgenericdummy:=false;
                if assigned(srsym) and
                    (sp_generic_dummy in srsym.symoptions) and
-                   (srsym.typ=typesym) and
+                   (srsym.typ in [procsym,typesym]) and
                    (
                      (
                        (m_delphi in current_settings.modeswitches) and
                        not (token in [_LT, _LSHARPBRACKET]) and
-                       (ttypesym(srsym).typedef.typ=undefineddef)
+                       (
+                         (
+                           (srsym.typ=typesym) and
+                           (ttypesym(srsym).typedef.typ=undefineddef)
+                         ) or (
+                           (srsym.typ=procsym) and
+                           (tprocsym(srsym).procdeflist.count=0)
+                         )
+                       )
                      )
                      or
                      (
@@ -3306,8 +3316,14 @@ implementation
                 procsym :
                   begin
                     p1:=nil;
+                    if (m_delphi in current_settings.modeswitches) and
+                        (sp_generic_dummy in srsym.symoptions) and
+                        (token in [_LT,_LSHARPBRACKET]) then
+                      begin
+                        p1:=cspecializenode.create(nil,getaddr,srsym)
+                      end
                     { check if it's a method/class method }
-                    if is_member_read(srsym,srsymtable,p1,hdef) then
+                    else if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         { if we are accessing a owner procsym from the nested }
                         { class we need to call it as a class member          }
@@ -3558,17 +3574,20 @@ implementation
                  (block_type=bt_body) and
                  (token in [_LT,_LSHARPBRACKET]) then
                begin
-                 if p1.nodetype=typen then
-                   idstr:=ttypenode(p1).typesym.name
-                 else
-                   if (p1.nodetype=loadvmtaddrn) and
-                       (tloadvmtaddrnode(p1).left.nodetype=typen) then
-                     idstr:=ttypenode(tloadvmtaddrnode(p1).left).typesym.name
+                 idstr:='';
+                 case p1.nodetype of
+                   typen:
+                     idstr:=ttypenode(p1).typesym.name;
+                   loadvmtaddrn:
+                     if tloadvmtaddrnode(p1).left.nodetype=typen then
+                       idstr:=ttypenode(tloadvmtaddrnode(p1).left).typesym.name;
+                   loadn:
+                     idstr:=tloadnode(p1).symtableentry.name;
+                   calln:
+                     idstr:=tcallnode(p1).symtableprocentry.name;
                    else
-                     if (p1.nodetype=loadn) then
-                       idstr:=tloadnode(p1).symtableentry.name
-                     else
-                       idstr:='';
+                     ;
+                 end;
                  { if this is the case then the postfix handling is done in
                    sub_expr if necessary }
                  dopostfix:=not could_be_generic(idstr);
@@ -4211,7 +4230,8 @@ implementation
             typesym:
               result:=ttypesym(sym).typedef;
             procsym:
-              result:=tdef(tprocsym(sym).procdeflist[0]);
+              if not (sp_generic_dummy in sym.symoptions) or (tprocsym(sym).procdeflist.count>0) then
+                result:=tdef(tprocsym(sym).procdeflist[0]);
             else
               internalerror(2015092701);
           end;
@@ -4230,6 +4250,8 @@ implementation
             loadn:
               if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
                 srsym:=nil;
+            calln:
+              srsym:=tcallnode(n).symtableprocentry;
             specializen:
               srsym:=tspecializenode(n).sym;
             { TODO : handle const nodes }
@@ -4264,7 +4286,7 @@ implementation
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
-            gendef:=generate_specialization_phase1(spezcontext,gendef,parseddef,gensym.realname,p2.fileinfo)
+            gendef:=generate_specialization_phase1(spezcontext,gendef,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
           else
             gendef:=generate_specialization_phase1(spezcontext,gendef);
           case gendef.typ of
