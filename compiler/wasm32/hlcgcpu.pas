@@ -109,7 +109,6 @@ uses
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
       procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
-      procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string); override;
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
@@ -120,8 +119,6 @@ uses
       procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
-
-      procedure gen_initialize_code(list: TAsmList); override;
 
       procedure gen_entry_code(list: TAsmList); override;
       procedure gen_exit_code(list: TAsmList); override;
@@ -200,13 +197,7 @@ uses
 
       property maxevalstackheight: longint read fmaxevalstackheight;
 
-      procedure gen_initialize_fields_code(list:TAsmList);
-
-      procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
      protected
-      function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
-
-      procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
       procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
@@ -1711,59 +1702,6 @@ implementation
       // do nothing
     end;
 
-  procedure thlcgwasm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
-    var
-      normaldim: longint;
-      eleref, tmpref: treference;
-    begin
-      { only in case of initialisation, we have to set all elements to "empty" }
-      if name<>'fpc_initialize_array' then
-        exit;
-      { put array on the stack }
-      tmpref:=ref;
-      a_load_ref_stack(list,ptruinttype,tmpref,prepare_stack_for_ref(list,tmpref,false));
-      { in case it's an open array whose elements are regular arrays, put the
-        dimension of the regular arrays on the stack (otherwise pass 0) }
-      normaldim:=0;
-      while (t.typ=arraydef) and
-            not is_dynamic_array(t) do
-        begin
-          inc(normaldim);
-          t:=tarraydef(t).elementdef;
-        end;
-      a_load_const_stack(list,s32inttype,normaldim,R_INTREGISTER);
-      { highloc is invalid, the length is part of the array in Java }
-      if is_wide_or_unicode_string(t) then
-        g_call_system_proc(list,'fpc_initialize_array_unicodestring',[],nil)
-      else if is_ansistring(t) then
-        g_call_system_proc(list,'fpc_initialize_array_ansistring',[],nil)
-      else if is_dynamic_array(t) then
-        g_call_system_proc(list,'fpc_initialize_array_dynarr',[],nil)
-      else if is_record(t) or
-              (t.typ=setdef) then
-        begin
-          tg.gethltemp(list,t,t.size,tt_persistent,eleref);
-          a_load_ref_stack(list,t,eleref,prepare_stack_for_ref(list,eleref,false));
-          if is_record(t) then
-            g_call_system_proc(list,'fpc_initialize_array_record',[],nil)
-          else if tsetdef(t).elementdef.typ=enumdef then
-            g_call_system_proc(list,'fpc_initialize_array_enumset',[],nil)
-          else
-            g_call_system_proc(list,'fpc_initialize_array_bitset',[],nil);
-          tg.ungettemp(list,eleref);
-        end
-      else if (t.typ=enumdef) then
-        begin
-          if get_enum_init_val_ref(t,eleref) then
-            begin
-              a_load_ref_stack(list,ptruinttype,eleref,prepare_stack_for_ref(list,eleref,false));
-              g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
-            end;
-        end
-      else
-        internalerror(2011031901);
-    end;
-
   procedure thlcgwasm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
     var
       dummyloc: tlocation;
@@ -1919,32 +1857,6 @@ implementation
   procedure thlcgwasm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
     begin
       // do nothing, long live garbage collection!
-    end;
-
-  procedure thlcgwasm.gen_initialize_code(list: TAsmList);
-    var
-      ref: treference;
-    begin
-      { create globals with wrapped types such as arrays/records  }
-      case current_procinfo.procdef.proctypeoption of
-        potype_unitinit:
-          begin
-            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
-            if assigned(current_module.globalsymtable) then
-              allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
-            allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
-          end;
-        potype_class_constructor:
-          begin
-            { also initialise local variables, if any }
-            inherited;
-            { initialise class fields }
-            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
-            allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
-          end
-        else
-          inherited
-      end;
     end;
 
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
@@ -2345,151 +2257,6 @@ implementation
       destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,ptruinttype,ptruinttype,initref,destbaseref);
-    end;
-
-
-  function thlcgwasm.get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
-    var
-      sym: tstaticvarsym;
-    begin
-      result:=false;
-      sym:=tstaticvarsym(tcpuenumdef(tenumdef(def).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
-      { no enum with ordinal value 0 -> exit }
-      if not assigned(sym) then
-        exit;
-      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4,[]);
-      result:=true;
-    end;
-
-
-  procedure thlcgwasm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
-    var
-      vs: tabstractvarsym;
-      def: tdef;
-      i: longint;
-      initref: treference;
-    begin
-      for i:=0 to st.symlist.count-1 do
-        begin
-          if (tsym(st.symlist[i]).typ<>allocvartyp) then
-            continue;
-          vs:=tabstractvarsym(st.symlist[i]);
-          if sp_static in vs.symoptions then
-            continue;
-          { vo_is_external and vo_has_local_copy means a staticvarsym that is
-            alias for a constsym, whose sole purpose is for allocating and
-            intialising the constant }
-          if [vo_is_external,vo_has_local_copy]*vs.varoptions=[vo_is_external] then
-             continue;
-          { threadvar innitializations are handled at the node tree level }
-          if vo_is_thread_var in vs.varoptions then
-            begin
-              { nothing }
-            end
-          else if wasmAlwayInMem(vs.vardef) then
-            allocate_implicit_struct_with_base_ref(list,vs,ref)
-          { enums are class instances in Java, while they are ordinals in
-            Pascal. When they are initialized with enum(0), such as in
-            constructors or global variables, initialize them with the
-            enum instance for 0 if it exists (if not, it remains nil since
-            there is no valid enum value in it) }
-          else if (vs.vardef.typ=enumdef) and
-                  ((vs.typ<>fieldvarsym) or
-                   (tdef(vs.owner.defowner).typ<>objectdef) or
-                   (ts_jvm_enum_field_init in current_settings.targetswitches)) and
-                  get_enum_init_val_ref(vs.vardef,initref) then
-            allocate_enum_with_base_ref(list,vs,initref,ref);
-        end;
-      { process symtables of routines part of this symtable (for local typed
-        constants) }
-      if allocvartyp=staticvarsym then
-        begin
-          for i:=0 to st.deflist.count-1 do
-            begin
-              def:=tdef(st.deflist[i]);
-              { the unit symtable also contains the methods of classes defined
-                in that unit -> skip them when processing the unit itself.
-                Localst is not assigned for the main program code.
-                Localst can be the same as st in case of unit init code. }
-              if (def.typ<>procdef) or
-                 (def.owner<>st) or
-                 not assigned(tprocdef(def).localst) or
-                 (tprocdef(def).localst=st) then
-                continue;
-              allocate_implicit_structs_for_st_with_base_ref(list,tprocdef(def).localst,ref,allocvartyp);
-            end;
-        end;
-    end;
-
-  procedure thlcgwasm.gen_initialize_fields_code(list: TAsmList);
-    var
-      sym: tsym;
-      selfpara: tparavarsym;
-      selfreg: tregister;
-      ref: treference;
-      obj: tabstractrecorddef;
-      i: longint;
-      needinit: boolean;
-    begin
-      obj:=tabstractrecorddef(current_procinfo.procdef.owner.defowner);
-      { check whether there are any fields that need initialisation }
-      needinit:=false;
-      for i:=0 to obj.symtable.symlist.count-1 do
-        begin
-          sym:=tsym(obj.symtable.symlist[i]);
-          if (sym.typ=fieldvarsym) and
-             not(sp_static in sym.symoptions) and
-             (wasmAlwayInMem(tfieldvarsym(sym).vardef) or
-              ((tfieldvarsym(sym).vardef.typ=enumdef) and
-               get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then
-            begin
-              needinit:=true;
-              break;
-            end;
-        end;
-      if not needinit then
-        exit;
-      selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));
-      if not assigned(selfpara) then
-        internalerror(2011033001);
-      selfreg:=getaddressregister(list,selfpara.vardef);
-      a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
-      cgutils.reference_reset_base(ref,selfreg,0,ctempposinvalid,1,[]);
-      allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
-    end;
-
-  procedure thlcgwasm.gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
-    begin
-      { replace special types with their equivalent class type }
-      if (checkdef.typ=pointerdef) and
-         wasmAlwayInMem(tpointerdef(checkdef).pointeddef) then
-        checkdef:=tpointerdef(checkdef).pointeddef;
-      if (checkdef=voidpointertype) or
-         (checkdef.typ=formaldef) then
-        checkdef:=ptruinttype
-      else if checkdef.typ=enumdef then
-        checkdef:=tcpuenumdef(checkdef).classdef
-      else if checkdef.typ=setdef then
-        begin
-          if tsetdef(checkdef).elementdef.typ=enumdef then
-            checkdef:=java_juenumset
-          else
-            checkdef:=java_jubitset;
-        end
-      else if is_wide_or_unicode_string(checkdef) then
-        checkdef:=java_jlstring
-      else if is_ansistring(checkdef) then
-        checkdef:=java_ansistring
-      else if is_shortstring(checkdef) then
-        checkdef:=java_shortstring;
-      if checkdef.typ in [objectdef,recorddef] then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
-      else if checkdef.typ=classrefdef then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class',AT_METADATA)))
-      { todo: WASM
-      else
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false),AT_METADATA)));
-        }
     end;
 
   procedure thlcgwasm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
