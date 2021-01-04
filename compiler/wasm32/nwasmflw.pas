@@ -67,6 +67,7 @@ uses
 procedure twasmwhilerepeatnode.pass_generate_code_condition;
 begin
   secondpass(left);
+  thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
   // reversing the condition
   if not (lnf_checknegate in loopflags) then
@@ -160,6 +161,7 @@ begin
   //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
   secondpass(left); // condition exprssions
+  thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
   thlcgwasm(hlcg).incblock;

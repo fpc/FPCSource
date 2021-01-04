@@ -261,6 +261,8 @@ interface
             (nf_short_bool in flags)) then
         begin
           secondpass(left);
+          thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
           current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
           thlcgwasm(hlcg).incblock;
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
@@ -271,6 +273,7 @@ interface
                    // inside of IF (the condition evaluated as true)
                    // for "and" must evaluate the right section
                    secondpass(right);
+                   thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
                    thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
@@ -279,8 +282,6 @@ interface
                    // for "and" must end evaluation immediately
                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
                    thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-                   thlcgwasm(hlcg).decblock;
                 end;
               orn :
                 begin
@@ -296,12 +297,15 @@ interface
                    secondpass(right);
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-                   thlcgwasm(hlcg).decblock;
+                   thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
                 end;
               else
                 Internalerror(2019091902);
               end;
+          current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+          thlcgwasm(hlcg).decblock;
+          set_result_location_reg;
+          thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
         end else
           inherited;
       end;
@@ -341,6 +345,8 @@ interface
           else
             internalerror(2011010413);
         end;
+        set_result_location_reg;
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
 begin
