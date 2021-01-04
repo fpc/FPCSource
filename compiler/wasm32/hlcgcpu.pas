@@ -47,6 +47,7 @@ uses
                            // if it's in the beggning the jump should be done to the loop (1)
                            // if the condition at the end, the jump should done to the end of block (0)
       loopBreakBr: integer;
+      exitBr: integer;
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
@@ -1389,10 +1390,12 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      if l = current_procinfo.CurrBreakLabel then
+      if l=current_procinfo.CurrBreakLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-loopBreakBr))
-      else if l = current_procinfo.CurrContinueLabel then
+      else if l=current_procinfo.CurrContinueLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-loopContBr))
+      else if l=current_procinfo.CurrExitLabel then
+        list.concat(taicpu.op_const(a_br,br_blocks-exitBr))
       else
         Internalerror(2019091806); // unexpected jump
     end;
@@ -1964,11 +1967,17 @@ implementation
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
     begin
       list.concat(Tai_force_line.Create);
+      { todo: inherited? }
+      list.concat(taicpu.op_none(a_block));
+      incblock;
+      exitBr:=br_blocks;
     end;
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
-      { nothing }
+      list.concat(taicpu.op_none(a_end_block));
+      decblock;
+      { todo: inherited? }
     end;
 
   procedure thlcgwasm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
