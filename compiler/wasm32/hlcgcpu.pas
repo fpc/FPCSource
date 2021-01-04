@@ -117,8 +117,6 @@ uses
 
       procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
       procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); override;
-      procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
-      procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
       procedure gen_entry_code(list: TAsmList); override;
       procedure gen_exit_code(list: TAsmList); override;
@@ -163,14 +161,6 @@ uses
       procedure a_op_loc_stack(list : TAsmList;op: topcg; size: tdef;const loc: tlocation);
 
       procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); override;
-
-      { assumes that initdim dimensions have already been pushed on the
-        evaluation stack, and creates a new array of type arrdef with these
-        dimensions }
-      procedure g_newarray(list : TAsmList; arrdef: tdef; initdim: longint);
-      { gets the length of the array whose reference is stored in arrloc,
-        and puts it on the evaluation stack }
-      procedure g_getarraylen(list : TAsmList; const arrloc: tlocation);
 
       { this routine expects that all values are already massaged into the
         required form (sign bits xor'ed for gt/lt comparisons for OS_32/OS_64,
@@ -622,165 +612,6 @@ implementation
         else
           inherited;
       end;
-    end;
-
-  procedure thlcgwasm.g_newarray(list: TAsmList; arrdef: tdef; initdim: longint);
-    var
-      recref,
-      enuminitref: treference;
-      elemdef: tdef;
-      i: longint;
-      mangledname: string;
-      opc: tasmop;
-      primitivetype: boolean;
-    begin
-      internalerror(2019083001); // arrays are note yet supported
-
-      (*
-      elemdef:=arrdef;
-      if initdim>1 then
-        begin
-          { multianewarray typedesc ndim }
-          {  todo: WASM
-          list.concat(taicpu.op_sym_const(a_multianewarray,
-            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype),AT_METADATA),initdim));
-            }
-          { has to be a multi-dimensional array type }
-          if primitivetype then
-            internalerror(2011012207);
-        end
-      else
-        begin
-          { for primitive types:
-              newarray typedesc
-            for reference types:
-              anewarray typedesc
-          }
-          { get the type of the elements of the array we are creating }
-          elemdef:=tarraydef(arrdef).elementdef;
-
-          { todo: WASM. Todo: array data structures needs to be stored in Memory
-          mangledname:=jvmarrtype(elemdef,primitivetype);
-          if primitivetype then
-            opc:=a_newarray
-          else
-            opc:=a_anewarray;
-          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
-          }
-        end;
-      { all dimensions are removed from the stack, an array reference is
-        added }
-      decstack(list,initdim-1);
-      { in case of an array of records, sets or shortstrings, initialise }
-      elemdef:=tarraydef(arrdef).elementdef;
-      for i:=1 to pred(initdim) do
-        elemdef:=tarraydef(elemdef).elementdef;
-      if (elemdef.typ in [recorddef,setdef]) or
-         ((elemdef.typ=enumdef) and
-          get_enum_init_val_ref(elemdef,enuminitref)) or
-         is_shortstring(elemdef) or
-         ((elemdef.typ=procvardef) and
-          not tprocvardef(elemdef).is_addressonly) or
-         is_ansistring(elemdef) or
-         is_wide_or_unicode_string(elemdef) or
-         is_dynamic_array(elemdef) then
-        begin
-          { duplicate array instance }
-          list.concat(taicpu.op_none(a_dup));
-          incstack(list,1);
-          a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
-          case elemdef.typ of
-            arraydef:
-              g_call_system_proc(list,'fpc_initialize_array_dynarr',[],nil);
-            recorddef,setdef,procvardef:
-              begin
-                tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
-                a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
-                case elemdef.typ of
-                  recorddef:
-                    g_call_system_proc(list,'fpc_initialize_array_record',[],nil);
-                  setdef:
-                    begin
-                      if tsetdef(elemdef).elementdef.typ=enumdef then
-                        g_call_system_proc(list,'fpc_initialize_array_enumset',[],nil)
-                      else
-                        g_call_system_proc(list,'fpc_initialize_array_bitset',[],nil)
-                    end;
-                  procvardef:
-                    g_call_system_proc(list,'fpc_initialize_array_procvar',[],nil);
-                  else
-                    internalerror(2019051025);
-                end;
-                tg.ungettemp(list,recref);
-              end;
-            enumdef:
-              begin
-                a_load_ref_stack(list,java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
-                g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
-              end;
-            stringdef:
-              begin
-                case tstringdef(elemdef).stringtype of
-                  st_shortstring:
-                    begin
-                      a_load_const_stack_intern(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER,true);
-                      g_call_system_proc(list,'fpc_initialize_array_shortstring',[],nil);
-                    end;
-                  st_ansistring:
-                    g_call_system_proc(list,'fpc_initialize_array_ansistring',[],nil);
-                  st_unicodestring,
-                  st_widestring:
-                    g_call_system_proc(list,'fpc_initialize_array_unicodestring',[],nil);
-                  else
-                    internalerror(2011081801);
-                end;
-              end;
-            else
-              internalerror(2011081801);
-          end;
-        end;
-        *)
-    end;
-
-  procedure thlcgwasm.g_getarraylen(list: TAsmList; const arrloc: tlocation);
-    var
-      nillab,endlab: tasmlabel;
-    begin
-      internalerror(2019083001); // arrays are note yet supported
-      (*
-      { inline because we have to use the arraylength opcode, which
-        cannot be represented directly in Pascal. Even though the JVM
-        supports allocated arrays with length=0, we still also have to
-        check for nil pointers because even if FPC always generates
-        allocated empty arrays under all circumstances, external Java
-        code could pass in nil pointers.
-
-        Note that this means that assigned(arr) can be different from
-        length(arr)<>0 for dynamic arrays when targeting the JVM.
-      }
-      current_asmdata.getjumplabel(nillab);
-      current_asmdata.getjumplabel(endlab);
-
-      { if assigned(arr) ... }
-      a_load_loc_stack(list,java_jlobject,arrloc);
-      list.concat(taicpu.op_none(a_dup));
-      incstack(list,1);
-      list.concat(taicpu.op_sym(a_ifnull,nillab));
-      decstack(list,1);
-
-      { ... then result:=arraylength(arr) ... }
-      list.concat(taicpu.op_none(a_arraylength));
-      a_jmp_always(list,endlab);
-
-      { ... else result:=0 }
-      a_label(list,nillab);
-      list.concat(taicpu.op_none(a_pop));
-      decstack(list,1);
-      list.concat(taicpu.op_none(a_iconst_0));
-      incstack(list,1);
-
-      a_label(list,endlab);
-      *)
     end;
 
     procedure thlcgwasm.a_cmp_stack_stack(list: TAsmlist; size: tdef; cmp_op: topcmp);
@@ -1828,33 +1659,6 @@ implementation
   procedure thlcgwasm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
     begin
       { don't do anything, all registers become stack locations anyway }
-    end;
-
-  procedure thlcgwasm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
-    var
-      localref: treference;
-      arrloc: tlocation;
-      stackslots: longint;
-    begin
-      { temporary reference for passing to concatcopy }
-      tg.gethltemp(list,ptruinttype,ptruinttype.size,tt_persistent,localref);
-      stackslots:=prepare_stack_for_ref(list,localref,false);
-      { create the local copy of the array (lenloc is invalid, get length
-        directly from the array) }
-      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint),ref.volatility);
-      arrloc.reference:=ref;
-      g_getarraylen(list,arrloc);
-      g_newarray(list,arrdef,1);
-      a_load_stack_ref(list,ptruinttype,localref,stackslots);
-      { copy the source array to the destination }
-      g_concatcopy(list,arrdef,ref,localref);
-      { and put the array pointer in the register as expected by the caller }
-      a_load_ref_reg(list,ptruinttype,ptruinttype,localref,destreg);
-    end;
-
-  procedure thlcgwasm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
-    begin
-      // do nothing, long live garbage collection!
     end;
 
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
