@@ -529,11 +529,8 @@ implementation
               OP_NOT,
               OP_NEG:
                 ;
-              { the second argument here is an int rather than a long }
-              OP_SHL,OP_SHR,OP_SAR:
-                decstack(list,1);
               else
-                decstack(list,2);
+                decstack(list,1);
             end;
           end;
         else
