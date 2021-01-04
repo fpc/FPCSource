@@ -304,9 +304,7 @@ implementation
       writer.AsmWrite(#9#9);
       writer.AsmWrite(gas_op2str[cpu.opcode]);
 
-      if (cpu.opcode = a_if) then
-        writer.AsmWrite(' i32') //todo: this is a hardcode, but shouldn't
-      else if cpu.ops<>0 then
+      if cpu.ops<>0 then
         begin
           for i:=0 to cpu.ops-1 do
             begin

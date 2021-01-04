@@ -87,12 +87,14 @@ uses
       );
 
       TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
+      TWasmResultType = array of TWasmBasicType;
 
       { TWasmFuncType }
 
       TWasmFuncType = class
-        params: array of TWasmBasicType;
-        results: array of TWasmBasicType;
+        params: TWasmResultType;
+        results: TWasmResultType;
+        constructor Create(aparams, aresults: TWasmResultType);
         procedure add_param(param: TWasmBasicType);
         procedure add_result(res: TWasmBasicType);
       end;
@@ -389,6 +391,13 @@ uses
 {*****************************************************************************
                                   TWasmFuncType
 *****************************************************************************}
+
+    constructor TWasmFuncType.Create(aparams, aresults: TWasmResultType);
+      begin
+        inherited Create;
+        params:=aparams;
+        results:=aresults;
+      end;
 
     procedure TWasmFuncType.add_param(param: TWasmBasicType);
       begin

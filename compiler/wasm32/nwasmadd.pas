@@ -261,7 +261,7 @@ interface
             (nf_short_bool in flags)) then
         begin
           secondpass(left);
-          current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_if) );
+          current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
 
           case nodetype of
               andn :

@@ -274,7 +274,7 @@ implementation
       prm: tcpuparavarsym;
       bt: TWasmBasicType;
     begin
-      result:=TWasmFuncType.Create;
+      result:=TWasmFuncType.Create([],[]);
       if Assigned(paras) and (paras.Count>0) then
         begin
           for i:=0 to paras.Count-1 do

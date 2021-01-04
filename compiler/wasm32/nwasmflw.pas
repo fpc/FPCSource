@@ -152,7 +152,7 @@ begin
 
   secondpass(left); // condition exprssions
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if)); // IF
+  current_asmdata.CurrAsmList.concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
   thlcgwasm(hlcg).incblock;
 
   secondpass(right); // then branchs
