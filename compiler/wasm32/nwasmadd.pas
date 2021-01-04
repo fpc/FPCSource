@@ -278,6 +278,7 @@ interface
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+                   thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
                    thlcgwasm(hlcg).decblock;
                 end;
