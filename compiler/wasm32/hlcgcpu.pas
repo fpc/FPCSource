@@ -924,7 +924,7 @@ implementation
             s64real:
               begin
                 list.concat(taicpu.op_double(a_f64_const, 0));
-                incstack(list,2);
+                incstack(list,1);
               end;
             else
               internalerror(2011010302);
