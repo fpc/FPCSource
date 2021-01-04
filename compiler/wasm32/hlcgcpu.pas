@@ -59,8 +59,6 @@ uses
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
 
-      class function def2regtyp(def: tdef): tregistertype; override;
-
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
@@ -313,25 +311,6 @@ implementation
         internalerror(2010120501);
       if cs_asm_regalloc in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
-    end;
-
-  class function thlcgwasm.def2regtyp(def: tdef): tregistertype;
-    begin
-      case def.typ of
-        { records (including files) and enums are implemented via classes }
-        recorddef,
-        filedef,
-        enumdef,
-        setdef:
-          result:=R_ADDRESSREGISTER;
-        { shortstrings are implemented via classes }
-        else if is_shortstring(def) or
-        { voiddef can only be typecasted into (implicit) pointers }
-                is_void(def) then
-          result:=R_ADDRESSREGISTER
-        else
-          result:=inherited;
-      end;
     end;
 
   procedure thlcgwasm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
