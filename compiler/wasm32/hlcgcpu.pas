@@ -115,7 +115,6 @@ uses
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
-      procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
       procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); override;
 
       procedure gen_entry_code(list: TAsmList); override;
@@ -1588,72 +1587,6 @@ implementation
       a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
       a_label(list,hl);
-    end;
-
-  procedure thlcgwasm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
-    var
-      tmploc: tlocation;
-    begin
-      { This routine is a combination of a generalised a_loadaddr_ref_reg()
-        that also works for addresses in registers (in case loadref is false)
-        and of a_load_ref_reg (in case loadref is true). It is used for
-        a) getting the address of managed var/out parameters
-        b) getting to the actual data of value types that are passed by
-           reference by the compiler (and then get a local copy at the caller
-           side). Normally, depending on whether this reference is passed in a
-           register or reference, we either need a reference with that register
-           as base or load the address in that reference and use that as a new
-           base.
-
-        Since the JVM cannot take the address of anything, all
-        "pass-by-reference" value parameters (which are always aggregate types)
-        are already simply the implicit pointer to the data (since arrays,
-        records, etc are already internally implicit pointers). This means
-        that if "loadref" is true, we must simply return this implicit pointer.
-        If it is false, we are supposed the take the address of this implicit
-        pointer, which is not possible.
-
-        However, managed types are also implicit pointers in Pascal, so in that
-        case "taking the address" again consists of simply returning the
-        implicit pointer/current value (in case of a var/out parameter, this
-        value is stored inside an array).
-      }
-      if not loadref then
-        begin
-          if not is_managed_type(def) then
-            internalerror(2011020601);
-          tmploc:=l;
-        end
-      else
-        begin
-          if not wasmAlwayInMem(def) then
-            begin
-              { passed by reference in array of single element; l contains the
-                base address of the array }
-              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
-              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,ptruinttype),0,tmploc.reference.temppos,4,ref.volatility);
-              a_load_loc_reg(list,ptruinttype,ptruinttype,l,tmploc.reference.base);
-            end
-          else
-            tmploc:=l;
-        end;
-      case tmploc.loc of
-        LOC_REGISTER,
-        LOC_CREGISTER :
-          begin
-            { the implicit pointer is in a register and has to be in a
-              reference -> create a reference and put it there }
-            location_force_mem(list,tmploc,ptruinttype);
-            ref:=tmploc.reference;
-          end;
-        LOC_REFERENCE,
-        LOC_CREFERENCE :
-          begin
-            ref:=tmploc.reference;
-          end;
-        else
-          internalerror(2011020603);
-      end;
     end;
 
   procedure thlcgwasm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
