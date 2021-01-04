@@ -152,34 +152,19 @@ begin
 
   secondpass(left); // condition exprssions
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
   thlcgwasm(hlcg).incblock;
 
   secondpass(right); // then branchs
 
   if Assigned(t1) then // else branch
     begin
-      // 0 const on stack if used to return IF value
-      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_else));
       secondpass(t1);
-    end
-  else // else dummy-branch
-    begin
-      // dummy else branch! todo: to be removed, when it's decided
-      // how to handle typeless-IF instructions (If without else)
-      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 0));
-      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_else));
-      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_nop));
     end;
 
-  // 0 const on stack if used to return IF value
-  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 0));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
   thlcgwasm(hlcg).decblock;
-
-  // clearing IF return value
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
 end;
 
 initialization
