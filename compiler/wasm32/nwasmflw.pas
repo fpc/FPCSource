@@ -165,7 +165,8 @@ begin
   thlcgwasm(hlcg).incblock;
   thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
-  secondpass(right); // then branchs
+  if Assigned(right) then
+    secondpass(right); // then branchs
 
   if Assigned(t1) then // else branch
     begin
