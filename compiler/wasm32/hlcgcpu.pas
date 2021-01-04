@@ -2500,13 +2500,11 @@ implementation
          (tosize=OS_F64) then
         begin
           list.concat(taicpu.op_none(a_f64_promote_f32));
-          incstack(list,1);
         end
       else if (fromsize=OS_F64) and
               (tosize=OS_F32) then
         begin
           list.concat(taicpu.op_none(a_f32_demote_f64));
-          decstack(list,1);
         end;
     end;
 
