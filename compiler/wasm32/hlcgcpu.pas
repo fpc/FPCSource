@@ -1394,10 +1394,8 @@ implementation
       //list.concat(taicpu.op_const(a_i32_const, 0));
       if l = current_procinfo.CurrBreakLabel then begin
         // todo: this should be moved to node generator pass2
-        list.concat(taicpu.op_const(a_i32_const, 0));
         list.concat(taicpu.op_const(a_br,2+br_blocks))
       end else if l = current_procinfo.CurrContinueLabel then begin
-        list.concat(taicpu.op_const(a_i32_const, 0));
         list.concat(taicpu.op_const(a_br,loopContBr+br_blocks))
       end else begin
         Internalerror(2019091806); // unexpected jump
