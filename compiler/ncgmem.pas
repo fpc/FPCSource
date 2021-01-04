@@ -638,8 +638,8 @@ implementation
        begin
          if l<>1 then
            begin
-             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
+             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,voidpointertype,l,maybe_const_reg,hreg);
              maybe_const_reg:=hreg;
            end;
          if location.reference.base=NR_NO then
@@ -648,8 +648,8 @@ implementation
            location.reference.index:=maybe_const_reg
          else
           begin
-            hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+            hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
