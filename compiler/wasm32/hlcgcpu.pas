@@ -848,15 +848,11 @@ implementation
                 OS_16,OS_S16,
                 OS_S32,OS_32:
                   begin
-                    //list.concat(taicpu.op_sym(opcmp32[cmp_op],lab));
                     list.concat(taicpu.op_none(opcmp32[cmp_op]));
                     decstack(list,2);
                   end;
                 OS_64,OS_S64:
                   begin
-                    //list.concat(taicpu.op_none(a_lcmp));
-                    //decstack(list,3);
-                    //list.concat(taicpu.op_sym(opcmp64[cmp_op],lab));
                     list.concat(taicpu.op_none(opcmp64[cmp_op]));
                     decstack(list,2);
                   end;
