@@ -46,6 +46,7 @@ uses
       loopContBr: integer; // the value is different depending of the condition test
                            // if it's in the beggning the jump should be done to the loop (1)
                            // if the condition at the end, the jump should done to the end of block (0)
+      loopBreakBr: integer;
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
@@ -1394,9 +1395,9 @@ implementation
       //list.concat(taicpu.op_const(a_i32_const, 0));
       if l = current_procinfo.CurrBreakLabel then begin
         // todo: this should be moved to node generator pass2
-        list.concat(taicpu.op_const(a_br,2+br_blocks))
+        list.concat(taicpu.op_const(a_br,br_blocks-loopBreakBr))
       end else if l = current_procinfo.CurrContinueLabel then begin
-        list.concat(taicpu.op_const(a_br,loopContBr+br_blocks))
+        list.concat(taicpu.op_const(a_br,br_blocks-loopContBr))
       end else begin
         Internalerror(2019091806); // unexpected jump
       end;

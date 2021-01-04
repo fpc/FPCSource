@@ -81,7 +81,8 @@ var
    oldclabel,oldblabel : tasmlabel;
    truelabel,falselabel : tasmlabel;
    oldflowcontrol : tflowcontrol;
-   oldloopbroffset: Integer;
+   oldloopcontbroffset: Integer;
+   oldloopbreakbroffset: Integer;
 begin
   location_reset(location,LOC_VOID,OS_NO);
 
@@ -91,7 +92,8 @@ begin
 
   oldflowcontrol:=flowcontrol;
 
-  oldloopbroffset:=thlcgwasm(hlcg).loopContBr;
+  oldloopcontbroffset:=thlcgwasm(hlcg).loopContBr;
+  oldloopbreakbroffset:=thlcgwasm(hlcg).loopBreakBr;
   oldclabel:=current_procinfo.CurrContinueLabel;
   oldblabel:=current_procinfo.CurrBreakLabel;
 
@@ -99,16 +101,20 @@ begin
   exclude(flowcontrol,fc_unwind_loop);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+  thlcgwasm(hlcg).incblock;
+  thlcgwasm(hlcg).loopBreakBr:=thlcgwasm(hlcg).br_blocks;
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_loop));
+  thlcgwasm(hlcg).incblock;
 
   if lnf_testatbegin in loopflags then
   begin
     pass_generate_code_condition;
-    thlcgwasm(hlcg).loopContBr:=1;
+    thlcgwasm(hlcg).loopContBr:=thlcgwasm(hlcg).br_blocks;
   end else
-    thlcgwasm(hlcg).loopContBr:=0;
+    thlcgwasm(hlcg).loopContBr:=thlcgwasm(hlcg).br_blocks+1;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+  thlcgwasm(hlcg).incblock;
 
   current_procinfo.CurrContinueLabel:=lcont;
   current_procinfo.CurrBreakLabel:=lbreak;
@@ -119,17 +125,21 @@ begin
     current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1) ); // jump back to the external loop
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+  thlcgwasm(hlcg).decblock;
   if not (lnf_testatbegin in loopflags) then begin
     pass_generate_code_condition;
   end;
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) ); // jump back to loop
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_loop));
+  thlcgwasm(hlcg).decblock;
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+  thlcgwasm(hlcg).decblock;
 
   current_procinfo.CurrContinueLabel:=oldclabel;
   current_procinfo.CurrBreakLabel:=oldblabel;
-  thlcgwasm(hlcg).loopContBr:=oldloopbroffset;
+  thlcgwasm(hlcg).loopContBr:=oldloopcontbroffset;
+  thlcgwasm(hlcg).loopBreakBr:=oldloopbreakbroffset;
 
   { a break/continue in a while/repeat block can't be seen outside }
   flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue,fc_inflowcontrol]);
