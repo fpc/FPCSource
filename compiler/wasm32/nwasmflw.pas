@@ -69,11 +69,9 @@ begin
   secondpass(left);
 
   // reversing the condition
-  // todo: there should be a better approach
-  if not (lnf_checknegate in loopflags) then begin
-    current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const,1) );
-    current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_xor) );
-  end;
+  if not (lnf_checknegate in loopflags) then
+    current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_eqz));
+
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
 end;
 
