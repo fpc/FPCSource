@@ -299,6 +299,7 @@ interface
        ,top_roundingmode
 {$endif defined(riscv32) or defined(riscv64)}
 {$ifdef wasm}
+       ,top_functype
        ,top_single
        ,top_double
 {$endif wasm}
@@ -534,6 +535,7 @@ interface
             top_roundingmode : (roundingmode : TRoundingMode);
         {$endif defined(riscv32) or defined(riscv64)}
         {$ifdef wasm}
+            top_functype : (functype: TWasmFuncType);
             top_single : (sval:single);
             top_double : (dval:double);
         {$endif wasm}
@@ -3016,6 +3018,10 @@ implementation
               top_wstring:
                 donewidestring(pwstrval);
 {$endif jvm}
+{$ifdef wasm}
+              top_functype:
+                FreeAndNil(functype);
+{$endif wasm}
               else
                 ;
             end;

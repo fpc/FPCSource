@@ -44,7 +44,6 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
-         functype : TWasmFuncType; // used for call_indirect
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -57,10 +56,11 @@ uses
          constructor op_single(op : tasmop;_op1 : single);
          constructor op_double(op : tasmop;_op1 : double);
 
-         constructor op_callindirect(afunctype: TWasmFuncType);
+         constructor op_functype(op : tasmop; _op1: TWasmFuncType);
          //constructor op_string(op : tasmop;_op1len : aint;_op1 : pchar);
          //constructor op_wstring(op : tasmop;_op1 : pcompilerwidestring);
 
+         procedure loadfunctype(opidx:longint;ft:TWasmFuncType);
          procedure loadsingle(opidx:longint;f:single);
          procedure loaddouble(opidx:longint;d:double);
          //procedure loadstr(opidx:longint;vallen: aint;pc: pchar);
@@ -251,10 +251,23 @@ implementation
         loaddouble(0,_op1);
       end;
 
-    constructor taicpu.op_callindirect(afunctype: TWasmFuncType);
+    constructor taicpu.op_functype(op: tasmop; _op1: TWasmFuncType);
       begin
-        functype := afunctype;
-        op_none(a_call_indirect);
+       inherited create(op);
+       ops:=1;
+       loadfunctype(0,_op1);
+      end;
+
+    procedure taicpu.loadfunctype(opidx: longint; ft: TWasmFuncType);
+      begin
+       allocate_oper(opidx+1);
+       with oper[opidx]^ do
+        begin
+          if typ<>top_functype then
+            clearop(opidx);
+          functype:=ft;
+          typ:=top_functype;
+        end;
       end;
 
     {constructor taicpu.op_string(op: tasmop; _op1len: aint; _op1: pchar);
