@@ -239,13 +239,13 @@ interface
 
     procedure twasmaddnode.second_cmp64bit;
       begin
-        //second_generic_compare(not is_signed(left.resultdef));
+        second_generic_compare(not is_signed(left.resultdef));
       end;
 
 
     procedure twasmaddnode.second_add64bit;
       begin
-        //second_opordinal;
+        second_opordinal;
       end;
 
 
