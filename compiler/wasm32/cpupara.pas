@@ -36,7 +36,6 @@ interface
 
       tcpuparamanager=class(TParaManager)
         function  get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
-        function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
@@ -68,17 +67,6 @@ implementation
         saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_NO);
       begin
         result:=saved_regs;
-      end;
-
-    function tcpuparamanager.push_high_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
-      begin
-        { we don't need a separate high parameter, since all arrays in Java
-          have an implicit associated length }
-        if not is_open_array(def) and
-           not is_array_of_const(def) then
-          result:=inherited
-        else
-          result:=false;
       end;
 
 
