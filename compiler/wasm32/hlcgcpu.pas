@@ -108,10 +108,6 @@ uses
       procedure gen_load_return_value(list:TAsmList);override;
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
-      procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
-      procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
-      procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
-
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
@@ -1523,52 +1519,6 @@ implementation
       if assigned(data) and
          not data.empty then
         internalerror(2010122801);
-    end;
-
-  procedure thlcgwasm.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
-    begin
-      // do nothing
-    end;
-
-  procedure thlcgwasm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
-    var
-      dummyloc: tlocation;
-      sym: tsym;
-      pd: tprocdef;
-      tmpref: treference;
-    begin
-      if (t.typ=arraydef) and
-         not is_dynamic_array(t) then
-        begin
-          dummyloc.loc:=LOC_INVALID;
-          g_array_rtti_helper(list,tarraydef(t).elementdef,ref,dummyloc,'fpc_initialize_array')
-        end
-      else if is_record(t) then
-        begin
-          { call the fpcInitializeRec method }
-          sym:=tsym(trecorddef(t).symtable.find('FPCINITIALIZEREC'));
-          if assigned(sym) and
-             (sym.typ=procsym) then
-            begin
-              if tprocsym(sym).procdeflist.Count<>1 then
-                internalerror(2011071713);
-              pd:=tprocdef(tprocsym(sym).procdeflist[0]);
-            end
-          else
-            internalerror(2013113008);
-          tmpref:=ref;
-          a_load_ref_stack(list,ptruinttype,ref,prepare_stack_for_ref(list,tmpref,false));
-          a_call_name(list,pd,pd.mangledname,[],nil,false);
-          { parameter removed, no result }
-          decstack(list,1);
-        end
-      else
-        a_load_const_ref(list,t,0,ref);
-    end;
-
-  procedure thlcgwasm.g_finalize(list: TAsmList; t: tdef; const ref: treference);
-    begin
-      // do nothing
     end;
 
   procedure thlcgwasm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
