@@ -105,7 +105,6 @@ uses
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
 
-      procedure gen_load_return_value(list:TAsmList);override;
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
@@ -1496,14 +1495,6 @@ implementation
 
       list.concat(taicpu.op_none(a_return));
       list.concat(taicpu.op_none(a_end_function));
-    end;
-
-  procedure thlcgwasm.gen_load_return_value(list: TAsmList);
-    begin
-      { constructors don't return anything in the jvm }
-      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
-        exit;
-      inherited gen_load_return_value(list);
     end;
 
   procedure thlcgwasm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
