@@ -263,6 +263,7 @@ interface
           secondpass(left);
           current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
           thlcgwasm(hlcg).incblock;
+          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
           case nodetype of
               andn :
@@ -272,6 +273,7 @@ interface
                    secondpass(right);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+                   thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
@@ -284,8 +286,10 @@ interface
                    // inside of IF (the condition evaluated as true)
                    // for "or" must end evalaution immediately - satified!
                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
+                   thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+                   thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
                    // inside of ELSE (the condition evaluated as false)
                    // for "or" must evaluate the right part
                    secondpass(right);
@@ -297,9 +301,6 @@ interface
               else
                 Internalerror(2019091902);
               end;
-          // todo: need to reset location to the stack?
-
-          //Internalerror(2019091901);
         end else
           inherited;
       end;
