@@ -1282,7 +1282,6 @@ implementation
                 begin
                   //todo: any operands needed?
                   list.concat(taicpu.op_none(a_i32_wrap_i64));
-                  decstack(list,1);
                 end;
             end
           else
