@@ -162,6 +162,7 @@ begin
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
   thlcgwasm(hlcg).incblock;
+  thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
   secondpass(right); // then branchs
 
