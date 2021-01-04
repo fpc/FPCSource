@@ -1389,18 +1389,12 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      //todo: for proper jumping it's necessary to check
-      //      all active br_blocks (if, block, loops)
-      //      and jump to the proper one.
-      //list.concat(taicpu.op_const(a_i32_const, 0));
-      if l = current_procinfo.CurrBreakLabel then begin
-        // todo: this should be moved to node generator pass2
+      if l = current_procinfo.CurrBreakLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-loopBreakBr))
-      end else if l = current_procinfo.CurrContinueLabel then begin
+      else if l = current_procinfo.CurrContinueLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-loopContBr))
-      end else begin
+      else
         Internalerror(2019091806); // unexpected jump
-      end;
     end;
 
   procedure thlcgwasm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
