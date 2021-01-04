@@ -839,7 +839,8 @@ implementation
         // (i.e. Exit or break or continue operators)
 
         case def2regtyp(size) of
-          R_INTREGISTER:
+          R_INTREGISTER,
+          R_ADDRESSREGISTER:
             begin
               cgsize:=def_cgsize(size);
               case cgsize of
@@ -862,20 +863,6 @@ implementation
                 else
                   internalerror(2010120538);
               end;
-            end;
-          R_ADDRESSREGISTER:
-            begin
-              case cmp_op of
-                OC_EQ:
-                  //list.concat(taicpu.op_sym(a_i64_eq,lab));
-                  list.concat(taicpu.op_none(a_i32_eq));
-                OC_NE:
-                  //list.concat(taicpu.op_sym(a_i64_ne,lab));
-                  list.concat(taicpu.op_none(a_i32_ne));
-                else
-                  internalerror(2010120537);
-              end;
-              decstack(list,2);
             end;
           else
             internalerror(2010120538);
