@@ -44,8 +44,6 @@ interface
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         { true if the location in paraloc can be reused as localloc }
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
-        { Returns true if the return value is actually a parameter pointer }
-        function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -191,15 +189,6 @@ implementation
         { all parameters are copied to the linear stack, so that their address
           can be taken }
         result:=false;
-      end;
-
-    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
-      begin
-        { not as efficient as returning in param for jvmimplicitpointertypes,
-          but in the latter case the routines are harder to use from Java
-          (especially for arrays), because the caller then manually has to
-          allocate the instance/array of the right size }
-        Result:=false;
       end;
 
     function tcpuparamanager.is_stack_paraloc(paraloc: pcgparalocation): boolean;
