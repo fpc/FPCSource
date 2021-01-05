@@ -550,12 +550,12 @@ implementation
         OP_SHL,OP_SHR,OP_SAR:
           begin
             if not is_64bitint(size) then
-              a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false))
+              a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false))
             else
-              a_load_ref_stack(list,s32inttype,ref,prepare_stack_for_ref(list,tmpref,false));
+              a_load_ref_stack(list,s32inttype,tmpref,prepare_stack_for_ref(list,tmpref,false));
           end;
         else
-          a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
+          a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
       end;
       a_op_stack(list,op,size,trunc32);
     end;
