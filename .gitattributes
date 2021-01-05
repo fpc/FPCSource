@@ -987,6 +987,7 @@ compiler/wasm32/itcpugas.pas svneol=native#text/plain
 compiler/wasm32/itcpuwasm.pas svneol=native#text/plain
 compiler/wasm32/nwasmadd.pas svneol=native#text/plain
 compiler/wasm32/nwasmcal.pas svneol=native#text/plain
+compiler/wasm32/nwasmcnv.pas svneol=native#text/plain
 compiler/wasm32/nwasmcon.pas svneol=native#text/plain
 compiler/wasm32/nwasmflw.pas svneol=native#text/plain
 compiler/wasm32/nwasmmat.pas svneol=native#text/plain
