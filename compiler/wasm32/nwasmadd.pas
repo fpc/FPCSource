@@ -153,10 +153,6 @@ interface
         cmpResultType := s32inttype;
         pass_left_right;
 
-        // allocating temporary variable (via reference) to hold the result
-        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
-        tg.gethltemp(current_asmdata.CurrAsmList,resultdef,0,tt_normal,location.reference);
-
         commutative:=false;
         case nodetype of
           ltn :
@@ -227,7 +223,8 @@ interface
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
           2-slot elements -- also adjust expectloc in that case! }
-        thlcgwasm(hlcg).a_load_stack_ref(current_asmdata.CurrAsmList,resultdef,location.reference,0);
+          set_result_location_reg;
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
 
