@@ -686,24 +686,24 @@ implementation
          if (l > 8*sizeof(aint)) then
            internalerror(200608051);
          sref.ref := location.reference;
-         hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,hreg);
+         hreg := hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+         hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,voidpointertype,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
+         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,voidpointertype,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
          if not ispowerof2(packedbitsloadsize(l),temp) then
            internalerror(2006081201);
          alignpower:=temp;
-         offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,hreg,offsetreg);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
+         offsetreg := hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+         hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,voidpointertype,3+alignpower,hreg,offsetreg);
+         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,voidpointertype,alignpower,offsetreg);
          if (sref.ref.base = NR_NO) then
            sref.ref.base := offsetreg
          else if (sref.ref.index = NR_NO) then
            sref.ref.index := offsetreg
          else
            begin
-             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
+             hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,voidpointertype,sref.ref.base,offsetreg);
              sref.ref.base := offsetreg;
            end;
 
@@ -721,7 +721,7 @@ implementation
            sref.bitindexreg:=hreg;
 {$pop}
 
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,sref.bitindexreg);
+         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,ossinttype,(1 shl (3+alignpower))-1,sref.bitindexreg);
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then
