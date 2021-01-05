@@ -1220,7 +1220,8 @@ implementation
       if (source.base=NR_EVAL_STACK_BASE) or (source.base=NR_LOCAL_STACK_POINTER_REG) or
          (source.index=NR_EVAL_STACK_BASE) or (source.index=NR_LOCAL_STACK_POINTER_REG) or
          (dest.base=NR_EVAL_STACK_BASE) or (dest.base=NR_LOCAL_STACK_POINTER_REG) or
-         (dest.index=NR_EVAL_STACK_BASE) or (dest.index=NR_LOCAL_STACK_POINTER_REG) then
+         (dest.index=NR_EVAL_STACK_BASE) or (dest.index=NR_LOCAL_STACK_POINTER_REG) or
+         (size.size in [1,2,4,8]) then
         inherited
       else
         begin
