@@ -203,7 +203,7 @@ implementation
         else
           begin
             if (_op1.base<>NR_NO) or (_op1.index<>NR_NO) then
-              internalerror(2021010201);
+              internalerror(2021010202);
           end;
       end;
 
