@@ -685,7 +685,6 @@ interface
 implementation
 
      uses
-       typinfo,
        cutils,
        globals,
        systems,
@@ -4929,6 +4928,8 @@ implementation
       ExistsCode337     : boolean;
       ExistsSSEAVXReg   : boolean;
 
+      hs1,hs2 : String;
+
       function bitcnt(aValue: int64): integer;
       var
         i: integer;
@@ -5486,10 +5487,10 @@ implementation
           begin
             // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat');
             //InternalError(20210102);
+            Str(gas_needsuffix[AsmOp],hs1);
+            Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
             Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
-                     std_op2str[AsmOp],
-                     GetEnumName(typeinfo(TAttSuffix), ord(gas_needsuffix[AsmOp])),
-                     GetEnumName(typeinfo(TMemRefSizeInfo), ord(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize)));
+                     std_op2str[AsmOp],hs1,hs2);
           end;
         end;
       end;
