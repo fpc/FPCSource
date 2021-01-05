@@ -97,6 +97,8 @@ uses
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
 
+      procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference); override;
+
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
 
@@ -213,7 +215,7 @@ implementation
     defutil,
     aasmtai,aasmcpu,
     symtable,symcpu,
-    procinfo,cpuinfo,cgcpu,tgobj,tgcpu;
+    procinfo,cpuinfo,cgcpu,tgobj,tgcpu,paramgr;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
@@ -1197,6 +1199,53 @@ implementation
       a_load_reg_stack(list,fromsize,reg1);
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
       a_load_stack_reg(list,tosize,reg2);
+    end;
+
+  procedure thlcgwasm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+    var
+      pd: tprocdef;
+      cgpara1,cgpara2,cgpara3 : TCGPara;
+    begin
+      if (source.base=NR_EVAL_STACK_BASE) or (source.base=NR_LOCAL_STACK_POINTER_REG) or
+         (source.index=NR_EVAL_STACK_BASE) or (source.index=NR_LOCAL_STACK_POINTER_REG) or
+         (dest.base=NR_EVAL_STACK_BASE) or (dest.base=NR_LOCAL_STACK_POINTER_REG) or
+         (dest.index=NR_EVAL_STACK_BASE) or (dest.index=NR_LOCAL_STACK_POINTER_REG) then
+        inherited
+      else
+        begin
+          pd:=search_system_proc('MOVE');
+          cgpara1.init;
+          cgpara2.init;
+          cgpara3.init;
+          paramanager.getcgtempparaloc(list,pd,1,cgpara1);
+          paramanager.getcgtempparaloc(list,pd,2,cgpara2);
+          paramanager.getcgtempparaloc(list,pd,3,cgpara3);
+          if pd.is_pushleftright then
+            begin
+              { load source }
+              a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
+              { load destination }
+              a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
+              { load size }
+              a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
+            end
+          else
+            begin
+              { load size }
+              a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
+              { load destination }
+              a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
+              { load source }
+              a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
+            end;
+          paramanager.freecgpara(list,cgpara3);
+          paramanager.freecgpara(list,cgpara2);
+          paramanager.freecgpara(list,cgpara1);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil).resetiftemp;
+          cgpara3.done;
+          cgpara2.done;
+          cgpara1.done;
+        end;
     end;
 
   procedure thlcgwasm.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
