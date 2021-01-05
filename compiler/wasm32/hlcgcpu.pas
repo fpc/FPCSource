@@ -432,46 +432,57 @@ implementation
         OS_16,OS_S16,
         OS_32,OS_S32:
           begin
-            { not = xor 1 for boolean, xor -1 for the rest}
-            if op=OP_NOT then
+            { boolean not: =0? for boolean }
+            { todo: should we also do this for cbool? }
+            if (op=OP_NOT) and is_pasbool(size) then
+              list.concat(taicpu.op_none(a_i32_eqz))
+            else
               begin
-                if not is_pasbool(size) then
-                  a_load_const_stack(list,s32inttype,high(cardinal),R_INTREGISTER)
-                else
-                  a_load_const_stack(list,size,1,R_INTREGISTER);
-                op:=OP_XOR;
+                if op=OP_NOT then
+                  begin
+                    { not = xor -1 for integer }
+                    a_load_const_stack(list,s32inttype,high(cardinal),R_INTREGISTER);
+                    op:=OP_XOR;
+                  end
+                else if op=OP_NEG then
+                  begin
+                    { neg = *(-1) }
+                    a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
+                    op:=OP_MUL;
+                  end;
+                if TOpCG2IAsmOp[op]=A_None then
+                  internalerror(2010120532);
+                list.concat(taicpu.op_none(TOpCG2IAsmOp[op]));
               end;
-            if TOpCG2IAsmOp[op]=A_None then
-              internalerror(2010120532);
-            list.concat(taicpu.op_none(TOpCG2IAsmOp[op]));
             maybe_adjust_op_result(list,op,size);
-            if op<>OP_NEG then
-              decstack(list,1);
           end;
         OS_64,OS_S64:
           begin
             { unsigned 64 bit division must be done via a helper }
             if op=OP_DIV then
               internalerror(2010120530);
-            { not = xor 1 for boolean, xor -1 for the rest}
-            if op=OP_NOT then
+            { boolean not: =0? for boolean }
+            { todo: should we also do this for cbool? }
+            if (op=OP_NOT) and is_pasbool(size) then
+              list.concat(taicpu.op_none(a_i64_eqz))
+            else
               begin
-                if not is_pasbool(size) then
-                  a_load_const_stack(list,s64inttype,-1,R_INTREGISTER)
-                else
-                  a_load_const_stack(list,s64inttype,1,R_INTREGISTER);
-                op:=OP_XOR;
+                if op=OP_NOT then
+                  begin
+                    { not = xor -1 for integer }
+                    a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                    op:=OP_XOR;
+                  end
+                else if op=OP_NEG then
+                  begin
+                    { neg = *(-1) }
+                    a_load_const_stack(list,s64inttype,-1,R_INTREGISTER);
+                    op:=OP_MUL;
+                  end;
+                if TOpCG2LAsmOp[op]=A_None then
+                  internalerror(2010120533);
+                list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
               end;
-            if TOpCG2LAsmOp[op]=A_None then
-              internalerror(2010120533);
-            list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
-            case op of
-              OP_NOT,
-              OP_NEG:
-                ;
-              else
-                decstack(list,1);
-            end;
           end;
         else
           internalerror(2010120531);
