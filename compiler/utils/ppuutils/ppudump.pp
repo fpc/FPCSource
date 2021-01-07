@@ -1706,8 +1706,12 @@ begin
   if symoptions<>[] then
    begin
      if Def <> nil then
-       if sp_internal in symoptions then
-         Def.Visibility:=dvHidden;
+       begin
+         if sp_internal in symoptions then
+           Def.Visibility:=dvHidden;
+         if sp_generic_dummy in symoptions then
+           Def.GenericDummy:=true;
+       end;
      first:=true;
      for i:=1to symopts do
       if (symopt[i].mask in symoptions) then
@@ -3600,6 +3604,16 @@ begin
                 readderef('', def.Ref);
                 _finddef(def);
               end;
+             if def.GenericDummy then
+               begin
+                 len:=ppufile.getword;
+                 for i:=1 to len do
+                   begin
+                     write([space,'     Gen Ovld : ']);
+                     readderef('',def.Ref);
+                     _finddef(def);
+                   end;
+               end;
            end;
 
          ibconstsym :

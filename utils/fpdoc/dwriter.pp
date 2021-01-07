@@ -282,7 +282,7 @@ Type
     procedure AllocateClassMemberPages(AModule: TPasModule; LinkList: TObjectList); virtual;
     procedure AllocateModulePages(AModule: TPasModule; LinkList: TObjectList); virtual;
     procedure AllocatePackagePages; virtual;
-    // Prefix every filename generated with the eesult of this.
+    // Prefix every filename generated with the result of this.
     function GetFileBaseDir(aOutput: String): String; virtual;
 
     function  ModuleHasClasses(AModule: TPasModule): Boolean;
@@ -308,7 +308,6 @@ Type
 function PropertyFilter(AMember: TPasElement): Boolean;
 function MethodFilter(AMember: TPasElement): Boolean;
 function EventFilter(AMember: TPasElement): Boolean;
-
 
 
 // Register backend
@@ -398,7 +397,6 @@ constructor TMultiFileDocWriter.Create(APackage: TPasPackage;
   AEngine: TFPDocEngine);
 begin
   inherited Create(APackage, AEngine);
-  FAllocator:=CreateAllocator;
   FPageInfos:=TFPObjectList.Create;
 end;
 
@@ -721,7 +719,7 @@ end;
 function TMultiFileDocWriter.GetFileBaseDir(aOutput: String) : String;
 
 begin
-  Result:=Engine.Output;
+  Result:=aOutput;
   if Result<>'' then
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
@@ -759,6 +757,7 @@ var
   FinalFilename: String;
 
 begin
+  FAllocator:=CreateAllocator;
   AllocatePages;
   DoLog(SWritingPages, [PageCount]);
   if Engine.Output <> '' then
