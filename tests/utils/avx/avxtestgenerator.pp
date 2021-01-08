@@ -30,6 +30,8 @@ uses
 begin
   with TAVXTestGenerator.Create do
   try
+    
+
     with TOptions.Create do
     try
       LoadParams;
@@ -42,17 +44,24 @@ begin
         writeln('make avx assembler-testfiles');
         writeln('');
         writeln('-h  help');
-        writeln('-f  [fpc,nasm,fasm] outputformat');
-        writeln('-p  [x8664] codegenerator for x86_64 platform');
+        writeln('-f  [fpc,fpcmref,nasm,fasm,fpcinc] outputformat');
+        writeln('-l  list opcode-memrefsize-states');
+        writeln('-m  create only these testfile(s) (e.g. -mvgather,vpgather)');
         writeln('-o  destination path');
+        writeln('-p  [x8664] codegenerator for x86_64 platform');
+
+
         writeln('');
       end
       else
       begin
         case OutputFormat of
-          'f': MakeTestFiles(tfFPC, x64, Path);
-          'F': MakeTestFiles(tfFasm, x64, Path);
-          'n': MakeTestFiles(tfNasm, x64, Path);
+          'f': MakeTestFiles(tfFPC, x64, Path, Filemask);
+          'F': MakeTestFiles(tfFasm, x64, Path, Filemask);
+          'n': MakeTestFiles(tfNasm, x64, Path, Filemask);
+          'I': MakeTestFiles(tfFPCInc, x64, Path, Filemask);
+          'm': MakeTestFiles(tfFPCMRef, x64, Path, Filemask);
+          'l': ListMemRefState;
         end;
       end;
     finally

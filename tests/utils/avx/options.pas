@@ -32,6 +32,8 @@ type
     FX64: boolean;
     FOutputFormat: Char;
     FPath: string;
+    FMemRef: boolean;
+    FFilemask: string;
   public
     constructor Create;
 
@@ -41,6 +43,8 @@ type
     property OutputFormat: Char read FOutputFormat write FOutputFormat;
     property X64: boolean read FX64 write FX64;
     property Path: string read FPath write FPath;
+    property MemRef: boolean read FMemref write FMemRef;
+    property Filemask: string read FFilemask write FFilemask;
   end;
 
 implementation
@@ -55,6 +59,8 @@ begin
   FX64           := false;
   FOutputFormat  := '?';
   FPath          := '';
+  FMemRef        := false;
+  FFilemask      := '';
 end;
 
 procedure TOptions.LoadParams;
@@ -84,12 +90,18 @@ begin
          'f': if sValue = 'fpc' then FOutputFormat := 'f'
                else if sValue = 'nasm' then FOutputFormat := 'n'
                else if sValue = 'fasm' then FOutputFormat := 'F'
+               else if sValue = 'fpcinc' then FOutputFormat := 'I'
+               else if sValue = 'fpcmref' then FOutputFormat := 'm'
+
                else IsInvalidParam := true;
          'p': if sValue = 'x8664' then
               begin
                 Fx64 := true;
               end
               else IsInvalidParam := true;
+         'l': FOutputFormat := 'l';
+
+	 'm': FFilemask := sValue;
          'o': if sValue <> '' then
               begin
                 FPath :=  IncludeTrailingBackslash(sValue);
