@@ -408,7 +408,7 @@ implementation
       begin
         result:=TAsmLabel(fexceptlabelstack.last);
         if not assigned(result) then
-          internalerror(2016121703);
+          internalerror(2016121706);
       end;
 
 

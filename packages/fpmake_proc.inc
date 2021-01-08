@@ -815,5 +815,10 @@ begin
 {$include vcl-compat/fpmake.pp}
 end;
 
+procedure add_qlunits(const ADirectory: string);
+begin
+  with Installer do
+{$include qlunits/fpmake.pp}
+end;
 
 {$include ide/fpmake.pp}

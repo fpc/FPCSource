@@ -322,7 +322,7 @@ implementation
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,ppu,
       symconst,symdef,symsym,symcpu,symtable,
-      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,nflw,
       cgbase,procinfo,
       htypechk,blockutl,pass_1,cpuinfo;
 
@@ -1184,7 +1184,7 @@ implementation
         with tarraydef(resultdef) do
           begin
             if highrange<lowrange then
-             internalerror(200501051);
+             internalerror(2005010502);
             arrsize := highrange-lowrange+1;
           end;
         if (left.nodetype = stringconstn) and
@@ -2042,7 +2042,7 @@ implementation
           begin
             { arr[i] := param_i }
             if not assigned(elemnode.left) then
-              internalerror(2017050101);
+              internalerror(2017050103);
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
@@ -2872,6 +2872,9 @@ implementation
 
     function checkremovebiginttypeconvs(n: tnode; out gotsint: boolean;validints : tordtypeset;const l,h : Tconstexprint): boolean;
       var
+        gotminus1,
+        gotsigned,
+        gotunsigned,
         gotdivmod: boolean;
 
       { checks whether a node has an accepted resultdef, or originally
@@ -2880,6 +2883,13 @@ implementation
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
+          gotsigned:=gotsigned or is_signed(n.resultdef);
+          gotunsigned:=gotunsigned or not(is_signed(n.resultdef));
+          { actually, we should only check right (denominator) nodes here, but
+            setting it always is a safe approximation }
+          if ((n.nodetype=ordconstn) and
+            (tordconstnode(n).value=-1)) then
+            gotminus1:=true;
           if (torddef(n.resultdef).ordtype in validints) then
             begin
               if is_signed(n.resultdef) then
@@ -2904,7 +2914,12 @@ implementation
                   is_signed(ttypeconvnode(n).left.resultdef)) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
-                gotsint:=true;
+                begin
+                  gotsint:=true;
+                  gotsigned:=true;
+                end
+              else
+                gotunsigned:=true;
               exit(true);
             end;
           result:=false;
@@ -2925,17 +2940,24 @@ implementation
                   docheckremoveinttypeconvs(tbinarynode(n).left) and
                   docheckremoveinttypeconvs(tbinarynode(n).right);
               end;
+            unaryminusn:
+              begin
+                gotsint:=true;
+                result:=docheckremoveinttypeconvs(tunarynode(n).left);
+              end;
+            notn:
+              result:=docheckremoveinttypeconvs(tunarynode(n).left);
             addn,muln,divn,modn,andn:
               begin
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
                   (docheckremoveinttypeconvs(tbinarynode(n).left) and
-                   docheckremoveinttypeconvs(tbinarynode(n).right)) or
-                  { in case of div/mod, the result of that division/modulo can
-                    usually be different in 32 and 64 bit }
-                  (not gotdivmod and
-                   (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                   docheckremoveinttypeconvs(tbinarynode(n).right) and
+
+                   (not(n.nodetype in [modn,divn]) or (not(gotminus1)))
+                  ) or
+                  ((((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
                     ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
               end;
             else
@@ -2946,14 +2968,22 @@ implementation
       begin { checkremove64bittypeconvs }
         gotdivmod:=false;
         gotsint:=false;
+        gotminus1:=false;
+        gotsigned:=false;
+        gotunsigned:=false;
         result:=
           docheckremoveinttypeconvs(n) and
-          not(gotdivmod and gotsint);
+          (not(gotdivmod) or (gotsigned xor gotunsigned));
       end;
 
 
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
+      var
+        newblock: tblocknode;
+        newstatements: tstatementnode;
+        originaldivtree: tnode;
+        tempnode: ttempcreatenode;
       begin
         case n.nodetype of
           subn,addn,muln,divn,modn,xorn,andn,orn:
@@ -2962,9 +2992,34 @@ implementation
               if not forceunsigned and
                  is_signed(n.resultdef) then
                 begin
+                  originaldivtree:=nil;
+                  if n.nodetype in [divn,modn] then
+                    originaldivtree:=n.getcopy;
                   doremoveinttypeconvs(tbinarynode(n).left,signedtype,false,signedtype,unsignedtype);
                   doremoveinttypeconvs(tbinarynode(n).right,signedtype,false,signedtype,unsignedtype);
                   n.resultdef:=signedtype;
+                  if n.nodetype in [divn,modn] then
+                    begin
+                      newblock:=internalstatements(newstatements);
+                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true);
+                      addstatement(newstatements,tempnode);
+                      addstatement(newstatements,cifnode.create_internal(
+                        caddnode.create_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false)),
+                          cassignmentnode.create_internal(
+                            ctemprefnode.create(tempnode),
+                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false))
+                          ),
+                          cassignmentnode.create_internal(
+                            ctemprefnode.create(tempnode),n
+                          )
+                        )
+                      );
+                      addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode));
+                      addstatement(newstatements,ctemprefnode.create(tempnode));
+                      n:=newblock;
+                      do_typecheckpass(n);
+                      originaldivtree.free;
+                    end;
                 end
               else
                 begin
@@ -2979,6 +3034,21 @@ implementation
               //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
               //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
               //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
+            end;
+          unaryminusn,notn:
+            begin
+              exclude(n.flags,nf_internal);
+              if not forceunsigned and
+                 is_signed(n.resultdef) then
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,signedtype,false,signedtype,unsignedtype);
+                  n.resultdef:=signedtype;
+                end
+              else
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  n.resultdef:=unsignedtype;
+                end;
             end;
           typeconvn:
             begin
@@ -3271,20 +3341,20 @@ implementation
                     to 64 bit                                               }
                   if (resultdef.size <= 4) and
                     is_64bitint(left.resultdef) and
-                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s32inttype,u32inttype);
 {$if defined(cpu16bitalu)}
                   if (resultdef.size <= 2) and
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and
-                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit],int64(low(smallint)),high(word)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s16inttype,u16inttype);
 {$endif defined(cpu16bitalu)}
 {$if defined(cpu8bitalu)}
                  if (resultdef.size<left.resultdef.size) and
                   is_integer(left.resultdef) and
-                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn]) and
                   checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s8inttype,u8inttype);
 {$endif defined(cpu8bitalu)}
@@ -4095,7 +4165,9 @@ implementation
 
     function ttypeconvnode.retains_value_location:boolean;
       begin
-        result:=(convtype=tc_equal) or
+        result:=assigned(left.resultdef) and
+                (
+                (convtype=tc_equal) or
                 { typecasting from void is always allowed }
                 is_void(left.resultdef) or
                 (left.resultdef.typ=formaldef) or
@@ -4117,7 +4189,8 @@ implementation
                 { on managed platforms, converting an element to an open array
                   involves creating an actual array -> value location changes }
                 ((convtype=tc_elem_2_openarray) and
-                 not(target_info.system in systems_managed_vm));
+                 not(target_info.system in systems_managed_vm))
+                );
       end;
 
 

@@ -536,7 +536,7 @@ unit cgppc;
       op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
-        internalerror(2002090904);
+        internalerror(2002090911);
       if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090905);
 

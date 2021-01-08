@@ -91,6 +91,8 @@ interface
          Function  MakeStaticLibrary:boolean;override;
 
          Function UniqueName(const str:TCmdStr): TCmdStr;
+
+         function PostProcessELFExecutable(const fn: string; isdll: boolean): boolean;
        end;
 
       TBooleanArray = array [1..1024] of boolean;
@@ -216,10 +218,11 @@ Implementation
          exit;
 
         {When linking on target, the units has not been assembled yet,
+         if assembling is also done on target,
          so there is no object files to look for at
          the host. Look for the corresponding assembler file instead,
          because it will be assembled to object file on the target.}
-        if isunit and (cs_link_on_target in current_settings.globalswitches) then
+        if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
           s:=ChangeFileExt(s,target_info.asmext);
 
         { when it does not belong to the unit then check if
@@ -266,7 +269,7 @@ Implementation
          Message1(exec_w_objfile_not_found,s);
 
         {Restore file extension}
-        if isunit and (cs_link_on_target in current_settings.globalswitches) then
+        if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
           foundfile:= ChangeFileExt(foundfile,target_info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
@@ -987,6 +990,298 @@ Implementation
       end;
 
 
+    function TExternalLinker.PostProcessELFExecutable(const fn : string;isdll:boolean):boolean;
+      type
+        TElf32header=packed record
+          magic0123         : array[0..3] of char;
+          file_class        : byte;
+          data_encoding     : byte;
+          file_version      : byte;
+          padding           : array[$07..$0f] of byte;
+
+          e_type            : word;
+          e_machine         : word;
+          e_version         : longint;
+          e_entry           : longint;          { entrypoint }
+          e_phoff           : longint;          { program header offset }
+
+          e_shoff           : longint;          { sections header offset }
+          e_flags           : longint;
+          e_ehsize          : word;             { elf header size in bytes }
+          e_phentsize       : word;             { size of an entry in the program header array }
+          e_phnum           : word;             { 0..e_phnum-1 of entrys }
+          e_shentsize       : word;             { size of an entry in sections header array }
+          e_shnum           : word;             { 0..e_shnum-1 of entrys }
+          e_shstrndx        : word;             { index of string section header }
+        end;
+        TElf32sechdr=packed record
+          sh_name           : longint;
+          sh_type           : longint;
+          sh_flags          : longint;
+          sh_addr           : longint;
+
+          sh_offset         : longint;
+          sh_size           : longint;
+          sh_link           : longint;
+          sh_info           : longint;
+
+          sh_addralign      : longint;
+          sh_entsize        : longint;
+        end;
+
+        telf64header=packed record
+          magic0123         : array[0..3] of char;
+          file_class        : byte;
+          data_encoding     : byte;
+          file_version      : byte;
+          padding           : array[$07..$0f] of byte;
+
+          e_type            : word;
+          e_machine         : word;
+          e_version         : longword;
+          e_entry           : qword;            { entrypoint }
+          e_phoff           : qword;            { program header offset }
+          e_shoff           : qword;            { sections header offset }
+          e_flags           : longword;
+          e_ehsize          : word;             { elf header size in bytes }
+          e_phentsize       : word;             { size of an entry in the program header array }
+          e_phnum           : word;             { 0..e_phnum-1 of entrys }
+          e_shentsize       : word;             { size of an entry in sections header array }
+          e_shnum           : word;             { 0..e_shnum-1 of entrys }
+          e_shstrndx        : word;             { index of string section header }
+        end;
+        TElf64sechdr=packed record
+          sh_name           : longword;
+          sh_type           : longword;
+          sh_flags          : qword;
+          sh_addr           : qword;
+          sh_offset         : qword;
+          sh_size           : qword;
+          sh_link           : longword;
+          sh_info           : longword;
+          sh_addralign      : qword;
+          sh_entsize        : qword;
+        end;
+
+
+      function MayBeSwapHeader(h : telf32header) : telf32header;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
+              end;
+        end;
+
+
+      function MayBeSwapHeader(h : telf64header) : telf64header;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
+              end;
+        end;
+
+
+      function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
+              end;
+        end;
+
+
+      function MaybeSwapSecHeader(h : telf64sechdr) : telf64sechdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
+              end;
+        end;
+
+      var
+        f : file;
+
+      function ReadSectionName(pos : longint) : String;
+        var
+          oldpos : longint;
+          c : char;
+        begin
+          oldpos:=filepos(f);
+          seek(f,pos);
+          Result:='';
+          while true do
+            begin
+              blockread(f,c,1);
+              if c=#0 then
+                break;
+              Result:=Result+c;
+            end;
+          seek(f,oldpos);
+        end;
+
+      var
+        elfheader32 : TElf32header;
+        secheader32 : TElf32sechdr;
+        elfheader64 : TElf64header;
+        secheader64 : TElf64sechdr;
+        i : longint;
+        stringoffset : longint;
+        secname : string;
+      begin
+        Result:=false;
+        { open file }
+        assign(f,fn);
+        {$push}{$I-}
+        reset(f,1);
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_open_executable,fn);
+        { read header }
+        blockread(f,elfheader32,sizeof(tElf32header));
+        with elfheader32 do
+          if not((magic0123[0]=#$7f) and (magic0123[1]='E') and (magic0123[2]='L') and (magic0123[3]='F')) then
+            Exit;
+        case elfheader32.file_class of
+          1:
+            begin
+              elfheader32:=MayBeSwapHeader(elfheader32);
+              seek(f,elfheader32.e_shoff);
+              { read string section header }
+              seek(f,elfheader32.e_shoff+sizeof(TElf32sechdr)*elfheader32.e_shstrndx);
+              blockread(f,secheader32,sizeof(secheader32));
+              secheader32:=MaybeSwapSecHeader(secheader32);
+              stringoffset:=secheader32.sh_offset;
+
+              seek(f,elfheader32.e_shoff);
+              status.datasize:=0;
+              for i:=0 to elfheader32.e_shnum-1 do
+                begin
+                  blockread(f,secheader32,sizeof(secheader32));
+                  secheader32:=MaybeSwapSecHeader(secheader32);
+                  secname:=ReadSectionName(stringoffset+secheader32.sh_name);
+                  case secname of
+                    '.text':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(secheader32.sh_size));
+                        status.codesize:=secheader32.sh_size;
+                      end;
+                    '.fpcdata',
+                    '.rodata',
+                    '.data':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(secheader32.sh_size));
+                        inc(status.datasize,secheader32.sh_size);
+                      end;
+                    '.bss':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(secheader32.sh_size));
+                        inc(status.datasize,secheader32.sh_size);
+                      end;
+                  end;
+                end;
+            end;
+          2:
+            begin
+              seek(f,0);
+              blockread(f,elfheader64,sizeof(tElf64header));
+              with elfheader64 do
+                if not((magic0123[0]=#$7f) and (magic0123[1]='E') and (magic0123[2]='L') and (magic0123[3]='F')) then
+                  Exit;
+              elfheader64:=MayBeSwapHeader(elfheader64);
+              seek(f,elfheader64.e_shoff);
+              { read string section header }
+              seek(f,elfheader64.e_shoff+sizeof(TElf64sechdr)*elfheader64.e_shstrndx);
+              blockread(f,secheader64,sizeof(secheader64));
+              secheader64:=MaybeSwapSecHeader(secheader64);
+              stringoffset:=secheader64.sh_offset;
+
+              seek(f,elfheader64.e_shoff);
+              status.datasize:=0;
+              for i:=0 to elfheader64.e_shnum-1 do
+                begin
+                  blockread(f,secheader64,sizeof(secheader64));
+                  secheader64:=MaybeSwapSecHeader(secheader64);
+                  secname:=ReadSectionName(stringoffset+secheader64.sh_name);
+                  case secname of
+                    '.text':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(secheader64.sh_size));
+                        status.codesize:=secheader64.sh_size;
+                      end;
+                    '.fpcdata',
+                    '.rodata',
+                    '.data':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(secheader64.sh_size));
+                        inc(status.datasize,secheader64.sh_size);
+                      end;
+                    '.bss':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(secheader64.sh_size));
+                        inc(status.datasize,secheader64.sh_size);
+                      end;
+                  end;
+                end;
+            end;
+          else
+            exit;
+        end;
+        close(f);
+        {$pop}
+        if ioresult<>0 then
+          ;
+        Result:=true;
+      end;
 {*****************************************************************************
                               TINTERNALLINKER
 *****************************************************************************}

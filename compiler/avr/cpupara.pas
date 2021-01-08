@@ -58,7 +58,7 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
-          result:=VOLATILE_INTREGISTERS-[RS_R18,RS_R19]
+          result:=VOLATILE_INTREGISTERS-[RS_R0,RS_R1,RS_R18,RS_R19]
         else
           result:=VOLATILE_INTREGISTERS;
       end;
@@ -555,7 +555,7 @@ unit cpupara;
               end;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102305);
       end;
 
 begin

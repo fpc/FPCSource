@@ -9,15 +9,13 @@ main=rtl
 loaders=
 units=system uuchar strings objpas iso7185 heaptrc getopts macostp macutils \
       unixutil dos extpas cmem charset cpall ctypes sysconst \
-      sortbase softfpu macpas classes fgl types
-#	   sysutils 
-#     macpas \
+      sortbase macpas sysutils classes typinfo fgl types \
+      math softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 #      exec  \
 #      printer \
-#      lineinfo lnfodwrf  graph \
-#      math typinfo
-# rsts=math
-# implicitunits=exeinfo \
+#      lineinfo lnfodwrf
+rsts=math
+# implicitunits=exeinfo
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
       cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
@@ -126,9 +124,6 @@ sysutils$(PPUEXT) : sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) softfpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) 
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 		
-softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $(INC)/softfpu.pp
-
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
@@ -205,5 +200,20 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
 
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 

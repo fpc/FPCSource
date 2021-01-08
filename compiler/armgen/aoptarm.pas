@@ -40,7 +40,7 @@ Type
     procedure DebugMsg(const s : string; p : tai);
 
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
-    function RedundantMovProcess(var p: tai; hp1: tai): boolean;
+    function RedundantMovProcess(var p: tai; var hp1: tai): boolean;
     function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
 
     function OptPass1UXTB(var p: tai): Boolean;
@@ -53,7 +53,7 @@ Type
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
   function MatchInstruction(const instr: tai; const op: TAsmOp; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
 {$ifdef AARCH64}
-  function MatchInstruction(const instr: tai; const op: TAsmOps; const postfix: TOpPostfixes): boolean;
+  function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const postfix: TOpPostfixes): boolean;
 {$endif AARCH64}
   function MatchInstruction(const instr: tai; const op: TAsmOp; const postfix: TOpPostfixes): boolean;
 
@@ -87,7 +87,7 @@ Implementation
     begin
       result :=
         (instr.typ = ait_instruction) and
-        ((op = []) or ((ord(taicpu(instr).opcode)<256) and (taicpu(instr).opcode in op))) and
+        ((op = []) or ((taicpu(instr).opcode<=LastCommonAsmOp) and (taicpu(instr).opcode in op))) and
         ((cond = []) or (taicpu(instr).condition in cond)) and
         ((postfix = []) or (taicpu(instr).oppostfix in postfix));
     end;
@@ -104,12 +104,22 @@ Implementation
 
 
 {$ifdef AARCH64}
-  function MatchInstruction(const instr: tai; const op: TAsmOps; const postfix: TOpPostfixes): boolean;
-    begin
-      result :=
-        (instr.typ = ait_instruction) and
-        ((op = []) or (taicpu(instr).opcode in op)) and
-        ((postfix = []) or (taicpu(instr).oppostfix in postfix));
+  function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const postfix: TOpPostfixes): boolean;
+  var
+    op : TAsmOp;
+  begin
+    result:=false;
+    if instr.typ <> ait_instruction then
+      exit;
+    for op in ops do
+      begin
+        if (taicpu(instr).opcode = op) and
+           ((postfix = []) or (taicpu(instr).oppostfix in postfix)) then
+          begin
+            result:=true;
+            exit;
+          end;
+      end;
     end;
 {$endif AARCH64}
 
@@ -282,9 +292,11 @@ Implementation
     end;
 
 
-  function TARMAsmOptimizer.RedundantMovProcess(var p: tai;hp1: tai):boolean;
+  function TARMAsmOptimizer.RedundantMovProcess(var p: tai; var hp1: tai):boolean;
     var
       I: Integer;
+      current_hp, next_hp: tai;
+      LDRChange: Boolean;
     begin
       Result:=false;
       {
@@ -300,58 +312,281 @@ Implementation
       }
       if (taicpu(p).ops = 2) and
          (taicpu(p).oper[1]^.typ = top_reg) and
-         (taicpu(p).oppostfix = PF_NONE) and
-
-         MatchInstruction(hp1, [A_ADD, A_ADC,
-{$ifdef ARM}
-                                A_RSB, A_RSC,
-{$endif ARM}
-                                A_SUB, A_SBC,
-                                A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
-                          [taicpu(p).condition], []) and
-         { MOV and MVN might only have 2 ops }
-         (taicpu(hp1).ops >= 2) and
-         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
-         (taicpu(hp1).oper[1]^.typ = top_reg) and
-         (
-           (taicpu(hp1).ops = 2) or
-           (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop])
-         ) and
-{$ifdef AARCH64}
-         (taicpu(p).oper[1]^.reg<>NR_SP) and
-{$endif AARCH64}
-         not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+         (taicpu(p).oppostfix = PF_NONE) then
         begin
-        { When we get here we still don't know if the registers match }
-          for I:=1 to 2 do
-            {
-              If the first loop was successful p will be replaced with hp1.
-              The checks will still be ok, because all required information
-              will also be in hp1 then.
-            }
-            if (taicpu(hp1).ops > I) and
-               MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg)
+
+          if
+            MatchInstruction(hp1, [A_ADD, A_ADC,
 {$ifdef ARM}
-               { prevent certain combinations on thumb(2), this is only a safe approximation }
-               and (not(GenerateThumbCode or GenerateThumb2Code) or
-                ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
-                 (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15)))
+                                   A_RSB, A_RSC,
+{$endif ARM}
+                                   A_SUB, A_SBC,
+                                   A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
+                             [taicpu(p).condition], []) and
+            { MOV and MVN might only have 2 ops }
+            (taicpu(hp1).ops >= 2) and
+            MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
+            (taicpu(hp1).oper[1]^.typ = top_reg) and
+            (
+              (taicpu(hp1).ops = 2) or
+              (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop])
+            ) and
+{$ifdef AARCH64}
+            (taicpu(p).oper[1]^.reg<>NR_SP) and
+{$endif AARCH64}
+            not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+            begin
+              { When we get here we still don't know if the registers match }
+              for I:=1 to 2 do
+                {
+                  If the first loop was successful p will be replaced with hp1.
+                  The checks will still be ok, because all required information
+                  will also be in hp1 then.
+                }
+                if (taicpu(hp1).ops > I) and
+                   MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg)
+{$ifdef ARM}
+                   { prevent certain combinations on thumb(2), this is only a safe approximation }
+                   and (not(GenerateThumbCode or GenerateThumb2Code) or
+                    ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
+                     (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15)))
 {$endif ARM}
 
-               then
-              begin
-                DebugMsg('Peephole RedundantMovProcess done', hp1);
-                taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
-                if p<>hp1 then
+                then
+                  begin
+                    DebugMsg('Peephole RedundantMovProcess done', hp1);
+                    taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
+                    if p<>hp1 then
+                      begin
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        Result:=true;
+                      end;
+                  end;
+
+              if Result then Exit;
+            end
+          { Change:                   Change:
+              mov     r1, r0            mov     r1, r0
+              ...                       ...
+              ldr/str r2, [r1, etc.]    mov     r2, r1
+            To:                       To:
+              ldr/str r2, [r0, etc.]    mov     r2, r0
+          }
+          else if (taicpu(p).condition = C_None) and (taicpu(p).oper[1]^.typ = top_reg)
+{$ifdef ARM}
+            and not (getsupreg(taicpu(p).oper[0]^.reg) in [RS_PC, RS_R14, RS_STACK_POINTER_REG])
+            and (getsupreg(taicpu(p).oper[1]^.reg) <> RS_PC)
+            { Thumb does not support references with base and index one being SP }
+            and (not(GenerateThumbCode) or (getsupreg(taicpu(p).oper[1]^.reg) <> RS_STACK_POINTER_REG))
+{$endif ARM}
+{$ifdef AARCH64}
+            and (getsupreg(taicpu(p).oper[0]^.reg) <> RS_STACK_POINTER_REG)
+{$endif AARCH64}
+            then
+            begin
+              current_hp := p;
+              TransferUsedRegs(TmpUsedRegs);
+
+              { Search local instruction block }
+              while GetNextInstruction(current_hp, next_hp) and (next_hp <> BlockEnd) and (next_hp.typ = ait_instruction) do
                 begin
-                  asml.remove(p);
-                  p.free;
-                  p:=hp1;
-                  Result:=true;
+                  UpdateUsedRegs(TmpUsedRegs, tai(current_hp.Next));
+                  LDRChange := False;
+
+                  if (taicpu(next_hp).opcode in [A_LDR,A_STR]) and (taicpu(next_hp).ops = 2) then
+                    begin
+
+                      { Change the registers from r1 to r0 }
+                      if (taicpu(next_hp).oper[1]^.ref^.base = taicpu(p).oper[0]^.reg) and
+{$ifdef ARM}
+                        { This optimisation conflicts with something and raises
+                          an access violation - needs further investigation. [Kit] }
+                        (taicpu(next_hp).opcode <> A_LDR) and
+{$endif ARM}
+                        { Don't mess around with the base register if the
+                          reference is pre- or post-indexed }
+                        (taicpu(next_hp).oper[1]^.ref^.addressmode = AM_OFFSET) then
+                        begin
+                          taicpu(next_hp).oper[1]^.ref^.base := taicpu(p).oper[1]^.reg;
+                          LDRChange := True;
+                        end;
+
+                      if taicpu(next_hp).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
+                        begin
+                          taicpu(next_hp).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+                          LDRChange := True;
+                        end;
+
+                      if LDRChange then
+                        DebugMsg('Peephole Optimization: ' + std_regname(taicpu(p).oper[0]^.reg) + ' = ' + std_regname(taicpu(p).oper[1]^.reg) + ' (MovLdr2Ldr 1)', next_hp);
+
+                      { Drop out if we're dealing with pre-indexed references }
+                      if (taicpu(next_hp).oper[1]^.ref^.addressmode = AM_PREINDEXED) and
+                        (
+                          RegInRef(taicpu(p).oper[0]^.reg, taicpu(next_hp).oper[1]^.ref^) or
+                          RegInRef(taicpu(p).oper[1]^.reg, taicpu(next_hp).oper[1]^.ref^)
+                        ) then
+                        begin
+                          { Remember to update register allocations }
+                          if LDRChange then
+                            AllocRegBetween(taicpu(p).oper[1]^.reg, p, next_hp, UsedRegs);
+
+                          Break;
+                        end;
+
+                      { The register being stored can be potentially changed (as long as it's not the stack pointer) }
+                      if (taicpu(next_hp).opcode = A_STR) and (getsupreg(taicpu(p).oper[1]^.reg) <> RS_STACK_POINTER_REG) and
+                        MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[0]^.reg) then
+                        begin
+                          DebugMsg('Peephole Optimization: ' + std_regname(taicpu(p).oper[0]^.reg) + ' = ' + std_regname(taicpu(p).oper[1]^.reg) + ' (MovLdr2Ldr 2)', next_hp);
+                          taicpu(next_hp).oper[0]^.reg := taicpu(p).oper[1]^.reg;
+                          LDRChange := True;
+                        end;
+
+                      if LDRChange and (getsupreg(taicpu(p).oper[1]^.reg) <> RS_STACK_POINTER_REG) then
+                        begin
+                          AllocRegBetween(taicpu(p).oper[1]^.reg, p, next_hp, UsedRegs);
+                          if (taicpu(p).oppostfix = PF_None) and
+                            (
+                              (
+                                (taicpu(next_hp).opcode = A_LDR) and
+                                MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[0]^.reg)
+                              ) or
+                              not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, next_hp, TmpUsedRegs)
+                            ) and
+                            { Double-check to see if the old registers were actually
+                              changed (e.g. if the super registers matched, but not
+                              the sizes, they won't be changed). }
+                            (
+                              (taicpu(next_hp).opcode = A_LDR) or
+                              not RegInOp(taicpu(p).oper[0]^.reg, taicpu(next_hp).oper[0]^)
+                            ) and
+                            not RegInRef(taicpu(p).oper[0]^.reg, taicpu(next_hp).oper[1]^.ref^) then
+                            begin
+                              DebugMsg('Peephole Optimization: RedundantMovProcess 2a done', p);
+                              RemoveCurrentP(p);
+                              Result := True;
+                              Exit;
+                            end;
+                        end;
+                    end
+                  else if (taicpu(next_hp).opcode = A_MOV) and (taicpu(next_hp).oppostfix = PF_None) and
+                    (taicpu(next_hp).ops = 2) then
+                    begin
+                      if MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[0]^.reg) then
+                        begin
+                          { Found another mov that writes entirely to the register }
+                          if RegUsedBetween(taicpu(p).oper[0]^.reg, p, next_hp) then
+                            begin
+                              { Register was used beforehand }
+                              if MatchOperand(taicpu(next_hp).oper[1]^, taicpu(p).oper[1]^.reg) then
+                                begin
+                                  { This MOV is exactly the same as the first one.
+                                    Since none of the registers have changed value
+                                    at this point, we can remove it. }
+                                  DebugMsg('Peephole Optimization: RedundantMovProcess 3a done', next_hp);
+
+                                  if (next_hp = hp1) then
+                                    { Don't let hp1 become a dangling pointer }
+                                    hp1 := nil;
+
+                                  asml.Remove(next_hp);
+                                  next_hp.Free;
+
+                                  { We still have the original p, so we can continue optimising;
+                                   if it was -O2 or below, this instruction appeared immediately
+                                   after the first MOV, so we're technically not looking more
+                                   than one instruction ahead after it's removed! [Kit] }
+                                  Continue;
+                                end
+                              else
+                                { Register changes value - drop out }
+                                Break;
+                            end;
+
+                          { We can delete the first MOV (only if the second MOV is unconditional) }
+{$ifdef ARM}
+                          if (taicpu(p).oppostfix = PF_None) and
+                            (taicpu(next_hp).condition = C_None) then
+{$endif ARM}
+                            begin
+                              DebugMsg('Peephole Optimization: RedundantMovProcess 2b done', p);
+                              RemoveCurrentP(p);
+                              Result := True;
+                            end;
+                          Exit;
+                        end
+                      else if MatchOperand(taicpu(next_hp).oper[1]^, taicpu(p).oper[0]^.reg) then
+                        begin
+                          if MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[1]^.reg)
+                            { Be careful - if the entire register is not used, removing this
+                              instruction will leave the unused part uninitialised }
+{$ifdef AARCH64}
+                            and (getsubreg(taicpu(p).oper[1]^.reg) = R_SUBQ)
+{$endif AARCH64}
+                            then
+                            begin
+                              { Instruction will become mov r1,r1 }
+                              DebugMsg('Peephole Optimization: Mov2None 2 done', next_hp);
+
+                              if (next_hp = hp1) then
+                                { Don't let hp1 become a dangling pointer }
+                                hp1 := nil;
+
+                              asml.Remove(next_hp);
+                              next_hp.Free;
+                              Continue;
+                            end;
+
+                          { Change the old register (checking the first operand again
+                            forces it to be left alone if the full register is not
+                            used, lest mov w1,w1 gets optimised out by mistake. [Kit] }
+{$ifdef AARCH64}
+                          if not MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[1]^.reg) then
+{$endif AARCH64}
+                            begin
+                              DebugMsg('Peephole Optimization: ' + std_regname(taicpu(p).oper[0]^.reg) + ' = ' + std_regname(taicpu(p).oper[1]^.reg) + ' (MovMov2Mov 2)', next_hp);
+                              taicpu(next_hp).oper[1]^.reg := taicpu(p).oper[1]^.reg;
+                              AllocRegBetween(taicpu(p).oper[1]^.reg, p, next_hp, UsedRegs);
+
+                              { If this was the only reference to the old register,
+                                then we can remove the original MOV now }
+
+                              if (taicpu(p).oppostfix = PF_None) and
+                                { A bit of a hack - sometimes registers aren't tracked properly, so do not
+                                  remove if the register was apparently not allocated when its value is
+                                  first set at the MOV command (this is especially true for the stack
+                                  register). [Kit] }
+                                (getsupreg(taicpu(p).oper[1]^.reg) <> RS_STACK_POINTER_REG) and
+                                RegInUsedRegs(taicpu(p).oper[0]^.reg, UsedRegs) and
+                                not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, next_hp, TmpUsedRegs) then
+                                begin
+                                  DebugMsg('Peephole Optimization: RedundantMovProcess 2c done', p);
+                                  RemoveCurrentP(p);
+                                  Result := True;
+                                  Exit;
+                                end;
+                            end;
+                        end;
+                    end;
+
+                  { On low optimisation settions, don't search more than one instruction ahead }
+                  if not(cs_opt_level3 in current_settings.optimizerswitches) or
+                    { Stop at procedure calls and jumps }
+                    is_calljmp(taicpu(next_hp).opcode) or
+                    { If the read register has changed value, or the MOV
+                      destination register has been used, drop out }
+                    RegInInstruction(taicpu(p).oper[0]^.reg, next_hp) or
+                    RegModifiedByInstruction(taicpu(p).oper[1]^.reg, next_hp) then
+                    Break;
+
+                  current_hp := next_hp;
                 end;
-              end;
+            end;
         end;
-      end;
+    end;
 
 
   function TARMAsmOptimizer.OptPass1UXTB(var p : tai) : Boolean;

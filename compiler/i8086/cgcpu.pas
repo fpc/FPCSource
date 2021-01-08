@@ -261,7 +261,7 @@ unit cgcpu;
                         OP_OR,OP_XOR:
                           {do nothing};
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100704);
                       end;
                     end
                   else if aint(a and $FFFF) = aint($FFFF) then
@@ -274,7 +274,7 @@ unit cgcpu;
                         OP_XOR:
                           list.concat(taicpu.op_reg(A_NOT,S_W,reg));
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100705);
                       end;
                     end
                   else
@@ -289,7 +289,7 @@ unit cgcpu;
                         OP_OR,OP_XOR:
                           {do nothing};
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100706);
                       end;
                     end
                   else if aint(a shr 16) = aint($FFFF) then
@@ -302,7 +302,7 @@ unit cgcpu;
                         OP_XOR:
                           list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(reg)));
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100707);
                       end;
                     end
                   else
@@ -450,7 +450,7 @@ unit cgcpu;
                                 list.concat(taicpu.op_reg_reg(A_OR,S_W,tmpreg,GetNextReg(reg)));
                               end;
                             else
-                              internalerror(2017040301);
+                              internalerror(2017040302);
                           end;
 
                           ungetcpuregister(list,NR_CX);
@@ -522,7 +522,7 @@ unit cgcpu;
                                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                                   end;
                                 else
-                                  internalerror(2013030903);
+                                  internalerror(2013030907);
                               end;
                             end;
                         end;
@@ -739,7 +739,7 @@ unit cgcpu;
                 else
                   { OP_MUL should be handled specifically in the code        }
                   { generator because of the silly register usage restraints }
-                  internalerror(200109225);
+                  internalerror(2001092208);
               end
             else
               inherited a_op_const_reg(list, Op, size, a, reg);
@@ -801,7 +801,7 @@ unit cgcpu;
                         OP_OR,OP_XOR:
                           {do nothing};
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100708);
                       end;
                     end
                   else if aint(a and $FFFF) = aint($FFFF) then
@@ -814,7 +814,7 @@ unit cgcpu;
                         OP_XOR:
                           list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100709);
                       end;
                     end
                   else
@@ -830,7 +830,7 @@ unit cgcpu;
                         OP_OR,OP_XOR:
                           {do nothing};
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100710);
                       end;
                     end
                   else if aint(a shr 16) = aint($FFFF) then
@@ -843,7 +843,7 @@ unit cgcpu;
                         OP_XOR:
                           list.concat(taicpu.op_ref(A_NOT,S_W,tmpref));
                         else
-                          InternalError(2013100701);
+                          InternalError(2013100711);
                       end;
                     end
                   else
@@ -991,7 +991,7 @@ unit cgcpu;
                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     else
-                      internalerror(2013030903);
+                      internalerror(2013030908);
                   end;
 
                   ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
@@ -1051,7 +1051,7 @@ unit cgcpu;
                   ungetcpuregister(list,NR_CX);
                 end;
               else
-                internalerror(2013030901);
+                internalerror(2013030905);
             end;
           end
         else
@@ -1069,7 +1069,7 @@ unit cgcpu;
         check_register_size(size,reg);
 
         if size in [OS_64, OS_S64] then
-          internalerror(2013030902);
+          internalerror(2013030906);
 
         if size in [OS_32, OS_S32] then
           begin
@@ -1123,7 +1123,7 @@ unit cgcpu;
               OP_MUL,OP_DIV,OP_IDIV:
                 { special stuff, needs separate handling inside code }
                 { generator                                          }
-                internalerror(200109238);
+                internalerror(2001092304);
               OP_ADD,OP_SUB,OP_XOR,OP_OR,OP_AND:
                 begin
                   get_32bit_ops(op, op1, op2);
@@ -1180,7 +1180,7 @@ unit cgcpu;
                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     else
-                      internalerror(2013030903);
+                      internalerror(2013030909);
                   end;
 
                   ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
@@ -1215,7 +1215,7 @@ unit cgcpu;
         make_simple_ref(list,tmpref);
 
         if size in [OS_64, OS_S64] then
-          internalerror(2013050803);
+          internalerror(2013050805);
 
         if size in [OS_32, OS_S32] then
           begin
@@ -1279,7 +1279,7 @@ unit cgcpu;
                   a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
                end;
              else
-               internalerror(2002071004);
+               internalerror(2002071006);
           end;
         end;
       var
@@ -1296,16 +1296,16 @@ unit cgcpu;
                 if cgpara.location^.Next = nil then
                   begin
                     if tcgsize2size[cgpara.location^.size] <> 4 then
-                      internalerror(2013031101);
+                      internalerror(2013031103);
                   end
                 else
                   begin
                     if tcgsize2size[cgpara.location^.size] <> 2 then
-                      internalerror(2013031101);
+                      internalerror(2013031104);
                     if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
-                      internalerror(2013031101);
+                      internalerror(2013031105);
                     if cgpara.location^.Next^.Next <> nil then
-                      internalerror(2013031101);
+                      internalerror(2013031106);
                   end;
 
                 if tcgsize2size[cgpara.size]>cgpara.alignment then
@@ -1354,23 +1354,23 @@ unit cgcpu;
             if tcgsize2size[cgpara.Size] > 2 then
               begin
                 if tcgsize2size[cgpara.Size] <> 4 then
-                  internalerror(2013031101);
+                  internalerror(2013031107);
                 if cgpara.location^.Next = nil then
                   begin
                     if tcgsize2size[cgpara.location^.size] <> 4 then
-                      internalerror(2013031101);
+                      internalerror(2013031108);
                   end
                 else
                   begin
                     if tcgsize2size[cgpara.location^.size] <> 2 then
-                      internalerror(2013031101);
+                      internalerror(2013031109);
                     if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
-                      internalerror(2013031101);
+                      internalerror(2013031110);
                     if cgpara.location^.Next^.Next <> nil then
-                      internalerror(2013031101);
+                      internalerror(2013031111);
                   end;
                 if (cgpara.alignment <> 4) and (cgpara.alignment <> 2) then
-                  internalerror(2013031101);
+                  internalerror(2013031112);
 
                 push_const(list,OS_16,a shr 16);
                 push_const(list,OS_16,a and $FFFF);
@@ -1501,19 +1501,19 @@ unit cgcpu;
                     if cgpara.location^.Next = nil then
                       begin
                         if tcgsize2size[cgpara.location^.size] <> 4 then
-                          internalerror(2014032401);
+                          internalerror(2014032404);
                       end
                     else
                       begin
                         if tcgsize2size[cgpara.location^.size] <> 2 then
-                          internalerror(2014032401);
+                          internalerror(2014032405);
                         if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
-                          internalerror(2014032401);
+                          internalerror(2014032406);
                         if cgpara.location^.Next^.Next <> nil then
-                          internalerror(2014032401);
+                          internalerror(2014032407);
                       end;
                     if cgpara.alignment > 4 then
-                      internalerror(2014032401);
+                      internalerror(2014032408);
 
                     if segment<>NR_NO then
                       begin
@@ -1764,7 +1764,7 @@ unit cgcpu;
         check_register_size(tosize,reg);
 
         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-          internalerror(2011021307);
+          internalerror(2011021302);
 {        if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
           fromsize:=tosize;}
 
@@ -1919,7 +1919,7 @@ unit cgcpu;
                       add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, reg2));
                   end
                 else
-                  internalerror(2013030210);
+                  internalerror(2013030203);
               OS_16,OS_S16:
                 case fromsize of
                   OS_8:
@@ -1955,7 +1955,7 @@ unit cgcpu;
                         add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, reg2));
                     end
                   else
-                    internalerror(2013030212);
+                    internalerror(2013030205);
                 end;
               OS_32,OS_S32:
                 case fromsize of
@@ -2013,10 +2013,10 @@ unit cgcpu;
                         end;
                     end;
                   else
-                    internalerror(2013030213);
+                    internalerror(2013030206);
                 end;
               else
-                internalerror(2013030211);
+                internalerror(2013030204);
             end;
           end;
       end;
@@ -2176,7 +2176,7 @@ unit cgcpu;
               a_jmp_cond(list, OC_B, l_skip);
             end;
           else
-            internalerror(2014010305);
+            internalerror(2014010321);
         end;
       end;
 
@@ -2204,7 +2204,7 @@ unit cgcpu;
           OC_A:
             a_jmp_cond(list, OC_A, l_target);
           else
-            internalerror(2014010306);
+            internalerror(2014010322);
         end;
       end;
 
@@ -2276,7 +2276,7 @@ unit cgcpu;
                   list.concat(Taicpu.op_const_reg(A_SBB, S_W, 0, reg));
                 end;
               else
-                internalerror(2013123101);
+                internalerror(2013123102);
             end;
             a_load_reg_reg(list,tmpsize,size,reg,reg);
           end
@@ -2297,7 +2297,7 @@ unit cgcpu;
                   list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
                 end;
               else
-                internalerror(2013123101);
+                internalerror(2013123103);
             end;
 
             current_asmdata.getjumplabel(hl_skip);
@@ -2682,7 +2682,7 @@ unit cgcpu;
         hsym:=tsym(procdef.parast.Find('self'));
         if not(assigned(hsym) and
                (hsym.typ=paravarsym)) then
-          internalerror(200305251);
+          internalerror(2003052502);
         paraloc:=tparavarsym(hsym).paraloc[callerside].location;
         with paraloc^ do
           begin
@@ -2715,7 +2715,7 @@ unit cgcpu;
                     end;
                 end
               else
-                internalerror(200309189);
+                internalerror(2003091802);
             end;
             paraloc:=next;
           end;
@@ -2753,7 +2753,7 @@ unit cgcpu;
               op2:=A_AND;
             end;
           else
-            internalerror(200203241);
+            internalerror(2002032403);
         end;
       end;
 

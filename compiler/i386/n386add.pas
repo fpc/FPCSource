@@ -141,7 +141,7 @@ interface
           else
             begin
               { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              internalerror(2001090505);
             end;
         end;
 
@@ -409,7 +409,7 @@ interface
                 end;
             end;
         else
-          internalerror(200203282);
+          internalerror(2002032803);
         end;
 
       end;
@@ -622,7 +622,7 @@ interface
       else if (hreg2<>NR_NO) then
         emit_reg_reg(A_ADD,S_L,hreg2,NR_EDX)
       else
-        InternalError(2014011604);
+        InternalError(2014011601);
 
       { Result is now in EDX:EAX. Copy it to virtual registers. }
       set_mul_result_location;

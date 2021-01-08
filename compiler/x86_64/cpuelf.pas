@@ -164,7 +164,7 @@ implementation
           else if objrel.size=4 then
             result:=R_X86_64_32
           else
-            InternalError(2012061901);
+            InternalError(2012061902);
         RELOC_ABSOLUTE32 :
           result:=R_X86_64_32S;
         RELOC_GOTPCREL :
@@ -186,7 +186,7 @@ implementation
           else if objrel.size=4 then
             result:=R_X86_64_DTPOFF32
           else
-            InternalError(2019091701);
+            InternalError(2019091702);
         else
           result:=0;
           InternalError(2012082302);
@@ -557,7 +557,7 @@ implementation
               else
                 begin
                   writeln(objreloc.typ);
-                  internalerror(200604014);
+                  internalerror(2006040105);
                 end;
             end
           else           { not relocsec.Used }
@@ -577,7 +577,7 @@ implementation
                 end;
               end;
           else
-            InternalError(2012101102);
+            InternalError(2012101103);
           end;
 
           data.Seek(objreloc.dataoffset);

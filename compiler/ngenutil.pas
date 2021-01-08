@@ -197,7 +197,7 @@ implementation
                   nil));
             end
           else
-            internalerror(200305108);
+            internalerror(2003051002);
         end
       else
         if is_object(current_structdef) then
@@ -1217,9 +1217,7 @@ implementation
         exit;
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-      tcb.begin_anonymous_record('',1,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin
-      );
+      tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
       placeholder:=tcb.emit_placeholder(u32inttype);
 
       hp:=tused_unit(usedunits.first);
@@ -1293,8 +1291,7 @@ implementation
        if (tf_section_threadvars in target_info.flags) then
          exit;
        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-       tabledef:=tcb.begin_anonymous_record('',1,sizeof(pint),
-         targetinfos[target_info.system]^.alignment.recordalignmin);
+       tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);

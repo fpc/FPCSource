@@ -423,7 +423,7 @@ implementation
         size:=voidpointertype;
 
       if is_hugepointer(size) then
-        internalerror(2015111201)
+        internalerror(2015111204)
       else if is_farpointer(size) then
         cg.a_op_const_reg(list,Op,OS_16,a,reg)
       else
@@ -581,7 +581,7 @@ implementation
         srcseg: TRegister;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061306);
         if current_settings.x86memorymodel in x86_far_data_models then
           srcseg:=NR_ES
         else

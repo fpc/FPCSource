@@ -532,7 +532,7 @@ implementation
     begin
       pkgentry:=ppackageentry(packagelist.find(package.packagename^));
       if not assigned(pkgentry) then
-        internalerror(2015100301);
+        internalerror(2015100302);
       inc(pkgentry^.usedunits);
     end;
 

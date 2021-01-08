@@ -1321,7 +1321,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         inserttypeconv(n,cunicodestringtype);
                         if n.nodetype<>stringconstn then
-                          internalerror(2010033003);
+                          internalerror(2010033009);
                         ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)
                       end;
                     else
@@ -1357,13 +1357,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         inserttypeconv(n,cansichartype);
                         if not is_constcharnode(n) then
-                          internalerror(2010033001);
+                          internalerror(2010033006);
                         ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
                       end;
                     2:
                       widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                     else
-                      internalerror(2010033002);
+                      internalerror(2010033008);
                   end;
                   ca:=@ch;
                   len:=1;

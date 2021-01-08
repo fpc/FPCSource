@@ -2,7 +2,7 @@
 
 var rtl = {
 
-  version: 10501,
+  version: 20101,
 
   quiet: false,
   debug_load_units: false,
@@ -799,6 +799,10 @@ var rtl = {
     //if (intf) console.log('rtl._Release intf="'+(intf?intf.$name:'null')+'"');
     if (intf) intf._Release();
     return intf;
+  },
+
+  trunc: function(a){
+    return a<0 ? Math.ceil(a) : Math.floor(a);
   },
 
   checkMethodCall: function(obj,type){

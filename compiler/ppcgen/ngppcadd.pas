@@ -279,7 +279,7 @@ implementation
                     andn :
                       cgop:=OP_AND;
                     else
-                      internalerror(200203247);
+                      internalerror(2002032413);
                   end;
 
                   if right.location.loc <> LOC_CONSTANT then
@@ -550,7 +550,7 @@ implementation
               opdone := true;
             end;
           else
-            internalerror(2002072701);
+            internalerror(2002072702);
         end;
 
         if not opdone then

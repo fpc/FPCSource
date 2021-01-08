@@ -198,7 +198,7 @@ Put + after a boolean switch option to enable it, - to disable it
       -OoRemoveNotUsedPrivates[-] : Default is enabled
       -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc
       -OoRemoveNotUsedPublished[-] : Default is disabled
-      -OoShortRefGlobals[-]: Insert JS local var for types and modules. Default enabled in -O2
+      -OoShortRefGlobals[-]: Insert JS local var for types, modules and static functions. Default enabled in -O2
   -P&lt;x&gt;   : Set target processor. Case insensitive:
     -Pecmascript5  : default
     -Pecmascript6
@@ -3060,9 +3060,9 @@ End.
     Pas2js supports the JS operators async and await to simplify the use of Promise.
     The await operator corresponds to three intrinsic Pas2js functions:
     <ul>
-    <li><i>function await(AsyncFunctionWithResultT): T;</i>  // implicit promise</li>
+    <li><i>function await(AsyncFunctionWithResultT()): T;</i>  // implicit promise, the inner () can be omitted</li>
     <li><i>function await(aType; p: TJSPromise): aType;</i>  // explicit promise requires the resolved type</li>
-    <li><i>function await(const Expr: T): T;</i>  // implicit promise</li>
+    <li><i>function await(aType; j: jsvalue): aType;</i>  // explicit promise requires the resolved type</li>
     </ul>
     The await function can only be used inside a procedure with the async modifier.<br>
     Example for the explicit promise:
@@ -3254,6 +3254,7 @@ end.
     </li>
     <li>{$DispatchField Msg}: enable checking <i>message number</i> methods for record field name "Msg"</li>
     <li>{$DispatchStrField MsgStr}: enable checking <i>message string</i> methods for record field name "Msg"</li>
+    <li>{$Optimization Name}: same as command line option -OoName</li>
     </ul>
     Defines:
     <ul>

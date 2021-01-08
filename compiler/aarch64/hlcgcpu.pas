@@ -184,7 +184,7 @@ implementation
           not is_objectpascal_helper(procdef.struct) then
         begin
           if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
+            Internalerror(2000061302);
           { mov  0(%rdi),%rax ; load vmt}
           reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(pint),[]);
           getcpuregister(list,NR_IP0);

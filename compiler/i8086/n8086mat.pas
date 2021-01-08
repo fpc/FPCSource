@@ -114,7 +114,7 @@ implementation
 
         if is_64bitint(resultdef) or is_32bitint(resultdef) then
           { should be handled in pass_1 (JM) }
-          internalerror(200109052);
+          internalerror(2001090506);
         { put numerator in register }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);

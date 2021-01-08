@@ -94,9 +94,9 @@ begin
   Result := Result and (riff.ChunkHeader.ID = AUDIO_CHUNK_ID_RIFF) and (riff.Format = AUDIO_CHUNK_ID_WAVE);
   Result := Result and (fStream.Read(fmt, sizeof(fmt)) = sizeof(fmt));
   LEtoN(fmt);
-  Result := Result and (fmt.ChunkHeader.ID = AUDIO_CHUNK_ID_fmt);
-  if Result and (fmt.Format <> 1) then 
-    Exit(False);
+  Result := Result and (fmt.ChunkHeader.ID = AUDIO_CHUNK_ID_fmt) and ((fmt.ChunkHeader.Size + 8) >= sizeof(fmt));
+  if Result and ((fmt.ChunkHeader.Size + 8) > sizeof(fmt)) then
+    fStream.Seek(Align((fmt.ChunkHeader.Size + 8) - sizeof(fmt), 2), soCurrent);
 end;
 
 function Min(a, b: Integer): Integer;
@@ -121,8 +121,10 @@ begin
       EoF := sz < sizeof(DataChunk);
       if not EoF then begin
         DataChunk.Size := LEtoN(DataChunk.Size);
-        if DataChunk.Id <> AUDIO_CHUNK_ID_data then
-          ChunkPos := DataChunk.Size
+        if DataChunk.Id <> AUDIO_CHUNK_ID_data then begin
+          ChunkPos := DataChunk.Size;
+          fstream.Seek(DataChunk.Size, soCurrent);
+        end
         else
           ChunkPos := 0;
       end;

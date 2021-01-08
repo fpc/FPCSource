@@ -266,7 +266,7 @@ unit cpupara;
                     size:=OS_ADDR;
                     def:=hp.paraloc[side].def;
                     loc:=LOC_REGISTER;
-                    register:=NR_X8;
+                    register:=NR_XR;
                   end
               end
             else
@@ -349,7 +349,7 @@ unit cpupara;
         paracgsize, locsize: tcgsize;
         firstparaloc: boolean;
       begin
-        result.reset;
+        result.init;
 
         { currently only support C-style array of const,
           there should be no location assigned to the vararg array itself }
@@ -682,7 +682,7 @@ unit cpupara;
             result:=curstackoffset;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102303);
 
         create_funcretloc_info(p,side);
       end;

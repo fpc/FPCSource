@@ -148,7 +148,7 @@ unit agz80vasm;
                  else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                    writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
                 else
-                  internalerror(2017091901);
+                  internalerror(2017091906);
               end;
 {$pop}
 {$endif}
@@ -156,7 +156,7 @@ unit agz80vasm;
               aitrealconst_s64comp:
                 writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
               else
-                internalerror(2014050604);
+                internalerror(2014050602);
             end;
           end;
         writer.AsmWrite(dbdir);
@@ -191,7 +191,7 @@ unit agz80vasm;
               else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
                 eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
               else
-                internalerror(2017091901);
+                internalerror(2017091907);
               pdata:=@eextended;
             end;
 {$pop}
@@ -203,7 +203,7 @@ unit agz80vasm;
               pdata:=@ccomp;
             end;
           else
-            internalerror(2014051001);
+            internalerror(2014051003);
         end;
         count:=tai_realconst(hp).datasize;
         { write bytes in inverse order if source and target endianess don't
@@ -225,7 +225,7 @@ unit agz80vasm;
           begin
             { only supported for double }
             if tai_realconst(hp).datasize<>8 then
-              internalerror(2014050605);
+              internalerror(2014050609);
             { switch bit of the index so that the words are written in
               the opposite order }
             swapmask:=4;
@@ -426,7 +426,7 @@ unit agz80vasm;
                   {if SmartAsm then
                     AddSymbol(o.ref^.symbol.name,false);}
                   if (o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO) then
-                    internalerror(2020041101);
+                    internalerror(2020041102);
                  // writer.AsmWrite('#');
                   case o.ref^.refaddr of
                     addr_lo8:
@@ -452,13 +452,13 @@ unit agz80vasm;
                   if o.ref^.base<>NR_NO then
                     begin
                       if o.ref^.index<>NR_NO then
-                        internalerror(2020040201);
+                        internalerror(2020040204);
                       writer.AsmWrite(std_regname(o.ref^.base));
                     end
                   else if o.ref^.index<>NR_NO then
                     begin
                       if o.ref^.scalefactor>1 then
-                        internalerror(2020040202);
+                        internalerror(2020040207);
                       writer.AsmWrite(std_regname(o.ref^.index));
                     end;
                   if o.ref^.offset > 0 then
@@ -475,14 +475,14 @@ unit agz80vasm;
                   if o.ref^.base<>NR_NO then
                     begin
                       if o.ref^.index<>NR_NO then
-                        internalerror(2020040201);
+                        internalerror(2020040205);
                       writer.AsmWrite(std_regname(o.ref^.base));
                       need_plus:=true;
                     end
                   else if o.ref^.index<>NR_NO then
                     begin
                       if o.ref^.scalefactor>1 then
-                        internalerror(2020040202);
+                        internalerror(2020040208);
                       writer.AsmWrite(std_regname(o.ref^.index));
                       need_plus:=true;
                     end;
@@ -508,7 +508,7 @@ unit agz80vasm;
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100805);
         end;
       end;
 
@@ -541,7 +541,7 @@ unit agz80vasm;
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100806);
         end;
       end;
 

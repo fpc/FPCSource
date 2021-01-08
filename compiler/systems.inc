@@ -201,7 +201,8 @@
              system_z80_zxspectrum,     { 109 }
              system_z80_msxdos,         { 110 }
              system_aarch64_darwin,     { 111 }
-             system_z80_amstradcpc      { 112 }
+             system_z80_amstradcpc,     { 112 }
+             system_m68k_sinclairql     { 113 }
        );
 
      type
@@ -305,7 +306,8 @@
              ld_freertos,
              ld_zxspectrum,
              ld_msxdos,
-             ld_amstradcpc
+             ld_amstradcpc,
+             ld_sinclairql
        );
 
        tar = (ar_none

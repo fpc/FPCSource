@@ -48,6 +48,7 @@ implementation
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 {$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
 
@@ -629,6 +630,8 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$I tzenv.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   Regs: Registers;
@@ -644,6 +647,7 @@ begin
   SystemTime.Year := Regs.Cx;
   SystemTime.Month := Regs.Dh;
   SystemTime.Day := Regs.Dl;
+  SystemTime.DayOfWeek := Regs.Al;
 end ;
 
 
@@ -651,8 +655,16 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
+const
+  BeepChars: array [1..2] of char = #7'$';
+
 procedure sysBeep;
+var
+  Regs: Registers;
 begin
+  Regs.dx := Ofs (BeepChars);
+  Regs.ah := 9;
+  MsDos (Regs);
 end;
 
 
@@ -926,6 +938,7 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
+  InitTZ;
 Finalization
   FreeTerminateProcs;
   DoneExceptions;

@@ -390,7 +390,7 @@ interface
             begin
               if (ops=1) and (opcode<>A_RET) then
                writer.AsmWrite(sizestr(s,dest));
-              writer.AsmWrite(tostr(longint(o.val)));
+              writer.AsmWrite(tostr(o.val));
             end;
           top_ref :
             begin
@@ -450,7 +450,7 @@ interface
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100812);
         end;
       end;
 
@@ -487,7 +487,7 @@ interface
           top_const :
             writer.AsmWrite(tostr(aint(o.val)));
           else
-            internalerror(10001);
+            internalerror(2020100813);
         end;
       end;
 
@@ -634,8 +634,14 @@ interface
         if target_info.system in systems_darwin then
           writer.AsmWrite(':private_extern')
         else
-          { no colon }
-          writer.AsmWrite(' hidden')
+          case sym.typ of
+            AT_FUNCTION:
+              writer.AsmWrite(':function hidden');
+            AT_DATA:
+              writer.AsmWrite(':data hidden');
+            else
+              Internalerror(2020111301);
+          end;
       end;
 
     procedure TX86NasmAssembler.ResetSectionsList;
@@ -1000,9 +1006,10 @@ interface
                if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
-                  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                   if tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_symbol(hp).sym);
+                  writer.AsmLn;
                 end;
                writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                if SmartAsm then
@@ -1292,7 +1299,7 @@ interface
                    writer.AsmWriteLn('; OMF LINNUM Line '+tai_directive(hp).name);
 {$endif OMFOBJSUPPORT}
                  else
-                   internalerror(200509191);
+                   internalerror(2005091903);
                end;
                writer.AsmLn;
              end;
@@ -1300,7 +1307,7 @@ interface
              { Ignore for now };
            else
              if not WriteComments(hp) then
-               internalerror(10000);
+               internalerror(2020100801);
          end;
          hp:=tai(hp.next);
        end;

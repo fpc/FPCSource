@@ -352,7 +352,7 @@ implementation
         href : treference;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061312);
         { call/jmp  vmtoffs(%reg) ; method offs }
         reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref(op,S_L,href));
@@ -364,7 +364,7 @@ implementation
         href : treference;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061313);
         { mov vmtoffs(%eax),%eax ; method offs }
         reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);

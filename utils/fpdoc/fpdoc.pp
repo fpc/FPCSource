@@ -31,11 +31,13 @@ uses
   dw_XML,    // XML writer
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
+  dw_chm,    // CHM Writer
+  dw_markdown, // Markdown writer
   dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
   dw_linrtf, // linear RTF writer
   dw_txt,    // TXT writer
-  fpdocproj, mkfpdoc;
+  fpdocproj, mkfpdoc, dw_basemd, dw_basehtml;
 
 
 Type
@@ -53,8 +55,9 @@ Type
     procedure OutputLog(Sender: TObject; const Msg: String);
     procedure ParseCommandLine;
     procedure ParseOption(const S: String);
-    Procedure Usage(AnExitCode : Byte);
-    Procedure DoRun; override;
+    procedure Usage(AnExitCode : Byte);
+    procedure ExceptProc(Sender: TObject; E: Exception);
+    procedure DoRun; override;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -62,7 +65,7 @@ Type
   end;
 
 
-Procedure TFPDocApplication.Usage(AnExitCode : Byte);
+procedure TFPDocApplication.Usage(AnExitCode: Byte);
 
 Var
   I,P : Integer;
@@ -144,6 +147,11 @@ begin
     L.Free;
   end;
   Halt(AnExitCode);
+end;
+
+procedure TFPDocApplication.ExceptProc(Sender: TObject; E: Exception);
+begin
+  OutputLog(Sender, DumpExceptionCallStack(E));
 end;
 
 destructor TFPDocApplication.Destroy;
@@ -425,9 +433,12 @@ begin
   StopOnException:=true;
   FCreator:=TFPDocCreator.Create(Self);
   FCreator.OnLog:=@OutputLog;
+  OnException:= @ExceptProc;
 end;
 
 begin
+  //AssignFile(Output, 'fpdoc.log');
+  //rewrite(Output);
   With TFPDocApplication.Create(Nil) do
     try
       Run;

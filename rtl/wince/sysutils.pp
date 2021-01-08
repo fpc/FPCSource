@@ -444,6 +444,12 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+begin
+  windows.GetSystemTime(SystemTime);
+  Result:=True;
+end;
+
 function GetLocalTimeOffset: Integer;
 var
   TZInfo: TTimeZoneInformation;
@@ -458,6 +464,12 @@ begin
      else
        Result := 0;
    end;
+end;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+begin
+  Result := False; // not supported
 end;
 
 {****************************************************************************

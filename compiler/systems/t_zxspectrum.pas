@@ -175,7 +175,7 @@ function TLinkerZXSpectrum.WriteResponseFile_Vlink: Boolean;
         Add('  . = 0x'+hexstr(FOrigin,4)+';');
         Add('  .text : { *(.text .text.* _CODE _CODE.* ) }');
         Add('  .data : { *(.data .data.* .rodata .rodata.* .fpc.* ) }');
-        Add('  .bss  : { *(.bss .bss.* _BSS _BSS.* _BSSEND _BSSEND.* _HEAP _HEAP.* .stack .stack.* _STACK _STACK.* ) }');
+        Add('  .bss  : { *(_BSS _BSS.*) *(.bss .bss.*) *(_BSSEND _BSSEND.*) *(_HEAP _HEAP.*) *(.stack .stack.*) *(_STACK _STACK.*) }');
         Add('}');
       end;
 
@@ -210,7 +210,7 @@ procedure TLinkerZXSpectrum.SetDefaultInfo_Vlink;
       FOrigin:=DefaultOrigin;
     with Info do
      begin
-       ExeCmd[1]:=ExeName+' -bihex $GCSECTIONS -e $STARTSYMBOL $STRIP $OPT -o $EXE -T $RES'
+       ExeCmd[1]:=ExeName+' -bihex $GCSECTIONS -e $STARTSYMBOL $STRIP $OPT $MAP -o $EXE -T $RES'
      end;
   end;
 
@@ -280,12 +280,17 @@ function TLinkerZXSpectrum.MakeExecutable_Vlink: boolean;
     GCSectionsStr,
     StripStr,
     StartSymbolStr,
+    MapStr,
     FixedExeFilename: string;
   begin
     GCSectionsStr:='-gc-all -mtype';
     StripStr:='';
+    MapStr:='';
     StartSymbolStr:='start';
     FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+
+    if (cs_link_map in current_settings.globalswitches) then
+      MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
 
   { Write used files and libraries }
     WriteResponseFile_Vlink();
@@ -296,6 +301,7 @@ function TLinkerZXSpectrum.MakeExecutable_Vlink: boolean;
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$MAP',MapStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);

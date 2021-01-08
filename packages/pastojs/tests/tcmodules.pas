@@ -53,7 +53,8 @@ type
     supTObject,
     supTVarRec,
     supTypeInfo,
-    supTInterfacedObject
+    supTInterfacedObject,
+    supWriteln
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -233,7 +234,7 @@ type
   Published
     Procedure TestReservedWords;
 
-    // program/units
+    // program, units, includes
     Procedure TestEmptyProgram;
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
@@ -281,6 +282,7 @@ type
     Procedure TestChar_Compare;
     Procedure TestChar_BuiltInProcs;
     Procedure TestStringConst;
+    Procedure TestStringConst_InvalidUTF16;
     Procedure TestStringConstSurrogate;
     Procedure TestString_Length;
     Procedure TestString_Compare;
@@ -294,6 +296,7 @@ type
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
+    Procedure TestWideChar;
     Procedure TestForCharDo;
     Procedure TestForCharInDo;
 
@@ -358,12 +361,14 @@ type
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
     Procedure TestAnonymousProc_ForLoop;
+    Procedure TestAnonymousProc_AsmDelphi;
 
     // enums, sets
     Procedure TestEnum_Name;
     Procedure TestEnum_Number;
     Procedure TestEnum_ConstFail;
     Procedure TestEnum_Functions;
+    Procedure TestEnumRg_Functions;
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
@@ -827,6 +832,7 @@ type
     Procedure TestRTTI_ClassOf;
     Procedure TestRTTI_Record;
     Procedure TestRTTI_RecordAnonymousArray;
+    Procedure TestRTTI_Record_ClassVarType;
     Procedure TestRTTI_LocalTypes;
     Procedure TestRTTI_TypeInfo_BaseTypes;
     Procedure TestRTTI_TypeInfo_Type_BaseTypes;
@@ -840,6 +846,7 @@ type
     Procedure TestRTTI_Interface_COM;
     Procedure TestRTTI_ClassHelper;
     Procedure TestRTTI_ExternalClass;
+    Procedure TestRTTI_Unit;
 
     // Resourcestring
     Procedure TestResourcestringProgram;
@@ -874,13 +881,19 @@ type
     Procedure TestAsync_ConstructorFail;
     Procedure TestAsync_PropertyGetterFail;
     Procedure TestAwait_NonPromiseWithTypeFail;
+    Procedure TestAwait_AsyncCallTypeMismatch;
     Procedure TestAWait_OutsideAsyncFail;
-    Procedure TestAWait_Result;
+    Procedure TestAWait_IntegerFail;
     Procedure TestAWait_ExternalClassPromise;
+    Procedure TestAWait_JSValue;
+    Procedure TestAWait_Result;
+    Procedure TestAWait_ResultPromiseMissingTypeFail; // await(AsyncCallResultPromise) needs T
     Procedure TestAsync_AnonymousProc;
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
+    Procedure TestAsync_ClassInterface;
+    Procedure TestAsync_ClassInterface_AsyncMissmatchFail;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -975,6 +988,28 @@ var
     end;
   end;
 
+  function HasSpecialChar(s: string): boolean;
+  var
+    i: Integer;
+  begin
+    for i:=1 to length(s) do
+      if s[i] in [#0..#31,#127..#255] then
+        exit(true);
+    Result:=false;
+  end;
+
+  function HashSpecialChars(s: string): string;
+  var
+    i: Integer;
+  begin
+    Result:='';
+    for i:=1 to length(s) do
+      if s[i] in [#0..#31,#127..#255] then
+        Result:=Result+'#'+hexstr(ord(s[i]),2)
+      else
+        Result:=Result+s[i];
+  end;
+
   procedure DiffFound;
   var
     ActLineStartP, ActLineEndP, p, StartPos: PChar;
@@ -1003,8 +1038,12 @@ var
         ActLineEndP:=FindLineEnd(ActualP);
         ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
         writeln('- ',ActLine);
+        if HasSpecialChar(ActLine) then
+          writeln('- ',HashSpecialChars(ActLine));
         // write expected line
         writeln('+ ',ExpLine);
+        if HasSpecialChar(ExpLine) then
+          writeln('- ',HashSpecialChars(ExpLine));
         // write empty line with pointer ^
         for i:=1 to 2+ExpectedP-StartPos do write(' ');
         writeln('^');
@@ -1742,6 +1781,9 @@ begin
     '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
     '']);
     end;
+  if supWriteln in Parts then
+    Intf.Add('procedure writeln; varargs; external name ''console.log'';');
+
   Intf.Add('var');
   Intf.Add('  ExitCode: Longint = 0;');
 
@@ -3204,9 +3246,9 @@ begin
     LinesToStr([ // this.$main
     '$mod.vA = 1;',
     '$mod.vB = $mod.vA + $mod.vA;',
-    '$mod.vB = Math.floor($mod.vA / $mod.vB);',
+    '$mod.vB = rtl.trunc($mod.vA / $mod.vB);',
     '$mod.vB = $mod.vA % $mod.vB;',
-    '$mod.vB = $mod.vA + ($mod.vA * $mod.vB) + Math.floor($mod.vA / $mod.vB);',
+    '$mod.vB = $mod.vA + ($mod.vA * $mod.vB) + rtl.trunc($mod.vA / $mod.vB);',
     '$mod.vC = -$mod.vA;',
     '$mod.vA = $mod.vA - $mod.vB;',
     '$mod.vB = $mod.vA;',
@@ -5256,6 +5298,51 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestAnonymousProc_AsmDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc = reference to procedure;',
+  '  TFunc = reference to function(x: word): word;',
+  'procedure Run;',
+  'asm',
+  'end;',
+  'procedure Walk(p: TProc; f: TFunc);',
+  'begin',
+  '  Walk(procedure asm end, function(b:word): word asm return 1+b; end);',
+  'end;',
+  'begin',
+  '  Walk(procedure',
+  '    asm',
+  '      console.log("a");',
+  '    end,',
+  '    function(x: word): word asm',
+  '      console.log("c");',
+  '    end);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_AsmDelphi',
+    LinesToStr([ // statements
+    'this.Run = function () {',
+    '};',
+    'this.Walk = function (p, f) {',
+    '  $mod.Walk(function () {',
+    '  }, function (b) {',
+    '    return 1+b;',
+    '  });',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Walk(function () {',
+    '  console.log("a");',
+    '}, function (x) {',
+    '  console.log("c");',
+    '});',
+    '']));
+end;
+
 procedure TTestModule.TestEnum_Name;
 begin
   StartProgram(false);
@@ -5373,7 +5460,6 @@ begin
   '  s:=str(e:3);',
   '  writestr(s,e:3,red);',
   '  val(s,e,i);',
-  '  e:=TMyEnum(i);',
   '  i:=longint(e);']);
   ConvertProgram;
   CheckSource('TestEnum_Functions',
@@ -5424,7 +5510,93 @@ begin
     '$mod.e = rtl.valEnum($mod.s, $mod.TMyEnum, function (v) {',
     '  $mod.i = v;',
     '});',
+    '$mod.i=$mod.e;',
+    '']));
+end;
+
+procedure TTestModule.TestEnumRg_Functions;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = Green..Blue;',
+  'procedure DoIt(var e: TEnumRg; var i: word);',
+  'var',
+  '  v: longint;',
+  '  s: string;',
+  'begin',
+  '  val(s,e,v);',
+  '  val(s,e,i);',
+  'end;',
+  'var',
+  '  e: TEnumRg;',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  i:=ord(green);',
+  '  i:=ord(e);',
+  '  e:=low(tenumrg);',
+  '  e:=low(e);',
+  '  e:=high(tenumrg);',
+  '  e:=high(e);',
+  '  e:=pred(blue);',
+  '  e:=pred(e);',
+  '  e:=succ(green);',
+  '  e:=succ(e);',
+  '  e:=tenumrg(1);',
+  '  e:=tenumrg(i);',
+  '  s:=str(e);',
+  '  str(e,s);',
+  '  str(red,s);',
+  '  s:=str(e:3);',
+  '  writestr(s,e:3,blue);',
+  '  val(s,e,i);',
+  '  i:=longint(e);']);
+  ConvertProgram;
+  CheckSource('TestEnumRg_Functions',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.DoIt = function (e, i) {',
+    '  var v = 0;',
+    '  var s = "";',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, function (w) {',
+    '    v = w;',
+    '  }));',
+    '  e.set(rtl.valEnum(s, $mod.TEnum, i.set));',
+    '};',
+    'this.e = this.TEnum.Green;',
+    'this.i = 0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    '$mod.i=$mod.TEnum.Green;',
+    '$mod.i=$mod.e;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Green;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue;',
+    '$mod.e=$mod.TEnum.Blue-1;',
+    '$mod.e=$mod.e-1;',
+    '$mod.e=$mod.TEnum.Green+1;',
+    '$mod.e=$mod.e+1;',
+    '$mod.e=1;',
     '$mod.e=$mod.i;',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.e];',
+    '$mod.s = $mod.TEnum[$mod.TEnum.Red];',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3);',
+    '$mod.s = rtl.spaceLeft($mod.TEnum[$mod.e], 3)+$mod.TEnum[$mod.TEnum.Blue];',
+    '$mod.e = rtl.valEnum($mod.s, $mod.TEnum, function (v) {',
+    '  $mod.i = v;',
+    '});',
     '$mod.i=$mod.e;',
     '']));
 end;
@@ -5824,23 +5996,28 @@ end;
 procedure TTestModule.TestSet_Operator_In;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TColor = (Red, Green, Blue);');
-  Add('  TColors = set of tcolor;');
-  Add('var');
-  Add('  vC: tcolor;');
-  Add('  vT: tcolors;');
-  Add('  B: boolean;');
-  Add('begin');
-  Add('  b:=red in vt;');
-  Add('  b:=vc in vt;');
-  Add('  b:=green in [red..blue];');
-  Add('  b:=vc in [red..blue];');
-  Add('  ');
-  Add('  if red in vt then ;');
-  Add('  while vC in vt do ;');
-  Add('  repeat');
-  Add('  until vC in vt;');
+  Add([
+  'type',
+  '  TColor = (Red, Green, Blue);',
+  '  TColors = set of tcolor;',
+  '  TColorRg = green..blue;',
+  'var',
+  '  vC: tcolor;',
+  '  vT: tcolors;',
+  '  B: boolean;',
+  '  rg: TColorRg;',
+  'begin',
+  '  b:=red in vt;',
+  '  b:=vc in vt;',
+  '  b:=green in [red..blue];',
+  '  b:=vc in [red..blue];',
+  '  ',
+  '  if red in vt then ;',
+  '  while vC in vt do ;',
+  '  repeat',
+  '  until vC in vt;',
+  '  if rg in [green..blue] then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestSet_Operator_In',
     LinesToStr([ // statements
@@ -5854,8 +6031,9 @@ begin
     '  };',
     'this.vC = 0;',
     'this.vT = {};',
-    'this.B = false;'
-    ]),
+    'this.B = false;',
+    'this.rg = this.TColor.Green;',
+    '']),
     LinesToStr([
     '$mod.B = $mod.TColor.Red in $mod.vT;',
     '$mod.B = $mod.vC in $mod.vT;',
@@ -5866,6 +6044,7 @@ begin
     '};',
     'do {',
     '} while (!($mod.vC in $mod.vT));',
+    'if ($mod.rg in rtl.createSet(null, $mod.TColor.Green, $mod.TColor.Blue)) ;',
     '']));
 end;
 
@@ -6813,7 +6992,7 @@ begin
     '$mod.d = -5.00E-1;',
     '$mod.d = Math.pow(10, 3);',
     '$mod.d = 10 % 3;',
-    '$mod.d = Math.floor(10 / 3);',
+    '$mod.d = rtl.trunc(10 / 3);',
     '$mod.d = 1;',
     '$mod.d = 0.1;',
     '$mod.d = 0.3;',
@@ -7142,17 +7321,17 @@ begin
     LinesToStr([
     '$mod.c = 10000;',
     '$mod.c = 1000;',
-    '$mod.c = Math.floor((1.0 / 3.0) * 10000);',
-    '$mod.c = Math.floor((1 / 3) * 10000);',
+    '$mod.c = rtl.trunc((1.0 / 3.0) * 10000);',
+    '$mod.c = rtl.trunc((1 / 3) * 10000);',
     '$mod.c = $mod.a;',
     '$mod.d = $mod.c / 10000;',
-    '$mod.c = Math.floor($mod.d * 10000);',
+    '$mod.c = rtl.trunc($mod.d * 10000);',
     '$mod.c = $mod.c;',
     '$mod.c = $mod.d * 10000;',
     '$mod.d = $mod.c / 10000;',
     '$mod.c = $mod.i * 10000;',
     '$mod.c = $mod.i * 10000;',
-    '$mod.i = Math.floor($mod.c / 10000);',
+    '$mod.i = rtl.trunc($mod.c / 10000);',
     '$mod.c = $mod.c + $mod.a;',
     '$mod.c = -$mod.c - $mod.a;',
     '$mod.c = ($mod.d * 10000) + $mod.c;',
@@ -7163,14 +7342,14 @@ begin
     '$mod.c = ($mod.a * $mod.c) / 10000;',
     '$mod.c = $mod.d * $mod.c;',
     '$mod.c = $mod.c * $mod.d;',
-    '$mod.c = Math.floor(($mod.c / $mod.a) * 10000);',
-    '$mod.c = Math.floor(($mod.a / $mod.c) * 10000);',
-    '$mod.c = Math.floor($mod.d / $mod.c);',
-    '$mod.c = Math.floor($mod.c / $mod.d);',
-    '$mod.c = Math.floor(Math.pow($mod.c / 10000, $mod.a / 10000) * 10000);',
-    '$mod.c = Math.floor(Math.pow($mod.a / 10000, $mod.c / 10000) * 10000);',
-    '$mod.c = Math.floor(Math.pow($mod.d, $mod.c / 10000) * 10000);',
-    '$mod.c = Math.floor(Math.pow($mod.c / 10000, $mod.d) * 10000);',
+    '$mod.c = rtl.trunc(($mod.c / $mod.a) * 10000);',
+    '$mod.c = rtl.trunc(($mod.a / $mod.c) * 10000);',
+    '$mod.c = rtl.trunc($mod.d / $mod.c);',
+    '$mod.c = rtl.trunc($mod.c / $mod.d);',
+    '$mod.c = rtl.trunc(Math.pow($mod.c / 10000, $mod.a / 10000) * 10000);',
+    '$mod.c = rtl.trunc(Math.pow($mod.a / 10000, $mod.c / 10000) * 10000);',
+    '$mod.c = rtl.trunc(Math.pow($mod.d, $mod.c / 10000) * 10000);',
+    '$mod.c = rtl.trunc(Math.pow($mod.c / 10000, $mod.d) * 10000);',
     'if ($mod.c === $mod.c) ;',
     'if ($mod.c === $mod.a) ;',
     'if ($mod.a === $mod.c) ;',
@@ -7179,7 +7358,7 @@ begin
     '$mod.c = $mod.DoIt($mod.c);',
     '$mod.c = $mod.DoIt($mod.i * 10000);',
     '$mod.c = $mod.DoIt($mod.d * 10000);',
-    '$mod.c = Math.floor($mod.GetIt($mod.c / 10000) * 10000);',
+    '$mod.c = rtl.trunc($mod.GetIt($mod.c / 10000) * 10000);',
     '$mod.j = $mod.c / 10000;',
     '$mod.Write($mod.c / 10000);',
     '$mod.c = 0;',
@@ -7296,6 +7475,7 @@ begin
   'const',
   '  a = #$00F3;',
   '  c: char = ''1'';',
+  '  wc: widechar = ''ä'';',
   'begin',
   '  c:=#0;',
   '  c:=#1;',
@@ -7318,12 +7498,14 @@ begin
   '  c:=#$DFFF;', // invalid UTF-16
   '  c:=#$FFFF;', // last UCS-2
   '  c:=high(c);', // last UCS-2
+  '  c:=#269;',
   '']);
   ConvertProgram;
   CheckSource('TestCharConst',
     LinesToStr([
     'this.a="ó";',
-    'this.c="1";'
+    'this.c="1";',
+    'this.wc="ä";'
     ]),
     LinesToStr([
     '$mod.c="\x00";',
@@ -7347,6 +7529,7 @@ begin
     '$mod.c="\uDFFF";',
     '$mod.c="\uFFFF";',
     '$mod.c="\uFFFF";',
+    '$mod.c = "č";',
     '']));
 end;
 
@@ -7457,9 +7640,16 @@ begin
   '  s:=''"''''"'';',
   '  s:=#$20AC;', // euro
   '  s:=#$10437;', // outside BMP
+  '  s:=''abc''#$20AC;', // ascii,#
+  '  s:=''ä''#$20AC;', // non ascii,#
+  '  s:=#$20AC''abc'';', // #, ascii
+  '  s:=#$20AC''ä'';', // #, non ascii
   '  s:=default(string);',
   '  s:=concat(s);',
-  '  s:=concat(s,''a'',s)',
+  '  s:=concat(s,''a'',s);',
+  '  s:=#250#269;',
+  //'  s:=#$2F804;',
+  // ToDo: \uD87E\uDC04 -> \u{2F804}
   '']);
   ConvertProgram;
   CheckSource('TestStringConst',
@@ -7481,9 +7671,47 @@ begin
     '$mod.s=''"\''"'';',
     '$mod.s="€";',
     '$mod.s="'#$F0#$90#$90#$B7'";',
+    '$mod.s = "abc€";',
+    '$mod.s = "ä€";',
+    '$mod.s = "€abc";',
+    '$mod.s = "€ä";',
     '$mod.s="";',
     '$mod.s = $mod.s;',
     '$mod.s = $mod.s.concat("a", $mod.s);',
+    '$mod.s = "úč";',
+    '']));
+end;
+
+procedure TTestModule.TestStringConst_InvalidUTF16;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a: char = #$D87E;',
+  '  b: string = #$D87E;',
+  '  c: string = #$D87E#43;',
+  'begin',
+  '  c:=''abc''#$D87E;',
+  '  c:=#0#1#2;',
+  '  c:=#127;',
+  '  c:=#128;',
+  '  c:=#255;',
+  '  c:=#256;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestStringConst',
+    LinesToStr([
+    'this.a = "\uD87E";',
+    'this.b = "\uD87E";',
+    'this.c = "\uD87E+";',
+    '']),
+    LinesToStr([
+    '$mod.c = "abc\uD87E";',
+    '$mod.c = "\x00\x01\x02";',
+    '$mod.c = "'#127'";',
+    '$mod.c = "'#$c2#$80'";',
+    '$mod.c = "'#$c3#$BF'";',
+    '$mod.c = "'#$c4#$80'";',
     '']));
 end;
 
@@ -7779,6 +8007,62 @@ begin
     'if ($mod.c.charCodeAt() in $mod.s) ;',
     'if ($mod.crg2.charCodeAt() in $mod.s) ;',
     '$mod.c = "a";',
+    '']));
+end;
+
+procedure TTestModule.TestWideChar;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(var c: char);',
+  'begin',
+  'end;',
+  'procedure Run(var c: widechar);',
+  'begin',
+  'end;',
+  'var',
+  '  c: char;',
+  '  wc: widechar;',
+  '  w: word;',
+  'begin',
+  '  Fly(wc);',
+  '  Run(c);',
+  '  wc:=WideChar(w);',
+  '  w:=ord(wc);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestWideChar_VarArg',
+    LinesToStr([ // statements
+    'this.Fly = function (c) {',
+    '};',
+    'this.Run = function (c) {',
+    '};',
+    'this.c = "";',
+    'this.wc = "";',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.Fly({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.wc;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.wc = v;',
+    '    }',
+    '});',
+    '$mod.Run({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.c;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.c = v;',
+    '    }',
+    '});',
+    '$mod.wc = String.fromCharCode($mod.w);',
+    '$mod.w = $mod.wc.charCodeAt();',
+    '',
     '']));
 end;
 
@@ -8237,7 +8521,7 @@ begin
     LinesToStr([ // $mod.$main
     'try {',
     '  $mod.i = 0;',
-    '  $mod.i = Math.floor(2 / $mod.i);',
+    '  $mod.i = rtl.trunc(2 / $mod.i);',
     '} finally {',
     '  $mod.i = 3;',
     '};'
@@ -10037,6 +10321,7 @@ end;
 
 procedure TTestModule.TestArray_DynArrayConstObjFPC;
 begin
+  Parser.Options:=Parser.Options+[po_cassignments];
   StartProgram(false);
   Add([
   '{$modeswitch arrayoperators}',
@@ -11953,7 +12238,7 @@ begin
     '  };',
     '});',
     'rtl.recNewT(this, "TPoint", function () {',
-    '  rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  rtl.createClass(this, "TBird", $mod.TObject, function () {',
     '    this.DoIt = function () {',
     '      this.DoIt();',
     '      this.DoIt();',
@@ -16779,6 +17064,7 @@ end;
 
 procedure TTestModule.TestExternalClass_SameNamePublishedProperty;
 begin
+  WithTypeInfo:=true;
   StartProgram(false);
   Add([
   '{$modeswitch externalclass}',
@@ -16798,6 +17084,9 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_SameNamePublishedProperty',
     LinesToStr([ // statements
+    'this.$rtti.$ExtClass("JSwiper", {',
+    '  jsclass: "Swiper"',
+    '});',
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FSwiper = null;',
@@ -18446,7 +18735,7 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.v = $mod.Arr[$mod.i];',
-    '$mod.Arr[Math.floor($mod.v)] = $mod.Arr[$mod.IntArr[0]];',
+    '$mod.Arr[rtl.trunc($mod.v)] = $mod.Arr[$mod.IntArr[0]];',
     '$mod.Arr[$mod.IntArr[1]] = $mod.Arr[$mod.IntArr[2]];',
     '']));
 end;
@@ -27410,8 +27699,8 @@ begin
     'this.c = "";',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.i = Math.floor($mod.v);',
-    '$mod.i = Math.floor($mod.v);',
+    '$mod.i = rtl.trunc($mod.v);',
+    '$mod.i = rtl.trunc($mod.v);',
     '$mod.s = "" + $mod.v;',
     '$mod.s = "" + $mod.v;',
     '$mod.b = !($mod.v == false);',
@@ -27926,7 +28215,7 @@ begin
     '      this.p.v = v;',
     '    }',
     '});',
-    '$mod.i = Math.floor($mod.DoSome($mod.i, $mod.i));',
+    '$mod.i = rtl.trunc($mod.DoSome($mod.i, $mod.i));',
     '$mod.b = !($mod.DoSome($mod.b, $mod.b) == false);',
     '$mod.d = rtl.getNumber($mod.DoSome($mod.d, $mod.d));',
     '$mod.s = "" + $mod.DoSome($mod.s, $mod.s);',
@@ -30135,6 +30424,41 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestRTTI_Record_ClassVarType;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TPoint = record',
+  '    type TProc = procedure(w: word);',
+  '    class var p: TProc;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Record_ClassVarType',
+    LinesToStr([ // statements
+    'rtl.recNewT(this, "TPoint", function () {',
+    '  $mod.$rtti.$ProcVar("TPoint.TProc", {',
+    '    procsig: rtl.newTIProcSig([["w", rtl.word]])',
+    '  });',
+    '  this.p = null;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  var $r = $mod.$rtti.$Record("TPoint", {});',
+    '  $r.addField("p", $mod.$rtti["TPoint.TProc"]);',
+    '}, true);',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestRTTI_LocalTypes;
 begin
   WithTypeInfo:=true;
@@ -30480,7 +30804,7 @@ begin
   Add('{$modeswitch externalclass}');
   Add('type');
   Add('  TRec = record end;');
-  // ToDo: ^PRec
+  // ToDo: ^TRec
   Add('  TObject = class end;');
   Add('  TClass = class of tobject;');
   Add('var');
@@ -30490,7 +30814,7 @@ begin
   Add('  tiClass: ttypeinfoclass;');
   Add('  aClass: tclass;');
   Add('  tiClassRef: ttypeinfoclassref;');
-  // ToDo: ^PRec
+  // ToDo: ^TRec
   Add('  tiPointer: ttypeinfopointer;');
   Add('begin');
   Add('  tirecord:=typeinfo(trec);');
@@ -30906,6 +31230,66 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TJSArray"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Unit;
+begin
+  WithTypeInfo:=true;
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$mode delphi}',
+    'type',
+    '  TWordArray = array of word;',
+    '  TArray<T> = array of T;',
+    '']),
+    '');
+  StartUnit(true,[supTypeInfo,supTInterfacedObject]);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'uses unit2;',
+  'type',
+  '  IBird = interface',
+  '    function Swoop: TWordArray;',
+  '    function Glide: TArray<word>;',
+  '  end;',
+  'procedure Fly;',
+  'implementation',
+  'procedure Fly;',
+  'var',
+  '  ta: tTypeInfoDynArray;',
+  '  ti: tTypeInfoInterface;',
+  'begin',
+  '  ta:=typeinfo(TWordArray);',
+  '  ta:=typeinfo(TArray<word>);',
+  '  ti:=typeinfo(IBird);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestRTTI_ExternalClass',
+    LinesToStr([ // statements
+    'rtl.createInterface(',
+    '  this,',
+    '  "IBird",',
+    '  "{3B98AAAC-6116-3E17-AA85-F16786D85B09}",',
+    '  ["Swoop", "Glide"],',
+    '  pas.system.IUnknown,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Swoop", 1, null, pas.unit2.$rtti["TWordArray"]);',
+    '    $r.addMethod("Glide", 1, null, pas.unit2.$rtti["TArray<System.Word>"]);',
+    '  }',
+    ');',
+    'this.Fly = function () {',
+    '  var ta = null;',
+    '  var ti = null;',
+    '  ta = pas.unit2.$rtti["TWordArray"];',
+    '  ta = pas.unit2.$rtti["TArray<System.Word>"];',
+    '  ti = $mod.$rtti["IBird"];',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -32033,6 +32417,7 @@ begin
   '  Run;',
   '  Run(3);',
   '']);
+  CheckResolverUnexpectedHints();
   ConvertProgram;
   CheckSource('TestAsync_Proc',
     LinesToStr([ // statements
@@ -32097,6 +32482,7 @@ begin
   '    if Fly()=p then ;',
   '  end;',
   '']);
+  CheckResolverUnexpectedHints();
   ConvertProgram;
   CheckSource('TestAsync_CallResultIsPromise',
     LinesToStr([ // statements
@@ -32197,6 +32583,28 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestAwait_AsyncCallTypeMismatch;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class',
+  '  end;',
+  'function Fly: TObject; async;',
+  'begin',
+  'end;',
+  'procedure Run; async;',
+  'begin',
+  '  await(TBird,Fly);',
+  'end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "TObject", expected "TBird"',nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestAWait_OutsideAsyncFail;
 begin
   StartProgram(false);
@@ -32214,47 +32622,21 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestAWait_Result;
+procedure TTestModule.TestAWait_IntegerFail;
 begin
   StartProgram(false);
   Add([
-  '{$modeswitch externalclass}',
-  'type',
-  '  TJSPromise = class external name ''Promise''',
-  '  end;',
-  'function Crawl(d: double = 1.3): word; ',
+  'function Run: word;',
   'begin',
   'end;',
-  'function Run(d: double = 1.6): word; async;',
+  'procedure Fly(w: word); async;',
   'begin',
-  '  Result:=await(1);',
-  '  Result:=await(Crawl);',
-  '  Result:=await(Crawl(4.5));',
-  '  Result:=await(Run);',
-  '  Result:=await(Run(6.7));',
+  '  await(Run());',
   'end;',
   'begin',
-  '  Run(1);']);
+  '  Fly(1);']);
+  SetExpectedPasResolverError('async function expected, but Result:Word found',nXExpectedButYFound);
   ConvertProgram;
-  CheckSource('TestAWait_Result',
-    LinesToStr([ // statements
-    'this.Crawl = function (d) {',
-    '  var Result = 0;',
-    '  return Result;',
-    '};',
-    'this.Run = async function (d) {',
-    '  var Result = 0;',
-    '  Result = await 1;',
-    '  Result = await $mod.Crawl(1.3);',
-    '  Result = await $mod.Crawl(4.5);',
-    '  Result = await $mod.Run(1.6);',
-    '  Result = await $mod.Run(6.7);',
-    '  return Result;',
-    '};',
-    '']),
-    LinesToStr([
-    '$mod.Run(1);'
-    ]));
 end;
 
 procedure TTestModule.TestAWait_ExternalClassPromise;
@@ -32265,10 +32647,15 @@ begin
   'type',
   '  TJSPromise = class external name ''Promise''',
   '  end;',
-  'function Fly(w: word): TJSPromise; async;',
+  '  TJSThenable = class external name ''Thenable''',
+  '  end;',
+  'function Fly(w: word): TJSPromise;',
   'begin',
   'end;',
   'function Jump(w: word): word; async;',
+  'begin',
+  'end;',
+  'function Eat(w: word): TJSPromise; async;',
   'begin',
   'end;',
   'function Run(d: double): word; async;',
@@ -32278,18 +32665,24 @@ begin
   '  Result:=await(word,p);', // promise needs type
   '  Result:=await(word,Fly(3));', // promise needs type
   '  Result:=await(Jump(4));', // async non promise must omit the type
+  '  Result:=await(word,Jump(5));', // async call can provide fitting type
+  '  Result:=await(word,Eat(6));', // promise needs type
   'end;',
   'begin',
   '']);
   ConvertProgram;
   CheckSource('TestAWait_ExternalClassPromise',
     LinesToStr([ // statements
-    'this.Fly = async function (w) {',
+    'this.Fly = function (w) {',
     '  var Result = null;',
     '  return Result;',
     '};',
     'this.Jump = async function (w) {',
     '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Eat = async function (w) {',
+    '  var Result = null;',
     '  return Result;',
     '};',
     'this.Run = async function (d) {',
@@ -32298,14 +32691,17 @@ begin
     '  Result = await p;',
     '  Result = await $mod.Fly(3);',
     '  Result = await $mod.Jump(4);',
+    '  Result = await $mod.Jump(5);',
+    '  Result = await $mod.Eat(6);',
     '  return Result;',
     '};',
     '']),
     LinesToStr([
     ]));
+  CheckResolverUnexpectedHints();
 end;
 
-procedure TTestModule.TestAsync_AnonymousProc;
+procedure TTestModule.TestAWait_JSValue;
 begin
   StartProgram(false);
   Add([
@@ -32313,7 +32709,111 @@ begin
   'type',
   '  TJSPromise = class external name ''Promise''',
   '  end;',
+  'function Fly(w: word): jsvalue; async;',
+  'begin',
+  'end;',
+  'function Run(d: jsvalue; var e): word; async;',
+  'begin',
+  '  Result:=await(word,d);', // promise needs type
+  '  d:=await(Fly(4));', // async non promise must omit the type
+  '  Result:=await(word,e);', // promise needs type
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAWait_JSValue',
+    LinesToStr([ // statements
+    'this.Fly = async function (w) {',
+    '  var Result = undefined;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (d, e) {',
+    '  var Result = 0;',
+    '  Result = await d;',
+    '  d = await $mod.Fly(4);',
+    '  Result = await e.get();',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    ]));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestAWait_Result;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'function Crawl(d: double = 1.3): TJSPromise; ',
+  'begin',
+  'end;',
+  'function Run(d: double = 1.6): word; async;',
+  'begin',
+  '  Result:=await(word,Crawl);',
+  '  Result:=await(word,Crawl(4.5));',
+  '  Result:=await(Run);',
+  '  Result:=await(Run(6.7));',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  ConvertProgram;
+  CheckSource('TestAWait_Result',
+    LinesToStr([ // statements
+    'this.Crawl = function (d) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (d) {',
+    '  var Result = 0;',
+    '  Result = await $mod.Crawl(1.3);',
+    '  Result = await $mod.Crawl(4.5);',
+    '  Result = await $mod.Run(1.6);',
+    '  Result = await $mod.Run(6.7);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(1);'
+    ]));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestAWait_ResultPromiseMissingTypeFail;
+begin
+  StartProgram(false);
+  Add([
   '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'function Run: TJSPromise; async;',
+  'begin',
+  'end;',
+  'procedure Fly(w: word); async;',
+  'begin',
+  '  await(Run());',
+  'end;',
+  'begin',
+  '  Fly(1);']);
+  SetExpectedPasResolverError('Wrong number of parameters specified for call to "function await(aType,TJSPromise):aType"',
+    nWrongNumberOfParametersForCallTo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAsync_AnonymousProc;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
   'type',
   '  TFunc = reference to function(x: double): word; async;',
   'function Crawl(d: double = 1.3): word; async;',
@@ -32345,6 +32845,7 @@ begin
     '$mod.Func = async function (c) {',
     '};',
     '']));
+  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestModule.TestAsync_ProcType;
@@ -32361,6 +32862,11 @@ begin
   'end;',
   'procedure Run(e:longint); async;',
   'begin',
+  'end;',
+  'procedure Fly(p: TProc); async;',
+  'begin',
+  '  await(p);',
+  '  await(p());',
   'end;',
   'var',
   '  RefFunc: TRefFunc;',
@@ -32382,6 +32888,7 @@ begin
   '  if Proc=ProcB then ;',
   '  ']);
   ConvertProgram;
+  CheckResolverUnexpectedHints();
   CheckSource('TestAsync_ProcType',
     LinesToStr([ // statements
     'this.Crawl = async function (d) {',
@@ -32389,6 +32896,10 @@ begin
     '  return Result;',
     '};',
     'this.Run = async function (e) {',
+    '};',
+    'this.Fly = async function (p) {',
+    '  await p(7);',
+    '  await p(7);',
     '};',
     'this.RefFunc = null;',
     'this.Func = null;',
@@ -32451,7 +32962,7 @@ begin
   'function TObject.Run(w: word = 3): word; async;',
   'begin',
   'end;',
-  'function TBird.Run(w: word = 3): word; async;',
+  'function TBird.Run(w: word = 3): word;', // async modifier not needed in impl
   'var p: TJSPromise;',
   'begin',
   '  p:=inherited;',
@@ -32498,8 +33009,106 @@ begin
     '']),
     LinesToStr([
     '']));
+  CheckResolverUnexpectedHints();
 end;
 
+procedure TTestModule.TestAsync_ClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  'function Say(i: IUnknown): IUnknown; async;',
+  'begin',
+  'end;',
+  'function Run: IUnknown; async;',
+  'begin',
+  '  Result:=await(Run);',
+  '  Result:=await(Run());',
+  '  Result:=await(Run) as IUnknown;',
+  '  Result:=await(Say(nil));',
+  '  Result:=await(Say(await(Run())));',
+  '  Result:=await(Say(await(Run()) as IUnknown));',
+  '  Result:=await(Say(await(Run()) as IUnknown)) as IUnknown;',
+  'end;',
+  'procedure Fly;',
+  'var p: TJSPromise;',
+  'begin',
+  '  Run;',
+  '  Run();',
+  '  p:=Run;',
+  '  p:=Run();',
+  'end;',
+  'begin',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_ClassInterface',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'this.Say = async function (i) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.Run = async function () {',
+    '  var Result = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    Result = rtl.setIntfL(Result, await $mod.Run());',
+    '    Result = rtl.setIntfL(Result, await $mod.Run());',
+    '    Result = rtl.setIntfL(Result, rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(null));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(await $mod.Run()));',
+    '    Result = rtl.setIntfL(Result, await $mod.Say(rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown)));',
+    '    Result = rtl.setIntfL(Result, rtl.intfAsIntfT(await $mod.Say(rtl.intfAsIntfT(await $mod.Run(), $mod.IUnknown)), $mod.IUnknown));',
+    '    $ok = true;',
+    '  } finally {',
+    '    if (!$ok) rtl._Release(Result);',
+    '  };',
+    '  return Result;',
+    '};',
+    'this.Fly = function () {',
+    '  var p = null;',
+    '  $mod.Run();',
+    '  $mod.Run();',
+    '  p = $mod.Run();',
+    '  p = $mod.Run();',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestAsync_ClassInterface_AsyncMissmatchFail;
+begin
+  StartProgram(true,[supTInterfacedObject]);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  IBird = interface',
+  '    procedure Run;',
+  '  end;',
+  '  TBird = class(TInterfacedObject,IBird)',
+  '    procedure Run; async;',
+  '  end;',
+  'procedure TBird.Run;',
+  'begin',
+  'end;',
+  'begin',
+  '  ']);
+  SetExpectedPasResolverError('procedure type modifier "async" mismatch',nXModifierMismatchY);
+  ConvertProgram;
+end;
 
 Initialization
   RegisterTests([TTestModule]);

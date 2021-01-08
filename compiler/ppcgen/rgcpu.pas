@@ -117,7 +117,7 @@ unit rgcpu;
             helplist:=TAsmList.create;
 
             if (spilltemp.index<>NR_NO) then
-              internalerror(200704201);
+              internalerror(2007042002);
 
             if getregtype(tempreg)=R_INTREGISTER then
               begin

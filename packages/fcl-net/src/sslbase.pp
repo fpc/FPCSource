@@ -36,6 +36,7 @@ Type
   Private
     FStrData : Array[0..StrDataCount] of string;
     FCertData : Array[0..SSLDataCount] of TSSLData;
+    FTrustedCertsDir: String;
     function GetSSLData(AIndex: Integer): TSSLData;
     procedure SetSSLData(AIndex: Integer; AValue: TSSLData);
     function GetString(AIndex: Integer): String;
@@ -54,6 +55,8 @@ Type
     property PrivateKey : TSSLData Index 2 Read GetSSLData Write SetSSLData;
     property PFX: TSSLData Index 3 Read GetSSLData Write SetSSLData;
     property CertCA: TSSLData Index 4 Read GetSSLData Write SetSSLData;
+    // OpenSSL allows both a PEM file or a Dir. We separate out the dir.
+    Property TrustedCertsDir : String Read FTrustedCertsDir Write FTrustedCertsDir;
   end;
 
     { TX509Certificate }

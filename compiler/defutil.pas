@@ -229,6 +229,9 @@ interface
     {# Returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
 
+    {# Returns true, if def is a comp type (handled by the fpu) }
+    function is_fpucomp(def : tdef) : boolean;
+
     {# Returns true, if def is a single type }
     function is_single(def : tdef) : boolean;
 
@@ -265,8 +268,17 @@ interface
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
-    {# Returns true, if def is a 64 bit type }
+    {# Returns true, if def is a 64 bit signed integer type }
+    function is_s64bitint(def : tdef) : boolean;
+
+    {# Returns true, if def is a 64 bit ordinal type }
     function is_64bit(def : tdef) : boolean;
+
+    { returns true, if def is a longint type }
+    function is_s32bitint(def : tdef) : boolean;
+
+    { returns true, if def is a dword type }
+    function is_u32bitint(def : tdef) : boolean;
 
     { true, if def1 and def2 are both integers of the same bit size and sign }
     function are_equal_ints(def1, def2: tdef): boolean;
@@ -401,6 +413,12 @@ implementation
          end;
       end;
 
+
+    function is_fpucomp(def: tdef): boolean;
+      begin
+        result:=(def.typ=floatdef) and
+           (tfloatdef(def).floattype=s64comp);
+      end;
 
     { returns true, if def is a single type }
     function is_single(def : tdef) : boolean;
@@ -1003,6 +1021,7 @@ implementation
          result:=(def.typ=orddef) and (torddef(def).ordtype in [u32bit,s32bit,pasbool32,bool32bit])
       end;
 
+
     { true, if def is a 64 bit int type }
     function is_64bitint(def : tdef) : boolean;
       begin
@@ -1010,10 +1029,32 @@ implementation
       end;
 
 
+    function is_s64bitint(def: tdef): boolean;
+      begin
+        is_s64bitint:=(def.typ=orddef) and (torddef(def).ordtype=s64bit)
+      end;
+
+
     { true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
       begin
          is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
+      end;
+
+
+    { returns true, if def is a longint type }
+    function is_s32bitint(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+          (torddef(def).ordtype=s32bit);
+      end;
+
+
+    { returns true, if def is a dword type }
+    function is_u32bitint(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+          (torddef(def).ordtype=u32bit);
       end;
 
 
@@ -1358,7 +1399,10 @@ implementation
                    (tarraydef(p).elementdef.typ=floatdef) and
                    (
                     (tarraydef(p).lowrange=0) and
-                    (tarraydef(p).highrange=3) and
+                    ((tarraydef(p).highrange=3) or
+                     (UseAVX and (tarraydef(p).highrange=7)) or
+                     (UseAVX512 and (tarraydef(p).highrange=15))
+                    ) and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s32real)
                    )
                   ) or
@@ -1367,7 +1411,10 @@ implementation
                    (tarraydef(p).elementdef.typ=floatdef) and
                    (
                     (tarraydef(p).lowrange=0) and
-                    (tarraydef(p).highrange=1) and
+                    ((tarraydef(p).highrange=1) or
+                     (UseAVX and (tarraydef(p).highrange=3)) or
+                     (UseAVX512 and (tarraydef(p).highrange=7))
+                    )and
                     (tfloatdef(tarraydef(p).elementdef).floattype=s64real)
                    )
                   ) {or

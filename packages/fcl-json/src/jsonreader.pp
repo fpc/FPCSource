@@ -179,7 +179,8 @@ Resourcestring
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
   SErrNoScanner = 'No scanner. No source specified ?';
   SErrorAt = 'Error at line %d, Pos %d: ';
-  
+  SErrGarbageFound = 'Expected EOF, but got %s';
+
 { TBaseJSONReader }
 
 
@@ -189,6 +190,14 @@ begin
   if (FScanner=Nil) then
     DoError(SErrNoScanner);
   DoParse(False,True);
+  if joStrict in Options then
+    begin
+    Repeat
+       GetNextToken;
+    Until CurrentToken<>tkWhiteSpace;
+    If CurrentToken<>tkEOF then
+      DoError(Format(SErrGarbageFound,[CurrentTokenString]));
+   end;
 end;
 
 {

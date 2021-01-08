@@ -28,9 +28,9 @@ begin
                 FPE_FLTOVF : Res:=205;  {Overflow trap}
                 FPE_FLTUND : Res:=206;  {Stack over/underflow}
                 FPE_FLTRES : Res:=216;  {Device not available}
-                FPE_FLTINV : Res:=216;  {Invalid floating point operation}
+                FPE_FLTINV : Res:=207;  {Invalid floating point operation}
                Else
-                Res:=208; {coprocessor error}
+                Res:=207; {coprocessor error}
                 End;
              sysResetFPU;
           End;

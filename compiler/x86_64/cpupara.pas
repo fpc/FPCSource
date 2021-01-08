@@ -1358,9 +1358,9 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         if x86_64_use_ms_abi(calloption) then
-          result:=[RS_XMM0..RS_XMM5]
+          result:=[RS_XMM0..RS_XMM5,RS_XMM16..RS_XMM31]
         else
-          result:=[RS_XMM0..RS_XMM15];
+          result:=[RS_XMM0..RS_XMM15,RS_XMM16..RS_XMM31];
       end;
 
 

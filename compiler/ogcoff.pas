@@ -1097,7 +1097,7 @@ const pemagic : array[0..3] of byte = (
                     address:=(address and $ff000000) or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
                     relocval:=relocval shr 25;
                     if (relocval<>$3f) and (relocval<>0) then
-                      internalerror(200606085);  { offset overflow }
+                      internalerror(2006060801);  { offset overflow }
                   end;
 {$endif arm}
 {$ifdef aarch64}
@@ -1287,7 +1287,7 @@ const pemagic : array[0..3] of byte = (
         symaddr : aword;
       begin
         if CurrObjSec=nil then
-          internalerror(200403072);
+          internalerror(2004030701);
         if assigned(p) then
           begin
             { current address }
@@ -2521,7 +2521,7 @@ const pemagic : array[0..3] of byte = (
         exesec : TExeSection;
       begin
         if not assigned(texesymbol(p).objsymbol) then
-          internalerror(200603053);
+          internalerror(2006030505);
         with texesymbol(p).objsymbol do
           begin
             if assigned(objsection) then
@@ -2789,7 +2789,7 @@ const pemagic : array[0..3] of byte = (
         bssExeSec:=FindExeSection('.bss');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
-          internalerror(200602231);
+          internalerror(2006022302);
         { do we need to write symbols? }
         hassymbols:=(ExeWriteMode=ewm_dbgonly) or
                     (
@@ -3359,7 +3359,7 @@ const pemagic : array[0..3] of byte = (
           begin
             exesec:=FindExeSection('.reloc');
             if exesec=nil then
-              InternalError(2012072401);
+              InternalError(2012072403);
             exesec.Disabled:=false;
           end;
         inherited;

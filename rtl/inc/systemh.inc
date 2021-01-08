@@ -87,6 +87,13 @@
 {$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif VER2_6}
 
+{ for now, the presence of unicode strings is just an approximation,
+  USE_FILEREC_FULLNAME can be also enabled for other targets if
+  they need file names longer than 255 chars }
+{$if defined(FPC_HAS_FEATURE_UNICODESTRINGS)}
+{$define USE_FILEREC_FULLNAME}
+{$endif defined(FPC_HAS_FEATURE_UNICODESTRINGS)}
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -1286,7 +1293,9 @@ Function  HexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { Char functions }
+{$if defined(VER3_2) or defined(VER3_0)}
 Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$endif defined(VER3_2) or defined(VER3_0)}
 Function  UpCase(c:Char):Char;
 Function  LowerCase(c:Char):Char; overload;
 function  Pos(const substr : shortstring;c:char; Offset: Sizeint = 1): SizeInt;
@@ -1372,6 +1381,9 @@ Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
 Procedure Truncate (var F:File);
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var f:File) : UnicodeString;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 
@@ -1431,6 +1443,9 @@ Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var T:Text) : UnicodeString;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************

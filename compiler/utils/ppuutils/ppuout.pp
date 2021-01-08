@@ -122,11 +122,12 @@ type
 
   public
     DefType: TPpuDefType;
-    Name: string;
+    Name: ansistring;
     FilePos: TPpuFilePos;
     // Symbol/definition reference
     Ref: TPpuRef;
     Visibility: TPpuDefVisibility;
+    GenericDummy: Boolean;
     Attrs: array of TPpuAttr;
 
     constructor Create(AParent: TPpuContainerDef); virtual; reintroduce;

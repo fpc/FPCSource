@@ -25,6 +25,8 @@ Type
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
+    Function GetLastSSLErrorString : String; override;
+    Function GetLastSSLErrorCode : Integer; override;
   Public
     Constructor create; override;
     destructor destroy; override;
@@ -171,10 +173,20 @@ begin
     Result:=CheckSSL(FCTX.UseCertificate(CertificateData.Certificate));
   if Result and not CertificateData.PrivateKey.Empty then
     Result:=CheckSSL(FCTX.UsePrivateKey(CertificateData.PrivateKey));
-  if Result and (CertificateData.CertCA.FileName<>'') then
-    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,''));
+  if Result and ((CertificateData.CertCA.FileName<>'') or (CertificateData.TrustedCertsDir<>'')) then
+    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,CertificateData.TrustedCertsDir));
   if Result and not CertificateData.PFX.Empty then
     Result:=CheckSSL(FCTX.LoadPFX(CertificateData.PFX,CertificateData.KeyPassword));
+end;
+
+function TOpenSSLSocketHandler.GetLastSSLErrorString: String;
+begin
+  Result:=FSSLLastErrorString;
+end;
+
+function TOpenSSLSocketHandler.GetLastSSLErrorCode: Integer;
+begin
+  Result:=FSSLLastError;
 end;
 
 constructor TOpenSSLSocketHandler.create;

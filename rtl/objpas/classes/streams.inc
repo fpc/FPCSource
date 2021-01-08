@@ -1655,6 +1655,7 @@ begin
   NewLen:=Size-FPosition;
   If NewLen>Count then NewLen:=Count;
   Result:=FEncoding.GetAnsiString(FBytes,FPosition,NewLen);
+  Inc(FPosition,NewLen);
 end;
 
 procedure TStringStream.WriteAnsiString(const AString: AnsiString);
@@ -1704,6 +1705,7 @@ begin
     begin
     SetLength(Result, NewLen);
     Move(FBytes[FPosition],Result[1],NewLen);
+    inc(FPosition,Newlen);
     end;
 end;
 
@@ -2034,14 +2036,6 @@ end;
 function TProxyStream.GetIStream: IStream;
 begin
   Result := FStream;
-end;
-
-procedure TProxyStream.Check(err:integer);
-var e : EInOutError;
-begin
-  e:= EInOutError.Create('Proxystream.Check');
-  e.Errorcode:=err;
-  raise e;
 end;
 
 {$pop}

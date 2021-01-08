@@ -44,10 +44,6 @@ unit cpubase;
 
     type
       TAsmOp= {$i armop.inc}
-      {This is a bit of a hack, because there are more than 256 ARM Assembly Ops
-       But FPC currently can't handle more than 256 elements in a set.}
-      TCommonAsmOps = Set of A_None .. A_UADD16;
-
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
@@ -56,6 +52,14 @@ unit cpubase;
       firstop = low(tasmop);
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
+      { Last value of opcode for TCommonAsmOps set below  }
+      LastCommonAsmOp = A_UADD16;
+
+
+    type
+      {This is a bit of a hack, because there are more than 256 ARM Assembly Ops
+       But FPC currently can't handle more than 256 elements in a set.}
+      TCommonAsmOps = Set of A_None .. LastCommonAsmOp;
 
 {*****************************************************************************
                                   Registers

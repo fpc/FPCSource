@@ -1232,6 +1232,11 @@ begin
       Inc(Len);
       end;
     end;
+
+  if (TStringSplitOptions.ExcludeLastEmpty=Options) then
+    if (Len > 0) and (Result[Len-1] = '') then
+      dec(Len);
+
   SetLength(Result,Len);
 end;
 
@@ -1318,6 +1323,11 @@ begin
       Inc(Len);
       end;
     end;
+
+  If (TStringSplitOptions.ExcludeLastEmpty=Options) then
+    if (Len > 0) and (Result[Len-1] = '') then
+      dec(Len);
+
   SetLength(Result,Len);
 end;
 

@@ -923,7 +923,7 @@ implementation
           else
             begin
               writeln(objreloc.ftype);
-              internalerror(200604014);
+              internalerror(2006040107);
             end;
           end
         else           { not relocsec.Used }

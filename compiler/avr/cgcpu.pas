@@ -214,7 +214,7 @@ unit cgcpu;
                  list.concat(taicpu.op_reg(A_PUSH,r));
                end;
              else
-               internalerror(2002071004);
+               internalerror(2002071007);
           end;
         end;
 
@@ -224,7 +224,7 @@ unit cgcpu;
 
       begin
         if not(tcgsize2size[cgpara.Size] in [1..4]) then
-          internalerror(2014011101);
+          internalerror(2014011106);
 
         hp:=cgpara.location;
 
@@ -268,7 +268,7 @@ unit cgcpu;
         tmpreg: TRegister;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
-          internalerror(2014011101);
+          internalerror(2014011107);
 
         hp:=paraloc.location;
 
@@ -302,7 +302,7 @@ unit cgcpu;
                   hp:=hp^.Next;
                 end;
               else
-                internalerror(2002071004);
+                internalerror(2002071008);
             end;
           end;
       end;
@@ -955,7 +955,7 @@ unit cgcpu;
                              list.concat(taicpu.op_reg(A_ROL,reg))
                            end;
                          else
-                           internalerror(2011030901);
+                           internalerror(2011030903);
                        end;
                        if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                          begin
@@ -971,7 +971,7 @@ unit cgcpu;
                                  OP_SAR:
                                    list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(reg,reghi,tcgsize2size[size]-i)));
                                  else
-                                   internalerror(2011030902);
+                                   internalerror(2011030904);
                                end;
                            end;
                          end;
@@ -1098,7 +1098,7 @@ unit cgcpu;
         Result:=ref;
 
          if ref.addressmode<>AM_UNCHANGED then
-           internalerror(2011021701);
+           internalerror(2011021705);
 
         { Be sure to have a base register }
         if (ref.base=NR_NO) then
@@ -1248,7 +1248,7 @@ unit cgcpu;
            QuickRef:=true;
 
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-           internalerror(2011021307);
+           internalerror(2011021303);
 
          conv_done:=false;
          if tosize<>fromsize then
@@ -1469,7 +1469,7 @@ unit cgcpu;
            QuickRef:=true;
 
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-           internalerror(2011021307);
+           internalerror(2011021304);
 
          conv_done:=false;
          if tosize<>fromsize then
@@ -2362,7 +2362,7 @@ unit cgcpu;
         tmpref : treference;
       begin
          if ref.addressmode<>AM_UNCHANGED then
-           internalerror(2011021701);
+           internalerror(2011021706);
 
         if assigned(ref.symbol) or (ref.offset<>0) then
           begin
@@ -2530,7 +2530,7 @@ unit cgcpu;
             SrcQuickRef:=false;
             DestQuickRef:=false;
             if ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and
-              not((source.Base=NR_NO) and (source.Index=NR_NO) and (source.symbol=nil) and (source.Offset in [0..192-len]))) or
+              not((source.Base=NR_NO) and (source.Index=NR_NO) and (source.Offset in [0..192-len]))) or
               (
                  not((source.addressmode=AM_UNCHANGED) and
                      (source.symbol=nil) and
@@ -2552,7 +2552,7 @@ unit cgcpu;
               end;
 
             if ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and
-              not((dest.Base=NR_NO) and (dest.Index=NR_NO) and (dest.symbol=nil) and (dest.Offset in [0..192-len]))) or
+              not((dest.Base=NR_NO) and (dest.Index=NR_NO) and (dest.Offset in [0..192-len]))) or
               (
                  not((dest.addressmode=AM_UNCHANGED) and
                    (dest.symbol=nil) and

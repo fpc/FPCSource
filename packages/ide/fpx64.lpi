@@ -35,7 +35,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="fp"/>
+      <Filename Value="bin/$(TargetCPU)-$(TargetOS)/fp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);../../compiler;../../compiler/x86_64"/>

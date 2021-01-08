@@ -865,7 +865,7 @@ implementation
         kindname: ansistring;
       begin
         if not(obj.owner.defowner.typ in [objectdef,recorddef]) then
-          internalerror(2011021701);
+          internalerror(2011021704);
         { Nested classes in the Pascal sense are equivalent to "static"
           inner classes in Java -- will be changed when support for
           Java-style non-static classes is added }

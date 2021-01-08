@@ -535,7 +535,7 @@ begin
               msbBCST32: memrefsize := 32;
               msbBCST64: memrefsize := 64;
               else
-                Internalerror(2019081005);
+                Internalerror(2019081015);
             end;
           end
           else
@@ -684,7 +684,7 @@ begin
                            S_XMM : memrefsize := 128;
                            S_YMM : memrefsize := 256;
                            S_ZMM : memrefsize := 512;
-                           else Internalerror(2019081001);
+                           else Internalerror(2019081010);
                          end;
                          break;
                        end;
@@ -732,7 +732,7 @@ begin
                     msiMemRegConst128: memrefsize := 128;
                     msiMemRegConst256: memrefsize := 256;
                     msiMemRegConst512: memrefsize := 512;
-                    else Internalerror(2019081002);
+                    else Internalerror(2019081012);
                   end;
                 end;
               end;
@@ -914,7 +914,7 @@ begin
                                    tx86operand(operands[i]).size   := OS_M64;
                                  end;
                       else
-                        Internalerror(2019081006);
+                        Internalerror(2019081017);
                     end;
                   end
                   else
@@ -1273,7 +1273,7 @@ begin
                                                           break;
                                                         end;
                                      else
-                                       Internalerror(2019081007);
+                                       Internalerror(2019081018);
                                    end;
                                  end;
                                end;

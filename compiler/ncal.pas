@@ -3575,15 +3575,28 @@ implementation
 
 
     function tcallnode.pass_typecheck:tnode;
+
+      function is_undefined_recursive(def:tdef):boolean;
+        begin
+          { might become more refined in the future }
+          if def.typ=undefineddef then
+            result:=true
+          else if def.typ=arraydef then
+            result:=is_undefined_recursive(tarraydef(def).elementdef)
+          else
+            result:=false;
+        end;
+
       var
         candidates : tcallcandidates;
         oldcallnode : tcallnode;
-        hpt : tnode;
+        hpt,tmp : tnode;
         pt : tcallparanode;
         lastpara : longint;
         paraidx,
         cand_cnt : integer;
         i : longint;
+        ignoregenericparacall,
         ignorevisibility,
         is_const : boolean;
         statements : tstatementnode;
@@ -3771,12 +3784,33 @@ implementation
                       { Multiple candidates left? }
                       if cand_cnt>1 then
                        begin
-                         CGMessage(type_e_cant_choose_overload_function);
+                         { if we're inside a generic and call another function
+                           with generic types as arguments we don't complain in
+                           the generic, but only during the specialization }
+                         ignoregenericparacall:=false;
+                         if df_generic in current_procinfo.procdef.defoptions then
+                           begin
+                             pt:=tcallparanode(left);
+                             while assigned(pt) do
+                              begin
+                                if is_undefined_recursive(pt.resultdef) then
+                                  begin
+                                    ignoregenericparacall:=true;
+                                    break;
+                                  end;
+                                pt:=tcallparanode(pt.right);
+                              end;
+                           end;
+
+                         if not ignoregenericparacall then
+                           begin
+                             CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
-                         candidates.dump_info(V_Hint);
+                             candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
-                         candidates.list(false);
+                             candidates.list(false);
 {$endif EXTDEBUG}
+                           end;
                          { we'll just use the first candidate to make the
                            call }
                        end;
@@ -3980,8 +4014,27 @@ implementation
 
               if methodpointer.nodetype<>typen then
                begin
-                  { Remove all postfix operators }
+                 { if the value a type helper works on is a derefentiation (before
+                   removing postix operators) we need to pass the original pointer
+                   as Self as the Self value might be changed by the helper }
+                 if is_objectpascal_helper(tdef(procdefinition.owner.defowner)) and
+                    not is_implicit_pointer_object_type(tobjectdef(procdefinition.owner.defowner).extendeddef) then
+                   begin
+                     hpt:=methodpointer;
+
+                     hpt:=actualtargetnode(@hpt)^;
+                     if hpt.nodetype=derefn then
+                       begin
+                         tmp:=tderefnode(hpt).left;
+                         tderefnode(hpt).left:=nil;
+                         methodpointer.free;
+                         methodpointer:=tmp;
+                       end;
+                   end;
+
                   hpt:=methodpointer;
+
+                  { Remove all postfix operators }
                   while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                     hpt:=tunarynode(hpt).left;
 
@@ -4185,11 +4238,11 @@ implementation
                                 (hpcurr.parasym.paraloc[callerside].location^.reference.offset>
                                  hp.parasym.paraloc[callerside].location^.reference.offset)) or
                                (paramanager.use_fixed_stack and
-                                (node_complexity(hpcurr)<node_complexity(hp))) then
+                                (node_complexity(hpcurr.left)<node_complexity(hp.left))) then
 {$elseif defined(jvm)}
                             if (hpcurr.parasym.paraloc[callerside].location^.reference.offset<hp.parasym.paraloc[callerside].location^.reference.offset) then
 {$else jvm}
-                            if (node_complexity(hpcurr)<node_complexity(hp)) then
+                            if (node_complexity(hpcurr.left)<node_complexity(hp.left)) then
 {$endif jvm}
                               break;
                           end;
@@ -4206,7 +4259,7 @@ implementation
                   LOC_REGISTER :
                     begin
                       if (hp.parasym.paraloc[callerside].location^.loc<>LOC_REFERENCE) and
-                         (node_complexity(hpcurr)>node_complexity(hp)) then
+                         (node_complexity(hpcurr.left)>node_complexity(hp.left)) then
                         break;
                     end;
                   else
@@ -4734,6 +4787,10 @@ implementation
         if para.parasym.varspez in [vs_var,vs_out] then
           exit(false);
 
+        { We cannot create a formaldef temp and assign something to it }
+        if para.parasym.vardef.typ=formaldef then
+          exit(false);
+
         { We don't need temps for parameters that are already temps, except if
           the passed temp could be put in a regvar while the parameter inside
           the routine cannot be (e.g., because its address is taken in the
@@ -4750,10 +4807,6 @@ implementation
         if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
            not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           exit(true);
-
-        { We cannot create a formaldef temp and assign something to it }
-        if para.parasym.vardef.typ=formaldef then
-          exit(false);
 
         { We try to handle complex expressions later by taking their address
           and storing this address in a temp (which is then dereferenced when
@@ -4912,6 +4965,9 @@ implementation
 
             result:=true;
           end
+        { for formaldefs, we do not need a temp., but it must be inherited if they are not regable }
+        else if (para.parasym.vardef.typ=formaldef) and not(tparavarsym(para.parasym).is_regvar(false)) then
+          make_not_regable(para.left,[ra_addr_regable]);
       end;
 
 
@@ -5203,18 +5259,7 @@ implementation
         inlineinitstatement:=nil;
         inlinecleanupstatement:=nil;
 
-        { we cannot replace the whole block by a single assignment if the call
-          has an init/cleanup block
-
-          we could though (not yet done), convert this into a bew block
-          consisting of the init code, the single assignment and the cleanup block
-          This might even enable new transformations }
-        if not(assigned(callinitblock)) and not(assigned(callcleanupblock)) then
-          { if all that's left of the inlined function is an constant assignment
-            to the result, replace the whole block with the constant only }
-          n:=optimize_funcret_assignment(inlineblock)
-        else
-          n:=nil;
+        n:=optimize_funcret_assignment(inlineblock);
         if assigned(n) then
           begin
             inlineblock.free;

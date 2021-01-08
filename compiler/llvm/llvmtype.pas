@@ -186,10 +186,25 @@ implementation
 
 
     function TLLVMTypeInfo.record_def(def:tdef): tdef;
+      var
+        i: longint;
       begin
         result:=def;
         if def.stab_number<>0 then
           exit;
+        { the external symbol may never be called, in which case the types
+          of its parameters will never be process -> do it here }
+        if (def.typ=procdef) then
+          begin
+            { can't use this condition to determine whether or not we need
+              to generate the argument defs, because this information does
+              not get reset when multiple units are compiled during a
+              single compiler invocation }
+            tprocdef(def).init_paraloc_info(callerside);
+            for i:=0 to tprocdef(def).paras.count-1 do
+              record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true,calleeside));
+            record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true,calleeside));
+          end;
         def.stab_number:=1;
         { this is an internal llvm type }
         if def=llvm_metadatatype then
@@ -505,20 +520,6 @@ implementation
               sec:=sec_data;
             toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
             record_asmsym_def(sym,def,true);
-            { the external symbol may never be called, in which case the types
-              of its parameters will never be process -> do it here }
-            if (def.typ=procdef) then
-              begin
-                { can't use this condition to determine whether or not we need
-                  to generate the argument defs, because this information does
-                  not get reset when multiple units are compiled during a
-                  single compiler invocation }
-                if (tprocdef(def).has_paraloc_info=callnoside) then
-                  tprocdef(def).init_paraloc_info(callerside);
-                for i:=0 to tprocdef(def).paras.count-1 do
-                  record_def(llvmgetcgparadef(tparavarsym(tprocdef(def).paras[i]).paraloc[callerside],true,calleeside));
-                record_def(llvmgetcgparadef(tprocdef(def).funcretloc[callerside],true,calleeside));
-              end;
           end;
       end;
 
@@ -685,9 +686,9 @@ implementation
                     dbg_state_written:
                       continue;
                     dbg_state_writing:
-                      internalerror(200610052);
+                      internalerror(2006100501);
                     dbg_state_unused:
-                      internalerror(200610053);
+                      internalerror(2006100505);
                     dbg_state_used:
                       appenddef(current_asmdata.asmlists[al_start],def)
                   else
@@ -716,7 +717,7 @@ implementation
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
 
-        { write all global/static variables, part of flaggin all required tdefs  }
+        { write all global/static variables, part of flagging all required tdefs  }
         if assigned(current_module.globalsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_start],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then

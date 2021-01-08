@@ -355,7 +355,7 @@ function taarch64tryfinallynode.dogetcopy: tnode;
     if (target_info.system=system_aarch64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
-          InternalError(2020033101);
+          InternalError(2020033104);
 
         p.finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,p.right));
         if pi_do_call in finalizepi.flags then

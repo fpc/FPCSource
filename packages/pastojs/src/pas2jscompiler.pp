@@ -43,8 +43,8 @@ uses
   FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
 
 const
-  VersionMajor = 1;
-  VersionMinor = 5;
+  VersionMajor = 2;
+  VersionMinor = 1;
   VersionRelease = 1;
   VersionExtra = '';
   DefaultConfigFile = 'pas2js.cfg';
@@ -154,7 +154,7 @@ type
     rvcUnit
     );
   TP2JSResourceStringFile = (rsfNone,rsfUnit,rsfProgram);
-  TResourceMode = (rmNone,rmHTML,rmJS);
+  TResourceMode = (Skip,rmNone,rmHTML,rmJS);
 
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coWriteableConst,coUseStrict,coSourceMapXSSIHeader];
@@ -393,7 +393,7 @@ type
     destructor Destroy; override;
     Function CreatePCUSupport: TPCUSupport; virtual;
     function GetInitialModeSwitches: TModeSwitches;
-    function IsUnitReadFromPCU: Boolean;
+    function IsUnitReadFromPCU: Boolean; // unit was read from pcu
     function GetInitialBoolSwitches: TBoolSwitches;
     function GetInitialConverterOptions: TPasToJsConverterOptions;
     procedure CreateScannerAndParser(aFileResolver: TPas2jsFSResolver);
@@ -489,6 +489,7 @@ type
     FHasShownEncoding: boolean;
     FHasShownLogo: boolean;
     FInsertFilenames: TStringList;
+    FAppendFilenames: TStringList;
     FInterfaceType: TPasClassInterfaceType;
     FLog: TPas2jsLogger;
     FMainFile: TPas2jsCompilerFile;
@@ -516,6 +517,7 @@ type
     FResourceStrings : TResourceStringsFile;
     FResourceStringFile :  TP2JSResourceStringFile;
     procedure AddInsertJSFilename(const aFilename: string);
+    procedure AddAppendJSFilename(const aFilename: string);
     Procedure AddNamespaces(const Paths: string; FromCmdLine: boolean);
     procedure AddUnitResourceStrings(aFile: TPas2jsCompilerFile);
     function CreateFileWriter(aFile: TPas2jsCompilerFile; const aFilename: string): TPas2JSMapper;
@@ -538,10 +540,13 @@ type
     function GetWriteDebugLog: boolean;
     function GetWriteMsgToStdErr: boolean;
     function IndexOfInsertJSFilename(const aFilename: string): integer;
+    function IndexOfAppendJSFilename(const aFilename: string): integer;
     procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
+    procedure AppendCustomJSFiles(aWriter: TPas2JSMapper);
     function LoadUsedUnit(Info: TLoadUnitInfo; Context: TPas2jsCompilerFile): TPas2jsCompilerFile;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer): boolean;
     procedure RemoveInsertJSFilename(const aFilename: string);
+    procedure RemoveAppendJSFilename(const aFilename: string);
     function ResolvedMainJSFile: string;
     procedure SetAllJSIntoMainJS(AValue: Boolean);
     procedure SetConverterGlobals(const AValue: TPasToJSConverterGlobals);
@@ -595,13 +600,13 @@ type
     function CreateMacroEngine: TPas2jsMacroEngine;virtual;
     function CreateSrcMap(const aFileName: String): TPas2JSSrcMap; virtual;
     function CreateOptimizer: TPas2JSAnalyzer;
-    // These are mandatory !
-    function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;
-    function CreateFS: TPas2JSFS; virtual; abstract;
+    function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; virtual; abstract;// mandatory !
+    function CreateFS: TPas2JSFS; virtual; abstract; // mandatory !
     function FormatPath(Const aPath: String): String;
     function FullFormatPath(Const aPath: String): String;
     procedure WritePrecompiledFormats; virtual;
     procedure WriteHelpLine(S: String);
+    function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile;
     // Override these for PCU format
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; virtual;
     // Command-line option handling
@@ -716,7 +721,8 @@ type
     property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
     property AllJSIntoMainJS: Boolean Read FAllJSIntoMainJS Write SetAllJSIntoMainJS;
     property ExitCode: longint read GetExitCode write SetExitCode;
-    property InsertFilenames: TStringList read FInsertFilenames;
+    property InsertFilenames : TStringList read FInsertFilenames;
+    Property AppendFileNames : TStringList read FAppendFileNames;
     property MainJSFile: String Read FMainJSFile Write FMainJSFile;
     property MainSrcFile: String Read FMainSrcFile Write FMainSrcFile;
     property SrcMapBaseDir: string read FSrcMapBaseDir write SetSrcMapBaseDir; // includes trailing pathdelim
@@ -1053,7 +1059,7 @@ begin
 
   if coEnumValuesAsNumbers in Compiler.Options then
     Include(Result,fppas2js.coEnumNumbers);
-  if coShortRefGlobals in Compiler.Options then
+  if (coShortRefGlobals in Compiler.Options) or IsUnitReadFromPCU then
     Include(Result,fppas2js.coShortRefGlobals);
 
   if coLowerCase in Compiler.Options then
@@ -1101,6 +1107,8 @@ begin
   Scanner.CurrentValueSwitch[vsInterfaces]:=InterfaceTypeNames[Compiler.InterfaceType];
   if coAllowCAssignments in Compiler.Options then
     Scanner.Options:=Scanner.Options+[po_cassignments];
+  if Compiler.ResourceMode=rmNone then
+    Scanner.Options:= Scanner.Options+[po_DisableResources];
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
@@ -2217,7 +2225,6 @@ begin
 end;
 
 function TPas2jsCompiler.CreateOptimizer: TPas2JSAnalyzer;
-
 begin
   Result:=TPas2JSAnalyzer.Create;
 end;
@@ -2291,7 +2298,7 @@ begin
     if SrcMapInclude and FS.FileExists(LocalFilename) then
     begin
       // include source in SrcMap
-      aFile:=FS.LoadFile(LocalFilename);
+      aFile:=LoadFile(LocalFilename);
       SrcMap.SourceContents[i]:=aFile.Source;
     end;
     // translate local file name
@@ -2349,7 +2356,6 @@ begin
 end;
 
 function TPas2jsCompiler.CreateSrcMap(const aFileName: String): TPas2JSSrcMap;
-
 begin
   Result:=TPas2JSSrcMap.Create(aFileName);
 end;
@@ -2761,10 +2767,9 @@ procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile; Combined
   end;
 
 Var
-  aFileWriter : TPas2JSMapper;
-  isSingleFile : Boolean;
-  ResFileName,MapFilename : String;
-
+  aFileWriter: TPas2JSMapper;
+  isSingleFile, JSFileWritten: Boolean;
+  ResFileName,MapFilename: String;
 begin
   aFileWriter:=CombinedFileWriter;
   try
@@ -2786,19 +2791,18 @@ begin
     FResources.DoneUnit(aFile.isMainFile);
     EmitJavaScript(aFile,aFileWriter);
 
-
-
     if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
       aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
 
     if isSingleFile or aFile.isMainFile then
       begin
+      if aFile.IsMainFile  then
+        AppendCustomJSFiles(aFileWriter);
       if Assigned(PostProcessorSupport) then
         PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
 
       // Give chance to descendants to write file
-      if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
-        exit;// descendant has written -> finished
+      JSFileWritten:=DoWriteJSFile(aFile.JSFilename,aFileWriter);
 
       if (aFile.JSFilename='') and (MainJSFile='.') then
         WriteToStandardOutput(aFileWriter);
@@ -2809,7 +2813,8 @@ begin
       CheckOutputDir(aFileWriter.DestFileName);
 
       MapFilename:=aFileWriter.DestFilename+'.map';
-      WriteJSToFile(MapFileName,aFileWriter);
+      if not JSFileWritten then
+        WriteJSToFile(MapFileName,aFileWriter);
       if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
         if FResourceStrings.StringsCount>0 then
           WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.jrs'));
@@ -3402,9 +3407,13 @@ begin
       else ParamFatal('invalid encoding (-Je) "'+aValue+'"');
       end;
     end;
+  'a', // -Ja<js-file>
   'i': // -Ji<js-file>
     if aValue='' then
-      ParamFatal('missing insertion file "'+aValue+'"')
+      if c='a' then
+        ParamFatal('missing append file "'+aValue+'"')
+      else
+        ParamFatal('missing insertion file "'+aValue+'"')
     else if not Quick then
     begin
       if aValue='' then
@@ -3414,10 +3423,16 @@ begin
         Delete(aValue,length(aValue),1);
         if aValue='' then
           Result:=False
+        else if c='i' then
+          RemoveInsertJSFilename(aValue)
         else
-          RemoveInsertJSFilename(aValue);
-      end else
-        AddInsertJSFilename(aValue);
+          RemoveAppendJSFileName(aValue);
+      end
+      else
+        if C='i' then
+          AddInsertJSFilename(aValue)
+        else
+          addAppendJSFileName(aValue)
     end;
   'l': // -Jl
     SetOption(coLowercase,aValue<>'-');
@@ -3756,12 +3771,16 @@ begin
     begin
       Enable:=c='+';
       Delete(aValue,length(aValue),1);
+    end
+    else if lowercase(LeftStr(aValue,2))='no' then begin
+      Enable:=false;
+      Delete(aValue,1,2);
     end;
     Case LowerCase(aValue) of
      'enumnumbers': SetOption(coEnumValuesAsNumbers,Enable);
      'removenotusedprivates': SetOption(coKeepNotUsedPrivates,not Enable);
      'removenotuseddeclarations': SetOption(coKeepNotUsedDeclarationsWPO,not Enable);
-     'shortrefglobals': SetOption(coShortRefGlobals,not Enable);
+     'shortrefglobals': SetOption(coShortRefGlobals,Enable);
     else
       Log.LogMsgIgnoreFilter(nUnknownOptimizationOption,[QuoteStr(aValue)]);
     end;
@@ -4187,19 +4206,16 @@ begin
 end;
 
 function TPas2jsCompiler.CreateMacroEngine: TPas2jsMacroEngine;
-
 begin
   Result:=TPas2jsMacroEngine.Create;
 end;
 
 function TPas2jsCompiler.CreateLog: TPas2jsLogger;
-
 begin
   Result:=TPas2jsLogger.Create;
 end;
 
 constructor TPas2jsCompiler.Create;
-
 begin
   FOptions:=DefaultP2jsCompilerOptions;
   FConverterGlobals:=TPasToJSConverterGlobals.Create(Self);
@@ -4207,6 +4223,7 @@ begin
   FNamespaces:=TStringList.Create;
   FDefines:=TStringList.Create;
   FInsertFilenames:=TStringList.Create;
+  FAppendFileNames:=TStringList.Create;
   FLog:=CreateLog;
   FLog.OnFormatPath:=@FormatPath;
   FParamMacros:=CreateMacroEngine;
@@ -4235,6 +4252,7 @@ destructor TPas2jsCompiler.Destroy;
     FreeAndNil(FNamespaces);
     FreeAndNil(FWPOAnalyzer);
     FreeAndNil(FInsertFilenames);
+    FreeAndNil(FAppendFilenames);
 
     FMainFile:=nil;
     FreeAndNil(FUnits);
@@ -4432,6 +4450,7 @@ begin
   FReadingModules.Clear;
   FFiles.FreeItems;
   FInsertFilenames.Clear;
+  FAppendFIleNames.Clear;
   if Assigned(FPostProcessorSupport) then
     FPostProcessorSupport.Clear;
   FCompilerExe:='';
@@ -4550,6 +4569,7 @@ begin
     on E: Exception do begin
       if ShowDebug then
         Log.LogExceptionBackTrace(E);
+      Log.Log(mtFatal,E.Message);
       raise; // reraise unexpected exception
     end else begin
       if ShowDebug then
@@ -4630,6 +4650,20 @@ begin
   Log.LogRaw(s);
 end;
 
+function TPas2jsCompiler.LoadFile(Filename: string; Binary: boolean
+  ): TPas2jsFile;
+begin
+  try
+    Result:=FS.LoadFile(Filename,Binary);
+  except
+    on E: Exception do
+      begin
+      Log.Log(mtError,E.Message);
+      Terminate(ExitCodeFileNotFound);
+      end
+  end;
+end;
+
 procedure TPas2jsCompiler.WriteHelp;
 
   procedure w(s: string); inline;
@@ -4686,6 +4720,7 @@ begin
   w('   -FU<x>: Set unit output path to <x>');
   w('  -I<x>  : Add <x> to include paths, same as -Fi');
   w('  -J...  Extra options of pas2js');
+  w('   -Ja<x>: Append JS file <x> to main JS file. E.g. -Jamap.js. Can be given multiple times. To remove a file name append a minus, e.g. -Jamap.js-.');
   w('   -Jc   : Write all JavaScript concatenated into the output file');
   w('   -Je<x>: Encode messages as <x>.');
   w('     -Jeconsole: Console codepage. This is the default.');
@@ -4713,8 +4748,8 @@ begin
   w('     -Jrnone: Do not write resource string file');
   w('     -Jrunit: Write resource string file per unit with all resource strings');
   w('     -Jrprogram: Write resource string file per program with all used resource strings in program');
-  w('   -Jr<x> Control writing of linked resources');
-  w('     -JRnone: Do not write resources');
+  w('   -JR<x> Control writing of linked resources');
+  w('     -JRnone: Skip resource directives');
   w('     -JRjs: Write resources in Javascript structure');
   w('     -JRhtml[=filename] : Write resources as preload links in HTML file (default is projectfile-res.html)');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
@@ -4738,7 +4773,8 @@ begin
   w('      -OoEnumNumbers[-]: write enum value as number instead of name. Default in -O1.');
   w('      -OoRemoveNotUsedPrivates[-]: Default is enabled');
   w('      -OoRemoveNotUsedDeclarations[-]: Default enabled for programs with -Jc');
-  w('      -OoShortRefGlobals[-]: Insert JS local var for types and modules. Default enabled in -O2');
+  w('      -OoRemoveNotUsedPublished[-] : Default is disabled');
+  w('      -OoShortRefGlobals[-]: Insert JS local var for types, modules and static functions. Default enabled in -O2');
   w('  -P<x>  : Set target processor. Case insensitive:');
   w('    -Pecmascript5: default');
   w('    -Pecmascript6');
@@ -4755,6 +4791,7 @@ begin
   w('  -T<x>  : Set target platform');
   w('    -Tbrowser: default');
   w('    -Tnodejs : add pas.run(), includes -Jc');
+  w('    -Telectron: experimental');
   w('  -u<x>  : Undefines the symbol <x>');
   w('  -v<x>  : Be verbose. <x> is a combination of the following letters:');
   w('    e    : Show errors (default)');
@@ -4934,6 +4971,7 @@ begin
   Log.LogPlain('Supported targets (targets marked with ''{*}'' are under development):');
   Log.LogPlain(['  ',PasToJsPlatformNames[PlatformBrowser],': webbrowser']);
   Log.LogPlain(['  ',PasToJsPlatformNames[PlatformNodeJS],': Node.js']);
+  Log.LogPlain(['  ',PasToJsPlatformNames[PlatformElectron],': Electron app']);
   Log.LogLn;
   Log.LogPlain('Supported CPU instruction sets:');
   Log.LogPlain('  ECMAScript5, ECMAScript6');
@@ -5148,7 +5186,33 @@ begin
         Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
         raise EFileNotFoundError.Create('');
       end;
-      aFile:=FS.LoadFile(Filename);
+      aFile:=LoadFile(Filename);
+      if aFile.Source='' then continue;
+      aWriter.WriteFile(aFile.Source,Filename);
+    end
+  finally
+    FileResolver.Free;
+  end;
+end;
+
+procedure TPas2jsCompiler.AppendCustomJSFiles(aWriter: TPas2JSMapper);
+var
+  i: Integer;
+  Filename: String;
+  FileResolver: TPas2jsFSResolver;
+  aFile: TPas2jsFile;
+begin
+  if AppendFilenames.Count=0 then exit;
+  FileResolver:=FS.CreateResolver;
+  try
+    for i:=0 to AppendFilenames.Count-1 do begin
+      Filename:=FS.FindCustomJSFileName(AppendFilenames[i]);
+      if Filename='' then
+      begin
+        Log.LogMsg(nCustomJSFileNotFound,[AppendFilenames[i]]);
+        raise EFileNotFoundError.Create('');
+      end;
+      aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
       aWriter.WriteFile(aFile.Source,Filename);
     end
@@ -5170,6 +5234,7 @@ end;
 
 procedure TPas2jsCompiler.AddInsertJSFilename(const aFilename: string);
 begin
+
   if IndexOfInsertJSFilename(aFilename)<0 then
     InsertFilenames.Add(aFilename);
 end;
@@ -5182,6 +5247,35 @@ begin
   if i>=0 then
     InsertFilenames.Delete(i);
 end;
+
+function TPas2jsCompiler.IndexOfAppendJSFilename(const aFilename: string
+  ): integer;
+var
+  i: Integer;
+begin
+  for i:=0 to AppendFilenames.Count-1 do
+    if FS.SameFileName(aFilename,AppendFilenames[i]) then
+      exit(i);
+  Result:=-1;
+end;
+
+
+procedure TPas2jsCompiler.RemoveAppendJSFilename(const aFilename: string);
+var
+  i: Integer;
+begin
+  i:=IndexOfAppendJSFilename(aFilename);
+  if i>=0 then
+    AppendFilenames.Delete(i);
+end;
+
+
+procedure TPas2jsCompiler.AddAppendJSFilename(const aFilename: string);
+begin
+  if IndexOfAppendJSFilename(aFilename)<0 then
+    AppendFilenames.Add(aFilename);
+end;
+
 
 function TPas2jsCompiler.GetResolvedMainJSFile: string;
 
@@ -5290,9 +5384,8 @@ begin
   end else begin
     // search Pascal file with InFilename
     FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,ModuleDir,FoundPasIsForeign);
-    if FoundPasFilename='' then
-      exit; // an in-filename unit source is missing -> stop
-    FoundPasUnitName:=ExtractFilenameOnly(InFilename);
+    if FoundPasFilename<>'' then
+      FoundPasUnitName:=ExtractFilenameOnly(InFilename);
 
     // Note: at the moment if there is a source do not search for pcu
     // Eventually search for both, load pcu and if that fails unload pcu and load source
@@ -5301,7 +5394,9 @@ begin
       // no pas file -> search pcu
       FoundPCUFilename:=PCUSupport.FindPCU(UseUnitName);
       if FoundPCUFilename<>'' then
+      begin
         FoundPCUUnitName:=UseUnitName;
+      end;
     end;
   end;
 

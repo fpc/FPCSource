@@ -60,29 +60,32 @@ begin
                     else if (FpuState and FPU_Underflow)<>0 then
                       res:=206
                     else if (FpuState and FPU_Denormal)<>0 then
-                      res:=216
+                      res:=206
                     else
                       res:=207;  {'Coprocessor Error'}
-                  end;
-                { SSE data? }
-                if ucontext^.uc_mcontext.fpstate^.magic=0 then
+                  end
+                else
                   begin
-                    MMState:=ucontext^.uc_mcontext.fpstate^.mxcsr;
-                    if (MMState and MM_ExceptionMask)<>0 then
+                    { SSE data? }
+                    if ucontext^.uc_mcontext.fpstate^.magic=0 then
                       begin
-                        { first check the more precise options }
-                        if (MMState and MM_DivisionByZero)<>0 then
-                          res:=208
-                        else if (MMState and MM_Invalid)<>0 Then
-                          res:=207
-                        else if (MMState and MM_Overflow)<>0 then
-                          res:=205
-                        else if (MMState and MM_Underflow)<>0 then
-                          res:=206
-                        else if (MMState and MM_Denormal)<>0 then
-                          res:=216
-                        else
-                          res:=207;  {'Coprocessor Error'}
+                        MMState:=ucontext^.uc_mcontext.fpstate^.mxcsr;
+                        if (MMState and MM_ExceptionMask)<>0 then
+                          begin
+                            { first check the more precise options }
+                            if (MMState and MM_DivisionByZero)<>0 then
+                              res:=208
+                            else if (MMState and MM_Invalid)<>0 Then
+                              res:=207
+                            else if (MMState and MM_Overflow)<>0 then
+                              res:=205
+                            else if (MMState and MM_Underflow)<>0 then
+                              res:=206
+                            else if (MMState and MM_Denormal)<>0 then
+                              res:=206
+                            else
+                              res:=207;  {'Coprocessor Error'}
+                          end;
                       end;
                   end;
                end;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <SaveClosedFiles Value="False"/>
@@ -10,9 +10,9 @@
         <MainUnitHasTitleStatement Value="False"/>
         <SaveJumpHistory Value="False"/>
         <SaveFoldState Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="FPDoc Documentation generator"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -28,15 +28,15 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--macro=FPCDIR=../fpcsrc --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
-        <WorkingDirectory Value="/home/michael/FPC/build/tag_3_2_0/fpcdocs"/>
+        <CommandLineParams Value="--macro=FPCDIR=/Users/Michael/fpc/ --project=rtl-project.xml --format=md --output=rtl"/>
+        <WorkingDirectory Value="/Users/Michael/FPC_SRC/docs"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--macro=FPCDIR=../fpcsrc --project=rtl-project.xml --format=html --output=rtl --footer-date=&quot;mmm dd yyyy&quot;"/>
-            <WorkingDirectory Value="/home/michael/FPC/build/tag_3_2_0/fpcdocs"/>
+            <CommandLineParams Value="--macro=FPCDIR=/Users/Michael/fpc/ --project=rtl-project.xml --format=md --output=rtl"/>
+            <WorkingDirectory Value="/Users/Michael/FPC_SRC/docs"/>
           </local>
         </Mode0>
       </Modes>
@@ -46,7 +46,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="20">
       <Unit0>
         <Filename Value="fpdoc.pp"/>
         <IsPartOfProject Value="True"/>
@@ -65,7 +65,6 @@
       <Unit3>
         <Filename Value="dw_html.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_HTML"/>
       </Unit3>
       <Unit4>
         <Filename Value="dw_ipflin.pas"/>
@@ -119,6 +118,22 @@
         <Filename Value="fpdocclasstree.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="dw_markdown.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="dw_chm.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="dw_basemd.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="dw_basehtml.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -130,6 +145,11 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

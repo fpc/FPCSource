@@ -327,6 +327,9 @@ implementation
            { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in current_settings.globalswitches) then
              AddUnit('heaptrc');
+           { Valgrind requires c memory manager }
+           if (cs_gdb_valgrind in current_settings.globalswitches) then
+             AddUnit('cmem');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              case target_dbg.id of
@@ -338,9 +341,6 @@ implementation
                  AddUnit('lnfodwrf');
              end;
            end;
-           { Valgrind requires c memory manager }
-           if (cs_gdb_valgrind in current_settings.globalswitches) then
-             AddUnit('cmem');
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)

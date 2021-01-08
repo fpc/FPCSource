@@ -333,7 +333,7 @@ implementation
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
           else
-            internalerror(2009111402);
+            internalerror(2009111405);
         end;
       end;
 

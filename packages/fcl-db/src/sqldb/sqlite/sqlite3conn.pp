@@ -19,7 +19,8 @@
 
   TSQLite3Connection properties
       Params - "foreign_keys=ON" - enable foreign key support for this connection:
-                                   http://www.sqlite.org/foreignkeys.html#fk_enable
+                                   https://www.sqlite.org/foreignkeys.html#fk_enable
+               "journal_mode=..."  https://www.sqlite.org/pragma.html#pragma_journal_mode
 
 } 
  
@@ -44,7 +45,6 @@ type
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
 
-  // VFS not supported at this time.
   // Do not change the order. See NativeFlags constant in GetSQLiteOpenFlags.
 
   TSQLiteOpenFlag = (
@@ -69,8 +69,10 @@ Type
   private
     fhandle: psqlite3;
     FOpenFlags: TSQLiteOpenFlags;
+    FVFS: String;
     function GetSQLiteOpenFlags: Integer;
     procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
+    procedure SetVFS(const AValue: String);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -125,6 +127,7 @@ Type
     procedure LoadExtension(const LibraryFile: string);
   Published
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
+    Property VFS : String Read FVFS Write SetVFS;
     Property AlwaysUseBigint : Boolean Read GetAlwaysUseBigint Write SetAlwaysUseBigint;
   end;
 
@@ -857,20 +860,38 @@ begin
   FOpenFlags:=AValue;
 end;
 
+procedure TSQLite3Connection.SetVFS(const AValue: String);
+begin
+  if FVFS=AValue then Exit;
+  CheckDisConnected;
+  FVFS:=AValue;
+end;
+
 procedure TSQLite3Connection.DoInternalConnect;
+const
+  PRAGMAS:array[0..1] of string=('foreign_keys','journal_mode');
 var
   filename: ansistring;
+  pvfs: PChar;
+  i,j: integer;
 begin
   Inherited;
   if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSQLite;
   filename := DatabaseName;
-  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,Nil));
+  if FVFS <> '' then
+    pvfs := PAnsiChar(FVFS)
+  else
+    pvfs := Nil;
+  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,pvfs));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
-  if Params.IndexOfName('foreign_keys') <> -1 then
-    execsql('PRAGMA foreign_keys =  '+Params.Values['foreign_keys']);
+  for i:=Low(PRAGMAS) to High(PRAGMAS) do begin
+    j:=Params.IndexOfName(PRAGMAS[i]);
+    if j <> -1 then
+      execsql('PRAGMA '+Params[j]);
+  end;
 end;
 
 procedure TSQLite3Connection.DoInternalDisconnect;

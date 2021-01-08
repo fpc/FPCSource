@@ -177,7 +177,7 @@ unit cpugas;
             top_ref:
               getopstr := getreferencestring(ref^);
             else
-              internalerror(10001);
+              internalerror(2020100809);
           end;
       end;
 

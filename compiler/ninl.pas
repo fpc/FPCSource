@@ -98,6 +98,7 @@ interface
           function first_seg: tnode; virtual;
           function first_sar: tnode; virtual;
           function first_fma : tnode; virtual;
+          function first_minmax: tnode; virtual;
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           function first_ShiftRot_assign_64bitint: tnode; virtual;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -486,7 +487,7 @@ implementation
         def : tdef;
       begin
         if not assigned(left) or (left.nodetype<>typen) then
-          internalerror(2012032101);
+          internalerror(2012032102);
         def:=ttypenode(left).typedef;
         result:=nil;
         case def.typ of
@@ -608,7 +609,7 @@ implementation
               in_rewrite_typedfile_name:
                 result := ccallnode.createintern('fpc_rewrite_typed_name_iso',left);
               else
-                internalerror(2016101501);
+                internalerror(2016101502);
             end;
           end
         else
@@ -868,7 +869,10 @@ implementation
                   end;
                 end;
               variantdef :
-                name:=procprefixes[do_read]+'variant';
+                begin
+                  name:=procprefixes[do_read]+'variant';
+                  include(current_module.moduleflags,mf_uses_variants);
+                end;
               arraydef :
                 begin
                   if is_chararray(para.left.resultdef) then
@@ -1127,7 +1131,7 @@ implementation
             in_writeln_x:
               name:='fpc_writeln_end';
             else
-              internalerror(2019050516);
+              internalerror(2019050501);
           end;
           addstatement(Tstatementnode(newstatement),ccallnode.createintern(name,filepara.getcopy));
         end;
@@ -1500,7 +1504,7 @@ implementation
             s16bit: exit('smallint');
             u16bit: exit('word');
             else
-              internalerror(2013032604);
+              internalerror(2013032606);
           end;
         end
       else
@@ -1509,10 +1513,10 @@ implementation
             s64bit,s32bit,s16bit,s8bit: exit('sint');
             u64bit,u32bit,u16bit,u8bit: exit('uint');
             else
-              internalerror(2013032604);
+              internalerror(2013032607);
           end;
         end;
-      internalerror(2013032605);
+      internalerror(2013032608);
     end;
 
 
@@ -2082,7 +2086,7 @@ implementation
                       8:
                         vl:=vl and byte($3f);
                       else
-                        internalerror(2013122302);
+                        internalerror(2013122303);
                     end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
@@ -2180,7 +2184,7 @@ implementation
                       8:
                         vl:=vl and byte($3f);
                       else
-                        internalerror(2013122302);
+                        internalerror(2013122304);
                     end;
                   if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
                     begin
@@ -2795,7 +2799,7 @@ implementation
                         8:
                           result:=cordconstnode.create(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         else
-                          internalerror(2017042401);
+                          internalerror(2017042402);
                       end;
                     end;
                 end;
@@ -2816,7 +2820,10 @@ implementation
 
     function tinlinenode.pass_typecheck:tnode;
 
-      procedure setfloatresultdef;
+      type
+        tfloattypeset = set of tfloattype;
+
+      function removefloatupcasts(var p: tnode; const floattypes: tfloattypeset): tdef;
         var
           hnode: tnode;
         begin
@@ -2826,25 +2833,54 @@ implementation
             which typechecks the arguments, possibly inserting conversion to valreal.
             To handle smaller types without excess precision, we need to remove
             these extra typecasts. }
-          if (left.nodetype=typeconvn) and
-            (ttypeconvnode(left).left.resultdef.typ=floatdef) and
-            (left.flags*[nf_explicit,nf_internal]=[]) and
-            (tfloatdef(ttypeconvnode(left).left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
+          if (p.nodetype=typeconvn) and
+             (ttypeconvnode(p).left.resultdef.typ=floatdef) and
+             (p.flags*[nf_explicit,nf_internal]=[]) and
+             (tfloatdef(ttypeconvnode(p).left.resultdef).floattype in (floattypes*[s32real,s64real,s80real,sc80real,s128real])) then
             begin
-              hnode:=ttypeconvnode(left).left;
-              ttypeconvnode(left).left:=nil;
-              left.free;
-              left:=hnode;
-              resultdef:=left.resultdef;
+              hnode:=ttypeconvnode(p).left;
+              ttypeconvnode(p).left:=nil;
+              p.free;
+              p:=hnode;
+              result:=p.resultdef;
             end
-          else if (left.resultdef.typ=floatdef) and
-            (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
-            resultdef:=left.resultdef
+          else if (p.nodetype=typeconvn) and
+             (p.flags*[nf_explicit,nf_internal]=[]) and
+             (ttypeconvnode(p).left.resultdef.typ=floatdef) and
+             (tfloatdef(ttypeconvnode(p).left.resultdef).floattype in (floattypes*[s64currency,s64comp])) then
+            begin
+              hnode:=ttypeconvnode(p).left;
+              ttypeconvnode(p).left:=nil;
+              p.free;
+              p:=hnode;
+              if is_currency(p.resultdef) then
+                begin
+                  if (nf_is_currency in p.flags) and
+                     (p.nodetype=slashn) and
+                     (taddnode(p).right.nodetype=realconstn) and
+                     (trealconstnode(taddnode(p).right).value_real=10000.0) and
+                     not(nf_is_currency in taddnode(p).left.flags) then
+                   begin
+                     hnode:=taddnode(p).left;
+                     taddnode(p).left:=nil;
+                     p.free;
+                     p:=hnode;
+                   end;
+                end;
+              result:=p.resultdef;
+            end
+          { in case the system helper was declared with overloads for different types,
+            keep those }
+          else if (p.resultdef.typ=floatdef) and
+             (tfloatdef(p.resultdef).floattype in (floattypes*[s32real,s64real,s80real,sc80real,s128real])) then
+            result:=p.resultdef
           else
             begin
-              if (left.nodetype <> ordconstn) then
-                inserttypeconv(left,pbestrealtype^);
-              resultdef:=pbestrealtype^;
+              { for variant parameters; the rest has been converted by the
+                call node already }
+              if not(p.nodetype in [ordconstn,realconstn]) then
+                inserttypeconv(P,pbestrealtype^);
+              result:=p.resultdef
             end;
         end;
 
@@ -3591,18 +3627,29 @@ implementation
                   { on i8086, the int64 result is returned in a var param, because
                     it's too big to fit in a register or a pair of registers. In
                     that case we have 2 parameters and left.nodetype is a callparan. }
-                  if left.nodetype = callparan then
-                    temp_pnode := @tcallparanode(left).left
+                  if left.nodetype=callparan then
+                    temp_pnode:=@tcallparanode(left).left
                   else
-                    temp_pnode := @left;
+                    temp_pnode:=@left;
                   set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
-                  { for direct float rounding, no best real type cast should be necessary }
-                  if not((temp_pnode^.resultdef.typ=floatdef) and
-                         (tfloatdef(temp_pnode^.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
-                     { converting an int64 to double on platforms without }
-                     { extended can cause precision loss                  }
-                     not(temp_pnode^.nodetype in [ordconstn,realconstn]) then
-                    inserttypeconv(temp_pnode^,pbestrealtype^);
+                  { on platforms where comp and currency are "type int64", this is
+                    handled via inlined system helpers (-> no need for special
+                    handling of s64currency/s64comp for them) }
+                  if inlinenumber=in_trunc_real then
+                    removefloatupcasts(temp_pnode^,[s32real,s64real,s80real,sc80real,s128real,s64currency,s64comp])
+                  else
+                    removefloatupcasts(temp_pnode^,[s32real,s64real,s80real,sc80real,s128real,s64comp]);
+                  if (inlinenumber=in_trunc_real) and
+                     is_currency(temp_pnode^.resultdef) then
+                    begin
+                      result:=cmoddivnode.create(divn,ctypeconvnode.create_internal(temp_pnode^.getcopy,s64inttype),genintconstnode(10000));
+                      exit;
+                    end
+                  else if is_fpucomp(temp_pnode^.resultdef) then
+                    begin
+                      result:=ctypeconvnode.create_internal(temp_pnode^.getcopy,s64inttype);
+                      exit;
+                    end;
                   resultdef:=s64inttype;
                 end;
 
@@ -3629,7 +3676,7 @@ implementation
                   else
                     temp_pnode := @left;
                   set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
-                  setfloatresultdef;
+                  resultdef:=removefloatupcasts(temp_pnode^,[s32real,s64real,s80real,sc80real,s128real]);
                 end;
 
 {$ifdef SUPPORT_MMX}
@@ -3753,6 +3800,19 @@ implementation
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                   set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=tcallparanode(left).left.resultdef;
+                end;
+              in_max_longint,
+              in_max_dword,
+              in_min_longint,
+              in_min_dword,
+              in_max_single,
+              in_max_double,
+              in_min_single,
+              in_min_double:
+                begin
+                  set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(left).left.resultdef;
                 end;
               in_delete_x_y_z:
@@ -4109,7 +4169,7 @@ implementation
             end;
 
           in_slice_x:
-            internalerror(2005101501);
+            internalerror(2005101502);
 
           in_ord_x,
           in_chr_byte:
@@ -4119,7 +4179,7 @@ implementation
             end;
 
           in_ofs_x :
-            internalerror(2000101001);
+            internalerror(2000101002);
 
           in_seg_x :
             begin
@@ -4139,7 +4199,7 @@ implementation
           in_writeln_x :
             begin
               { should be handled by pass_typecheck }
-              internalerror(200108234);
+              internalerror(2001082302);
             end;
          in_get_frame:
             begin
@@ -4187,6 +4247,15 @@ implementation
          in_fma_extended,
          in_fma_float128:
            result:=first_fma;
+         in_max_longint,
+         in_max_dword,
+         in_min_longint,
+         in_min_dword,
+         in_min_single,
+         in_min_double,
+         in_max_single,
+         in_max_double:
+           result:=first_minmax;
          else
            result:=first_cpu;
           end;
@@ -4777,7 +4846,7 @@ implementation
                   lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
                 end;
               else
-                internalerror(2012100701);
+                internalerror(2012100703);
             end;
 
             if is_open_array(paradef) then
@@ -4789,7 +4858,7 @@ implementation
                 arrayppn:=ctypeconvnode.create_internal(ppn.left,voidpointertype);
               end
             else
-              internalerror(2012100702);
+              internalerror(2012100704);
 
             rttippn:=caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal));
 
@@ -5474,6 +5543,13 @@ implementation
      function tinlinenode.first_fma: tnode;
        begin
          CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         result:=nil;
+       end;
+
+
+     function tinlinenode.first_minmax: tnode;
+       begin
+         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'MIN/MAX');
          result:=nil;
        end;
 

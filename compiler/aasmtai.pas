@@ -243,15 +243,18 @@ interface
       toptype=(top_none,top_reg,top_ref,top_const,top_bool,top_local
 {$ifdef arm}
        { ARM only }
-       ,top_regset
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
 {$if defined(arm) or defined(aarch64)}
+       ,top_regset
        ,top_conditioncode
        ,top_shifterop
        ,top_realconst
 {$endif defined(arm) or defined(aarch64)}
+{$ifdef aarch64}
+       ,top_indexedreg
+{$endif}
 {$ifdef m68k}
        { m68k only }
        ,top_regset
@@ -479,6 +482,10 @@ interface
             top_conditioncode : (cc : TAsmCond);
             top_realconst : (val_real:bestreal);
         {$endif defined(arm) or defined(aarch64)}
+        {$ifdef aarch64}
+            top_regset : (basereg: tregister; nregs, regsetindex: byte);
+            top_indexedreg : (indexedreg: tregister; regindex: byte);
+        {$endif}
         {$ifdef m68k}
             top_regset : (dataregset,addrregset,fpuregset: tcpuregisterset);
             top_regpair : (reghi,reglo: tregister);
@@ -702,6 +709,7 @@ interface
           constructor Create_rel_sym_offset(_typ : taiconst_type; _sym,_endsym : tasmsymbol; _ofs : int64);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:asizeint);
+          constructor Createname_rel(const name, endname: string);
           constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
@@ -1874,6 +1882,13 @@ implementation
     constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name,_symtyp),ofs);
+      end;
+
+
+    constructor tai_const.Createname_rel(const name,endname:string);
+      begin
+         self.create_sym_offset(current_asmdata.RefAsmSymbol(name,AT_NONE),0);
+         endsym:=current_asmdata.RefAsmSymbol(endname,AT_NONE)
       end;
 
 

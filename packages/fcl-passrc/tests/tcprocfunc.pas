@@ -102,6 +102,9 @@ type
     Procedure TestFunctionArrayOfConstArg;
     procedure TestProcedureConstArrayOfConstArg;
     Procedure TestFunctionConstArrayOfConstArg;
+    procedure TestProcedureOnePointerArg;
+    procedure TestFUnctionPointerResult;
+
     Procedure TestProcedureCdecl;
     Procedure TestFunctionCdecl;
     Procedure TestProcedureCdeclDeprecated;
@@ -122,6 +125,10 @@ type
     procedure TestCallingConventionSysV_ABI_CDec;
     procedure TestCallingConventionSysV_ABI_Default;
     procedure TestCallingConventionVectorCall;
+    procedure TestCallingConventionSysCall;
+    procedure TestCallingConventionSysCallExecbase;
+    procedure TestCallingConventionSysCallUtilitybase;
+    procedure TestCallingConventionSysCallConsoleDevice;
     Procedure TestProcedurePublic;
     Procedure TestProcedurePublicIdent;
     Procedure TestFunctionPublic;
@@ -174,6 +181,7 @@ type
     Procedure TestProcedureCdeclExternalName;
     Procedure TestFunctionCdeclExternalName;
     Procedure TestFunctionAlias;
+    Procedure TestOperatorNamedResult;
     Procedure TestOperatorTokens;
     procedure TestOperatorNames;
     Procedure TestAssignOperatorAfterObject;
@@ -238,6 +246,7 @@ end;
 function TTestProcedureFunction.ParseFunction(const ASource : String;AResult: string = ''; const AHint: String = ''; CC : TCallingConvention = ccDefault): TPasProcedure;
 Var
   D :String;
+  aType : TPasType;
 begin
   if (AResult='') then
     AResult:='Integer';
@@ -248,8 +257,16 @@ begin
   Self.ParseFunction;
   Result:=FFunc;
   AssertNotNull('Have function result element',FuncType.ResultEl);
-  AssertNotNull('Have function result type element',FuncType.ResultEl.ResultType);
-  AssertEquals('Correct function result type name',AResult,FuncType.ResultEl.ResultType.Name);
+  aType:=FuncType.ResultEl.ResultType;
+  AssertNotNull('Have function result type element',aType);
+  if aResult[1]='^' then
+    begin
+    Delete(aResult,1,1);
+    AssertEquals('Result is pointer type',TPasPointerType,aType.ClassType);
+    aType:=TPasPointerType(aType).DestType;
+    AssertNotNull('Result pointer type has destination type',aType);
+    end;
+  AssertEquals('Correct function result type name',AResult,aType.Name);
 end;
 
 procedure TTestProcedureFunction.ParseOperator;
@@ -349,6 +366,7 @@ procedure TTestProcedureFunction.AssertArg(ProcType: TPasProcedureType;
 
 Var
   A : TPasArgument;
+  T : TPasType;
   N : String;
 
 begin
@@ -356,11 +374,21 @@ begin
   N:='Argument '+IntToStr(AIndex+1)+' : ';
   if (TypeName='') then
     AssertNull(N+' No argument type',A.ArgType)
-  else
+  else if TypeName[1]<>'^' then
     begin
     AssertNotNull(N+' Have argument type',A.ArgType);
     AssertEquals(N+' Correct argument type name',TypeName,A.ArgType.Name);
+    end
+  else  
+    begin
+    AssertNotNull(N+' Have argument type',A.ArgType);
+    T:=A.ArgType;
+    AssertEquals(N+' type Is pointer type',TPasPointerType,T.CLassType);
+    T:=TPasPointerType(T).DestType;
+    AssertNotNull(N+'Have dest type',T);
+    AssertEquals(N+' Correct argument dest type name',Copy(TypeName,2,MaxInt),T.Name);
     end;
+    
 end;
 
 procedure TTestProcedureFunction.AssertArrayArg(ProcType: TPasProcedureType;
@@ -476,6 +504,19 @@ begin
   AssertArg(ProcType,0,'B',argDefault,'Integer','');
 end;
 
+procedure TTestProcedureFunction.TestProcedureOnePointerArg;
+begin
+  ParseProcedure('(B : ^Integer)');
+  AssertProc([],[],ccDefault,1);
+  AssertArg(ProcType,0,'B',argDefault,'^Integer','');
+end;
+
+procedure TTestProcedureFunction.TestFunctionPointerResult;
+begin
+  ParseFunction('()','^LongInt');
+  AssertFunc([],[],ccDefault,0);
+end;
+
 procedure TTestProcedureFunction.TestFunctionOneArg;
 begin
   ParseFunction('(B : Integer)');
@@ -513,6 +554,7 @@ end;
 
 procedure TTestProcedureFunction.TestProcedureOneOutArg;
 begin
+  Parser.CurrentModeswitches:=[msObjfpc];
   ParseProcedure('(Out B : Integer)');
   AssertProc([],[],ccDefault,1);
   AssertArg(ProcType,0,'B',argOut,'Integer','');
@@ -520,6 +562,7 @@ end;
 
 procedure TTestProcedureFunction.TestFunctionOneOutArg;
 begin
+  Parser.CurrentModeswitches:=[msObjfpc];
   ParseFunction('(Out B : Integer)');
   AssertFunc([],[],ccDefault,1);
   AssertArg(FuncType,0,'B',argOut,'Integer','');
@@ -812,6 +855,30 @@ begin
   AssertProc([],[],ccVectorCall,0);
 end;
 
+procedure TTestProcedureFunction.TestCallingConventionSysCall;
+begin
+  ParseProcedure('; syscall abc');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallExecbase;
+begin
+  ParseProcedure('; syscall _execBase 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallUtilitybase;
+begin
+  ParseProcedure('; syscall _utilityBase 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
+procedure TTestProcedureFunction.TestCallingConventionSysCallConsoleDevice;
+begin
+  ParseProcedure('; syscall ConsoleDevice 123');
+  AssertProc([],[],ccSysCall,0);
+end;
+
 procedure TTestProcedureFunction.TestCallingConventionHardFloat;
 begin
   ParseProcedure('; HardFloat');
@@ -1005,14 +1072,14 @@ procedure TTestProcedureFunction.TestProcedureFar;
 begin
   AddDeclaration('procedure A; far;');
   ParseProcedure;
-  AssertProc([pmfar],[],ccDefault,0);
+  AssertProc([pmfar],[ptmfar],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestFunctionFar;
 begin
   AddDeclaration('function A : integer; far;');
   ParseFunction;
-  AssertFunc([pmfar],[],ccDefault,0);
+  AssertFunc([pmfar],[ptmfar],ccDefault,0);
 end;
 
 procedure TTestProcedureFunction.TestProcedureCdeclForward;
@@ -1284,6 +1351,13 @@ begin
   AssertEquals('Alias name','''myalias''',Func.AliasName);
 end;
 
+procedure TTestProcedureFunction.TestOperatorNamedResult;
+begin
+  AddDeclaration('operator = (a,b : T) z : Integer;');
+  ParseOperator;
+  AssertEquals('Correct operator type',otEqual,FOperator.OperatorType);
+end;
+
 procedure TTestProcedureFunction.TestProcedureAlias;
 begin
   AddDeclaration('Procedure A; Alias : ''myalias''');
@@ -1300,23 +1374,25 @@ Var
 
 begin
   For t:=otMul to High(TOperatorType) do
+    begin
+    if OperatorTokens[t]='' then continue;
     // No way to distinguish between logical/bitwise or/and/Xor
-    if not (t in [otBitwiseOr,otBitwiseAnd,otBitwiseXor]) then
-      begin
-      S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
-      ResetParser;
-      if t in UnaryOperators then
-        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorTokens[t]]))
-      else
-        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorTokens[t]]));
-      ParseOperator;
-      AssertEquals(S+': Token based ',Not (T in [otInc,otDec,otEnumerator]),FOperator.TokenBased);
-      AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
-      if t in UnaryOperators then
-        AssertEquals(S+': Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
-      else
-        AssertEquals(S+': Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
-      end;
+    if t in [otBitWiseOr,otBitwiseAnd,otbitwiseXor] then continue;
+
+    S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
+    ResetParser;
+    if t in UnaryOperators then
+      AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorTokens[t]]))
+    else
+      AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorTokens[t]]));
+    ParseOperator;
+    AssertEquals(S+': Token based ',Not (T in [otInc,otDec,otEnumerator]),FOperator.TokenBased);
+    AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
+    if t in UnaryOperators then
+      AssertEquals(S+': Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+    else
+      AssertEquals(S+': Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+    end;
 end;
 
 procedure TTestProcedureFunction.TestOperatorNames;
@@ -1327,21 +1403,25 @@ Var
 
 begin
   For t:=Succ(otUnknown) to High(TOperatorType) do
-      begin
-      S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
-      ResetParser;
-      if t in UnaryOperators then
-        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
-      else
-        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
-      ParseOperator;
-      AssertEquals(S+': Token based',t in [otIn],FOperator.TokenBased);
-      AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
-      if t in UnaryOperators then
-        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
-      else
-        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
-      end;
+    begin
+    if OperatorNames[t]='' then continue;
+    // otInitialize has no result
+    if t=otInitialize then continue;
+    writeln('TTestProcedureFunction.TestOperatorTokens ',t);
+    S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
+    ResetParser;
+    if t in UnaryOperators then
+      AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
+    else
+      AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
+    ParseOperator;
+    AssertEquals(S+': Token based',t in [otIn],FOperator.TokenBased);
+    AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
+    if t in UnaryOperators then
+      AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+    else
+      AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+    end;
 end;
 
 procedure TTestProcedureFunction.TestAssignOperatorAfterObject;

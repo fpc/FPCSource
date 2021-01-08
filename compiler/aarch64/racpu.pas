@@ -69,9 +69,16 @@ unit racpu;
           internalerror(2014122001);
         if (ops=1) and (operands[1].opr.typ=OPR_REFERENCE) then
           exit(OS_NO);
-        if operands[1].opr.typ<>OPR_REGISTER then
-          internalerror(2014122002);
-        result:=reg_cgsize(operands[1].opr.reg);
+        case operands[1].opr.typ of
+          OPR_REGISTER:
+            result:=reg_cgsize(operands[1].opr.reg);
+          OPR_INDEXEDREG:
+            result:=reg_cgsize(operands[1].opr.indexedreg);
+          OPR_REGSET:
+            result:=OS_NO;
+          else
+           internalerror(2014122002);
+        end;
         { a 32 bit integer register could actually be 16 or 8 bit }
         if result=OS_32 then
           case oppostfix of

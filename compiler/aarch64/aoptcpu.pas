@@ -85,11 +85,11 @@ Implementation
     var
       p: taicpu;
     begin
-      p := taicpu(hp);
       Result := false;
       if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
         exit;
 
+      p := taicpu(hp);
       case p.opcode of
         { These operands do not write into a register at all }
         A_CMP, A_CMN, A_TST, A_B, A_BL, A_MSR, A_FCMP:
@@ -538,6 +538,27 @@ Implementation
           DebugMsg(SPeepholeOptimization + 'FMovFMov2FMov done', p);
           Result:=true;
         end;
+      { not enabled as apparently not happening
+      if MatchOpType(taicpu(p),top_reg,top_reg) and
+        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+        MatchInstruction(hp1, [A_FSUB,A_FADD,A_FNEG,A_FMUL,A_FSQRT,A_FDIV,A_FABS], [PF_None]) and
+        (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) or
+         ((taicpu(hp1).ops=3) and MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^))
+        ) and
+        RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+        not(RegUsedBetween(taicpu(p).oper[0]^.reg,p,hp1)) then
+        begin
+          DebugMsg(SPeepholeOptimization + 'FMovFOp2FOp done', hp1);
+          AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
+          if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
+            taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
+          if (taicpu(hp1).ops=3) and MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[2]^) then
+            taicpu(hp1).oper[2]^.reg:=taicpu(p).oper[1]^.reg;
+          RemoveCurrentP(p);
+          Result:=true;
+          exit;
+        end;
+      }
     end;
 
 
@@ -772,6 +793,11 @@ Implementation
             A_SXTH:
               Result:=OptPass1SXTH(p);
 //            A_VLDR,
+            A_FMADD,
+            A_FMSUB,
+            A_FNMADD,
+            A_FNMSUB,
+            A_FNMUL,
             A_FADD,
             A_FMUL,
             A_FDIV,

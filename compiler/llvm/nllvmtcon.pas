@@ -469,7 +469,7 @@ implementation
       if not assigned(ll.lab) then
         begin
           if ll.ofs<>0 then
-            internalerror(2015030701);
+            internalerror(2015030703);
           inherited;
           exit;
         end;

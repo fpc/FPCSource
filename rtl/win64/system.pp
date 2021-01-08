@@ -83,8 +83,8 @@ asm
     stp fp,lr,[sp, #-16]!
 .seh_savefplr_x -16
 .seh_endprologue
-    blr x1                  { "arg" is passed in x0 }
-    nop                     { this nop is critical for exception handling }
+    blr x1                  // { "arg" is passed in x0 }
+    nop                     // { this nop is critical for exception handling }
     ldp	fp,lr,[sp], #16
 .seh_handler __FPC_default_handler,@except,@unwind
 end;

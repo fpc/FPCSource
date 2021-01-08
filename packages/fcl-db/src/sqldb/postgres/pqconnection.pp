@@ -77,7 +77,7 @@ type
   TPQTranConnection = class
   protected
     FPGConn        : PPGConn;
-    FTranActive    : boolean
+    FTranActive    : boolean;
   end;
 
   { TPQConnection }
@@ -103,6 +103,8 @@ type
     procedure AddConnection(T: TPQTranConnection);
     // Release connection in pool.
     procedure ReleaseConnection(Conn: PPGConn; DoClear : Boolean);
+
+    function PortParamName: string; override;
 
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -869,7 +871,13 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftTimeStamp
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
-      'Unknown'    // ftWideMemo
+      'Unknown',   // ftWideMemo
+      'Unknown',   // ftOraTimeStamp
+      'Unknown',   // ftOraInterval
+      'Unknown',   // ftLongWord
+      'Unknown',   // ftShortint
+      'Unknown',   // ftByte
+      'Unknown'    // ftExtended
     );
 
 
@@ -1411,6 +1419,11 @@ begin
       end;
       end;
     end;
+end;
+
+function TPQConnection.PortParamName: string;
+begin
+  Result := 'port';
 end;
 
 procedure TPQConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);

@@ -907,7 +907,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041408);
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_RELATIVE16,RELOC_RELATIVE32] then
               begin
                 FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
@@ -945,7 +945,7 @@ implementation
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
-              internalerror(2015041501);
+              internalerror(2015041505);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
@@ -953,7 +953,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041409);
             FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
@@ -968,7 +968,7 @@ implementation
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
-              internalerror(2015041501);
+              internalerror(2015041506);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
@@ -976,7 +976,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041410);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
             FOmfFixup.TargetDatum:=group.index;
@@ -1190,14 +1190,14 @@ implementation
         else if Reloctype=RELOC_FARPTR48 then
           begin
             if len<>6 then
-              internalerror(2015041502);
+              internalerror(2015041507);
             writeReloc(Data,4,p,RELOC_ABSOLUTE32);
             writeReloc(0,2,p,RELOC_SEG);
             exit;
           end;
 
         if CurrObjSec=nil then
-          internalerror(200403072);
+          internalerror(2004030704);
         objreloc:=nil;
         if Reloctype in [RELOC_FARDATASEG,RELOC_FARDATASEGREL] then
           begin
@@ -1342,7 +1342,7 @@ implementation
         if (oso_data in sec.SecOptions) then
           begin
             if sec.Data=nil then
-              internalerror(200403073);
+              internalerror(2004030705);
             for I:=0 to sec.ObjRelocations.Count-1 do
               TOmfRelocation(sec.ObjRelocations[I]).BuildOmfFixup;
             SegIndex:=Segments.FindIndexOf(sec.Name);
@@ -1426,7 +1426,7 @@ implementation
         if (oso_data in sec.SecOptions) then
           begin
             if sec.Data=nil then
-              internalerror(200403073);
+              internalerror(2004030706);
             if sec.LinNumEntries.Count=0 then
               exit;
             SegIndex:=Segments.FindIndexOf(sec.Name);
@@ -2103,7 +2103,7 @@ implementation
               if Is32Bit then
                 begin
                   if (NextOfs+3)>=RawRec.RecordLength then
-                    internalerror(2015040504);
+                    internalerror(2015040512);
                   EnumeratedDataOffset := RawRec.RawData[NextOfs]+
                                          (RawRec.RawData[NextOfs+1] shl 8)+
                                          (RawRec.RawData[NextOfs+2] shl 16)+
@@ -2113,7 +2113,7 @@ implementation
               else
                 begin
                   if (NextOfs+1)>=RawRec.RecordLength then
-                    internalerror(2015040504);
+                    internalerror(2015040513);
                   EnumeratedDataOffset := RawRec.RawData[NextOfs]+
                                          (RawRec.RawData[NextOfs+1] shl 8);
                   Inc(NextOfs,2);
@@ -2161,7 +2161,7 @@ implementation
               FixupRawRec:=RawRec;
             end;
           else
-            internalerror(2015040301);
+            internalerror(2015040316);
         end;
 
         { also read all the FIXUPP records that may follow;                     }
@@ -2912,7 +2912,7 @@ implementation
         i: Integer;
       begin
         if SegmentList.Count=0 then
-          internalerror(2015082201);
+          internalerror(2015082202);
         for i:=0 to SegmentList.Count-1 do
           begin
             UniSeg:=TMZExeUnifiedLogicalSegment(SegmentList[i]);
@@ -4165,7 +4165,7 @@ cleanup:
     function TNewExeEntryTable.GetItems(i: Integer): TNewExeEntryPoint;
       begin
         if (i<1) or (i>Length(FItems)) then
-          internalerror(2019081002);
+          internalerror(2019081011);
         Result:=FItems[i-1];
       end;
 

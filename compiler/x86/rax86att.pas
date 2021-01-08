@@ -649,6 +649,7 @@ Implementation
                  CreateLocalLabel(actasmpattern,hl,false);
                  Consume(AS_ID);
                  AddLabelOperand(hl);
+                 MaybeGetPICModifier(oper);
                end
               else
                { Check for label }
@@ -656,6 +657,7 @@ Implementation
                 begin
                   Consume(AS_ID);
                   AddLabelOperand(hl);
+                  MaybeGetPICModifier(oper);
                 end
               else
                { probably a variable or normal expression }
@@ -735,7 +737,7 @@ Implementation
                                   inc(oper.opr.constoffset, l);
                                 end;
                               else
-                                internalerror(200309202);
+                                internalerror(2003092011);
                             end;
                         end;
                     end;

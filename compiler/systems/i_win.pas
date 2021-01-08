@@ -157,7 +157,7 @@ unit i_win;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
-                varalignmax     : 16;
+                varalignmax     : 64;
                 localalignmin   : 4;
                 localalignmax   : 16;
                 recordalignmin  : 0;

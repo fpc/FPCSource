@@ -50,6 +50,7 @@ type
     Procedure DoTestClassOf(Const AHint : string);
   Published
     Procedure TestAliasType;
+    procedure TestAbsoluteAliasType;
     Procedure TestCrossUnitAliasType;
     Procedure TestAliasTypeDeprecated;
     Procedure TestAliasTypePlatform;
@@ -168,6 +169,7 @@ type
     Procedure TestTypeHelperWithParent;
     procedure TestPointerReference;
     Procedure TestPointerKeyWord;
+    Procedure TestPointerFile;
   end;
 
   { TTestRecordTypeParser }
@@ -361,9 +363,13 @@ type
     Procedure TestAdvRec_ProcOverrideFail;
     Procedure TestAdvRec_ProcMessageFail;
     Procedure TestAdvRec_DestructorFail;
+    Procedure TestAdvRec_CaseInVar;
+    Procedure TestAdvRec_EmptySections;
     Procedure TestAdvRecordInFunction;
     Procedure TestAdvRecordInAnonFunction;
     Procedure TestAdvRecordClassOperator;
+    Procedure TestAdvRecordInitOperator;
+    Procedure TestAdvRecordGenericFunction;
   end;
 
   { TTestProcedureTypeParser }
@@ -459,6 +465,11 @@ type
     Procedure TestFunctionOneArg;
     Procedure TestFunctionOfObject;
     Procedure TestFunctionOneArgOfObject;
+    Procedure TestCBlock;
+    Procedure TestMacPasoutArg;
+    Procedure TestMacPasPropertyArg;
+    Procedure TestMacPasPropertyVarArg;
+    Procedure TestMacPasClassArg;
   end;
 
 
@@ -1173,6 +1184,48 @@ Procedure TTestProcedureTypeParser.TestFunctionOneArgOfObject;
 begin
   TestCallingConventions(@DoTestFunctionOneArgOfObject);
 
+end;
+
+procedure TTestProcedureTypeParser.TestCBlock;
+
+
+begin
+  ParseType('reference to procedure (a: integer); cblock;',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+  AssertEquals('Is cblock',True,ptmCblock in Proc.Modifiers);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasoutArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (out: integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasPropertyArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (property : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasPropertyVarArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (var property : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasClassArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (class : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
 end;
 
 { TTestRecordTypeParser }
@@ -2610,6 +2663,29 @@ begin
   ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
 end;
 
+procedure TTestRecordTypeParser.TestAdvRec_CaseInVar;
+
+// Found in System.UITypes.pas
+
+begin
+  StartRecord(true);
+  AddMember('var');
+  AddMember('Case Integer of');
+  AddMember('  1 : (x: integer);');
+  AddMember('  2 : (y,z: integer)');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_EmptySections;
+begin
+  StartRecord(true);
+  AddMember('const');
+  AddMember('type');
+  AddMember('var');
+  AddMember('  x: integer;');
+  ParseRecord;
+end;
+
 procedure TTestRecordTypeParser.TestAdvRecordInFunction;
 
 // Src from bug report 36179
@@ -2688,6 +2764,51 @@ begin
   ParseModule;   // We're just interested in that it parses.
 end;
 
+procedure TTestRecordTypeParser.TestAdvRecordInitOperator;
+// Source from bug id 36180
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    class operator initialize (var self: TMyRecord);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'class operator TMyRecord.initialize (a, b: TMyRecord);'+sLineBreak+
+    'begin'+sLineBreak+
+    '  result := (@a = @b);'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordGenericFunction;
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    generic class procedure doit<T> (a: T);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'generic class procedure TMyRecord.DoIt<T>(a: T);'+sLineBreak+
+    'begin'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
 { TBaseTestTypeParser }
 
 Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
@@ -2751,6 +2872,7 @@ begin
   FErrorSource:='';
   FHint:='';
   FType:=Nil;
+  Parser.CurrentModeswitches:=[msObjfpc];
 end;
 
 Procedure TBaseTestTypeParser.TearDown;
@@ -2893,9 +3015,19 @@ begin
 end;
 
 procedure TTestTypeParser.TestAliasType;
+
 begin
   DoTestAliasType('othertype','');
   AssertEquals('Unresolved type name ','othertype',TPasUnresolvedTypeRef(TPasAliasType(TheType).DestType).name);
+end;
+
+procedure TTestTypeParser.TestAbsoluteAliasType;
+begin
+  Add('Type');
+  Add('  Absolute = Integer;');
+  ParseDeclarations;
+  AssertEquals('First declaration is type definition.',TPasAliasType,TPasElement(Declarations.Types[0]).ClassType);
+  AssertEquals('First declaration has correct name.','Absolute',TPasElement(Declarations.Types[0]).Name);
 end;
 
 procedure TTestTypeParser.TestCrossUnitAliasType;
@@ -3673,6 +3805,15 @@ begin
   ParseDeclarations;
   AssertEquals('object definition count',1,Declarations.Classes.Count);
 end;
+
+procedure TTestTypeParser.TestPointerFile;
+begin
+  Add('type');
+  Add('  pfile = ^file;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Types.Count);
+end;
+
 
 
 initialization

@@ -357,7 +357,12 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       { Initialize multithreading if not done }
       if not TLSInitialized then
         InitCTLS;
-      IsMultiThread:=true;
+      if not IsMultiThread then
+        begin
+          { We're still running in single thread mode, lazy initialize thread support }
+           LazyInitThreading;
+           IsMultiThread:=true;
+        end;
 
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }

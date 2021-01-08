@@ -35,7 +35,7 @@ end;
 
 procedure do_close(h : thandle);
 begin
-  if do_isdevice(h) then
+  if (h=StdInputHandle) or (h=StdOutputHandle) or (h=StdErrorHandle) then
    exit;
   if CloseHandle(h)=0 then
     Errno2InOutRes(GetLastError);

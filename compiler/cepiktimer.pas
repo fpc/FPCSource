@@ -25,6 +25,7 @@
 {$define epiktimer:=cepiktimer}
 { do not depend on the classes unit }
 {$DEFINE NOCLASSES}
+
 { include the original file }
 {$i ../../epiktimer/epiktimer.pas}
 

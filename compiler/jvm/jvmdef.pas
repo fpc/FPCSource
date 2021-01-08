@@ -449,7 +449,7 @@ implementation
         errdef: tdef;
       begin
         if not jvmtryencodetype(def,result,false,errdef) then
-          internalerror(2011012205);
+          internalerror(2011012201);
         primitivetype:=false;
         if length(result)=1 then
           begin
@@ -463,7 +463,7 @@ implementation
               'F': result:='float';
               'D': result:='double';
               else
-                internalerror(2011012206);
+                internalerror(2011012203);
               end;
             primitivetype:=true;
           end

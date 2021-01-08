@@ -1467,6 +1467,7 @@ var
   procedure BN_free(a:PBIGNUM);
 
 function IsSSLloaded: Boolean;
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean; overload;
 function InitSSLInterface: Boolean; overload;
 function DestroySSLInterface: Boolean;
 
@@ -5613,13 +5614,15 @@ begin
 end;
 {$ENDIF}
 
-Function LoadLibraries : Boolean;
+Function LoadLibraries(Const aSSLName, aCryptoName : String) : Boolean;
 
 var
   Idx: Integer;
 
 begin
   Result:=False;
+  if (aSSLName<>'') and (aCryptoName<>'') then
+    Exit(TryLoadLibPair(aSSLName,aCryptoName));
 {$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
   Assert(Low(SSL_DLL_Names) = Low(Crypto_DLL_Names));
   Assert(High(SSL_DLL_Names) = High(Crypto_DLL_Names));
@@ -5640,6 +5643,13 @@ begin
 end;
 
 function InitSSLInterface: Boolean;
+
+begin
+  Result:=InitSSLInterface('','');
+end;
+
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean;
+
 begin
   Result:=SSLLoaded;
   if Result then
@@ -5648,7 +5658,7 @@ begin
   try
     if SSLloaded then
       Exit;
-    Result:=LoadLibraries;
+    Result:=LoadLibraries(aSSLName,aCryptoName);
     if Not Result then
       begin
       UnloadLibraries;

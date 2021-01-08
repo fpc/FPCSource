@@ -392,13 +392,16 @@ end;
 
 destructor TFBAdmin.Destroy;
 begin
-  if FSvcHandle<>FB_API_NULLHANDLE then
-  begin
-    WaitInterval:=100;
-    DisConnect;
+  try
+    if FSvcHandle<>FB_API_NULLHANDLE then
+    begin
+      WaitInterval:=100;
+      DisConnect; // This can raise an exception
+    end;
+  Finally
+    FOutput.Destroy;
+    inherited Destroy;
   end;
-  FOutput.Destroy;
-  inherited Destroy;
 end;
 
 function TFBAdmin.Connect: boolean;

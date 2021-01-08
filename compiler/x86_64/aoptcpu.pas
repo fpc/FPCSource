@@ -90,6 +90,10 @@ uses
                 A_VMOVUPS,
                 A_VMOVUPD:
                   result:=OptPass1_V_MOVAP(p);
+                A_VMINSS,
+                A_VMINSD,
+                A_VMAXSS,
+                A_VMAXSD,
                 A_VSQRTSD,
                 A_VSQRTSS,
                 A_VDIVSD,
@@ -103,9 +107,7 @@ uses
                 A_VANDPD,
                 A_VANDPS,
                 A_VORPD,
-                A_VORPS,
-                A_VXORPD,
-                A_VXORPS:
+                A_VORPS:
                   result:=OptPass1VOP(p);
                 A_MULSD,
                 A_MULSS,
@@ -131,8 +133,14 @@ uses
                   result:=OptPass1FLD(p);
                 A_CMP:
                   result:=OptPass1Cmp(p);
+                A_VPXORD,
+                A_VPXORQ,
+                A_VXORPS,
+                A_VXORPD,
                 A_VPXOR:
                   Result:=OptPass1VPXor(p);
+                A_XORPS,
+                A_XORPD,
                 A_PXOR:
                   Result:=OptPass1PXor(p);
                 else
@@ -155,6 +163,8 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=OptPass2MOV(p);
+                A_MOVZX:
+                  Result:=OptPass2Movx(p);
                 A_IMUL:
                   Result:=OptPass2Imul(p);
                 A_JMP:
@@ -165,6 +175,8 @@ uses
                   Result:=OptPass2Lea(p);
                 A_SUB:
                   Result:=OptPass2SUB(p);
+                A_ADD:
+                  Result:=OptPass2ADD(p);
                 else
                   ;
               end;
@@ -184,6 +196,8 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=PostPeepholeOptMov(p);
+                A_AND:
+                  Result:=PostPeepholeOptAnd(p);
                 A_MOVSX:
                   Result:=PostPeepholeOptMOVSX(p);
                 A_MOVZX:
@@ -201,6 +215,8 @@ uses
                   Result:=PostPeepholeOptLea(p);
                 A_PUSH:
                   Result:=PostPeepholeOptPush(p);
+                A_SHR:
+                  Result:=PostPeepholeOptShr(p);
                 else
                   ;
               end;

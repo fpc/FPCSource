@@ -57,7 +57,12 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(t.FullName) then
+    Do_Open(t,PFileTextRecChar(t.FullName),Flags,False)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -98,8 +103,16 @@ begin
   InitText(t);
 {$ifdef FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -114,8 +127,16 @@ Begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   { ensure the characters in the record's filename are encoded correctly }
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -183,6 +204,13 @@ Begin
       End
     else inOutRes := 103;
   End;
+{$ifdef USE_FILEREC_FULLNAME}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  RawByteString(TextRec(t).FullName):='';
+{$else FPC_ANSI_TEXTFILEREC}
+  UnicodeString(TextRec(t).FullName):='';
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif USE_FILEREC_FULLNAME}
 End;
 
 
@@ -2618,6 +2646,17 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var t:Text) : UnicodeString;
+  begin
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(TextRec(t).FullName) then
+    Result:=UnicodeString(TextRec(t).FullName)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Result:=PFileTextRecChar(@TextRec(t).Name);
+  end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {*****************************************************************************
                                Initializing

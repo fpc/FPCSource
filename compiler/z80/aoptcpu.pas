@@ -274,7 +274,7 @@ Implementation
             A_IN:
               begin
                 if p.ops<>2 then
-                  internalerror(2020051602);
+                  internalerror(2020051612);
                 if (p.oper[1]^.typ=top_ref) and ((p.oper[1]^.ref^.base=NR_C) or (p.oper[1]^.ref^.index=NR_C)) then
                   result:=(reg=NR_ADDSUBTRACTFLAG) or
                           (reg=NR_PARITYOVERFLOWFLAG) or
@@ -293,7 +293,7 @@ Implementation
           A_LD:
             begin
               if p.ops<>2 then
-                internalerror(2020051112);
+                internalerror(2020051114);
               result:=(p.oper[0]^.typ = top_reg) and
                       (Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) and
                       ((p.oper[1]^.typ = top_const) or
@@ -352,7 +352,7 @@ Implementation
                        not(Reg1ReadDependsOnReg2(NR_BC,reg)));
             end;
           else
-            internalerror(2020051111);
+            internalerror(2020051108);
         end;
     end;
 

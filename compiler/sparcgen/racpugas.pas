@@ -411,7 +411,7 @@ Interface
                          OPR_REFERENCE :
                            inc(oper.opr.ref.offset,l);
                          else
-                           internalerror(200309202);
+                           internalerror(2003092003);
                        end;
                      end
                  end;

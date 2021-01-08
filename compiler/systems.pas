@@ -344,6 +344,14 @@ interface
        { all native nt systems }
        systems_nativent = [system_i386_nativent];
 
+       { Default to i80846 instead of pentium2 for all old i386 systems for which
+         some newer instructions (like CMOVcc or PREFECTXXX) lead to troubles,
+         related to OS or emulator lack of support. }
+       systems_i386_default_486 = [system_i386_go32v2, system_i386_watcom,
+                                   system_i386_emx, system_i386_wdosx, 
+                                   system_i386_beos, system_i386_netware,
+                                   system_i386_netwlibc, system_i386_symbian];
+
        { systems supporting Objective-C }
        systems_objc_supported = systems_darwin;
 
@@ -377,7 +385,7 @@ interface
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
                                    system_xtensa_linux,
-                                   system_m68k_atari,system_m68k_palmos,
+                                   system_m68k_atari,system_m68k_palmos,system_m68k_sinclairql,
                                    system_i386_haiku,system_x86_64_haiku,
                                    system_i386_openbsd,system_x86_64_openbsd,
                                    system_riscv32_linux,system_riscv64_linux,

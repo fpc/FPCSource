@@ -29,7 +29,7 @@ Unit racpugas;
     uses
       raatt,racpu,
       aasmtai,
-      cpubase;
+      cgbase,cpubase;
 
     type
 
@@ -37,12 +37,14 @@ Unit racpugas;
 
       taarch64attreader = class(tattreader)
         actoppostfix : TOpPostfix;
+        actinsmmsubreg : TSubRegister;
         actsehdirective : TAsmSehDirective;
         function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
         function is_targetdirective(const s: string): boolean;override;
         procedure handleopcode;override;
         procedure handletargetdirective; override;
+       protected
         procedure BuildReference(oper: taarch64operand; is64bit: boolean);
         procedure BuildOperand(oper: taarch64operand; is64bit: boolean);
         function TryBuildShifterOp(instr: taarch64instruction; opnr: longint) : boolean;
@@ -50,6 +52,8 @@ Unit racpugas;
         procedure ReadSym(oper: taarch64operand; is64bit: boolean);
         procedure ConvertCalljmp(instr: taarch64instruction);
         function ToConditionCode(const hs: string; is_operand: boolean): tasmcond;
+        function ParseArrangementSpecifier(const hs: string): TSubRegister;
+        function ParseRegIndex(const hs: string): byte;
       end;
 
 
@@ -65,7 +69,7 @@ Unit racpugas;
       symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils,paramgr;
+      cgutils,paramgr;
 
 
     function taarch64attreader.is_register(const s:string):boolean;
@@ -76,9 +80,10 @@ Unit racpugas;
         end;
 
       const
-        extraregs : array[0..3] of treg2str = (
+        extraregs : array[0..4] of treg2str = (
           (name: 'FP' ; reg: NR_FP),
           (name: 'LR' ; reg: NR_LR),
+          (name: 'XR' ; reg: NR_XR),
           (name: 'IP0'; reg: NR_IP0),
           (name: 'IP1'; reg: NR_IP1));
 
@@ -88,9 +93,9 @@ Unit racpugas;
       begin
         result:=inherited is_register(s);
         { reg found?
-          possible aliases are always 2 or 3 chars
+          possible aliases are always 2 chars
         }
-        if result or not(length(s) in [2,3]) then
+        if result or not(length(s) in [2]) then
           exit;
         for i:=low(extraregs) to high(extraregs) do
           begin
@@ -577,6 +582,50 @@ Unit racpugas;
       end;
 
 
+    function taarch64attreader.ParseArrangementSpecifier(const hs: string): TSubRegister;
+{$push}{$j-}
+      const
+        arrangements: array[R_SUBMM8B..R_SUBMM2D] of string[4] =
+          ('.8B','.16B','.4H','.8H','.2S','.4S','.1D','.2D');
+{$pop}
+      begin
+        if length(hs)>2 then
+          begin
+            for result:=low(arrangements) to high(arrangements) do
+              if hs=arrangements[result] then
+                exit;
+            result:=R_SUBNONE;
+          end
+        else
+          case hs of
+            '.B': result:=R_SUBMMB1;
+            '.H': result:=R_SUBMMH1;
+            '.S': result:=R_SUBMMS1;
+            '.D': result:=R_SUBMMD1;
+            else
+              result:=R_SUBNONE;
+          end
+      end;
+
+
+    function taarch64attreader.ParseRegIndex(const hs: string): byte;
+      var
+        b: cardinal;
+        error: longint;
+      begin
+        b:=0;
+        val(hs,b,error);
+        if (error<>0) then
+          Message(asmr_e_syn_constant)
+        else if b > 31 then
+          begin
+            Message(asmr_e_constant_out_of_bounds);
+            b:=0;
+          end;
+        result:=b;
+      end;
+
+
     Procedure taarch64attreader.BuildOperand(oper: taarch64operand; is64bit: boolean);
       var
         expr: string;
@@ -723,11 +772,50 @@ Unit racpugas;
             end; { end case }
           end;
 
+      function parsereg: tregister;
+         var
+           subreg: tsubregister;
+        begin
+          result:=actasmregister;
+          Consume(AS_REGISTER);
+          if (actasmtoken=AS_ID) and
+             (actasmpattern[1]='.') then
+            begin
+              subreg:=ParseArrangementSpecifier(upper(actasmpattern));
+              if (subreg<>R_SUBNONE) and
+                 (getregtype(result)=R_MMREGISTER) and
+                 ((actinsmmsubreg=R_SUBNONE) or
+                  (actinsmmsubreg=subreg)) then
+                begin
+                  setsubreg(result,subreg);
+                  { they all have to be the same }
+                  actinsmmsubreg:=subreg;
+                end
+              else
+                Message1(asmr_e_invalid_arrangement,actasmpattern);
+              Consume(AS_ID);
+            end
+          else if (getregtype(result)=R_MMREGISTER) then
+            begin
+              if actinsmmsubreg<>R_SUBNONE then
+                begin
+                  if (getsubreg(result)=R_SUBNONE) or
+                     (getsubreg(result)=actinsmmsubreg) then
+                    setsubreg(result,actinsmmsubreg)
+                  else
+                     Message1(asmr_e_invalid_arrangement,actasmpattern);
+                end
+              else if getsubreg(result)=R_SUBNONE then
+                { Vxx without an arrangement is invalid, use Qxx to specify the entire 128 bits}
+                Message1(asmr_e_invalid_arrangement,'');
+            end;
+        end;
 
       var
         tempreg: tregister;
         hl: tasmlabel;
         icond: tasmcond;
+        regindex: byte;
       Begin
         expr:='';
         case actasmtoken of
@@ -735,6 +823,35 @@ Unit racpugas;
             Begin
               oper.InitRef;
               BuildReference(oper,is64bit);
+            end;
+
+          AS_LSBRACKET: { register set }
+            begin
+              consume(AS_LSBRACKET);
+              oper.opr.typ:=OPR_REGSET;
+              oper.opr.basereg:=parsereg;
+              oper.opr.nregs:=1;
+              while (oper.opr.nregs<4) and
+                    (actasmtoken=AS_COMMA) do
+                begin
+                  consume(AS_COMMA);
+                  tempreg:=parsereg;
+                  if getsupreg(tempreg)<>((getsupreg(oper.opr.basereg)+oper.opr.nregs) mod 32) then
+                    Message(asmr_e_a64_invalid_regset);
+                  inc(oper.opr.nregs);
+                end;
+              consume(AS_RSBRACKET);
+              if actasmtoken=AS_LBRACKET then
+                begin
+                  consume(AS_LBRACKET);
+                  oper.opr.regsetindex:=ParseRegIndex(actasmpattern);
+                  consume(AS_INTNUM);
+                  consume(AS_RBRACKET);
+                end
+              else
+                oper.opr.regsetindex:=255;
+              if not(actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+                Message(asmr_e_syn_operand);
             end;
 
           AS_HASH: { Constant expression  }
@@ -859,7 +976,7 @@ Unit racpugas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092005);
                      end;
                    end
                end;
@@ -872,14 +989,31 @@ Unit racpugas;
           AS_REGISTER:
             Begin
               { save the type of register used. }
-              tempreg:=actasmregister;
-              Consume(AS_REGISTER);
-              if (actasmtoken in [AS_end,AS_SEPARATOR,AS_COMMA]) then
-                Begin
-                  if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+              tempreg:=parsereg;
+              regindex:=255;
+              if (getregtype(tempreg)=R_MMREGISTER) and
+                 (actasmtoken=AS_LBRACKET) then
+                begin
+                  consume(AS_LBRACKET);
+                  regindex:=ParseRegIndex(actasmpattern);
+                  consume(AS_INTNUM);
+                  consume(AS_RBRACKET);
+                end;
+              if actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA] then
+                begin
+                  if (oper.opr.typ<>OPR_NONE) then
                     Message(asmr_e_invalid_operand_type);
-                  oper.opr.typ:=OPR_REGISTER;
-                  oper.opr.reg:=tempreg;
+                  if regindex=255 then
+                    begin
+                      oper.opr.typ:=OPR_REGISTER;
+                      oper.opr.reg:=tempreg;
+                    end
+                  else
+                    begin
+                      oper.opr.typ:=OPR_INDEXEDREG;
+                      oper.opr.indexedreg:=tempreg;
+                      oper.opr.regindex:=regindex;
+                    end;
                 end
               else
                 Message(asmr_e_syn_operand);
@@ -985,6 +1119,13 @@ Unit racpugas;
           PF_B,PF_H,PF_W,
           PF_S);
 
+                      { store replicate }
+        ldst14: array[boolean,boolean,'1'..'4'] of tasmop =
+          (((A_LD1,A_LD2,A_LD3,A_LD4),
+            (A_LD1R,A_LD2R,A_LD3R,A_LD4R)),
+           ((A_ST1,A_ST2,A_ST3,A_ST4),
+            (A_NONE,A_NONE,A_NONE,A_NONE)));
+
       var
         j  : longint;
         hs : string;
@@ -1007,6 +1148,29 @@ Unit racpugas;
             actasmtoken:=AS_OPCODE;
             actcondition:=ToConditionCode(copy(hs,3,length(actasmpattern)-2),false);
             if actcondition<>C_None then
+              is_asmopcode:=true;
+            exit;
+          end;
+
+        (* ldN(r)/stN.size ? (shorthand for "ldN(r)/stN { Vx.size, Vy.size } ..."
+          supported by clang and possibly gas *)
+        actinsmmsubreg:=R_SUBNONE;
+        if (length(s)>=5) and
+           (((hs[1]='L') and
+             (hs[2]='D')) or
+            ((hs[1]='S') and
+             (hs[2]='T'))) and
+           (hs[3] in ['1'..'4']) and
+           ((hs[4]='.') or
+            ((hs[4]='R') and
+             (hs[5]='.'))) then
+          begin
+            actinsmmsubreg:=ParseArrangementSpecifier(copy(hs,4+ord(hs[4]='R'),255));
+            if actinsmmsubreg=R_SUBNONE then
+              exit;
+            actopcode:=ldst14[hs[1]='S',hs[4]='R',hs[3]];
+            actasmtoken:=AS_OPCODE;
+            if actopcode<>A_NONE then
               is_asmopcode:=true;
             exit;
           end;

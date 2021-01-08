@@ -110,7 +110,7 @@ unit agppcgas;
                    (index<>NR_NO) or
                    (offset<>0) or
                    not assigned(symbol) then
-                  internalerror(2011122701);
+                  internalerror(2011122702);
                 if asminfo^.dollarsign<>'$' then
                   getreferencestring:=ApplyAsmSymbolRestrictions(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
@@ -217,7 +217,7 @@ unit agppcgas;
         top_none:
           getopstr_jmp:='';
         else
-          internalerror(2002070603);
+          internalerror(2002070605);
       end;
     end;
 
@@ -332,7 +332,7 @@ unit agppcgas;
           { we have a trap instruction }
           else
             begin
-              internalerror(2002070601);
+              internalerror(2002070602);
               { not yet implemented !!!!!!!!!!!!!!!!!!!!! }
               { case tempstr := 'tw';}
             end;

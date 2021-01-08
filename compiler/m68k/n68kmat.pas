@@ -218,7 +218,7 @@ implementation
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
             end;
           else
-            internalerror(200306021);
+            internalerror(2003060202);
         end;
       end;
 

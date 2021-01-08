@@ -73,10 +73,10 @@ implementation
                  location.reference.index:=hreg;
                end
              else
-               Internalerror(2020042202);
+               Internalerror(2020042214);
              { update alignment }
              if (location.reference.alignment=0) then
-               internalerror(2020042203);
+               internalerror(2020042217);
              location.reference.alignment:=newalignment(location.reference.alignment,l);
            end
          else

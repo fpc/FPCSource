@@ -513,7 +513,7 @@ resourcestring
    SErrCouldNotSetReplySerial = 'Could not set reply serial';
    SErrInitIter = 'Could not initialize iterator';
    SErrAppendFailed = 'Append of argument to message failed';
-   SErrNoMoreArguments = 'No more arguments availaible';
+   SErrNoMoreArguments = 'No more arguments available';
    SErrInvalidArgumentType = 'Invalid argument type. Expected %s, got %s.';
    SErrInvalidArrayElementType = 'Invalid array element type. Expected %s got %s';
    SErrInvalidVariantType = 'Invalid VARIANT type';

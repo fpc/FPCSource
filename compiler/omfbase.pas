@@ -1432,13 +1432,13 @@ implementation
     begin
       Result:=Offset+1;
       if result>RecordLength then
-        internalerror(2015033103);
+        internalerror(2015033108);
       IndexedRef:=RawData[Offset];
       if IndexedRef<=$7f then
         exit;
       Result:=Offset+2;
       if result>RecordLength then
-        internalerror(2015033103);
+        internalerror(2015033109);
       IndexedRef:=((IndexedRef and $7f) shl 8)+RawData[Offset+1];
     end;
 
@@ -1450,14 +1450,14 @@ implementation
         begin
           Result:=Offset+1;
           if Result>High(RawData) then
-            internalerror(2015033102);
+            internalerror(2015033106);
           RawData[Offset]:=IndexedRef;
         end
       else
         begin
           Result:=Offset+2;
           if Result>High(RawData) then
-            internalerror(2015033102);
+            internalerror(2015033107);
           RawData[Offset]:=$80+(IndexedRef shr 8);
           RawData[Offset+1]:=Byte(IndexedRef);
         end;
@@ -1575,7 +1575,7 @@ implementation
   procedure TOmfRecord_COMENT.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
       if RawRecord.RecordType<>RT_COMENT then
-        internalerror(2015040301);
+        internalerror(2015040304);
       if RawRecord.RecordLength<3 then
         internalerror(2015033104);
       CommentType:=RawRecord.RawData[0];
@@ -1756,7 +1756,7 @@ implementation
       Name: string;
     begin
       if RawRecord.RecordType<>RT_LNAMES then
-        internalerror(2015040301);
+        internalerror(2015040308);
       NextOfs:=0;
       while NextOfs<(RawRecord.RecordLength-1) do
         begin
@@ -1802,7 +1802,7 @@ implementation
       MinLen: Integer;
     begin
       if not (RawRecord.RecordType in [RT_SEGDEF,RT_SEGDEF32]) then
-        internalerror(2015040301);
+        internalerror(2015040309);
       Is32Bit:=RawRecord.RecordType=RT_SEGDEF32;
 
       MinLen:=7; { b(1)+seglength(2..4)+segnameindex(1..2)+classnameindex(1..2)+overlaynameindex(1..2)+checksum }
@@ -1820,7 +1820,7 @@ implementation
         begin
           inc(MinLen,3);
           if RawRecord.RecordLength<MinLen then
-            internalerror(2015040305);
+            internalerror(2015040317);
           FrameNumber:=RawRecord.RawData[1]+(RawRecord.RawData[2] shl 8);
           Offset:=RawRecord.RawData[3];
           NextOfs:=4;
@@ -1850,7 +1850,7 @@ implementation
             if SegmentLength=0 then
               SegmentLength:=65536
             else
-              internalerror(2015040306);
+              internalerror(2015040323);
           Inc(NextOfs,2);
         end;
       NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FSegmentNameIndex);
@@ -1922,7 +1922,7 @@ implementation
       Segment: Integer;
     begin
       if RawRecord.RecordType<>RT_GRPDEF then
-        internalerror(2015040301);
+        internalerror(2015040310);
       NextOfs:=RawRecord.ReadIndexedRef(0,FGroupNameIndex);
       SetLength(FSegmentList,0);
       while NextOfs<RawRecord.RecordLength-1 do
@@ -1981,7 +1981,7 @@ implementation
       PubName: TOmfPublicNameElement;
     begin
       if not (RawRecord.RecordType in [RT_PUBDEF,RT_PUBDEF32,RT_LPUBDEF,RT_LPUBDEF32]) then
-        internalerror(2015040301);
+        internalerror(2015040311);
       Is32Bit:=RawRecord.RecordType in [RT_PUBDEF32,RT_LPUBDEF32];
       IsLocal:=RawRecord.RecordType in [RT_LPUBDEF,RT_LPUBDEF32];
 
@@ -2003,7 +2003,7 @@ implementation
           if Is32Bit then
             begin
               if (NextOfs+3)>=RawRecord.RecordLength then
-                internalerror(2015041401);
+                internalerror(2015041405);
               PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
                 (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
               Inc(NextOfs,4);
@@ -2011,7 +2011,7 @@ implementation
           else
             begin
               if (NextOfs+1)>=RawRecord.RecordLength then
-                internalerror(2015041401);
+                internalerror(2015041407);
               PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
               Inc(NextOfs,2);
             end;
@@ -2129,7 +2129,7 @@ implementation
       ExtName: TOmfExternalNameElement;
     begin
       if RawRecord.RecordType<>RT_EXTDEF then
-        internalerror(2015040301);
+        internalerror(2015040312);
       NextOfs:=0;
       while NextOfs<(RawRecord.RecordLength-1) do
         begin
@@ -2181,11 +2181,11 @@ implementation
       EndData: Byte;
     begin
       if not (RawRecord.RecordType in [RT_MODEND,RT_MODEND32]) then
-        internalerror(2015040301);
+        internalerror(2015040313);
       Is32Bit:=RawRecord.RecordType=RT_MODEND32;
 
       if RawRecord.RecordLength<2 then
-        internalerror(2015040305);
+        internalerror(2015040318);
       ModTyp:=RawRecord.RawData[0];
       IsMainModule:=(ModTyp and $80)<>0;
       HasStartAddress:=(ModTyp and $40)<>0;
@@ -2209,7 +2209,7 @@ implementation
           if LogicalStartAddress then
             begin
               if NextOfs>=RawRecord.RecordLength then
-                internalerror(2015040305);
+                internalerror(2015040319);
               EndData:=RawRecord.RawData[NextOfs];
               Inc(NextOfs);
               { frame and target method determined by thread is not allowed in MODEND records }
@@ -2241,7 +2241,7 @@ implementation
                   else
                     begin
                       if (NextOfs+1)>=RawRecord.RecordLength then
-                        internalerror(2015040504);
+                        internalerror(2015040508);
                       TargetDisplacement := RawRecord.RawData[NextOfs]+
                                            (RawRecord.RawData[NextOfs+1] shl 8);
                       Inc(NextOfs,2);
@@ -2252,13 +2252,13 @@ implementation
             begin
               { physical start address }
               if (NextOfs+1)>=RawRecord.RecordLength then
-                internalerror(2015040305);
+                internalerror(2015040320);
               PhysFrameNumber:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
               Inc(NextOfs,2);
               if Is32Bit then
                 begin
                   if (NextOfs+3)>=RawRecord.RecordLength then
-                    internalerror(2015040305);
+                    internalerror(2015040321);
                   PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
                     (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
                   Inc(NextOfs,4);
@@ -2266,7 +2266,7 @@ implementation
               else
                 begin
                   if (NextOfs+1)>=RawRecord.RecordLength then
-                    internalerror(2015040305);
+                    internalerror(2015040322);
                   PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
                   Inc(NextOfs,2);
                 end;
@@ -2293,7 +2293,7 @@ implementation
             begin
               { frame method ffmLocation is not allowed in an MODEND record }
               if FrameMethod=ffmLocation then
-                internalerror(2015041402);
+                internalerror(2015041411);
               EndData:=(Ord(FrameMethod) shl 4)+Ord(TargetMethod);
               RawRecord.RawData[NextOfs]:=EndData;
               Inc(NextOfs);
@@ -2340,7 +2340,7 @@ implementation
               else
                 begin
                   if PhysOffset>$ffff then
-                    internalerror(2015040502);
+                    internalerror(2015040506);
                   RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
                   RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
                   Inc(NextOfs,2);
@@ -2678,7 +2678,7 @@ implementation
       FixData: Byte;
     begin
       if (Offset+2)>=RawRecord.RecordLength then
-        internalerror(2015040504);
+        internalerror(2015040509);
       { unlike other fields in the OMF format, this one is big endian }
       Locat:=(RawRecord.RawData[Offset] shl 8) or RawRecord.RawData[Offset+1];
       FixData:=RawRecord.RawData[Offset+2];
@@ -2718,7 +2718,7 @@ implementation
           if Is32Bit then
             begin
               if (Offset+3)>=RawRecord.RecordLength then
-                internalerror(2015040504);
+                internalerror(2015040510);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8)+
                                    (RawRecord.RawData[Offset+2] shl 16)+
@@ -2728,7 +2728,7 @@ implementation
           else
             begin
               if (Offset+1)>=RawRecord.RecordLength then
-                internalerror(2015040504);
+                internalerror(2015040511);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8);
               Inc(Offset,2);
@@ -2781,7 +2781,7 @@ implementation
           else
             begin
               if TargetDisplacement>$ffff then
-                internalerror(2015040502);
+                internalerror(2015040507);
               RawRecord.RawData[Offset]:=Byte(TargetDisplacement);
               RawRecord.RawData[Offset+1]:=Byte(TargetDisplacement shr 8);
               Inc(Offset,2);
@@ -2830,14 +2830,14 @@ implementation
       if not ispowerof2(AValue,p) then
         internalerror(2015041802);
       if (p<4) or (p>15) then
-        internalerror(2015041802);
+        internalerror(2015041803);
       FPageSize:=AValue;
     end;
 
   procedure TOmfRecord_LIBHEAD.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
       if RawRecord.RecordType<>RT_LIBHEAD then
-        internalerror(2015040301);
+        internalerror(2015040314);
       { this will also range check PageSize and will ensure that RecordLength>=13 }
       PageSize:=RawRecord.RecordLength+3;
       DictionaryOffset:=RawRecord.RawData[0]+
@@ -2881,7 +2881,7 @@ implementation
   procedure TOmfRecord_LIBEND.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
       if RawRecord.RecordType<>RT_LIBEND then
-        internalerror(2015040301);
+        internalerror(2015040315);
       FPaddingBytes:=RawRecord.RecordLength;
     end;
 

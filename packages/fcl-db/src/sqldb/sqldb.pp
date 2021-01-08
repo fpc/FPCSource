@@ -222,6 +222,7 @@ type
     procedure ApplyRecUpdate(Query : TCustomSQLQuery; UpdateKind : TUpdateKind); virtual;
     function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; virtual;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
+    function PortParamName: string; virtual;
     function GetConnectionCharSet: string; virtual;
     procedure SetTransaction(Value : TSQLTransaction); virtual;
     procedure DoConnect; override;
@@ -1373,9 +1374,12 @@ end;
 
 destructor TSQLConnection.Destroy;
 begin
-  Connected:=False; // needed because we want to de-allocate statements
-  FreeAndNil(FStatements);
-  inherited Destroy;
+  try
+    Connected:=False; // needed because we want to de-allocate statements
+  Finally  
+    FreeAndNil(FStatements);
+    inherited Destroy;
+  end;
 end;
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
@@ -1516,7 +1520,7 @@ end;
 
 function TSQLConnection.GetPort: cardinal;
 begin
-  result := StrToIntDef(Params.Values['Port'],0);
+  result := StrToIntDef(Params.Values[PortParamName],0);
 end;
 
 procedure TSQLConnection.SetOptions(AValue: TSQLConnectionOptions);
@@ -1529,9 +1533,9 @@ end;
 procedure TSQLConnection.SetPort(const AValue: cardinal);
 begin
   if AValue<>0 then
-    Params.Values['Port']:=IntToStr(AValue)
-  else with params do if IndexOfName('Port') > -1 then
-    Delete(IndexOfName('Port'));
+    Params.Values[PortParamName]:=IntToStr(AValue)
+  else with params do if IndexOfName(PortParamName) > -1 then
+    Delete(IndexOfName(PortParamName));
 end;
 
 function TSQLConnection.AttemptCommit(trans: TSQLHandle): boolean;
@@ -2312,6 +2316,11 @@ begin
       DatabaseErrorFmt(SErrImplicitConnect,[Name]);
     Connected:=True;
     end;
+end;
+
+function TSQLConnection.PortParamName: string;
+begin
+  Result := 'Port';
 end;
 
 procedure TSQLConnection.CreateDB;

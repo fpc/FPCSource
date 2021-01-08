@@ -270,7 +270,7 @@ implementation
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  if assigned(location^.next) then
-                   internalerror(2010052906);
+                   internalerror(2010052901);
                  reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
@@ -295,11 +295,11 @@ implementation
                    OS_NO:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,nil);
                    else
-                     internalerror(2010053101);
+                     internalerror(2010053105);
                  end;
               end
             else
-              internalerror(2010053111);
+              internalerror(2010053107);
           end;
           inc(totaloffset,tcgsize2size[location^.size]);
           dec(sizeleft,tcgsize2size[location^.size]);
@@ -477,10 +477,6 @@ implementation
           begin
             new(callpara);
             callpara^.def:=paraloc^.def;
-            if firstparaloc then
-              callpara^.alignment:=paras[i]^.Alignment
-            else
-              callpara^.alignment:=std_param_align;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
             if paraloc^.retvalloc then
@@ -493,6 +489,11 @@ implementation
                 callpara^.sret:=false;
                 callpara^.byval:=not paraloc^.llvmvalueloc;
               end;
+            if firstparaloc and
+               callpara^.byval then
+              callpara^.alignment:=paras[i]^.Alignment
+            else
+              callpara^.alignment:=std_param_align;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
             case paraloc^.llvmloc.loc of
               LOC_CONSTANT:
@@ -685,7 +686,7 @@ implementation
     begin
       if (fromsize=llvm_metadatatype) or
          (tosize=llvm_metadatatype) then
-        internalerror(2019122802);
+        internalerror(2019122812);
       sref:=make_simple_ref(list,ref,tosize);
       hreg:=register;
       (* typecast the pointer to the value instead of the value itself if
@@ -758,7 +759,7 @@ implementation
     begin
       if (fromsize=llvm_metadatatype) or
          (tosize=llvm_metadatatype) then
-        internalerror(2019122801);
+        internalerror(2019122805);
       op:=llvmconvop(fromsize,tosize,true);
       { converting from pointer to something else and vice versa is only
         possible via an intermediate pass to integer. Same for "something else"

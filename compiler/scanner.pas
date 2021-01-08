@@ -227,6 +227,7 @@ interface
           procedure skipoldtpcomment(read_first_char:boolean);
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
+          function  readpreprocint(var value:int64;const place:string):boolean;
           function  asmgetchar:char;
        end;
 
@@ -275,7 +276,6 @@ interface
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
     procedure SetAppType(NewAppType:tapptype);
-
 
 implementation
 
@@ -612,6 +612,14 @@ implementation
                include(current_settings.localswitches,cs_strict_var_strings);
                if changeinit then
                  include(init_settings.localswitches,cs_strict_var_strings);
+             end;
+
+           { in delphi mode, excess precision is by default on }
+           if ([m_delphi] * current_settings.modeswitches <> []) then
+             begin
+               include(current_settings.localswitches,cs_excessprecision);
+               if changeinit then
+                 include(init_settings.localswitches,cs_excessprecision);
              end;
 
 {$ifdef i8086}
@@ -955,6 +963,7 @@ type
     function evaluate(v:texprvalue;op:ttoken):texprvalue;
     procedure error(expecteddef, place: string);
     function isBoolean: Boolean;
+    function isInt: Boolean;
     function asBool: Boolean;
     function asInt: Integer;
     function asInt64: Int64;
@@ -1393,6 +1402,11 @@ type
           i:=asInt64;
           result:=(i=0)or(i=1);
         end;
+    end;
+
+  function texprvalue.isInt: Boolean;
+    begin
+      result:=is_integer(def);
     end;
 
   function texprvalue.asBool: Boolean;
@@ -2248,6 +2262,11 @@ type
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        if hs='' then
+          begin
+            Message(scan_e_emptymacroname);
+            exit;
+          end;
         mac:=tmacro(search_macro(hs));
         if not assigned(mac) or (mac.owner <> current_module.localmacrosymtable) then
           begin
@@ -2520,9 +2539,15 @@ type
            macroIsString:=true;
            case hs of
              'TIME':
-               hs:=gettimestr;
+               if timestr<>'' then
+                 hs:=timestr
+               else
+                 hs:=gettimestr;
              'DATE':
-               hs:=getdatestr;
+               if datestr<>'' then
+                 hs:=datestr
+               else
+                 hs:=getdatestr;
              'DATEYEAR':
                begin
                  hs:=tostr(startsystime.Year);
@@ -5731,6 +5756,25 @@ exit_label:
                readpreproc:=NOTOKEN;
              end;
          end;
+      end;
+
+
+    function tscannerfile.readpreprocint(var value:int64;const place:string):boolean;
+      var
+        hs : texprvalue;
+      begin
+        hs:=preproc_comp_expr;
+        if hs.isInt then
+          begin
+            value:=hs.asInt64;
+            result:=true;
+          end
+        else
+          begin
+            hs.error('Integer',place);
+            result:=false;
+          end;
+        hs.free;
       end;
 
 

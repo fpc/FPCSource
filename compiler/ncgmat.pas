@@ -292,29 +292,18 @@ implementation
     procedure tcgunaryminusnode.second_integer;
       var
         hl: tasmlabel;
-        opsize: tdef;
       begin
         secondpass(left);
-
-{$ifdef cpunodefaultint}
-        opsize:=left.resultdef;
-{$else cpunodefaultint}
-        { in case of a 32 bit system that can natively execute 64 bit operations }
-        if (left.resultdef.size<=sinttype.size) then
-          opsize:=sinttype
-        else
-          opsize:={$ifdef cpu16bitalu}s32inttype{$else}s64inttype{$endif};
-{$endif cpunodefaultint}
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
-        location_reset(location,LOC_REGISTER,def_cgsize(opsize));
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,left.location.register,location.register);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,resultdef,left.location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
-            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,torddef(opsize).low.svalue,location.register,hl);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,location.register,hl);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;

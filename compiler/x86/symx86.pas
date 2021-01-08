@@ -109,7 +109,7 @@ implementation
       key: tx86PtrDefKey;
     begin
       if not assigned(current_module) then
-        internalerror(2011071101);
+        internalerror(2011071102);
       key.def:=def;
       key.x86typ:=x86typ;
       res:=current_module.ptrdefs.FindOrAdd(@key,sizeof(key));

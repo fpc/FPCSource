@@ -355,7 +355,7 @@ implementation
             else
               result:=taicpu.op_reg_ref(A_LD,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010413);
         end;
       end;
 
@@ -374,7 +374,7 @@ implementation
             else
               result:=taicpu.op_ref_reg(A_ST,ref,r);
           else
-            internalerror(200401041);
+            internalerror(2004010414);
         end;
       end;
 

@@ -196,7 +196,7 @@ implementation
                      end;
                  end;
                else
-                 internalerror(200410031);
+                 internalerror(2004100304);
             end;
           end;
        end;

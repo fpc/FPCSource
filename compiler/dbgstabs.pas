@@ -480,6 +480,9 @@ implementation
       begin
         if tsym(p).typ = procsym then
          begin
+           if (sp_generic_dummy in tsym(p).symoptions) and
+               (tprocsym(p).procdeflist.count=0) then
+             exit;
            pd :=tprocdef(tprocsym(p).ProcdefList[0]);
            if (po_virtualmethod in pd.procoptions) and
                not is_objectpascal_helper(pd.struct) then
@@ -1561,7 +1564,7 @@ implementation
                   ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,getoffsetstr(sym.localloc.reference)])
                 end;
               else
-                internalerror(2003091814);
+                internalerror(2003091805);
             end;
           end;
         write_sym_stabstr(list,sym,ss);

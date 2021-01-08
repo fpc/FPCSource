@@ -15,7 +15,8 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings 
       math fpwidestring \
       charset cpall getopts \
       unicodedata  unicodenumtable character \
-      cmem sharemem
+      cmem sharemem \
+      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
@@ -270,3 +271,17 @@ sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
 fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
         $(COMPILER) $(WINDIR)/fpcmemdll.pp
 
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<

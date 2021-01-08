@@ -287,7 +287,7 @@ implementation
               end;
             end
           else
-            internalerror(200401041);
+            internalerror(2004010404);
         end;
       end;
 
@@ -305,11 +305,11 @@ implementation
                 R_SUBFD :
                   result:=taicpu.op_reg_ref(A_STD,r,ref);
                 else
-                  internalerror(200401042);
+                  internalerror(2004010417);
               end;
             end
           else
-            internalerror(200401041);
+            internalerror(2004010406);
         end;
       end;
 

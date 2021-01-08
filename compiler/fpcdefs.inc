@@ -2,7 +2,9 @@
 {$asmmode default}
 {$H-}
 {$goto on}
-{$inline on}
+{$ifndef DISABLE_INLINE}
+  {$inline on}
+{$endif}
 {$interfaces corba}
 
 { This reduces the memory requirements a lot }
@@ -39,7 +41,7 @@
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
-  {$define #cpu32bit}
+  {$define cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}
@@ -313,10 +315,6 @@
   {$define cpuneedsmulhelper}
   {$define cpucapabilities}
 {$endif z80}
-
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
 
 {$ifdef riscv64}
   {$define riscv}

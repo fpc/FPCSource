@@ -54,6 +54,7 @@ interface
           function first_fma: tnode; override;
           function first_frac_real : tnode; override;
           function first_int_real : tnode; override;
+          function first_minmax: tnode; override;
 
           function simplify(forinline : boolean) : tnode; override;
 
@@ -79,6 +80,7 @@ interface
           procedure second_frac_real;override;
           procedure second_int_real;override;
           procedure second_high;override;
+          procedure second_minmax;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -389,6 +391,27 @@ implementation
        end;
 
 
+     function tx86inlinenode.first_minmax: tnode;
+       begin
+{$ifndef i8086}
+         if
+{$ifdef i386}
+           ((current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
+           ((current_settings.fputype>=fpu_sse2) and is_double(resultdef))
+{$else i386}
+           ((is_double(resultdef)) or (is_single(resultdef)))
+{$endif i386}
+           then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             Result:=nil;
+           end
+         else
+{$endif i8086}
+           Result:=inherited first_minmax;
+       end;
+
+
      function tx86inlinenode.simplify(forinline : boolean) : tnode;
        var
          temp : tnode;
@@ -628,7 +651,7 @@ implementation
            LOC_MMREGISTER,LOC_CMMREGISTER:
              begin
                location:=lnode.location;
-               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,location,resultdef,false);
+               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,location,lnode.resultdef,false);
              end;
            else
              internalerror(309991);
@@ -730,7 +753,7 @@ implementation
                  OS_F64:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_NO,left.location.register,location.register));
                  else
-                   internalerror(2007031402);
+                   internalerror(2007031404);
                end;
            end
          else
@@ -774,7 +797,7 @@ implementation
                  OS_F64:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_NO,left.location.register,location.register));
                  else
-                   internalerror(2007031401);
+                   internalerror(2007031403);
                end;
            end
          else
@@ -878,7 +901,7 @@ implementation
                  s64real:
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_NO,left.location.register,location.register));
                  else
-                   internalerror(200510031);
+                   internalerror(2005100303);
                end;
            end
          else
@@ -1200,7 +1223,9 @@ implementation
              { only one memory operand is allowed }
              gotmem:=false;
              memop:=0;
-             for i:=1 to 3 do
+             { in case parameters come on the FPU stack, we have to pop them in reverse order as we
+               called secondpass }
+             for i:=3 downto 1 do
                begin
                  if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
                    begin
@@ -1286,21 +1311,35 @@ implementation
           begin
             secondpass(left);
             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            location_reset(location,LOC_MMREGISTER,left.location.size);
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             if UseAVX then
-              case tfloatdef(resultdef).floattype of
+              case tfloatdef(left.resultdef).floattype of
                 s32real:
                   begin
-                    { using left.location.register here as 3rd parameter is crucial to break dependency chains }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSS,S_NO,3,left.location.register,left.location.register,location.register));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSS,S_NO,location.register,left.location.register,location.register));
+{$ifndef i8086}
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESS,S_NO,3,left.location.register,left.location.register,location.register))
+                    else
+{$endif not i8086}
+                      begin
+                        { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSS,S_NO,3,left.location.register,left.location.register,location.register));
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSS,S_NO,location.register,left.location.register,location.register));
+                      end;
                   end;
                 s64real:
                   begin
-                    { using left.location.register here as 3rd parameter is crucial to break dependency chains }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSD,S_NO,3,left.location.register,left.location.register,location.register));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSD,S_NO,location.register,left.location.register,location.register));
+{$ifndef i8086}
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESD,S_NO,3,left.location.register,left.location.register,location.register))
+                    else
+{$endif not i8086}
+                      begin
+                        { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSD,S_NO,3,left.location.register,left.location.register,location.register));
+                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSUBSD,S_NO,location.register,left.location.register,location.register));
+                      end;
                   end;
                 else
                   internalerror(2017052102);
@@ -1309,7 +1348,7 @@ implementation
               begin
                 extrareg:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
-                case tfloatdef(resultdef).floattype of
+                case tfloatdef(left.resultdef).floattype of
                   s32real:
                     begin
                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_ROUNDSS,S_NO,3,left.location.register,extrareg));
@@ -1324,6 +1363,8 @@ implementation
                     internalerror(2017052103);
                 end;
               end;
+            if tfloatdef(left.resultdef).floattype<>tfloatdef(resultdef).floattype then
+              hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register,location.register,mms_movescalar);
           end
         else
           internalerror(2017052101);
@@ -1374,7 +1415,7 @@ implementation
       begin
         secondpass(left);
         if not(is_dynamic_array(left.resultdef)) then
-          Internalerror(2019122801);
+          Internalerror(2019122809);
         { length in dynamic arrays is at offset -sizeof(pint) }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         current_asmdata.getjumplabel(donelab);
@@ -1400,5 +1441,126 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=hregister;
       end;
+
+
+    procedure tx86inlinenode.second_minmax;
+      const
+        oparray : array[false..true,false..true,s32real..s64real] of TAsmOp =
+          (
+           (
+            (A_MINSS,A_MINSD),
+            (A_VMINSS,A_VMINSD)
+           ),
+           (
+            (A_MAXSS,A_MAXSD),
+            (A_VMAXSS,A_VMAXSD)
+           )
+          );
+
+      var
+        paraarray : array[1..2] of tnode;
+        memop,
+        i : integer;
+        gotmem : boolean;
+        op: TAsmOp;
+      begin
+{$ifndef i8086}
+         if
+{$ifdef i386}
+           ((current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
+           ((current_settings.fputype>=fpu_sse2) and is_double(resultdef))
+{$else i386}
+           is_single(resultdef) or is_double(resultdef)
+{$endif i386}
+           then
+           begin
+             paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+             paraarray[2]:=tcallparanode(parameters).paravalue;
+
+             for i:=low(paraarray) to high(paraarray) do
+               secondpass(paraarray[i]);
+
+             { only one memory operand is allowed }
+             gotmem:=false;
+             memop:=0;
+             for i:=low(paraarray) to high(paraarray) do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                   begin
+                     if (paraarray[i].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not(gotmem) then
+                       begin
+                         memop:=i;
+                         gotmem:=true;
+                       end
+                     else
+                       hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   end;
+               end;
+
+             { due to min/max behaviour that it loads always the second operand (must be the else assignment) into destination if
+               one of the operands is a NaN, we cannot swap operands to omit a mova operation in case fastmath is off }
+             if not(cs_opt_fastmath in current_settings.optimizerswitches) and gotmem and (memop=1) then
+               begin
+                 hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[1].location,paraarray[1].resultdef,true);
+                 gotmem:=false;
+               end;
+
+             op:=oparray[inlinenumber in [in_max_single,in_max_double],UseAVX,tfloatdef(resultdef).floattype];
+
+             location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+
+             if gotmem then
+               begin
+                 if UseAVX then
+                   case memop of
+                     1:
+                       emit_ref_reg_reg(op,S_NO,
+                         paraarray[1].location.reference,paraarray[2].location.register,location.register);
+                     2:
+                       emit_ref_reg_reg(op,S_NO,
+                         paraarray[2].location.reference,paraarray[1].location.register,location.register);
+                     else
+                       internalerror(2020120504);
+                   end
+                 else
+                   case memop of
+                     1:
+                       begin
+                         hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[2].resultdef,resultdef,
+                           paraarray[2].location.register,location.register,mms_movescalar);
+                         emit_ref_reg(op,S_NO,
+                           paraarray[1].location.reference,location.register);
+                       end;
+                     2:
+                       begin
+                         hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                           paraarray[1].location.register,location.register,mms_movescalar);
+                         emit_ref_reg(op,S_NO,
+                           paraarray[2].location.reference,location.register);
+                       end;
+                     else
+                       internalerror(2020120601);
+                   end;
+               end
+             else
+               begin
+                 if UseAVX then
+                   emit_reg_reg_reg(op,S_NO,
+                     paraarray[2].location.register,paraarray[1].location.register,location.register)
+                 else
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                       paraarray[1].location.register,location.register,mms_movescalar);
+                     emit_reg_reg(op,S_NO,
+                       paraarray[2].location.register,location.register)
+                   end;
+               end;
+           end
+         else
+{$endif i8086}
+           internalerror(2020120503);
+      end;
+
 
 end.

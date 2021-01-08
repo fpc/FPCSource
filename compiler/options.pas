@@ -758,6 +758,9 @@ begin
 {$ifdef llvm}
       'L',
 {$endif}
+{$ifdef xtensa}
+      'x',
+{$endif}
 {$ifdef z80}
       'Z',
 {$endif}
@@ -1586,6 +1589,16 @@ begin
                         description:=Copy(more,j+1,255);
                         break;
                       end;
+                    'D' :
+                      begin
+                        datestr:=Copy(more,j+1,255);
+                        break;
+                      end;
+                    'T' :
+                      begin
+                        timestr:=Copy(more,j+1,255);
+                        break;
+                      end;
                     'v' :
                       begin
                         dllversion:=Copy(more,j+1,255);
@@ -1850,7 +1863,11 @@ begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_use_heaptrc)
                          else
-                           include(init_settings.globalswitches,cs_use_heaptrc);
+                           begin
+                             if cs_gdb_valgrind in init_settings.globalswitches then
+                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                             include(init_settings.globalswitches,cs_use_heaptrc);
+                           end;
                        end;
                      'l' :
                        begin
@@ -1892,7 +1909,11 @@ begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_gdb_valgrind)
                          else
-                           include(init_settings.globalswitches,cs_gdb_valgrind);
+                           begin
+                             if cs_use_heaptrc in init_settings.globalswitches then
+                               Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                             include(init_settings.globalswitches,cs_gdb_valgrind);
+                           end;
                        end;
                      'w' :
                        begin
@@ -2121,9 +2142,11 @@ begin
                  begin
                    init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more='h' then
-                     init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target]
+                     init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target,cs_assemble_on_target]
                    else if more='t' then
-                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]
+                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target,cs_assemble_on_target]
+                   else if more='T' then
+                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]-[cs_asm_extern]
                    else if more='r' then
                      init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
                    else if more<>'' then
@@ -2578,6 +2601,23 @@ begin
                         else
                           IllegalPara(opt);
                       end;
+{$if defined(m68k)}
+                    'Q':
+                      begin
+                        if (target_info.system in [system_m68k_sinclairql]) then
+                          begin
+                            sinclairql_metadata_format:=Upper(Copy(More,j+1,255));
+                            case sinclairql_metadata_format of
+                              'QHDR', 'XTCC': ; { allowed formats }
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
+{$endif defined(m68k)}
                     'R':
                       begin
                         if target_info.system in systems_all_windows then
@@ -2654,6 +2694,13 @@ begin
                           end
                         else
                           IllegalPara(opt);
+                      end;
+                    'a' :
+                      begin
+                        If UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.globalswitches,cs_large)
+                        else
+                          include(init_settings.globalswitches,cs_large);
                       end;
                     'c' : Cshared:=TRUE;
                     'd' : Dontlinkstdlibpath:=TRUE;
@@ -3374,6 +3421,8 @@ begin
       lets disable the feature. }
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
+    system_m68k_sinclairql:
+      target_unsup_features:=[f_threading,f_dynlibs,f_commandargs,f_exitcode];
     system_z80_zxspectrum:
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     system_z80_msxdos:
@@ -3387,12 +3436,16 @@ begin
     features:=features+target_unsup_features;
 
 {$if defined(atari) or defined(hasamiga)}
-   { enable vlink as default linker on Atari, Amiga, and MorphOS, but not for cross compilers (for now) }
-   if (target_info.system in [system_m68k_amiga,system_m68k_atari,
-                              system_powerpc_amiga]) and
+   { enable vlink as default linker on Atari and Amiga but not for cross compilers (for now) }
+   if (target_info.system in [system_m68k_amiga,system_m68k_atari,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
+{$ifdef m68k}
+   if (target_info.system in [system_m68k_sinclairql]) and
+      not LinkerSetExplicitly then
+     include(init_settings.globalswitches,cs_link_vlink);
+{$endif m68k}
 end;
 
 procedure TOption.checkoptionscompatibility;
@@ -3939,6 +3992,7 @@ begin
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
+  def_system_macro('FPC_ALIGNED_THREADVARTABLES');
 
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
@@ -3951,7 +4005,7 @@ begin
       InternalError(2013092801);
   if tf_x86_far_procs_push_odd_bp in target_info.flags then
     if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
-      InternalError(2013092801);
+      InternalError(2013092802);
 
   { Use standard Android NDK prefixes when cross-compiling }
   if (source_info.system<>target_info.system) and (target_info.system in systems_android) then
@@ -4286,6 +4340,14 @@ begin
 {$endif cpufpemu}
 
 {$ifdef i386}
+  if target_info.system in systems_i386_default_486 then
+    begin
+      { Avoid use of MMX/CMOVcc instructions on older systems.
+        Some systems might not handle these instructions correctly,
+        Used emulators might also be problematic. PM }
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_486;
+    end;
   case target_info.system of
     system_i386_android:
       begin
@@ -4349,44 +4411,61 @@ begin
       ;
   end;
 
-  { ARMHF defaults }
-  if (target_info.abi = abi_eabihf) then
-    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
-    begin
-    {$ifdef CPUARMV6}
-      { if the compiler is built for armv6, then
-        inherit this setting, e.g. Raspian is armhf but
-        only armv6, this makes rebuilds of the compiler
-        easier }
-      if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_armv6;
-      if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_armv6;
-    {$else CPUARMV6}
-      if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_armv7a;
-      if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_armv7a;
-    {$endif CPUARMV6}
+  { set ABI defaults }
+  case target_info.abi of
+    abi_eabihf:
+      { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+      begin
+{$ifdef CPUARMV6}
+        { if the compiler is built for armv6, then
+          inherit this setting, e.g. Raspian is armhf but
+          only armv6, this makes rebuilds of the compiler
+          easier }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv6;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv6;
+{$else CPUARMV6}
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv7a;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv7a;
+{$endif CPUARMV6}
 
-      { Set FPU type }
-      if not(option.FPUSetExplicitly) then
-        begin
-          if init_settings.cputype < cpu_armv7 then
-            init_settings.fputype:=fpu_vfpv2
-          else
-            init_settings.fputype:=fpu_vfpv3_d16;
-        end
-      else
-        begin
-          if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
-	     or (target_info.system = system_arm_ios) then
-            begin
-              Message(option_illegal_fpu_eabihf);
-              StopOptions(1);
-            end;
-        end;
-    end;
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          begin
+            if init_settings.cputype < cpu_armv7 then
+              init_settings.fputype:=fpu_vfpv2
+            else
+              init_settings.fputype:=fpu_vfpv3_d16;
+          end
+        else
+          begin
+            if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
+	       or (target_info.system = system_arm_ios) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+    abi_eabi:
+      begin
+        if target_info.system=system_arm_linux then
+          begin
+            { this is what Debian uses }
+            if not option.CPUSetExplicitly then
+              init_settings.cputype:=cpu_armv4t;
+            if not option.OptCPUSetExplicitly then
+              init_settings.optimizecputype:=cpu_armv4t;
+            if not(option.FPUSetExplicitly) then
+              init_settings.fputype:=fpu_soft;
+          end;
+      end;
+    else
+      ;
+  end;
 
   if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     begin
@@ -4492,6 +4571,11 @@ begin
             exclude(init_settings.moduleswitches,cs_fp_emulation);
             init_settings.fputype:=fpu_68881;
           end;
+      end;
+    system_m68k_sinclairql:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mc68000;
       end;
     system_m68k_palmos:
       begin

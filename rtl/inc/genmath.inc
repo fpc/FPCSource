@@ -1443,9 +1443,15 @@ end;
       if (hx < $00100000) then              { x < 2**-1022  }
       begin
         if (((hx and $7fffffff) or longint(lx))=0) then
-          exit(-two54/zero);                { log(+-0)=-inf }
+          begin
+            float_raise(float_flag_divbyzero);
+            exit(-two54/zero);                { log(+-0)=-inf }
+          end;
         if (hx<0) then
-          exit((d-d)/zero);                 { log(-#) = NaN }
+          begin
+            float_raise(float_flag_invalid);
+            exit((d-d)/zero);                 { log(-#) = NaN }
+          end;
         dec(k, 54); d := d * two54;         { subnormal number, scale up x }
         hx := float64high(d);
       end;
@@ -2087,7 +2093,7 @@ function TDoubleRec.GetFrac : QWord;
 
 procedure TDoubleRec.SetFrac(e : QWord);
   begin
-    Data:=(Data and $7ff0000000000000) or (e and $fffffffffffff);
+    Data:=(Data and $fff0000000000000) or (e and $fffffffffffff);
   end;
 
 {

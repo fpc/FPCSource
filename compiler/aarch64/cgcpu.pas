@@ -274,7 +274,7 @@ implementation
               { todo }
               A_LD1,A_LD2,A_LD3,A_LD4,
               A_ST1,A_ST2,A_ST3,A_ST4:
-                internalerror(2014110704);
+                internalerror(2014110702);
               { these don't support base+index }
               A_LDUR,A_STUR,
               A_LDP,A_STP:
@@ -301,7 +301,7 @@ implementation
                     offset may still be too big }
                 end;
               else
-                internalerror(2014110901);
+                internalerror(2014110903);
             end;
           end;
 
@@ -1162,10 +1162,17 @@ implementation
        begin
          if not shufflescalar(shuffle) then
            internalerror(2014122801);
-         if not(tcgsize2size[fromsize] in [4,8]) or
-            (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+         if tcgsize2size[fromsize]<>tcgsize2size[tosize] then
            internalerror(2014122803);
-         list.concat(taicpu.op_reg_reg(A_INS,mmreg,intreg));
+         case tcgsize2size[tosize] of
+           4:
+             setsubreg(mmreg,R_SUBMMS);
+           8:
+             setsubreg(mmreg,R_SUBMMD);
+           else
+             internalerror(2020101310);
+         end;
+         list.concat(taicpu.op_indexedreg_reg(A_INS,mmreg,0,intreg));
        end;
 
 
@@ -1175,14 +1182,21 @@ implementation
        begin
          if not shufflescalar(shuffle) then
            internalerror(2014122802);
-         if not(tcgsize2size[fromsize] in [4,8]) or
-            (tcgsize2size[fromsize]>tcgsize2size[tosize]) then
+         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
            internalerror(2014122804);
+         case tcgsize2size[fromsize] of
+           4:
+             setsubreg(mmreg,R_SUBMMS);
+           8:
+             setsubreg(mmreg,R_SUBMMD);
+           else
+             internalerror(2020101311);
+           end;
          if tcgsize2size[fromsize]<tcgsize2size[tosize] then
            r:=makeregsize(intreg,fromsize)
          else
            r:=intreg;
-         list.concat(taicpu.op_reg_reg(A_UMOV,r,mmreg));
+         list.concat(taicpu.op_reg_indexedreg(A_UMOV,r,mmreg,0));
        end;
 
 

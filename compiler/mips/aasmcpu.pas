@@ -453,11 +453,11 @@ end;
                 R_SUBFD :
                   result:=taicpu.op_reg_ref(A_LDC1,r,ref);
                 else
-                  internalerror(200401042);
+                  internalerror(2004010418);
               end;
             end
           else
-            internalerror(200401041);
+            internalerror(2004010408);
         end;
       end;
 
@@ -475,11 +475,11 @@ end;
                 R_SUBFD :
                   result:=taicpu.op_reg_ref(A_SDC1,r,ref);
                 else
-                  internalerror(200401042);
+                  internalerror(2004010419);
               end;
             end
           else
-            internalerror(200401041);
+            internalerror(2004010409);
         end;
       end;
 

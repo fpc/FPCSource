@@ -570,7 +570,7 @@ unit rgobj;
     procedure trgobj.ungetcpuregister(list:TAsmList;r:Tregister);
       begin
         if (getsupreg(r)>=first_imaginary) then
-          InternalError(2004020901);
+          InternalError(2004020902);
         list.concat(Tai_regalloc.dealloc(r,nil));
       end;
 

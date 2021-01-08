@@ -705,7 +705,7 @@ unit cg64f32;
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,longint(hi(l.value64)),reg);
           else
-            internalerror(200203244);
+            internalerror(2002032411);
         end;
       end;
 

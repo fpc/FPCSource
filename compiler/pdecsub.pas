@@ -535,6 +535,7 @@ implementation
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
+        addgendummy,
         hadspecialize,
         firstpart,
         found,
@@ -683,7 +684,7 @@ implementation
             firstpart:=false;
           end;
 
-        function search_object_name(sp:TIDString;gen_error:boolean):tsym;
+        function search_object_name(const sp:TIDString;gen_error:boolean):tsym;
           var
             storepos:tfileposinfo;
             srsymtable:TSymtable;
@@ -867,6 +868,7 @@ implementation
         srsym:=nil;
         genericparams:=nil;
         hadspecialize:=false;
+        addgendummy:=false;
 
         if not assigned(genericdef) then
           begin
@@ -1064,13 +1066,15 @@ implementation
                            end
                          else if (srsym.typ=typesym) and
                              (sp_generic_dummy in srsym.symoptions) and
-                             (ttypesym(srsym).typedef.typ=undefineddef) then
+                             (ttypesym(srsym).typedef.typ=undefineddef) and
+                             not assigned(genericparams) then
                            begin
                              { this is a generic dummy symbol that has not yet
                                been used; so we rename the dummy symbol and continue
                                as if nothing happened }
                              hidesym(srsym);
                              searchagain:=true;
+                             addgendummy:=true;
                            end
                          else
                           begin
@@ -1106,6 +1110,8 @@ implementation
                   aprocsym:=cprocsym.create('$'+lower(sp))
                 else
                   aprocsym:=cprocsym.create(orgsp);
+                if addgendummy then
+                  include(aprocsym.symoptions,sp_generic_dummy);
                 symtablestack.top.insert(aprocsym);
               end;
           end;
@@ -1157,13 +1163,28 @@ implementation
               end;
             if not assigned(dummysym) then
               begin
-                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true));
+                { overloading generic routines with non-generic types is not
+                  allowed, so we create a procsym as dummy }
+                dummysym:=cprocsym.create(orgspnongen);
                 if assigned(astruct) then
                   astruct.symtable.insert(dummysym)
                 else
                   symtablestack.top.insert(dummysym);
+              end
+            else if (dummysym.typ<>procsym) and
+                (
+                  { show error only for the declaration, not also the implementation }
+                  not assigned(astruct) or
+                  (symtablestack.top.symtablelevel<>main_program_level)
+                ) then
+              Message1(sym_e_duplicate_id,dummysym.realname);
+            if not (sp_generic_dummy in dummysym.symoptions) then
+              begin
+                include(dummysym.symoptions,sp_generic_dummy);
+                add_generic_dummysym(dummysym);
               end;
-            include(dummysym.symoptions,sp_generic_dummy);
+            if dummysym.typ=procsym then
+              tprocsym(dummysym).add_generic_overload(aprocsym);
             { start token recorder for the declaration }
             pd.init_genericdecl;
             current_scanner.startrecordtokens(pd.genericdecltokenbuf);
@@ -1339,7 +1360,7 @@ implementation
             parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
               symtablestack.push(pd.parast);
-            single_type(pd.returndef,[stoAllowSpecialization]);
+            pd.returndef:=result_type([stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
@@ -1550,10 +1571,6 @@ implementation
             include(pd.procoptions,po_variadic);
           end;
 
-        { file types can't be function results }
-        if assigned(pd) and
-           (pd.returndef.typ=filedef) then
-          message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           begin
@@ -1796,7 +1813,7 @@ end;
 procedure pd_public(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
-    internalerror(200304266);
+    internalerror(2003042601);
   if try_to_consume(_NAME) then
     begin
       tprocdef(pd).aliasnames.insert(get_stringconst);
@@ -1846,7 +1863,7 @@ var v:Tconstexprint;
 
 begin
   if pd.typ<>procdef then
-    internalerror(200304268);
+    internalerror(2003042602);
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
@@ -2236,7 +2253,8 @@ begin
     end;
 
   if consume_sym(sym,symtable) then
-    if (sym.typ=staticvarsym) and
+    if ((sym.typ=staticvarsym) or
+        (sym.typ=absolutevarsym) and (tabsolutevarsym(sym).abstyp=toaddr)) and
        ((tabstractvarsym(sym).vardef.typ=pointerdef) or
         is_32bitint(tabstractvarsym(sym).vardef)) then
       begin

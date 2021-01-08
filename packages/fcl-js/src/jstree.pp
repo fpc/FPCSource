@@ -230,7 +230,7 @@ Type
     Property Elements[AIndex : Integer] : TJSArrayLiteralElement Read GetE ; default;
   end;
 
-  { TJSArrayLiteral - [element1,...] }
+  { TJSArrayLiteral - [element1,...] or Args of a function }
 
   TJSArrayLiteral = Class(TJSElement)
   private
@@ -328,6 +328,7 @@ Type
   Public
     Destructor Destroy; override;
     procedure AddArg(El: TJSElement);
+    procedure InsertArg(Index: integer; El: TJSElement);
     Property Expr : TJSElement Read FExpr Write FExpr;
     Property Args : TJSArguments Read FArgs Write FArgs;
   end;
@@ -1696,6 +1697,14 @@ end;
 procedure TJSCallExpression.AddArg(El: TJSElement);
 begin
   Args.Elements.AddElement.Expr:=El;
+end;
+
+procedure TJSCallExpression.InsertArg(Index: integer; El: TJSElement);
+var
+  NewEl: TJSArrayLiteralElement;
+begin
+  NewEl:=TJSArrayLiteralElement(Args.Elements.Insert(Index));
+  NewEl.Expr:=El;
 end;
 
 { TJSUnary }

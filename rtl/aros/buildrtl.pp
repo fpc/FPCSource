@@ -16,7 +16,8 @@ unit buildrtl;
 
       typinfo, sortbase, fgl, classes,
       charset, character, getopts,
-      fpwidestring, fpintres;
+      fpwidestring, fpintres,
+      softfpu, sfpux80, ufloatx80, sfpu128, ufloat128;
 
   implementation
 

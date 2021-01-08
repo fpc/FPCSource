@@ -1492,7 +1492,7 @@ implementation
     function TObjData.symboldefine(const aname:string;abind:TAsmsymbind;atyp:Tasmsymtype):TObjSymbol;
       begin
         if not assigned(CurrObjSec) then
-          internalerror(200603051);
+          internalerror(2006030504);
         result:=CreateSymbol(aname);
         result.SetAddress(CurrPass,CurrObjSec,abind,atyp);
       end;
@@ -1744,7 +1744,7 @@ implementation
             if (oso_data in sec.SecOptions) then
               begin
                 if sec.Data=nil then
-                  internalerror(200403073);
+                  internalerror(2004030707);
                 FWriter.writezeros(sec.dataalignbytes);
                 if sec.Datapos<>FWriter.ObjSize then
                   internalerror(200604031);
@@ -2259,7 +2259,7 @@ implementation
       begin
         objsym:=TObjSymbol(internalObjData.ObjSymbolList.Find(aname));
         if (objsym=nil) or (objsym.ObjSection.ObjData<>internalObjData) then
-          internalerror(200603041);
+          internalerror(2006030403);
         exesym:=TExeSymbol(ExeSymbolList.Find(aname));
         if not assigned(exesym) then
           internalerror(201206301);
@@ -2385,7 +2385,7 @@ implementation
         if indexpos=MAXVAL then
           begin
             Comment(V_Error,'Too many values '+avalue);
-            internalerror(200602254);
+            internalerror(2006022505);
           end;
         len:=bytesize*indexpos;
         inc(Fvaluesnr);
@@ -3466,7 +3466,7 @@ implementation
               else if assigned(refgrp) then
                 exemap.Add('  References '+refgrp.Name)
               else
-                internalerror(200603316);
+                internalerror(2006033111);
             end;
           if assigned(refobjsec) then
             AddToObjSectionWorkList(refobjsec);
@@ -3533,7 +3533,7 @@ implementation
                       if not assigned(vtableexesym) then
                         internalerror(200603315);
                       if not assigned(vtableexesym.vtable) then
-                        internalerror(200603316);
+                        internalerror(2006033112);
                       DoVTableRef(vtableexesym.vtable,vtableidx);
                     end;
                 end;
@@ -3631,7 +3631,7 @@ implementation
                   internalerror(200603301);
                 if (objsec.ObjRelocations.Count>0) and
                    not assigned(objsec.data) then
-                  internalerror(200205183);
+                  internalerror(2002051801);
                 DoRelocationFixup(objsec);
                 {for size = 0 data is not valid PM }
                 if assigned(objsec.data) and (objsec.data.size<>objsec.size) then
@@ -3685,7 +3685,7 @@ implementation
             if oso_data in exesec.SecOptions then
               begin
                 if exesec.DataPos<FWriter.Size then
-                  InternalError(2012103001);
+                  InternalError(2012103002);
                 FWriter.Writezeros(exesec.DataPos-FWriter.Size);
                 for i:=0 to exesec.ObjSectionList.Count-1 do
                   begin
@@ -3693,13 +3693,13 @@ implementation
                     if oso_data in objsec.secoptions then
                       begin
                         if not assigned(objsec.data) then
-                          internalerror(200603042);
+                          internalerror(2006030404);
                         dpos:=objsec.MemPos-exesec.MemPos+exesec.DataPos;
                         pad:=dpos-FWriter.Size;
                         { objsection must be within SecAlign bytes from the previous one }
                         if (dpos<FWriter.Size) or
                           (pad>=max(objsec.SecAlign,1)) then
-                          internalerror(200602251);
+                          internalerror(2006022503);
                         FWriter.writeZeros(pad);
                         FWriter.writearray(objsec.data);
                       end;

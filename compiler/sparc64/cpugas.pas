@@ -163,7 +163,7 @@ implementation
               else
                 getopstr:=getreferencestring(ref^);
             else
-              internalerror(10001);
+              internalerror(2020100808);
           end;
         end;
 

@@ -126,6 +126,7 @@ Type
     function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
     function InternalStrToFloat(C: pchar; Len: integer): Extended;
     function InternalStrToInt(C: pchar; Len: integer): integer;
+    function InternalStrToDWord(C: pchar; Len: integer): DWord;
     function InternalStrToInt64(C: pchar; Len: integer): Int64;
     function InternalStrToTime(C: pchar; Len: integer): TDateTime;
     function StrToMSecs(C: pchar; Len: integer): Word;
@@ -742,6 +743,8 @@ begin
       begin
       if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
         NewType := ftAutoInc
+      else if AField^.flags and UNSIGNED_FLAG <> 0 then
+        NewType := ftLongWord
       else
         NewType := ftInteger;
       end;
@@ -924,6 +927,17 @@ begin
     exit;
   SetString(S,C,Len);
   Result:=StrToInt(S);
+end;
+
+function TConnectionName.InternalStrToDWord(C: pchar; Len: integer): DWord;
+Var
+  S : String;
+begin
+  Result := 0;
+  if (Len=0) or (C=Nil) then
+    exit;
+  SetString(S,C,Len);
+  Result:=StrToDWord(S);
 end;
 
 function TConnectionName.InternalStrToInt64(C: pchar; Len: integer): Int64;
@@ -1112,6 +1126,7 @@ var
   VL: LargeInt;
   VS: Smallint;
   VW: Word;
+  VO: LongWord;
   VF: Double;
   VC: Currency;
   VD: TDateTime;
@@ -1152,6 +1167,11 @@ begin
       {$ENDIF}
       VL := InternalStrToInt64(Source, Len);
       Move(VL, Dest^, SizeOf(LargeInt));
+      end;
+    ftLongWord:
+      begin
+      VO := InternalStrToDWord(Source, Len);
+      Move(VO, Dest^, SizeOf(LongWord));
       end;
     ftFloat:
       begin

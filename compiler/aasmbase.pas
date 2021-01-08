@@ -313,7 +313,7 @@ implementation
             Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
             Result:='_'+target_asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
             if Length(Result)>target_asm.labelmaxlen then
-              Internalerror(2020042501);
+              Internalerror(2020042502);
           end;
       end;
 

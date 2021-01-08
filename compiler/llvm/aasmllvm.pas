@@ -671,7 +671,7 @@ uses
                 2:
                   result:=oper[1]^.def;
                 else
-                  internalerror(2013110105);
+                  internalerror(2013110111);
               end;
             end;
           la_fence,

@@ -86,7 +86,7 @@ interface
         function has_assembler_child : boolean;
         procedure set_eh_info; override;
 {$ifdef DEBUG_NODE_XML}
-        procedure XMLPrintProc;
+        procedure XMLPrintProc(FirstHalf: Boolean);
 {$endif DEBUG_NODE_XML}
       end;
 
@@ -237,14 +237,6 @@ implementation
           begin
             currpara:=tparavarsym(procdef.paras[i]);
             case currpara.vardef.typ of
-              formaldef :
-                begin
-                  if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
-                    begin
-                      _no_inline('formal parameter');
-                      exit;
-                    end;
-                end;
               arraydef :
                 begin
                   if is_array_of_const(currpara.vardef) or
@@ -377,12 +369,6 @@ implementation
 
         if assigned(current_procinfo.procdef.parentfpstruct) then
          begin
-           { we only do this after the code has been parsed because
-             otherwise for-loop counters moved to the struct cause
-             errors; we still do it nevertheless to prevent false
-             "unused" symbols warnings and to assist debug info
-             generation }
-           redirect_parentfpstruct_local_syms(current_procinfo.procdef);
            { finish the parentfpstruct (add padding, ...) }
            finish_parentfpstruct(current_procinfo.procdef);
          end;
@@ -673,7 +659,7 @@ implementation
                             nil));
                       end
                     else
-                      internalerror(200305108);
+                      internalerror(2003051001);
                   end
                 else
                   if is_object(current_structdef) then
@@ -935,6 +921,11 @@ implementation
         exitlabel_asmnode:=casmnode.create_get_position;
         temps_finalized:=false;
         bodyexitcode:=generate_bodyexit_block;
+        { Check if bodyexitcode is not empty }
+        with tstatementnode(tblocknode(bodyexitcode).statements) do
+          if (statement.nodetype<>nothingn) or assigned(next) then
+            { Indicate that the extra code is executed after the exit statement }
+            include(flowcontrol,fc_no_direct_exit);
 
         { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
@@ -1054,7 +1045,7 @@ implementation
       end;
 
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(riscv32) or defined(riscv64)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(riscv32) or defined(riscv64) or defined(m68k)}
     const
       exception_flags: array[boolean] of tprocinfoflags = (
         [],
@@ -1066,7 +1057,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(i386) or defined(x86_64) or defined(arm)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(m68k)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
@@ -1135,7 +1126,12 @@ implementation
                 generate_parameter_info;
 
                 if not(procdef.stack_tainting_parameter(calleeside)) and
-                   not(has_assembler_child) {and (para_stack_size=0)} then
+                   not(has_assembler_child)
+                  { parasize must be really zero, this means also that no result may be returned
+                    in a parameter }
+                  and not((current_procinfo.procdef.proccalloption in clearstack_pocalls) and
+                  not(current_procinfo.procdef.generate_safecall_wrapper) and
+                  paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) then
                   begin
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
@@ -1164,7 +1160,7 @@ implementation
 {$endif defined(arm)}
               end;
           end;
-{$endif defined(x86) or defined(arm)}
+{$endif defined(x86) or defined(arm) or defined(m68k)}
 {$if defined(xtensa)}
         { On xtensa, the stack frame size can be estimated to avoid using an extra frame pointer,
           in case parameters are passed on the stack.
@@ -1439,15 +1435,19 @@ implementation
 
 
 {$ifdef DEBUG_NODE_XML}
-    procedure tcgprocinfo.XMLPrintProc;
+    procedure tcgprocinfo.XMLPrintProc(FirstHalf: Boolean);
       var
         T: Text;
         W: Word;
         syssym: tsyssym;
+        separate : boolean;
 
       procedure PrintType(Flag: string);
         begin
-          Write(T, ' type="', Flag, '"');
+          if df_generic in procdef.defoptions then
+            Write(T, ' type="generic ', Flag, '"')
+          else
+            Write(T, ' type="', Flag, '"');
         end;
 
       procedure PrintOption(Flag: string);
@@ -1469,109 +1469,132 @@ implementation
             Exit;
           end;
         {$pop}
-        Write(T, PrintNodeIndention, '<subroutine');
 
-        { Check to see if the procedure is a class or object method }
-        if Assigned(procdef.struct) then
+        separate := (df_generic in procdef.defoptions);
+
+        { First half prints the header and the nodes as a "code" tag }
+        if FirstHalf or separate then
           begin
-            if Assigned(procdef.struct.objrealname) then
-              Write(T, ' struct="', TNode.SanitiseXMLString(procdef.struct.objrealname^), '"')
-            else
-              Write(T, ' struct="&lt;NULL&gt;"');
+            Write(T, PrintNodeIndention, '<subroutine');
+            { Check to see if the procedure is a class or object method }
+            if Assigned(procdef.struct) then
+              begin
+                if Assigned(procdef.struct.objrealname) then
+                  Write(T, ' struct="', SanitiseXMLString(procdef.struct.objrealname^), '"')
+                else
+                  Write(T, ' struct="&lt;NULL&gt;"');
+              end;
+            case procdef.proctypeoption of
+              potype_none:
+                { Do nothing - should this be an internal error though? };
+              potype_procedure,
+              potype_function:
+                if po_classmethod in procdef.procoptions then
+                  begin
+                    if po_staticmethod in procdef.procoptions then
+                      PrintType('static class method')
+                    else
+                      PrintType('class method');
+                  end
+                else if df_generic in procdef.defoptions then
+                  Write(T, ' type="generic"');
+              potype_proginit,
+              potype_unitinit:
+                PrintType('initialization');
+              potype_unitfinalize:
+                PrintType('finalization');
+              potype_constructor:
+                PrintType('constructor');
+              potype_destructor:
+                PrintType('destructor');
+              potype_operator:
+                PrintType('operator');
+              potype_class_constructor:
+                PrintType('class constructor');
+              potype_class_destructor:
+                PrintType('class destructor');
+              potype_propgetter:
+                PrintType('dispinterface getter');
+              potype_propsetter:
+                PrintType('dispinterface setter');
+              potype_exceptfilter:
+                PrintType('except filter');
+              potype_mainstub:
+                PrintType('main stub');
+              potype_libmainstub:
+                PrintType('library main stub');
+              potype_pkgstub:
+                PrintType('package stub');
+            end;
+
+            Write(T, ' name="', SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
+            if po_hascallingconvention in procdef.procoptions then
+              Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
+            WriteLn(T, '>');
+
+            PrintNodeIndent;
+
+            if Assigned(procdef.returndef) and not is_void(procdef.returndef) then
+              WriteLn(T, PrintNodeIndention, '<returndef>', SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
+
+            if po_reintroduce in procdef.procoptions then
+              PrintOption('reintroduce');
+            if po_virtualmethod in procdef.procoptions then
+              PrintOption('virtual');
+            if po_finalmethod in procdef.procoptions then
+              PrintOption('final');
+            if po_overridingmethod in procdef.procoptions then
+              PrintOption('override');
+            if po_overload in procdef.procoptions then
+              PrintOption('overload');
+            if po_compilerproc in procdef.procoptions then
+              PrintOption('compilerproc');
+            if po_assembler in procdef.procoptions then
+              PrintOption('assembler');
+            if po_nostackframe in procdef.procoptions then
+              PrintOption('nostackframe');
+            if po_inline in procdef.procoptions then
+              PrintOption('inline');
+            if po_noreturn in procdef.procoptions then
+              PrintOption('noreturn');
+            if po_noinline in procdef.procoptions then
+              PrintOption('noinline');
           end;
 
-        case procdef.proctypeoption of
-          potype_none: { Do nothing };
+          if Assigned(Code) then
+            begin
+              if FirstHalf then
+                WriteLn(T, PrintNodeIndention, '<code>')
+              else
+                begin
+                  WriteLn(T); { Line for spacing }
+                  WriteLn(T, PrintNodeIndention, '<firstpass>');
+                end;
 
-          potype_procedure,
-          potype_function:
-            if po_classmethod in procdef.procoptions then
-              begin
-                if po_staticmethod in procdef.procoptions then
-                  PrintType('static class method')
-                else
-                  PrintType('class method');
-              end;
-            { Do nothing otherwise }
+              PrintNodeIndent;
+              XMLPrintNode(T, Code);
+              PrintNodeUnindent;
 
-          potype_proginit,
-          potype_unitinit:
-            PrintType('initialization');
-          potype_unitfinalize:
-            PrintType('finalization');
-          potype_constructor:
-            PrintType('constructor');
-          potype_destructor:
-            PrintType('destructor');
-          potype_operator:
-            PrintType('operator');
-          potype_class_constructor:
-            PrintType('class constructor');
-          potype_class_destructor:
-            PrintType('class destructor');
-          potype_propgetter:
-            PrintType('dispinterface getter');
-          potype_propsetter:
-            PrintType('dispinterface setter');
-          potype_exceptfilter:
-            PrintType('except filter');
-          potype_mainstub:
-            PrintType('main stub');
-          potype_libmainstub:
-            PrintType('library main stub');
-          potype_pkgstub:
-            PrintType('package stub');
-        end;
+              if FirstHalf then
+                WriteLn(T, PrintNodeIndention, '</code>')
+              else
+                WriteLn(T, PrintNodeIndention, '</firstpass>');
+            end
+          else { Code=Nil }
+            begin
+              { Don't print anything for second half - if there's no code, there's no firstpass }
+              if FirstHalf then
+                WriteLn(T, PrintNodeIndention, '<code />');
+            end;
 
-        Write(T, ' name="', TNode.SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
-
-        if po_hascallingconvention in procdef.procoptions then
-          Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
-
-        WriteLn(T, '>');
-
-        PrintNodeIndent;
-
-        if Assigned(procdef.returndef) and not is_void(procdef.returndef) then
-          WriteLn(T, PrintNodeIndention, '<returndef>', TNode.SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
-
-        if po_reintroduce in procdef.procoptions then
-          PrintOption('reintroduce');
-        if po_virtualmethod in procdef.procoptions then
-          PrintOption('virtual');
-        if po_finalmethod in procdef.procoptions then
-          PrintOption('final');
-        if po_overridingmethod in procdef.procoptions then
-          PrintOption('override');
-        if po_overload in procdef.procoptions then
-          PrintOption('overload');
-        if po_compilerproc in procdef.procoptions then
-          PrintOption('compilerproc');
-        if po_assembler in procdef.procoptions then
-          PrintOption('assembler');
-        if po_nostackframe in procdef.procoptions then
-          PrintOption('nostackframe');
-        if po_inline in procdef.procoptions then
-          PrintOption('inline');
-        if po_noreturn in procdef.procoptions then
-          PrintOption('noreturn');
-        if po_noinline in procdef.procoptions then
-          PrintOption('noinline');
-
-        if Assigned(Code) then
+        { Print footer only for second half }
+        if (not FirstHalf) or separate then
           begin
-            WriteLn(T, PrintNodeIndention, '<code>');
-            PrintNodeIndent;
-            XMLPrintNode(T, Code);
             PrintNodeUnindent;
-            WriteLn(T, PrintNodeIndention, '</code>');
-          end
-        else
-          WriteLn(T, PrintNodeIndention, '<code />');
+            WriteLn(T, PrintNodeIndention, '</subroutine>');
+            WriteLn(T); { Line for spacing }
+          end;
 
-        PrintNodeUnindent;
-        WriteLn(T, PrintNodeIndention, '</subroutine>');
-        WriteLn(T); { Line for spacing }
         Close(T);
       end;
 {$endif DEBUG_NODE_XML}
@@ -1791,7 +1814,14 @@ implementation
           don't need to generate anything. When it was an empty
           procedure there would be at least a blocknode }
         if not assigned(code) then
-          exit;
+          begin
+{$ifdef DEBUG_NODE_XML}
+            { Print out nodes as they appear after the first pass }
+            XMLPrintProc(True);
+            XMLPrintProc(False);
+{$endif DEBUG_NODE_XML}
+            exit;
+          end;
 
         { We need valid code }
         if Errorcount<>0 then
@@ -1885,6 +1915,10 @@ implementation
            (procdef.proccalloption=pocall_safecall) then
           include(flags, pi_needs_implicit_finally);
 {$endif}
+{$ifdef DEBUG_NODE_XML}
+        { Print out nodes as they appear after the first pass }
+        XMLPrintProc(True);
+{$endif DEBUG_NODE_XML}
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
@@ -1914,7 +1948,14 @@ implementation
           do_optloadmodifystore(code);
 
         { only do secondpass if there are no errors }
-        if (ErrorCount=0) then
+        if (ErrorCount<>0) then
+          begin
+{$ifdef DEBUG_NODE_XML}
+            { Print out nodes as they appear after the first pass }
+            XMLPrintProc(False);
+{$endif DEBUG_NODE_XML}
+          end
+        else
           begin
             create_hlcodegen;
 
@@ -1963,6 +2004,11 @@ implementation
             { Print the node to tree.log }
             if paraprintnodetree <> 0 then
               printproc( 'right before code generation');
+
+{$ifdef DEBUG_NODE_XML}
+            { Print out nodes as they appear after the first pass }
+            XMLPrintProc(False);
+{$endif DEBUG_NODE_XML}
 
             { generate code for the node tree }
             do_secondpass(code);
@@ -2119,7 +2165,7 @@ implementation
 
             { translate imag. register to their real counter parts
               this is necessary for debuginfo and verbose assembler output
-              when SSA will be implented, this will be more complicated because we've to
+              when SSA will be implemented, this will be more complicated because we've to
               maintain location lists }
             procdef.parast.SymList.ForEachCall(@translate_registers,templist);
             procdef.localst.SymList.ForEachCall(@translate_registers,templist);
@@ -2226,7 +2272,19 @@ implementation
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
+             begin
+               { We only do this after the code generated because
+                 otherwise for-loop counters moved to the struct cause
+                 errors. And doing it before optimisation passes have run
+                 causes problems when they manually look up symbols
+                 like result and self (nutils.load_self_node etc). Still
+                 do it nevertheless to to assist debug info generation
+                 (hide original symbols, add absolutevarsyms that redirect
+                  to their new locations in the parentfpstruct) }
+              if assigned(current_procinfo.procdef.parentfpstruct) then
+                redirect_parentfpstruct_local_syms(current_procinfo.procdef);
               current_debuginfo.insertlineinfo(aktproccode);
+             end;
 
             finish_eh;
 
@@ -2472,8 +2530,10 @@ implementation
            printproc( 'after parsing');
 
 {$ifdef DEBUG_NODE_XML}
-         printnodeindention := printnodespacing;
-         XMLPrintProc;
+         { Methods of generic classes don't get any code generated, so output
+           the node tree here }
+         if (df_generic in procdef.defoptions) then
+           XMLPrintProc(True);
 {$endif DEBUG_NODE_XML}
 
          { ... remove symbol tables }
@@ -2913,6 +2973,8 @@ implementation
         WriteLn(T, '<?xml version="1.0" encoding="utf-8"?>');
         WriteLn(T, '<', RootName, ' name="', ModuleName, '">');
         Close(T);
+
+        printnodeindention := printnodespacing;
       end;
 
 

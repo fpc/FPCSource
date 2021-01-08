@@ -155,6 +155,9 @@ begin
     FieldDefs.Add('FWIDESTRING',ftWideString,10);
     FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar,10);
     FieldDefs.Add('FWIDEMEMO',ftWideMemo);
+    FieldDefs.Add('FLONGWORD',ftLongWord);
+    FieldDefs.Add('FSHORTINT',ftShortInt);
+    FieldDefs.Add('FBYTE',ftByte);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -183,6 +186,9 @@ begin
       FieldByName('FWIDESTRING').AsString := testStringValues[i];
       FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FWIDEMEMO').AsString := testStringValues[i];
+      FieldByName('FLONGWORD').AsLongWord := testLongWordValues[i];
+      FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
+      FieldByName('FBYTE').AsInteger := testByteValues[i];
       Post;
     end;
     MergeChangeLog;

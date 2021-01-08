@@ -349,7 +349,7 @@ begin
   if info=0 then                 { frame register cannot be RAX }
     InternalError(2011072304);
   if (ofs>240) or ((ofs and 15)<>0) then
-    InternalError(2011072310);
+    InternalError(2011072309);
   FFrameReg:=info;
   FFrameOffs:=ofs;
   { !! looks like docs aren't correct and info should be set to register }

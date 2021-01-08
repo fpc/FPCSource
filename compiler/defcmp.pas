@@ -843,11 +843,11 @@ implementation
                          { and conversion to float is favoured)                }
                          doconv:=tc_int_2_real;
                          if is_extended(def_to) then
-                           eq:=te_convert_l2
+                           eq:=te_convert_l1
                          else if is_double(def_to) then
-                           eq:=te_convert_l3
+                           eq:=te_convert_l2
                          else if is_single(def_to) then
-                           eq:=te_convert_l4
+                           eq:=te_convert_l3
                          else
                            eq:=te_convert_l2;
                        end;
@@ -2622,8 +2622,9 @@ implementation
     function equal_genfunc_paradefs(fwdef,currdef:tdef;fwpdst,currpdst:tsymtable): boolean;
       begin
         result:=false;
-        if (sp_generic_para in fwdef.typesym.symoptions) and
-            (sp_generic_para in currdef.typesym.symoptions) and
+        { for open array parameters, typesym might not be assigned }
+        if assigned(fwdef.typesym) and (sp_generic_para in fwdef.typesym.symoptions) and
+           assigned(currdef.typesym) and (sp_generic_para in currdef.typesym.symoptions) and
             (fwdef.owner=fwpdst) and
             (currdef.owner=currpdst) then
           begin

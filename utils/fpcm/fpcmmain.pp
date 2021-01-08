@@ -78,7 +78,7 @@ interface
         o_palmos,o_macosclassic,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
         o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
         o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_wasm,o_freertos,
-        o_zxspectrum,o_msxdos,o_ios,o_amstradcpc
+        o_zxspectrum,o_msxdos,o_ios,o_amstradcpc,o_sinclairql
       );
 
       TTargetSet=array[tcpu,tos] of boolean;
@@ -103,7 +103,7 @@ interface
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
         'dragonfly', 'win16', 'wasm', 'freertos', 'zxspectrum', 'msxdos',
-        'ios','amstradcpc'
+        'ios','amstradcpc','sinclairql'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -113,7 +113,7 @@ interface
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_wasm','_freertos','_zxspectrum','_msxdos',
-        '_ios','_amstradcpc'
+        '_ios','_amstradcpc','_sinclairql'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -162,7 +162,8 @@ interface
         {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true),
         { msxdos}   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true),
         { ios }     ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true , false, false, false,  false,  false, false),
-        {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true)
+        {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true),
+        {sinclairql}( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, false)
       );
 
     type

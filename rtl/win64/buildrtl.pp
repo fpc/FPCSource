@@ -14,7 +14,8 @@ unit buildrtl;
       charset, character, getopts,
       fpwidestring,
       sharemem, exeinfo, fpintres, windirs,
-      {$ifndef CPUAARCH64}cpu, signals,{$endif} sfpux80;
+      {$ifndef CPUAARCH64}cpu, signals,{$endif}
+      softfpu, sfpux80, sfpu128, ufloatx80, ufloat128;
 
   implementation
 

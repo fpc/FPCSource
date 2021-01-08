@@ -92,10 +92,11 @@ interface
     function lower(const s : ansistring) : ansistring;
     function rpos(const needle: char; const haystack: shortstring): longint; overload;
     function rpos(const needle: shortstring; const haystack: shortstring): longint; overload;
-    function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
+    function trimspace(const s:AnsiString):AnsiString;
     function space (b : longint): string;
     function PadSpace(const s:string;len:longint):string;
+    function PadSpace(const s:AnsiString;len:longint):AnsiString;
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
     function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
@@ -769,23 +770,24 @@ implementation
       end;
 
 
-    function trimbspace(const s:string):string;
+    function trimspace(const s:string):string;
     {
-      return s with all leading spaces and tabs removed
+      return s with all leading and ending spaces and tabs removed
     }
       var
         i,j : longint;
       begin
-        j:=1;
         i:=length(s);
+        while (i>0) and (s[i] in [#9,' ']) do
+         dec(i);
+        j:=1;
         while (j<i) and (s[j] in [#9,' ']) do
          inc(j);
-        trimbspace:=Copy(s,j,i-j+1);
+        trimspace:=Copy(s,j,i-j+1);
       end;
 
 
-
-    function trimspace(const s:string):string;
+    function trimspace(const s:AnsiString):AnsiString;
     {
       return s with all leading and ending spaces and tabs removed
     }
@@ -814,6 +816,18 @@ implementation
 
 
     function PadSpace(const s:string;len:longint):string;
+    {
+      return s with spaces add to the end
+    }
+      begin
+         if length(s)<len then
+          PadSpace:=s+Space(len-length(s))
+         else
+          PadSpace:=s;
+      end;
+
+
+    function PadSpace(const s:AnsiString;len:longint):AnsiString;
     {
       return s with spaces add to the end
     }

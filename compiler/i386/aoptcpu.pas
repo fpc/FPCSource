@@ -143,8 +143,14 @@ unit aoptcpu;
                   Result:=OptPass1Imul(p);
                 A_CMP:
                   Result:=OptPass1Cmp(p);
+                A_VPXORD,
+                A_VPXORQ,
+                A_VXORPS,
+                A_VXORPD,
                 A_VPXOR:
                   Result:=OptPass1VPXor(p);
+                A_XORPS,
+                A_XORPD,
                 A_PXOR:
                   Result:=OptPass1PXor(p);
                 A_FLD:
@@ -199,9 +205,7 @@ unit aoptcpu;
                 A_VANDPD,
                 A_VANDPS,
                 A_VORPD,
-                A_VORPS,
-                A_VXORPD,
-                A_VXORPS:
+                A_VORPS:
                   Result:=OptPass1VOP(p);
                 A_MULSD,
                 A_MULSS,
@@ -234,6 +238,8 @@ unit aoptcpu;
               if InsContainsSegRef(taicpu(p)) then
                 exit;
               case taicpu(p).opcode Of
+                A_ADD:
+                  Result:=OptPass2ADD(p);
                 A_Jcc:
                   Result:=OptPass2Jcc(p);
                 A_Lea:
@@ -246,6 +252,8 @@ unit aoptcpu;
                   Result:=OptPass2Jmp(p);
                 A_MOV:
                   Result:=OptPass2MOV(p);
+                A_MOVZX:
+                  Result:=OptPass2Movx(p);
                 A_SUB:
                   Result:=OptPass2SUB(p);
                 else
@@ -282,7 +290,9 @@ unit aoptcpu;
                   {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }
                   { so we can't safely replace the movzx then with xor/mov,   }
                   { since that would change the flags (JM)                    }
-                  if not(cs_opt_regvar in current_settings.optimizerswitches) then
+                  if PostPeepholeOptMovzx(p) then
+                    Result := True
+                  else if not(cs_opt_regvar in current_settings.optimizerswitches) then
                     begin
                       if (taicpu(p).oper[1]^.typ = top_reg) then
                         if (taicpu(p).oper[0]^.typ = top_reg)
@@ -330,8 +340,12 @@ unit aoptcpu;
                    end;
                 A_TEST, A_OR:
                   Result:=PostPeepholeOptTestOr(p);
+                A_AND:
+                  Result:=PostPeepholeOptAnd(p);
                 A_MOVSX:
                   Result:=PostPeepholeOptMOVSX(p);
+                A_SHR:
+                  Result:=PostPeepholeOptShr(p);
                 else
                   ;
               end;

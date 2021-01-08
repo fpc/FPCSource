@@ -696,6 +696,7 @@ type
     function GetObjectCount: Integer;
     function CreateAnnotList: TPDFAnnotList; virtual;
     procedure SetOrientation(AValue: TPDFPaperOrientation);
+    procedure SetPaper(AValue: TPDFPaper);
     procedure SetPaperType(AValue: TPDFPaperType);
     procedure AddTextToLookupLists(AText: UTF8String);
     procedure SetUnitOfMeasure(AValue: TPDFUnitOfMeasure);
@@ -785,8 +786,8 @@ type
     // Quick settings for Paper.
     Property PaperType : TPDFPaperType Read FPaperType Write SetPaperType default ptA4;
     Property Orientation : TPDFPaperOrientation Read FOrientation Write SetOrientation;
-    // Set this if you want custom paper size. You must set this before setting PaperType = ptCustom.
-    Property Paper : TPDFPaper Read FPaper Write FPaper;
+    // Set this if you want custom paper size. Setting this will set PaperType to ptCustom.
+    Property Paper : TPDFPaper Read FPaper Write SetPaper;
     // Unit of Measure - how the PDF Page should convert the coordinates and dimensions
     property UnitOfMeasure: TPDFUnitOfMeasure read FUnitOfMeasure write SetUnitOfMeasure default uomMillimeters;
     Property ObjectCount: Integer Read GetObjectCount;
@@ -1241,6 +1242,11 @@ function PDFtoInches(APixels: TPDFFloat): single;
 
 function PDFCoord(x, y: TPDFFloat): TPDFCoord;
 
+Operator = (a,b : TPDFDimensions) z : boolean;
+Operator = (a,b : TPDFPaper) z : boolean;
+
+
+
 implementation
 
 uses
@@ -1285,9 +1291,20 @@ const
 Var
   PDFFormatSettings : TFormatSettings;
 
-//Works correctly ony with Now (problem with DST depended on time)
-//Is used only for CreationDate and it is usualy Now
-function GetLocalTZD(ISO8601: Boolean): string;
+Operator = (a,b : TPDFDimensions) z : boolean;
+
+begin
+  z:=(a.B=b.b) and (a.T=b.t) and (a.l=b.l) and (a.r=b.r);
+end;
+
+Operator = (a,b : TPDFPaper) z : boolean;
+
+begin
+  z:=(a.H=b.H) and (a.W=b.W) and (a.Printable=b.Printable);
+end;
+
+
+function GetLocalTZD(ADate: TDateTime; ISO8601: Boolean): string;
 var
   i: Integer;
   fmt: string;
@@ -1296,7 +1313,7 @@ begin
     fmt := '%.2d:%.2d'
   else
     fmt := '%.2d''%.2d''';
-  i := GetLocalTimeOffset; //min
+  i := GetLocalTimeOffset(ADate, False); //min
   if i < 0 then
     Result := '+'
   else if i = 0 then begin
@@ -1310,7 +1327,7 @@ end;
 
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
-  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(False);
+  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(ADate, False);
 end;
 
 function FormatPDFInt(const Value: integer; PadLen: integer): string;
@@ -1509,7 +1526,7 @@ procedure TXMPStream.Write(const AStream: TStream);
 
   function DateToISO8601Date(t: TDateTime): string;
   begin
-    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(True);
+    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(t, True);
   end;
 
 var
@@ -2204,6 +2221,15 @@ begin
   AdjustMatrix;
 end;
 
+procedure TPDFPage.SetPaper(AValue: TPDFPaper);
+begin
+  if FPaper=AValue then exit;
+  FPaper:=AValue;
+  FPaperType:=ptCustom;
+  // No need to call calcpapersize
+  AdjustMatrix;
+end;
+
 procedure TPDFPage.CalcPaperSize;
 var
   PP: TPDFPaper;
@@ -2231,7 +2257,8 @@ procedure TPDFPage.SetPaperType(AValue: TPDFPaperType);
 begin
   if FPaperType=AValue then Exit;
   FPaperType:=AValue;
-  CalcPaperSize;
+  if FPaperType<>ptCustom then
+    CalcPaperSize;
   AdjustMatrix;
 end;
 
@@ -2312,20 +2339,21 @@ begin
   inherited Create(ADocument);
   FLastFont := nil;
   FLastFontColor := clBlack;
-  FPaperType := ptA4;
-  FUnitOfMeasure := uomMillimeters;
-  CalcPaperSize;
   If Assigned(ADocument) then
-  begin
+    begin
     PaperType := ADocument.DefaultPaperType;
     Orientation := ADocument.DefaultOrientation;
     FUnitOfMeasure:=ADocument.DefaultUnitOfMeasure;
-  end;
-
+    end
+  else
+    begin
+    FPaperType:=ptA4;
+    CalcPaperSize;
+    FUnitOfMeasure := uomMillimeters;
+    end;
   FMatrix._00 := 1;
   FMatrix._20 := 0;
   AdjustMatrix;
-
   FAnnots := CreateAnnotList;
 end;
 
