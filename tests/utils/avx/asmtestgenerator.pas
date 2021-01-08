@@ -2050,7 +2050,8 @@ begin
               end
               else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
-            else if AnsiSameText(sl_Operand, 'IMM8') then
+            else if AnsiSameText(sl_Operand, 'IMM8') or
+                    AnsiSameText(sl_Operand, 'IMM') then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otIMM8;
@@ -3953,10 +3954,12 @@ begin
       b512 := false;
 
       //TG TODO delete
-      if instab[i].opcode = a_vtestps then
+      if instab[i].opcode = a_blendpd then
       begin
         b512 := b512;
       end;
+
+
 
       for j := 0 to length(InsTab[i].code) - 1 do
       begin
@@ -4033,6 +4036,7 @@ begin
                OT_YMEM64: sOperands := sOperands + 'YMEM64,';
 
                  OT_IMM8: sOperands := sOperands + 'IMM8,';
+                 OT_IMMEDIATE: sOperands := sOperands + 'IMM,';
                  OT_NONE: sOperands := sOperands + ',';
 
 

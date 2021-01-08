@@ -30,7 +30,6 @@ uses
 begin
   with TAVXTestGenerator.Create do
   try
-    
 
     with TOptions.Create do
     try
