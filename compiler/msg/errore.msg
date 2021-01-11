@@ -1555,7 +1555,7 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
-parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+parser_e_global_generic_references_static=03339_E_Generic template in interface section references symbol in implementation section
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
 parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
@@ -1622,6 +1622,8 @@ parser_e_location_regpair_only_data=03358_E_Only data registers are supported fo
 % AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported
 parser_e_location_regpair_only_consecutive=03359_E_Only consecutive registers are supported for explicit location register pairs
 % MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
+parser_e_constructurs_cannot_take_type_parameters=03360_E_Constructors cannot take type parameters
+% The use of type parameters in constructors is not allowed.
 %
 % \end{description}
 %

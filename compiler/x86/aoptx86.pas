@@ -122,6 +122,7 @@ unit aoptx86;
         function PrePeepholeOptSxx(var p : tai) : boolean;
         function PrePeepholeOptIMUL(var p : tai) : boolean;
 
+        function OptPass1Add(var p: tai): boolean;
         function OptPass1AND(var p : tai) : boolean;
         function OptPass1_V_MOVAP(var p : tai) : boolean;
         function OptPass1VOP(var p : tai) : boolean;
@@ -3171,6 +3172,42 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.OptPass1Add(var p : tai) : boolean;
+      var
+        hp1 : tai;
+      begin
+        result:=false;
+        { replace
+            addX     const,%reg1
+            leaX     (%reg1,%reg1,Y),%reg2   // Base or index might not be equal to reg1
+            dealloc  %reg1
+
+            by
+
+            leaX     const+const*Y(%reg1,%reg1,Y),%reg2
+        }
+        if MatchOpType(taicpu(p),top_const,top_reg) and
+          GetNextInstruction(p,hp1) and
+          MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
+          ((taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.base) or
+           (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index)) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'AddLea2Lea done',p);
+                if taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.base then
+                  inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val);
+                if taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index then
+                  inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
+                RemoveCurrentP(p);
+                result:=true;
+              end;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass1LEA(var p : tai) : boolean;
       var
         hp1, hp2, hp3: tai;
@@ -3350,7 +3387,11 @@ unit aoptx86;
                ) or
                ((taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg) and
                 (taicpu(hp1).oper[0]^.ref^.scalefactor <= 1) and
-                (taicpu(p).oper[0]^.ref^.base=NR_NO) and
+                ((taicpu(p).oper[0]^.ref^.base=NR_NO) or
+                 ((taicpu(p).oper[0]^.ref^.base=taicpu(p).oper[0]^.ref^.base) and
+                  (taicpu(p).oper[0]^.ref^.index=NR_NO)
+                 )
+                ) and
                 not(RegUsedBetween(taicpu(p).oper[0]^.ref^.index,p,hp1)))
               ) and
               not(RegUsedBetween(taicpu(p).oper[0]^.ref^.base,p,hp1)) and
@@ -4945,7 +4986,7 @@ unit aoptx86;
         MinSize, MaxSize, TrySmaller, TargetSize: TOpSize;
         TargetSubReg: TSubRegister;
         hp1, hp2: tai;
-        RegInUse, p_removed: Boolean;
+        RegInUse, RegChanged, p_removed: Boolean;
 
         { Store list of found instructions so we don't have to call
           GetNextInstructionUsingReg multiple times }
@@ -4995,6 +5036,7 @@ unit aoptx86;
         TrySmallerLimit := UpperLimit;
         TrySmaller := S_NO;
         SmallerOverflow := False;
+        RegChanged := False;
 
         while GetNextInstructionUsingReg(hp1, hp1, ThisReg) and
           (hp1.typ = ait_instruction) and
@@ -5377,6 +5419,7 @@ unit aoptx86;
                             begin
                               DebugMsg(SPeepholeOptimization + 'Simplified register usage so ' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' = ' + debug_regname(taicpu(p).oper[1]^.reg), p);
                               ThisReg := taicpu(hp1).oper[1]^.reg;
+                              RegChanged := True;
 
                               TransferUsedRegs(TmpUsedRegs);
                               AllocRegBetween(ThisReg, p, hp1, TmpUsedRegs);
@@ -5411,9 +5454,12 @@ unit aoptx86;
                   { Now go through every instruction we found and change the
                     size. If TargetSize = MaxSize, then almost no changes are
                     needed and Result can remain False if it hasn't been set
-                    yet. }
+                    yet.
 
-                  if (TargetSize <> MaxSize) and (InstrMax >= 0) then
+                    If RegChanged is True, then the register requires changing
+                    and so the point about TargetSize = MaxSize doesn't apply. }
+
+                  if ((TargetSize <> MaxSize) or RegChanged) and (InstrMax >= 0) then
                     begin
                       for Index := 0 to InstrMax do
                         begin
@@ -5647,6 +5693,7 @@ unit aoptx86;
         symbol: TAsmSymbol;
         reg: tsuperregister;
         regavailable: Boolean;
+        tmpreg: TRegister;
       begin
         result:=false;
         symbol:=nil;
@@ -5750,17 +5797,16 @@ unit aoptx86;
                    ((Taicpu(hp1).opcode=A_INC) or (Taicpu(hp1).opcode=A_DEC))
                   ) then
                   begin
-                    TransferUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-
                     { search for an available register which is volatile }
                     regavailable:=false;
                     for reg in tcpuregisterset do
                       begin
+                        tmpreg:=newreg(R_INTREGISTER,reg,R_SUBL);
                         if (reg in paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption)) and
-                          not(reg in TmpUsedRegs[R_INTREGISTER].GetUsedRegs) and
-                          not(RegInInstruction(newreg(R_INTREGISTER,reg,R_SUBL),hp1))
+                          not(reg in UsedRegs[R_INTREGISTER].GetUsedRegs) and
+                          not(RegInInstruction(tmpreg,hp1))
 {$ifdef i386}
+                          { use only registers which can be accessed byte wise }
                           and (reg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX])
 {$endif i386}
                           then
@@ -5772,23 +5818,24 @@ unit aoptx86;
 
                     if regavailable then
                       begin
+                        TAsmLabel(symbol).decrefs;
                         Taicpu(p).clearop(0);
                         Taicpu(p).ops:=1;
                         Taicpu(p).is_jmp:=false;
                         Taicpu(p).opcode:=A_SETcc;
                         DebugMsg(SPeepholeOptimization+'JccAdd2SetccAdd',p);
                         Taicpu(p).condition:=inverse_cond(Taicpu(p).condition);
-                        Taicpu(p).loadreg(0,newreg(R_INTREGISTER,reg,R_SUBL));
+                        Taicpu(p).loadreg(0,tmpreg);
 
                         if getsubreg(Taicpu(hp1).oper[1]^.reg)<>R_SUBL then
                           begin
                             case getsubreg(Taicpu(hp1).oper[1]^.reg) of
                               R_SUBW:
-                                hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BW,newreg(R_INTREGISTER,reg,R_SUBL),
+                                hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BW,tmpreg,
                                   newreg(R_INTREGISTER,reg,R_SUBW));
                               R_SUBD,
                               R_SUBQ:
-                                hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,newreg(R_INTREGISTER,reg,R_SUBL),
+                                hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,tmpreg,
                                   newreg(R_INTREGISTER,reg,R_SUBD));
                               else
                                 Internalerror(2020030601);
@@ -7476,7 +7523,8 @@ unit aoptx86;
                   (taicpu(hp1).opcode = A_TEST) and MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^)
                 )
               ) and
-              (reg2opsize(taicpu(hp1).oper[1]^.reg) <= reg2opsize(taicpu(p).oper[1]^.reg)) then
+              (reg2opsize(taicpu(hp1).oper[1]^.reg) <= reg2opsize(taicpu(p).oper[1]^.reg)) and
+              SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[1]^.reg) then
               begin
                 PreMessage := debug_op2str(taicpu(hp1).opcode) + debug_opsize2str(taicpu(hp1).opsize) + ' ' + debug_operstr(taicpu(hp1).oper[0]^) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' -> ' + debug_op2str(taicpu(hp1).opcode);
 
