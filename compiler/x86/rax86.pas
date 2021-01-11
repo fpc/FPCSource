@@ -1247,8 +1247,10 @@ begin
            end;
        OPR_REFERENCE:
          begin
-           if (opcode<>A_XLAT) and not is_x86_string_op(opcode) then
+           if (not(MemRefInfo(opcode).MemRefSize in MemRefSizeInfoVMems)) and
+              (opcode<>A_XLAT) and not is_x86_string_op(opcode) then
              optimize_ref(operands[i].opr.ref,true);
+
            ai.loadref(i-1,operands[i].opr.ref);
            if operands[i].size<>OS_NO then
              begin
@@ -1276,7 +1278,7 @@ begin
 
                          this applies only to i386, see tw16622}
 
-                       if gas_needsuffix[opcode] in [attsufFPU,attsufFPUint] then
+                       if (gas_needsuffix[opcode] in [attsufFPU,attsufFPUint]) or (MemRefInfo(opcode).ExistsSSEAVX) then
                          asize:=OT_BITS64
 {$ifdef i386}
                        else
