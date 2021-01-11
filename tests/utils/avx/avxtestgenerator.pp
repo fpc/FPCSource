@@ -31,6 +31,8 @@ begin
   with TAVXTestGenerator.Create do
   try
 
+    TAsmTestGenerator.CalcTestInstFile;
+
     with TOptions.Create do
     try
       LoadParams;
