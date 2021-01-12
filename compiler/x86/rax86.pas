@@ -1680,21 +1680,11 @@ begin
                     ;
                 end;
               end;
-            //A_MOVSS,
-            //A_VMOVSS,
             A_MOVD : { movd is a move from a mmx register to a
                        32 bit register or memory, so no opsize is correct here PM }
               exit;
             A_MOVQ :
               opsize:=S_IQ;
-            //A_VCVTPD2DQ,
-            //A_VCVTPD2PS,
-            //A_VCVTTPD2DQ,
-            //A_VCVTPD2UDQ,
-            //A_VCVTQQ2PS,
-            //A_VCVTTPD2UDQ,
-            //A_VCVTUQQ2PS,
-
             A_OUT :
               opsize:=tx86operand(operands[1]).opsize;
             else
@@ -1702,26 +1692,8 @@ begin
               opsize:=tx86operand(operands[2]).opsize;
           end;
         end;
-    3 :
-        begin
-          //case opcode of
-            //A_VCVTSI2SS,
-            //A_VCVTSI2SD,
-            //A_VCVTUSI2SS,
-            //A_VCVTUSI2SD:
-            //  opsize:=tx86operand(operands[1]).opsize;
-            //A_VFPCLASSPD,
-            //A_VFPCLASSPS:
-            //  iops:=tx86operand(operands[2]).opsize;
-            //else
-            begin
-              if not CheckSSEAVX then
-               opsize:=tx86operand(operands[ops]).opsize;
-            end;
-          //end;
-        end;
-    4 : if not CheckSSEAVX then
-         opsize:=tx86operand(operands[ops]).opsize;
+    3,4 : if not CheckSSEAVX then
+           opsize:=tx86operand(operands[ops]).opsize;
   end;
 end;
 
