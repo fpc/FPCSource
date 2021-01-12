@@ -872,6 +872,9 @@ begin
             opsize:=S_IQ;
           A_CVTSI2SS,
           A_CVTSI2SD,
+          A_VCVTPD2DQ,
+          A_VCVTTPD2DQ,
+          A_VCVTPD2PS,
           A_OUT :
             opsize:=tx86operand(operands[1]).opsize;
           else
