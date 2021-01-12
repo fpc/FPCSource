@@ -4933,6 +4933,7 @@ implementation
     var
       AsmOp: TasmOp;
       i,j: longint;
+      iCntOpcodeValError: longint;
       insentry  : PInsEntry;
 
       MRefInfo: TMemRefSizeInfo;
@@ -4994,6 +4995,7 @@ implementation
       new(InsTabMemRefSizeInfoCache);
       FillChar(InsTabMemRefSizeInfoCache^,sizeof(TInsTabMemRefSizeInfoCache),0);
 
+      iCntOpcodeValError := 0;
       for AsmOp := low(TAsmOp) to high(TAsmOp) do
       begin
         i := InsTabCache^[AsmOp];
@@ -5529,7 +5531,8 @@ implementation
              (not(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples)) then
           begin
             // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat');
-            //InternalError(20210102);
+
+            inc(iCntOpcodeValError);
             Str(gas_needsuffix[AsmOp],hs1);
             Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
             Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
@@ -5537,6 +5540,9 @@ implementation
           end;
         end;
       end;
+
+      if iCntOpcodeValError > 0 then
+       InternalError(2021011201);
 
       for AsmOp := low(TAsmOp) to high(TAsmOp) do
       begin
