@@ -2316,6 +2316,32 @@ begin
               Item.Values.Add(' gRec.rZWord');
 
             end
+            else if AnsiSameText(sl_Operand, 'MEM') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM8;
+              Item.OpActive := true;
+
+              Item.Values.Add('lByte');
+              Item.Values.Add('gByte');
+              Item.Values.Add('clByte');
+              Item.Values.Add('cgByte');
+
+              Item.Values.Add('byte lByte');
+              Item.Values.Add('byte gByte');
+              Item.Values.Add('byte clByte');
+              Item.Values.Add('byte cgByte');
+
+              Item.Values.Add(' lRec');
+              Item.Values.Add(' gRec');
+
+              Item.Values.Add(' byte lRec');
+              Item.Values.Add(' byte gRec');
+
+              Item.Values.Add(' lRec.rByte');
+              Item.Values.Add(' gRec.rByte');
+            end
+
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
               Item.OpNumber := il_Op;
@@ -2580,7 +2606,8 @@ begin
               Item.Values.Add('lQWord');
               Item.Values.Add('gQWord');
             end
-            else if AnsiSameText(sl_Operand, 'IMM8') then
+            else if AnsiSameText(sl_Operand, 'IMM8') or
+                    AnsiSameText(sl_Operand, 'IMM') then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otIMM8;
