@@ -2307,7 +2307,7 @@ implementation
     function is_16_bit_ref(const ref:treference):boolean;
       var
         ir,br : Tregister;
-        isub,bsub : cgbase.tsubregister;
+        isub,bsub : tsubregister;
       begin
         if (ref.index<>NR_NO) and (getregtype(ref.index)=R_MMREGISTER) then
           exit(false);
@@ -2467,15 +2467,15 @@ implementation
         // ax cx dx bx si di bp sp   -- in x86reg.dat
         // ax cx dx bx sp bp si di   -- needed order
           (0, 1, 2, 3, 6, 7, 5, 4);
-        maxsupreg: array[cgbase.tregistertype] of cgbase.tsuperregister=
+        maxsupreg: array[tregistertype] of tsuperregister=
 {$ifdef x86_64}
           (0, 16, 9, 8, 32, 32, 8, 0, 0, 0);
 {$else x86_64}
           (0,  8, 9, 8,  8, 32, 8, 0, 0, 0);
 {$endif x86_64}
       var
-        rs: cgbase.tsuperregister;
-        rt: cgbase.tregistertype;
+        rs: tsuperregister;
+        rt: tregistertype;
       begin
         rs:=getsupreg(r);
         rt:=getregtype(r);
@@ -2532,7 +2532,7 @@ implementation
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
-        isub,bsub : cgbase.tsubregister;
+        isub,bsub : tsubregister;
       begin
         result:=false;
         ir:=input.ref^.index;
@@ -4617,7 +4617,7 @@ implementation
       end;
 
 
-    function taicpu.is_same_reg_move(regtype: cgbase.Tregistertype):boolean;
+    function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         result:=(((opcode=A_MOV) or (opcode=A_XCHG)) and
                  (regtype = R_INTREGISTER) and
