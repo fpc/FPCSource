@@ -134,6 +134,7 @@ uses SysUtils, Dialogs, typinfo;
 
 type
   TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
+  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX,AttSufMMS);
 
   TMemRefSizeInfo = (msiUnknown, msiUnsupported, msiNoSize, msiNoMemRef,
                      msiMultiple, msiMultipleMinSize8, msiMultipleMinSize16, msiMultipleMinSize32,
@@ -175,25 +176,6 @@ type
 const
   instabentries = {$i ../../../compiler/x86_64/x8664nop.inc}
   gas_needsuffix:array[tasmop] of TAttSuffix={$i ../../../compiler/x86_64/x8664ats.inc}
-
-  MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultipleMinSize8,
-                                             msiMultipleMinSize16, msiMultipleMinSize32,
-                                             msiMultipleMinSize64, msiMultipleMinSize128,
-                                             msiMultipleMinSize256, msiMultipleMinSize512,
-                                             msiVMemMultiple];
-
-  MemRefSizeInfoVMems: Set of TMemRefSizeInfo = [msiXMem32, msiXMem64, msiYMem32, msiYMem64,
-                                                 msiZMem32, msiZMem64,
-                                                 msiVMemMultiple, msiVMemRegSize];
-
-  MEMTYPES: TOpMemType = [otXMMRM, otXMMRM16, otXMMRM8, otYMMRM, otZMMRM,
-                          otMem8, otMem16, otMem32, otMem64, otMem128, otMem256, otMem512,
-                          otRM32, otRM64];
-  BMEMTYPES: TOpMemType = [otB32, otB64];
-
-var
-  InsTabCache : PInsTabCache;
-  InsTabMemRefSizeInfoCache: PInsTabMemRefSizeInfoCache;
 
   MemRefMultiples: set of TMemRefSizeInfo = [msiMultiple, msiMultipleMinSize8,
                                              msiMultipleMinSize16, msiMultipleMinSize32,
@@ -7315,6 +7297,7 @@ end;
 class procedure TAsmTestGenerator.ListMemRefState;
 var
   i: integer;
+  sGasSufffix: string;
   mrsize: TMemRefSizeInfo;
   opcode: tasmop;
   sl: TStringList;
@@ -7333,7 +7316,13 @@ begin
         for opcode:=low(tasmop) to high(tasmop) do
         begin
           if InsTabMemRefSizeInfoCache^[opcode].MemRefSize = mrsize then
-           sl.add(format('%-25s:   %s', [GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)), std_op2str[opcode]]));
+          begin
+            sGasSufffix:='';
+            if gas_needsuffix[opcode] <> AttSufNone then
+             sGasSufffix:=GetEnumName(Typeinfo(TAttSuffix), ord(gas_needsuffix[opcode]));
+
+            sl.add(format('%-25s:   %s: %s', [GetEnumName(Typeinfo(TMemRefSizeInfo), ord(mrsize)), std_op2str[opcode], sGasSufffix]));
+          end;
         end;
 
         sl.Sort;
