@@ -943,7 +943,7 @@ begin
   FOpCodeList.Add('movd,1,1,RM32,XMMREG,,');
   FOpCodeList.Add('movd,1,1,XMMREG,RM32,,');
   FOpCodeList.Add('movddup,1,1,XMMREG,XMMRM,,');
-  FOpCodeList.Add('movdq2q,1,1,XMMREG,,');
+  FOpCodeList.Add('movdq2q,1,1,MMXREG,XMMREG,,');
   FOpCodeList.Add('movdqa,1,1,XMMREG,XMMRM,,');
   FOpCodeList.Add('movdqa,1,1,XMMRM,XMMREG,,');
   FOpCodeList.Add('movdqu,1,1,XMMREG,XMMRM,,');
@@ -1047,7 +1047,7 @@ begin
   FOpCodeList.Add('pinsrd,1,1,XMMREG,REG32,IMM,');
   FOpCodeList.Add('pinsrq,0,1,XMMREG,MEM64,IMM,');
   FOpCodeList.Add('pinsrq,0,1,XMMREG,REG64,IMM,');
-  FOpCodeList.Add('pinsrw,1,1,XMMREG,REG16,IMM,');
+  FOpCodeList.Add('pinsrw,1,1,XMMREG,REG32,IMM,');
   FOpCodeList.Add('pinsrw,1,1,XMMREG,MEM16,IMM,');
   FOpCodeList.Add('pinsrw,1,1,XMMREG,MEM,IMM,');
   FOpCodeList.Add('pinsrw,1,1,XMMREG,REG32,IMM,');
