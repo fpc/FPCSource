@@ -2343,7 +2343,7 @@ mmxreg,xmmreg         \331\2\x0F\x2D\110              KATMAI,SSE,MMX
 xmmreg,rm32           \333\321\2\x0F\x2A\110      KATMAI,SSE
 xmmreg,rm64           \333\321\2\x0F\x2A\110      KATMAI,SSE,X86_64
 
-[CVTSS2SI,cvtss2siX]
+[CVTSS2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,mem32	      \333\320\2\x0F\x2D\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2D\110          KATMAI,SSE
@@ -2353,7 +2353,7 @@ reg32|64,xmmreg       \333\320\2\x0F\x2D\110          KATMAI,SSE
 mmxreg,mem64          \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 mmxreg,xmmreg         \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 
-[CVTTSS2SI,cvttss2siX]
+[CVTTSS2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,mem32        \333\320\2\x0F\x2C\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2C\110          KATMAI,SSE
@@ -2865,7 +2865,7 @@ xmmreg,xmmrm            \361\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 xmmreg,xmmreg            \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 xmmreg,mem64             \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 
-[CVTSD2SI,cvtsd2siX]
+[CVTSD2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32,xmmreg 	        \334\2\x0F\x2D\110        WILLAMETTE,SSE2
 reg32,mem64          	\334\2\x0F\x2D\110        WILLAMETTE,SSE2
@@ -2899,7 +2899,7 @@ xmmreg,xmmrm            \361\2\x0F\xE6\110              WILLAMETTE,SSE2,SM
 (Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \333\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 
-[CVTTSD2SI,cvttsd2siX]
+[CVTTSD2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,xmmreg         \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
 reg32|64,mem64          \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
@@ -4057,23 +4057,28 @@ xmmreg,xmmreg                        \362\370\1\x2F\110                   AVX,SA
 (Ch_Wop2, Ch_Rop1)
 xmmreg,mem64                         \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
-ymmreg,xmmreg                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
-ymmreg,mem128                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
+ymmreg,xmmrm                         \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTDQ2PS]
 (Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm                         \362\370\1\x5B\110                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x5B\110               AVX,SANDYBRIDGE
 
+; VCVTPD2DQ xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
+;                                              map all other MemrefSize to xmmreg, xmmrm
 [VCVTPD2DQ,vcvtpd2dqM]
 (Ch_Wop2, Ch_Rop1)
+xmmreg,mem256                        \334\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \334\362\370\1\xE6\110               AVX,SANDYBRIDGE
-xmmreg,ymmrm                         \334\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
+xmmreg,ymmreg                        \334\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
+; VCVTPD2PS xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
+;                                              map all other MemrefSize to xmmreg, xmmrm
 [VCVTPD2PS,vcvtpd2psM]
 (Ch_Wop2, Ch_Rop1)
+xmmreg,mem256                        \361\362\364\370\1\x5A\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\370\1\x5A\110               AVX,SANDYBRIDGE
-xmmreg,ymmrm                         \361\362\364\370\1\x5A\110           AVX,SANDYBRIDGE
+xmmreg,ymmreg                        \361\362\364\370\1\x5A\110           AVX,SANDYBRIDGE
 
 [VCVTPS2DQ]
 (Ch_Wop2, Ch_Rop1)
@@ -4120,10 +4125,13 @@ reg32,xmmreg                         \333\362\370\1\x2D\110               AVX,SA
 reg64,mem32                          \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 
+; VCVTTPD2DQ xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
+;                                               map all other MemrefSize to xmmreg, xmmrm
 [VCVTTPD2DQ,vcvttpd2dqM]
 (Ch_Wop2, Ch_Rop1)
+xmmreg,mem256                        \361\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 xmmreg,xmmrm                         \361\362\370\1\xE6\110               AVX,SANDYBRIDGE
-xmmreg,ymmrm                         \361\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
+xmmreg,ymmreg                        \361\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTTPS2DQ]
 (Ch_Wop2, Ch_Rop1)

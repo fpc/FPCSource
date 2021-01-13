@@ -10293,14 +10293,7 @@
   (
     opcode  : A_VCVTDQ2PD;
     ops     : 2;
-    optypes : (ot_ymmreg,ot_xmmreg,ot_none,ot_none);
-    code    : #219#242#244#248#1#230#72;
-    flags   : [if_avx,if_sandybridge]
-  ),
-  (
-    opcode  : A_VCVTDQ2PD;
-    ops     : 2;
-    optypes : (ot_ymmreg,ot_memory or ot_bits128,ot_none,ot_none);
+    optypes : (ot_ymmreg,ot_xmmrm,ot_none,ot_none);
     code    : #219#242#244#248#1#230#72;
     flags   : [if_avx,if_sandybridge]
   ),
@@ -10321,6 +10314,13 @@
   (
     opcode  : A_VCVTPD2DQ;
     ops     : 2;
+    optypes : (ot_xmmreg,ot_memory or ot_bits256,ot_none,ot_none);
+    code    : #220#242#244#248#1#230#72;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCVTPD2DQ;
+    ops     : 2;
     optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
     code    : #220#242#248#1#230#72;
     flags   : [if_avx,if_sandybridge]
@@ -10328,8 +10328,15 @@
   (
     opcode  : A_VCVTPD2DQ;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_ymmrm,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_ymmreg,ot_none,ot_none);
     code    : #220#242#244#248#1#230#72;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCVTPD2PS;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_memory or ot_bits256,ot_none,ot_none);
+    code    : #241#242#244#248#1#90#72;
     flags   : [if_avx,if_sandybridge]
   ),
   (
@@ -10342,7 +10349,7 @@
   (
     opcode  : A_VCVTPD2PS;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_ymmrm,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_ymmreg,ot_none,ot_none);
     code    : #241#242#244#248#1#90#72;
     flags   : [if_avx,if_sandybridge]
   ),
@@ -10496,6 +10503,13 @@
   (
     opcode  : A_VCVTTPD2DQ;
     ops     : 2;
+    optypes : (ot_xmmreg,ot_memory or ot_bits256,ot_none,ot_none);
+    code    : #241#242#244#248#1#230#72;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCVTTPD2DQ;
+    ops     : 2;
     optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
     code    : #241#242#248#1#230#72;
     flags   : [if_avx,if_sandybridge]
@@ -10503,7 +10517,7 @@
   (
     opcode  : A_VCVTTPD2DQ;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_ymmrm,ot_none,ot_none);
+    optypes : (ot_xmmreg,ot_ymmreg,ot_none,ot_none);
     code    : #241#242#244#248#1#230#72;
     flags   : [if_avx,if_sandybridge]
   ),
