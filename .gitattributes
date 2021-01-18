@@ -12196,6 +12196,7 @@ rtl/wasi/sysos.inc svneol=native#text/plain
 rtl/wasi/sysosh.inc svneol=native#text/plain
 rtl/wasi/system.pp svneol=native#text/plain
 rtl/wasm32/cpuh.inc svneol=native#text/plain
+rtl/wasm32/int64p.inc svneol=native#text/plain
 rtl/wasm32/makefile.cpu svneol=native#text/plain
 rtl/wasm32/math.inc svneol=native#text/plain
 rtl/wasm32/set.inc svneol=native#text/plain
