@@ -998,6 +998,12 @@ implementation
       if (ref.base=NR_EVAL_STACK_BASE) or (ref.base=NR_LOCAL_STACK_POINTER_REG) then
         exit;
 
+      if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=1) then
+        begin
+          ref.base:=ref.index;
+          ref.index:=NR_NO;
+        end;
+
       // setting up memory offset
       if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
