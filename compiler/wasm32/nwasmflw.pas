@@ -158,6 +158,8 @@ begin
   // right - then
   // t1    - else (optional)
 
+  location_reset(location,LOC_VOID,OS_NO);
+
   //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
   secondpass(left); // condition exprssions
