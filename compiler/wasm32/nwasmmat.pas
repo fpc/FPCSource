@@ -40,7 +40,9 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      twasmnotnode = class(tcghlnotnode)
+      twasmnotnode = class(tcgnotnode)
+      protected
+        procedure second_boolean;override;
       end;
 
       twasmunaryminusnode = class(tcgunaryminusnode)
@@ -184,6 +186,21 @@ implementation
         thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
+
+{*****************************************************************************
+                               twasmnotnode
+*****************************************************************************}
+
+    procedure twasmnotnode.second_boolean;
+      begin
+        secondpass(left);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location_reset(location,LOC_REGISTER,left.location.size);
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        { perform the NOT operation }
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
+      end;
 
 {*****************************************************************************
                             twasmunaryminustnode
