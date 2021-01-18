@@ -19425,6 +19425,7 @@ utils/fpdoc/fpdocclasstree.pp svneol=native#text/plain
 utils/fpdoc/fpdocproj.pas svneol=native#text/plain
 utils/fpdoc/fpdocstripper.lpi svneol=native#text/plain
 utils/fpdoc/fpdocstripper.pp svneol=native#text/plain
+utils/fpdoc/fpdocstrs.pp svneol=native#text/plain
 utils/fpdoc/fpdocxmlopts.pas svneol=native#text/plain
 utils/fpdoc/fpmake.pp svneol=native#text/plain
 utils/fpdoc/images/minus.png -text svneol=unset#image/png

@@ -34,6 +34,7 @@ Type
     FProjectMacros: TStrings;
     FScannerLogEvents: TPScannerLogEvents;
     FVerbose: Boolean;
+    function GetLogLevels: TFPDocLogLevels;
     function GetOptions: TEngineOptions;
     function GetPackages: TFPDocPackages;
     procedure SetBaseDescrDir(AValue: String);
@@ -73,6 +74,7 @@ Type
 
 implementation
 
+uses fpdocstrs;
 
 { TFPDocCreator }
 
@@ -84,6 +86,9 @@ begin
     begin
     ScannerLogEvents:=[sleFile];
     ParserLogEvents:=[];
+    Options.InfoUsedFile:= true;
+    Options.WarnDocumentationEmpty:= true;
+    Options.WarnXCT:= true;
     end
   else
     begin
@@ -243,8 +248,8 @@ begin
           If not InterPretOption(Cmd,Arg) then
             DoLog(SCmdLineInvalidOption,[Cmd+'='+Arg]);
           end;
-      // Output created Documentation
-      WriteDoc;
+      // Create documentation by writer
+      WriteDocumentation();
     Finally
       Free;
     end;
@@ -255,6 +260,23 @@ begin
     Engine.WriteContentFile(APackage.ContentFile);
 end;
 
+Function TFPDocCreator.GetLogLevels : TFPDocLogLevels;
+
+  Procedure DoOpt(doSet : Boolean; aLevel: TFPDocLogLevel);
+
+  begin
+    if DoSet then
+      Result:=Result+[aLevel];
+  end;
+
+begin
+  Result:=[];
+  DoOpt(Options.WarnNoNode,dleWarnNoNode);
+  DoOpt(Options.InfoUsedFile,dleWarnUsedFile);
+  DoOpt(Options.WarnDocumentationEmpty,dleDocumentationEmpty);
+  DoOpt(Options.WarnXCT,dleXCT);
+end;
+
 procedure TFPDocCreator.CreateDocumentation(APackage: TFPDocPackage;
   ParseOnly: Boolean);
 
@@ -263,7 +285,7 @@ var
   Engine : TFPDocEngine;
   Cmd,Arg : String;
   WriterClass: TFPDocWriterClass;
-
+  eMsg: String;
 begin
   Cmd:='';
   FCurPackage:=APackage;
@@ -291,35 +313,53 @@ begin
     Engine.HideProtected:=Options.HideProtected;
     Engine.HidePrivate:=Not Options.ShowPrivate;
     Engine.OnParseUnit:=@HandleOnParseUnit;
-    Engine.WarnNoNode:=Options.WarnNoNode;
+    Engine.DocLogLevels:=GetLogLevels;
+    Engine.FalbackSeeAlsoLinks:= Options.FallBackSeeAlsoLinks;
     if Length(Options.Language) > 0 then
       TranslateDocStrings(Options.Language);
     // scan the input source files
     for i := 0 to APackage.Inputs.Count - 1 do
       try
-        // get options from input packages
-        SplitInputFileOption(APackage.Inputs[i],Cmd,Arg);
-        arg:=Arg+' -d'+Options.EndianNess;
-        // make absolute filepath
-        Cmd:=FixInputFile(Cmd);
-        if FProcessedUnits.IndexOf(Cmd)=-1 then
+        try
+          eMsg:='';
+          // get options from input packages
+          SplitInputFileOption(APackage.Inputs[i],Cmd,Arg);
+          arg:=Arg+' -d'+Options.EndianNess;
+          // make absolute filepath
+          Cmd:=FixInputFile(Cmd);
+          if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
-          FProcessedUnits.Add(Cmd);
-
-          // Parce sources for OS Target
-          //WriteLn(Format('Parsing unit: %s', [ExtractFilenameOnly(Cmd)]));
-          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams]);
+            FProcessedUnits.Add(Cmd);
+            // Parce sources for OS Target
+            //WriteLn(Format('Parsing unit: %s', [ExtractFilenameOnly(Cmd)]));
+            ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams]); // poSkipDefaultDefs
           end;
-      except
-        on E: EParserError do
-          If Options.StopOnParseError then
-            Raise
-          else
+          //else WriteLn(Format('Processed unit: %s', [ExtractFilenameOnly(Cmd)]));
+        except
+          on E: EParserError do
             begin
-            DoLog('Error: %s(%d,%d): %s',[E.Filename, E.Row, E.Column, E.Message]);
-            DoLog('Ignoring error, continuing with next unit (if any).');
+              eMsg:= Format('Parser error: %s (%d,%d): %s',[E.Filename, E.Row, E.Column, E.Message]);
+              If Options.StopOnParseError then Raise;
             end;
-      end;
+          on E: EFileNotFoundError do
+            begin
+              eMsg:= Format('Error: file not found - %s', [E.Message]);
+              If Options.StopOnParseError then Raise;
+            end;
+          on E: Exception do
+            begin
+              eMsg:= Format('Error: %s', [E.Message]);
+              If Options.StopOnParseError then Raise;
+            end;
+        end; // try except
+      finally
+        if eMsg <> '' then
+        begin
+          DoLog(eMsg);
+          If not Options.StopOnParseError then
+            DoLog('Ignoring error, continuing with next unit (if any).');
+        end;
+      end; // try finally
     if Not ParseOnly then
       begin
       Engine.StartDocumenting;

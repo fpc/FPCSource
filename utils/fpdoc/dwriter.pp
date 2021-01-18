@@ -27,31 +27,6 @@ interface
 
 uses Classes, DOM, contnrs, dGlobals, PasTree, SysUtils, fpdocclasstree;
 
-resourcestring
-  SErrFileWriting = 'An error occurred during writing of file "%s": %s';
-
-  SErrInvalidShortDescr = 'Invalid short description';
-  SErrInvalidDescr = 'Invalid description (illegal XML element: "%s")';
-  SErrInvalidParaContent = 'Invalid paragraph content';
-  SErrInvalidElementInList = 'Invalid element in list - only "li" allowed';
-  SErrInvalidListContent = 'Invalid list content';
-  SErrInvalidRemarkContent = 'Invalid <remark> content (illegal XML element: "%s")';
-  SErrListIsEmpty = 'List is empty - need at least one "li" element';
-  SErrInvalidDefinitionTermContent = 'Invalid content in definition term';
-  SErrDefinitionEntryMissing = 'Definition entry after definition term is missing';
-  SErrInvalidBorderValue = 'Invalid "border" value for %s';
-  SErrInvalidTableContent = 'Invalid table content';
-  SErrTableRowEmpty = 'Table row is empty (no "td" elements found)';
-  SErrInvalidContentBeforeSectionTitle = 'Invalid content before section title';
-  SErrSectionTitleExpected = 'Section title ("title" element) expected';
-
-  SErrDescrTagUnknown = 'Warning: Unknown tag "%s" in description';
-  SErrUnknownEntityReference = 'Warning: Unknown entity reference "&%s;" found';
-  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s", element "%s", is unknown: "%s"';
-  SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
-  SErrUnknownLink = 'Could not resolve link to "%s"';
-  SErralreadyRegistered = 'Class for output format "%s" already registered';
-  SErrUnknownWriterClass = 'Unknown output format "%s"';
 
 type
   // Phony element for pas pages.
@@ -116,6 +91,7 @@ type
     procedure AddElementsFromList(L: TStrings; List: TFPList; UsePathName : Boolean = False);
     Procedure DoLog(Const Msg : String);
     Procedure DoLog(Const Fmt : String; Args : Array of const);
+    Procedure OutputResults(); virtual;
     procedure Warning(AContext: TPasElement; const AMsg: String);
     procedure Warning(AContext: TPasElement; const AMsg: String;
       const Args: array of const);
@@ -194,6 +170,9 @@ type
     procedure DescrEndTableRow; virtual; abstract;
     procedure DescrBeginTableCell; virtual; abstract;
     procedure DescrEndTableCell; virtual; abstract;
+    procedure PrepareDocumentation; virtual;
+    // Descendents must override this.
+    procedure DoWriteDocumentation; virtual; Abstract;
 
     Property CurrentContext : TPasElement Read FContext ;
   public
@@ -209,7 +188,8 @@ type
     Class Function FileNameExtension : String; virtual;
     Class Procedure Usage(List : TStrings); virtual;
     Class procedure SplitImport(var AFilename, ALinkPrefix: String); virtual;
-    procedure WriteDoc; virtual; Abstract;
+    // Here we start the generation of documentation
+    procedure WriteDocumentation;
     Function WriteDescr(Element: TPasElement) : TDocNode;
     procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
     procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement); virtual;
@@ -275,14 +255,21 @@ Type
     FCurDirectory: String;
     FModule: TPasModule;
     FPageInfos: TFPObjectList;     // list of TPageInfo objects
+    FLinkUnresolvedCnt: Integer;
     function GetPageCount: Integer;
 
   Protected
     FAllocator: TFileAllocator;
-    function ResolveLinkID(const Name: String; Level: Integer=0): DOMString;
+    Procedure LinkUnresolvedInc();
+    // General resolving routine
+    function ResolveLinkID(const Name: String): DOMString;
+    // Simplified resolving routine. Excluded last path after dot
+    function ResolveLinkIDUnStrict(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement; ASubpageIndex: Integer): String;
-    Function CreateAllocator : TFileAllocator; virtual; abstract;
+    procedure PrepareDocumentation; override;
+    function CreateAllocator() : TFileAllocator; virtual; abstract;
+    Procedure OutputResults(); override;
     // aFileName is the filename allocated by the Allocator, nothing prefixed.
     procedure WriteDocPage(const aFileName: String; aElement: TPasElement; aSubPageIndex: Integer); virtual; abstract;
     procedure AllocatePages; virtual;
@@ -297,12 +284,14 @@ Type
     function GetFileBaseDir(aOutput: String): String; virtual;
     function InterPretOption(const Cmd, Arg: String): boolean; override;
     function  ModuleHasClasses(AModule: TPasModule): Boolean;
+    // Allocate pages etc.
+    Procedure DoWriteDocumentation; override;
+
     Property PageInfos : TFPObjectList Read FPageInfos;
     Property SubPageNames: Boolean Read FSubPageNames;
   Public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     Destructor Destroy; override;
-    procedure WriteDoc; override;
     class procedure Usage(List: TStrings); override;
     property PageCount: Integer read GetPageCount;
     Property Allocator : TFileAllocator Read FAllocator;
@@ -338,6 +327,8 @@ function SortPasElements(Item1, Item2: Pointer): Integer;
 
 
 implementation
+
+uses fpdocstrs;
 
 function SortPasElements(Item1, Item2: Pointer): Integer;
 begin
@@ -412,6 +403,7 @@ begin
   inherited Create(APackage, AEngine);
   FPageInfos:=TFPObjectList.Create;
   FSubPageNames:= False;
+  FLinkUnresolvedCnt:=0;
 end;
 
 destructor TMultiFileDocWriter.Destroy;
@@ -426,8 +418,18 @@ begin
   Result := PageInfos.Count;
 end;
 
-function TMultiFileDocWriter.ResolveLinkID(const Name: String; Level : Integer = 0): DOMString;
+procedure TMultiFileDocWriter.OutputResults();
+begin
+  DoLog('Unresolved links: %d', [FLinkUnresolvedCnt]);
+  inherited OutputResults();
+end;
 
+procedure TMultiFileDocWriter.LinkUnresolvedInc();
+begin
+  Inc(FLinkUnresolvedCnt);
+end;
+
+function TMultiFileDocWriter.ResolveLinkID(const Name: String): DOMString;
 var
   res,s: String;
 
@@ -435,14 +437,44 @@ begin
   res:=Engine.ResolveLink(Module,Name, True);
   // engine can return backslashes on Windows
   if Length(res) > 0 then
-   begin
-     s:=Copy(Res, 1, Length(CurDirectory) + 1);
+  begin
+    s:=Copy(Res, 1, Length(CurDirectory) + 1);
     if (S= CurDirectory + '/') or (s= CurDirectory + '\') then
-      Res := Copy(Res, Length(CurDirectory) + 2, Length(Res))
+    begin
+      // TODO: I didn`t see a call to this code on a processing the lcl ana lazutil. What is that?
+      Res := Copy(Res, Length(CurDirectory) + 2, Length(Res));
+      //writeLn('INFO: ResolveLinkID "\" - ', Res);
+    end
     else if not IsLinkAbsolute(Res) then
       Res := BaseDirectory + Res;
-   end;
+  end;
   Result:=UTF8Decode(Res);
+end;
+
+function TMultiFileDocWriter.ResolveLinkIDUnStrict(const Name: String
+  ): DOMString;
+var
+  idDot, idLast: Integer;
+  res: String;
+begin
+  res:=Engine.ResolveLink(Module,Name, True);
+  if res = '' then
+  begin
+    // do simplify on one level from end.
+    // TOCO: I want to move that code to last check of Engine.ResolveLink() for not Strict
+    IdDot:= Pos('.', Name);
+    IdLast:= 0;
+    // search last dot
+    while idDot > 0 do
+    begin
+      IdLast:= idDot;
+      IdDot:= Pos('.', Name, IdLast+1);
+    end;
+    if idLast > 0 then
+      // have cut last element
+      res:= Engine.ResolveLink(Module, Copy(Name, 1, IdLast-1), True);
+  end;
+  Result:=UTF8Decode(res);
 end;
 
 { Used for:
@@ -482,8 +514,15 @@ begin
     SetLength(Result, 0);
 end;
 
+procedure TMultiFileDocWriter.PrepareDocumentation;
+begin
+  inherited PrepareDocumentation;
+  FAllocator:= CreateAllocator();
+  FAllocator.SubPageNames:= SubPageNames;
+end;
 
-Function TMultiFileDocWriter.AddPage(AElement: TPasElement; ASubpageIndex: Integer) : TPageInfo;
+function TMultiFileDocWriter.AddPage(AElement: TPasElement;
+  ASubpageIndex: Integer): TPageInfo;
 
 begin
   Result:= TPageInfo.Create(aElement,aSubPageIndex);
@@ -531,7 +570,7 @@ begin
 end;
 
 
-Function TMultiFileDocWriter.ModuleHasClasses(AModule: TPasModule) : Boolean;
+function TMultiFileDocWriter.ModuleHasClasses(AModule: TPasModule): Boolean;
 
 begin
   result:=assigned(AModule)
@@ -574,7 +613,8 @@ begin
     end;
 end;
 
-Procedure TMultiFileDocWriter.AllocateClassMemberPages(AModule: TPasModule; LinkList : TObjectList);
+procedure TMultiFileDocWriter.AllocateClassMemberPages(AModule: TPasModule;
+  LinkList: TObjectList);
 var
   i, j, k: Integer;
   ClassEl: TPasClassType;
@@ -738,7 +778,7 @@ begin
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
-procedure TMultiFileDocWriter.WriteDoc;
+procedure TMultiFileDocWriter.DoWriteDocumentation;
 
   procedure CreatePath(const AFilename: String);
 
@@ -771,8 +811,6 @@ var
   FinalFilename: String;
 
 begin
-  FAllocator:=CreateAllocator;
-  FAllocator.SubPageNames:= SubPageNames;
   AllocatePages;
   DoLog(SWritingPages, [PageCount]);
   if Engine.Output <> '' then
@@ -1065,8 +1103,8 @@ begin
   FPackage := APackage;
   FTopics:=Tlist.Create;
   FImgExt:='.png';
-  TreeClass:= TClassTreeBuilder.Create(FEngine, FPackage, okClass);
-  TreeInterface:= TClassTreeBuilder.Create(FEngine, FPackage, okInterface);
+  TreeClass:= TClassTreeBuilder.Create(FEngine, FPackage, okWithFields);
+  TreeInterface:= TClassTreeBuilder.Create(FEngine, FPackage, [okInterface]);
   CreateClassTree;
 end;
 
@@ -1129,6 +1167,13 @@ begin
     end;
 end;
 
+procedure TFPDocWriter.WriteDocumentation;
+begin
+  PrepareDocumentation();
+  DoWriteDocumentation();
+  OutputResults();
+end;
+
 function TFPDocWriter.FindTopicElement ( Node: TDocNode ) : TTopicElement;
 
 Var
@@ -1150,6 +1195,11 @@ procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,
 
 begin
   DoLog('%s : No support for images yet: %s (caption: "%s")',[ClassName,AFileName,ACaption]);
+end;
+
+procedure TFPDocWriter.PrepareDocumentation;
+begin
+  // Ancestors can call AllocatePages();CreateAllocator(); into base class
 end;
 
 { ---------------------------------------------------------------------
@@ -1509,6 +1559,11 @@ begin
   DoLog(Format(Fmt,Args));
 end;
 
+procedure TFPDocWriter.OutputResults();
+begin
+  DoLog('Documentation process finished.');
+end;
+
 function TFPDocWriter.ConvertExtShort(AContext: TPasElement;
   Node: TDOMNode): Boolean;
 begin
@@ -1722,8 +1777,8 @@ begin
   if Node.NodeType <> ELEMENT_NODE then
   begin
     if Node.NodeType = TEXT_NODE then
-	  Result := IsWhitespaceNode(TDOMText(Node))
-	else  
+      Result := IsWhitespaceNode(TDOMText(Node))
+    else
       Result := Node.NodeType = COMMENT_NODE;
     exit;
   end;
