@@ -325,20 +325,15 @@ interface
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
 
-        // must generate those labels...
-        current_asmdata.getjumplabel(truelabel);
-        current_asmdata.getjumplabel(falselabel);
-        location_reset_jump(location,truelabel,falselabel);
-
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register,location.truelabel)
+          thlcgwasm(hlcg).a_cmp_loc_reg_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location,left.location.register)
         else case right.location.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location,location.truelabel);
+            thlcgwasm(hlcg).a_cmp_reg_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.register,left.location);
           LOC_REFERENCE,LOC_CREFERENCE:
-            hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location,location.truelabel);
+            thlcgwasm(hlcg).a_cmp_ref_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.reference,left.location);
           LOC_CONSTANT:
-            hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location,location.truelabel);
+            thlcgwasm(hlcg).a_cmp_const_loc_stack(current_asmdata.CurrAsmList,left.resultdef,cmpop,right.location.value,left.location);
           else
             internalerror(2011010413);
         end;
