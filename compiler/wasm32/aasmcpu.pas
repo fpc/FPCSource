@@ -186,6 +186,10 @@ implementation
       begin
         inherited create(op);
         ops:=1;
+{$ifdef EXTDEBUG}
+        if getregtype(_op1)=R_INVALIDREGISTER then
+          InternalError(2021011901);
+{$endif EXTDEBUG}
         loadreg(0,_op1);
       end;
 
