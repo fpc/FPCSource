@@ -160,6 +160,9 @@ begin
 
   location_reset(location,LOC_VOID,OS_NO);
 
+  oldflowcontrol := flowcontrol;
+  include(flowcontrol,fc_inflowcontrol);
+
   //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
   secondpass(left); // condition exprssions
@@ -180,6 +183,8 @@ begin
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
   thlcgwasm(hlcg).decblock;
+
+  flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
 end;
 
 initialization
