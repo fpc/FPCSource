@@ -151,6 +151,18 @@ uses
       procedure a_op_ref_stack(list : TAsmList;op: topcg; size: tdef;const ref: treference);
       procedure a_op_loc_stack(list : TAsmList;op: topcg; size: tdef;const loc: tlocation);
 
+      procedure a_cmp_const_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference);
+      procedure a_cmp_const_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister);
+      procedure a_cmp_ref_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister);
+      procedure a_cmp_reg_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference);
+      procedure a_cmp_reg_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister);
+
+      procedure a_cmp_const_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; br: Integer);
+      procedure a_cmp_const_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; br: Integer);
+      procedure a_cmp_ref_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; br: Integer);
+      procedure a_cmp_reg_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; br: Integer);
+      procedure a_cmp_reg_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; br: Integer);
+
       procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); override;
 
       { this routine expects that all values are already massaged into the
@@ -572,6 +584,96 @@ implementation
         else
           internalerror(2011011415)
       end;
+    end;
+
+  procedure thlcgwasm.a_cmp_const_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference);
+    var
+      tmpref: treference;
+    begin
+      tmpref:=ref;
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
+      a_cmp_stack_stack(list,size,cmp_op);
+    end;
+
+  procedure thlcgwasm.a_cmp_const_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister);
+    begin
+      a_load_reg_stack(list,size,reg);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),def2regtyp(size));
+      a_cmp_stack_stack(list,size,cmp_op);
+    end;
+
+  procedure thlcgwasm.a_cmp_ref_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister);
+    var
+      tmpref: treference;
+    begin
+      tmpref:=ref;
+      a_load_reg_stack(list,size,reg);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false))
+      else begin
+        // todo: need a swap operation?
+        //list.concat(taicpu.op_none(a_swap));
+        Internalerror(2019083003);
+      end;
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_cmp_stack_stack(list,size,cmp_op);
+    end;
+
+  procedure thlcgwasm.a_cmp_reg_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference);
+    var
+      tmpref: treference;
+    begin
+      tmpref:=ref;
+      if tmpref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_reg_stack(list,size,reg);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_cmp_stack_stack(list,size,cmp_op);
+    end;
+
+  procedure thlcgwasm.a_cmp_reg_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister);
+    begin
+      a_load_reg_stack(list,size,reg2);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_reg_stack(list,size,reg1);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_cmp_stack_stack(list,size,cmp_op);
+    end;
+
+  procedure thlcgwasm.a_cmp_const_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; br: Integer);
+    begin
+      a_cmp_const_ref_stack(list,size,cmp_op,a,ref);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+    end;
+
+  procedure thlcgwasm.a_cmp_const_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; br: Integer);
+    begin
+      a_cmp_const_reg_stack(list,size,cmp_op,a,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+    end;
+
+  procedure thlcgwasm.a_cmp_ref_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; br: Integer);
+    begin
+      a_cmp_ref_reg_stack(list,size,cmp_op,ref,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+    end;
+
+  procedure thlcgwasm.a_cmp_reg_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; br: Integer);
+    begin
+      a_cmp_reg_ref_stack(list,size,cmp_op,reg,ref);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+    end;
+
+  procedure thlcgwasm.a_cmp_reg_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; br: Integer);
+    begin
+      a_cmp_reg_reg_stack(list,size,cmp_op,reg1,reg2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
     end;
 
   procedure thlcgwasm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
