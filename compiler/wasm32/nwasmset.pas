@@ -30,6 +30,13 @@ interface
 
     type
 
+      { twasminnode }
+
+      twasminnode = class(tcginnode)
+      protected
+        function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean;override;
+      end;
+
       { twasmcasenode }
 
       twasmcasenode = class(tcgcasenode)
@@ -57,6 +64,15 @@ implementation
       nbas,
       symtype,
       pass_2,defutil,verbose,constexp;
+
+{*****************************************************************************
+                                 TWASMINNODE
+*****************************************************************************}
+
+    function twasminnode.checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean;
+      begin
+        result:=false;
+      end;
 
 {*****************************************************************************
                                 TWASMCASENODE
@@ -481,5 +497,6 @@ implementation
       end;
 
 begin
+  cinnode:=twasminnode;
   ccasenode:=twasmcasenode;
 end.
