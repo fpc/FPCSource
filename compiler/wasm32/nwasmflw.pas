@@ -188,12 +188,6 @@ begin
 end;
 
 initialization
-   //cfornode:=tjvmfornode;
-   //craisenode:=tjvmraisenode;
-   //ctryexceptnode:=tjvmtryexceptnode;
-   //ctryfinallynode:=tjvmtryfinallynode;
-   //connode:=tjvmonnode;
-   cifnode:=twasmifnode;
-   cwhilerepeatnode:=twasmwhilerepeatnode;
-
+  cifnode:=twasmifnode;
+  cwhilerepeatnode:=twasmwhilerepeatnode;
 end.
