@@ -67,7 +67,7 @@ interface
       cgobj, symtype, tgobj;
 
 {*****************************************************************************
-                               tjvmaddnode
+                               twasmaddnode
 *****************************************************************************}
 
     function twasmaddnode.pass_1: tnode;
