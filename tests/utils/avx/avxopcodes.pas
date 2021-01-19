@@ -3557,7 +3557,7 @@ begin
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
                 end;
-         tfFPCMRef: 
+         tfFPCMRef:
                 begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
@@ -3657,8 +3657,8 @@ begin
                   slHeader.Add('   asm');
                   for i := 1 to 10 do
                    slHeader.Add('    NOP');
-                  
-			  
+
+
                   for i := 1 to 10 do
                    slFooter.Add('    NOP');
 
