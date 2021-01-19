@@ -218,6 +218,8 @@ type
     fFileName          : String;
     fPath              : String;
     fPreferStringValues: Boolean;
+    fOldCurKey         : HKEY;
+    fOldCurPath        : UnicodeString;
     function OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
     procedure CloseSection;
   public
