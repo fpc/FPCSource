@@ -32,6 +32,8 @@ type
              otXMEM32, otXMEM64, otYMEM32, otYMEM64, otZMEM32, otZMEM64,
              otB32, otB64, otKREG);
 
+  TOpMemType = Set of TOpType;
+
   TOperandListItem = class(TObject)
   private
     FOpActive: boolean;
@@ -89,12 +91,15 @@ type
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
     function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
+    function InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
   public
     constructor Create;
     destructor Destroy; override;
 
     class procedure CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
     class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestDataCDisp8(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+
 
     class procedure CalcTestInstFile;
     class procedure ListMemRefState;
@@ -161,6 +166,9 @@ const
                                                  msiZMem32, msiZMem64,
                                                  msiVMemMultiple, msiVMemRegSize];
 
+  OTMEMTYPES: TOpMemType = [otXMMRM, otXMMRM16, otXMMRM8, otYMMRM, otZMMRM,
+                            otMem8, otMem16, otMem32, otMem64, otMem128, otMem256, otMem512,
+                            otRM32, otRM64, otB32, otB64];
 
 var
   InsTabCache : PInsTabCache;
@@ -3548,6 +3556,1050 @@ begin
   end;
 end;
 
+function TAsmTestGenerator.InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2,
+  aOp3, aOp4: String): TStringList;
+var
+  i: integer;
+  Item: TOperandListItem;
+  OItem1: TOperandListItem;
+  OItem2: TOperandListItem;
+  OItem3: TOperandListItem;
+  OItem4: TOperandListItem;
+
+  il_Op: integer;
+  il_Op1: integer;
+  il_Op2: integer;
+  il_Op3: integer;
+  il_Op4: integer;
+
+  sSuffix: string;
+  sl_Operand: String;
+  sl_Inst   : String;
+  sl_RegCombi: String;
+  sl_Prefix: String;
+  UsePrefix: boolean;
+  il_Operands: integer;
+  UsedParams: cardinal;
+  UseDefault: boolean;
+  sl_RegCombi1: string;
+  sl_RegCombi2: string;
+  sl_RegCombi3: string;
+  MaskRegNeeded:boolean;
+
+
+  function PrepareOperandTyp(const aTyp: String): String;
+  begin
+    result := aTyp;
+    if copy(result, length(result), 1) = '*' then result := copy(result, 1, length(result) - 1);
+    if result = 'XMMRM128' then result := 'XMMRM';
+    if result = 'YMMRM256' then result := 'YMMRM';
+  end;
+
+
+begin
+  result := TStringList.Create;
+
+  OItem1 := TOperandListItem.Create;
+  try
+    OItem2 := TOperandListItem.Create;
+    try
+      OItem3 := TOperandListItem.Create;
+      try
+        OItem4 := TOperandListItem.Create;
+        try
+
+          UsePrefix := (UpperCase(aInst) = 'VCVTPD2DQ') OR
+                       (UpperCase(aInst) = 'VCVTPD2PS') OR
+                       (UpperCase(aInst) = 'VCVTSI2SD') OR
+                       (UpperCase(aInst) = 'VCVTSI2SS') OR
+                       (UpperCase(aInst) = 'VCVTTPD2DQ') or
+                       (UpperCase(aInst) = 'VPMOVZXWQ') or
+                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTUQQ2PS') or
+                       (UpperCase(aInst) = 'VCVTQQ2PS') or
+                       (UpperCase(aInst) = 'VCVTUSI2SD') or
+                       (UpperCase(aInst) = 'VCVTUSI2SS') or
+                       (UpperCase(aInst) = 'VFPCLASSPD') or
+                       (UpperCase(aInst) = 'VFPCLASSPS') or
+                       (UpperCase(aInst) = 'VCMPSS')
+
+                       ;
+
+
+          MaskRegNeeded := (Pos('VGATHER', Uppercase(aInst)) = 1) or
+                           (Pos('VPGATHER', Uppercase(aInst)) = 1) or
+			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
+			   (Pos('VSCATTER', Uppercase(aInst)) = 1);
+
+          for il_Op := 1 to 4 do
+          begin
+            sl_Prefix := '';
+
+            case il_Op of
+              1: begin
+                   Item := OItem1;
+                   sl_Operand := aOp1;
+                 end;
+              2: begin
+                   Item := OItem2;
+                   sl_Operand := aOp2;
+                 end;
+              3: begin
+                   Item := OItem3;
+                   sl_Operand := aOp3;
+                 end;
+              4: begin
+                   Item := OItem4;
+                   sl_Operand := aOp4;
+                 end;
+            end;
+
+            sl_Operand := PrepareOperandTyp(sl_Operand);
+
+            if (AnsiSameText(sl_Operand, 'XMMREG')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMReg;
+              Item.OpActive := true;
+
+              Item.Values.Add('XMM0');
+            end
+            else if (AnsiSameText(sl_Operand, 'XMMREG_M')) or
+                    (AnsiSameText(sl_Operand, 'XMMREG_MZ')) or
+                    (AnsiSameText(sl_Operand, 'XMMREG_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMREG_SAE')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMReg;
+              Item.OpActive := true;
+
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              Item.Values.Add('XMM0' + sSuffix);
+              if (sSuffix <> '') and
+                 (MaskRegNeeded = false) then Item.Values.Add('XMM0');
+            end
+            else if (AnsiSameText(sl_Operand, 'XMMRM')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_M')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_MZ')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_SAE')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMRM;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'oword ';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM8_M')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM8_MZ')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM8_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM8_SAE')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMRM8;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'byte ';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM16_MZ')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM16_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM16_SAE'))
+                    then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMRM16;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'word ';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'YMMREG')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMMReg;
+              Item.OpActive := true;
+
+              Item.Values.Add('YMM0');
+            end
+            else if (AnsiSameText(sl_Operand, 'YMMREG_M')) or
+                    (AnsiSameText(sl_Operand, 'YMMREG_MZ')) or
+                    (AnsiSameText(sl_Operand, 'YMMREG_ER')) or
+                    (AnsiSameText(sl_Operand, 'YMMREG_SAE'))
+                    then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMMReg;
+              Item.OpActive := true;
+
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              Item.Values.Add('YMM0' + sSuffix);
+              if (sSuffix <> '') and
+                 (MaskRegNeeded = false) then Item.Values.Add('YMM0');
+            end
+            else if (AnsiSameText(sl_Operand, 'YMMRM'))  or
+                    (AnsiSameText(sl_Operand, 'YMMRM_M')) or
+                    (AnsiSameText(sl_Operand, 'YMMRM_MZ')) or
+                    (AnsiSameText(sl_Operand, 'YMMRM_ER')) or
+                    (AnsiSameText(sl_Operand, 'YMMRM_SAE'))
+                    then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMMRM;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'ZMMREG')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otZMMReg;
+              Item.OpActive := true;
+
+              Item.Values.Add('ZMM0');
+            end
+            else if (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
+                    (AnsiSameText(sl_Operand, 'ZMMREG_MZ')) or
+                    (AnsiSameText(sl_Operand, 'ZMMREG_ER')) or
+                    (AnsiSameText(sl_Operand, 'ZMMREG_SAE'))
+                    then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otZMMReg;
+              Item.OpActive := true;
+
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'ZMMRM')) or
+                    (AnsiSameText(sl_Operand, 'ZMMRM_M')) or
+                    (AnsiSameText(sl_Operand, 'ZMMRM_MZ')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_SAE'))
+                    then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otZMMRM;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'zword ';
+
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'MEM8') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM8;
+              Item.OpActive := true;
+
+
+
+	      if UsePrefix then sl_Prefix := 'byte ';
+
+
+              sSuffix := '';
+
+	      if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'MEM16') or
+                    AnsiSameText(sl_Operand, 'MEM16_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM16;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'word ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'MEM32') or
+                    AnsiSameText(sl_Operand, 'MEM32_M') or
+                    AnsiSameText(sl_Operand, 'MEM32_MZ') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'dword ';
+
+              sSuffix := '';
+
+	      if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'MEM64')) or
+                    (AnsiSameText(sl_Operand, 'MEM64_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM64_MZ')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM64;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'qword ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'MEM128')) or
+                    (AnsiSameText(sl_Operand, 'MEM128_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM128_MZ')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM128;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'oword ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'MEM256')) or
+                    (AnsiSameText(sl_Operand, 'MEM256_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM256_MZ')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM256;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if (AnsiSameText(sl_Operand, 'MEM512')) or
+                    (AnsiSameText(sl_Operand, 'MEM512_M')) or
+                    (AnsiSameText(sl_Operand, 'MEM512_MZ')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otMEM512;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'zword ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'REG8') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otREG8;
+              Item.OpActive := true;
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg8);
+              end
+              else Item.Values.AddStrings(FReg8);
+            end
+            else if AnsiSameText(sl_Operand, 'REG16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otREG16;
+              Item.OpActive := true;
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg16);
+              end
+              else Item.Values.AddStrings(FReg16);
+            end
+            else if AnsiSameText(sl_Operand, 'REG32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otREG32;
+              Item.OpActive := true;
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg32Base);
+              end
+              else Item.Values.AddStrings(FReg32Base);
+            end
+            else if AnsiSameText(sl_Operand, 'REG64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otREG64;
+              Item.OpActive := true;
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg64Base);
+              end;
+            end
+            else if AnsiSameText(sl_Operand, 'RM32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otRM32;
+              Item.OpActive := true;
+
+              Item.Values.AddStrings(FReg32Base);
+
+              if UsePrefix then sl_Prefix := 'dword ';
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'RM64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otRM32;
+              Item.OpActive := true;
+
+
+
+              if UsePrefix then sl_Prefix := 'qword ';
+
+              if x64 then
+              begin
+                Item.Values.AddStrings(FReg64Base);
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'IMM8') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otIMM8;
+              Item.OpActive := true;
+
+              Item.Values.Add('0');
+            end
+            else if AnsiSameText(sl_Operand, 'XMEM32') or
+                    AnsiSameText(sl_Operand, 'XMEM32_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'oword ';
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+		VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false) then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false) then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
+              end;
+            end
+            else if AnsiSameText(sl_Operand, 'XMEM64') or
+                    AnsiSameText(sl_Operand, 'XMEM64_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMEM64;
+              Item.OpActive := true;
+
+              //if UsePrefix then sl_Prefix := 'oword ';
+              //
+              //if x64 then
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64XMMIndex, Item.Values);
+              //end
+              //else
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32XMMIndex, Item.Values);
+              //end;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64XMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64XMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32XMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+ 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32XMMIndex, Item.Values);
+              end;
+
+            end
+            else if AnsiSameText(sl_Operand, 'YMEM32') or
+                    AnsiSameText(sl_Operand, 'YMEM32_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              //if x64 then
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64YMMIndex, Item.Values);
+              //end
+              //else
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32YMMIndex, Item.Values);
+              //end;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
+              end;
+
+            end
+            else if AnsiSameText(sl_Operand, 'YMEM64') or
+                    AnsiSameText(sl_Operand, 'YMEM64_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMEM64;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              //if x64 then
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64YMMIndex, Item.Values);
+              //end
+              //else
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32YMMIndex, Item.Values);
+              //end;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64YMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64YMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32YMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32YMMIndex, Item.Values);
+              end;
+
+            end
+            else if AnsiSameText(sl_Operand, 'ZMEM32') or
+                    AnsiSameText(sl_Operand, 'ZMEM32_M')  then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otZMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'zword ';
+
+              //if x64 then
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64ZMMIndex, Item.Values);
+              //end
+              //else
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32ZMMIndex, Item.Values);
+              //end;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
+              end;
+
+            end
+            else if AnsiSameText(sl_Operand, 'ZMEM64') or
+                    AnsiSameText(sl_Operand, 'ZMEM64_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otZMEM64;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'zword ';
+
+              //if x64 then
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64ZMMIndex, Item.Values);
+              //end
+              //else
+              //begin
+              //  VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32ZMMIndex, Item.Values);
+              //end;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64ZMMIndex, Item.Values);
+		if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+                 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64ZMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32ZMMIndex, Item.Values);
+                if (sSuffix <> '') and
+                   (MaskRegNeeded = false)
+                        then
+		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
+              end;
+
+            end
+            else if AnsiSameText(sl_Operand, '2B32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB32;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '4B32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB32;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '8B32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB32;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '16B32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB32;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '2B64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB64;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '4B64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB64;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '8B64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB64;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '16B64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB64;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, 'KREG') or
+                    AnsiSameText(sl_Operand, 'KREG_M') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otKREG;
+              Item.OpActive := true;
+
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if UsePrefix then sl_Prefix := '';
+
+              for i := 0 to FRegKREG.Count - 1 do
+               Item.Values.Add(FRegKREG[i] + sSuffix);
+            end
+            else if trim(sl_Operand) = '' then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otUnknown;
+              Item.OpActive := false;
+
+              Item.Values.Add('');
+            end
+            else
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otUnknown;
+              Item.OpActive := false;
+
+              Item.Values.Add('?' + sl_Operand);
+            end
+
+          end;
+
+          sl_RegCombi := '';
+
+
+          il_Operands := 0;
+          UsedParams  := 0;
+
+          if OItem1.OpActive then
+          begin
+            inc(il_Operands);
+            UsedParams := UsedParams or 1;
+          end;
+
+          if OItem2.OpActive then
+          begin
+            inc(il_Operands);
+            UsedParams := UsedParams or 2;
+          end;
+
+          if OItem3.OpActive then
+          begin
+            inc(il_Operands);
+            UsedParams := UsedParams or 4;
+          end;
+
+          if OItem4.OpActive then
+          begin
+            inc(il_Operands);
+            UsedParams := UsedParams or 8;
+          end;
+
+          case il_Operands of
+              1: UseDefault := UsedParams <> 1;
+              2: UseDefault := UsedParams <> 3;
+              3: UseDefault := UsedParams <> 7;
+              4: UseDefault := UsedParams <> 15;
+            else UseDefault := true;
+          end;
+
+          //UseDefault := true;
+
+          if UseDefault then
+          begin
+            sl_Inst := format('%-20s', [aInst]);
+
+            for il_Op1 := 0 to OItem1.Values.Count - 1 do
+            begin
+              for il_Op2 := 0 to OItem2.Values.Count - 1 do
+              begin
+                for il_Op3 := 0 to OItem3.Values.Count - 1 do
+                begin
+                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
+                  begin
+                    sl_RegCombi := '';
+
+                    if OItem1.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem1.Values[il_Op1];
+                    end;
+
+                    if OItem2.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
+                    end;
+
+                    if OItem3.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
+                    end;
+
+                    if OItem4.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
+                    end;
+
+                    if sl_RegCombi <> '' then
+                    begin
+                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                      result.Add(sl_Inst + sl_RegCombi);
+                      sl_RegCombi := '';
+                    end;
+                  end;
+                end;
+              end;
+            end;
+          end
+          else
+          begin
+            sl_Inst := format('%-20s', [aInst]);
+
+            for il_Op1 := 0 to OItem1.Values.Count - 1 do
+            begin
+              if OItem1.OpActive then
+              begin
+                sl_RegCombi1 := OItem1.Values[il_Op1];
+              end
+              else sl_RegCombi1 := '';
+
+              for il_Op2 := 0 to OItem2.Values.Count - 1 do
+              begin
+                if OItem2.OpActive then
+                begin
+                  sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
+                end
+                else sl_RegCombi2 := sl_RegCombi1;
+
+                for il_Op3 := 0 to OItem3.Values.Count - 1 do
+                begin
+                  if OItem3.OpActive then
+                  begin
+                    sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
+                  end
+                  else sl_RegCombi3 := sl_RegCombi2;
+
+                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
+                  begin
+                    if OItem4.OpActive then
+                    begin
+                      sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
+                    end
+                    else sl_RegCombi := sl_RegCombi3;
+
+                    if (sl_RegCombi <> '') and
+                       (
+                        (OItem1.OpActive and (OItem1.OpTyp in OTMEMTYPES)) or
+                        (OItem2.OpActive and (OItem2.OpTyp in OTMEMTYPES)) or
+                        (OItem3.OpActive and (OItem3.OpTyp in OTMEMTYPES)) or
+                        (OItem4.OpActive and (OItem4.OpTyp in OTMEMTYPES))
+                       ) then
+                    begin
+                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                      result.Add(sl_Inst + sl_RegCombi);
+
+
+
+                      sl_RegCombi := '';
+                    end;
+                  end;
+                end;
+              end;
+            end;
+          end;
+        finally
+          FreeAndNil(OItem4);
+        end;
+      finally
+        FreeAndNil(OItem3);
+      end;
+    finally
+      FreeAndNil(OItem2);
+    end;
+  finally
+    FreeAndNil(OItem1);
+  end;
+end;
+
 
 constructor TAsmTestGenerator.Create;
 begin
@@ -3911,6 +4963,28 @@ begin
     FSAE    := aSAE;
 
     sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4);
+    try
+      aSL.AddStrings(sl);
+    finally
+      FreeAndNil(sl);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+class procedure TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512,
+  aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+var
+  sl: TStringList;
+begin
+  with TAsmTestGenerator.Create do
+  try
+    Fx64 := aX64;
+    FAVX512 := aAVX512;
+    FSAE    := aSAE;
+
+    sl := InternalCalcTestDataCDisp8(aInst, aOp1, aOp2, aOp3, aOp4);
     try
       aSL.AddStrings(sl);
     finally
