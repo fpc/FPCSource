@@ -3575,7 +3575,11 @@ var
   sSuffix: string;
   sl_Operand: String;
   sl_Inst   : String;
-  sl_RegCombi: String;
+  sRegCombi0: String;
+  sRegCombi1: String;
+  sRegCombi2: String;
+  sRegCombi3: String;
+  sRegCombi4: String;
   sl_Prefix: String;
   UsePrefix: boolean;
   il_Operands: integer;
@@ -3585,7 +3589,7 @@ var
   sl_RegCombi2: string;
   sl_RegCombi3: string;
   MaskRegNeeded:boolean;
-
+  slRegCombi: TStringList;
 
   function PrepareOperandTyp(const aTyp: String): String;
   begin
@@ -3664,7 +3668,7 @@ begin
               Item.OpTyp    := otXMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('XMM0');
+              Item.Values.Add('XMM16|XMM1');
             end
             else if (AnsiSameText(sl_Operand, 'XMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'XMMREG_MZ')) or
@@ -3675,16 +3679,18 @@ begin
               Item.OpTyp    := otXMMReg;
               Item.OpActive := true;
 
-              sSuffix := '';
-              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //sSuffix := '';
+              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //
+              //if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
+              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              //
+              //Item.Values.Add('XMM0' + sSuffix);
+              //if (sSuffix <> '') and
+              //   (MaskRegNeeded = false) then Item.Values.Add('XMM0');
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
-
-              Item.Values.Add('XMM0' + sSuffix);
-              if (sSuffix <> '') and
-                 (MaskRegNeeded = false) then Item.Values.Add('XMM0');
+              Item.Values.Add('XMM16|XMM1');
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM')) or
                     (AnsiSameText(sl_Operand, 'XMMRM_M')) or
@@ -3738,7 +3744,7 @@ begin
               Item.OpTyp    := otYMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('YMM0');
+              Item.Values.Add('YMM16|XMM1|XMM2');
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'YMMREG_MZ')) or
@@ -3750,16 +3756,18 @@ begin
               Item.OpTyp    := otYMMReg;
               Item.OpActive := true;
 
-              sSuffix := '';
-              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //sSuffix := '';
+              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //
+              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              //
+              //Item.Values.Add('YMM0' + sSuffix);
+              //if (sSuffix <> '') and
+              //   (MaskRegNeeded = false) then Item.Values.Add('YMM0');
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
-
-              Item.Values.Add('YMM0' + sSuffix);
-              if (sSuffix <> '') and
-                 (MaskRegNeeded = false) then Item.Values.Add('YMM0');
+              Item.Values.Add('YMM16|XMM1|XMM2');
             end
             else if (AnsiSameText(sl_Operand, 'YMMRM'))  or
                     (AnsiSameText(sl_Operand, 'YMMRM_M')) or
@@ -3774,12 +3782,12 @@ begin
 
               if UsePrefix then sl_Prefix := 'yword ';
 
-              sSuffix := '';
-              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              //sSuffix := '';
+              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //
+              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
                else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
@@ -3790,7 +3798,7 @@ begin
               Item.OpTyp    := otZMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('ZMM0');
+              Item.Values.Add('ZMM16,XMM1,XMM2,XMM3,XMM4');
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_MZ')) or
@@ -3802,12 +3810,12 @@ begin
               Item.OpTyp    := otZMMReg;
               Item.OpActive := true;
 
-              sSuffix := '';
-              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              //sSuffix := '';
+              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+              //
+              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
                else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
@@ -4441,7 +4449,7 @@ begin
 
           end;
 
-          sl_RegCombi := '';
+          //sl_RegCombi := '';
 
 
           il_Operands := 0;
@@ -4493,38 +4501,89 @@ begin
                 begin
                   for il_Op4 := 0 to OItem4.Values.Count - 1 do
                   begin
-                    sl_RegCombi := '';
+                    slRegCombi := TStringList.Create;
+                    try
+                      while slRegCombi.Count < 5 do
+                       slRegCombi.Add('');
 
-                    if OItem1.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem1.Values[il_Op1];
+                      if OItem1.OpActive then
+                      begin
+
+
+                      end;
+                    finally
+                      FreeAndNil(slRegCombi);
                     end;
 
-                    if OItem2.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
-                    end;
-
-                    if OItem3.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
-                    end;
-
-                    if OItem4.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
-                    end;
-
-                    if sl_RegCombi <> '' then
-                    begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
-                      sl_RegCombi := '';
-                    end;
+                    //sRegCombi0 := '';
+                    //sRegCombi1 := '';
+                    //sRegCombi2 := '';
+                    //sRegCombi3 := '';
+                    //sRegCombi4 := '';
+                    //
+                    //if OItem1.OpActive then
+                    //begin
+                    //  if sRegCombi0 <> '' then
+                    //  begin
+                    //    sRegCombi0 := sRegCombi0 + ', ';
+                    //    sRegCombi1 := sRegCombi1 + ', ';
+                    //    sRegCombi2 := sRegCombi2 + ', ';
+                    //    sRegCombi3 := sRegCombi3 + ', ';
+                    //    sRegCombi4 := sRegCombi4 + ', ';
+                    //  end;
+                    //
+                    //  if Pos('|', OItem1.Values[il_Op1]) > 0 then
+                    //  begin
+                    //    with TStringList.Create do
+                    //    try
+                    //      Text := Stringreplace(OItem1.Values[il_Op1], '|', #13#10,[rfReplaceAll]);
+                    //      iCnt := Count;
+                    //      while Count < 5 do Add('');
+                    //
+                    //      sRegCombi0 := sRegCombi0 + Strings[0];
+                    //      sRegCombi1 := sRegCombi1 + Strings[1];
+                    //      sRegCombi2 := sRegCombi2 + Strings[2];
+                    //      sRegCombi3 := sRegCombi3 + Strings[3];
+                    //      sRegCombi4 := sRegCombi4 + Strings[4];
+                    //
+                    //    finally
+                    //      Free;
+                    //    end;
+                    //  end
+                    //  else
+                    //  begin
+                    //    sRegCombi0 := sRegCombi0 + OItem1.Values[il_Op1];
+                    //    sRegCombi1 := sRegCombi1 + OItem1.Values[il_Op1];
+                    //    sRegCombi2 := sRegCombi2 + OItem1.Values[il_Op1];
+                    //    sRegCombi3 := sRegCombi3 + OItem1.Values[il_Op1];
+                    //    sRegCombi4 := sRegCombi4 + OItem1.Values[il_Op1];
+                    //  end;
+                    //end;
+                    //
+                    //if OItem2.OpActive then
+                    //begin
+                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                    //  sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
+                    //end;
+                    //
+                    //if OItem3.OpActive then
+                    //begin
+                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                    //  sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
+                    //end;
+                    //
+                    //if OItem4.OpActive then
+                    //begin
+                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                    //  sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
+                    //end;
+                    //
+                    //if sl_RegCombi <> '' then
+                    //begin
+                    //  //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                    //  result.Add(sl_Inst + sl_RegCombi);
+                    //  sl_RegCombi := '';
+                    //end;
                   end;
                 end;
               end;
@@ -4532,59 +4591,59 @@ begin
           end
           else
           begin
-            sl_Inst := format('%-20s', [aInst]);
-
-            for il_Op1 := 0 to OItem1.Values.Count - 1 do
-            begin
-              if OItem1.OpActive then
-              begin
-                sl_RegCombi1 := OItem1.Values[il_Op1];
-              end
-              else sl_RegCombi1 := '';
-
-              for il_Op2 := 0 to OItem2.Values.Count - 1 do
-              begin
-                if OItem2.OpActive then
-                begin
-                  sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
-                end
-                else sl_RegCombi2 := sl_RegCombi1;
-
-                for il_Op3 := 0 to OItem3.Values.Count - 1 do
-                begin
-                  if OItem3.OpActive then
-                  begin
-                    sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
-                  end
-                  else sl_RegCombi3 := sl_RegCombi2;
-
-                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
-                  begin
-                    if OItem4.OpActive then
-                    begin
-                      sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
-                    end
-                    else sl_RegCombi := sl_RegCombi3;
-
-                    if (sl_RegCombi <> '') and
-                       (
-                        (OItem1.OpActive and (OItem1.OpTyp in OTMEMTYPES)) or
-                        (OItem2.OpActive and (OItem2.OpTyp in OTMEMTYPES)) or
-                        (OItem3.OpActive and (OItem3.OpTyp in OTMEMTYPES)) or
-                        (OItem4.OpActive and (OItem4.OpTyp in OTMEMTYPES))
-                       ) then
-                    begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
-
-
-
-                      sl_RegCombi := '';
-                    end;
-                  end;
-                end;
-              end;
-            end;
+            //sl_Inst := format('%-20s', [aInst]);
+            //
+            //for il_Op1 := 0 to OItem1.Values.Count - 1 do
+            //begin
+            //  if OItem1.OpActive then
+            //  begin
+            //    sl_RegCombi1 := OItem1.Values[il_Op1];
+            //  end
+            //  else sl_RegCombi1 := '';
+            //
+            //  for il_Op2 := 0 to OItem2.Values.Count - 1 do
+            //  begin
+            //    if OItem2.OpActive then
+            //    begin
+            //      sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
+            //    end
+            //    else sl_RegCombi2 := sl_RegCombi1;
+            //
+            //    for il_Op3 := 0 to OItem3.Values.Count - 1 do
+            //    begin
+            //      if OItem3.OpActive then
+            //      begin
+            //        sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
+            //      end
+            //      else sl_RegCombi3 := sl_RegCombi2;
+            //
+            //      for il_Op4 := 0 to OItem4.Values.Count - 1 do
+            //      begin
+            //        if OItem4.OpActive then
+            //        begin
+            //          sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
+            //        end
+            //        else sl_RegCombi := sl_RegCombi3;
+            //
+            //        if (sl_RegCombi <> '') and
+            //           (
+            //            (OItem1.OpActive and (OItem1.OpTyp in OTMEMTYPES)) or
+            //            (OItem2.OpActive and (OItem2.OpTyp in OTMEMTYPES)) or
+            //            (OItem3.OpActive and (OItem3.OpTyp in OTMEMTYPES)) or
+            //            (OItem4.OpActive and (OItem4.OpTyp in OTMEMTYPES))
+            //           ) then
+            //        begin
+            //          //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+            //          result.Add(sl_Inst + sl_RegCombi);
+            //
+            //
+            //
+            //          sl_RegCombi := '';
+            //        end;
+            //      end;
+            //    end;
+            //  end;
+            //end;
           end;
         finally
           FreeAndNil(OItem4);
