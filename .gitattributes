@@ -12193,6 +12193,7 @@ rtl/unix/x86.pp svneol=native#text/plain
 rtl/wasi/Makefile svneol=native#text/plain
 rtl/wasi/Makefile.fpc svneol=native#text/plain
 rtl/wasi/rtldefs.inc svneol=native#text/plain
+rtl/wasi/sysheap.inc svneol=native#text/plain
 rtl/wasi/sysos.inc svneol=native#text/plain
 rtl/wasi/sysosh.inc svneol=native#text/plain
 rtl/wasi/system.pp svneol=native#text/plain
