@@ -26,8 +26,8 @@ unit cpupi;
 interface
 
   uses
-    cutils,
-    procinfo,cpuinfo, symtype,
+    cutils,globtype,
+    procinfo,cpuinfo, symtype,aasmbase,
     psub, cclasses;
 
   type
@@ -54,11 +54,17 @@ implementation
     type
       twasmexceptionstatehandler = class(tcgexceptionstatehandler)
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
       end;
 
     class procedure twasmexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+      end;
+
+    class procedure twasmexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+      begin
+        list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
       end;
 
 {*****************************************************************************
