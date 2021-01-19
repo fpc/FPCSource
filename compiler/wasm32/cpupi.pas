@@ -36,16 +36,39 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     public
+      procedure setup_eh; override;
       procedure postprocess_code; override;
-
       procedure set_first_temp_offset;override;
     end;
 
 implementation
 
     uses
-      systems,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,
+      systems,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,cgexcept,
       tgobj,paramgr,symconst,symcpu;
+
+{*****************************************************************************
+                     twasmexceptionstatehandler
+*****************************************************************************}
+
+    type
+      twasmexceptionstatehandler = class(tcgexceptionstatehandler)
+        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+      end;
+
+    class procedure twasmexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      begin
+        list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+      end;
+
+{*****************************************************************************
+                           tcpuprocinfo
+*****************************************************************************}
+
+    procedure tcpuprocinfo.setup_eh;
+      begin
+        cexceptionstatehandler:=twasmexceptionstatehandler;
+      end;
 
     procedure tcpuprocinfo.postprocess_code;
 
