@@ -164,6 +164,7 @@ uses
       procedure a_cmp_reg_loc_stack(list : TAsmList;size : tdef;cmp_op : topcmp; reg: tregister; const loc: tlocation);
       procedure a_cmp_ref_loc_stack(list: TAsmList; size: tdef;cmp_op: topcmp; const ref: treference; const loc: tlocation);
 
+      procedure a_cmp_const_loc_br(list: TAsmList; size: tdef;cmp_op: topcmp; a: tcgint; const loc: tlocation; br: Integer);
       procedure a_cmp_const_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; br: Integer);
       procedure a_cmp_const_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; br: Integer);
       procedure a_cmp_ref_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; br: Integer);
@@ -756,6 +757,13 @@ implementation
         else
           internalerror(2010120432);
       end;
+    end;
+
+  procedure thlcgwasm.a_cmp_const_loc_br(list: TAsmList; size: tdef;cmp_op: topcmp; a: tcgint; const loc: tlocation; br: Integer);
+    begin
+      a_cmp_const_loc_stack(list,size,cmp_op,a,loc);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_const_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; br: Integer);
