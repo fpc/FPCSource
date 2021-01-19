@@ -55,6 +55,7 @@ implementation
       twasmexceptionstatehandler = class(tcgexceptionstatehandler)
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
       end;
 
     class procedure twasmexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
@@ -65,6 +66,11 @@ implementation
     class procedure twasmexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
+      end;
+
+    class procedure twasmexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+      begin
+        list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
       end;
 
 {*****************************************************************************
