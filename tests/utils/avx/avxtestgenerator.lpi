@@ -21,9 +21,6 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
