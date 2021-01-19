@@ -990,6 +990,7 @@ compiler/wasm32/nwasmcal.pas svneol=native#text/plain
 compiler/wasm32/nwasmcnv.pas svneol=native#text/plain
 compiler/wasm32/nwasmcon.pas svneol=native#text/plain
 compiler/wasm32/nwasmflw.pas svneol=native#text/plain
+compiler/wasm32/nwasminl.pas svneol=native#text/plain
 compiler/wasm32/nwasmmat.pas svneol=native#text/plain
 compiler/wasm32/nwasmset.pas svneol=native#text/plain
 compiler/wasm32/rgcpu.pas svneol=native#text/plain

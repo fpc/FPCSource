@@ -33,7 +33,7 @@ implementation
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
     
-    nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,
+    nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,nwasminl,
     (* todo: WASM
     njvmcnv,njvmcon,njvminl,njvmmem,njvmld,
     njvmset,njvmvmt
