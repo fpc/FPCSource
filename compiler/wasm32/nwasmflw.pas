@@ -52,6 +52,8 @@ interface
       { twasmtryfinallynode }
 
       twasmtryfinallynode = class(tcgtryfinallynode)
+      public
+        procedure pass_generate_code;override;
       end;
 
 implementation
@@ -192,6 +194,41 @@ implementation
         thlcgwasm(hlcg).decblock;
 
         flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
+      end;
+
+{*****************************************************************************
+                             twasmtryfinallynode
+*****************************************************************************}
+
+    procedure twasmtryfinallynode.pass_generate_code;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..finally, try')));
+
+        { try code }
+        if assigned(left) then
+          begin
+            secondpass(left);
+            if codegenerror then
+              exit;
+          end;
+
+        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..finally, finally')));
+
+        { finally code (don't unconditionally set fc_inflowcontrol, since the
+          finally code is unconditionally executed; we do have to filter out
+          flags regarding break/contrinue/etc. because we have to give an
+          error in case one of those is used in the finally-code }
+        //flowcontrol:=finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions];
+        secondpass(right);
+        { goto is allowed if it stays inside the finally block,
+          this is checked using the exception block number }
+        //if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
+        //  CGMessage(cg_e_control_flow_outside_finally);
+        if codegenerror then
+          exit;
+        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..finally, end')));
       end;
 
 initialization
