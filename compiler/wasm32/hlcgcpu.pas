@@ -170,6 +170,8 @@ uses
       procedure a_cmp_ref_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; br: Integer);
       procedure a_cmp_reg_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; br: Integer);
       procedure a_cmp_reg_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; br: Integer);
+      procedure a_cmp_subsetreg_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sreg: tsubsetregister; reg: tregister; br: Integer);
+      procedure a_cmp_subsetref_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sref: tsubsetreference; reg: tregister; br: Integer);
 
       procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); override;
 
@@ -797,6 +799,20 @@ implementation
   procedure thlcgwasm.a_cmp_reg_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; br: Integer);
     begin
       a_cmp_reg_reg_stack(list,size,cmp_op,reg1,reg2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+    end;
+
+  procedure thlcgwasm.a_cmp_subsetreg_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sreg: tsubsetregister; reg: tregister; br: Integer);
+    begin
+      a_cmp_subsetreg_reg_stack(list,fromsubsetsize,cmpsize,cmp_op,sreg,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+    end;
+
+  procedure thlcgwasm.a_cmp_subsetref_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sref: tsubsetreference; reg: tregister; br: Integer);
+    begin
+      a_cmp_subsetref_reg_stack(list,fromsubsetsize,cmpsize,cmp_op,sref,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
       thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
