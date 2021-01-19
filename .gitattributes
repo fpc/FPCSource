@@ -12201,6 +12201,7 @@ rtl/wasm32/int64p.inc svneol=native#text/plain
 rtl/wasm32/makefile.cpu svneol=native#text/plain
 rtl/wasm32/math.inc svneol=native#text/plain
 rtl/wasm32/set.inc svneol=native#text/plain
+rtl/wasm32/setjump.inc svneol=native#text/plain
 rtl/wasm32/setjumph.inc svneol=native#text/plain
 rtl/wasm32/wasm32.inc svneol=native#text/plain
 rtl/watcom/Makefile svneol=native#text/plain

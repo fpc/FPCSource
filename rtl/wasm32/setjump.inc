@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2008 by the Free Pascal development team.
 
-    SetJmp/Longjmp declarations
+    SetJmp and LongJmp implementation for exception handling
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,10 +14,13 @@
 
  **********************************************************************}
 
-type
-   jmp_buf = packed record
-   end;
-   pjmp_buf = ^jmp_buf;
+function fpc_setjmp(var S : jmp_buf) : shortint;[Public, alias : 'FPC_SETJMP'];compilerproc;
+  begin
+  end;
 
-function setjmp(var S : jmp_buf) : shortint;{[external name 'FPC_SETJMP'];}
-procedure longjmp(var S : jmp_buf;value : shortint);{[external name 'FPC_LONGJMP'];}
+
+procedure fpc_longjmp(var S : jmp_buf;value : shortint);[Public, alias : 'FPC_LONGJMP'];compilerproc;
+  begin
+  end;
+
+
