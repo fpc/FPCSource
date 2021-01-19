@@ -4015,7 +4015,6 @@ packages/fcl-registry/tests/Makefile.fpc -text
 packages/fcl-registry/tests/regtestframework.pp -text
 packages/fcl-registry/tests/tcxmlreg.pp svneol=native#text/plain
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
-packages/fcl-registry/tests/tregistry2.pp svneol=native#text/plain
 packages/fcl-report/Makefile svneol=native#text/plain
 packages/fcl-report/Makefile.fpc svneol=native#text/plain
 packages/fcl-report/demos/company-logo.png -text svneol=unset#image/png
@@ -14481,6 +14480,7 @@ tests/test/packages/fcl-db/tdb5.pp svneol=native#text/plain
 tests/test/packages/fcl-db/tdb6.pp svneol=native#text/plain
 tests/test/packages/fcl-db/toolsunit.pas svneol=native#text/plain
 tests/test/packages/fcl-registry/tregistry1.pp svneol=native#text/plain
+tests/test/packages/fcl-registry/tregistry2.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tw35060a.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tw35060b.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tw35060c.pp svneol=native#text/plain
