@@ -34,28 +34,6 @@ type
 
   TOpMemType = Set of TOpType;
 
-  TAsmCompareMode = (cmKORTESTNC, cmXORTestNZ);
-
-  TOpMode = (omUnknown,
-             omMX, omMY, omMZ,
-             omXB32, omXB64, omYB32, omYB64, omZB32, omZB64,
-             omXM, omYM, omZM,
-
-
-             omKXM, omKYM, omKZM,
-             omKXB32, omKXB64, omKYB32, omKYB64, omKZB32, omKZB64,
-             omKXB32I, omKXB64I, omKXMI, omKYB32I, omKYB64I, omKYMI, omKZB32I, omKZB64I, omKZMI,
-
-             omKMI, omKB32I, omKB64I,
-             omMXI, omMYI, omMZI,
-             omXXM, omXXB32, omXXB64, omXMI, omXB32I, omXB64I,
-             omXXMI, omXXB32I, omXXB64I,
-
-             omYYM, omYYB32, omYYB64, omYMI, omYB32I, omYB64I,
-             omYYMI, omYYB32I, omYYB64I,
-             omZZM, omZZB32, omZZB64, omZMI, omZB32I, omZB64I,
-             omZZMI, omZZB32I, omZZB64I);
-
   TOperandListItem = class(TObject)
   private
     FOpActive: boolean;
@@ -115,12 +93,15 @@ type
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
     function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
+    function InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
   public
     constructor Create;
     destructor Destroy; override;
 
     class procedure CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
     class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestDataCDisp8(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+
 
     class procedure CalcTestInstFile;
     class procedure ListMemRefState;
@@ -187,6 +168,9 @@ const
                                                  msiZMem32, msiZMem64,
                                                  msiVMemMultiple, msiVMemRegSize];
 
+  OTMEMTYPES: TOpMemType = [otXMMRM, otXMMRM16, otXMMRM8, otYMMRM, otZMMRM,
+                            otMem8, otMem16, otMem32, otMem64, otMem128, otMem256, otMem512,
+                            otRM32, otRM64, otB32, otB64];
 
 var
   InsTabCache : PInsTabCache;
@@ -3574,16 +3558,8 @@ begin
   end;
 end;
 
-
-constructor TAsmTestGenerator.Create;
-begin
-  inherited;
-
-  FX64 := true;
-  FAVX512 := false;
-
-function TAsmTestGenerator.InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3,
-  aOp4: String): TStringList;
+function TAsmTestGenerator.InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2,
+  aOp3, aOp4: String): TStringList;
 var
   i: integer;
   Item: TOperandListItem;
@@ -3610,987 +3586,8 @@ var
   sl_RegCombi1: string;
   sl_RegCombi2: string;
   sl_RegCombi3: string;
-
-  function PrepareOperandTyp(const aTyp: String): String;
-  begin
-    result := aTyp;
-    if copy(result, length(result), 1) = '*' then result := copy(result, 1, length(result) - 1);
-    if result = 'XMMRM128' then result := 'XMMRM';
-    if result = 'YMMRM256' then result := 'YMMRM';
-  end;
-
-
-begin
-  result := TStringList.Create;
-
-  OItem1 := TOperandListItem.Create;
-  try
-    OItem2 := TOperandListItem.Create;
-    try
-      OItem3 := TOperandListItem.Create;
-      try
-        OItem4 := TOperandListItem.Create;
-        try
-
-          UsePrefix := (UpperCase(aInst) = 'VCVTPD2DQ') OR
-                       (UpperCase(aInst) = 'VCVTPD2PS') OR
-                       (UpperCase(aInst) = 'VCVTSI2SD') OR
-                       (UpperCase(aInst) = 'VCVTSI2SS') OR
-                       (UpperCase(aInst) = 'VCVTTPD2DQ') or
-                       (UpperCase(aInst) = 'VPMOVZXWQ') or
-                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
-                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
-                       (UpperCase(aInst) = 'VCVTTPD2UDQ') or
-                       (UpperCase(aInst) = 'VCVTUQQ2PS') or
-                       (UpperCase(aInst) = 'VCVTQQ2PS') or
-                       (UpperCase(aInst) = 'VCVTUSI2SD') or
-                       (UpperCase(aInst) = 'VCVTUSI2SS') or
-                       (UpperCase(aInst) = 'VFPCLASSPD') or
-                       (UpperCase(aInst) = 'VFPCLASSPS') or
-                       (UpperCase(aInst) = 'VCMPSS')
-
-                       ;
-
-
-
-          for il_Op := 1 to 4 do
-          begin
-            sl_Prefix := '';
-
-            case il_Op of
-              1: begin
-                   Item := OItem1;
-                   sl_Operand := aOp1;
-                 end;
-              2: begin
-                   Item := OItem2;
-                   sl_Operand := aOp2;
-                 end;
-              3: begin
-                   Item := OItem3;
-                   sl_Operand := aOp3;
-                 end;
-              4: begin
-                   Item := OItem4;
-                   sl_Operand := aOp4;
-                 end;
-            end;
-
-            sl_Operand := PrepareOperandTyp(sl_Operand);
-
-            if (AnsiSameText(sl_Operand, 'XMMREG')) or
-               (AnsiSameText(sl_Operand, 'XMMREG_M')) or
-               (AnsiSameText(sl_Operand, 'XMMREG_MZ')) or
-               (AnsiSameText(sl_Operand, 'XMMREG_ER')) or
-               (AnsiSameText(sl_Operand, 'XMMREG_SAE')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMMReg;
-              Item.OpActive := true;
-
-              Item.Values.Add('XMM0');
-           end
-            else if (AnsiSameText(sl_Operand, 'XMMRM')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_M')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_MZ')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_ER')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_SAE')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMMRM;
-              Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'oword ';
-
-              Item.Values.Add(' lOWord');
-              Item.Values.Add(' gOWord');
-              Item.Values.Add(' clOWord');
-              Item.Values.Add(' cgOWord');
-
-              Item.Values.Add(' oword lOWord');
-              Item.Values.Add(' oword gOWord');
-              Item.Values.Add(' oword clOWord');
-              Item.Values.Add(' oword cgOWord');
-
-              Item.Values.Add(' byte lOWord');
-              Item.Values.Add(' byte gOWord');
-              Item.Values.Add(' byte clOWord');
-              Item.Values.Add(' byte cgOWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' oword lRec');
-              Item.Values.Add(' oword gRec');
-
-              Item.Values.Add(' oword lRec.rOWord');
-              Item.Values.Add(' oword gRec.rOWord');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM8_M')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM8_MZ')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM8_ER')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM8_SAE')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMMRM8;
-              Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'byte ';
-
-              Item.Values.Add('lbyte');
-              Item.Values.Add('gbyte');
-              Item.Values.Add('clbyte');
-              Item.Values.Add('cgbyte');
-
-              Item.Values.Add('byte lbyte');
-              Item.Values.Add('byte gbyte');
-              Item.Values.Add('byte clbyte');
-              Item.Values.Add('byte cgbyte');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' byte lRec');
-              Item.Values.Add(' byte gRec');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM16_MZ')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM16_ER')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM16_SAE'))
-                    then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMMRM16;
-              Item.OpActive := true;
-
-              Item.Values.Add('lword');
-              Item.Values.Add('gword');
-              Item.Values.Add('clword');
-              Item.Values.Add('cgword');
-
-              Item.Values.Add('word lword');
-              Item.Values.Add('word gword');
-              Item.Values.Add('word clword');
-              Item.Values.Add('word cgword');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' word lRec');
-              Item.Values.Add(' word gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'YMMREG')) or
-                    (AnsiSameText(sl_Operand, 'YMMREG_M')) or
-                    (AnsiSameText(sl_Operand, 'YMMREG_MZ')) or
-                    (AnsiSameText(sl_Operand, 'YMMREG_ER')) or
-                    (AnsiSameText(sl_Operand, 'YMMREG_SAE'))
-                    then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otYMMReg;
-              Item.OpActive := true;
-
-              Item.Values.Add('YMM0');
-            end
-            else if (AnsiSameText(sl_Operand, 'YMMRM'))  or
-                    (AnsiSameText(sl_Operand, 'YMMRM_M')) or
-                    (AnsiSameText(sl_Operand, 'YMMRM_MZ')) or
-                    (AnsiSameText(sl_Operand, 'YMMRM_ER')) or
-                    (AnsiSameText(sl_Operand, 'YMMRM_SAE'))
-                    then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otYMMRM;
-              Item.OpActive := true;
-
-              Item.Values.Add('lYWord');
-              Item.Values.Add('gYWord');
-              Item.Values.Add('clYWord');
-              Item.Values.Add('cgYWord');
-
-              Item.Values.Add('yword lYWord');
-              Item.Values.Add('yword gYWord');
-              Item.Values.Add('yword clYWord');
-              Item.Values.Add('yword cgYWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' yword lRec');
-              Item.Values.Add(' yword gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'ZMMREG')) or
-                    (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
-                    (AnsiSameText(sl_Operand, 'ZMMREG_MZ')) or
-                    (AnsiSameText(sl_Operand, 'ZMMREG_ER')) or
-                    (AnsiSameText(sl_Operand, 'ZMMREG_SAE'))
-                    then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otZMMReg;
-              Item.OpActive := true;
-
-              Item.Values.Add('ZMM0');
-            end
-            else if (AnsiSameText(sl_Operand, 'ZMMRM')) or
-                    (AnsiSameText(sl_Operand, 'ZMMRM_M')) or
-                    (AnsiSameText(sl_Operand, 'ZMMRM_MZ')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_ER')) or
-                    (AnsiSameText(sl_Operand, 'XMMRM_SAE'))
-                    then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otZMMRM;
-              Item.OpActive := true;
-
-              Item.Values.Add('lZWord');
-              Item.Values.Add('gZWord');
-              Item.Values.Add('clZWord');
-              Item.Values.Add('cgZWord');
-
-              Item.Values.Add('zword lZWord');
-              Item.Values.Add('zword gZWord');
-              Item.Values.Add('zword clZWord');
-              Item.Values.Add('zword cgZWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' zword lRec');
-              Item.Values.Add(' zword gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if AnsiSameText(sl_Operand, 'MEM8') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM8;
-              Item.OpActive := true;
-
-              Item.Values.Add('lByte');
-              Item.Values.Add('gByte');
-              Item.Values.Add('clByte');
-              Item.Values.Add('cgByte');
-
-              Item.Values.Add('byte lByte');
-              Item.Values.Add('byte gByte');
-              Item.Values.Add('byte clByte');
-              Item.Values.Add('byte cgByte');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' byte lRec');
-              Item.Values.Add(' byte gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-            end
-            else if AnsiSameText(sl_Operand, 'MEM16') or
-                    AnsiSameText(sl_Operand, 'MEM16_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM16;
-              Item.OpActive := true;
-
-              Item.Values.Add('lWord');
-              Item.Values.Add('gWord');
-              Item.Values.Add('clWord');
-              Item.Values.Add('cgWord');
-
-              Item.Values.Add('word lWord');
-              Item.Values.Add('word gWord');
-              Item.Values.Add('word clWord');
-              Item.Values.Add('word cgWord');
-
-              Item.Values.Add(' word lRec');
-              Item.Values.Add(' word gRec');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-            end
-            else if AnsiSameText(sl_Operand, 'MEM32') or
-                    AnsiSameText(sl_Operand, 'MEM32_M') or
-                    AnsiSameText(sl_Operand, 'MEM32_MZ') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord');
-              Item.Values.Add('gDWord');
-              Item.Values.Add('clDWord');
-              Item.Values.Add('cgDWord');
-
-              Item.Values.Add('dword lDWord');
-              Item.Values.Add('dword gDWord');
-              Item.Values.Add('dword clDWord');
-              Item.Values.Add('dword cgDWord');
-
-              Item.Values.Add(' dword lRec');
-              Item.Values.Add(' dword gRec');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-            end
-            else if (AnsiSameText(sl_Operand, 'MEM64')) or
-                    (AnsiSameText(sl_Operand, 'MEM64_M')) or
-                    (AnsiSameText(sl_Operand, 'MEM64_MZ')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord');
-              Item.Values.Add('gQWord');
-              Item.Values.Add('clQWord');
-              Item.Values.Add('cgQWord');
-
-              Item.Values.Add('qword lQWord');
-              Item.Values.Add('qword gQWord');
-              Item.Values.Add('qword clQWord');
-              Item.Values.Add('qword cgQWord');
-
-              Item.Values.Add(' qword lRec');
-              Item.Values.Add(' qword gRec');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-            end
-            else if (AnsiSameText(sl_Operand, 'MEM128')) or
-                    (AnsiSameText(sl_Operand, 'MEM128_M')) or
-                    (AnsiSameText(sl_Operand, 'MEM128_MZ')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM128;
-              Item.OpActive := true;
-
-              Item.Values.Add('lOWord');
-              Item.Values.Add('gOWord');
-              Item.Values.Add('clOWord');
-              Item.Values.Add('cgOWord');
-
-              Item.Values.Add('oword lOWord');
-              Item.Values.Add('oword gOWord');
-              Item.Values.Add('oword clOWord');
-              Item.Values.Add('oword cgOWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' oword lRec');
-              Item.Values.Add(' oword gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'MEM256')) or
-                    (AnsiSameText(sl_Operand, 'MEM256_M')) or
-                    (AnsiSameText(sl_Operand, 'MEM256_MZ')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM256;
-              Item.OpActive := true;
-
-              Item.Values.Add('lYWord');
-              Item.Values.Add('gYWord');
-              Item.Values.Add('clYWord');
-              Item.Values.Add('cgYWord');
-
-              Item.Values.Add('yword lYWord');
-              Item.Values.Add('yword gYWord');
-              Item.Values.Add('yword clYWord');
-              Item.Values.Add('yword cgYWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' yword lRec');
-              Item.Values.Add(' yword gRec');
-
-              Item.Values.Add(' lRec.rByte');
-              Item.Values.Add(' gRec.rByte');
-
-              Item.Values.Add(' lRec.rWord');
-              Item.Values.Add(' gRec.rWord');
-
-              Item.Values.Add(' lRec.rDWord');
-              Item.Values.Add(' gRec.rDWord');
-
-              Item.Values.Add(' lRec.rQWord');
-              Item.Values.Add(' gRec.rQWord');
-
-              Item.Values.Add(' lRec.rOWord');
-              Item.Values.Add(' gRec.rOWord');
-
-              Item.Values.Add(' lRec.rYWord');
-              Item.Values.Add(' gRec.rYWord');
-
-              Item.Values.Add(' lRec.rZWord');
-              Item.Values.Add(' gRec.rZWord');
-
-            end
-            else if (AnsiSameText(sl_Operand, 'MEM512')) or
-                    (AnsiSameText(sl_Operand, 'MEM512_M')) or
-                    (AnsiSameText(sl_Operand, 'MEM512_MZ')) then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otMEM512;
-              Item.OpActive := true;
-
-              Item.Values.Add('lZWord');
-              Item.Values.Add('gZWord');
-              Item.Values.Add('clZWord');
-              Item.Values.Add('cgZWord');
-
-              Item.Values.Add('zword lZWord');
-              Item.Values.Add('zword gZWord');
-              Item.Values.Add('zword clZWord');
-              Item.Values.Add('zword cgZWord');
-
-              Item.Values.Add(' lRec');
-              Item.Values.Add(' gRec');
-
-              Item.Values.Add(' zword lRec');
-              Item.Values.Add(' zword gRec');
-
-
-            end
-            else if AnsiSameText(sl_Operand, 'REG8') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG8;
-              Item.OpActive := true;
-
-              Item.Values.Add('al');
-            end
-            else if AnsiSameText(sl_Operand, 'REG16') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG16;
-              Item.OpActive := true;
-
-              Item.Values.Add('ax');
-            end
-            else if AnsiSameText(sl_Operand, 'REG32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG32;
-              Item.OpActive := true;
-
-              Item.Values.Add('eax');
-            end
-            else if AnsiSameText(sl_Operand, 'REG64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG64;
-              Item.OpActive := true;
-
-              Item.Values.Add('rax');
-            end
-            else if AnsiSameText(sl_Operand, 'RM32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otRM32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord');
-              Item.Values.Add('gDWord');
-            end
-            else if AnsiSameText(sl_Operand, 'RM64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otRM64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord');
-              Item.Values.Add('gQWord');
-            end
-            else if AnsiSameText(sl_Operand, 'IMM8') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otIMM8;
-              Item.OpActive := true;
-
-              Item.Values.Add('0');
-            end
-            else if AnsiSameText(sl_Operand, 'XMEM32') or
-                    AnsiSameText(sl_Operand, 'XMEM32_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMEM32;
-              Item.OpActive := true;
-            end
-            else if AnsiSameText(sl_Operand, 'XMEM64') or
-                    AnsiSameText(sl_Operand, 'XMEM64_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otXMEM64;
-              Item.OpActive := true;
-            end
-            else if AnsiSameText(sl_Operand, 'YMEM32') or
-                    AnsiSameText(sl_Operand, 'YMEM32_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otYMEM32;
-              Item.OpActive := true;
-            end
-            else if AnsiSameText(sl_Operand, 'YMEM64') or
-                    AnsiSameText(sl_Operand, 'YMEM64_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otYMEM64;
-              Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'yword ';
-
-            end
-            else if AnsiSameText(sl_Operand, 'ZMEM32') or
-                    AnsiSameText(sl_Operand, 'ZMEM32_M')  then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otZMEM32;
-              Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'zword ';
-
-            end
-            else if AnsiSameText(sl_Operand, 'ZMEM64') or
-                    AnsiSameText(sl_Operand, 'ZMEM64_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otZMEM64;
-              Item.OpActive := true;
-
-              if UsePrefix then sl_Prefix := 'zword ';
-
-            end
-            else if AnsiSameText(sl_Operand, '2B32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord {1to2}');
-              Item.Values.Add('gDWord {1to2}');
-            end
-            else if AnsiSameText(sl_Operand, '4B32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord {1to4}');
-              Item.Values.Add('gDWord {1to4}');
-            end
-            else if AnsiSameText(sl_Operand, '8B32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord {1to8}');
-              Item.Values.Add('gDWord {1to8}');
-            end
-            else if AnsiSameText(sl_Operand, '16B32') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB32;
-              Item.OpActive := true;
-
-              Item.Values.Add('lDWord {1to16}');
-              Item.Values.Add('gDWord {1to16}');
-           end
-            else if AnsiSameText(sl_Operand, '2B64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord {1to2}');
-              Item.Values.Add('gQWord {1to2}');
-            end
-            else if AnsiSameText(sl_Operand, '4B64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord {1to4}');
-              Item.Values.Add('gQWord {1to4}');
-            end
-            else if AnsiSameText(sl_Operand, '8B64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord {1to8}');
-              Item.Values.Add('gQWord {1to8}');
-            end
-            else if AnsiSameText(sl_Operand, '16B64') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otB64;
-              Item.OpActive := true;
-
-              Item.Values.Add('lQWord {1to16}');
-              Item.Values.Add('gQWord {1to16}');
-           end
-            else if AnsiSameText(sl_Operand, 'KREG') or
-                    AnsiSameText(sl_Operand, 'KREG_M') then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otKREG;
-              Item.OpActive := true;
-
-              Item.Values.Add('k1');
-            end
-            else if trim(sl_Operand) = '' then
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otUnknown;
-              Item.OpActive := false;
-
-              Item.Values.Add('');
-            end
-            else
-            begin
-              Item.OpNumber := il_Op;
-              Item.OpTyp    := otUnknown;
-              Item.OpActive := false;
-
-              Item.Values.Add('?' + sl_Operand);
-            end
-
-          end;
-
-          sl_RegCombi := '';
-
-
-          il_Operands := 0;
-          UsedParams  := 0;
-
-          if OItem1.OpActive then
-          begin
-            inc(il_Operands);
-            UsedParams := UsedParams or 1;
-          end;
-
-          if OItem2.OpActive then
-          begin
-            inc(il_Operands);
-            UsedParams := UsedParams or 2;
-          end;
-
-          if OItem3.OpActive then
-          begin
-            inc(il_Operands);
-            UsedParams := UsedParams or 4;
-          end;
-
-          if OItem4.OpActive then
-          begin
-            inc(il_Operands);
-            UsedParams := UsedParams or 8;
-          end;
-
-          case il_Operands of
-              1: UseDefault := UsedParams <> 1;
-              2: UseDefault := UsedParams <> 3;
-              3: UseDefault := UsedParams <> 7;
-              4: UseDefault := UsedParams <> 15;
-            else UseDefault := true;
-          end;
-
-          //UseDefault := true;
-
-          if UseDefault then
-          begin
-            sl_Inst := format('%-20s', [aInst]);
-
-            for il_Op1 := 0 to OItem1.Values.Count - 1 do
-            begin
-              for il_Op2 := 0 to OItem2.Values.Count - 1 do
-              begin
-                for il_Op3 := 0 to OItem3.Values.Count - 1 do
-                begin
-                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
-                  begin
-                    sl_RegCombi := '';
-
-                    if OItem1.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem1.Values[il_Op1];
-                    end;
-
-                    if OItem2.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
-                    end;
-
-                    if OItem3.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
-                    end;
-
-                    if OItem4.OpActive then
-                    begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
-                    end;
-
-                    if sl_RegCombi <> '' then
-                    begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
-                      sl_RegCombi := '';
-                    end;
-                  end;
-                end;
-              end;
-            end;
-          end
-          else
-          begin
-            sl_Inst := format('%-20s', [aInst]);
-
-            for il_Op1 := 0 to OItem1.Values.Count - 1 do
-            begin
-              if OItem1.OpActive then
-              begin
-                sl_RegCombi1 := OItem1.Values[il_Op1];
-              end
-              else sl_RegCombi1 := '';
-
-              for il_Op2 := 0 to OItem2.Values.Count - 1 do
-              begin
-                if OItem2.OpActive then
-                begin
-                  sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
-                end
-                else sl_RegCombi2 := sl_RegCombi1;
-
-                for il_Op3 := 0 to OItem3.Values.Count - 1 do
-                begin
-                  if OItem3.OpActive then
-                  begin
-                    sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
-                  end
-                  else sl_RegCombi3 := sl_RegCombi2;
-
-                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
-                  begin
-                    if OItem4.OpActive then
-                    begin
-                      sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
-                    end
-                    else sl_RegCombi := sl_RegCombi3;
-
-                    if sl_RegCombi <> '' then
-                    begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
-                      sl_RegCombi := '';
-                    end;
-                  end;
-                end;
-              end;
-            end;
-          end;
-        finally
-          FreeAndNil(OItem4);
-        end;
-      finally
-        FreeAndNil(OItem3);
-      end;
-    finally
-      FreeAndNil(OItem2);
-    end;
-  finally
-    FreeAndNil(OItem1);
-  end;
-end;
-
-function TAsmTestGenerator.InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2,
-  aOp3, aOp4: String): TStringList;
-var
-  i: integer;
-  Item: TOperandListItem;
-  OItem1: TOperandListItem;
-  OItem2: TOperandListItem;
-  OItem3: TOperandListItem;
-  OItem4: TOperandListItem;
-
-  il_Op: integer;
-  il_Op1: integer;
-  il_Op2: integer;
-  il_Op3: integer;
-  il_Op4: integer;
-  iAsmCounter: integer;
-
-  sSuffix: string;
-  sReg: string;
-  sl_Operand: String;
-  sl_Inst   : String;
-  sRegCombi: String;
-  sRegCombi1: String;
-  sRegCombi2: String;
-  sRegCombi3: String;
-  sRegCombi4: String;
-  sBaseReg  : String;
-  sIndexReg : String;
-
-  sl_Prefix: String;
-  UsePrefix: boolean;
-  il_Operands: integer;
-  UsedParams: cardinal;
-  UseDefault: boolean;
-  sl_RegCombi1: string;
-  sl_RegCombi2: string;
-  sl_RegCombi3: string;
-  sInstruction: string;
-  sMREF: string;
-  sLogMsg: string;
   MaskRegNeeded:boolean;
-  slRegCombi: TStringList;
-  OpMode: TOpMode;
-  iOpNumMRef: integer;
+
 
   function PrepareOperandTyp(const aTyp: String): String;
   begin
@@ -4600,183 +3597,9 @@ var
     if result = 'YMMRM256' then result := 'YMMRM';
   end;
 
-  procedure SplitOperands(const aOperand1, aOperand2, aOperand3, aOperand4: string; var aRegCombi0, aRegCombi1, aRegCombi2, aRegCombi3, aRegCombi4: string);
-  var
-    i: integer;
-    s1: string;
-    s2: string;
-    s3: string;
-    s4: string;
-    iCnt1: integer;
-    iCnt2: integer;
-    iCnt3: integer;
-    iCnt4: integer;
-    iMaxCnt: integer;
-
-  begin
-    with TStringList.Create do
-    try
-      Text := StringReplace(trim(aOperand1), '|', #13#10, [rfReplaceAll]);
-      iCnt1 := Count;
-
-      Text := StringReplace(trim(aOperand2), '|', #13#10, [rfReplaceAll]);
-      iCnt2 := Count;
-
-      Text := StringReplace(trim(aOperand3), '|', #13#10, [rfReplaceAll]);
-      iCnt3 := Count;
-
-      Text := StringReplace(trim(aOperand4), '|', #13#10, [rfReplaceAll]);
-      iCnt4 := Count;
-
-      iMaxCnt := iCnt1;
-      if iCnt2 > iMaxCnt then iMaxCnt := iCnt2;
-      if iCnt3 > iMaxCnt then iMaxCnt := iCnt3;
-      if iCnt4 > iMaxCnt then iMaxCnt := iCnt4;
-
-
-      if (aOperand1 <> '') and (aRegCombi0 <> '') then
-      begin
-        aRegCombi0 := aRegCombi0 + ',';
-        aRegCombi1 := aRegCombi1 + ',';
-        aRegCombi2 := aRegCombi2 + ',';
-        aRegCombi3 := aRegCombi3 + ',';
-        aRegCombi4 := aRegCombi4 + ',';
-      end;
-
-
-      Text := StringReplace(trim(aOperand1), '|', #13#10, [rfReplaceAll]);
-      if Count = iMaxCnt then
-      begin
-        for i := 0 to iMaxCnt - 1 do
-        begin
-          case i of
-            0: aRegCombi0 := aRegCombi0 + ',' + Strings[i];
-            1: aRegCombi1 := aRegCombi1 + ',' + Strings[i];
-            2: aRegCombi2 := aRegCombi2 + ',' + Strings[i];
-            3: aRegCombi3 := aRegCombi3 + ',' + Strings[i];
-            4: aRegCombi4 := aRegCombi4 + ',' + Strings[i];
-          end;
-        end;
-      end
-      else
-      begin
-        if Count = 1 then
-        begin
-          for i := 0 to iMaxCnt - 1 do
-          begin
-            case i of
-              0: aRegCombi0 := aRegCombi0 + ',' + Strings[0];
-              1: aRegCombi1 := aRegCombi1 + ',' + Strings[0];
-              2: aRegCombi2 := aRegCombi2 + ',' + Strings[0];
-              3: aRegCombi3 := aRegCombi3 + ',' + Strings[0];
-              4: aRegCombi4 := aRegCombi4 + ',' + Strings[0];
-            end;
-          end;
-        end
-        else
-        begin
-          // TODO log
-        end;
-      end;
-    finally
-      Free;
-    end;
-  end;
-
-  function MapOperand(aOpTyp: TOpType): String;
-  begin
-    case aOpTyp of
-        otXMMReg: result := 'X';
-        otYMMReg: result := 'Y';
-        otZMMReg: result := 'Z';
-           otEAX,
-           otRAX,
-         otREG64,
-         otREG32,
-         otREG16,
-          otREG8: result := 'R';
-          otRM32,
-          otRM64,
-         otXMMRM,
-        otXMMRM8,
-       otXMMRM16,
-         otYMMRM,
-         otZMMRM,
-         otMem32,
-          otMem8,
-         otMem16,
-         otMem64,
-        otMem128,
-        otMem256,
-        otMem512: result := 'M';
-          otIMM8: result := 'I';
-        otXMEM32: result := 'X32';
-        otXMEM64: result := 'X64';
-        otYMEM32: result := 'Y32';
-        otYMEM64: result := 'Y64';
-        otZMEM32: result := 'Z32';
-        otZMEM64: result := 'Z64';
-           otB32: result := 'B32';
-           otB64: result := 'B64';
-          otKREG: result := 'K';
-             else result := '';
-    end;
-  end;
-
-  function AsmCodeBlockCompare(aAsmCounter: integer; aCompareMode: TAsmCompareMode): String;
-  var
-    sReg: string;
-  begin
-    result := '';
-
-    case Fx64 of
-      true: sReg := 'RAX';
-       else sReg := 'EAX';
-    end;
-
-    with TStringList.Create do
-    try
-      Add(format('%20s%6s  ',             ['    push', sReg]));
-      Add(format('%20s%6s,%s',            ['     mov', sReg, inttostr(aAsmCounter)]));
-      Add(format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']));
-      Add(format('%20s%6s',               ['     pop', sReg]));
-
-      case aComparemode of
-        //cmKORTESTNC: begin
-        //               Add(format('%20s%6s, %s',           ['ktestb', 'K2', 'K1']));
-        //               Add(format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']));
-        //             end;
-        //cmXORTestNZ: begin
-        //               Add(format('%20s%6s, %s',           ['kortestq', 'K2', 'K2']));
-        //               Add(format('%20s  %6s',             ['     jnz', '@@CHECKRESULT']));
-        //             end;
-         cmKORTESTNC: begin
-                        Add(format('%20s%6s, %s',           ['ktestb', 'K2', 'K1']));
-                        Add(format('%20s%6s, %s',           [' kmovq', 'R10', 'K6']));
-                        Add(format('%20s%6s, @@%d[RIP]',    ['cmovc', 'R10', aAsmCounter]));
-                        Add(format('%20s  %6s',             ['  jmp', 'R10']));
-                        Add(format('        @@%d%s',               [aAsmCounter, ':']));
-                      end;
-         cmXORTestNZ: begin
-                        Add(format('%20s%6s, %s',           ['kortestq', 'K2', 'K2']));
-                        Add(format('%20s%6s, %s',           [' kmovq', 'R10', 'K6']));
-                        Add(format('%20s%6s, @@%d[RIP]',    ['cmovz', 'R10', aAsmCounter]));
-                        Add(format('%20s  %6s',             ['  jmp', 'R10']));
-                        Add(format('        @@%d%s',         [aAsmCounter, ':']));
-                      end;
-
-      end;
-
-      result := Text;
-    finally
-      Free;
-    end;
-  end;
 
 begin
   result := TStringList.Create;
-
-  iAsmCounter := 0;
 
   OItem1 := TOperandListItem.Create;
   try
@@ -4843,7 +3666,7 @@ begin
               Item.OpTyp    := otXMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('XMM16');
+              Item.Values.Add('XMM0');
             end
             else if (AnsiSameText(sl_Operand, 'XMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'XMMREG_MZ')) or
@@ -4854,18 +3677,16 @@ begin
               Item.OpTyp    := otXMMReg;
               Item.OpActive := true;
 
-              //sSuffix := '';
-              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-              //
-              //if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
-              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
-              //
-              //Item.Values.Add('XMM0' + sSuffix);
-              //if (sSuffix <> '') and
-              //   (MaskRegNeeded = false) then Item.Values.Add('XMM0');
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              Item.Values.Add('XMM16');
+              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              Item.Values.Add('XMM0' + sSuffix);
+              if (sSuffix <> '') and
+                 (MaskRegNeeded = false) then Item.Values.Add('XMM0');
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM')) or
                     (AnsiSameText(sl_Operand, 'XMMRM_M')) or
@@ -4879,8 +3700,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
-              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
                     (AnsiSameText(sl_Operand, 'XMMRM8_M')) or
@@ -4894,8 +3715,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'byte ';
 
-              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
                     (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
@@ -4910,8 +3731,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'word ';
 
-              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) then
             begin
@@ -4919,7 +3740,7 @@ begin
               Item.OpTyp    := otYMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('YMM16');
+              Item.Values.Add('YMM0');
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'YMMREG_MZ')) or
@@ -4931,18 +3752,16 @@ begin
               Item.OpTyp    := otYMMReg;
               Item.OpActive := true;
 
-              //sSuffix := '';
-              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-              //
-              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
-              //
-              //Item.Values.Add('YMM0' + sSuffix);
-              //if (sSuffix <> '') and
-              //   (MaskRegNeeded = false) then Item.Values.Add('YMM0');
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              Item.Values.Add('YMM16');
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              Item.Values.Add('YMM0' + sSuffix);
+              if (sSuffix <> '') and
+                 (MaskRegNeeded = false) then Item.Values.Add('YMM0');
             end
             else if (AnsiSameText(sl_Operand, 'YMMRM'))  or
                     (AnsiSameText(sl_Operand, 'YMMRM_M')) or
@@ -4957,15 +3776,15 @@ begin
 
               if UsePrefix then sl_Prefix := 'yword ';
 
-              //sSuffix := '';
-              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-              //
-              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) then
             begin
@@ -4973,7 +3792,7 @@ begin
               Item.OpTyp    := otZMMReg;
               Item.OpActive := true;
 
-              Item.Values.Add('ZMM16');
+              Item.Values.Add('ZMM0');
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG_M')) or
                     (AnsiSameText(sl_Operand, 'ZMMREG_MZ')) or
@@ -4985,20 +3804,21 @@ begin
               Item.OpTyp    := otZMMReg;
               Item.OpActive := true;
 
-              //sSuffix := '';
-              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-              //
-              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              Item.Values.Add('ZMM16');
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'ZMMRM')) or
                     (AnsiSameText(sl_Operand, 'ZMMRM_M')) or
                     (AnsiSameText(sl_Operand, 'ZMMRM_MZ')) or
-                    (AnsiSameText(sl_Operand, 'ZMMRM_ER')) or
-                    (AnsiSameText(sl_Operand, 'ZMMRM_SAE'))
+                    (AnsiSameText(sl_Operand, 'XMMRM_ER')) or
+                    (AnsiSameText(sl_Operand, 'XMMRM_SAE'))
                     then
             begin
               Item.OpNumber := il_Op;
@@ -5007,15 +3827,15 @@ begin
 
               if UsePrefix then sl_Prefix := 'zword ';
 
-              //sSuffix := '';
-              //if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
-              // else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-              //
-              //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-              // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              sSuffix := '';
+              if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
+               else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
+               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+
+              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM8') then
             begin
@@ -5032,10 +3852,10 @@ begin
 
 	      if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -5051,10 +3871,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
                     AnsiSameText(sl_Operand, 'MEM32_M') or
@@ -5074,10 +3894,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -5095,10 +3915,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
                     (AnsiSameText(sl_Operand, 'MEM128_M')) or
@@ -5116,10 +3936,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -5138,10 +3958,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -5160,10 +3980,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
             begin
@@ -5224,10 +4044,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'RM64') then
             begin
@@ -5242,10 +4062,10 @@ begin
               if x64 then
               begin
                 Item.Values.AddStrings(FReg64Base);
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'IMM8') then
             begin
@@ -5486,10 +4306,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '4B32') then
             begin
@@ -5500,10 +4320,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '8B32') then
             begin
@@ -5514,10 +4334,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '16B32') then
             begin
@@ -5528,10 +4348,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '2B64') then
             begin
@@ -5542,10 +4362,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '4B64') then
             begin
@@ -5556,10 +4376,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '8B64') then
             begin
@@ -5570,10 +4390,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '16B64') then
             begin
@@ -5584,10 +4404,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'KREG') or
                     AnsiSameText(sl_Operand, 'KREG_M') then
@@ -5596,7 +4416,13 @@ begin
               Item.OpTyp    := otKREG;
               Item.OpActive := true;
 
-              Item.Values.Add('K1');
+              sSuffix := '';
+              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
+
+              if UsePrefix then sl_Prefix := '';
+
+              for i := 0 to FRegKREG.Count - 1 do
+               Item.Values.Add(FRegKREG[i] + sSuffix);
             end
             else if trim(sl_Operand) = '' then
             begin
@@ -5617,7 +4443,7 @@ begin
 
           end;
 
-          //sl_RegCombi := '';
+          sl_RegCombi := '';
 
 
           il_Operands := 0;
@@ -5655,7 +4481,6 @@ begin
             else UseDefault := true;
           end;
 
-          // TODO deaktivieren
           //UseDefault := true;
 
           if UseDefault then
@@ -5670,91 +4495,38 @@ begin
                 begin
                   for il_Op4 := 0 to OItem4.Values.Count - 1 do
                   begin
-                    slRegCombi := TStringList.Create;
-                    try
-                      while slRegCombi.Count < 5 do
-                       slRegCombi.Add('');
+                    sl_RegCombi := '';
 
-
-                      //SplitOperands(OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]
-                      if OItem1.OpActive then
-                      begin
-                      //  SplitOperand(OItem1.Values[il_Op1], sRegCombi0,sRegCombi1,sRegCombi2,sRegCombi3,sRegCombi4);
-                      //
-                      end;
-                    finally
-                      FreeAndNil(slRegCombi);
+                    if OItem1.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem1.Values[il_Op1];
                     end;
 
-                    //sRegCombi0 := '';
-                    //sRegCombi1 := '';
-                    //sRegCombi2 := '';
-                    //sRegCombi3 := '';
-                    //sRegCombi4 := '';
-                    //
-                    //if OItem1.OpActive then
-                    //begin
-                    //  if sRegCombi0 <> '' then
-                    //  begin
-                    //    sRegCombi0 := sRegCombi0 + ', ';
-                    //    sRegCombi1 := sRegCombi1 + ', ';
-                    //    sRegCombi2 := sRegCombi2 + ', ';
-                    //    sRegCombi3 := sRegCombi3 + ', ';
-                    //    sRegCombi4 := sRegCombi4 + ', ';
-                    //  end;
-                    //
-                    //  if Pos('|', OItem1.Values[il_Op1]) > 0 then
-                    //  begin
-                    //    with TStringList.Create do
-                    //    try
-                    //      Text := Stringreplace(OItem1.Values[il_Op1], '|', #13#10,[rfReplaceAll]);
-                    //      iCnt := Count;
-                    //      while Count < 5 do Add('');
-                    //
-                    //      sRegCombi0 := sRegCombi0 + Strings[0];
-                    //      sRegCombi1 := sRegCombi1 + Strings[1];
-                    //      sRegCombi2 := sRegCombi2 + Strings[2];
-                    //      sRegCombi3 := sRegCombi3 + Strings[3];
-                    //      sRegCombi4 := sRegCombi4 + Strings[4];
-                    //
-                    //    finally
-                    //      Free;
-                    //    end;
-                    //  end
-                    //  else
-                    //  begin
-                    //    sRegCombi0 := sRegCombi0 + OItem1.Values[il_Op1];
-                    //    sRegCombi1 := sRegCombi1 + OItem1.Values[il_Op1];
-                    //    sRegCombi2 := sRegCombi2 + OItem1.Values[il_Op1];
-                    //    sRegCombi3 := sRegCombi3 + OItem1.Values[il_Op1];
-                    //    sRegCombi4 := sRegCombi4 + OItem1.Values[il_Op1];
-                    //  end;
-                    //end;
-                    //
-                    //if OItem2.OpActive then
-                    //begin
-                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                    //  sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
-                    //end;
-                    //
-                    //if OItem3.OpActive then
-                    //begin
-                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                    //  sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
-                    //end;
-                    //
-                    //if OItem4.OpActive then
-                    //begin
-                    //  if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                    //  sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
-                    //end;
-                    //
-                    //if sl_RegCombi <> '' then
-                    //begin
-                    //  //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                    //  result.Add(sl_Inst + sl_RegCombi);
-                    //  sl_RegCombi := '';
-                    //end;
+                    if OItem2.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
+                    end;
+
+                    if OItem3.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
+                    end;
+
+                    if OItem4.OpActive then
+                    begin
+                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
+                      sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
+                    end;
+
+                    if sl_RegCombi <> '' then
+                    begin
+                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                      result.Add(sl_Inst + sl_RegCombi);
+                      sl_RegCombi := '';
+                    end;
                   end;
                 end;
               end;
@@ -5762,921 +4534,59 @@ begin
           end
           else
           begin
-            OpMode := omUnknown;
+            sl_Inst := format('%-20s', [aInst]);
 
-            iOpNumMRef := -1;
-            if (OItem1.OpTyp in MEMTYPES) or
-               (OItem1.OpTyp in BMEMTYPES) then iOpNumMRef := 1
-             else if (OItem2.OpTyp in MEMTYPES) or
-                     (OItem2.OpTyp in BMEMTYPES) then iOpNumMRef := 2
-             else if (OItem3.OpTyp in MEMTYPES) or
-                     (OItem3.OpTyp in BMEMTYPES) then iOpNumMRef := 3
-             else if (OItem4.OpTyp in MEMTYPES) or
-                     (OItem4.OpTyp in BMEMTYPES) then iOpNumMRef := 4;
-
-
-            // TODO delete
-            //if il_Operands = 4 then
-
-            case il_Operands of
-                2: begin
-                     if (OItem1.OpTyp in MEMTYPES) and
-                        (OItem2.OpTyp = otXMMReg) then OpMode := omMX
-                      else if (OItem1.OpTyp in MEMTYPES) and
-                              (OItem2.OpTyp = otYMMReg) then OpMode := omMY
-                      else if (OItem1.OpTyp in MEMTYPES) and
-                              (OItem2.OpTyp = otZMMReg) then OpMode := omMZ
-
-                      else if (OItem1.OpTyp = otXMMReg) and
-                              (OItem2.OpTyp = otB32) then OpMode := omXB32
-                      else if (OItem1.OpTyp = otXMMReg) and
-                              (OItem2.OpTyp = otB64) then OpMode := omXB64
-
-                      else if (OItem1.OpTyp = otYMMReg) and
-                              (OItem2.OpTyp = otB32) then OpMode := omYB32
-                      else if (OItem1.OpTyp = otYMMReg) and
-                              (OItem2.OpTyp = otB64) then OpMode := omYB64
-
-                      else if (OItem1.OpTyp = otZMMReg) and
-                              (OItem2.OpTyp = otB32) then OpMode := omZB32
-                      else if (OItem1.OpTyp = otZMMReg) and
-                              (OItem2.OpTyp = otB64) then OpMode := omZB64
-
-                      else if (OItem1.OpTyp = otXMMReg) and
-                              (OItem2.OpTyp in MEMTYPES) then OpMode := omXM
-                      else if (OItem1.OpTyp = otYMMReg) and
-                              (OItem2.OpTyp in MEMTYPES) then OpMode := omYM
-                      else if (OItem1.OpTyp = otZMMReg) and
-                              (OItem2.OpTyp in MEMTYPES) then OpMode := omZM
-
-
-
-
-                     else
-                     begin
-                       sLogMsg := '';
-                       sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
-                       if sLogMsg <> '' then
-                       begin
-
-                         if (sLogMsg <> 'KX') and
-                            (sLogMsg <> 'KY') and
-                            (sLogMsg <> 'KZ') and
-                            (sLogMsg <> 'RM') and
-                            (sLogMsg <> 'RX') and
-                            (sLogMsg <> 'XK') and
-                            (sLogMsg <> 'XR') and
-                            (sLogMsg <> 'XX') and
-                            (sLogMsg <> 'XY') and
-                            (sLogMsg <> 'XZ') and
-                            (sLogMsg <> 'YK') and
-                            (sLogMsg <> 'YR') and
-                            (sLogMsg <> 'YX') and
-                            (sLogMsg <> 'YY') and
-                            (sLogMsg <> 'YZ') and
-                            (sLogMsg <> 'ZK') and
-                            (sLogMsg <> 'ZR') and
-                            (sLogMsg <> 'ZX') and
-                            (sLogMsg <> 'ZY') and
-                            (sLogMsg <> 'ZZ') then
-
-                         writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
-                       end;
-                     end;
-                   end;
-                3: if (OItem1.OpTyp = otKReg) and
-                      (OItem2.OpTyp = otXMMReg) and
-                      (OItem3.OpTyp in MEMTYPES) then OpMode := omKXM
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode := omKYM
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode := omKZM
-
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otXMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omKXB32
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otXMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omKXB64
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omKYB32
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omKYB64
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omKZB32
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omKZB64
-
-                    else if (OItem1.OpTyp = otKReg)    and
-                            (OItem2.OpTyp in MEMTYPES) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omKMI
-                    else if (OItem1.OpTyp = otKReg)    and
-                            (OItem2.OpTyp = otB32)     and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omKB32I
-                    else if (OItem1.OpTyp = otKReg)    and
-                            (OItem2.OpTyp = otB64)     and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omKB64I
-
-                    else if (OItem1.OpTyp in MEMTYPES) and
-                            (OItem2.OpTyp = otXMMReg)  and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omMXI
-                    else if (OItem1.OpTyp in MEMTYPES) and
-                            (OItem2.OpTyp = otYMMReg)  and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omMYI
-                    else if (OItem1.OpTyp in MEMTYPES) and
-                            (OItem2.OpTyp = otZMMReg)  and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omMZI
-
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp = otXMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode := omXXM
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp = otXMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omXXB32
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp = otXMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omXXB64
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp = otB32) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omXB32I
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp = otB64) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omXB64I
-                    else if (OItem1.OpTyp = otXMMReg) and
-                            (OItem2.OpTyp in MEMTYPES) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omXMI
-
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode := omYYM
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omYYB32
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omYYB64
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp = otB32) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omYB32I
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp = otB64) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omYB64I
-                    else if (OItem1.OpTyp = otYMMReg) and
-                            (OItem2.OpTyp in MEMTYPES) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omYMI
-
-                    else if (OItem1.OpTyp = otZMMReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode  := omZZM
-                    else if (OItem1.OpTyp = otZMMReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp = otB32) then OpMode := omZZB32
-                    else if (OItem1.OpTyp = otZMMReg) and
-                            (OItem2.OpTyp = otZMMReg) and
-                            (OItem3.OpTyp = otB64) then OpMode := omZZB64
-                            else if (OItem1.OpTyp = otZMMReg) and
-                                    (OItem2.OpTyp = otB32) and
-                                    (OItem3.OpTyp = otIMM8) then OpMode := omZB32I
-                            else if (OItem1.OpTyp = otZMMReg) and
-                                    (OItem2.OpTyp = otB64) and
-                                    (OItem3.OpTyp = otIMM8) then OpMode := omZB64I
-                    else if (OItem1.OpTyp = otZMMReg) and
-                            (OItem2.OpTyp in MEMTYPES) and
-                            (OItem3.OpTyp = otIMM8) then OpMode := omZMI
-
-
-                    else
-                    begin
-                      sLogMsg := '';
-                      sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
-                      if sLogMsg <> '' then
-                      begin
-                       if (sLogMsg <> 'RMI') and
-                          (sLogMsg <> 'RRM') and
-                          (sLogMsg <> 'RMR') and
-                          (sLogMsg <> 'KKK') and
-                          (sLogMsg <> 'KKI') and
-                          (sLogMsg <> 'XXX') and
-                          (sLogMsg <> 'YYY') and
-                          (sLogMsg <> 'ZZZ') and
-                          (sLogMsg <> 'XXI') and
-                          (sLogMsg <> 'YYI') and
-                          (sLogMsg <> 'ZZI') and
-                          (sLogMsg <> 'XYI') and
-                          (sLogMsg <> 'YZI') and
-                          (sLogMsg <> 'XZI') and
-                          (sLogMsg <> 'RXI') and
-                          (sLogMsg <> 'RYI') and
-                          (sLogMsg <> 'RZI') and
-
-
-                          (sLogMsg <> 'XXR') then
-
-                       writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
-                      end;
-                    end;
-                 4: if (OItem1.OpTyp = otKReg)       and
-                       (OItem2.OpTyp = otXMMReg)     and
-                       (OItem3.OpTyp = otB32)        and
-                       (OItem4.OpTyp = otIMM8) then OpMode := omKXB32I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otXMMReg)     and
-                             (OItem3.OpTyp = otB64)        and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKXB64I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otXMMReg)     and
-                             (OItem3.OpTyp in MEMTYPES)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKXMI
-
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otYMMReg)     and
-                             (OItem3.OpTyp = otB32)        and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKYB32I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otYMMReg)     and
-                             (OItem3.OpTyp = otB64)        and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKYB64I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otYMMReg)     and
-                             (OItem3.OpTyp in MEMTYPES)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKYMI
-
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otZMMReg)     and
-                             (OItem3.OpTyp = otB32)        and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKZB32I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otZMMReg)     and
-                             (OItem3.OpTyp = otB64)        and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKZB64I
-                     else if (OItem1.OpTyp = otKReg)       and
-                             (OItem2.OpTyp = otZMMReg)     and
-                             (OItem3.OpTyp in MEMTYPES)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omKZMI
-
-                     else if (OItem1.OpTyp = otXMMReg) and
-                             (OItem2.OpTyp = otXMMReg) and
-                             (OItem3.OpTyp = otB32)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omXXB32I
-                     else if (OItem1.OpTyp = otXMMReg) and
-                             (OItem2.OpTyp = otXMMReg) and
-                             (OItem3.OpTyp = otB64)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omXXB64I
-                     else if (OItem1.OpTyp = otYMMReg) and
-                             (OItem2.OpTyp = otYMMReg) and
-                             (OItem3.OpTyp = otB32)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omYYB32I
-                     else if (OItem1.OpTyp = otYMMReg) and
-                             (OItem2.OpTyp = otYMMReg) and
-                             (OItem3.OpTyp = otB64)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omYYB64I
-                     else if (OItem1.OpTyp = otZMMReg) and
-                             (OItem2.OpTyp = otZMMReg) and
-                             (OItem3.OpTyp = otB32)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omZZB32I
-                     else if (OItem1.OpTyp = otZMMReg) and
-                             (OItem2.OpTyp = otZMMReg) and
-                             (OItem3.OpTyp = otB64)    and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omZZB64I
-
-
-                     else if (OItem1.OpTyp = otXMMReg) and
-                             (OItem2.OpTyp = otXMMReg) and
-                             (OItem3.OpTyp in MEMTYPES) and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omXXMI
-                     else if (OItem1.OpTyp = otYMMReg) and
-                             (OItem2.OpTyp = otYMMReg) and
-                             (OItem3.OpTyp in MEMTYPES) and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omYYMI
-                     else if (OItem1.OpTyp = otZMMReg) and
-                             (OItem2.OpTyp = otZMMReg) and
-                             (OItem3.OpTyp in MEMTYPES) and
-                             (OItem4.OpTyp = otIMM8) then OpMode := omZZMI
-                     else
-                     begin
-                       sLogMsg := '';
-                       sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp) + MapOperand(OItem4.Optyp);
-                       if sLogMsg <> '' then
-                       begin
-
-                         if (sLogMsg <> 'KXXI') and
-                            (sLogMsg <> 'KYYI') and
-                            (sLogMsg <> 'KZZI') and
-                            (sLogMsg <> 'XXRI') and
-                            (sLogMsg <> 'XXXI') and
-                            (sLogMsg <> 'YYYI') and
-                            (sLogMsg <> 'ZZZI') then
-
-                         writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
-                       end;
-                     end;
-
-              else;
-            end;
-
-            if OpMode <> omUnknown then
+            for il_Op1 := 0 to OItem1.Values.Count - 1 do
             begin
-              sInstruction := format('%20s', [aInst]);
-
-              for il_Op1 := 0 to OItem1.Values.Count - 1 do
+              if OItem1.OpActive then
               begin
-                for il_Op2 := 0 to OItem2.Values.Count - 1 do
+                sl_RegCombi1 := OItem1.Values[il_Op1];
+              end
+              else sl_RegCombi1 := '';
+
+              for il_Op2 := 0 to OItem2.Values.Count - 1 do
+              begin
+                if OItem2.OpActive then
                 begin
-                  for il_Op3 := 0 to OItem3.Values.Count - 1 do
+                  sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
+                end
+                else sl_RegCombi2 := sl_RegCombi1;
+
+                for il_Op3 := 0 to OItem3.Values.Count - 1 do
+                begin
+                  if OItem3.OpActive then
                   begin
-                    for il_Op4 := 0 to OItem4.Values.Count - 1 do
+                    sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
+                  end
+                  else sl_RegCombi3 := sl_RegCombi2;
+
+                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
+                  begin
+                    if OItem4.OpActive then
                     begin
-                      sRegCombi := '';
-
-                      if OItem1.OpActive then
-                      begin
-                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                        sRegCombi := sRegCombi + OItem1.Values[il_Op1];
-                      end;
-
-                      if OItem2.OpActive then
-                      begin
-                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                        sRegCombi := sRegCombi + OItem2.Values[il_Op2];
-                      end;
-
-                      if OItem3.OpActive then
-                      begin
-                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                        sRegCombi := sRegCombi + OItem3.Values[il_Op3];
-                      end;
-
-                      if OItem4.OpActive then
-                      begin
-                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                        sRegCombi := sRegCombi + OItem4.Values[il_Op4];
-                      end;
-
-                      if sRegCombi <> '' then
-                      begin
-                        case iOpNumMRef of
-                            1: sMRef := OItem1.Values[il_Op1];
-                            2: sMRef := OItem2.Values[il_Op2];
-                            3: sMRef := OItem3.Values[il_Op3];
-                            4: sMRef := OItem1.Values[il_Op4];
-                          else sMRef := '';
-                        end;
-
-                        if ParseBaseIndexReg(sMRef, sBaseReg, sIndexReg) then
-                        begin
-                          result.Add(format('%20s %s',               ['    pop', sBaseReg]));
-                          result.Add(format('%20s %s',               ['   push', sBaseReg]));
-
-                          if trim(sIndexReg) <> '' then
-                           result.Add(format('%20s%6s, %s',          ['   xor', sIndexReg, sIndexReg]));
-
-                          if OpMode in [omMXI, omMYI, omMZI] then
-                          begin
-                            case Fx64 of
-                              true: begin
-                                      result.Add(format('%20s %6s', ['push', 'RDI']));
-                                      result.Add(format('%20s %6s', ['push', 'RCX']));
-                                      result.Add(format('%20s %6s', ['push', 'RAX']));
-
-                                      result.Add(format('%20s %6s', ['push', sBaseReg]));
-                                      result.Add(format('%20s %6s', ['pop',  'RDI']));
-                                      result.Add(format('%20s %6s', ['mov',  'RCX, sizeof(DataBlock)']));
-                                      result.Add(format('%20s %6s, %s', ['xor',  'RAX', 'RAX']));
-                                      result.Add(format('%20s ',    ['rep stosb']));
-                                      result.Add(format('%20s %6s', ['pop',  'RAX']));
-                                      result.Add(format('%20s %6s', ['pop',  'RCX']));
-                                      result.Add(format('%20s %6s', ['pop',  'RDI']));
-                                    end;
-                               else begin
-                                      result.Add(format('%20s %6s', ['push', 'EDI']));
-                                      result.Add(format('%20s %6s', ['push', 'ECX']));
-                                      result.Add(format('%20s %6s', ['push', 'EAX']));
-
-                                      result.Add(format('%20s %6s', ['push', sBaseReg]));
-                                      result.Add(format('%20s %6s', ['pop',  'EDI']));
-                                      result.Add(format('%20s %6s', ['mov',  'ECX, sizeof(DataBlock)']));
-                                      result.Add(format('%20s %6s, %s', ['xor',  'EAX', 'EAX']));
-                                      result.Add(format('%20s ',    ['rep stosb']));
-                                      result.Add(format('%20s %6s', ['pop',  'EAX']));
-                                      result.Add(format('%20s %6s', ['pop',  'ECX']));
-                                      result.Add(format('%20s %6s', ['pop',  'EDI']));
-                                    end;
-                            end;
-                          end;
-
-                        end;
-
-
-                        //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                        result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
-
-                        inc(iAsmCounter);
-                        case OpMode of
-                            omKXM,
-                            omKYM,
-                            omKZM: begin
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-                          omKXB32,
-                          omKXB64,
-                          omKYB32,
-                          omKYB64,
-                          omKZB32,
-                          omKZB64: begin
-                                     sMREF := OItem3.Values[il_Op3];
-                                     //if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                     // else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'K2', OItem2.Values[il_Op2], sMREF]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-                            omKMI: begin
-                                     result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-                            omKB32I,
-                            omKB64I:
-                                   begin
-                                     result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-
-                             omMX: begin
-                                     result.Add(format('%20s %6s + $2000, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2]]));
-                                     result.Add(format('%20s %6s, %s',         ['vmovdqu', 'xmm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000', ['vmovdqu', 'xmm1', OItem1.Values[il_Op1]]));
-
-                                     result.Add(format('%20s %6s, %6s, %s',    ['vpcmpeqw', 'K2', 'XMM0', 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omMXI: begin
-                                     result.Add(format('%20s %6s + $2000, %6s, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s, %s',              ['vmovdqu', 'xmm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000',      ['vmovdqu', 'xmm1', OItem1.Values[il_Op1]]));
-
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqw', 'K2', 'XMM0', 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                             omMY: begin
-                                     result.Add(format('%20s %6s + $2000, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2]]));
-                                     result.Add(format('%20s %6s, %s',         ['vmovdqu', 'ymm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000', ['vmovdqu', 'ymm1', OItem1.Values[il_Op1]]));
-
-                                     result.Add(format('%20s %6s, %6s, %s',    ['vpcmpeqd', 'K2', 'YMM0', 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                            omMYI: begin
-                                     result.Add(format('%20s %6s + $2000, %6s, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s, %s',              ['vmovdqu', 'ymm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000',      ['vmovdqu', 'ymm1', OItem1.Values[il_Op1]]));
-
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqd', 'K2', 'YMM0', 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omMZ: begin
-                                    result.Add(format('%20s %6s + $2000, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2]]));
-                                    result.Add(format('%20s %6s, %s',         ['vmovdqu8', 'zmm0', OItem1.Values[il_Op1]]));
-                                    result.Add(format('%20s %6s, %s + $2000', ['vmovdqu8', 'zmm1', OItem1.Values[il_Op1]]));
-
-                                    result.Add(format('%20s %6s, %6s, %s',    ['vpcmpeqq', 'K2', 'ZMM0', 'ZMM1']));
-
-                                    result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                  end;
-
-                            omMZI: begin
-                                     result.Add(format('%20s %6s + $2000, %6s, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s, %s',              ['vmovdqu8', 'zmm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000',      ['vmovdqu8', 'zmm1', OItem1.Values[il_Op1]]));
-
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqq', 'K2', 'ZMM0', 'ZMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                           omXB32,
-                           omXB64: begin
-                                     sMREF := OItem2.Values[il_Op2];
-                                     result.Add(format('%20s%6s,%6s + $2000', [aInst, 'XMM1', sMREF]));
-                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-
-                          omXB32I,
-                          omXB64I: begin
-                                     sMREF := OItem2.Values[il_Op2];
-                                     //if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                     // else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
-
-                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                             omXM: begin
-                                     result.Add(format('%20s %6s, %s + $2000', [aInst, 'XMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                            omXXM: begin
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                          omXXB32,
-                          omXXB64: begin
-                                     sMREF := OItem3.Values[il_Op3];
-                                     //if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                     // else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                            omXMI: begin
-                                     result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s %6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omYB32,
-                            omYB64: begin
-                                      sMREF := OItem2.Values[il_Op2];
-                                      result.Add(format('%20s%6s,%6s + $2000', [aInst, 'YMM1', sMREF]));
-                                      result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                    end;
-                            omYB32I,
-                            omYB64I:
-                                   begin
-                                     sMREF := OItem2.Values[il_Op2];
-                                     //if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                     // else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
-
-                                     //result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'YMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                             omYM: begin
-                                     result.Add(format('%20s %6s, %s + $2000', [aInst, 'YMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omYYM: begin
-                                     //result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'YMM1', 'YMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                          omYYB32,
-                          omYYB64: begin
-                                     sMREF := OItem3.Values[il_Op3];
-                                     //if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                     // else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
-
-                                     //result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'YMM1', 'YMM1', sMREF]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-
-                                   end;
-                            omYMI: begin
-                                     //result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-                                     result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'YMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s %6s,%6s, %s',       ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omZB32,
-                            omZB64: begin
-                                      sMREF := OItem2.Values[il_Op2];
-                                      result.Add(format('%20s%6s,%6s + $2000', [aInst, 'ZMM1', sMREF]));
-                                      result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                    end;
-                            omZB32I,
-                            omZB64I:
-                                    begin
-                                      sMREF := OItem2.Values[il_Op2];
-                                       //if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to2}', [])
-                                       // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to4}', []);
-
-                                       //result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                       //result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
-                                       //result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', sMREF, OItem3.Values[il_Op3]]));
-                                       //
-                                       //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                       //result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                       //result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-                                       //
-                                       //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                       //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                       //result.Add('');
-
-                                       result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'ZMM1', sMREF, OItem3.Values[il_Op3]]));
-                                       result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                       result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-
-                                     end;
-                             omZM: begin
-                                     result.Add(format('%20s %6s, %s + $2000', [aInst, 'ZMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                            omZZM: begin
-                                     //result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', OItem3.Values[il_Op3]]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'ZMM1', 'ZMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                          omZZB32,
-                          omZZB64: begin
-                                     sMREF := OItem3.Values[il_Op3];
-                                     //if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to2}', [])
-                                     // else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to4}', []);
-
-                                     //result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', sMREF]));
-                                     //result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', sMREF]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-
-                                     result.Add(format('%20s %6s,%6s, %s + $2000', [aInst, 'ZMM1', 'ZMM1', sMREF]));
-                                     result.Add(format('%20s %6s,%6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-
-                                   end;
-                            omZMI: begin
-                                     //result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //result.Add(format('%20s%6s,%6s + $30, %s', [aInst, 'XMM4', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                     //result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-                                     //
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     //result.Add('');
-                                     result.Add(format('%20s %6s,%6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s %6s,%6s, %s',       ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-
-                            omKXB32I,
-                            omKXB64I:
-                                   begin
-                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-                             omKXMI:
-                                   begin
-                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                   end;
-                           omKYB32I,
-                           omKYB64I:
-                                 begin
-                                   result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]]));
-                                   result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                   result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                 end;
-                             omKYMI:
-                                 begin
-                                   result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]]));
-                                   result.Add(format('%20s %6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                   result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                 end;
-
-                            omXXB32I,
-                            omXXB64I:
-                                   begin
-                                     sMREF := OItem3.Values[il_Op3];
-
-                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                             omXXMI:
-                                   begin
-                                     sMREF := OItem3.Values[il_Op3];
-
-                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %s',              ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                             omYYB32I,
-                             omYYB64I,
-                               omYYMI:
-                                   begin
-                                     sMREF := OItem3.Values[il_Op3];
-
-                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'YMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-
-                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                   end;
-                            omKZB32I,
-                            omKZB64I,
-                              omKZMI:
-                                  begin
-                                    result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3], OItem4.Values[il_Op4]]));
-                                    result.Add(format('%20s %6s, %6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
-
-                                    result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
-                                  end;
-                            //omKZMI:
-                            //      begin
-                            //        sMREF := OItem3.Values[il_Op3];
-                            //
-                            //        result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                            //        result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                            //
-                            //        result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                            //      end;
-
-                            omZZB32I,
-                            omZZB64I,
-                              omZZMI:
-                                  begin
-                                    sMREF := OItem3.Values[il_Op3];
-
-                                    result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                    result.Add(format('%20s %6s, %6s, %s',              ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-
-                                    result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
-                                  end;
-                             else begin
-                                    sLogMsg := '';
-                                    sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
-                                    writeln('offen - : ' + sLogMsg + ' (' + aInst + ')');
-                                  end;
-                        end;
-
-                        sRegCombi := '';
-                      end;
+                      sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
+                    end
+                    else sl_RegCombi := sl_RegCombi3;
+
+                    if (sl_RegCombi <> '') and
+                       (
+                        (OItem1.OpActive and (OItem1.OpTyp in OTMEMTYPES)) or
+                        (OItem2.OpActive and (OItem2.OpTyp in OTMEMTYPES)) or
+                        (OItem3.OpActive and (OItem3.OpTyp in OTMEMTYPES)) or
+                        (OItem4.OpActive and (OItem4.OpTyp in OTMEMTYPES))
+                       ) then
+                    begin
+                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                      result.Add(sl_Inst + sl_RegCombi);
+
+
+
+                      sl_RegCombi := '';
                     end;
                   end;
                 end;
               end;
             end;
-
-
-
-            //sl_Inst := format('%-20s', [aInst]);
-            //
-            //for il_Op1 := 0 to OItem1.Values.Count - 1 do
-            //begin
-            //  if OItem1.OpActive then
-            //  begin
-            //    sl_RegCombi1 := OItem1.Values[il_Op1];
-            //  end
-            //  else sl_RegCombi1 := '';
-            //
-            //  for il_Op2 := 0 to OItem2.Values.Count - 1 do
-            //  begin
-            //    if OItem2.OpActive then
-            //    begin
-            //      sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
-            //    end
-            //    else sl_RegCombi2 := sl_RegCombi1;
-            //
-            //    for il_Op3 := 0 to OItem3.Values.Count - 1 do
-            //    begin
-            //      if OItem3.OpActive then
-            //      begin
-            //        sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
-            //      end
-            //      else sl_RegCombi3 := sl_RegCombi2;
-            //
-            //      for il_Op4 := 0 to OItem4.Values.Count - 1 do
-            //      begin
-            //        if OItem4.OpActive then
-            //        begin
-            //          sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
-            //        end
-            //        else sl_RegCombi := sl_RegCombi3;
-            //
-            //        if (sl_RegCombi <> '') and
-            //           (
-            //            (OItem1.OpActive and (OItem1.OpTyp in OTMEMTYPES)) or
-            //            (OItem2.OpActive and (OItem2.OpTyp in OTMEMTYPES)) or
-            //            (OItem3.OpActive and (OItem3.OpTyp in OTMEMTYPES)) or
-            //            (OItem4.OpActive and (OItem4.OpTyp in OTMEMTYPES))
-            //           ) then
-            //        begin
-            //          //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-            //          result.Add(sl_Inst + sl_RegCombi);
-            //
-            //
-            //
-            //          sl_RegCombi := '';
-            //        end;
-            //      end;
-            //    end;
-            //  end;
-            //end;
           end;
         finally
           FreeAndNil(OItem4);
@@ -7134,6 +5044,28 @@ begin
     FSAE    := aSAE;
 
     sl := InternalCalcTestDataMREF(aInst, aOp1, aOp2, aOp3, aOp4);
+    try
+      aSL.AddStrings(sl);
+    finally
+      FreeAndNil(sl);
+    end;
+  finally
+    Free;
+  end;
+end;
+
+class procedure TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512,
+  aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+var
+  sl: TStringList;
+begin
+  with TAsmTestGenerator.Create do
+  try
+    Fx64 := aX64;
+    FAVX512 := aAVX512;
+    FSAE    := aSAE;
+
+    sl := InternalCalcTestDataCDisp8(aInst, aOp1, aOp2, aOp3, aOp4);
     try
       aSL.AddStrings(sl);
     finally
