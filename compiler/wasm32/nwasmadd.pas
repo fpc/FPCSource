@@ -48,6 +48,8 @@ interface
           // special treatement for short-boolean expressions
           // using IF block, instead of direct labels
           procedure second_addboolean; override;
+       public
+          function pass_1: tnode;override;
        end;
 
   implementation
@@ -67,6 +69,13 @@ interface
 {*****************************************************************************
                                tjvmaddnode
 *****************************************************************************}
+
+    function twasmaddnode.pass_1: tnode;
+      begin
+        result:=inherited;
+        if (result=nil) and (expectloc in [LOC_JUMP,LOC_FLAGS]) then
+          expectloc:=LOC_REGISTER;
+      end;
 
     procedure twasmaddnode.pass_left_right;
       begin
