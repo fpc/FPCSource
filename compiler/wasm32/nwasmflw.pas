@@ -35,9 +35,7 @@ interface
       { Wasm doesn't have any jump(+offset) operations
         It only provide structured blockes to handle jumps
         (It's possible to jump-out-of-block at any time)
-        "If" is also implemented as a block, identical to high-level language.
-        Another thing to consider is "if" block also "returns" a value on the stack.
-        Such value should be substituteed (it's hard-coded to be type i32) }
+        "If" is also implemented as a block, identical to high-level language. }
       twasmifnode = class(tcgifnode)
       public
         procedure pass_generate_code;override;
