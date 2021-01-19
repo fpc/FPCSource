@@ -49,6 +49,13 @@ interface
         procedure pass_generate_code;override;
       end;
 
+      { twasmtryexceptnode }
+
+      twasmtryexceptnode = class(tcgtryexceptnode)
+      public
+        procedure pass_generate_code;override;
+      end;
+
       { twasmtryfinallynode }
 
       twasmtryfinallynode = class(tcgtryfinallynode)
@@ -197,6 +204,23 @@ implementation
       end;
 
 {*****************************************************************************
+                             twasmtryexceptnode
+*****************************************************************************}
+
+    procedure twasmtryexceptnode.pass_generate_code;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..except, try')));
+
+        secondpass(left);
+        //if codegenerror then
+        //  goto errorexit;
+
+        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..except, end')));
+      end;
+
+{*****************************************************************************
                              twasmtryfinallynode
 *****************************************************************************}
 
@@ -234,5 +258,6 @@ implementation
 initialization
   cifnode:=twasmifnode;
   cwhilerepeatnode:=twasmwhilerepeatnode;
+  ctryexceptnode:=twasmtryexceptnode;
   ctryfinallynode:=twasmtryfinallynode;
 end.
