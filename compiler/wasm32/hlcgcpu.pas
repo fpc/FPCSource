@@ -139,6 +139,7 @@ uses
         will be removed by the load operation }
       procedure a_load_ref_stack(list : TAsmList;size: tdef;const ref: treference;extra_slots: longint);
       procedure a_load_const_stack(list : TAsmList;size: tdef;a :tcgint; typ: TRegisterType);
+      procedure a_loadaddr_ref_stack(list : TAsmList;fromsize, tosize : tdef;const ref : treference);
 
       procedure a_load_stack_loc(list : TAsmList;size: tdef;const loc: tlocation);
       procedure a_load_loc_stack(list : TAsmList;size: tdef;const loc: tlocation);
@@ -384,6 +385,37 @@ implementation
           internalerror(2010110703);
       end;
       incstack(list,1);
+    end;
+
+  procedure thlcgwasm.a_loadaddr_ref_stack(list : TAsmList;fromsize, tosize : tdef;const ref : treference);
+    var
+      tmpref: treference;
+    begin
+      { you can't take the address of references, that are on the local stack }
+      if (ref.base=NR_EVAL_STACK_BASE) or (ref.index=NR_EVAL_STACK_BASE) or
+         (ref.base=NR_LOCAL_STACK_POINTER_REG) or (ref.index=NR_LOCAL_STACK_POINTER_REG) then
+        internalerror(2021010101);
+
+      tmpref:=ref;
+      tmpref.base:=NR_NO;
+      tmpref.index:=NR_NO;
+      list.Concat(taicpu.op_ref(a_i32_const, tmpref));
+      if ref.base<>NR_NO then
+        begin
+          list.Concat(taicpu.op_reg(a_get_local,ref.base));
+          list.Concat(taicpu.op_none(a_i32_add));
+        end;
+      if ref.index<>NR_NO then
+        begin
+          list.Concat(taicpu.op_reg(a_get_local,ref.index));
+          if ref.scalefactor>1 then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,ref.scalefactor));
+              list.Concat(taicpu.op_none(a_i32_mul));
+            end;
+          list.Concat(taicpu.op_none(a_i32_add));
+        end;
+      incstack(list, 1);
     end;
 
   procedure thlcgwasm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
@@ -1194,34 +1226,8 @@ implementation
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
-    var
-      tmpref: treference;
     begin
-      { you can't take the address of references, that are on the local stack }
-      if (ref.base=NR_EVAL_STACK_BASE) or (ref.index=NR_EVAL_STACK_BASE) or
-         (ref.base=NR_LOCAL_STACK_POINTER_REG) or (ref.index=NR_LOCAL_STACK_POINTER_REG) then
-        internalerror(2021010101);
-
-      tmpref:=ref;
-      tmpref.base:=NR_NO;
-      tmpref.index:=NR_NO;
-      list.Concat(taicpu.op_ref(a_i32_const, tmpref));
-      if ref.base<>NR_NO then
-        begin
-          list.Concat(taicpu.op_reg(a_get_local,ref.base));
-          list.Concat(taicpu.op_none(a_i32_add));
-        end;
-      if ref.index<>NR_NO then
-        begin
-          list.Concat(taicpu.op_reg(a_get_local,ref.index));
-          if ref.scalefactor>1 then
-            begin
-              list.Concat(taicpu.op_const(a_i32_const,ref.scalefactor));
-              list.Concat(taicpu.op_none(a_i32_mul));
-            end;
-          list.Concat(taicpu.op_none(a_i32_add));
-        end;
-      incstack(list, 1);
+      a_loadaddr_ref_stack(list,fromsize,tosize,ref);
       a_load_stack_reg(list, tosize, r);
     end;
 
