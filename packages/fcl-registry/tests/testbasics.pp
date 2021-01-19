@@ -21,7 +21,6 @@ type
     procedure TestSimpleWinRegistry;
     procedure TestDoubleWrite;
     procedure bug16395;
-    procedure TestAdv;
     procedure TestStringList;
     Procedure TestInt64;
   end;
@@ -29,11 +28,7 @@ type
 implementation
 
 uses
-  registry
-{$ifdef windows}
-  , tregistry2
-{$endif windows}
-  ;
+  registry;
 
 { TTestBasics }
 
@@ -164,13 +159,6 @@ begin
   end;
 
   DeleteUserXmlFile;
-end;
-
-procedure TTestBasics.TestAdv;
-begin
-{$ifdef windows}
-  DoRegTest2;
-{$endif windows}
 end;
 
 Procedure TTestBasics.TestStringList;
