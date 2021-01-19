@@ -51,6 +51,11 @@ type
      procedure pass_generate_code;override;
    end;
 
+   { twasmtryfinallynode }
+
+   twasmtryfinallynode = class(tcgtryfinallynode)
+   end;
+
 implementation
 
 uses
@@ -190,4 +195,5 @@ end;
 initialization
   cifnode:=twasmifnode;
   cwhilerepeatnode:=twasmwhilerepeatnode;
+  ctryfinallynode:=twasmtryfinallynode;
 end.
