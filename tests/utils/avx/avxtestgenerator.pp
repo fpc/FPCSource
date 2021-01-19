@@ -42,7 +42,7 @@ begin
         writeln('make avx assembler-testfiles');
         writeln('');
         writeln('-h  help');
-        writeln('-f  [fpc,fpcmref,nasm,fasm,fpcinc] outputformat');
+        writeln('-f  [fpc,fpcmref,fpccd8,nasm,fasm,fpcinc] outputformat');
         writeln('-l  list opcode-memrefsize-states');
         writeln('-m  create only these testfile(s) (e.g. -mvgather,vpgather)');
         writeln('-o  destination path');
@@ -62,6 +62,7 @@ begin
           'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path, Filemask);
           'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path, Filemask);
           'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path, Filemask);
+          'd': MakeTestFiles(tfFPCCDisp8, x64, AVX512, false, Path, Filemask);
           'l': ListMemRefState;
         end;
       end;

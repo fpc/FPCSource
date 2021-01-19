@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef, tfFPCCDisp8);
 
   { TAVXTestGenerator }
 
@@ -18,7 +18,10 @@ type
   protected
     procedure Init;
 
+    function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+
     function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
@@ -3277,6 +3280,22 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
 end;
 
+function TAVXTestGenerator.SaveFile(aAsmList: TStringList; aOpcode, aDestPath,
+  aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+begin
+  begin
+    result := false;
+
+    if aAsmList.Count > 0 then
+    begin
+      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+      aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+
+      aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
+    end;
+  end;
+end;
+
 function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
@@ -3292,18 +3311,18 @@ var
   NewOpCode: String;
   FoundNewOpcode: boolean;
 
-  function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
-  begin
-    result := false;
-
-    if aAsmList.Count > 0 then
-    begin
-      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
-      aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
-
-      aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
-    end;
-  end;
+  //function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+  //begin
+  //  result := false;
+  //
+  //  if aAsmList.Count > 0 then
+  //  begin
+  //    aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+  //    aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+  //
+  //    aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
+  //  end;
+  //end;
 
 begin
   result := false;
@@ -3371,6 +3390,101 @@ begin
                     slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
 	          end
    	          else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	        end;
+
+                SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+
+              finally
+                FreeAndNil(slLocalHeader);
+              end;
+
+              slAsm.Clear;
+            end;
+          end;
+        end;
+      finally
+        FreeAndNil(slFilemask);
+      end;
+    finally
+      FreeAndNil(slAsm);
+    end;
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
+function TAVXTestGenerator.InternalMakeTestFilesCDisp8(aX64, aAVX512,
+  aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList,
+  aHeaderList, aFooterList: TStringList): boolean;
+var
+  i,j: integer;
+  sData: string;
+  sDestFile: string;
+  sLocalVarDataTyp: string;
+  sl: TStringList;
+  slAsm: TStringList;
+  slLocalHeader: TStringList;
+  slFilemask: TStringList;
+  LastOpCode: String;
+  NewOpCode: String;
+  FoundNewOpcode: boolean;
+
+begin
+  result := false;
+
+  aOpCodeList.Sort;
+
+  sl := TStringList.Create;
+  try
+    slAsm := TStringList.Create;
+    try
+      slFilemask := TStringList.Create;
+      try
+        slFilemask.CommaText := ansilowercase(aFilemask);
+
+        LastOpCode := '';
+
+        for i := 0 to aOpCodeList.Count - 1 do
+        begin
+          sl.Clear;
+          sl.CommaText := aOpCodeList[i];
+
+          while sl.Count < 8 do sl.Add('');
+
+          NewOpCode := ansilowercase(sl[0]);
+
+          FoundNewOpcode := false;
+          for j := 0 to slFilemask.Count - 1 do
+          begin
+            if Pos(slFilemask[j], NewOpCode) = 1 then
+             FoundNewOpcode := true;
+          end;
+
+          if not(FoundNewOpcode) and (slFilemask.Count > 0) then
+           NewOpcode := '';
+
+          if NewOpCode <> '' then
+          begin
+            if (not(aX64) and (sl[1] = '1')) or // i386
+               (aX64 and (sl[2] = '1')) then    // x86_64
+            begin
+	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+
+              slLocalHeader := TStringList.Create;
+              try
+                slLocalHeader.Text := aHeaderList.text;
+
+	        if (sl[4]  = '') and
+                   (sl[5]  = '') and
+                   (sl[6]  = '') and
+                   (sl[7]  = '') then
+                begin                                        // Opcode with no Params, e.g. VZEROALL
+                  slAsm.Add('    ' + sl[0]);
+                end
+                else
+	        begin
+   	          TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
                 SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
@@ -3542,6 +3656,70 @@ begin
                   slFooter.Add('begin');
                   slFooter.Add('end.');
                 end;
+         tfFPCCDisp8:
+                begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program $$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+
+                  slHeader.Add('const');
+                  slHeader.Add('  cDataBlockByte: Array[0..255] of byte = ( $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E, $0F,');
+                  slHeader.Add('                                            $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F,');
+                  slHeader.Add('                                            $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F,');
+                  slHeader.Add('                                            $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $3A, $3B, $3C, $3D, $3E, $3F,');
+                  slHeader.Add('                                            $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $4A, $4B, $4C, $4D, $4E, $4F,');
+                  slHeader.Add('                                            $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $5A, $5B, $5C, $5D, $5E, $5F,');
+                  slHeader.Add('                                            $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $6A, $6B, $6C, $6D, $6E, $6F,');
+                  slHeader.Add('                                            $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $7A, $7B, $7C, $7D, $7E, $7F,');
+                  slHeader.Add('                                            $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $8A, $8B, $8C, $8D, $8E, $8F,');
+                  slHeader.Add('                                            $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $9A, $9B, $9C, $9D, $9E, $9F,');
+                  slHeader.Add('                                            $A0, $A1, $A2, $A3, $A4, $A5, $A6, $A7, $A8, $A9, $AA, $AB, $AC, $AD, $AE, $AF,');
+                  slHeader.Add('                                            $B0, $B1, $B2, $B3, $B4, $B5, $B6, $B7, $B8, $B9, $BA, $BB, $BC, $BD, $BE, $BF,');
+                  slHeader.Add('                                            $C0, $C1, $C2, $C3, $C4, $C5, $C6, $C7, $C8, $C9, $CA, $CB, $CC, $CD, $CE, $CF,');
+                  slHeader.Add('                                            $D0, $D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8, $D9, $DA, $DB, $DC, $DD, $DE, $DF,');
+                  slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
+                  slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
+
+
+
+                  slHeader.Add('begin');
+                  slHeader.Add('  asm');
+
+                  slHeader.Add('      vpxord   zmm0,  zmm0,  zmm0');
+                  slHeader.Add('      vpxord   xmm1,  xmm1,  xmm1');
+                  slHeader.Add('      vpxord   xmm2,  xmm2,  xmm2');
+                  slHeader.Add('      vpxord   xmm3,  xmm3,  xmm3');
+                  slHeader.Add('      vpxord   xmm4,  xmm4,  xmm4');
+                  slHeader.Add('      vpcmpeqb   k1,  zmm0,  zmm0');
+
+                  if aX64 then
+                  begin
+                    slHeader.Add('      lea       rax, cDataBlockByte');
+                    slHeader.Add('      push      rax');
+                  end
+                  else
+                  begin
+                    slHeader.Add('      lea       eax, cDataBlockByte');
+                    slHeader.Add('      push      eax');
+                  end;
+
+                  for i := 1 to 10 do
+                   slHeader.Add('NOP');
+
+                  if aX64 then slFooter.Add('        pop rax')
+                   else slFooter.Add('        pop eax');
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+
+                  slFooter.Add('  end;');
+                  slFooter.Add('end.');
+
+                end;
          tfFPCInc: begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
@@ -3617,7 +3795,10 @@ begin
                 end;
       end;
 
-      InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+      case aTyp of
+        tfFPCCDisp8: InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+                else InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+      end;
 
     finally
       FreeAndNil(slFooter);
