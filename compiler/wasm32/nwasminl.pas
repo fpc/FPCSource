@@ -33,12 +33,85 @@ interface
       { twasminlinenode }
 
       twasminlinenode = class(tcginlinenode)
+      public
+        procedure second_length;override;
       end;
 
 implementation
 
     uses
-      ninl;
+      ninl,
+      cpubase,
+      aasmbase,aasmdata,aasmcpu,
+      cgbase,cgutils,
+      hlcgobj,hlcgcpu,
+      defutil,pass_2,
+      symtype,symdef;
+
+{*****************************************************************************
+                               twasminlinenode
+*****************************************************************************}
+
+    procedure twasminlinenode.second_length;
+      var
+        lendef : tdef;
+        href : treference;
+        extra_slots: LongInt;
+      begin
+        secondpass(left);
+        if is_shortstring(left.resultdef) then
+          begin
+            location_copy(location,left.location);
+            location.size:=OS_8;
+          end
+        else
+          begin
+            { length in ansi/wide strings and high in dynamic arrays is at offset -sizeof(pint) }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+            thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register);
+
+            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+            thlcgwasm(hlcg).incblock;
+            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+            current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_const,0));
+            thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+
+            current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+            { the length of a widestring is a 32 bit unsigned int. Since every
+              character occupies 2 bytes, on a 32 bit platform you can express
+              the maximum length using 31 bits. On a 64 bit platform, it may be
+              32 bits. This means that regardless of the platform, a location
+              with size OS_SINT/ossinttype can hold the length without
+              overflowing (this code returns an ossinttype value) }
+            if is_widestring(left.resultdef) then
+              lendef:=u32inttype
+            else
+              lendef:=ossinttype;
+            { volatility of the ansistring/widestring refers to the volatility of the
+              string pointer, not of the string data }
+            hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
+
+            extra_slots:=thlcgwasm(hlcg).prepare_stack_for_ref(current_asmdata.CurrAsmList,href,false);
+            thlcgwasm(hlcg).a_load_ref_stack(current_asmdata.CurrAsmList,lendef,href,extra_slots);
+            if is_widestring(left.resultdef) then
+              thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SHR,resultdef,1);
+
+            { Dynamic arrays do not have their length attached but their maximum index }
+            if is_dynamic_array(left.resultdef) then
+              thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_ADD,resultdef,1);
+
+            current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
+            thlcgwasm(hlcg).decblock;
+
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+            location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+            thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+          end;
+      end;
 
 begin
   cinlinenode:=twasminlinenode;

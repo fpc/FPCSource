@@ -213,6 +213,7 @@ uses
 
       function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
+     public
       { in case of an array, the array base address and index have to be
         put on the evaluation stack before the stored value; similarly, for
         fields the self pointer has to be loaded first. Also checks whether
@@ -220,6 +221,7 @@ uses
         twice. Returns how many stack slots have been consumed, disregarding
         the "dup". }
       function prepare_stack_for_ref(list: TAsmList; var ref: treference; dup: boolean): longint;
+     protected
       { return the load/store opcode to load/store from/to ref; if the result
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
