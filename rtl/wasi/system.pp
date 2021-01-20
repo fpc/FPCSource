@@ -9,7 +9,31 @@ interface
 {$I systemh.inc}
 
 const
+  LineEnding = #10;
+  LFNSupport = true;
+  DirectorySeparator = '/';
+  DriveSeparator = '';
+  ExtensionSeparator = '.';
+  PathSeparator = ':';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [];
+{  FileNameCaseSensitive and FileNameCasePreserving are defined below! }
   maxExitCode = 65535;
+  MaxPathLen = 4096;
+  AllFilesMask = '*';
+
+const
+  UnusedHandle    = -1;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+
+  FileNameCaseSensitive : boolean = true;
+  FileNameCasePreserving: boolean = true;
+  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
+
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 {$else FULL_RTL}
 type
