@@ -1004,6 +1004,9 @@ implementation
 
   procedure thlcgwasm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
     begin
+      { nothing to do for ret_in_param results }
+      if paramanager.ret_in_param(pd.returndef,pd) then
+        exit;
       { constructors don't return anything in Java }
       if pd.proctypeoption=potype_constructor then
         exit;
