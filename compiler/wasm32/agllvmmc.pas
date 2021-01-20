@@ -165,7 +165,7 @@ implementation
 
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
-      if atype=sec_fpc then
+      if (atype=sec_fpc) or (atype=sec_threadvar) then
         atype:=sec_data;
       Result:=inherited sectionname(atype, aname, aorder)+',"",@';
     end;
