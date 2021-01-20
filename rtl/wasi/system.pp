@@ -73,6 +73,34 @@ type
 
 {$I system.inc}
 
+function GetProcessID: SizeUInt;
+begin
+end;
+
+Procedure Randomize;
+Begin
+End;
+
+procedure System_exit;
+begin
+End;
+
+Function ParamCount: Longint;
+Begin
+End;
+
+function paramstr(l: longint) : string;
+begin
+end;
+
+procedure SysInitStdIO;
+begin
+end;
+
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+end;
+
 {$else FULL_RTL}
 procedure fpc_lib_exit; compilerproc;
 begin

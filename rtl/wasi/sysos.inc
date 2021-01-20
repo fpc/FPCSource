@@ -32,3 +32,10 @@ begin
     InOutRes:=Def;
 end;}
 
+{*****************************************************************************
+                          Low Level File Routines
+*****************************************************************************}
+
+function Do_IsDevice(Handle:THandle):boolean;
+begin
+end;
