@@ -237,24 +237,56 @@ implementation
           end;
       end;
 
-    function constsingle(s: single): ansistring;
+    function constfloat(rawfloat: int64; fraction_bits, exponent_bits, exponent_bias: Integer): ansistring;
+      var
+        sign: boolean;
+        fraction: int64;
+        exponent, fraction_hexdigits: integer;
       begin
-        // wat2wasm is using strtof() internally
-        str(s, result); //'0x'+hexstr(longint(t32bitarray(s)),8);
+        fraction_hexdigits := (fraction_bits + 3) div 4;
+        sign:=(rawfloat shr (fraction_bits+exponent_bits))<>0;
+        fraction:=rawfloat and ((int64(1) shl fraction_bits)-1);
+        exponent:=(rawfloat shr fraction_bits) and ((1 shl exponent_bits)-1);
+        if sign then
+          result:='-'
+        else
+          result:='';
+        if (exponent=(1 shl exponent_bits)-1) then
+          begin
+            if fraction=0 then
+              result:=result+'inf'
+            else
+              begin
+                result:=result+'nan';
+                if fraction<>((int64(1) shl fraction_bits)-1) then
+                  result:=result+':0x'+HexStr(fraction,fraction_hexdigits);
+              end;
+          end
+        else
+          result:=result+'0x1.'+HexStr(fraction,fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
+      end;
+
+    function constsingle(s: single): ansistring;
+      type
+        tsingleval = record
+          case byte of
+            1: (s: single);
+            2: (i: longword);
+        end;
+      begin
+        result:=constfloat(tsingleval(s).i,23,8,127);
       end;
 
     function constdouble(d: double): ansistring;
-       begin
-         // force interpretation as double (since we write it out as an
-         // integer, we never have to swap the endianess). We have to
-         // include the sign separately because of the way Java parses
-         // hex numbers (0x8000000000000000 is not a valid long)
-         //result:=hexstr(abs(int64(t64bitarray(d))),16);
-         //if int64(t64bitarray(d))<0 then
-         //  result:='-'+result;
-         //result:='0dx'+result;
-         str(d, result);
-       end;
+      type
+        tdoubleval = record
+          case byte of
+            1: (d: double);
+            2: (i: int64);
+        end;
+      begin
+        result:=constfloat(tdoubleval(d).i,52,11,1023);
+      end;
 
     function getopstr(const o:toper) : ansistring;
       var
