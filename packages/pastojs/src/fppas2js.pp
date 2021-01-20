@@ -3954,6 +3954,7 @@ var
 begin
   Lines:=El.Tokens;
   if Lines=nil then exit;
+  // ToDo: resolve explicit references
 end;
 
 procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
@@ -13398,6 +13399,15 @@ begin
     Result:=Add;
     exit;
     end
+  else if bt in btAllJSInteger then
+    begin
+    // ord(integer)
+    Result:=CheckOrdConstant(aResolver,Param);
+    if Result<>nil then exit;
+    // ord(integer) ->  integer
+    Result:=ConvertExpression(Param,AContext);
+    exit;
+    end
   else if bt=btContext then
     begin
     C:=ParamResolved.LoTypeEl.ClassType;
@@ -17551,6 +17561,7 @@ var
   L: TJSLiteral;
   AsmLines: TStrings;
   Line, Col, StartLine: integer;
+  Statements: TJSStatementList;
 begin
   if AContext=nil then ;
   AsmLines:=El.Tokens;
@@ -17569,6 +17580,15 @@ begin
     L:=TJSLiteral.Create(Line+StartLine,Col,El.SourceFilename);
     L.Value.CustomValue:=TJSString(s);
     Result:=L;
+    if Pos(';',s)>0 then
+      begin
+      // multi statement JS
+      // for example "if e then asm a;b end;"
+      //       ->     if (e){ a;b }
+      Statements:=TJSStatementList.Create(L.Line,L.Column,L.Source);
+      Statements.A:=L;
+      Result:=Statements;
+      end;
   end;
 end;
 

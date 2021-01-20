@@ -337,6 +337,7 @@ type
     Procedure TestProc_External;
     Procedure TestProc_ExternalOtherUnit;
     Procedure TestProc_Asm;
+    Procedure TestProc_AsmSubBlock;
     Procedure TestProc_Assembler;
     Procedure TestProc_VarParam;
     Procedure TestProc_VarParamString;
@@ -4139,6 +4140,65 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProc_AsmSubBlock;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird = class end;',
+  'procedure Run(w: word);',
+  'begin;',
+  '  if true then asm console.log(); end;',
+  '  if w>3 then asm',
+  '    var a = w+1;',
+  '    w = a+3;',
+  '  end;',
+  '  while (w>7) do asm',
+  '    w+=3; w*=2;',
+  '  end;',
+  '  try',
+  '  except',
+  '    on E: TBird do',
+  '      asm console.log(E); end;',
+  '    on E: TObject do',
+  '      asm var i=3; i--; end;',
+  '    else asm Fly; High; end;',
+  '  end;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_AsmSubBlock',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TBird", pas.system.TObject, function () {',
+    '});',
+    'this.Run = function (w) {',
+    '  if (true) console.log();',
+    '  if (w > 3) {',
+    '    var a = w+1;',
+    '    w = a+3;',
+    '  };',
+    '  while (w > 7) {',
+    '    w+=3; w*=2;',
+    '  };',
+    '  try {} catch ($e) {',
+    '    if ($mod.TBird.isPrototypeOf($e)) {',
+    '      var E = $e;',
+    '      console.log(E);',
+    '    } else if (pas.system.TObject.isPrototypeOf($e)) {',
+    '      var E = $e;',
+    '      var i=3; i--;',
+    '    } else {',
+    '      Fly; High;',
+    '    }',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([
+    ''
+    ]));
+end;
+
 procedure TTestModule.TestProc_Assembler;
 begin
   StartProgram(false);
@@ -7122,7 +7182,9 @@ begin
   'begin',
   '  i:=i2;',
   '  i:=default(TMyInt);',
-  '  if i=i2 then ;']);
+  '  if i=i2 then ;',
+  '  i:=ord(i2);',
+  '']);
   ConvertProgram;
   CheckSource('TestIntegerRange',
     LinesToStr([
@@ -7143,6 +7205,7 @@ begin
     '$mod.i = $mod.i2;',
     '$mod.i = -1;',
     'if ($mod.i === $mod.i2) ;',
+    '$mod.i = $mod.i2;',
     '']));
 end;
 
@@ -7257,6 +7320,7 @@ begin
   '  i:=system.high(i);',
   '  i:=system.pred(i);',
   '  i:=system.succ(i);',
+  '  i:=system.ord(i);',
   '']);
   ConvertProgram;
   CheckResolverUnexpectedHints;
@@ -7273,6 +7337,7 @@ begin
     '$mod.i = 255;',
     '$mod.i = $mod.i - 1;',
     '$mod.i = $mod.i + 1;',
+    '$mod.i = $mod.i;',
     '']));
 end;
 
