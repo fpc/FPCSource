@@ -74,6 +74,7 @@ type
 implementation
 
 uses
+  SysUtils,
   verbose;
 
 { timportlibwasi }
@@ -91,7 +92,7 @@ end;
 
 procedure tlinkerwasi.SetDefaultInfo;
 begin
-  Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -o $EXE';
+  Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
   //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
 end;
 
@@ -111,6 +112,10 @@ begin
   if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename);
 
+  { Create some replacements }
+  mapstr:='';
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -143,7 +148,7 @@ begin
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
-  //Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   writeln(utilsprefix+binstr,' ',cmdstr);
