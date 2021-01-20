@@ -3599,6 +3599,41 @@ var
     if result = 'YMMRM256' then result := 'YMMRM';
   end;
 
+  procedure SplitOperands(const aOperand1, aOperand2, aOperand3, aOperand4: string; var aRegCombi0, aRegCombi1, aRegCombi2, aRegCombi3, aRegCombi4: string);
+  var
+    s1: string;
+    s2: string;
+    s3: string;
+    s4: string;
+    iCnt1: integer;
+    iCnt2: integer;
+    iCnt3: integer;
+    iCnt4: integer;
+    iMaxCnt: integer;
+  begin
+    with TStringList.Create do
+    try
+      Text := StringReplace(trim(aOperand1), '|', #13#10, [rfReplaceAll]);
+      iCnt1 := Count;
+
+      Text := StringReplace(trim(aOperand2), '|', #13#10, [rfReplaceAll]);
+      iCnt2 := Count;
+
+      Text := StringReplace(trim(aOperand3), '|', #13#10, [rfReplaceAll]);
+      iCnt3 := Count;
+
+      Text := StringReplace(trim(aOperand4), '|', #13#10, [rfReplaceAll]);
+      iCnt4 := Count;
+
+      iMaxCnt := iCnt1;
+      if iCnt2 > iMaxCnt then iMaxCnt := iCnt2;
+      if iCnt3 > iMaxCnt then iMaxCnt := iCnt3;
+      if iCnt4 > iMaxCnt then iMaxCnt := iCnt4;
+
+    finally
+      Free;
+    end;
+  end;
 
 begin
   result := TStringList.Create;
@@ -4506,11 +4541,17 @@ begin
                       while slRegCombi.Count < 5 do
                        slRegCombi.Add('');
 
-                      if OItem1.OpActive then
-                      begin
+                      sRegCombi0 := '';
+                      sRegCombi1 := '';
+                      sRegCombi2 := '';
+                      sRegCombi3 := '';
+                      sRegCombi4 := '';
 
-
-                      end;
+                      //if OItem1.OpActive then
+                      //begin
+                      //  SplitOperand(OItem1.Values[il_Op1], sRegCombi0,sRegCombi1,sRegCombi2,sRegCombi3,sRegCombi4);
+                      //
+                      //end;
                     finally
                       FreeAndNil(slRegCombi);
                     end;
