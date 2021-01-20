@@ -73,6 +73,9 @@ type
 
 implementation
 
+uses
+  verbose;
+
 { timportlibwasi }
 
   procedure timportlibwasi.generatelib;
@@ -105,6 +108,9 @@ var
   tmp : TCmdStrListItem;
   tempFileName : ansistring;
 begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.exefilename);
+
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
