@@ -83,6 +83,7 @@ End;
 
 procedure System_exit;
 begin
+  DebugWriteLn('System_exit');
 End;
 
 Function ParamCount: Longint;
@@ -160,4 +161,7 @@ begin
   DebugWriteHexDigit(b and 15);
 end;
 
+begin
+  DebugWriteLn('System unit initialization start');
+  DebugWriteLn('System unit initialization end');
 end.
