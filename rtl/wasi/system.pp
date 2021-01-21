@@ -173,5 +173,7 @@ begin
 {$endif def FPC_HAS_FEATURE_DYNLIBS}
   { Setup heap }
   InitHeap;
+  SysInitExceptions;
+  initunicodestringmanager;
   DebugWriteLn('System unit initialization end');
 end.
