@@ -1887,14 +1887,20 @@ implementation
                 list.concat(taicpu.op_none(a_i64_extend_u_i32));
               end;
             OS_S8:
-              list.concat(taicpu.op_none(a_i64_extend_s_8));
+              begin
+                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+                list.concat(taicpu.op_none(a_i64_extend_s_8));
+              end;
             OS_16:
               begin
                 a_op_const_stack(list,OP_AND,s32inttype,65535);
                 list.concat(taicpu.op_none(a_i64_extend_u_i32));
               end;
             OS_S16:
-              list.concat(taicpu.op_none(a_i64_extend_s_16));
+              begin
+                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+                list.concat(taicpu.op_none(a_i64_extend_s_16));
+              end;
             OS_32:
               list.concat(taicpu.op_none(a_i64_extend_u_i32));
             OS_S32:
