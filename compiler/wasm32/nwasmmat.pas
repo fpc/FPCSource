@@ -165,7 +165,7 @@ implementation
 
 
 {*****************************************************************************
-                             tjvmshlshrnode
+                             twasmshlshrnode
 *****************************************************************************}
 
     procedure twasmshlshrnode.pass_generate_code;
