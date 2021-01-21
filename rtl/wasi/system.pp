@@ -171,5 +171,7 @@ begin
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 {$endif def FPC_HAS_FEATURE_DYNLIBS}
+  { Setup heap }
+  InitHeap;
   DebugWriteLn('System unit initialization end');
 end.

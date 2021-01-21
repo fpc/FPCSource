@@ -22,8 +22,11 @@
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
+  DebugWriteLn('SysOSAlloc');
+  SysOSAlloc:=nil;
 end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  DebugWriteLn('SysOSFree');
 end;
