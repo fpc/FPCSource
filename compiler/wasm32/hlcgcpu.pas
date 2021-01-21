@@ -1603,6 +1603,8 @@ implementation
     begin
       list.concat(taicpu.op_none(a_end_block));
       decblock;
+      if fevalstackheight<>0 then
+        list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
       { todo: inherited? }
     end;
 
