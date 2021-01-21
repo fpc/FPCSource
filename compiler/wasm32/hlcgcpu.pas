@@ -1832,27 +1832,24 @@ implementation
             else
               internalerror(2021010301);
           end;
+        end
+      else
+        begin
+          case fromcgsize of
+            OS_8:
+              a_op_const_stack(list,OP_AND,s32inttype,255);
+            OS_S8:
+              list.concat(taicpu.op_none(a_i32_extend_s_8));
+            OS_16:
+              a_op_const_stack(list,OP_AND,s32inttype,65535);
+            OS_S16:
+              list.concat(taicpu.op_none(a_i32_extend_s_16));
+            OS_32,OS_S32:
+              ;
+            else
+              internalerror(2021010302);
+          end;
         end;
-      { Conversions between 32 and 64 bit types have been completely handled
-        above. We still may have to truncate or sign extend in case the
-        destination type is smaller that the source type, or has a different
-        sign. In case the destination is a widechar and the source is not, we
-        also have to insert a conversion to widechar.
-       }
-      case fromcgsize of
-        OS_8:
-          a_op_const_stack(list,OP_AND,s32inttype,255);
-        OS_S8:
-          list.concat(taicpu.op_none(a_i32_extend_s_8));
-        OS_16:
-          a_op_const_stack(list,OP_AND,s32inttype,65535);
-        OS_S16:
-          list.concat(taicpu.op_none(a_i32_extend_s_16));
-        OS_32,OS_S32,OS_64,OS_S64:
-          ;
-        else
-          internalerror(2021010302);
-      end;
     end;
 
     procedure thlcgwasm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
