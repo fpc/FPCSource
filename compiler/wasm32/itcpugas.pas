@@ -82,7 +82,7 @@ interface
       'i32.load8_u', 'i32.load16_u', 'i64.load8_u', 'i64.load16_u', 'i64.load32_u',
       'i32.store8', 'i32.store16', 'i64.store8', 'i64.store16', 'i64.store32',
       // additional memory
-      'grow_memory', 'current_memory'
+      'memory.grow 0', 'memory.size 0'
     );
 
     gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64');

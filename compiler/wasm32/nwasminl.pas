@@ -26,21 +26,27 @@ unit nwasminl;
 interface
 
     uses
-      ncginl;
+      node,ncginl;
 
     type
 
       { twasminlinenode }
 
       twasminlinenode = class(tcginlinenode)
+      private
+        procedure second_memory_size;
+        procedure second_memory_grow;
       public
+        function pass_typecheck_cpu: tnode; override;
+        function first_cpu: tnode; override;
+        procedure pass_generate_code_cpu; override;
         procedure second_length;override;
       end;
 
 implementation
 
     uses
-      ninl,
+      ninl,compinnr,
       cpubase,
       aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,
@@ -51,6 +57,78 @@ implementation
 {*****************************************************************************
                                twasminlinenode
 *****************************************************************************}
+
+    procedure twasminlinenode.second_memory_size;
+      begin
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_current_memory));
+        thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_memory_grow;
+      begin
+        secondpass(left);
+
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_grow_memory));
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    function twasminlinenode.pass_typecheck_cpu: tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_wasm32_memory_size:
+            begin
+              CheckParameters(0);
+              resultdef:=u32inttype;
+            end;
+          in_wasm32_memory_grow:
+            begin
+              CheckParameters(1);
+              resultdef:=u32inttype;
+            end;
+          else
+            Result:=inherited pass_typecheck_cpu;
+        end;
+      end;
+
+
+    function twasminlinenode.first_cpu: tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_wasm32_memory_size,
+          in_wasm32_memory_grow:
+            expectloc:=LOC_REGISTER;
+          else
+            Result:=inherited first_cpu;
+        end;
+      end;
+
+
+    procedure twasminlinenode.pass_generate_code_cpu;
+      begin
+        case inlinenumber of
+          in_wasm32_memory_size:
+            second_memory_size;
+          in_wasm32_memory_grow:
+            second_memory_grow;
+          else
+            inherited pass_generate_code_cpu;
+        end;
+      end;
+
 
     procedure twasminlinenode.second_length;
       var

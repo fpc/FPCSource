@@ -3,8 +3,6 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2021 by the Free Pascal development team.
 
-    CPU specific system unit header file
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -14,8 +12,6 @@
 
  **********************************************************************}
 
-const
-  {$I cpuinnr.inc}
+  fpc_in_wasm32_memory_size = fpc_in_cpu_first;
+  fpc_in_wasm32_memory_grow = fpc_in_cpu_first+1;
 
-function fpc_wasm32_memory_size: longword;[internproc:fpc_in_wasm32_memory_size];
-function fpc_wasm32_memory_grow(n: longword): longword;[internproc:fpc_in_wasm32_memory_grow];
