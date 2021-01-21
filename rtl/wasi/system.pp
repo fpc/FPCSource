@@ -84,6 +84,8 @@ End;
 procedure System_exit;
 begin
   DebugWriteLn('System_exit');
+  repeat
+  until false;
 End;
 
 Function ParamCount: Longint;
