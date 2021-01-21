@@ -511,6 +511,7 @@ implementation
                 if TOpCG2IAsmOp[op]=A_None then
                   internalerror(2010120532);
                 list.concat(taicpu.op_none(TOpCG2IAsmOp[op]));
+                decstack(list,1);
               end;
             maybe_adjust_op_result(list,op,size);
           end;
@@ -540,6 +541,7 @@ implementation
                 if TOpCG2LAsmOp[op]=A_None then
                   internalerror(2010120533);
                 list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
+                decstack(list,1);
               end;
           end;
         else
