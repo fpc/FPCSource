@@ -95,24 +95,29 @@ implementation
                 writer.AsmWriteLn(proc.import_name^);
               end;
           end;
+      list:=TAsmList.Create;
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
         begin
+          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
+            begin
+              if mf_init in cur_unit.u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
+              if mf_finalize in cur_unit.u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
+            end;
           for i:=0 to cur_unit.u.deflist.Count-1 do
             if assigned(cur_unit.u.deflist[i]) and (tdef(cur_unit.u.deflist[i]).typ = procdef) then
               begin
                 proc := tprocdef(cur_unit.u.deflist[i]);
                 if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
                    ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
-                  begin
-                    list:=TAsmList.Create;
-                    thlcgwasm(hlcg).g_procdef(list,proc);
-                    WriteTree(list);
-                    list.free;
-                  end;
+                  thlcgwasm(hlcg).g_procdef(list,proc);
               end;
           cur_unit:=tused_unit(cur_unit.Next);
         end;
+      WriteTree(list);
+      list.free;
     end;
 
 
