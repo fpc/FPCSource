@@ -199,7 +199,7 @@ uses
 
       { adjust the stack height after a call based on the specified number of
         slots used for parameters and the provided resultdef }
-      procedure g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
+      procedure g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef);
 
       property maxevalstackheight: longint read fmaxevalstackheight;
 
@@ -1078,7 +1078,7 @@ implementation
     begin
       result:=inherited;
       pd.init_paraloc_info(callerside);
-      g_adjust_stack_after_call(list,pd,pd.callerargareasize,forceresdef);
+      g_adjust_stack_after_call(list,pd);
     end;
 
 
@@ -1947,7 +1947,7 @@ implementation
       end;
 
 
-  procedure thlcgwasm.g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
+  procedure thlcgwasm.g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef);
     var
       totalremovesize: longint;
       realresdef: tdef;

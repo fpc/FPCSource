@@ -55,7 +55,7 @@ implementation
 
     procedure twasmcallnode.extra_post_call_code;
       begin
-        thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
+        thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
       end;
 
     procedure twasmcallnode.do_release_unused_return_value;
