@@ -96,6 +96,11 @@ end;
 
 procedure SysInitStdIO;
 begin
+//  OpenStdIO(Input,fmInput,StdInputHandle);
+//  OpenStdIO(Output,fmOutput,StdOutputHandle);
+//  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+//  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+//  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -175,5 +180,9 @@ begin
   InitHeap;
   SysInitExceptions;
   initunicodestringmanager;
+  { Setup stdin, stdout and stderr }
+  SysInitStdIO;
+  { Reset IO Error }
+  InOutRes:=0;
   DebugWriteLn('System unit initialization end');
 end.
