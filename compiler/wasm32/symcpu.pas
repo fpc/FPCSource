@@ -257,7 +257,8 @@ implementation
               end;
             end;
         end;
-      if Assigned(returndef) and (returndef.size>0) then
+      if Assigned(returndef) and (returndef.size>0) and
+         not paramanager.ret_in_param(returndef,self) then
         begin
           if not defToWasmBasic(returndef,bt) then
             bt:=wbt_i32;
