@@ -178,11 +178,13 @@ implementation
         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+        thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,false);
         if nodetype=shln then
           op:=OP_SHL
         else
           op:=OP_SHR;
-        thlcgwasm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,resultdef,right.location);
+        thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,op,resultdef,false);
         thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
