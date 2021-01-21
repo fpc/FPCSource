@@ -562,9 +562,6 @@ implementation
       case op of
         OP_NEG,OP_NOT:
           internalerror(2011010801);
-        OP_SHL,OP_SHR,OP_SAR:
-          { the second argument here is an int rather than a long }
-          a_load_const_stack(list,s32inttype,a,R_INTREGISTER);
         else
           a_load_const_stack(list,size,a,R_INTREGISTER);
       end;
@@ -576,20 +573,7 @@ implementation
       trunc32: boolean;
     begin
       maybepreparedivu32(list,op,size,trunc32);
-      case op of
-        OP_SHL,OP_SHR,OP_SAR:
-          if not is_64bitint(size) then
-            a_load_reg_stack(list,size,reg)
-          else
-            begin
-              { the second argument here is an int rather than a long }
-              if getsubreg(reg)=R_SUBQ then
-                internalerror(2011010802);
-              a_load_reg_stack(list,s32inttype,reg)
-            end
-        else
-          a_load_reg_stack(list,size,reg);
-      end;
+      a_load_reg_stack(list,size,reg);
       a_op_stack(list,op,size,trunc32);
     end;
 
@@ -607,17 +591,7 @@ implementation
         internalerror(2010121102);
       tmpref:=ref;
       maybepreparedivu32(list,op,size,trunc32);
-      case op of
-        OP_SHL,OP_SHR,OP_SAR:
-          begin
-            if not is_64bitint(size) then
-              a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false))
-            else
-              a_load_ref_stack(list,s32inttype,tmpref,prepare_stack_for_ref(list,tmpref,false));
-          end;
-        else
-          a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
-      end;
+      a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
       a_op_stack(list,op,size,trunc32);
     end;
 
