@@ -102,8 +102,6 @@ uses
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
 
-      procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
-
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
@@ -1565,21 +1563,6 @@ implementation
 
       list.concat(taicpu.op_none(a_return));
       list.concat(taicpu.op_none(a_end_function));
-    end;
-
-  procedure thlcgwasm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
-    begin
-      { add something to the al_procedures list as well, because if all al_*
-        lists are empty, the assembler writer isn't called }
-      if not code.empty and
-         current_asmdata.asmlists[al_procedures].empty then
-        current_asmdata.asmlists[al_procedures].concat(tai_align.Create(4));
-      tcpuprocdef(pd).exprasmlist:=TAsmList.create;
-      new_section(tcpuprocdef(pd).exprasmlist,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-      tcpuprocdef(pd).exprasmlist.concatlist(code);
-      if assigned(data) and
-         not data.empty then
-        internalerror(2010122801);
     end;
 
   procedure thlcgwasm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
