@@ -135,7 +135,7 @@ begin
 //  if HasExports then
 //    cmdstr := cmdstr + ' --export-dynamic'; //' --export-dynamic';
 
-  cmdstr := cmdstr + ' --no-entry --allow-undefined';
+  cmdstr := cmdstr + ' --no-entry';
 
   if (cs_link_strip in current_settings.globalswitches) then
    begin
