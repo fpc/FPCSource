@@ -1175,6 +1175,7 @@ implementation
       extra_sslots,
       extra_dslots: longint;
       tmpsref, tmpdref: treference;
+      tmpreg: tregister;
     begin
       if sref.base<>NR_EVAL_STACK_BASE then
         begin
@@ -1190,7 +1191,14 @@ implementation
           a_load_stack_ref(list,tosize,tmpdref,extra_dslots);
         end
       else
-        inherited;
+        begin
+          { verify if we have the same reference }
+          if references_equal(sref,dref) then
+            exit;
+          tmpreg:=getregisterfordef(list,tosize);
+          a_load_ref_reg(list,fromsize,tosize,sref,tmpreg);
+          a_load_reg_ref(list,tosize,tosize,tmpreg,dref);
+        end;
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
