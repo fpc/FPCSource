@@ -3601,6 +3601,7 @@ var
 
   procedure SplitOperands(const aOperand1, aOperand2, aOperand3, aOperand4: string; var aRegCombi0, aRegCombi1, aRegCombi2, aRegCombi3, aRegCombi4: string);
   var
+    i: integer;
     s1: string;
     s2: string;
     s3: string;
@@ -3630,6 +3631,51 @@ var
       if iCnt3 > iMaxCnt then iMaxCnt := iCnt3;
       if iCnt4 > iMaxCnt then iMaxCnt := iCnt4;
 
+
+      if (aOperand1 <> '') and (aRegCombi0 <> '') then
+      begin
+        aRegCombi0 := aRegCombi0 + ',';
+        aRegCombi1 := aRegCombi1 + ',';
+        aRegCombi2 := aRegCombi2 + ',';
+        aRegCombi3 := aRegCombi3 + ',';
+        aRegCombi4 := aRegCombi4 + ',';
+      end;
+
+
+      Text := StringReplace(trim(aOperand1), '|', #13#10, [rfReplaceAll]);
+      if Count = iMaxCnt then
+      begin
+        for i := 0 to iMaxCnt - 1 do
+        begin
+          case i of
+            0: aRegCombi0 := aRegCombi0 + ',' + Strings[i];
+            1: aRegCombi1 := aRegCombi1 + ',' + Strings[i];
+            2: aRegCombi2 := aRegCombi2 + ',' + Strings[i];
+            3: aRegCombi3 := aRegCombi3 + ',' + Strings[i];
+            4: aRegCombi4 := aRegCombi4 + ',' + Strings[i];
+          end;
+        end;
+      end
+      else
+      begin
+        if Count = 1 then
+        begin
+          for i := 0 to iMaxCnt - 1 do
+          begin
+            case i of
+              0: aRegCombi0 := aRegCombi0 + ',' + Strings[0];
+              1: aRegCombi1 := aRegCombi1 + ',' + Strings[0];
+              2: aRegCombi2 := aRegCombi2 + ',' + Strings[0];
+              3: aRegCombi3 := aRegCombi3 + ',' + Strings[0];
+              4: aRegCombi4 := aRegCombi4 + ',' + Strings[0];
+            end;
+          end;
+        end
+        else
+        begin
+          // TODO log
+        end;
+      end;
     finally
       Free;
     end;
