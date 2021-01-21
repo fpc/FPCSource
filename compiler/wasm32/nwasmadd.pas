@@ -166,35 +166,35 @@ interface
         case nodetype of
           ltn :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_lt
               else
                 op:=a_f32_lt;
             end;
           lten :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_le
               else
                 op:=a_f32_le;
             end;
           gtn :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_gt
               else
                 op:=a_f32_gt;
             end;
           gten :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_ge
               else
                 op:=a_f32_ge;
             end;
           equaln :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_eq
               else
                 op:=a_f32_eq;
@@ -202,7 +202,7 @@ interface
             end;
           unequaln :
             begin
-              if location.size=OS_F64 then
+              if left.location.size=OS_F64 then
                 op:=a_f64_ne
               else
                 op:=a_f32_ne;
