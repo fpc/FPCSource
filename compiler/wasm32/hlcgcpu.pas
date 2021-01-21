@@ -405,22 +405,28 @@ implementation
       tmpref.base:=NR_NO;
       tmpref.index:=NR_NO;
       list.Concat(taicpu.op_ref(a_i32_const, tmpref));
+      incstack(list, 1);
       if ref.base<>NR_NO then
         begin
           list.Concat(taicpu.op_reg(a_get_local,ref.base));
+          incstack(list, 1);
           list.Concat(taicpu.op_none(a_i32_add));
+          decstack(list, 1);
         end;
       if ref.index<>NR_NO then
         begin
           list.Concat(taicpu.op_reg(a_get_local,ref.index));
+          incstack(list, 1);
           if ref.scalefactor>1 then
             begin
               list.Concat(taicpu.op_const(a_i32_const,ref.scalefactor));
+              incstack(list, 1);
               list.Concat(taicpu.op_none(a_i32_mul));
+              decstack(list, 1);
             end;
           list.Concat(taicpu.op_none(a_i32_add));
+          decstack(list, 1);
         end;
-      incstack(list, 1);
     end;
 
   procedure thlcgwasm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
