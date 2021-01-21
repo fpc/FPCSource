@@ -238,10 +238,6 @@ uses
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
       function loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
-      { return the load/store opcode to load/store from/to reg; if the result
-        has to be and'ed after a load to get the final value, that constant
-        is returned in finishandval (otherwise that value is set to -1) }
-      function loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
       procedure resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
       { in case of an OS_32 OP_DIV, we have to use an OS_S64 OP_IDIV because the
         JVM does not support unsigned divisions }
@@ -1669,15 +1665,8 @@ implementation
     end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
-    var
-      opc: tasmop;
-      finishandval: tcgint;
     begin
-      opc:=loadstoreopc(size,false,false,finishandval);
-      list.concat(taicpu.op_reg(opc,reg));
-      { avoid problems with getting the size of an open array etc }
-      if wasmAlwayInMem(size) then
-        size:=ptruinttype;
+      list.concat(taicpu.op_reg(a_set_local,reg));
       decstack(list,1);
     end;
 
@@ -1699,18 +1688,9 @@ implementation
     end;
 
   procedure thlcgwasm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
-    var
-      opc: tasmop;
-      finishandval: tcgint;
     begin
-      opc:=loadstoreopc(size,true,false,finishandval);
-      list.concat(taicpu.op_reg(opc,reg));
-      { avoid problems with getting the size of an open array etc }
-      if wasmAlwayInMem(size) then
-        size:=ptruinttype;
+      list.concat(taicpu.op_reg(a_get_local,reg));
       incstack(list,1);
-      if finishandval<>-1 then
-        a_op_const_stack(list,OP_AND,size,finishandval);
     end;
 
   procedure thlcgwasm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
@@ -1784,16 +1764,13 @@ implementation
             end;
         end
       else
-        result:=loadstoreopc(def,isload,false,finishandval);
-    end;
-
-  function thlcgwasm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
-    var
-      size: longint;
-    begin
-      finishandval:=-1;
-      if isload then result := a_get_local
-      else result := a_set_local;
+        begin
+          finishandval:=-1;
+          if isload then
+            result := a_get_local
+          else
+            result := a_set_local;
+        end;
     end;
 
   procedure thlcgwasm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
