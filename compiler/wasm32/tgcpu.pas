@@ -103,6 +103,8 @@ unit tgcpu;
 
       if is_pointer(def) then
         wbt := wbt_i32 // wasm32
+      else if is_currency(def) then
+        wbt := wbt_i64
       else if is_ordinal(def) then begin
         if is_64bit(def) then wbt := wbt_i64
         else wbt := wbt_i32;
