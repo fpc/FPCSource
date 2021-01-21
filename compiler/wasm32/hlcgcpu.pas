@@ -1949,23 +1949,17 @@ implementation
     var
       totalremovesize: longint;
       realresdef: tdef;
+      ft: TWasmFuncType;
     begin
-      if not assigned(forceresdef) then
-        realresdef:=pd.returndef
-      else
-        realresdef:=forceresdef;
-      { a constructor doesn't actually return a value in the jvm }
-      if (tabstractprocdef(pd).proctypeoption=potype_constructor) then
-        totalremovesize:=paraheight
-      else
-        { even a byte takes up a full stackslot -> align size to multiple of 4 }
-        totalremovesize:=paraheight-(align(realresdef.size,4) shr 2);
+      ft:=tcpuprocdef(pd).create_functype;
+      totalremovesize:=Length(ft.params)-Length(ft.results);
       { remove parameters from internal evaluation stack counter (in case of
         e.g. no parameters and a result, it can also increase) }
       if totalremovesize>0 then
         decstack(list,totalremovesize)
       else if totalremovesize<0 then
         incstack(list,-totalremovesize);
+      ft.free;
     end;
 
 
