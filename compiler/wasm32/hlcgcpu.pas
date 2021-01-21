@@ -239,9 +239,6 @@ uses
         is returned in finishandval (otherwise that value is set to -1) }
       function loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
       procedure resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
-      { in case of an OS_32 OP_DIV, we have to use an OS_S64 OP_IDIV because the
-        JVM does not support unsigned divisions }
-      procedure maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
     end;
 
 implementation
@@ -564,31 +561,24 @@ implementation
     end;
 
   procedure thlcgwasm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
-    var
-      trunc32: boolean;
     begin
-      maybepreparedivu32(list,op,size,trunc32);
       case op of
         OP_NEG,OP_NOT:
           internalerror(2011010801);
         else
           a_load_const_stack(list,size,a,R_INTREGISTER);
       end;
-      a_op_stack(list,op,size,trunc32);
+      a_op_stack(list,op,size,false);
     end;
 
   procedure thlcgwasm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
-    var
-      trunc32: boolean;
     begin
-      maybepreparedivu32(list,op,size,trunc32);
       a_load_reg_stack(list,size,reg);
-      a_op_stack(list,op,size,trunc32);
+      a_op_stack(list,op,size,false);
     end;
 
   procedure thlcgwasm.a_op_ref_stack(list: TAsmList; op: topcg; size: tdef; const ref: treference);
     var
-      trunc32: boolean;
       tmpref: treference;
     begin
       { ref must not be the stack top, because that may indicate an error
@@ -599,9 +589,7 @@ implementation
       if ref.base=NR_EVAL_STACK_BASE then
         internalerror(2010121102);
       tmpref:=ref;
-      maybepreparedivu32(list,op,size,trunc32);
       a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
-      a_op_stack(list,op,size,trunc32);
     end;
 
   procedure thlcgwasm.a_op_loc_stack(list: TAsmList; op: topcg; size: tdef; const loc: tlocation);
@@ -1921,21 +1909,6 @@ implementation
         begin
           list.concat(taicpu.op_none(a_f32_demote_f64));
         end;
-    end;
-
-  procedure thlcgwasm.maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
-    begin
-      if (op=OP_DIV) and
-         (def_cgsize(size)=OS_32) then
-        begin
-          { needs zero-extension to 64 bit, because the JVM only supports
-            signed divisions }
-          resize_stack_int_val(list,u32inttype,s64inttype,false);
-          op:=OP_IDIV;
-          isdivu32:=true;
-        end
-      else
-        isdivu32:=false;
     end;
 
   procedure create_hlcodegen_cpu;
