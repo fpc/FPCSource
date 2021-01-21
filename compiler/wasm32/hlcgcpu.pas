@@ -1573,8 +1573,7 @@ implementation
 
   procedure thlcgwasm.gen_entry_code(list: TAsmList);
     begin
-      list.concat(Tai_force_line.Create);
-      { todo: inherited? }
+      inherited;
       list.concat(taicpu.op_none(a_block));
       incblock;
       exitBr:=br_blocks;
@@ -1586,7 +1585,7 @@ implementation
       decblock;
       if fevalstackheight<>0 then
         list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
-      { todo: inherited? }
+      inherited;
     end;
 
   procedure thlcgwasm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
