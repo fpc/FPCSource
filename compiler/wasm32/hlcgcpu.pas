@@ -1111,15 +1111,19 @@ implementation
         begin
           // it's just faster to sum two of those together
           list.Concat(taicpu.op_reg(a_get_local, ref.base));
-          list.Concat(taicpu.op_reg(a_get_local, ref.index));
-          list.Concat(taicpu.op_none(a_i32_add));
           incstack(list,1);
+          list.Concat(taicpu.op_reg(a_get_local, ref.index));
+          incstack(list,1);
+          list.Concat(taicpu.op_none(a_i32_add));
+          decstack(list,1);
           if dup then
             begin
               list.Concat(taicpu.op_reg(a_get_local, ref.base));
-              list.Concat(taicpu.op_reg(a_get_local, ref.index));
-              list.Concat(taicpu.op_none(a_i32_add));
               incstack(list,1);
+              list.Concat(taicpu.op_reg(a_get_local, ref.index));
+              incstack(list,1);
+              list.Concat(taicpu.op_none(a_i32_add));
+              decstack(list,1);
             end;
           ref.base:=NR_NO;
           ref.index:=NR_NO;
@@ -1140,6 +1144,7 @@ implementation
           else // if (ref.base = NR_FRAME_POINTER_REG) then
             begin
               list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
+              incstack(list,1);
             end;
         end
       else
