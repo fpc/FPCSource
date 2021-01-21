@@ -144,7 +144,7 @@ uses
 
       procedure a_loadfpu_const_stack(list : TAsmList;size: tdef;a :double);
 
-      procedure a_op_stack(list : TAsmList;op: topcg; size: tdef; trunc32: boolean);
+      procedure a_op_stack(list : TAsmList;op: topcg; size: tdef);
       procedure a_op_const_stack(list : TAsmList;op: topcg; size: tdef;a : tcgint);
       procedure a_op_reg_stack(list : TAsmList;op: topcg; size: tdef;reg: tregister);
       procedure a_op_ref_stack(list : TAsmList;op: topcg; size: tdef;const ref: treference);
@@ -481,18 +481,9 @@ implementation
       end;
     end;
 
-  procedure thlcgwasm.a_op_stack(list: TAsmList; op: topcg; size: tdef; trunc32: boolean);
-    var
-      cgsize: tcgsize;
+  procedure thlcgwasm.a_op_stack(list: TAsmList; op: topcg; size: tdef);
     begin
-      if not trunc32 then
-        cgsize:=def_cgsize(size)
-      else
-        begin
-          resize_stack_int_val(list,u32inttype,s64inttype,false);
-          cgsize:=OS_S64;
-        end;
-      case cgsize of
+      case def_cgsize(size) of
         OS_8,OS_S8,
         OS_16,OS_S16,
         OS_32,OS_S32:
@@ -554,10 +545,6 @@ implementation
         else
           internalerror(2010120531);
       end;
-      if trunc32 then
-        begin
-          list.concat(taicpu.op_none(a_i32_trunc_s_f32)); // todo: there are several truncs
-        end;
     end;
 
   procedure thlcgwasm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
@@ -568,13 +555,13 @@ implementation
         else
           a_load_const_stack(list,size,a,R_INTREGISTER);
       end;
-      a_op_stack(list,op,size,false);
+      a_op_stack(list,op,size);
     end;
 
   procedure thlcgwasm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
     begin
       a_load_reg_stack(list,size,reg);
-      a_op_stack(list,op,size,false);
+      a_op_stack(list,op,size);
     end;
 
   procedure thlcgwasm.a_op_ref_stack(list: TAsmList; op: topcg; size: tdef; const ref: treference);
@@ -1330,12 +1317,12 @@ implementation
             begin
               a_load_reg_stack(list,size,src1);
               if op in [OP_SUB,OP_IMUL] then
-                a_op_stack(list,OP_NOT,size,false);
+                a_op_stack(list,OP_NOT,size);
               a_op_reg_stack(list,OP_XOR,size,src2);
-              a_op_stack(list,OP_NOT,size,false);
+              a_op_stack(list,OP_NOT,size);
               a_load_reg_stack(list,size,src1);
               a_op_reg_stack(list,OP_XOR,size,dst);
-              a_op_stack(list,OP_AND,size,false);
+              a_op_stack(list,OP_AND,size);
               a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
               if size.size=8 then
                 begin

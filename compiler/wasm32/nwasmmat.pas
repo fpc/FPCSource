@@ -184,7 +184,7 @@ implementation
           op:=OP_SHL
         else
           op:=OP_SHR;
-        thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,op,resultdef,false);
+        thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,op,resultdef);
         thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
