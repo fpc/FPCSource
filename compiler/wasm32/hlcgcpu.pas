@@ -1794,50 +1794,6 @@ implementation
       finishandval:=-1;
       if isload then result := a_get_local
       else result := a_set_local;
-      {case def2regtyp(def) of
-        R_INTREGISTER:
-          begin
-            size:=def.size;
-            case size of
-              1,2,3,4:
-                if isload then
-                  result:=a_i32_load
-                else
-                  result:=a_i32_store;
-              8:
-                if isload then
-                  result:=a_i64_load
-                else
-                  result:=a_i64_store;
-              else
-                internalerror(2011032814);
-            end;
-          end;
-        R_ADDRESSREGISTER:
-          if isload then
-            result:=a_i32_load
-          else
-            result:=a_i32_store;
-        R_FPUREGISTER:
-          begin
-            case tfloatdef(def).floattype of
-              s32real:
-                if isload then
-                  result:=a_f32_load
-                else
-                  result:=a_f32_store;
-              s64real:
-                if isload then
-                  result:=a_f32_load
-                else
-                  result:=a_f32_store
-              else
-                internalerror(2010120504);
-            end
-          end
-        else
-          internalerror(2010120502);
-      end;}
     end;
 
   procedure thlcgwasm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
