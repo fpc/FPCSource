@@ -1876,6 +1876,8 @@ implementation
     begin
       ft:=tcpuprocdef(pd).create_functype;
       totalremovesize:=Length(ft.params)-Length(ft.results);
+      if (Length(ft.results)=0) and (po_discardresult in pd.procoptions) then
+        dec(totalremovesize);
       { remove parameters from internal evaluation stack counter (in case of
         e.g. no parameters and a result, it can also increase) }
       if totalremovesize>0 then
