@@ -163,5 +163,13 @@ end;
 
 begin
   DebugWriteLn('System unit initialization start');
+  { To be set if this is a GUI or console application }
+  IsConsole := TRUE;
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  { If dynlibs feature is disabled,
+    IsLibrary is a constant, which can thus not be set to a value }
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
+{$endif def FPC_HAS_FEATURE_DYNLIBS}
   DebugWriteLn('System unit initialization end');
 end.
