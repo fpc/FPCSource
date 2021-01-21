@@ -577,6 +577,7 @@ implementation
         internalerror(2010121102);
       tmpref:=ref;
       a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
+      a_op_stack(list,op,size);
     end;
 
   procedure thlcgwasm.a_op_loc_stack(list: TAsmList; op: topcg; size: tdef; const loc: tlocation);
