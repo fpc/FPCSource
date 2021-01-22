@@ -79,17 +79,17 @@ implementation
                 is_currency(left.resultdef) then
                 begin
                   if is_signed(left.resultdef) then
-                    op:=a_f32_convert_s_i64
+                    op:=a_f32_convert_i64_s
                   else
-                    op:=a_f32_convert_u_i64;
+                    op:=a_f32_convert_i64_u;
                 end
               else
                 { other integers are supposed to be 32 bit }
                 begin
                   if is_signed(left.resultdef) then
-                    op:=a_f32_convert_s_i32
+                    op:=a_f32_convert_i32_s
                   else
-                    op:=a_f32_convert_u_i32;
+                    op:=a_f32_convert_i32_u;
                 end;
             end;
           s64real:
@@ -98,17 +98,17 @@ implementation
                 is_currency(left.resultdef) then
                 begin
                   if is_signed(left.resultdef) then
-                    op:=a_f64_convert_s_i64
+                    op:=a_f64_convert_i64_s
                   else
-                    op:=a_f64_convert_u_i64;
+                    op:=a_f64_convert_i64_u;
                 end
               else
                 { other integers are supposed to be 32 bit }
                 begin
                   if is_signed(left.resultdef) then
-                    op:=a_f64_convert_s_i32
+                    op:=a_f64_convert_i32_s
                   else
-                    op:=a_f64_convert_u_i32;
+                    op:=a_f64_convert_i32_u;
                 end;
             end;
           else
