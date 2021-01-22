@@ -60,7 +60,7 @@ implementation
 
     procedure twasminlinenode.second_memory_size;
       begin
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_current_memory));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_size));
         thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
