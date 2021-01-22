@@ -45,8 +45,14 @@ begin
 end;
 
 function Do_Read(Handle:thandle;Addr:Pointer;Len:Longint):Longint;
+var
+  our_iov: __wasi_iovec_t;
+  our_nread: __wasi_size_t;
 begin
-  DebugWriteLn('Do_Read');
+  our_iov.buf:=Addr;
+  our_iov.buf_len:=Len;
+  fd_read(Handle,@our_iov,1,@our_nread);
+  Do_Read:=our_nread;
 end;
 
 function Do_FilePos(Handle: thandle):Int64;

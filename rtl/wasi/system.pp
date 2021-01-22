@@ -50,6 +50,12 @@ type
   size_t = longint;
   __wasi_errno_t = longint;
 
+  P__wasi_iovec_t = ^__wasi_iovec_t;
+  __wasi_iovec_t = record
+    buf: PUInt8;
+    buf_len: __wasi_size_t;
+  end;
+
   P__wasi_ciovec_t = ^__wasi_ciovec_t;
   __wasi_ciovec_t = record
     buf: pointer;
@@ -62,6 +68,10 @@ function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
                   nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
+function fd_read(fd: __wasi_fd_t;
+                 iovs: P__wasi_iovec_t;
+                 iovs_len: size_t;
+                 nread: P__wasi_size_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
 procedure proc_exit(rval: __wasi_exitcode_t); noreturn; external 'wasi_snapshot_preview1';
 
 {$I system.inc}
