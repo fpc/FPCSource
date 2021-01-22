@@ -17,7 +17,7 @@
 
 {Platform specific information}
 type
-  THandle = Word;
+  THandle = LongInt;
   TThreadID = THandle;
   TOSTimestamp = LongInt;
 
