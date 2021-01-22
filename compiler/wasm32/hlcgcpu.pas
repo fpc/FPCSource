@@ -887,13 +887,6 @@ implementation
       var
         cgsize: tcgsize;
       begin
-        // WASM doesn't have compare+jump (to label) operation
-        // thus even though this is a_cmp_stack_stack()
-        // label operrand is ommited
-        //
-        // todo: it should NOT be ommitted when we're leaving a block
-        // (i.e. Exit or break or continue operators)
-
         case def2regtyp(size) of
           R_INTREGISTER,
           R_ADDRESSREGISTER:
