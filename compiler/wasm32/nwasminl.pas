@@ -76,7 +76,7 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_grow_memory));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_grow));
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
