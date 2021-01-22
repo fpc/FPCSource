@@ -75,7 +75,7 @@ uses
       a_f32_demote_f64, a_f64_promote_f32,
       a_f32_convert_s_i32, a_f32_convert_s_i64,a_f64_convert_s_i32,a_f64_convert_s_i64,
       a_f32_convert_u_i32, a_f32_convert_u_i64,a_f64_convert_u_i32,a_f64_convert_u_i64,
-      a_i32_reinterpret_f32, a_i64_reinterpret_f64, a_f32_reinterpret_i32, a_f64_reinterpret_f64,
+      a_i32_reinterpret_f32, a_i64_reinterpret_f64, a_f32_reinterpret_i32, a_f64_reinterpret_i64,
       // load/store
       a_i32_load, a_i64_load, a_f32_load, a_f64_load,
       a_i32_store, a_i64_store, a_f32_store, a_f64_store,
