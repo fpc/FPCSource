@@ -59,7 +59,7 @@ type
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
-                  nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_unstable';
+                  nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
 
 {$I system.inc}
 
