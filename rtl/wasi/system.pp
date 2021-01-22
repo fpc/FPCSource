@@ -53,6 +53,8 @@ procedure DebugWriteLn(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
 procedure DebugWriteHexDigit(d: Byte);
 procedure DebugWriteHexByte(b: Byte);
+procedure DebugWriteHexWord(w: Word);
+procedure DebugWriteHexLongWord(lw: Word);
 
 implementation
 
@@ -166,6 +168,18 @@ procedure DebugWriteHexByte(b: Byte);
 begin
   DebugWriteHexDigit(b shr 4);
   DebugWriteHexDigit(b and 15);
+end;
+
+procedure DebugWriteHexWord(w: Word);
+begin
+  DebugWriteHexByte(w shr 8);
+  DebugWriteHexByte(Byte(w));
+end;
+
+procedure DebugWriteHexLongWord(lw: Word);
+begin
+  DebugWriteHexWord(lw shr 16);
+  DebugWriteHexWord(Word(lw));
 end;
 
 begin
