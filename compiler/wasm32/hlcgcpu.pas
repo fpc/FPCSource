@@ -298,17 +298,18 @@ implementation
     end;
 
   procedure thlcgwasm.incblock;
-  begin
-    inc(br_blocks);
-  end;
+    begin
+      inc(br_blocks);
+    end;
 
   procedure thlcgwasm.decblock;
-  begin
-    dec(br_blocks);
-    if br_blocks<0 then Internalerror(2019091807); // out of block
-  end;
+    begin
+      dec(br_blocks);
+      if br_blocks<0 then
+        Internalerror(2019091807); // out of block
+    end;
 
-    procedure thlcgwasm.incstack(list: TAsmList; slots: longint);
+  procedure thlcgwasm.incstack(list: TAsmList; slots: longint);
     begin
       if slots=0 then
         exit;
