@@ -94,6 +94,7 @@ type
   { tcpuprocvardef }
 
   tcpuprocvardef = class(tprocvardef)
+    function is_pushleftright: boolean; override;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
@@ -107,6 +108,7 @@ type
     exprasmlist  : TAsmList;
     destructor destroy; override;
     function create_functype: TWasmFuncType;
+    function is_pushleftright: boolean; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -276,10 +278,20 @@ implementation
     end;
 
 
+  function tcpuprocdef.is_pushleftright: boolean;
+    begin
+      Result:=true;
+    end;
+
+
 {****************************************************************************
                              tcpuprocvardef
 ****************************************************************************}
 
+    function tcpuprocvardef.is_pushleftright: boolean;
+      begin
+        Result:=true;
+      end;
 
 
 {****************************************************************************

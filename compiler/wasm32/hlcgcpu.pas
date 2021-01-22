@@ -1461,24 +1461,24 @@ implementation
           paramanager.getcgtempparaloc(list,pd,1,cgpara1);
           paramanager.getcgtempparaloc(list,pd,2,cgpara2);
           paramanager.getcgtempparaloc(list,pd,3,cgpara3);
-          //if pd.is_pushleftright then
-          //  begin
+          if pd.is_pushleftright then
+            begin
               { load source }
               a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
               { load destination }
               a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
               { load size }
               a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
-          //  end
-          //else
-          //  begin
-          //    { load size }
-          //    a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
-          //    { load destination }
-          //    a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
-          //    { load source }
-          //    a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
-          //  end;
+            end
+          else
+            begin
+              { load size }
+              a_load_const_cgpara(list,sizesinttype,size.size,cgpara3);
+              { load destination }
+              a_loadaddr_ref_cgpara(list,voidtype,dest,cgpara2);
+              { load source }
+              a_loadaddr_ref_cgpara(list,voidtype,source,cgpara1);
+            end;
           paramanager.freecgpara(list,cgpara3);
           paramanager.freecgpara(list,cgpara2);
           paramanager.freecgpara(list,cgpara1);
