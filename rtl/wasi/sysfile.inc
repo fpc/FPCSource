@@ -34,8 +34,14 @@ begin
 end;
 
 function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
+var
+  our_iov: __wasi_ciovec_t;
+  our_nwritten: longint;
 begin
-  DebugWriteLn('Do_Write');
+  our_iov.buf := Addr;
+  our_iov.buf_len := Len;
+  fd_write(Handle, @our_iov, 1, @our_nwritten);
+  Do_Write:=our_nwritten;
 end;
 
 function Do_Read(Handle:thandle;Addr:Pointer;Len:Longint):Longint;

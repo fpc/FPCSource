@@ -71,6 +71,11 @@ type
     buf_len: __wasi_size_t;
   end;
 
+function fd_write(fd: __wasi_fd_t;
+                  iovs: P__wasi_ciovec_t;
+                  iovs_len: size_t;
+                  nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_unstable';
+
 {$ifdef FULL_RTL}
 
 {$I system.inc}
@@ -127,10 +132,6 @@ begin
 end;
 {$endif FULL_RTL}
 
-function fd_write(fd: __wasi_fd_t;
-                  iovs: P__wasi_ciovec_t;
-                  iovs_len: size_t;
-                  nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_unstable';
 
 procedure DebugWrite(const P: PChar);
 var
