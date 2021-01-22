@@ -4,8 +4,6 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
-{$ifdef FULL_RTL}
-
 {$I systemh.inc}
 
 const
@@ -35,19 +33,6 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-{$else FULL_RTL}
-type
-  integer = longint;
-  hresult = integer; 
-  ttypekind = integer;
-  filerec = integer;
-  textrec = integer;
-  pbyte = ^byte;
-  pchar = ^Char;
-
-procedure fpc_lib_exit; compilerproc;
-{$endif FULL_RTL}
-
 procedure DebugWrite(const P: PChar);
 procedure DebugWriteLn(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
@@ -75,8 +60,6 @@ function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
                   nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_unstable';
-
-{$ifdef FULL_RTL}
 
 {$I system.inc}
 
@@ -115,23 +98,6 @@ end;
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
 end;
-
-{$else FULL_RTL}
-procedure fpc_lib_exit; compilerproc;
-begin
-end;
-
-function StrLen(P: PChar): size_t;
-var
-  i: size_t;
-begin
-  i := 0;
-  while p[i]<>#0 do
-    Inc(i);
-  StrLen := i;
-end;
-{$endif FULL_RTL}
-
 
 procedure DebugWrite(const P: PChar);
 var
