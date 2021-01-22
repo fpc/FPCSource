@@ -37,22 +37,46 @@ function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
 var
   our_iov: __wasi_ciovec_t;
   our_nwritten: longint;
+  res: __wasi_errno_t;
 begin
-  our_iov.buf := Addr;
-  our_iov.buf_len := Len;
-  fd_write(Handle, @our_iov, 1, @our_nwritten);
-  Do_Write:=our_nwritten;
+  repeat
+    our_iov.buf := Addr;
+    our_iov.buf_len := Len;
+    res:=fd_write(Handle, @our_iov, 1, @our_nwritten);
+  until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  if res=__WASI_ERRNO_SUCCESS then
+    begin
+      Do_Write:=our_nwritten;
+      InOutRes:=0;
+    end
+  else
+    begin
+      Do_Write:=0;
+      InOutRes:=Errno2InoutRes(res);
+    end;
 end;
 
 function Do_Read(Handle:thandle;Addr:Pointer;Len:Longint):Longint;
 var
   our_iov: __wasi_iovec_t;
   our_nread: __wasi_size_t;
+  res: __wasi_errno_t;
 begin
-  our_iov.buf:=Addr;
-  our_iov.buf_len:=Len;
-  fd_read(Handle,@our_iov,1,@our_nread);
-  Do_Read:=our_nread;
+  repeat
+    our_iov.buf:=Addr;
+    our_iov.buf_len:=Len;
+    fd_read(Handle,@our_iov,1,@our_nread);
+  until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  if res=__WASI_ERRNO_SUCCESS then
+    begin
+      Do_Read:=our_nread;
+      InOutRes:=0;
+    end
+  else
+    begin
+      Do_Read:=0;
+      InOutRes:=Errno2InoutRes(res);
+    end;
 end;
 
 function Do_FilePos(Handle: thandle):Int64;

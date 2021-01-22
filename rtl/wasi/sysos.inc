@@ -15,22 +15,42 @@
 
  **********************************************************************}
 
-{procedure GetInOutRes(def: Word);
-var
-  regs : Registers;
+function Errno2InoutRes(errno: __wasi_errno_t): Word;
 begin
-  regs.AX:=$5900;
-  regs.BX:=$0;
-  MsDos(regs);
-  InOutRes:=regs.AX;
-  case InOutRes of
-   19 : InOutRes:=150;
-   21 : InOutRes:=152;
-   32 : InOutRes:=5;
+  case errno of
+    __WASI_ERRNO_NFILE,
+    __WASI_ERRNO_MFILE:
+      Errno2InoutRes:=4;
+    __WASI_ERRNO_NOENT:
+      Errno2InoutRes:=2;
+    __WASI_ERRNO_BADF:
+      Errno2InoutRes:=6;
+    __WASI_ERRNO_NOMEM,
+    __WASI_ERRNO_FAULT:
+      Errno2InoutRes:=217;
+    __WASI_ERRNO_INVAL:
+      Errno2InoutRes:=218;
+    __WASI_ERRNO_PIPE,
+    __WASI_ERRNO_INTR,
+    __WASI_ERRNO_IO,
+    __WASI_ERRNO_AGAIN,
+    __WASI_ERRNO_NOSPC:
+      Errno2InoutRes:=101;
+    __WASI_ERRNO_NAMETOOLONG:
+      Errno2InoutRes:=3;
+    __WASI_ERRNO_ROFS,
+    __WASI_ERRNO_EXIST,
+    __WASI_ERRNO_NOTEMPTY,
+    __WASI_ERRNO_ACCES:
+      Errno2InoutRes:=5;
+    __WASI_ERRNO_BUSY,
+    __WASI_ERRNO_NOTDIR,        // busy, enotdir, mantis #25931
+    __WASI_ERRNO_ISDIR:
+      Errno2InoutRes:=5;
+    else
+      Errno2InoutRes:=errno;
   end;
-  if InOutRes=0 then
-    InOutRes:=Def;
-end;}
+end;
 
 {*****************************************************************************
                           Low Level File Routines
