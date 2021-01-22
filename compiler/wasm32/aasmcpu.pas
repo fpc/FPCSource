@@ -57,15 +57,10 @@ uses
          constructor op_double(op : tasmop;_op1 : double);
 
          constructor op_functype(op : tasmop; _op1: TWasmFuncType);
-         //constructor op_string(op : tasmop;_op1len : aint;_op1 : pchar);
-         //constructor op_wstring(op : tasmop;_op1 : pcompilerwidestring);
 
          procedure loadfunctype(opidx:longint;ft:TWasmFuncType);
          procedure loadsingle(opidx:longint;f:single);
          procedure loaddouble(opidx:longint;d:double);
-         //procedure loadstr(opidx:longint;vallen: aint;pc: pchar);
-         //procedure loadpwstr(opidx:longint;pwstr:pcompilerwidestring);
-
 
          { register allocation }
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
@@ -224,9 +219,6 @@ implementation
       begin
         inherited create(op);
         ops:=1;
-        //is_jmp:=op in [a_if_acmpeq, a_if_acmpne, a_if_icmpeq, a_if_icmpge, a_if_icmpgt,
-        //  a_if_icmple, a_if_icmplt, a_if_icmpne,
-        //  a_ifeq, a_ifge, a_ifgt, a_ifle, a_iflt, a_ifne, a_ifnonnull, a_ifnull, a_goto];
         loadsymbol(0,_op1,0);
       end;
 
@@ -274,20 +266,6 @@ implementation
         end;
       end;
 
-    {constructor taicpu.op_string(op: tasmop; _op1len: aint; _op1: pchar);
-      begin
-        inherited create(op);
-        ops:=1;
-        loadstr(0,_op1len,_op1);
-      end;
-
-    constructor taicpu.op_wstring(op: tasmop; _op1: pcompilerwidestring);
-      begin
-        inherited create(op);
-        ops:=1;
-        loadpwstr(0,_op1);
-      end;}
-
 
     procedure taicpu.loadsingle(opidx:longint;f:single);
       begin
@@ -313,33 +291,6 @@ implementation
            typ:=top_double;
          end;
       end;
-
-
-    {procedure taicpu.loadstr(opidx: longint; vallen: aint; pc: pchar);
-      begin
-        allocate_oper(opidx+1);
-        with oper[opidx]^ do
-         begin
-           clearop(opidx);
-           pcvallen:=vallen;
-           getmem(pcval,vallen);
-           move(pc^,pcval^,vallen);
-           typ:=top_string;
-         end;
-      end;
-
-
-    procedure taicpu.loadpwstr(opidx:longint;pwstr:pcompilerwidestring);
-      begin
-        allocate_oper(opidx+1);
-        with oper[opidx]^ do
-         begin
-           clearop(opidx);
-           initwidestring(pwstrval);
-           copywidestring(pwstr,pwstrval);
-           typ:=top_wstring;
-         end;
-      end;}
 
 
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
