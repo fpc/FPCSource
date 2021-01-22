@@ -1684,6 +1684,20 @@ implementation
             begin
               { truncate }
               list.concat(taicpu.op_none(a_i32_wrap_i64));
+              case tocgsize of
+                OS_8:
+                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                OS_S8:
+                  list.concat(taicpu.op_none(a_i32_extend8_s));
+                OS_16:
+                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                OS_S16:
+                  list.concat(taicpu.op_none(a_i32_extend16_s));
+                OS_32,OS_S32:
+                  ;
+                else
+                  internalerror(2021012201);
+              end;
             end;
         end
       else if tocgsize in [OS_S64,OS_64] then
@@ -1722,20 +1736,42 @@ implementation
         end
       else
         begin
-          case fromcgsize of
-            OS_8:
-              a_op_const_stack(list,OP_AND,s32inttype,255);
-            OS_S8:
-              list.concat(taicpu.op_none(a_i32_extend8_s));
-            OS_16:
-              a_op_const_stack(list,OP_AND,s32inttype,65535);
-            OS_S16:
-              list.concat(taicpu.op_none(a_i32_extend16_s));
-            OS_32,OS_S32:
-              ;
-            else
-              internalerror(2021010302);
-          end;
+          if tcgsize2size[fromcgsize]<tcgsize2size[tocgsize] then
+            begin
+              { extend }
+              case fromcgsize of
+                OS_8:
+                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                OS_S8:
+                  list.concat(taicpu.op_none(a_i32_extend8_s));
+                OS_16:
+                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                OS_S16:
+                  list.concat(taicpu.op_none(a_i32_extend16_s));
+                OS_32,OS_S32:
+                  ;
+                else
+                  internalerror(2021010302);
+              end;
+            end
+          else if tcgsize2size[fromcgsize]>=tcgsize2size[tocgsize] then
+            begin
+              { truncate }
+              case tocgsize of
+                OS_8:
+                  a_op_const_stack(list,OP_AND,s32inttype,255);
+                OS_S8:
+                  list.concat(taicpu.op_none(a_i32_extend8_s));
+                OS_16:
+                  a_op_const_stack(list,OP_AND,s32inttype,65535);
+                OS_S16:
+                  list.concat(taicpu.op_none(a_i32_extend16_s));
+                OS_32,OS_S32:
+                  ;
+                else
+                  internalerror(2021010302);
+              end;
+            end;
         end;
     end;
 
