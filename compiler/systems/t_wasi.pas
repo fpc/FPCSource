@@ -66,6 +66,8 @@ type
     constructor Create;override;
     procedure SetDefaultInfo;override;
 
+    procedure InitSysInitUnitName;override;
+
     function  MakeExecutable:boolean;override;
     function  MakeSharedLibrary:boolean;override;
   end;
@@ -94,6 +96,11 @@ procedure tlinkerwasi.SetDefaultInfo;
 begin
   Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
   //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
+end;
+
+procedure tlinkerwasi.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
 end;
 
 function tlinkerwasi.MakeExecutable:boolean;
