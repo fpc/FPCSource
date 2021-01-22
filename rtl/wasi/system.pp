@@ -100,11 +100,11 @@ end;
 
 procedure SysInitStdIO;
 begin
-//  OpenStdIO(Input,fmInput,StdInputHandle);
-//  OpenStdIO(Output,fmOutput,StdOutputHandle);
-//  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
-//  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-//  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
