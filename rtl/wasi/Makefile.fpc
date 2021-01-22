@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system
+units=system $(SYSINIT_UNITS)
 
 [require]
 nortl=y
@@ -25,6 +25,7 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+SYSINIT_UNITS=si_prc
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -56,3 +57,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
         $(EXECPPAS)
+
+#
+# $(SYSINIT_UNITS) Units
+#
+si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
