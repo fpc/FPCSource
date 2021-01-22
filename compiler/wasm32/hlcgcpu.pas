@@ -1016,8 +1016,9 @@ implementation
             end
           else // if (ref.base = NR_FRAME_POINTER_REG) then
             begin
-              list.Concat(taicpu.op_sym(a_local_get, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
-              incstack(list,1);
+              internalerror(2021012202);
+              //list.Concat(taicpu.op_sym(a_local_get, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
+              //incstack(list,1);
             end;
         end
       else
