@@ -151,7 +151,6 @@ begin
 end;
 
 begin
-  DebugWriteLn('System unit initialization start');
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
@@ -168,5 +167,4 @@ begin
   SysInitStdIO;
   { Reset IO Error }
   InOutRes:=0;
-  DebugWriteLn('System unit initialization end');
 end.
