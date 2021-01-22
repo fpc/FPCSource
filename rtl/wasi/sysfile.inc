@@ -15,44 +15,55 @@
 
 procedure Do_Close(Handle:thandle);
 begin
+  DebugWriteLn('Do_Close');
 end;
 
 procedure Do_Erase(p: pchar; pchangeable: boolean);
 begin
+  DebugWriteLn('Do_Erase');
 end;
 
 procedure do_truncate (handle:thandle;fpos:int64);
 begin
+  DebugWriteLn('do_truncate');
 end;
 
 procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
 begin
+  DebugWriteLn('Do_Rename');
 end;
 
 function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
 begin
+  DebugWriteLn('Do_Write');
 end;
 
 function Do_Read(Handle:thandle;Addr:Pointer;Len:Longint):Longint;
 begin
+  DebugWriteLn('Do_Read');
 end;
 
 function Do_FilePos(Handle: thandle):Int64;
 begin
+  DebugWriteLn('Do_FilePos');
 end;
 
 procedure Do_Seek(Handle:thandle;Pos:Int64);
 begin
+  DebugWriteLn('Do_Seek');
 end;
 
 function Do_Seekend(Handle:thandle):Int64;
 begin
+  DebugWriteLn('Do_Seekend');
 end;
 
 function Do_FileSize(Handle:thandle):Int64;
 begin
+  DebugWriteLn('Do_FileSize');
 end;
 
 procedure Do_Open(var f; p: pchar; flags: longint; pchangeable: boolean);
 begin
+  DebugWriteLn('Do_Open');
 end;
