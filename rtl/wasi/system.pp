@@ -56,10 +56,13 @@ type
     buf_len: __wasi_size_t;
   end;
 
+  __wasi_exitcode_t = UInt32;
+
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
                   nwritten: P__wasi_size_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
+procedure proc_exit(rval: __wasi_exitcode_t); noreturn; external 'wasi_snapshot_preview1';
 
 {$I system.inc}
 
@@ -73,9 +76,7 @@ End;
 
 procedure System_exit;
 begin
-  DebugWriteLn('System_exit');
-  repeat
-  until false;
+  proc_exit(ExitCode);
 End;
 
 Function ParamCount: Longint;
