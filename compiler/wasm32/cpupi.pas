@@ -84,7 +84,7 @@ implementation
 
     procedure tcpuprocinfo.postprocess_code;
 
-      function findfirst_tai_local(asmlist: TAsmList): tai_local;
+      function findfirst_tai_functype(asmlist: TAsmList): tai_functype;
         var
           hp: tai;
         begin
@@ -94,9 +94,9 @@ implementation
           hp:=tai(asmlist.first);
           while assigned(hp) do
             begin
-              if hp.typ=ait_local then
+              if hp.typ=ait_functype then
                 begin
-                  result:=tai_local(hp);
+                  result:=tai_functype(hp);
                   exit;
                 end;
               hp:=tai(hp.Next);
@@ -128,27 +128,25 @@ implementation
       var
        templist : TAsmList;
        l : TWasmLocal;
-       first_tai_local, last_tai_local: tai_local;
+       first: Boolean;
+       local: tai_local;
       begin
-        templist := TAsmList.create;
-        l := ttgwasm(tg).localvars.first;
-        while Assigned(l) do begin
-          templist.Concat( tai_local.create(l.typ));
-          l := l.nextseq;
-        end;
-        aktproccode.insertListBefore(findfirst_tai_local(aktproccode),templist);
-        templist.Free;
-
-        first_tai_local:=findfirst_tai_local(aktproccode);
-        if assigned(first_tai_local) then
+        templist:=TAsmList.create;
+        local:=nil;
+        first:=true;
+        l:=ttgwasm(tg).localvars.first;
+        while Assigned(l) do
           begin
-            first_tai_local.first:=true;
-            { also find the last tai_local in the group }
-            last_tai_local:=first_tai_local;
-            while assigned(last_tai_local.Next) and (tai(last_tai_local.Next).typ=ait_local) do
-              last_tai_local:=tai_local(last_tai_local.Next);
-            last_tai_local.last:=true;
+            local:=tai_local.create(l.typ);
+            local.first:=first;
+            first:=false;
+            templist.Concat(local);
+            l:=l.nextseq;
           end;
+        if assigned(local) then
+          local.last:=true;
+        aktproccode.insertListAfter(findfirst_tai_functype(aktproccode),templist);
+        templist.Free;
 
         replace_local_frame_pointer(aktproccode);
 

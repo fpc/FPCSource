@@ -1406,9 +1406,6 @@ implementation
       ttgwasm(tg).allocframepointer(list,pd.frame_pointer_ref);
       ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
-      list.Concat(tai_local.create(wbt_i32,FRAME_POINTER_SYM)); //TWasmBasicType
-      list.Concat(tai_local.create(wbt_i32,BASE_POINTER_SYM)); //TWasmBasicType
-
       g_fingerprint(list);
 
       list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
