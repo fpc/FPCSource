@@ -43,7 +43,7 @@ uses
       a_end_loop, a_end_if, a_end_function, a_return, a_unreachable,
       // basic
       a_nop, a_drop, a_i32_const, a_i64_const, a_f32_const, a_f64_const,
-      a_get_local, a_set_local, a_tee_local, a_get_global, a_set_global,
+      a_local_get, a_local_set, a_local_tee, a_global_get, a_global_set,
       a_select, a_call, a_call_indirect,
       // integer
       a_i32_add, a_i64_add, a_i32_sub, a_i64_sub, a_i32_mul, a_i64_mul,

@@ -408,14 +408,14 @@ implementation
       incstack(list, 1);
       if ref.base<>NR_NO then
         begin
-          list.Concat(taicpu.op_reg(a_get_local,ref.base));
+          list.Concat(taicpu.op_reg(a_local_get,ref.base));
           incstack(list, 1);
           list.Concat(taicpu.op_none(a_i32_add));
           decstack(list, 1);
         end;
       if ref.index<>NR_NO then
         begin
-          list.Concat(taicpu.op_reg(a_get_local,ref.index));
+          list.Concat(taicpu.op_reg(a_local_get,ref.index));
           incstack(list, 1);
           if ref.scalefactor>1 then
             begin
@@ -1076,17 +1076,17 @@ implementation
       else if ref.index <> NR_NO then // array access
         begin
           // it's just faster to sum two of those together
-          list.Concat(taicpu.op_reg(a_get_local, ref.base));
+          list.Concat(taicpu.op_reg(a_local_get, ref.base));
           incstack(list,1);
-          list.Concat(taicpu.op_reg(a_get_local, ref.index));
+          list.Concat(taicpu.op_reg(a_local_get, ref.index));
           incstack(list,1);
           list.Concat(taicpu.op_none(a_i32_add));
           decstack(list,1);
           if dup then
             begin
-              list.Concat(taicpu.op_reg(a_get_local, ref.base));
+              list.Concat(taicpu.op_reg(a_local_get, ref.base));
               incstack(list,1);
-              list.Concat(taicpu.op_reg(a_get_local, ref.index));
+              list.Concat(taicpu.op_reg(a_local_get, ref.index));
               incstack(list,1);
               list.Concat(taicpu.op_none(a_i32_add));
               decstack(list,1);
@@ -1109,7 +1109,7 @@ implementation
             end
           else // if (ref.base = NR_FRAME_POINTER_REG) then
             begin
-              list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
+              list.Concat(taicpu.op_sym(a_local_get, current_asmdata.RefAsmSymbol(FRAME_POINTER_SYM,AT_ADDR) ));
               incstack(list,1);
             end;
         end
@@ -1511,23 +1511,23 @@ implementation
 
       g_fingerprint(list);
 
-      list.Concat(taicpu.op_sym(a_get_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
       incstack(list,1);
-      list.Concat(taicpu.op_ref(a_set_local,pd.base_pointer_ref));
+      list.Concat(taicpu.op_ref(a_local_set,pd.base_pointer_ref));
       decstack(list,1);
 
       if (localsize>0) then begin
-        list.Concat(taicpu.op_ref(a_get_local,pd.base_pointer_ref));
+        list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
         incstack(list,1);
         list.concat(taicpu.op_const(a_i32_const, localsize ));
         incstack(list,1);
         list.concat(taicpu.op_none(a_i32_sub));
         decstack(list,1);
-        list.Concat(taicpu.op_ref(a_set_local,pd.frame_pointer_ref));
+        list.Concat(taicpu.op_ref(a_local_set,pd.frame_pointer_ref));
         decstack(list,1);
-        list.Concat(taicpu.op_ref(a_get_local,pd.frame_pointer_ref));
+        list.Concat(taicpu.op_ref(a_local_get,pd.frame_pointer_ref));
         incstack(list,1);
-        list.Concat(taicpu.op_sym(a_set_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
         decstack(list,1);
       end;
 
@@ -1539,9 +1539,9 @@ implementation
       pd: tcpuprocdef;
     begin
       pd:=tcpuprocdef(current_procinfo.procdef);
-      list.Concat(taicpu.op_ref(a_get_local,pd.base_pointer_ref));
+      list.Concat(taicpu.op_ref(a_local_get,pd.base_pointer_ref));
       incstack(list,1);
-      list.Concat(taicpu.op_sym(a_set_global,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
       decstack(list,1);
 
       list.concat(taicpu.op_none(a_return));
@@ -1655,7 +1655,7 @@ implementation
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     begin
-      list.concat(taicpu.op_reg(a_set_local,reg));
+      list.concat(taicpu.op_reg(a_local_set,reg));
       decstack(list,1);
     end;
 
@@ -1678,7 +1678,7 @@ implementation
 
   procedure thlcgwasm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
     begin
-      list.concat(taicpu.op_reg(a_get_local,reg));
+      list.concat(taicpu.op_reg(a_local_get,reg));
       incstack(list,1);
     end;
 
@@ -1756,9 +1756,9 @@ implementation
         begin
           finishandval:=-1;
           if isload then
-            result := a_get_local
+            result := a_local_get
           else
-            result := a_set_local;
+            result := a_local_set;
         end;
     end;
 
