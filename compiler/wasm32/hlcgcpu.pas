@@ -1499,13 +1499,6 @@ implementation
       ttgwasm(tg).allocframepointer(list,pd.frame_pointer_ref);
       ttgwasm(tg).allocbasepointer(list,pd.base_pointer_ref);
 
-      { the localsize is based on tg.lasttemp -> already in terms of stack
-        slots rather than bytes }
-      //list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
-      { we insert the unit initialisation code afterwards in the proginit code,
-        and it uses one stack slot }
-      //if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        //fmaxevalstackheight:=max(1,fmaxevalstackheight);
       list.Concat(tai_local.create(wbt_i32,FRAME_POINTER_SYM)); //TWasmBasicType
       list.Concat(tai_local.create(wbt_i32,BASE_POINTER_SYM)); //TWasmBasicType
 
@@ -1530,8 +1523,6 @@ implementation
         list.Concat(taicpu.op_sym(a_global_set,current_asmdata.RefAsmSymbol(STACK_POINTER_SYM,AT_LABEL)));
         decstack(list,1);
       end;
-
-      //list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
     end;
 
   procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
