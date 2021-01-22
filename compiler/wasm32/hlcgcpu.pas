@@ -1795,27 +1795,27 @@ implementation
             OS_8:
               begin
                 a_op_const_stack(list,OP_AND,s32inttype,255);
-                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
               end;
             OS_S8:
               begin
-                list.concat(taicpu.op_none(a_i64_extend_u_i32));
-                list.concat(taicpu.op_none(a_i64_extend_s_8));
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+                list.concat(taicpu.op_none(a_i64_extend8_s));
               end;
             OS_16:
               begin
                 a_op_const_stack(list,OP_AND,s32inttype,65535);
-                list.concat(taicpu.op_none(a_i64_extend_u_i32));
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
               end;
             OS_S16:
               begin
-                list.concat(taicpu.op_none(a_i64_extend_u_i32));
-                list.concat(taicpu.op_none(a_i64_extend_s_16));
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+                list.concat(taicpu.op_none(a_i64_extend16_s));
               end;
             OS_32:
-              list.concat(taicpu.op_none(a_i64_extend_u_i32));
+              list.concat(taicpu.op_none(a_i64_extend_i32_u));
             OS_S32:
-              list.concat(taicpu.op_none(a_i64_extend_s_i32));
+              list.concat(taicpu.op_none(a_i64_extend_i32_s));
             OS_64,OS_S64:
               ;
             else
@@ -1828,11 +1828,11 @@ implementation
             OS_8:
               a_op_const_stack(list,OP_AND,s32inttype,255);
             OS_S8:
-              list.concat(taicpu.op_none(a_i32_extend_s_8));
+              list.concat(taicpu.op_none(a_i32_extend8_s));
             OS_16:
               a_op_const_stack(list,OP_AND,s32inttype,65535);
             OS_S16:
-              list.concat(taicpu.op_none(a_i32_extend_s_16));
+              list.concat(taicpu.op_none(a_i32_extend16_s));
             OS_32,OS_S32:
               ;
             else
