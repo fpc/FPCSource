@@ -37,5 +37,9 @@ end;}
 *****************************************************************************}
 
 function Do_IsDevice(Handle:THandle):boolean;
+var
+  ourfdstat: __wasi_fdstat_t;
 begin
+  fd_fdstat_get(Handle,@ourfdstat);
+  Do_IsDevice:=ourfdstat.fs_filetype in [__WASI_FILETYPE_BLOCK_DEVICE,__WASI_FILETYPE_CHARACTER_DEVICE];
 end;
