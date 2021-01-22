@@ -46,6 +46,7 @@ implementation
 type
   P__wasi_size_t = ^__wasi_size_t;
   __wasi_size_t = longint;
+  P__wasi_fd_t = ^__wasi_fd_t;
   __wasi_fd_t = longint;
   size_t = longint;
   __wasi_errno_t = longint;
@@ -209,6 +210,20 @@ type
     fs_rights_inheriting: __wasi_rights_t;
   end;
 
+  __wasi_lookupflags_t = UInt32;
+
+const
+  __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW = 1;
+
+type
+  __wasi_oflags_t = UInt16;
+
+const
+  __WASI_OFLAGS_CREAT     = 1;
+  __WASI_OFLAGS_DIRECTORY = 2;
+  __WASI_OFLAGS_EXCL      = 4;
+  __WASI_OFLAGS_TRUNC     = 8;
+
 function fd_write(fd: __wasi_fd_t;
                   iovs: P__wasi_ciovec_t;
                   iovs_len: size_t;
@@ -220,6 +235,15 @@ function fd_read(fd: __wasi_fd_t;
 procedure proc_exit(rval: __wasi_exitcode_t); noreturn; external 'wasi_snapshot_preview1';
 function fd_fdstat_get(fd: __wasi_fd_t;
                        stat: P__wasi_fdstat_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
+function path_open(fd: __wasi_fd_t;
+                   dirflags: __wasi_lookupflags_t;
+                   path: PChar;
+                   path_len: size_t;
+                   oflags: __wasi_oflags_t;
+                   fs_rights_base,
+                   fs_rights_inherting: __wasi_rights_t;
+                   fdflags: __wasi_fdflags_t;
+                   opened_fd: P__wasi_fd_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
 
 {$I system.inc}
 
