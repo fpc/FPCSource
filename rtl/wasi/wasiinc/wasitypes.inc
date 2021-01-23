@@ -14,12 +14,26 @@
  **********************************************************************}
 
 type
+  size_t = longint;
+
   P__wasi_size_t = ^__wasi_size_t;
   __wasi_size_t = longint;
-  P__wasi_fd_t = ^__wasi_fd_t;
-  __wasi_fd_t = longint;
-  size_t = longint;
-  __wasi_errno_t = longint;
+  P__wasi_filesize_t = ^__wasi_filesize_t;
+  __wasi_filesize_t = UInt64;
+  P__wasi_timestamp_t = ^__wasi_timestamp_t;
+  __wasi_timestamp_t = UInt64;
+  P__wasi_clockid_t = ^__wasi_clockid_t;
+  __wasi_clockid_t = UInt32;
+
+const
+  __WASI_CLOCKID_REALTIME           = 0;
+  __WASI_CLOCKID_MONOTONIC          = 1;
+  __WASI_CLOCKID_PROCESS_CPUTIME_ID = 2;
+  __WASI_CLOCKID_THREAD_CPUTIME_ID  = 3;
+
+type
+  P__wasi_errno_t = ^__wasi_errno_t;
+  __wasi_errno_t = UInt16;
 
 const
   __WASI_ERRNO_SUCCESS        = 0;
@@ -101,43 +115,7 @@ const
   __WASI_ERRNO_NOTCAPABLE     = 76;
 
 type
-  P__wasi_iovec_t = ^__wasi_iovec_t;
-  __wasi_iovec_t = record
-    buf: PUInt8;
-    buf_len: __wasi_size_t;
-  end;
-
-  P__wasi_ciovec_t = ^__wasi_ciovec_t;
-  __wasi_ciovec_t = record
-    buf: pointer;
-    buf_len: __wasi_size_t;
-  end;
-
-  __wasi_exitcode_t = UInt32;
-
-  __wasi_filetype_t = UInt8;
-
-const
-  __WASI_FILETYPE_UNKNOWN          = 0;
-  __WASI_FILETYPE_BLOCK_DEVICE     = 1;
-  __WASI_FILETYPE_CHARACTER_DEVICE = 2;
-  __WASI_FILETYPE_DIRECTORY        = 3;
-  __WASI_FILETYPE_REGULAR_FILE     = 4;
-  __WASI_FILETYPE_SOCKET_DGRAM     = 5;
-  __WASI_FILETYPE_SOCKET_STREAM    = 6;
-  __WASI_FILETYPE_SYMBOLIC_LINK    = 7;
-
-type
-  __wasi_fdflags_t = UInt16;
-
-const
-  __WASI_FDFLAGS_APPEND   = 1;
-  __WASI_FDFLAGS_DSYNC    = 2;
-  __WASI_FDFLAGS_NONBLOCK = 4;
-  __WASI_FDFLAGS_RSYNC    = 8;
-  __WASI_FDFLAGS_SYNC     = 16;
-
-type
+  P__wasi_rights_t = ^__wasi_rights_t;
   __wasi_rights_t = UInt64;
 
 const
@@ -172,6 +150,87 @@ const
   __WASI_RIGHTS_SOCK_SHUTDOWN           = 268435456;
 
 type
+  P__wasi_fd_t = ^__wasi_fd_t;
+  __wasi_fd_t = longint;
+
+  P__wasi_iovec_t = ^__wasi_iovec_t;
+  __wasi_iovec_t = record
+    buf: PUInt8;
+    buf_len: __wasi_size_t;
+  end;
+
+  P__wasi_ciovec_t = ^__wasi_ciovec_t;
+  __wasi_ciovec_t = record
+    buf: PUInt8;
+    buf_len: __wasi_size_t;
+  end;
+
+  P__wasi_filedelta_t = ^__wasi_filedelta_t;
+  __wasi_filedelta_t = Int64;
+
+  P__wasi_whence_t = ^__wasi_whence_t;
+  __wasi_whence_t = UInt8;
+
+const
+  __WASI_WHENCE_SET = 0;
+  __WASI_WHENCE_CUR = 1;
+  __WASI_WHENCE_END = 2;
+
+type
+  P__wasi_dircookie_t = ^__wasi_dircookie_t;
+  __wasi_dircookie_t = UInt64;
+
+  P__wasi_dirnamlen_t = ^__wasi_dirnamlen_t;
+  __wasi_dirnamlen_t = UInt32;
+
+  P__wasi_inode_t = ^__wasi_inode_t;
+  __wasi_inode_t = UInt64;
+
+  P__wasi_filetype_t = ^__wasi_filetype_t;
+  __wasi_filetype_t = UInt8;
+
+const
+  __WASI_FILETYPE_UNKNOWN          = 0;
+  __WASI_FILETYPE_BLOCK_DEVICE     = 1;
+  __WASI_FILETYPE_CHARACTER_DEVICE = 2;
+  __WASI_FILETYPE_DIRECTORY        = 3;
+  __WASI_FILETYPE_REGULAR_FILE     = 4;
+  __WASI_FILETYPE_SOCKET_DGRAM     = 5;
+  __WASI_FILETYPE_SOCKET_STREAM    = 6;
+  __WASI_FILETYPE_SYMBOLIC_LINK    = 7;
+
+type
+  P__wasi_dirent_t = ^__wasi_dirent_t;
+  __wasi_dirent_t = record
+    d_next: __wasi_dircookie_t;
+    d_ino: __wasi_inode_t;
+    d_namlen: __wasi_dirnamlen_t;
+    d_type: __wasi_filetype_t;
+  end;
+
+  P__wasi_advice_t = ^__wasi_advice_t;
+  __wasi_advice_t = UInt8;
+
+const
+  __WASI_ADVICE_NORMAL     = 0;
+  __WASI_ADVICE_SEQUENTIAL = 1;
+  __WASI_ADVICE_RANDOM     = 2;
+  __WASI_ADVICE_WILLNEED   = 3;
+  __WASI_ADVICE_DONTNEED   = 4;
+  __WASI_ADVICE_NOREUSE    = 5;
+
+type
+  P__wasi_fdflags_t = ^__wasi_fdflags_t;
+  __wasi_fdflags_t = UInt16;
+
+const
+  __WASI_FDFLAGS_APPEND   = 1;
+  __WASI_FDFLAGS_DSYNC    = 2;
+  __WASI_FDFLAGS_NONBLOCK = 4;
+  __WASI_FDFLAGS_RSYNC    = 8;
+  __WASI_FDFLAGS_SYNC     = 16;
+
+type
   P__wasi_fdstat_t = ^__wasi_fdstat_t;
   __wasi_fdstat_t = record
     fs_filetype: __wasi_filetype_t;
@@ -180,12 +239,28 @@ type
     fs_rights_inheriting: __wasi_rights_t;
   end;
 
+type
+  P__wasi_device_t = ^__wasi_device_t;
+  __wasi_device_t = UInt64;
+
+  P__wasi_fstflags_t = ^__wasi_fstflags_t;
+  __wasi_fstflags_t = UInt16;
+
+const
+  __WASI_FSTFLAGS_ATIM     = 1;
+  __WASI_FSTFLAGS_ATIM_NOW = 2;
+  __WASI_FSTFLAGS_MTIM     = 4;
+  __WASI_FSTFLAGS_MTIM_NOW = 8;
+
+type
+  P__wasi_lookupflags_t = ^__wasi_lookupflags_t;
   __wasi_lookupflags_t = UInt32;
 
 const
   __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW = 1;
 
 type
+  P__wasi_oflags_t = ^__wasi_oflags_t;
   __wasi_oflags_t = UInt16;
 
 const
@@ -193,3 +268,181 @@ const
   __WASI_OFLAGS_DIRECTORY = 2;
   __WASI_OFLAGS_EXCL      = 4;
   __WASI_OFLAGS_TRUNC     = 8;
+
+type
+  P__wasi_linkcount_t = ^__wasi_linkcount_t;
+  __wasi_linkcount_t = UInt64;
+
+  P__wasi_filestat_t = ^__wasi_filestat_t;
+  __wasi_filestat_t = record
+    dev: __wasi_device_t;
+    ino: __wasi_inode_t;
+    filetype: __wasi_filetype_t;
+    nlink: __wasi_linkcount_t;
+    size: __wasi_filesize_t;
+    atim: __wasi_timestamp_t;
+    mtim: __wasi_timestamp_t;
+    ctim: __wasi_timestamp_t;
+  end;
+
+  P__wasi_userdata_t = ^__wasi_userdata_t;
+  __wasi_userdata_t = UInt64;
+
+  P__wasi_eventtype_t = ^__wasi_eventtype_t;
+  __wasi_eventtype_t = UInt8;
+
+const
+  __WASI_EVENTTYPE_CLOCK    = 0;
+  __WASI_EVENTTYPE_FD_READ  = 1;
+  __WASI_EVENTTYPE_FD_WRITE = 2;
+
+type
+  P__wasi_eventrwflags_t = ^__wasi_eventrwflags_t;
+  __wasi_eventrwflags_t = UInt16;
+
+const
+  __WASI_EVENTRWFLAGS_FD_READWRITE_HANGUP = 1;
+
+type
+  P__wasi_event_fd_readwrite_t = ^__wasi_event_fd_readwrite_t;
+  __wasi_event_fd_readwrite_t = record
+    nbytes: __wasi_filesize_t;
+    flags: __wasi_eventrwflags_t;
+  end;
+
+  P__wasi_event_t = ^__wasi_event_t;
+  __wasi_event_t = record
+    userdata: __wasi_userdata_t;
+    error: __wasi_errno_t;
+    type_: __wasi_eventtype_t;
+    fd_readwrite: __wasi_event_fd_readwrite_t;
+  end;
+
+  P__wasi_subclockflags_t = ^__wasi_subclockflags_t;
+  __wasi_subclockflags_t = UInt16;
+
+const
+  __WASI_SUBCLOCKFLAGS_SUBSCRIPTION_CLOCK_ABSTIME = 1;
+
+type
+  P__wasi_subscription_clock_t = ^__wasi_subscription_clock_t;
+  __wasi_subscription_clock_t = record
+    id: __wasi_clockid_t;
+    timeout: __wasi_timestamp_t;
+    precision: __wasi_timestamp_t;
+    flags: __wasi_subclockflags_t;
+  end;
+
+  P__wasi_subscription_fd_readwrite_t = ^__wasi_subscription_fd_readwrite_t;
+  __wasi_subscription_fd_readwrite_t = record
+    file_descriptor: __wasi_fd_t;
+  end;
+
+  P__wasi_subscription_u_u_t = ^__wasi_subscription_u_u_t;
+  __wasi_subscription_u_u_t = record
+    case integer of
+      0: (clock: __wasi_subscription_clock_t);
+      1: (fd_read: __wasi_subscription_fd_readwrite_t);
+      2: (fd_write: __wasi_subscription_fd_readwrite_t);
+  end;
+  P__wasi_subscription_u_t = ^__wasi_subscription_u_t;
+  __wasi_subscription_u_t = record
+    tag: __wasi_eventtype_t;
+    u: __wasi_subscription_u_u_t;
+  end;
+
+  P__wasi_subscription_t = ^__wasi_subscription_t;
+  __wasi_subscription_t = record
+    userdata: __wasi_userdata_t;
+    u: __wasi_subscription_u_t;
+  end;
+
+  P__wasi_exitcode_t = ^__wasi_exitcode_t;
+  __wasi_exitcode_t = UInt32;
+
+  P__wasi_signal_t = ^__wasi_signal_t;
+  __wasi_signal_t = UInt8;
+
+const
+  __WASI_SIGNAL_NONE   = 0;
+  __WASI_SIGNAL_HUP    = 1;
+  __WASI_SIGNAL_INT    = 2;
+  __WASI_SIGNAL_QUIT   = 3;
+  __WASI_SIGNAL_ILL    = 4;
+  __WASI_SIGNAL_TRAP   = 5;
+  __WASI_SIGNAL_ABRT   = 6;
+  __WASI_SIGNAL_BUS    = 7;
+  __WASI_SIGNAL_FPE    = 8;
+  __WASI_SIGNAL_KILL   = 9;
+  __WASI_SIGNAL_USR1   = 10;
+  __WASI_SIGNAL_SEGV   = 11;
+  __WASI_SIGNAL_USR2   = 12;
+  __WASI_SIGNAL_PIPE   = 13;
+  __WASI_SIGNAL_ALRM   = 14;
+  __WASI_SIGNAL_TERM   = 15;
+  __WASI_SIGNAL_CHLD   = 16;
+  __WASI_SIGNAL_CONT   = 17;
+  __WASI_SIGNAL_STOP   = 18;
+  __WASI_SIGNAL_TSTP   = 19;
+  __WASI_SIGNAL_TTIN   = 20;
+  __WASI_SIGNAL_TTOU   = 21;
+  __WASI_SIGNAL_URG    = 22;
+  __WASI_SIGNAL_XCPU   = 23;
+  __WASI_SIGNAL_XFSZ   = 24;
+  __WASI_SIGNAL_VTALRM = 25;
+  __WASI_SIGNAL_PROF   = 26;
+  __WASI_SIGNAL_WINCH  = 27;
+  __WASI_SIGNAL_POLL   = 28;
+  __WASI_SIGNAL_PWR    = 29;
+  __WASI_SIGNAL_SYS    = 30;
+
+type
+  P__wasi_riflags_t = ^__wasi_riflags_t;
+  __wasi_riflags_t = UInt16;
+
+const
+  __WASI_RIFLAGS_RECV_PEEK    = 1;
+  __WASI_RIFLAGS_RECV_WAITALL = 2;
+
+type
+  P__wasi_roflags_t = ^__wasi_roflags_t;
+  __wasi_roflags_t = UInt16;
+
+const
+  __WASI_ROFLAGS_RECV_DATA_TRUNCATED = 1;
+
+type
+  P__wasi_siflags_t = ^__wasi_siflags_t;
+  __wasi_siflags_t = UInt16;
+
+  P__wasi_sdflags_t = ^__wasi_sdflags_t;
+  __wasi_sdflags_t = UInt8;
+
+const
+  __WASI_SDFLAGS_RD = 1;
+  __WASI_SDFLAGS_WR = 2;
+
+type
+  P__wasi_preopentype_t = ^__wasi_preopentype_t;
+  __wasi_preopentype_t = UInt8;
+
+const
+  __WASI_PREOPENTYPE_DIR = 0;
+
+type
+  P__wasi_prestat_dir_t = ^__wasi_prestat_dir_t;
+  __wasi_prestat_dir_t = record
+    pr_name_len: __wasi_size_t;
+  end;
+
+  P__wasi_prestat_u_t = ^__wasi_prestat_u_t;
+  __wasi_prestat_u_t = record
+    case integer of
+      0: (dir: __wasi_prestat_dir_t);
+  end;
+  P__wasi_prestat_t = ^__wasi_prestat_t;
+  __wasi_prestat_t = record
+    tag: __wasi_preopentype_t;
+    u: __wasi_prestat_u_t;
+  end;
+

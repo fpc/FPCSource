@@ -106,7 +106,7 @@ var
   our_iov: __wasi_ciovec_t;
   our_nwritten: longint;
 begin
-  our_iov.buf := P;
+  our_iov.buf := PByte(P);
   our_iov.buf_len := StrLen(P);
   fd_write(1, @our_iov, 1, @our_nwritten);
 end;
