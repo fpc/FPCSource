@@ -244,6 +244,7 @@ function path_open(fd: __wasi_fd_t;
                    fs_rights_inherting: __wasi_rights_t;
                    fdflags: __wasi_fdflags_t;
                    opened_fd: P__wasi_fd_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
+function fd_close(fd: __wasi_fd_t): __wasi_errno_t; external 'wasi_snapshot_preview1';
 
 {$I system.inc}
 

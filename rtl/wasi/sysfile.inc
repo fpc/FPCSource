@@ -14,8 +14,16 @@
  **********************************************************************}
 
 procedure Do_Close(Handle:thandle);
+var
+  res: __wasi_errno_t;
 begin
-  DebugWriteLn('Do_Close');
+  repeat
+    res:=fd_close(Handle);
+  until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  if res=__WASI_ERRNO_SUCCESS then
+    InOutRes:=0
+  else
+    InOutRes:=Errno2InoutRes(res);
 end;
 
 procedure Do_Erase(p: pchar; pchangeable: boolean);
