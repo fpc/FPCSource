@@ -67,6 +67,11 @@ implementation
 
 {$I system.inc}
 
+var
+  argv_size,
+  argv_buf_size: __wasi_size_t;
+  argv_buf: Pointer;
+
 function GetProcessID: SizeUInt;
 begin
 end;
@@ -80,12 +85,43 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
+procedure setup_arguments;
+begin
+  if argv<>nil then
+    exit;
+  if __wasi_args_sizes_get(@argc, @argv_buf_size)<>__WASI_ERRNO_SUCCESS then
+  begin
+    argc:=0;
+    argv:=nil;
+    exit;
+  end;
+  argv_size:=(argc+1)*SizeOf(PChar);
+  GetMem(argv, argv_size);
+  GetMem(argv_buf, argv_buf_size);
+  if __wasi_args_get(Pointer(argv), argv_buf)<>__WASI_ERRNO_SUCCESS then
+  begin
+    FreeMem(argv, argv_size);
+    FreeMem(argv_buf, argv_buf_size);
+    argc:=0;
+    argv:=nil;
+  end;
+end;
+
 Function ParamCount: Longint;
 Begin
+  if argv=nil then
+    setup_arguments;
+  paramcount := argc - 1;
 End;
 
 function paramstr(l: longint) : string;
 begin
+  if argv=nil then
+    setup_arguments;
+  if (l>=0) and (l+1<=argc) then
+    paramstr:=strpas(argv[l])
+  else
+    paramstr:='';
 end;
 
 procedure SysInitStdIO;
