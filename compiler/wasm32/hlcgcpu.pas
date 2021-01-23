@@ -213,8 +213,6 @@ uses
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
-      procedure inittempvariables(list:TAsmList);override;
-
       function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
      public
@@ -936,12 +934,6 @@ implementation
         else
           internalerror(2011010301);
       end;
-    end;
-
-
-  procedure thlcgwasm.inittempvariables(list: TAsmList);
-    begin
-      { these are automatically initialised when allocated if necessary }
     end;
 
 
