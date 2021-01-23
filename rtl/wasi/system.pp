@@ -39,7 +39,7 @@ procedure DebugWriteChar(Ch: Char);
 procedure DebugWriteHexDigit(d: Byte);
 procedure DebugWriteHexByte(b: Byte);
 procedure DebugWriteHexWord(w: Word);
-procedure DebugWriteHexLongWord(lw: Word);
+procedure DebugWriteHexLongWord(lw: LongWord);
 
 implementation
 
@@ -325,7 +325,7 @@ begin
   DebugWriteHexByte(Byte(w));
 end;
 
-procedure DebugWriteHexLongWord(lw: Word);
+procedure DebugWriteHexLongWord(lw: LongWord);
 begin
   DebugWriteHexWord(lw shr 16);
   DebugWriteHexWord(Word(lw));
