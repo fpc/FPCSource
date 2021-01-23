@@ -2614,8 +2614,8 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
+system$(PPUEXT) : system.pp $(SYSDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
+	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fiwasiinc
 	$(EXECPPAS)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
