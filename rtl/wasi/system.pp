@@ -77,7 +77,7 @@ End;
 
 procedure System_exit;
 begin
-  proc_exit(ExitCode);
+  __wasi_proc_exit(ExitCode);
 End;
 
 Function ParamCount: Longint;
@@ -108,7 +108,7 @@ var
 begin
   our_iov.buf := PByte(P);
   our_iov.buf_len := StrLen(P);
-  fd_write(1, @our_iov, 1, @our_nwritten);
+  __wasi_fd_write(1, @our_iov, 1, @our_nwritten);
 end;
 
 procedure DebugWriteLn(const P: PChar);

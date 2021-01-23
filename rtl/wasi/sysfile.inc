@@ -18,7 +18,7 @@ var
   res: __wasi_errno_t;
 begin
   repeat
-    res:=fd_close(Handle);
+    res:=__wasi_fd_close(Handle);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
@@ -50,7 +50,7 @@ begin
   repeat
     our_iov.buf := Addr;
     our_iov.buf_len := Len;
-    res:=fd_write(Handle, @our_iov, 1, @our_nwritten);
+    res:=__wasi_fd_write(Handle, @our_iov, 1, @our_nwritten);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
   if res=__WASI_ERRNO_SUCCESS then
     begin
@@ -73,7 +73,7 @@ begin
   repeat
     our_iov.buf:=Addr;
     our_iov.buf_len:=Len;
-    fd_read(Handle,@our_iov,1,@our_nread);
+    __wasi_fd_read(Handle,@our_iov,1,@our_nread);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
   if res=__WASI_ERRNO_SUCCESS then
     begin
@@ -176,15 +176,15 @@ Begin
    end;
 { real open call }
   repeat
-    res:=path_open(3,  { not sure about this fd... }
-                   0,
-                   p,
-                   strlen(p),
-                   oflags,
-                   fs_rights_base,
-                   fs_rights_base,
-                   fdflags,
-                   @ourfd);
+    res:=__wasi_path_open(3,  { not sure about this fd... }
+                          0,
+                          p,
+                          strlen(p),
+                          oflags,
+                          fs_rights_base,
+                          fs_rights_base,
+                          fdflags,
+                          @ourfd);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
   {if (res=__WASI_ERRNO_ROFS) and ((OFlags and O_RDWR)<>0) then
    begin
