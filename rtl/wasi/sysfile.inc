@@ -168,7 +168,7 @@ Begin
    end;
 { real open call }
   repeat
-    res:=path_open(0,
+    res:=path_open(3,  { not sure about this fd... }
                    0,
                    p,
                    strlen(p),
