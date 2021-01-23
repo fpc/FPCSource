@@ -15,6 +15,7 @@
 
 type
   size_t = longint;
+  PPUInt8 = ^PUInt8;
 
   P__wasi_size_t = ^__wasi_size_t;
   __wasi_size_t = longint;
