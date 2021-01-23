@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system $(SYSINIT_UNITS)
+units=system $(SYSINIT_UNITS) objpas
 
 [require]
 nortl=y
@@ -57,6 +57,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
         $(EXECPPAS)
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
 
 #
 # $(SYSINIT_UNITS) Units
