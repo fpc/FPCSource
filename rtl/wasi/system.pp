@@ -33,6 +33,10 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
+var
+  argc: longint;
+  argv: PPChar;
+
 procedure DebugWrite(const P: PChar);
 procedure DebugWriteLn(const P: PChar);
 procedure DebugWriteChar(Ch: Char);
