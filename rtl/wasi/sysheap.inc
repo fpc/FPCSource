@@ -25,14 +25,11 @@ const
   page_size = 65536;
   err = high(longword);
 begin
-  DebugWriteLn('SysOSAlloc');
   SysOSAlloc:=pointer(fpc_wasm32_memory_size*page_size);
   if fpc_wasm32_memory_grow((size + page_size - 1) div page_size) = err then
     SysOSAlloc:=nil;
-  DebugWriteLn('SysOSAlloc done');
 end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  DebugWriteLn('SysOSFree');
 end;
