@@ -24,9 +24,13 @@ function SysOSAlloc(size: ptruint): pointer;
 const
   page_size = 65536;
   err = high(longword);
+var
+  res: ptruint;
 begin
-  SysOSAlloc:=pointer(fpc_wasm32_memory_size*page_size);
-  if fpc_wasm32_memory_grow((size + page_size - 1) div page_size) = err then
+  res:=fpc_wasm32_memory_grow((size + page_size - 1) div page_size);
+  if res<>err then
+    SysOSAlloc:=pointer(res*page_size)
+  else
     SysOSAlloc:=nil;
 end;
 
