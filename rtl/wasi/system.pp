@@ -85,6 +85,34 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
+procedure Setup_PreopenedDirs;
+var
+  fd: __wasi_fd_t;
+  prestat: __wasi_prestat_t;
+  res: __wasi_errno_t;
+  prestat_dir_name: PChar;
+begin
+  fd:=3;
+  repeat
+    res:=__wasi_fd_prestat_get(fd, @prestat);
+    if res=__WASI_ERRNO_SUCCESS then
+    begin
+      if (prestat.tag=__WASI_PREOPENTYPE_DIR) and (prestat.u.dir.pr_name_len>0) then
+      begin
+        //GetMem(prestat_dir_name,prestat.u.dir.pr_name_len+1);
+        //if __wasi_fd_prestat_dir_name(fd,PByte(prestat_dir_name),prestat.u.dir.pr_name_len)=__WASI_ERRNO_SUCCESS then
+        //begin
+        //  prestat_dir_name[prestat.u.dir.pr_name_len]:=#0;
+        //  //Writeln(prestat_dir_name);
+        //end
+        //else
+        //  FreeMem(prestat_dir_name,prestat.u.dir.pr_name_len+1);
+      end;
+    end;
+    Inc(fd);
+  until res<>__WASI_ERRNO_SUCCESS;
+end;
+
 procedure setup_arguments;
 begin
   if argv<>nil then
@@ -207,4 +235,5 @@ begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
 {$endif}
+  Setup_PreopenedDirs
 end.
