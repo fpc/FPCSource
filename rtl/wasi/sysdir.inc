@@ -20,16 +20,20 @@
 
 procedure Do_MkDir(s: rawbytestring);
 begin
+  DebugWriteLn('Do_MkDir');
 end;
 
 procedure Do_RmDir(s: rawbytestring);
 begin
+  DebugWriteLn('Do_RmDir');
 end;
 
 procedure do_ChDir(s: rawbytestring);
 begin
+  DebugWriteLn('do_ChDir');
 end;
 
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 begin
+  DebugWriteLn('do_getdir');
 end;
