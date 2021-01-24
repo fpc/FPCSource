@@ -23,18 +23,21 @@ procedure fpc_cpuinit;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
   begin
+    result:=nil;
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
   begin
+    result:=nil;
   end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
 function Sptr : pointer;
   begin
+    result:=nil;
   end;
 
 
