@@ -3970,9 +3970,9 @@ packages/fcl-registry/src/xmlreg.pp svneol=native#text/plain
 packages/fcl-registry/src/xregreg.inc svneol=native#text/plain
 packages/fcl-registry/tests/Makefile svneol=native#text/plain
 packages/fcl-registry/tests/Makefile.fpc -text
-packages/fcl-registry/tests/regtestframework.pp -text
-packages/fcl-registry/tests/tcxmlreg.pp svneol=native#text/plain
-packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
+packages/fcl-registry/tests/regtcxmlreg.pp svneol=native#text/plain
+packages/fcl-registry/tests/regtestbasics.pp svneol=native#text/plain
+packages/fcl-registry/tests/tregtestframework.pp svneol=native#text/plain
 packages/fcl-report/Makefile svneol=native#text/plain
 packages/fcl-report/Makefile.fpc svneol=native#text/plain
 packages/fcl-report/demos/company-logo.png -text svneol=unset#image/png
