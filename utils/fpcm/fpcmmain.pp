@@ -77,7 +77,7 @@ interface
         o_amiga,o_atari, o_solaris, o_qnx, o_netware, o_openbsd,o_wdosx,
         o_palmos,o_macosclassic,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
         o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
-        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_wasm,o_freertos,
+        o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_freertos,
         o_zxspectrum,o_msxdos,o_ios,o_amstradcpc,o_sinclairql,o_wasi
       );
 
@@ -102,7 +102,7 @@ interface
         'palmos','macosclassic','darwin','emx','watcom','morphos','netwlibc',
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
-        'dragonfly', 'win16', 'wasm', 'freertos', 'zxspectrum', 'msxdos',
+        'dragonfly', 'win16', 'freertos', 'zxspectrum', 'msxdos',
         'ios','amstradcpc','sinclairql','wasi'
       );
 
@@ -112,7 +112,7 @@ interface
         '_palmos','_macosclassic','_darwin','_emx','_watcom','_morphos','_netwlibc',
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
-        '_dragonfly','_win16','_wasm','_freertos','_zxspectrum','_msxdos',
+        '_dragonfly','_win16','_freertos','_zxspectrum','_msxdos',
         '_ios','_amstradcpc','_sinclairql','_wasi'
       );
 
@@ -145,7 +145,7 @@ interface
         { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
-        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, true , false, false,   false, true , false,  false, false, true,   true,   true,  true),
+        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, true , false, false,   false, true , false,  true,  false, true,   true,   true,  true),
         { symbian } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { nativent }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { iphonesim }( true, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
@@ -157,7 +157,6 @@ interface
         { aros }    ( true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false,  false, false, false,  false,  false, false),
-        { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false),
         { freertos }( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,   true, false),
         {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true),
         { msxdos}   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true),
