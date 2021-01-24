@@ -643,6 +643,7 @@ implementation
        var
          hreg: tregister;
        begin
+         hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,regsize,get_address_type,maybe_const_reg);
          if l<>1 then
            begin
              hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,get_address_type);
@@ -692,6 +693,7 @@ implementation
            end;
          if (l > 8*sizeof(aint)) then
            internalerror(200608051);
+         hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,regsize,get_address_type,maybe_const_reg);
          sref.ref := location.reference;
          hreg := hlcg.getaddressregister(current_asmdata.CurrAsmList,get_address_type);
          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,get_address_type,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
