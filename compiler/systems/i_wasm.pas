@@ -40,7 +40,7 @@ unit i_wasm;
              resflags : [res_no_compile];
            );
 
-        system_wasm_info : tsysteminfo =
+        system_wasm32_embedded_info : tsysteminfo =
           (
             system       : system_wasm32_embedded;
             name         : 'WebAssembly';
