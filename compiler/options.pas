@@ -764,6 +764,9 @@ begin
 {$ifdef z80}
       'Z',
 {$endif}
+{$ifdef wasm32}
+      'W',
+{$endif}
       '*' : show:=true;
      end;
      if show then
