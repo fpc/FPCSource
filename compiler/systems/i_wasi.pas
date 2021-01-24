@@ -114,4 +114,10 @@ unit i_wasi;
 
   implementation
 
+initialization
+{$ifdef CPUWASM32}
+  {$ifdef wasi}
+    set_source_info(system_wasi_info);
+  {$endif wasi}
+{$endif CPUWASM32}
 end.
