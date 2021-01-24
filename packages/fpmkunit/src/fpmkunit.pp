@@ -122,7 +122,8 @@ Type
     palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
-    win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql
+    win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
+    wasi
   );
   TOSes = Set of TOS;
 
@@ -231,7 +232,8 @@ Const
     { msxdos }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, true ),
     { ios }     ( false, false, false, false, false, false,  true, false, false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false),
     {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, true ),
-    {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false)
+    {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false)
   );
 
   // Useful
