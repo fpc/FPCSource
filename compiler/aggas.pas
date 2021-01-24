@@ -558,7 +558,7 @@ implementation
                writer.AsmWrite('.section ');
            end;
          system_wasm32_wasi,
-         system_wasm32_wasm:
+         system_wasm32_embedded:
            begin
              writer.AsmWrite('.section ');
            end

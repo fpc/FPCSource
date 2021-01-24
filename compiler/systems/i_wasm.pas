@@ -42,7 +42,7 @@ unit i_wasm;
 
         system_wasm_info : tsysteminfo =
           (
-            system       : system_wasm32_wasm;
+            system       : system_wasm32_embedded;
             name         : 'WebAssembly';
             shortname    : 'Wasm';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,

@@ -314,7 +314,7 @@ implementation
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext --filetype=obj -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_wasm,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;

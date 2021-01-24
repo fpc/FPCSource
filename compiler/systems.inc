@@ -181,7 +181,7 @@
              system_i8086_win16,        { 89 }
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
-             system_wasm32_wasm,        { 92 }
+             system_wasm32_embedded,    { 92 }
              system_sparc64_linux,      { 93 }
              system_sparc64_solaris,    { 94 }
              system_arm_netbsd,         { 95 }
