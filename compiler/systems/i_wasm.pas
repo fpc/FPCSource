@@ -43,8 +43,8 @@ unit i_wasm;
         system_wasm32_embedded_info : tsysteminfo =
           (
             system       : system_wasm32_embedded;
-            name         : 'WebAssembly';
-            shortname    : 'Wasm';
+            name         : 'Embedded';
+            shortname    : 'embedded';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_no_generic_stackcheck,
                             tf_smartlink_sections,
