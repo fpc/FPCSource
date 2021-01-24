@@ -40,7 +40,7 @@ unit i_wasi;
              resflags : [res_no_compile];
            );
 
-        system_wasi_info : tsysteminfo =
+        system_wasm32_wasi_info : tsysteminfo =
           (
             system       : system_wasm32_wasi;
             name         : 'The WebAssembly System Interface (WASI)';
@@ -117,7 +117,7 @@ unit i_wasi;
 initialization
 {$ifdef CPUWASM32}
   {$ifdef wasi}
-    set_source_info(system_wasi_info);
+    set_source_info(system_wasm32_wasi_info);
   {$endif wasi}
 {$endif CPUWASM32}
 end.
