@@ -445,13 +445,17 @@ unit cgx86;
 
     procedure tcgx86.make_simple_ref(list:TAsmList;var ref: treference;isdirect:boolean);
       var
+{$ifndef i8086}
         hreg : tregister;
+{$endif i8086}
         href : treference;
-{$ifndef x86_64}
+{$ifdef i386}
         add_hreg: boolean;
-{$endif not  x86_64}
+{$endif i386}
       begin
+{$ifndef i8086}
         hreg:=NR_NO;
+{$endif i8086}
         { make_simple_ref() may have already been called earlier, and in that
           case make sure we don't perform the PIC-simplifications twice }
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
@@ -1083,7 +1087,9 @@ unit cgx86;
     procedure tcgx86.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         dirref,tmpref : treference;
+{$ifndef i8086}
         tmpreg : TRegister;
+{$endif i8086}
       begin
         dirref:=ref;
 
@@ -3231,10 +3237,12 @@ unit cgx86;
 
 {$ifdef x86}
 {$ifndef NOTARGETWIN}
+{$ifndef i8086}
       var
         href : treference;
         i : integer;
         again : tasmlabel;
+{$endif i8086}
 {$endif NOTARGETWIN}
 {$endif x86}
       begin

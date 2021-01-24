@@ -252,7 +252,6 @@ unit agcpugas;
         lastsym : tai_symbol;
         lastsec : tai_section;
         inprologue,
-        inhandlerdata,
         deleteai : boolean;
         totalcount,
         instrcount,
@@ -265,7 +264,6 @@ unit agcpugas;
         sehlist,
         tmplist : TAsmList;
         xdatasym : tasmsymbol;
-        unwindread,
         unwindrec : longword;
       begin
         if not assigned(list) then
@@ -278,7 +276,6 @@ unit agcpugas;
         instrcount:=0;
         datacount:=0;
         unwinddata:=nil;
-        inhandlerdata:=false;
         inprologue:=false;
         handlerdata:=nil;
         handlerdataidx:=0;

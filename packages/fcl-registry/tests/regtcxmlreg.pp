@@ -1,4 +1,4 @@
-unit tcxmlreg;
+unit regtcxmlreg;
 
 {$mode objfpc}{$H+}
 
@@ -39,6 +39,7 @@ end;
 procedure TTestXMLRegistry.TearDown;
 begin
   FreeAndNil(FXMLReg);
+  DeleteFile('test.xml');
   inherited TearDown;
 end;
 

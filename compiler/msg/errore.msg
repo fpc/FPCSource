@@ -3557,7 +3557,7 @@ option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEP
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
-option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+option_illegal_fpu_eabihf=11052_E_You must use one of the VFP FPU types when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
@@ -4352,6 +4352,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)
+**2Xu_Generate executable in UF2 format  (embedded targets only)
 **2Xv_Generate table for Virtual Entry calls
 **2XV_Use VLink as external linker       (default on Amiga, MorphOS)
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)

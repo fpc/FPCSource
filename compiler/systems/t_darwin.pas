@@ -320,8 +320,7 @@ implementation
       FilesList    : TLinkRes;
       i            : longint;
       HPath        : TCmdStrListItem;
-      s,s1,s2      : TCmdStr;
-      Fl1,Fl2      : Boolean;
+      s            : TCmdStr;
     begin
       WriteResponseFile:=False;
       if ReOrderEntries Then
@@ -482,7 +481,7 @@ implementation
       emulstr:='';
       ltostr:='';
       if (cs_link_map in current_settings.globalswitches) then
-        mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+        mapstr:='-map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
       if (cs_link_staticflag in current_settings.globalswitches) then
         StaticStr:='-static';
