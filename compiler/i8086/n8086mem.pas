@@ -189,7 +189,7 @@ implementation
 
     function ti8086vecnode.get_address_type: tdef;
       begin
-        tx86pointerdef(cpointerdef).getreusablex86(resultdef,x86pt_near);
+        result:=tx86pointerdef(cpointerdef).getreusablex86(resultdef,x86pt_near);
       end;
 
 
