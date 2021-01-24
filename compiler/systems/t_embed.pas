@@ -2076,6 +2076,6 @@ initialization
   RegisterTarget(system_wasm32_embedded_info);
   RegisterImport(system_wasm32_embedded, timportlibwasi);
   RegisterExport(system_wasm32_embedded, texportlibwasi);
-  RegisterLinker(ld_wasm, TLinkerEmbedded_Wasm);
+  RegisterLinker(ld_embedded, TLinkerEmbedded_Wasm);
 {$endif wasm32}
 end.

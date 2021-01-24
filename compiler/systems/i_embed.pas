@@ -824,7 +824,7 @@ unit i_embed;
             assem        : as_wasm32_llvm_mc;
             assemextern  : as_wasm32_llvm_mc;
             link         : ld_none;
-            linkextern   : ld_wasm; // there's no linker, only object files for WASM
+            linkextern   : ld_embedded;
             ar           : ar_none;
             res          : res_none;
             dbg          : dbg_none;
