@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system $(SYSINIT_UNITS) objpas wasiapi ctypes
+units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings
 
 [require]
 nortl=y
@@ -59,6 +59,11 @@ system$(PPUEXT) : system.pp $(SYSDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.i
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
 
 #
 # $(SYSINIT_UNITS) Units
