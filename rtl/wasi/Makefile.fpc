@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system $(SYSINIT_UNITS) objpas wasiapi
+units=system $(SYSINIT_UNITS) objpas wasiapi ctypes
 
 [require]
 nortl=y
@@ -69,9 +69,12 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 #
-# WASI API Unit
+# Other $(SYSTEMUNIT)-dependent RTL Units
 #
 
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $< -Fiwasiinc
         $(EXECPPAS)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
