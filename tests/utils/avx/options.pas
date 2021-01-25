@@ -97,6 +97,7 @@ begin
                else if sValue = 'fasm' then FOutputFormat := 'F'
                else if sValue = 'fpcinc' then FOutputFormat := 'I'
                else if sValue = 'fpcmref' then FOutputFormat := 'm'
+               else if sValue = 'fpccd8' then FOutputFormat := 'd'
 
                else IsInvalidParam := true;
          'p': if sValue = 'x8664' then
