@@ -233,6 +233,7 @@ implementation
       prm: tcpuparavarsym;
       bt: TWasmBasicType;
     begin
+      init_paraloc_info(callerside);
       result:=TWasmFuncType.Create([],[]);
       if Assigned(paras) and (paras.Count>0) then
         begin
