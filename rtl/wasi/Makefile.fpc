@@ -56,17 +56,15 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 system$(PPUEXT) : system.pp $(SYSDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fiwasiinc
-        $(EXECPPAS)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-	$(EXECPPAS)
 
 #
 # $(SYSINIT_UNITS) Units
 #
 si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
+        $(COMPILER) $<
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
@@ -74,7 +72,6 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $< -Fiwasiinc
-        $(EXECPPAS)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
+        $(COMPILER) $<
