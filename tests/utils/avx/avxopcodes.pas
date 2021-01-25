@@ -3484,9 +3484,10 @@ begin
                 end
                 else
 	        begin
-   	          TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+   	          TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
+                sDestFile := 'CDISP8_' + sDestFile;
                 SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
                 writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
 
