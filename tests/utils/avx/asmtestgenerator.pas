@@ -4900,9 +4900,6 @@ begin
                         omXXB32,
                         omXXB64: begin
                                    sMREF := OItem3.Values[il_Op3];
-                                   if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                    else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                    else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
 
                                    result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
                                    result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
