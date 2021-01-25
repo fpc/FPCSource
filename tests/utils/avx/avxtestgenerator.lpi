@@ -22,13 +22,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-px8664 -ffpccd8 -o\home\torsten\tmp\fpc\fpc -z -mvaddpd"/>
+        <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-px8664 -ffpccd8 -o\home\torsten\tmp\fpc\fpc -z -mvaddpd"/>
+            <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
           </local>
         </Mode0>
       </Modes>
