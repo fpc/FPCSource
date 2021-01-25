@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=
-units=system $(SYSINIT_UNITS) objpas
+units=system $(SYSINIT_UNITS) objpas wasiapi
 
 [require]
 nortl=y
@@ -67,3 +67,11 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 #
 si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
+
+#
+# WASI API Unit
+#
+
+wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $< -Fiwasiinc
+        $(EXECPPAS)

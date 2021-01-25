@@ -12199,6 +12199,7 @@ rtl/wasi/sysheap.inc svneol=native#text/plain
 rtl/wasi/sysos.inc svneol=native#text/plain
 rtl/wasi/sysosh.inc svneol=native#text/plain
 rtl/wasi/system.pp svneol=native#text/plain
+rtl/wasi/wasiapi.pp svneol=native#text/plain
 rtl/wasi/wasiinc/wasiprocs.inc svneol=native#text/plain
 rtl/wasi/wasiinc/wasitypes.inc svneol=native#text/plain
 rtl/wasm32/cpuh.inc svneol=native#text/plain
