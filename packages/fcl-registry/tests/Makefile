@@ -626,7 +626,7 @@ ifeq ($(FULL_TARGET),wasm32-embedded)
 override TARGET_EXAMPLES+=tregtestframework
 endif
 ifeq ($(FULL_TARGET),wasm32-wasi)
-override TARGET_EXAMPLES+=regtestframework
+override TARGET_EXAMPLES+=tregtestframework
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 override TARGET_EXAMPLES+=tregtestframework
