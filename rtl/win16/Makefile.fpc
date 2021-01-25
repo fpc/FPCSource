@@ -79,7 +79,7 @@ system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+uuchar$(PPUEXT): system$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
 	$(EXECPPAS)
 
@@ -94,11 +94,11 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 	$(COMPILER) $(INC)/strings.pp
 	$(EXECPPAS)
 
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 	$(EXECPPAS)
 
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
         $(EXECPPAS)
 
@@ -106,27 +106,29 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # WinAPI Units
 #
 
-wintypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) wintypes.pp wintypes.inc
+wintypes$(PPUEXT) : wintypes.pp wintypes.inc system$(PPUEXT)
 	$(COMPILER) wintypes.pp
 	$(EXECPPAS)
 
-winprocs$(PPUEXT) : wintypes$(PPUEXT) winprocs.pp winprocsh.inc winprocs.inc
+# winprocs uses $mode objfpc, which loads objpas unit implicitly
+winprocs$(PPUEXT) : winprocs.pp winprocsh.inc winprocs.inc system$(PPUEXT) objpas$(PPUEXT) wintypes$(PPUEXT)
 	$(COMPILER) winprocs.pp
 	$(EXECPPAS)
 
-win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
+# win31 uses $mode objfpc, which loads objpas unit implicitly
+win31$(PPUEXT) : win31.pp system$(PPUEXT) objpas$(PPUEXT) wintypes$(PPUEXT)
 	$(COMPILER) win31.pp
 	$(EXECPPAS)
 
 #
-# $(SYSTEMUNIT) Dependent Units
+# system Dependent Units
 #
 
 ports$(PPUEXT) : ports.pp system$(PPUEXT)
 	$(COMPILER) ports.pp
 	$(EXECPPAS)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas
 
 #
@@ -134,7 +136,7 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT)
 #
 dos$(PPUEXT) : dos.pp registers.inc \
                $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
-               strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+               strings$(PPUEXT) wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos.pp
 	$(EXECPPAS)
 
@@ -143,18 +145,18 @@ dos$(PPUEXT) : dos.pp registers.inc \
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) \
-                    wintypes$(PPUEXT) winprocs$(PPUEXT)
+                    wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
                    types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) \
-                   winprocs$(PPUEXT) wintypes$(PPUEXT)
+                   winprocs$(PPUEXT) wintypes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 
@@ -162,18 +164,19 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutil
         $(COMPILER) $(OBJPASDIR)/math.pp
 	$(EXECPPAS)
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) wintypes$(PPUEXT) objpas$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) wintypes$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT)
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 	$(EXECPPAS)
+
