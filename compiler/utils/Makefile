@@ -627,7 +627,7 @@ ifeq ($(FULL_TARGET),wasm32-embedded)
 override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins
 endif
 ifeq ($(FULL_TARGET),wasm32-wasi)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins
