@@ -8324,6 +8324,7 @@ packages/pasjpeg/examples/cderror.pas svneol=native#text/plain
 packages/pasjpeg/examples/cdjpeg.pas svneol=native#text/plain
 packages/pasjpeg/examples/cjpeg.pas svneol=native#text/plain
 packages/pasjpeg/examples/cjpeg.res svneol=native#text/plain
+packages/pasjpeg/examples/demo.lpi svneol=native#text/plain
 packages/pasjpeg/examples/demo.pas svneol=native#text/plain
 packages/pasjpeg/examples/demo.res svneol=native#text/plain
 packages/pasjpeg/examples/djpeg.pas svneol=native#text/plain
