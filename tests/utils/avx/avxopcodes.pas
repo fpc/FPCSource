@@ -3466,8 +3466,15 @@ begin
 
           if NewOpCode <> '' then
           begin
-            if (not(aX64) and (sl[1] = '1')) or // i386
-               (aX64 and (sl[2] = '1')) then    // x86_64
+            if (
+                (not(aX64) and (sl[1] = '1')) or // i386
+                (aX64 and (sl[2] = '1'))
+               ) and
+               (
+                sl[3] = '1'
+               )
+
+                then    // x86_64
             begin
 	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
 
@@ -3487,10 +3494,12 @@ begin
    	          TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
-                sDestFile := 'CDISP8_' + sDestFile;
-                SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
-                writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
-
+                if trim(slAsm.Text) <> '' then
+                begin
+                  sDestFile := 'CDISP8_' + sDestFile;
+                  SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                  writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+                end;
               finally
                 FreeAndNil(slLocalHeader);
               end;
