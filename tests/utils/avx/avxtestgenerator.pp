@@ -62,7 +62,7 @@ begin
           'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path, Filemask);
           'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path, Filemask);
           'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path, Filemask);
-          'd': MakeTestFiles(tfFPCCDisp8, x64, AVX512, false, Path, Filemask);
+          'd': MakeTestFiles(tfFPCCDisp8, x64, true, false, Path, Filemask);
           'l': ListMemRefState;
         end;
       end;

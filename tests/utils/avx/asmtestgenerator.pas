@@ -4740,8 +4740,8 @@ begin
                             (OItem3.OpTyp in MEMTYPES) then OpMode := omKZM
 
                     else if (OItem1.OpTyp = otXMMReg) and
-                           (OItem2.OpTyp = otXMMReg) and
-                           (OItem3.OpTyp in MEMTYPES) then OpMode := omXXM
+                            (OItem2.OpTyp = otXMMReg) and
+                            (OItem3.OpTyp in MEMTYPES) then OpMode := omXXM
                     else if (OItem1.OpTyp = otXMMReg) and
                             (OItem2.OpTyp = otXMMReg) and
                             (OItem3.OpTyp = otB32) then OpMode := omXXB32
@@ -4830,148 +4830,197 @@ begin
               else;
             end;
 
-
-            sInstruction := format('%20s', [aInst]);
-
-            for il_Op1 := 0 to OItem1.Values.Count - 1 do
+            if OpMode <> omUnknown then
             begin
-              for il_Op2 := 0 to OItem2.Values.Count - 1 do
+              sInstruction := format('%20s', [aInst]);
+
+              for il_Op1 := 0 to OItem1.Values.Count - 1 do
               begin
-                for il_Op3 := 0 to OItem3.Values.Count - 1 do
+                for il_Op2 := 0 to OItem2.Values.Count - 1 do
                 begin
-                  for il_Op4 := 0 to OItem4.Values.Count - 1 do
+                  for il_Op3 := 0 to OItem3.Values.Count - 1 do
                   begin
-                    sRegCombi := '';
-
-                    if OItem1.OpActive then
+                    for il_Op4 := 0 to OItem4.Values.Count - 1 do
                     begin
-                      if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                      sRegCombi := sRegCombi + OItem1.Values[il_Op1];
-                    end;
+                      sRegCombi := '';
 
-                    if OItem2.OpActive then
-                    begin
-                      if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                      sRegCombi := sRegCombi + OItem2.Values[il_Op2];
-                    end;
+                      if OItem1.OpActive then
+                      begin
+                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
+                        sRegCombi := sRegCombi + OItem1.Values[il_Op1];
+                      end;
 
-                    if OItem3.OpActive then
-                    begin
-                      if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                      sRegCombi := sRegCombi + OItem3.Values[il_Op3];
-                    end;
+                      if OItem2.OpActive then
+                      begin
+                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
+                        sRegCombi := sRegCombi + OItem2.Values[il_Op2];
+                      end;
 
-                    if OItem4.OpActive then
-                    begin
-                      if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
-                      sRegCombi := sRegCombi + OItem4.Values[il_Op4];
-                    end;
+                      if OItem3.OpActive then
+                      begin
+                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
+                        sRegCombi := sRegCombi + OItem3.Values[il_Op3];
+                      end;
 
-                    if sRegCombi <> '' then
-                    begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
+                      if OItem4.OpActive then
+                      begin
+                        if sRegCombi <> '' then sRegCombi := sRegCombi + ', ';
+                        sRegCombi := sRegCombi + OItem4.Values[il_Op4];
+                      end;
 
-                      case OpMode of
-                          omKXM: begin
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
-                                   //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                   //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                        omXB32I,
-                        omXB64I: begin
-                                   sMREF := OItem2.Values[il_Op2];
-                                   if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                    else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                    else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
+                      if sRegCombi <> '' then
+                      begin
+                        //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
+                        result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
 
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                          omXXM: begin
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                        omXXB32,
-                        omXXB64: begin
-                                   sMREF := OItem3.Values[il_Op3];
-
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                          omXMI: begin
-                                   result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-
-                          omYB32I,
-                          omYB64I: begin
+                        case OpMode of
+                            omKXM: begin
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
+                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                          omXB32I,
+                          omXB64I: begin
                                      sMREF := OItem2.Values[il_Op2];
                                      if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
                                       else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
                                       else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
 
-                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                            omXXM: begin
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                          omXXB32,
+                          omXXB64: begin
+                                     sMREF := OItem3.Values[il_Op3];
+
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                            omXMI: begin
+                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+
+                            omYB32I,
+                            omYB64I: begin
+                                       sMREF := OItem2.Values[il_Op2];
+                                       if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
+                                        else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
+                                        else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
+
+                                       result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
+                                       result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
+
+                                       result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
+                                       result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+                                       result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                       result.Add('');
+                                     end;
+
+                            omYYM: begin
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
 
                                      result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
                                      result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
                                      result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
                                      result.Add('');
                                    end;
+                          omYYB32,
+                          omYYB64: begin
+                                     sMREF := OItem3.Values[il_Op3];
+                                     if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
+                                      else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
+                                      else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
 
-                          omYYM: begin
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
 
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                        omYYB32,
-                        omYYB64: begin
-                                   sMREF := OItem3.Values[il_Op3];
-                                   if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
-                                    else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
-                                    else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
+                                     result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                            omYMI: begin
+                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
 
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                   result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                            omZB32I,
+                            omZB64I:
+                                    begin
+                                      sMREF := OItem2.Values[il_Op2];
+                                       if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to2}', [])
+                                        else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to4}', []);
 
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                          omYMI: begin
-                                   result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                       result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
+                                       result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
+                                       result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', sMREF, OItem3.Values[il_Op3]]));
 
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'YMM1', 'YMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'YMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                          omZB32I,
-                          omZB64I:
-                                  begin
-                                    sMREF := OItem2.Values[il_Op2];
+                                       result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
+                                       result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
+                                       result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
+
+                                       result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                                       result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                       result.Add('');
+                                     end;
+
+                            omZZM: begin
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', OItem3.Values[il_Op3]]));
+
+                                     result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
+                                     result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
+                                     result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
+
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                          omZZB32,
+                          omZZB64: begin
+                                     sMREF := OItem3.Values[il_Op3];
                                      if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to2}', [])
                                       else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to4}', []);
 
-                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', sMREF, OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', sMREF]));
+
+                                     result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
+                                     result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
+                                     result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
+
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add('');
+                                   end;
+                            omZMI: begin
+                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s + $30, %s', [aInst, 'XMM4', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
 
                                      result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
                                      result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
@@ -4982,57 +5031,10 @@ begin
                                      result.Add('');
                                    end;
 
-                          omZZM: begin
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', OItem3.Values[il_Op3]]));
+                        end;
 
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                   result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                        omZZB32,
-                        omZZB64: begin
-                                   sMREF := OItem3.Values[il_Op3];
-                                   if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to2}', [])
-                                    else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to4}', []);
-
-                                   result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                   result.Add(format('%20s%6s,%6s, %s + $10', [aInst, 'XMM2', 'XMM2', sMREF]));
-                                   result.Add(format('%20s%6s,%6s, %s + $20', [aInst, 'XMM3', 'XMM3', sMREF]));
-                                   result.Add(format('%20s%6s,%6s, %s + $30', [aInst, 'XMM4', 'XMM4', sMREF]));
-
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                   result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-                          omZMI: begin
-                                   result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s + $10, %s', [aInst, 'XMM2', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s + $20, %s', [aInst, 'XMM3', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                   result.Add(format('%20s%6s,%6s + $30, %s', [aInst, 'XMM4', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-
-                                   result.Add(format('%20s%6s,%6s, %s, 01',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM2']));
-                                   result.Add(format('%20s%6s,%6s, %s, 02',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM3']));
-                                   result.Add(format('%20s%6s,%6s, %s, 03',   ['vinserti32x4', 'ZMM1', 'ZMM1', 'XMM4']));
-
-                                   result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
-                                   result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                   result.Add('');
-                                 end;
-
+                        sRegCombi := '';
                       end;
-
-                      sRegCombi := '';
                     end;
                   end;
                 end;
