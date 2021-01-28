@@ -827,7 +827,7 @@ unit i_embed;
             linkextern   : ld_embedded;
             ar           : ar_none;
             res          : res_none;
-            dbg          : dbg_none;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             alignment    :

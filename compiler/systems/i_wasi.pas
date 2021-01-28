@@ -83,7 +83,7 @@ unit i_wasi;
             linkextern   : ld_wasi; // there's no linker, only object files for WASM
             ar           : ar_none;
             res          : res_none;
-            dbg          : dbg_none;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
