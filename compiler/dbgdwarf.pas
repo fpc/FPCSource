@@ -683,7 +683,10 @@ implementation
         DW_OP_HP_unknown := $e0,
         DW_OP_HP_is_value := $e1,DW_OP_HP_fltconst4 := $e2,
         DW_OP_HP_fltconst8 := $e3,DW_OP_HP_mod_range := $e4,
-        DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6
+        DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6,
+
+        { WebAssembly extensions. }
+        DW_OP_WASM_location = $ed
         );
 {$pop}
 
