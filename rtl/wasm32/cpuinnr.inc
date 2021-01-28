@@ -14,4 +14,5 @@
 
   fpc_in_wasm32_memory_size = fpc_in_cpu_first;
   fpc_in_wasm32_memory_grow = fpc_in_cpu_first+1;
+  fpc_in_wasm32_unreachable = fpc_in_cpu_first+2;
 

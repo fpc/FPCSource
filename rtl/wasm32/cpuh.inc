@@ -19,3 +19,4 @@ const
 
 function fpc_wasm32_memory_size: longword;[internproc:fpc_in_wasm32_memory_size];
 function fpc_wasm32_memory_grow(n: longword): longword;[internproc:fpc_in_wasm32_memory_grow];
+procedure fpc_wasm32_unreachable;[internproc:fpc_in_wasm32_unreachable];

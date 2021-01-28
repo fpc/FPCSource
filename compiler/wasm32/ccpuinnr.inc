@@ -13,5 +13,6 @@
  **********************************************************************}
 
   in_wasm32_memory_size = in_cpu_first,
-  in_wasm32_memory_grow = in_cpu_first+1
+  in_wasm32_memory_grow = in_cpu_first+1,
+  in_wasm32_unreachable = in_cpu_first+2
 
