@@ -1058,12 +1058,14 @@ implementation
 
     function TDebugInfoDwarf.is_fbreg(reg: tregister): boolean;
       begin
-{$ifdef i8086}
+{$if defined(i8086)}
         result:=reg=NR_BP;
-{$else i8086}
+{$elseif defined(wasm)}
+        result:=reg=NR_LOCAL_FRAME_POINTER_REG;
+{$else}
         { always return false, because we don't emit DW_AT_frame_base attributes yet }
         result:=false;
-{$endif i8086}
+{$endif}
       end;
 
     function TDebugInfoDwarf.def_dwarf_lab(def: tdef): tasmsymbol;
