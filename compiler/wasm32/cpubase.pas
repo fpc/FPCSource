@@ -371,7 +371,7 @@ uses
 
     function dwarf_reg(r:tregister):byte;
       begin
-        result:=-1;
+        result:=0;
         internalerror(200603251);
       end;
 
