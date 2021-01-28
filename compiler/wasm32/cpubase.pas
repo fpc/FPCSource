@@ -302,6 +302,8 @@ uses
     function std_regname(r:Tregister):string;
     function findreg_by_number(r:Tregister):tregisterindex;
 
+    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg_no_error(r:tregister):shortint;
     function eh_return_data_regno(nr: longint): longint;
 
     { since we don't use tasmconds, don't call this routine
@@ -365,6 +367,17 @@ uses
           result:=std_regname_table[p]
         else
           result:=generic_regname(r);
+      end;
+
+    function dwarf_reg(r:tregister):byte;
+      begin
+        result:=-1;
+        internalerror(200603251);
+      end;
+
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=-1;
       end;
 
     function eh_return_data_regno(nr: longint): longint;

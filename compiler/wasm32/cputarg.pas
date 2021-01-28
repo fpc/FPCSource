@@ -57,7 +57,12 @@ implementation
              Debuginfo
 **************************************}
 
-      //,dbgjasm
+  {$ifndef NoCFIDwarf}
+      //,cfidwarf
+  {$endif NoCFIDwarf}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
 
       ;
 
