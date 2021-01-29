@@ -36,15 +36,16 @@ interface
        texemap = class
        private
          t : text;
-         FImageBase : aword;
+         FImageBase : qword;
        public
          constructor Create(const s:string);
          destructor Destroy;override;
+         procedure Flush;
          procedure Add(const s:string);
          procedure AddHeader(const s:string);
          procedure AddCommonSymbolsHeader;
          procedure AddCommonSymbol(p:TObjSymbol);
-         procedure AddMemoryMapHeader(abase:aint);
+         procedure AddMemoryMapHeader(abase:qword);
          procedure AddMemoryMapExeSection(p:texesection);
          procedure AddMemoryMapObjectSection(p:TObjSection);
          procedure AddMemoryMapSymbol(p:TObjSymbol);
@@ -62,7 +63,7 @@ implementation
     const
       HexTbl : array[0..15] of char='0123456789abcdef';
 
-    function sizestr(v:aword):string;
+    function sizestr(v:qword):string;
       var
         tmp:array [0..19] of char;
         i:longint;
@@ -111,6 +112,12 @@ implementation
        end;
 
 
+     procedure TExeMap.Flush;
+       begin
+         System.Flush(t);
+       end;
+
+
      procedure TExeMap.Add(const s:string);
        begin
          writeln(t,s);
@@ -147,7 +154,7 @@ implementation
        end;
 
 
-     procedure TExeMap.AddMemoryMapHeader(abase:aint);
+     procedure TExeMap.AddMemoryMapHeader(abase:qword);
        var
          imagebasestr : string;
        begin

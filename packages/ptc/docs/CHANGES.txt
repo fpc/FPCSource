@@ -1,3 +1,6 @@
+0.99.x
+ - added and implemented SetMousePos in unit ptcmouse
+
 0.99.15
  - dead key support under Windows and X11 (via XIM)
  - more character scripts (Latin 2, Latin 3, Latin 4, Latin 9, Katakana,

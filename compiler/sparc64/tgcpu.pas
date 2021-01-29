@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 {
-  This unit handles the temporary variables stuff for i8086.
+  This unit handles the temporary variables stuff for sparc64.
 }
 unit tgcpu;
 

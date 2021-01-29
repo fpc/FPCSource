@@ -14,6 +14,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$goto on}
 unit cpu;
 
   interface
@@ -35,6 +36,13 @@ unit cpu;
     function AVXSupport: boolean;inline;
     function AVX2Support: boolean;inline;
     function FMASupport: boolean;inline;
+    function POPCNTSupport: boolean;inline;
+    function SSE41Support: boolean;inline;
+    function SSE42Support: boolean;inline;
+    function MOVBESupport: boolean;inline;
+    function F16CSupport: boolean;inline;
+    function RDRANDSupport: boolean;inline;
+    function RTMSupport: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -48,14 +56,52 @@ unit cpu;
       _AVXSupport,
       _AVX2Support,
       _AESSupport,
-      _FMASupport : boolean;
+      _FMASupport,
+      _POPCNTSupport,
+      _SSE41Support,
+      _SSE42Support,
+      _MOVBESupport,
+      _F16CSupport,
+      _RDRANDSupport,
+      _RTMSupport: boolean;
 
+{$ASMMODE ATT}
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
       begin
-        RunError(217);
+{$if FPC_FULLVERSION >= 30101}
+{$ifndef FPC_PIC}      
+        if _RTMSupport then
+          begin
+            asm
+{$ifdef USE_REAL_INSTRUCTIONS}
+         .Lretry:
+              xbegin .Lretry
+{$else}
+{   3d:	c7 f8 fa ff ff ff    	xbegin    }
+         .byte 0xc7,0xf8, 0xfa, 0xff, 0xff, 0xff
+{$endif}
+            end;
+            Result:=Target;
+            if (Result.Lo=Comperand.Lo) and (Result.Hi=Comperand.Hi) then
+              Target:=NewValue;
+            asm
+{$ifdef USE_REAL_INSTRUCTIONS}
+              xend
+{$else}
+  { 8a:	0f 01 d5             	xend    }
+         .byte 0x0f, 0x01, 0xd5
+{$endif}
+              xend
+            end;
+          end
+        else
+{$endif FPC_PIC}        
+{$endif FPC_FULLVERSION >= 30101}
+          RunError(217);
       end;
 
+{$ASMMODE INTEL}
 
     function cpuid_support : boolean;assembler;
       {
@@ -84,7 +130,11 @@ unit cpu;
 
     function cr0 : longint;assembler;
       asm
+{$ifdef USE_REAL_INSTRUCTIONS}
+         mov eax,cr0
+{$else}
          DB 0Fh,20h,0C0h
+{$endif}
          { mov eax,cr0
            special registers are not allowed in the assembler
                 parsers }
@@ -103,8 +153,12 @@ unit cpu;
     function XGETBV(i : dword) : int64;assembler;
       asm
         movl %eax,%ecx
+{$ifdef USE_REAL_INSTRUCTIONS}
+        xgetbv
+{$else}
         // older FPCs don't know the xgetbv opcode
         .byte 0x0f,0x01,0xd0
+{$endif}
       end;
 
 
@@ -123,6 +177,12 @@ unit cpu;
                  popl %ebx
               end;
               _AESSupport:=(_ecx and $2000000)<>0;
+              _POPCNTSupport:=(_ecx and $800000)<>0;
+              _SSE41Support:=(_ecx and $80000)<>0;
+              _SSE42Support:=(_ecx and $100000)<>0;
+              _MOVBESupport:=(_ecx and $400000)<>0;
+              _F16CSupport:=(_ecx and $20000000)<>0;
+              _RDRANDSupport:=(_ecx and $40000000)<>0;
 
               _AVXSupport:=
                 { XGETBV suspport? }
@@ -145,14 +205,16 @@ unit cpu;
                  popl %ebx
               end;
               _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
+              _RTMSupport:=((_ebx and $800)<>0);
            end;
       end;
 
 
     function InterlockedCompareExchange128Support : boolean;
       begin
-        { 32 Bit CPUs have no 128 Bit interlocked exchange support }
-        result:=false;
+        { 32 Bit CPUs have no 128 Bit interlocked exchange support,
+          but it can simulated using RTM }
+        result:=_RTMSupport;
       end;
 
 
@@ -178,6 +240,49 @@ unit cpu;
       begin
         result:=_FMASupport;
       end;
+
+
+    function POPCNTSupport: boolean;inline;
+      begin
+        result:=_POPCNTSupport;
+      end;
+
+
+    function SSE41Support: boolean;inline;
+      begin
+        result:=_SSE41Support;
+      end;
+
+
+    function SSE42Support: boolean;inline;
+      begin
+        result:=_SSE42Support;
+      end;
+
+
+    function MOVBESupport: boolean;inline;
+      begin
+        result:=_MOVBESupport;
+      end;
+
+
+    function F16CSupport: boolean;inline;
+      begin
+        result:=_F16CSupport;
+      end;
+
+
+    function RDRANDSupport: boolean;inline;
+      begin
+        result:=_RDRANDSupport;
+      end;
+
+
+    function RTMSupport: boolean;inline;
+      begin
+        result:=_RTMSupport;
+      end;
+
 
 begin
   SetupSupport;

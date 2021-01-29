@@ -41,7 +41,16 @@ uses ctypes;
 }
 
 const
-  LibGnuTLS ='libgnutls.so'; {Setup as you need}
+{$IFDEF WINDOWS}
+  LibGnuTLSExt = 'dll';
+{$ELSE}
+{$ifDEF DARWIN}   
+  LibGnuTLSExt = 'dylib';
+{$ELSE}
+  LibGnuTLSExt = 'so';
+{$ENDIF}
+{$ENDIF}
+  LibGnuTLS ='libgnutls.'+LibGnuTLSExt; {Setup as you need}
 
 
 { Converted enums}

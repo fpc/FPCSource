@@ -1600,7 +1600,7 @@ begin
          else if (FpuStatus and FPU_Denormal)<>0 then
            ErrorOfSig:=216
          else if (FpuStatus and FPU_DivisionByZero)<>0 then
-           ErrorOfSig:=200
+           ErrorOfSig:=208
          else if (FpuStatus and FPU_Overflow)<>0 then
            ErrorOfSig:=205
          else if (FpuStatus and FPU_Underflow)<>0 then

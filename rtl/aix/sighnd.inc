@@ -25,7 +25,7 @@ begin
     SIGFPE :
       begin
         Case Info^.si_code Of
-          FPE_FLTDIV,
+          FPE_FLTDIV : Res:=208;  { floating point divide by zero }
           FPE_INTDIV : Res:=200;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
           FPE_FLTUND : Res:=206;  { floating point underflow }

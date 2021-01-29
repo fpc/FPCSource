@@ -29,6 +29,35 @@
                             Basic Types/constants
 *****************************************************************************}
 
+    type
+      TextFile = Text;
+
+      PGuid = ^TGuid;
+      TGuid = packed record
+         case integer of
+            1 : (
+                 Data1 : DWord;
+                 Data2 : word;
+                 Data3 : word;
+                 Data4 : array[0..7] of byte;
+                );
+            2 : (
+                 D1 : DWord;
+                 D2 : word;
+                 D3 : word;
+                 D4 : array[0..7] of byte;
+                );
+            3 : ( { uuid fields according to RFC4122 }
+                 time_low : dword;			// The low field of the timestamp
+                 time_mid : word;                      // The middle field of the timestamp
+                 time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version number
+                 clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
+                 clock_seq_low : byte;                 // The low field of the clock sequence
+                 node : array[0..5] of byte;           // The spatially unique node identifier
+                );
+      end;
+
+{$ifdef FPC_HAS_FEATURE_CLASSES}
     const
        vmtInstanceSize         = 0;
        vmtParent               = sizeof(SizeInt)*2;
@@ -68,8 +97,6 @@
        E_NOTIMPL     = hresult($80004001);
 
      type
-       TextFile = Text;
-
        { now the let's declare the base classes for the class object
          model. The compiler expects TObject and IUnknown to be defined
          first as forward classes }
@@ -128,31 +155,6 @@
          function GetvParent: PVmt; inline;
        public
          property vParent: PVmt read GetvParent;
-       end;
-
-       PGuid = ^TGuid;
-       TGuid = packed record
-          case integer of
-             1 : (
-                  Data1 : DWord;
-                  Data2 : word;
-                  Data3 : word;
-                  Data4 : array[0..7] of byte;
-                 );
-             2 : (
-                  D1 : DWord;
-                  D2 : word;
-                  D3 : word;
-                  D4 : array[0..7] of byte;
-                 );
-             3 : ( { uuid fields according to RFC4122 }
-                  time_low : dword;			// The low field of the timestamp
-                  time_mid : word;                      // The middle field of the timestamp
-                  time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version number
-                  clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
-                  clock_seq_low : byte;                 // The low field of the clock sequence
-                  node : array[0..5] of byte;           // The spatially unique node identifier
-                 );
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
@@ -298,18 +300,18 @@
 
        TInterfacedObject = class(TObject,IUnknown)
        protected
-          frefcount : longint;
+          FRefCount : longint;
           FDestroyCount : longint;
           { implement methods of IUnknown }
           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
         public
-          destructor destroy; override;
+          destructor Destroy; override;
           procedure AfterConstruction;override;
           procedure BeforeDestruction;override;
           class function NewInstance : TObject;override;
-          property RefCount : longint read frefcount;
+          property RefCount : longint read FRefCount;
        end;
        TInterfacedClass = class of TInterfacedObject;
 
@@ -438,7 +440,24 @@
          constructor Create;
        end;
        {$POP}
-
+       WeakAttribute = class(TCustomAttribute);
+       UnsafeAttribute = class(TCustomAttribute);
+       RefAttribute = class(TCustomAttribute);
+       VolatileAttribute = class(TCustomAttribute);
+       
+       StoredAttribute = Class(TCustomAttribute)
+       Private
+          FFlag : Boolean;
+          FName : String;
+       Public
+         Constructor Create; 
+         Constructor Create(Const aFlag : Boolean); 
+         Constructor Create(Const aName : String); 
+         Property Flag : Boolean Read FFlag;
+         Property Name : String Read FName; 
+       end;
+       
+  
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;
@@ -466,6 +485,11 @@
       goes into your "property" and you need to free it manually.
       Calling this method is only valid within an except block. }
     procedure ReleaseExceptionObject;
+
+  const
+    { for safe as operator support }
+    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+{$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************
                               Array of const support
@@ -515,8 +539,10 @@
            vtString        : (VString: PShortString);
            vtPointer       : (VPointer: Pointer);
            vtPChar         : (VPChar: PAnsiChar);
+{$ifdef FPC_HAS_FEATURE_CLASSES}
            vtObject        : (VObject: TObject);
            vtClass         : (VClass: TClass);
+{$endif FPC_HAS_FEATURE_CLASSES}
            vtPWideChar     : (VPWideChar: PWideChar);
            vtAnsiString    : (VAnsiString: Pointer);
            vtCurrency      : (VCurrency: PCurrency);
@@ -532,11 +558,6 @@
 
   var
     DispCallByIDProc : codepointer;
-
-  const
-    { for safe as operator support }
-    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
-
 
 {*****************************************************************************
                               Resourcestring support

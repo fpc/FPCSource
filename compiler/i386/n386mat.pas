@@ -71,7 +71,7 @@ implementation
       begin
         if is_64bitint(resultdef) then
           { should be handled in pass_1 (JM) }
-          internalerror(200109052);
+          internalerror(2001090507);
 
         if (nodetype=divn) and (right.nodetype=ordconstn) and
           is_signed(left.resultdef) and

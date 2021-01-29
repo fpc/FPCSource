@@ -109,7 +109,8 @@ type
     ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
+    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo,
+    ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended);
 
 { Part of DBCommon, but temporarily defined here (bug 8206) }
 
@@ -192,6 +193,7 @@ type
     property CharSize: Word read GetCharSize;
     property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
     property Required: Boolean read FRequired write SetRequired;
+    Property Codepage : TSystemCodePage Read FCodePage;
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
@@ -339,6 +341,7 @@ type
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
+    function GetAsLongWord: LongWord; virtual;
     function GetAsInteger: Longint; virtual;
     function GetAsVariant: variant; virtual;
     function GetOldValue: variant; virtual;
@@ -368,6 +371,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
+    procedure SetAsLongWord(AValue: LongWord); virtual;
     procedure SetAsInteger(AValue: Longint); virtual;
     procedure SetAsLargeInt(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
@@ -406,6 +410,7 @@ type
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
+    property AsLongWord: LongWord read GetAsLongWord write SetAsLongWord;
     property AsLargeInt: LargeInt read GetAsLargeInt write SetAsLargeInt;
     property AsInteger: Longint read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
@@ -480,6 +485,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
     function GetAsLargeInt: Largeint; override;
+    function GetAsLongWord: LongWord; override;
     function GetAsString: String; override;
     function GetAsAnsiString: AnsiString; override;
     function GetAsUTF8String: UTF8String; override;
@@ -493,6 +499,7 @@ type
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsLargeInt(AValue: Largeint); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
     procedure SetAsString(const AValue: String); override;
     procedure SetAsAnsiString(const AValue: AnsiString); override;
     procedure SetAsUTF8String(const AValue: UTF8String); override;
@@ -574,6 +581,7 @@ type
   protected
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
+    function GetAsLongWord: LongWord; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -581,6 +589,7 @@ type
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
     function GetAsLargeInt: Largeint; override;
@@ -595,37 +604,22 @@ type
   end;
   TIntegerField = Class(TLongintField);
 
-{ TLargeintField }
+{ TShortintField }
 
-  TLargeintField = class(TNumericField)
-  private
-    FMinValue,
-    FMaxValue,
-    FMinRange,
-    FMaxRange  : Largeint;
-    Procedure SetMinValue (AValue : Largeint);
-    Procedure SetMaxValue (AValue : Largeint);
+  TShortintField = class(TLongintField)
   protected
-    function GetAsFloat: Double; override;
-    function GetAsInteger: Longint; override;
-    function GetAsLargeInt: Largeint; override;
-    function GetAsString: string; override;
-    function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
-    procedure GetText(var AText: string; ADisplayText: Boolean); override;
-    function GetValue(var AValue: Largeint): Boolean;
-    procedure SetAsFloat(AValue: Double); override;
-    procedure SetAsInteger(AValue: Longint); override;
-    procedure SetAsLargeInt(AValue: Largeint); override;
-    procedure SetAsString(const AValue: string); override;
-    procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : Largeint) : Boolean;
-    property Value: Largeint read GetAsLargeInt write SetAsLargeInt;
-  published
-    property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
-    property MinValue: Largeint read FMinValue write SetMinValue default 0;
+  end;
+
+{ TByteField }
+
+  TByteField = class(TLongintField)
+  protected
+    function GetDataSize: Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
   end;
 
 { TSmallintField }
@@ -655,6 +649,74 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
+{ TLongWordField }
+
+  TLongWordField = class(TNumericField)
+  private
+    FMinValue,
+    FMaxValue : LongWord;
+    Procedure SetMinValue (AValue : LongWord);
+    Procedure SetMaxValue (AValue : LongWord);
+  protected
+    function GetAsFloat: Double; override;
+    function GetAsInteger: Longint; override;
+    function GetAsLargeInt: Largeint; override;
+    function GetAsLongWord: LongWord; override;
+    function GetAsString: string; override;
+    function GetAsVariant: variant; override;
+    function GetDataSize: Integer; override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
+    function GetValue(var AValue: LongWord): Boolean;
+    procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
+    procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    Function CheckRange(AValue : LargeInt) : Boolean;
+    property Value: LongWord read GetAsLongWord write SetAsLongWord;
+  published
+    property MaxValue: LongWord read FMaxValue write SetMaxValue default 0;
+    property MinValue: LongWord read FMinValue write SetMinValue default 0;
+  end;
+
+{ TLargeintField }
+
+  TLargeintField = class(TNumericField)
+  private
+    FMinValue,
+    FMaxValue,
+    FMinRange,
+    FMaxRange  : Largeint;
+    Procedure SetMinValue (AValue : Largeint);
+    Procedure SetMaxValue (AValue : Largeint);
+  protected
+    function GetAsFloat: Double; override;
+    function GetAsInteger: Longint; override;
+    function GetAsLargeInt: Largeint; override;
+    function GetAsLongWord: LongWord; override;
+    function GetAsString: string; override;
+    function GetAsVariant: variant; override;
+    function GetDataSize: Integer; override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
+    function GetValue(var AValue: Largeint): Boolean;
+    procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
+    procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    Function CheckRange(AValue : Largeint) : Boolean;
+    property Value: Largeint read GetAsLargeInt write SetAsLargeInt;
+  published
+    property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
+    property MinValue: Largeint read FMinValue write SetMinValue default 0;
+  end;
+
 { TFloatField }
 
   TFloatField = class(TNumericField)
@@ -669,6 +731,7 @@ type
     function GetAsBCD: TBCD; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
+    function GetAsLongWord: LongWord; override;
     function GetAsInteger: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
@@ -677,6 +740,7 @@ type
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -860,6 +924,7 @@ type
     function GetAsCurrency: Currency; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
+    function GetAsLongWord: LongWord; override;
     function GetAsInteger: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
@@ -869,6 +934,7 @@ type
     procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetAsCurrency(AValue: Currency); override;
@@ -1197,6 +1263,7 @@ type
     Function GetAsFloat: Double;
     Function GetAsInteger: Longint;
     Function GetAsLargeInt: LargeInt;
+    Function GetAsLongWord: LongWord;
     Function GetAsMemo: string;
     Function GetAsString: string;
     Function GetAsAnsiString: AnsiString;
@@ -1218,6 +1285,7 @@ type
     Procedure SetAsFloat(const AValue: Double);
     Procedure SetAsInteger(AValue: Longint);
     Procedure SetAsLargeInt(AValue: LargeInt);
+    Procedure SetAsLongWord(AValue: LongWord);
     Procedure SetAsMemo(const AValue: string);
     Procedure SetAsSmallInt(AValue: LongInt);
     Procedure SetAsString(const AValue: string);
@@ -1256,6 +1324,7 @@ type
     Property AsFloat : Double read GetAsFloat write SetAsFloat;
     Property AsInteger : LongInt read GetAsInteger write SetAsInteger;
     Property AsLargeInt : LargeInt read GetAsLargeInt write SetAsLargeInt;
+    Property AsLongWord: LongWord read GetAsLongWord write SetAsLongWord;
     Property AsMemo : string read GetAsMemo write SetAsMemo;
     Property AsSmallInt : LongInt read GetAsInteger write SetAsSmallInt;
     Property AsString : string read GetAsString write SetAsString;
@@ -1297,6 +1366,9 @@ type
 
 { TParams }
 
+  TSQLParseOption = (spoCreate,spoEscapeSlash,spoEscapeRepeat,spoUseMacro);
+  TSQLParseOptions = Set of TSQLParseOption;
+
   TParams = class(TCollection)
   private
     FOwner: TPersistent;
@@ -1305,6 +1377,8 @@ type
     Procedure SetItem(Index: Integer; Value: TParam);
     Procedure SetParamValue(const ParamName: string; const Value: Variant);
   protected
+    Function CreateParseOpts(DoCreate, EscapeSlash, EscapeRepeat : Boolean) : TSQLParseOptions;
+    function DoParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out  ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String; virtual;
     Procedure AssignTo(Dest: TPersistent); override;
     Function  GetDataSet: TDataSet;
     Function  GetOwner: TPersistent; override;
@@ -1325,6 +1399,7 @@ type
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
+    function  ParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1920,7 +1995,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Edit;
-    function IsLinkedTo(ADataSet: TDataSet): Boolean;
+    function IsLinkedTo(ADataset: TDataSet): Boolean;
     property State: TDataSetState read FState;
   published
     property AutoEdit: Boolean read FAutoEdit write FAutoEdit default True;
@@ -1955,7 +2030,7 @@ type
   Private
     FActive        : boolean;
     FDatabase      : TDatabase;
-    FDataSets      : TList;
+    FDataSets      : TThreadList;
     FOpenAfterRead : boolean;
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
@@ -2046,8 +2121,8 @@ type
   private
     FConnected : Boolean;
     FDataBaseName : String;
-    FDataSets : TList;
-    FTransactions : TList;
+    FDataSets : TThreadList;
+    FTransactions : TThreadList;
     FDirectory : String;
     FKeepConnection : Boolean;
     FParams : TStrings;
@@ -2120,7 +2195,7 @@ const
       {ftCursor} varError,
       {ftFixedChar} varOleStr,
       {ftWideString} varOleStr,
-      {ftLargeint} varint64,
+      {ftLargeint} varInt64,
       {ftADT} varError,
       {ftArray} varError,
       {ftReference} varError,
@@ -2134,7 +2209,13 @@ const
       {ftTimeStamp} varOleStr,
       {ftFMTBcd} varDouble,
       {ftFixedWideChar} varOleStr,
-      {ftWideMemo} varOleStr
+      {ftWideMemo} varOleStr,
+      {ftOraTimeStamp} varUnknown,
+      {ftOraInterval} varUnknown,
+      {ftLongWord} varLongWord,
+      {ftShortint} varShortint,
+      {ftByte} varByte,
+      {ftExtended} varDouble
     );
 
 
@@ -2180,7 +2261,13 @@ Const
       {ftTimeStamp} 'TimeStamp',
       {ftFMTBcd} 'FMTBcd',
       {ftFixedWideChar} 'FixedWideChar',
-      {ftWideMemo} 'WideMemo'
+      {ftWideMemo} 'WideMemo',
+      {ftOraTimeStamp} 'OraTimeStamp',
+      {ftOraInterval} 'OraInterval',
+      {ftLongWord} 'LongWord',
+      {ftShortint} 'Shortint',
+      {ftByte} 'Byte',
+      {ftExtended} 'Extended'
     );
 
 
@@ -2226,7 +2313,13 @@ const
       { ftTimeStamp} Nil,
       { ftFMTBcd} TFMTBCDField,
       { ftFixedWideString} TWideStringField,
-      { ftWideMemo} TWideMemoField
+      { ftWideMemo} TWideMemoField,
+      { ftOraTimeStamp} nil,
+      { ftOraInterval} nil,
+      { ftLongWord} TLongWordField,
+      { ftShortint} TShortintField,
+      { ftByte} TByteField,
+      { ftExtended} nil
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
@@ -2312,6 +2405,7 @@ end;
 
 
 { EUpdateError }
+
 constructor EUpdateError.Create(NativeError, Context : String;
                                 ErrCode, PrevError : integer; E: Exception);
                                 

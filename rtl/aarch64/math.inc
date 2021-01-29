@@ -55,7 +55,7 @@
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
       asm
-        { round as floating point towards zero }
+        // { round as floating point towards zero }
         frintz d0,d0
       end;
     {$endif FPC_SYSTEM_HAS_INT}
@@ -65,7 +65,7 @@
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;assembler;nostackframe;compilerproc;
       asm
-        { round to signed integer towards zero }
+        // { round to signed integer towards zero }
         fcvtzs x0,d0
       end;
     {$endif FPC_SYSTEM_HAS_TRUNC}
@@ -75,10 +75,10 @@
     {$define FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;assembler;nostackframe;compilerproc;
       asm
-        { round as floating point using current rounding mode }
+        // { round as floating point using current rounding mode }
         frintx d0,d0
-        { convert to signed integer rounding towards zero (there's no "round to
-          integer using current rounding mode") }
+        // { convert to signed integer rounding towards zero (there's no "round to
+        //   integer using current rounding mode") }
         fcvtzs x0,d0
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}

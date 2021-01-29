@@ -2,6 +2,7 @@
 { problem with procvars in tp mode                     OK 0.99.11 (PM) }
 
 {$mode tp}
+{$F+}
 
 type proc = procedure(a : longint);
 procedure test(b : longint);

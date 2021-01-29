@@ -105,7 +105,7 @@ Const
          SO_PRIORITY =   12;
          SO_LINGER   =   13;
          SO_BSDCOMPAT=   14;
-{ To add :         SO_REUSEPORT 15 }
+         SO_REUSEPORT = 15;
          SO_PASSCRED=    16;
          SO_PEERCRED=    17;
          SO_RCVLOWAT=    18;

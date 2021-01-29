@@ -34,7 +34,7 @@ interface
   type
     tllvmnodeutils = class(tnodeutils)
      strict protected
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
       class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
       class procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
      public
@@ -56,17 +56,17 @@ implementation
       llvmtype,llvmdef,
       objcasm;
 
-  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     var
       asmsym: tasmsymbol;
       field1, field2: tsym;
     begin
       if sym.globalasmsym then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA,sym.vardef)
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,_typ,sym.vardef)
       else if tf_supports_hidden_symbols in target_info.flags then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,sym.vardef)
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,_typ,sym.vardef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA,sym.vardef);
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
         list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
       else if tf_section_threadvars in target_info.flags then
@@ -174,7 +174,7 @@ implementation
         begin
           pd:=tprocdef(procdefs[0]);
           fields[0]:=s32inttype;
-          fields[1]:=pd.getcopyas(procvardef,pc_address_only,'');
+          fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only);
           fields[2]:=voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
             targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -208,6 +208,10 @@ implementation
     begin
       inherited;
 
+      { insert newly created defs in the implementation rather than interface symtable
+        (the interface symtable is sealed at this point) }
+      symtablestack.push(current_module.localsymtable);
+
       { add the llvm.compiler.used array }
       InsertUsedList(current_module.llvmcompilerusedsyms,'llvm.compiler.used');
       { add the llvm.used array }
@@ -223,6 +227,8 @@ implementation
           inserttypeinfo;
           free;
         end;
+
+      symtablestack.pop(current_module.localsymtable);
     end;
 
 

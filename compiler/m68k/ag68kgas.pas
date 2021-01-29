@@ -111,7 +111,7 @@ interface
         with ref do
           begin
             basestr:=gas_regname(base);
-            indexstr:=gas_regname(index);
+            indexstr:=gas_regfullname(index);
 
             if assigned(symbol) then
               begin
@@ -138,17 +138,17 @@ interface
                   if (base<>NR_NO) and (index<>NR_NO) then
                     begin
                       if scalefactor in [0,1] then
-                        s:=s+'('+basestr+','+indexstr+'.l)'
+                        s:=s+'('+basestr+','+indexstr+')'
                       else
-                        s:=s+'('+basestr+','+indexstr+'.l*'+tostr(scalefactor)+')';
+                        s:=s+'('+basestr+','+indexstr+'*'+tostr(scalefactor)+')';
                       exit;
                     end;
                   if (base=NR_NO) and (index<>NR_NO) then
                     begin
                       if scalefactor in [0,1] then
-                        s:=s+'('+indexstr+'.l)'
+                        s:=s+'('+indexstr+')'
                       else
-                        s:=s+'('+indexstr+'.l*'+tostr(scalefactor)+')';
+                        s:=s+'('+indexstr+'*'+tostr(scalefactor)+')';
                       exit;
                     end;
                 end;
@@ -270,32 +270,31 @@ interface
         op : tasmop;
       begin
         op:=taicpu(hp).opcode;
-        { old versions of GAS don't like PEA.L and LEA.L }
-        if (op in [
+        case op of
           A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
           A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
           A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
-          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
-          result:=gas_op2str[op]
-        else
-        { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
-        if op in [A_SXX, A_FSXX, A_DBXX, A_DBRA] then
-          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]
-        else
-        { fix me: a fugly hack to utilize GNU AS pseudo instructions for more optimal branching }
-        if op in [A_JSR] then
-          result:='jbsr'
-        else
-        if op in [A_JMP] then
-          result:='jra'
-        else
-        if op in [A_BXX] then
-          result:='j'+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
-        else
-        if op in [A_FBXX] then
-          result:='fj'+{gas_op2str[op]+}cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
-        else
-          result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
+          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF:
+            { old versions of GAS don't like PEA.L and LEA.L }
+            result:=gas_op2str[op];
+          A_SXX, A_FSXX, A_DBXX, A_DBRA:
+            begin
+              { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
+              result:=gas_op2str[op];
+              replace(result,'xx',cond2str[taicpu(hp).condition]);
+            end;
+          { fix me: a fugly hack to utilize GNU AS pseudo instructions for more optimal branching }
+          A_JSR:
+            result:='jbsr';
+          A_JMP:
+            result:='jra';
+          A_BXX:
+            result:='j'+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize];
+          A_FBXX:
+            result:='fj'+{gas_op2str[op]+}cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize];
+          else
+            result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
+        end;
       end;
 
 
@@ -333,7 +332,8 @@ interface
                         sep:=#9
                       else
                       if (i=2) and
-                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU,A_REMS,A_REMU]) then
+                         ((op=A_DIVSL) or (op=A_DIVUL) or (op=A_MULS) or (op=A_MULU) or
+                          (op=A_DIVS) or (op=A_DIVU) or (op=A_REMS) or (op=A_REMU)) then
                         sep:=':'
                       else
                         sep:=',';
@@ -356,9 +356,10 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '$ARCH -o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_m68k_macos,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_embedded];
+            supported_targets : [system_m68k_macosclassic,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -372,6 +373,7 @@ interface
             supported_targets : [system_m68k_Amiga,system_m68k_Atari];
             flags : [af_needar];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );

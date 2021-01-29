@@ -79,9 +79,9 @@ unit agrvgas;
                   begin
                     if asminfo^.dollarsign<>'$' then
                       begin
-                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        s:=s+ApplyAsmSymbolRestrictions(symbol.name);
                         if assigned(relsymbol) then
-                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                          s:=s+'-'+ApplyAsmSymbolRestrictions(relsymbol.name)
                       end
                     else
                       begin
@@ -159,7 +159,7 @@ unit agrvgas;
             begin
               hs:=o.ref^.symbol.name;
               if asminfo^.dollarsign<>'$' then
-                hs:=ReplaceForbiddenAsmSymbolChars(hs);
+                hs:=ApplyAsmSymbolRestrictions(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else
@@ -232,8 +232,8 @@ unit agrvgas;
       const
         arch_str: array[boolean,tcputype] of string[10] = (
 {$ifdef RISCV32}
-          ('','rv32ima','rv32im','rv32i'),
-          ('','rv32imafd','rv32imfd','rv32ifd')
+          ('','rv32imac','rv32ima','rv32im','rv32i'),
+          ('','rv32imafdc','rv32imafd','rv32imfd','rv32ifd')
 {$endif RISCV32}
 {$ifdef RISCV64}
           ('','rv64imac','rv64ima','rv64im','rv64i'),
@@ -243,6 +243,15 @@ unit agrvgas;
       begin
         result := inherited MakeCmdLine;
         Replace(result,'$ARCH',arch_str[current_settings.fputype=fpu_fd,current_settings.cputype]);
+{$ifdef RISCV32}
+        Replace(result,'$ABI','ilp32');
+{$endif RISCV32}
+{$ifdef RISCV64}
+        if target_info.abi=abi_riscv_hf then
+          Replace(result,'$ABI','lp64d')
+        else
+          Replace(result,'$ABI','lp64');
+{$endif RISCV64}
       end;
 
 
@@ -253,10 +262,11 @@ unit agrvgas;
 
          idtxt  : 'AS';
          asmbin : 'as';
-         asmcmd : '-o $OBJ $EXTRAOPT -march=$ARCH $ASM';
+         asmcmd : '-o $OBJ $EXTRAOPT -march=$ARCH -mabi=$ABI $ASM';
          supported_targets : [system_riscv32_linux,system_riscv64_linux];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

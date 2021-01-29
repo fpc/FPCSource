@@ -274,6 +274,19 @@ begin
   GetSuspended:=FSuspended;
 end;
 
+procedure TThread.Terminate;
+begin
+  FTerminated := True;
+  TerminatedSet;
+end;
+
+Procedure TThread.TerminatedSet;
+
+begin
+  // Empty, must be overridden.
+end;
+
+
 
 procedure TThread.AfterConstruction;
 begin
@@ -589,38 +602,35 @@ begin
     lastentry := Nil;
     entry := ThreadQueueHead;
     while Assigned(entry) do begin
-      { first check for the thread }
-      if Assigned(aThread) and (entry^.Thread <> aThread) and (entry^.ThreadID <> aThread.ThreadID) then begin
+      if
+        { only entries not added by Synchronize }
+        not Assigned(entry^.SyncEvent)
+        { check for the thread }
+        and (not Assigned(aThread) or (entry^.Thread = aThread) or (entry^.ThreadID = aThread.ThreadID))
+        { check for the method }
+        and (not Assigned(aMethod) or
+          (
+            (TMethod(entry^.Method).Code = TMethod(aMethod).Code) and
+            (TMethod(entry^.Method).Data = TMethod(aMethod).Data)
+          ))
+      then begin
+        { ok, we need to remove this entry }
+        tmpentry := entry;
+        if Assigned(lastentry) then
+          lastentry^.Next := entry^.Next;
+        entry := entry^.Next;
+        if ThreadQueueHead = tmpentry then
+          ThreadQueueHead := entry;
+        if ThreadQueueTail = tmpentry then
+          ThreadQueueTail := lastentry;
+        { only dispose events added by Queue }
+        if not Assigned(tmpentry^.SyncEvent) then
+          Dispose(tmpentry);
+      end else begin
+        { leave this entry }
         lastentry := entry;
         entry := entry^.Next;
-        Continue;
       end;
-      { then check for the method }
-      if Assigned(aMethod) and (entry^.Method <> aMethod) then begin
-        lastentry := entry;
-        entry := entry^.Next;
-        Continue;
-      end;
-      { skip entries added by Synchronize }
-      if Assigned(entry^.SyncEvent) then begin
-        lastentry := entry;
-        entry := entry^.Next;
-        Continue;
-      end;
-
-      { ok, we need to remove this entry }
-
-      tmpentry := entry;
-      if Assigned(lastentry) then
-        lastentry^.Next := entry^.Next;
-      entry := entry^.Next;
-      if ThreadQueueHead = tmpentry then
-        ThreadQueueHead := entry;
-      if ThreadQueueTail = tmpentry then
-        ThreadQueueTail := lastentry;
-      { only dispose events added by Queue }
-      if not Assigned(tmpentry^.SyncEvent) then
-        Dispose(tmpentry);
     end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
@@ -670,36 +680,20 @@ begin
 end;
 
 
-{$ifdef THREADNAME_IS_ANSISTRING}
-{ the platform implements the AnsiString variant and the UnicodeString variant
-  simply calls the AnsiString variant }
 class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
 begin
-  NameThreadForDebugging(AnsiString(aThreadName), aThreadID);
-end;
-
-  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
-class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
-begin
-  { empty }
-end;
-  {$endif}
-{$else}
-  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
-{ the platform implements the UnicodeString variant and the AnsiString variant
-  simply calls the UnicodeString variant }
-class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
-begin
-  { empty }
-end;
-  {$endif}
-
-
-class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
-begin
-  NameThreadForDebugging(UnicodeString(aThreadName), aThreadID);
-end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  SetThreadDebugName(aThreadID, aThreadName);
 {$endif}
+end;
+
+
+class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  SetThreadDebugName(aThreadID, aThreadName);
+{$endif}
+end;
 
 
 class procedure TThread.Yield;
@@ -2527,6 +2521,9 @@ begin
   GlobalLists.Free;
   ComponentPages.Free;
   FreeAndNil(NeedResolving);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  GlobalNameSpace.EndWrite;
+{$endif}
   { GlobalNameSpace is an interface so this is enough }
   GlobalNameSpace:=nil;
 

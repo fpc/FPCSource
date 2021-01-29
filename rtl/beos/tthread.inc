@@ -271,11 +271,6 @@ begin
 end;
 
 
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-end;
-
 function TThread.WaitFor: Integer;
 var
   status : longint;
@@ -556,11 +551,6 @@ begin
   end;
 end;
 
-
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-end;
 
 function TThread.WaitFor: Integer;
 begin

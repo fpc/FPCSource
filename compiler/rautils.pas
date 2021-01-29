@@ -45,7 +45,7 @@ type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
             OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,
             OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG,
-            OPR_REGPAIR,OPR_FENCEFLAGS);
+            OPR_REGPAIR,OPR_FENCEFLAGS,OPR_INDEXEDREG);
 
   TOprRec = record
     case typ:TOprType of
@@ -53,6 +53,8 @@ type
 {$if defined(AVR)}
       OPR_CONSTANT  : (val:longint);
 {$elseif defined(i8086)}
+      OPR_CONSTANT  : (val:longint);
+{$elseif defined(Z80)}
       OPR_CONSTANT  : (val:longint);
 {$else}
       OPR_CONSTANT  : (val:aint);
@@ -79,6 +81,8 @@ type
       OPR_SPECIALREG: (specialreg : tregister; specialregflags : tspecialregflags);
 {$endif arm}
 {$ifdef aarch64}
+      OPR_REGSET    : (basereg: tregister; nregs, regsetindex: byte);
+      OPR_INDEXEDREG: (indexedreg: tregister; regindex: byte);
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
 {$endif aarch64}
@@ -202,7 +206,7 @@ Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
   Procedure ConcatConstant(p : TAsmList;value: tcgint; constsize:byte);
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym,endsym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAsmList;s:string);
   procedure ConcatAlign(p:TAsmList;l:tcgint);
@@ -1096,7 +1100,7 @@ end;
 
 procedure TOperand.InitRef;
 {*********************************************************************}
-{  Description: This routine first check if the opcode is of     }
+{  Description: This routine first check if the opcode is of          }
 {  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
 {  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
 {  the operand type to OPR_REFERENCE, as well as setting up the ref   }
@@ -1182,7 +1186,7 @@ begin
           localsegment:=opr.localsegment;
 {$endif x86}
           localindexreg:=opr.localindexreg;
-          localscale:=opr.localscale;;
+          localscale:=opr.localscale;
           opr.typ:=OPR_REFERENCE;
           hasvar:=false;
           Fillchar(opr.ref,sizeof(treference),0);
@@ -1306,6 +1310,12 @@ end;
              OPR_COND:
                ai.loadconditioncode(i-1,cc);
 {$endif arm or aarch64}
+{$ifdef aarch64}
+              OPR_REGSET:
+                ai.loadregset(i-1,basereg,nregs,regsetindex);
+              OPR_INDEXEDREG:
+                ai.loadindexedreg(i-1,indexedreg,regindex);
+{$endif aarch64}
 {$if defined(riscv32) or defined(riscv64)}
              OPR_FENCEFLAGS:
                ai.loadfenceflags(i-1,fenceflags);
@@ -1754,7 +1764,8 @@ Begin
           begin
             if tlabelsym(sym).defined then
               Message(sym_e_label_already_defined);
-            tlabelsym(sym).defined:=true
+            tlabelsym(sym).defined:=true;
+            hl.defined_in_asmstatement:=true
           end
         else
           tlabelsym(sym).used:=true;
@@ -1784,13 +1795,8 @@ end;
 
 Procedure ConcatConstant(p: TAsmList; value: tcgint; constsize:byte);
 {*********************************************************************}
-{ PROCEDURE ConcatConstant(value: aint; maxvalue: aint);        }
 {  Description: This routine adds the value constant to the current   }
 {  instruction linked list.                                           }
-{   maxvalue -> indicates the size of the data to initialize:         }
-{                  $ff -> create a byte node.                         }
-{                  $ffff -> create a word node.                       }
-{                  $ffffffff -> create a dword node.                  }
 {*********************************************************************}
 var
   rangelo,rangehi : int64;
@@ -1830,7 +1836,7 @@ Begin
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym,endsym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   begin
 {$ifdef i8086}
     { 'DW xx' as well as 'DW OFFSET xx' are just near pointers }

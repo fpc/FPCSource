@@ -25,17 +25,13 @@ const
  { Should be equal to the maximum offset possible in indirect addressing
    mode with displacement. (CPU SPECIFIC) }
 
-{$ifdef cpu68k}
-  {$define use_small}
-{$endif}
-{$ifdef cpui8086}
-  {$define use_small}
-{$endif}
-{$ifdef use_small}
+{$i cpudefs.inc }
+
+{$ifdef cpusmall}
  MAX_DISP = 32767;
-{$else}
+{$else cpusmall}
  MAX_DISP = 65535;
-{$endif}
+{$endif cpusmall}
 
 { These different alignments are described in the PowerPC ABI
   supplement, they should represent most possible cases.

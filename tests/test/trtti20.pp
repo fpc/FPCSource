@@ -150,35 +150,73 @@ begin
   if SetToString(PTypeInfo(TypeInfo(TLargeSetP)), @lsp1, True) <> StrLS then
     Halt(8);
 
+  if SetToString(PTypeInfo(TypeInfo(TByteSet)), LongInt(bs1), True) <> StrBS then
+    Halt(9);
+  if SetToString(PTypeInfo(TypeInfo(TWordSet)), LongInt(ws1), True) <> StrWS then
+    Halt(10);
+  if SetToString(PTypeInfo(TypeInfo(TDWordSet)), LongInt(ds1), True) <> StrDS then
+    Halt(11);
+
+  if SetToString(PTypeInfo(TypeInfo(TByteSetP)), Byte(bsp1), True) <> StrBS then
+    Halt(12);
+  if SetToString(PTypeInfo(TypeInfo(TWordSetP)), Word(wsp1), True) <> StrWS then
+    Halt(13);
+  if SetToString(PTypeInfo(TypeInfo(TDWordSetP)), LongInt(dsp1), True) <> StrDS then
+    Halt(14);
+
   StringToSet(PTypeInfo(TypeInfo(TByteSet)), StrBS, @bs2);
   if bs2<>bs1 then
-    Halt(9);
+    Halt(15);
 
   StringToSet(PTypeInfo(TypeInfo(TWordSet)), StrWS, @ws2);
   if ws2<>ws1 then
-    Halt(10);
+    Halt(16);
 
   StringToSet(PTypeInfo(TypeInfo(TDWordSet)), StrDS, @ds2);
   if ds2<>ds1 then
-    Halt(11);
+    Halt(17);
 
   StringToSet(PTypeInfo(TypeInfo(TLargeSet)), StrLS, @ls2);
   if ls2<>ls1 then
-    Halt(12);
+    Halt(18);
 
   StringToSet(PTypeInfo(TypeInfo(TByteSetP)), StrBS, @bsp2);
   if bsp2<>bsp1 then
-    Halt(9);
+    Halt(19);
 
   StringToSet(PTypeInfo(TypeInfo(TWordSetP)), StrWS, @wsp2);
   if wsp2<>wsp1 then
-    Halt(10);
+    Halt(20);
 
   StringToSet(PTypeInfo(TypeInfo(TDWordSetP)), StrDS, @dsp2);
   if dsp2<>dsp1 then
-    Halt(11);
+    Halt(21);
 
   StringToSet(PTypeInfo(TypeInfo(TLargeSetP)), StrLS, @lsp2);
   if lsp2<>lsp1 then
-    Halt(12);
+    Halt(22);
+
+  bs2 := TByteSet(StringToSet(PTypeInfo(TypeInfo(TByteSet)), StrBS));
+  if bs2<>bs1 then
+    Halt(23);
+
+  ws2 := TWordSet(StringToSet(PTypeInfo(TypeInfo(TWordSet)), StrWS));
+  if ws2<>ws1 then
+    Halt(24);
+
+  ds2 := TDWordSet(StringToSet(PTypeInfo(TypeInfo(TDWordSet)), StrDS));
+  if ds2<>ds1 then
+    Halt(25);
+
+  bsp2 := TByteSetP(Byte(StringToSet(PTypeInfo(TypeInfo(TByteSetP)), StrBS)));
+  if bsp2<>bsp1 then
+    Halt(26);
+
+  wsp2 := TWordSetP(Word(StringToSet(PTypeInfo(TypeInfo(TWordSetP)), StrWS)));
+  if wsp2<>wsp1 then
+    Halt(27);
+
+  dsp2 := TDWordSetP(StringToSet(PTypeInfo(TypeInfo(TDWordSetP)), StrDS));
+  if dsp2<>dsp1 then
+    Halt(28);
 end.

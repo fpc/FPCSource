@@ -44,9 +44,9 @@ interface
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
-{$if defined(LLVM) and not defined(GENERIC_CPU)}
+{$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
-{$endif LLVM and not GENERIC_CPU}
+{$endif LLVM or GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -166,23 +166,31 @@ interface
 
          tlsmodel : ttlsmodel;
 
-{$if defined(i8086)}
-         x86memorymodel  : tx86memorymodel;
-{$endif defined(i8086)}
-
-{$if defined(ARM)}
-         instructionset : tinstructionset;
-{$endif defined(ARM)}
-
-{$if defined(LLVM) and not defined(GENERIC_CPU)}
-         llvmversion: tllvmversion;
-{$endif defined(LLVM) and not defined(GENERIC_CPU)}
-
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
 
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
+{$if defined(generic_cpu)}
+         case byte of
+{$endif}
+{$if defined(i8086) or defined(generic_cpu)}
+   {$ifdef generic_cpu} 1:({$endif}
+           x86memorymodel  : tx86memorymodel;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+   {$ifdef generic_cpu} 2:({$endif}
+         instructionset : tinstructionset;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+   {$ifdef generic_cpu} 3:({$endif}
+         llvmversion: tllvmversion;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
        end;
 
     const
@@ -254,7 +262,10 @@ interface
        { specified with -FW and -Fw }
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
-
+{$ifdef XTENSA}
+       { specified with -Ff }
+       idfpath           : TPathStr;
+{$endif XTENSA}
        { external assembler extra option }
        asmextraopt       : string;
 
@@ -273,6 +284,10 @@ interface
        utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : TCmdStr;
+
+       { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
+       llvmutilssuffix     : TCmdStr;
+
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
@@ -282,6 +297,9 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+
+       timestr,
+       datestr : string;
        { Path to ppc }
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
@@ -380,6 +398,8 @@ interface
        prop_auto_getter_prefix,
        prop_auto_setter_prefix : string;
 
+       cgbackend: tcgbackend;
+
     const
        Inside_asm_statement : boolean = false;
 
@@ -393,6 +413,10 @@ interface
        palmos_applicationname : string = 'FPC Application';
        palmos_applicationid : string[4] = 'FPCA';
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+       { Sinclair QL specific }
+       sinclairql_metadata_format: string[4] = 'QHDR';
+{$endif defined(m68k)}
 
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
@@ -456,7 +480,7 @@ interface
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
-        cputype : cpu_Pentium;
+        cputype : cpu_Pentium2;
         optimizecputype : cpu_Pentium3;
         asmcputype : cpu_none;
         fputype : fpu_x87;
@@ -549,6 +573,22 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}
+  {$ifdef xtensa}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_none;
+  {$endif xtensa}
+  {$ifdef z80}
+        cputype : cpu_zilog_z80;
+        optimizecputype : cpu_zilog_z80;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
+        fputype : fpu_soft;
+  {$endif z80}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
@@ -563,17 +603,17 @@ interface
         disabledircache : false;
 
         tlsmodel : tlsm_none;
-{$if defined(i8086)}
+        controllertype : ct_none;
+        pmessage : nil;
+{$if defined(i8086) or defined(GENERIC_CPU)}
         x86memorymodel : mm_small;
-{$endif defined(i8086)}
+{$endif defined(i8086) or defined(GENERIC_CPU)}
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
 {$if defined(LLVM) and not defined(GENERIC_CPU)}
-        llvmversion    : llvmver_3_9;
+        llvmversion    : llvmver_7_0;
 {$endif defined(LLVM) and not defined(GENERIC_CPU)}
-        controllertype : ct_none;
-        pmessage : nil;
       );
 
     var
@@ -613,12 +653,13 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
+    function size_2_align(len : asizeuint) : longint;
     function var_align(want_align: longint): shortint;
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(want_align: longint): shortint;
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -930,6 +971,7 @@ implementation
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',target_cpu_string);
          Replace(s,'$FPCOS',target_os_string);
+         Replace(s,'$FPCBINDIR',exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in Target_Info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
@@ -1370,13 +1412,30 @@ implementation
       end;
 
 
+    function size_2_align(len : asizeuint) : longint;
+      begin
+         if len>16 then
+           size_2_align:=32
+         else if len>8 then
+           size_2_align:=16
+         else if len>4 then
+           size_2_align:=8
+         else if len>2 then
+           size_2_align:=4
+         else if len>1 then
+           size_2_align:=2
+         else
+           size_2_align:=1;
+      end;
+
+
     function var_align(want_align: longint): shortint;
       begin
         var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         var_align_size := var_align(siz);
@@ -1389,7 +1448,7 @@ implementation
       end;
 
 
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         const_align_size := const_align(siz);
@@ -1455,7 +1514,7 @@ implementation
        if localexepath='' then
         begin
           hs1 := ExtractFileName(exeName);
-	  hs1 := ChangeFileExt(hs1,source_info.exeext);
+          hs1 := ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
           FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}
@@ -1584,9 +1643,13 @@ implementation
         { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
+        llvmutilssuffix:='';
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
+{$ifdef XTENSA}
+        idfpath:='';
+{$endif XTENSA}
 
         { Search Paths }
         unicodepath:='';
@@ -1647,6 +1710,11 @@ implementation
 
 initialization
   allocinitdoneprocs;
+{$ifdef LLVM}
+  cgbackend:=cg_llvm;
+{$else}
+  cgbackend:=cg_fpc;
+{$endif}
 finalization
   freeinitdoneprocs;
 end.

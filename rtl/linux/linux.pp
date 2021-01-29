@@ -29,8 +29,17 @@ interface
 uses
   BaseUnix, unixtype;
 
-Const
+const
   O_CLOEXEC = $80000;
+
+type
+  { used by newer Linux headers }
+  __u16 = Word;
+  __s16 = Smallint;
+  __u32 = DWord;
+  __s32 = Longint;
+  __u64 = QWord;
+  __s64 = Int64;
   
 type
   TSysInfo = record
@@ -270,7 +279,8 @@ type
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
-  EPoll_Event = {$ifdef cpu64} packed {$endif} record
+  { x86_64 uses a packed record so it is compatible with i386 }
+  EPoll_Event = {$ifdef cpux86_64} packed {$endif} record
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
@@ -281,10 +291,14 @@ type
 
 { open an epoll file descriptor }
 function epoll_create(size: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create'; {$endif}
+function epoll_create1(flags: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create1'; {$endif}
+
 { control interface for an epoll descriptor }
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_ctl'; {$endif}
+
 { wait for an I/O event on an epoll file descriptor }
 function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_wait'; {$endif}
+function epoll_pwait(epfd: cint; events: pepoll_event; maxevents, timeout: cint; sigmask: PSigSet): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_pwait'; {$endif}
 
 type Puser_cap_header=^user_cap_header;
      user_cap_header=record
@@ -472,6 +486,64 @@ function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint; {$ifdef FPC_U
 function setregid(rgid,egid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setregid'; {$ENDIF} 
 function setreuid(ruid,euid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setreuid'; {$ENDIF} 
 
+Const
+  STATX_TYPE = $00000001;
+  STATX_MODE = $00000002;
+  STATX_NLINK = $00000004;
+  STATX_UID = $00000008;
+  STATX_GID = $00000010;
+  STATX_ATIME = $00000020;
+  STATX_MTIME = $00000040;
+  STATX_CTIME = $00000080;
+  STATX_INO = $00000100;
+  STATX_SIZE = $00000200;
+  STATX_BLOCKS = $00000400;
+  STATX_BASIC_STATS = $000007ff;
+  STATX_BTIME = $00000800;
+  STATX_ALL = $00000fff;
+  STATX__RESERVED = $80000000;
+  STATX_ATTR_COMPRESSED = $00000004;
+  STATX_ATTR_IMMUTABLE = $00000010;
+  STATX_ATTR_APPEND = $00000020;
+  STATX_ATTR_NODUMP = $00000040;
+  STATX_ATTR_ENCRYPTED = $00000800;
+  STATX_ATTR_AUTOMOUNT = $00001000;
+
+Type
+  statx_timestamp = record
+    tv_sec : __s64;
+    tv_nsec : __u32;
+    __reserved : __s32;
+  end;
+  pstatx_timestamp = ^statx_timestamp;
+
+  statx = record
+    stx_mask : __u32;
+    stx_blksize : __u32;
+    stx_attributes : __u64;
+    stx_nlink : __u32;
+    stx_uid : __u32;
+    stx_gid : __u32;
+    stx_mode : __u16;
+    __spare0 : array[0..0] of __u16;
+    stx_ino : __u64;
+    stx_size : __u64;
+    stx_blocks : __u64;
+    stx_attributes_mask : __u64;
+    stx_atime : statx_timestamp;
+    stx_btime : statx_timestamp;
+    stx_ctime : statx_timestamp;
+    stx_mtime : statx_timestamp;
+    stx_rdev_major : __u32;
+    stx_rdev_minor : __u32;
+    stx_dev_major : __u32;
+    stx_dev_minor : __u32;
+    __spare2 : array[0..13] of __u64;
+  end;
+  pstatx = ^statx;
+
+  function Fpstatx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: statx):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'statx'; {$ENDIF}
+
 implementation
 
 
@@ -539,7 +611,7 @@ end;
 function epoll_create(size: cint): cint;
 begin
 {$if defined(generic_linux_syscalls)}
-  epoll_create := do_syscall(syscall_nr_epoll_create1,0)
+  epoll_create := do_syscall(syscall_nr_epoll_create1,0);
 {$else}
   epoll_create := do_syscall(syscall_nr_epoll_create,tsysparam(size));
 {$endif}
@@ -555,11 +627,22 @@ function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint):
 begin
 {$if defined(generic_linux_syscalls)}
   epoll_wait := do_syscall(syscall_nr_epoll_pwait, tsysparam(epfd),
-    tsysparam(events), tsysparam(maxevents), tsysparam(timeout),0);
+    tsysparam(events), tsysparam(maxevents), tsysparam(timeout),0,sizeof(TSigSet));
 {$else}
   epoll_wait := do_syscall(syscall_nr_epoll_wait, tsysparam(epfd),
     tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 {$endif}
+end;
+
+function epoll_create1(flags: cint): cint;
+begin
+  epoll_create1 := do_syscall(syscall_nr_epoll_create1, tsysparam(flags));
+end;
+
+function epoll_pwait(epfd: cint; events: pepoll_event; maxevents, timeout: cint; sigmask: PSigSet): cint;
+begin
+  epoll_pwait := do_syscall(syscall_nr_epoll_pwait, tsysparam(epfd),
+    tsysparam(events), tsysparam(maxevents), tsysparam(timeout), tsysparam(sigmask), sizeof(TSigSet));
 end;
 
 function capget(header:Puser_cap_header;data:Puser_cap_data):cint;
@@ -600,7 +683,7 @@ end;
 
 function sync_file_range(fd: cInt; offset: off64_t; nbytes: off64_t; flags: cuInt): cInt;
 begin
-{$if defined(cpupowerpc) or defined(cpuarm)}
+{$if defined(cpupowerpc) or defined(cpuarm) or defined(cpuxtensa)}
   sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags),
     TSysParam(hi(offset)), TSysParam(lo(offset)), TSysParam(hi(nbytes)), TSysParam(lo(nbytes)));
 {$else}
@@ -770,5 +853,12 @@ begin
   setreuid:=do_syscall(syscall_nr_setreuid,ruid,euid);
 end;
 
+
+function Fpstatx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: statx):cint;
+begin
+  Fpstatx:=do_syscall(syscall_nr_statx,TSysParam(dfd),TSysParam(filename),TSysParam(flags),TSysParam(mask),TSysParam(@buf));
+end;
+
 {$endif}
+
 end.

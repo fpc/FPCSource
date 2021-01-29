@@ -25,6 +25,7 @@ interface
 {$H+}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
+{$hugecode on}
 
 uses
   {go32,}dos;
@@ -47,6 +48,7 @@ implementation
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 {$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
 
@@ -289,7 +291,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -423,7 +425,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 var
   Regs: registers;
 begin
@@ -434,21 +436,18 @@ begin
   if Regs.Flags and fCarry <> 0 then
    result := -1
   else
-   begin
-     LongRec(result).Lo := Regs.cx;
-     LongRec(result).Hi := Regs.dx;
-   end ;
+   result:=(Regs.dx shl 16) or Regs.cx;
 end;
 
 
-Function FileSetDate (Handle : THandle; Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle; Age : Int64) : Longint;
 var
   Regs: registers;
 begin
   Regs.bx := Handle;
   Regs.ax := $5701;
-  Regs.cx := Lo(Age);
-  Regs.dx := Hi(Age);
+  Regs.cx := Lo(dword(Age));
+  Regs.dx := Hi(dword(Age));
   MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
    result := -Regs.Ax
@@ -631,6 +630,8 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$I tzenv.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   Regs: Registers;
@@ -646,6 +647,7 @@ begin
   SystemTime.Year := Regs.Cx;
   SystemTime.Month := Regs.Dh;
   SystemTime.Day := Regs.Dl;
+  SystemTime.DayOfWeek := Regs.Al;
 end ;
 
 
@@ -653,8 +655,16 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
+const
+  BeepChars: array [1..2] of char = #7'$';
+
 procedure sysBeep;
+var
+  Regs: Registers;
 begin
+  Regs.dx := Ofs (BeepChars);
+  Regs.ah := 9;
+  MsDos (Regs);
 end;
 
 
@@ -928,6 +938,7 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
+  InitTZ;
 Finalization
   FreeTerminateProcs;
   DoneExceptions;

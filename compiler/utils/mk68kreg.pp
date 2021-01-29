@@ -27,6 +27,8 @@ var s : string;
     values,
     stdnames,
     gasnames,
+    stdfullnames,
+    gasfullnames,
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index,gas_regname_index : array[0..max_regcount-1] of byte;
@@ -203,6 +205,10 @@ begin
         readcomma;
         gasnames[regcount]:=readstr;
         readcomma;
+        stdfullnames[regcount]:=readstr;
+        readcomma;
+        gasfullnames[regcount]:=readstr;
+        readcomma;
         stabs[regcount]:=readstr;
         { Create register number }
         if values[regcount][1]<>'$' then
@@ -230,7 +236,7 @@ end;
 procedure write_inc_files;
 
 var
-    norfile,stdfile,gasfile,supfile,
+    norfile,stdfile,stdffile,gasfile,gasffile,supfile,
     numfile,stabfile,confile,
     rnifile,srifile,grifile,
     bssfile:text;
@@ -243,6 +249,8 @@ begin
   openinc(numfile,'r68knum.inc');
   openinc(stdfile,'r68kstd.inc');
   openinc(gasfile,'r68kgas.inc');
+  openinc(stdffile,'r68kstdf.inc');
+  openinc(gasffile,'r68kgasf.inc');
   openinc(stabfile,'r68ksta.inc');
   openinc(norfile,'r68knor.inc');
   openinc(rnifile,'r68krni.inc');
@@ -257,6 +265,8 @@ begin
           writeln(numfile,',');
           writeln(stdfile,',');
           writeln(gasfile,',');
+          writeln(stdffile,',');
+          writeln(gasffile,',');
           writeln(stabfile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
@@ -270,6 +280,8 @@ begin
       write(numfile,'tregister(',values[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
+      write(stdffile,'''',stdfullnames[i],'''');
+      write(gasffile,'''',gasfullnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
@@ -282,6 +294,8 @@ begin
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(gasfile);
+  closeinc(stdffile);
+  closeinc(gasffile);
   closeinc(stabfile);
   closeinc(norfile);
   closeinc(rnifile);

@@ -114,7 +114,7 @@ function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STA
 
 begin
 { standard stat call is 32 bit on sparc64, so explicitly force a stat64 call }
-{$if defined(cpu64) and not(defined(cpusparc64))}
+{$if (defined(cpu64) or defined(riscv32)) and not(defined(cpusparc64))}
   {$if defined(generic_linux_syscalls)}
     Fpstat:=do_syscall(syscall_nr_fstatat,AT_FDCWD,TSysParam(path),TSysParam(@buf),0);
   {$else}
@@ -428,12 +428,12 @@ function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
   A negative value indicates that an error has occurred, the error is returned in
   LinuxError.
 }
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) or defined(cpuxtensa)}
 var
   pid : Int64;
 {$endif}
 Begin
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) or defined(cpuxtensa)}
  Fpfork:=Do_syscall(syscall_nr_clone,clone_flags_fork,0,0,0,TSysParam(@pid));
 {$else}
  Fpfork:=Do_syscall(SysCall_nr_fork);
@@ -583,11 +583,11 @@ end;
 begin
   {$if sizeof(TSysParam)>=sizeof(off_t)}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
-    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off div 4096)));
   {$else off_t is larger than TsysParam }
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
-    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off div 4096))));
  {$endif}
 end;
 {$else MMAP2}
@@ -731,4 +731,10 @@ function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYS
 begin
   fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
 end;
+
+function FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint;
+begin
+  FpSchedGetAffinity := do_syscall(syscall_nr_sched_getaffinity,TSysParam(pid),TSysParam(cpusetsize),TSysParam(mask));
+end;
+
 

@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.OSes:=AllUnixOSes-[darwin,iphonesim,Android];
+    P.OSes:=AllUnixOSes-[darwin,iphonesim,ios,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 

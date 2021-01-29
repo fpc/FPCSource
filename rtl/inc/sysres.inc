@@ -43,6 +43,32 @@ Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, Re
 begin
   Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),PChar(ResourceName),Language);
 end;
+
+{$ifndef Win16}
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PChar): TFPResourceHandle;
+
+begin
+  Result:=FindResource(ModuleHandle,PChar(ResourceName),ResourceType);
+end;
+
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
+
+begin
+  Result:=FindResourceEx(ModuleHandle,ResourceType,PChar(ResourceName),Language);
+end;
+
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PChar; const ResourceType: AnsiString): TFPResourceHandle;
+
+begin
+  Result:=FindResource(ModuleHandle,ResourceName,PChar(ResourceType));
+end;
+
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PChar; Language : word): TFPResourceHandle;
+
+begin
+  Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),ResourceName,Language);
+end;
+{$endif Win16}
 {$endif}
 
 (*****************************************************************************

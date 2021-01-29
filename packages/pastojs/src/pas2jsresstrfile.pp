@@ -5,7 +5,7 @@ unit pas2jsresstrfile;
 interface
 
 uses
-  Classes, SysUtils, fpJSON;
+  SysUtils, fpJSON;
 
 Type
 

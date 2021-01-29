@@ -103,9 +103,11 @@ asm
 	hlt
 end;
 
-procedure _FPC_libc21_haltproc(e: longint); cdecl; assembler; public name '_haltproc';
-asm
-        push  e
-        call  libc_exit
-        hlt
-end;
+procedure _FPC_libc21_haltproc(e: longint); cdecl; public name '_haltproc';
+  begin
+    libc_exit(e);
+    { we should never return from libc_exit }
+    asm
+      hlt
+    end;
+  end;

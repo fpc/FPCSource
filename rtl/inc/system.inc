@@ -33,10 +33,10 @@ type
   {$endif}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
-Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
-Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); forward;
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleError (Errno : TExitCode); external name 'FPC_HANDLEERROR';
+Procedure HandleErrorFrame (Errno : TExitCode;frame : Pointer); forward;
+Procedure HandleErrorAddrFrame (Errno : TExitCode;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleErrorAddrFrameInd (Errno : TExitCode;addr : CodePointer; frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -44,7 +44,9 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
-{$ifdef CPUAVR}
+{$if defined(CPUAVR)}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$elseif defined(CPUZ80)}
   STACK_MARGIN = 64;    { Stack size margin for stack checking }
 {$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
@@ -297,6 +299,22 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuriscv64}
 
+{$ifdef cpuxtensa}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i xtensa.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuxtensa}
+
+{$ifdef cpuz80}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i z80.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuz80}
+
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
 {$endif}
@@ -547,6 +565,7 @@ type
 {$endif FPC_HAS_FEATURE_RTTI}
 
 {$if defined(FPC_HAS_FEATURE_RANDOM)}
+{$ifndef FPC_USE_SIMPLE_RANDOM}
 
 { Pascal translation of https://github.com/dajobe/libmtwist }
 
@@ -706,23 +725,23 @@ begin
     q:=qword(l);
 
   a:=mtwist_u32rand;
- b:=mtwist_u32rand;
+  b:=mtwist_u32rand;
 
- c:=q shr 32;
- d:=cardinal(q);
+  c:=q shr 32;
+  d:=cardinal(q);
 
- bd:=b*d;
- ad:=a*d;
- bc:=b*c;
- ac:=a*c;
+  bd:=qword(b)*d;
+  ad:=qword(a)*d;
+  bc:=qword(b)*c;
+  ac:=qword(a)*c;
 
- // We only need the carry bit
- carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
+  // We only need the carry bit
+  carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
 
- // Calculate the final result
- result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
- if l<0 then
-   result:=-result;
+  // Calculate the final result
+  result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
+  if l<0 then
+    result:=-result;
 end;
 
 {$ifndef FPUNONE}
@@ -731,6 +750,55 @@ begin
   random := mtwist_u32rand * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
+
+{$else FPC_USE_SIMPLE_RANDOM}
+
+{ A simple implementation of random. TP/Delphi compatible. }
+
+const
+  QRAN_A = 134775813;
+  QRAN_C = 1;
+
+function rand_next: cardinal;
+var
+  s: cardinal;
+begin
+  s:=RandSeed*QRAN_A+QRAN_C;
+	RandSeed:=s;
+  rand_next:=s;
+end;
+
+function random(l: word): word;
+var
+  s,ss: cardinal;
+begin
+  s:=rand_next;
+  { use 32-bit multiplications here }
+  ss:=(s shr 16)*l;
+  s:=(s and $FFFF)*l shr 16;
+  random:=(ss + s) shr 16;
+end;
+
+function random(l: longint): longint;
+begin
+  random:=int64(rand_next)*l shr 32;
+end;
+
+function random(l:int64):int64;
+begin
+  random:=random(longint(l));
+end;
+
+{$ifndef FPUNONE}
+function random: extended;
+const
+  c = 1.0/$10000/$10000;
+begin
+  random:=rand_next*c;
+end;
+{$endif}
+
+{$endif FPC_USE_SIMPLE_RANDOM}
 {$endif FPC_HAS_FEATURE_RANDOM}
 
 
@@ -792,7 +860,7 @@ end;
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need
     the instruction address to walk the stack. }
-function get_pc_addr : codepointer;
+function get_pc_addr : codepointer;inline;
 begin
   get_pc_addr:=nil;
 end;
@@ -951,15 +1019,27 @@ begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  { don't use sack_size, since the stack pointer has already been
+  { check stack alignment }
+{$ifdef CPUI386}
+{$ifdef FPC_STACKALIGNMENT}
+{$if FPC_STACKALIGNMENT=16}
+  if ((PtrUInt(Sptr)+4) mod 16)<>0 then
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
+{$endif FPC_STACKALIGNMENT=16}
+{$endif FPC_STACKALIGNMENT}
+{$endif CPUI386}
+  { don't use stack_size, since the stack pointer has already been
     decreased when this routine is called
   }
   c := Sptr - STACK_MARGIN;
   if (c <= StackBottom) then
-   begin
-     StackError:=true;
-     HandleError(202);
-   end;
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
 end;
 {$POP}
 
@@ -1032,10 +1112,10 @@ begin
 end;
 
 
-{$ifdef CPUAVR}
+{$ifdef FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits; external name 'FPC_FINALIZE_FUNC_TABLE';
 
-{$else CPUAVR}
+{$else FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -1054,7 +1134,7 @@ begin
       end;
    end;
 end;
-{$endif CPUAVR}
+{$endif FPC_INIT_FINAL_UNITS_BY_CALLS}
 
 {*****************************************************************************
                           Error / Exit / ExitProc
@@ -1134,7 +1214,7 @@ Begin
   { Finalize units }
   FinalizeUnits;
 
-{$if (defined(MSWINDOWS) and not defined(win16)) or defined(OS2)}
+{$if defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs.
     Reset the array to nil, and finally also argv itself to
@@ -1188,7 +1268,7 @@ begin
 end;
 
 
-Procedure Halt(ErrNum: Longint);noreturn;
+Procedure Halt(ErrNum: TExitCode);noreturn;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
 {$ifdef FPC_LIMITED_EXITCODE}
@@ -1240,30 +1320,26 @@ end;
 {$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
+Procedure HandleErrorAddrFrame (Errno : TExitCode;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If codepointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
   erroraddr:=addr;
   errorbase:=frame;
-{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-  if ExceptAddrStack <> nil then
-    raise TObject(nil) at addr,frame;
-{$endif FPC_HAS_FEATURE_EXCEPTIONS}
   Halt(errorcode);
 end;
 
 { This is used internally by system skip first level,
   and generated the same output as before, when
   HandleErrorFrame function was used internally. }
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer);
+Procedure HandleErrorAddrFrameInd (Errno : TExitCode;addr : CodePointer; frame : Pointer);
 begin
   get_caller_stackinfo (frame, addr);
   HandleErrorAddrFrame (Errno,addr,frame);
 end;
 
-Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
+Procedure HandleErrorFrame (Errno : TExitCode;frame : Pointer);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -1274,7 +1350,7 @@ begin
 end;
 
 
-procedure fpc_handleerror (Errno : longint); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
+procedure fpc_handleerror (Errno : TExitCode); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -1319,7 +1395,7 @@ end;
 
 Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
-  i : Longint;
+  i : ObjpasInt;
   prevfp : Pointer;
   is_dev : boolean;
 Begin
@@ -1355,7 +1431,7 @@ End;
 
 procedure dump_stack(var f: text; skipframes: longint);
 var
-  i,count: longint;
+  i,count: ObjpasInt;
   frames: array [0..255] of codepointer;
 begin
   if do_isdevice(textrec(f).handle) then
@@ -1379,7 +1455,7 @@ end;
 procedure DumpExceptionBackTrace(var f:text);
 var
   FrameNumber,
-  FrameCount   : longint;
+  FrameCount   : ObjpasInt;
   Frames       : PCodePointer;
 begin
   if RaiseList=nil then
@@ -1445,7 +1521,7 @@ end;
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
 
 var p   : ppchar;
-    i   : LongInt;
+    i   : ObjpasInt;
 begin
   if High(s)<Low(s) Then Exit(NIL);
   Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
@@ -1480,7 +1556,7 @@ end;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 var
-  i,nr  : longint;
+  i,nr  : ObjpasInt;
   Buf : ^char;
   p   : ppchar;
 
@@ -1651,7 +1727,7 @@ end;
 { Allow slash and backslash as separators }
 procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
 var
-  i : longint;
+  i : ObjpasInt;
   len : sizeint;
   newp : pchar;
 begin
@@ -1673,7 +1749,7 @@ end;
 
 procedure DoDirSeparators(var p: pwidechar; inplace: boolean = true);
 var
-  i : longint;
+  i : ObjpasInt;
   len : sizeint;
   newp : pwidechar;
 begin
@@ -1696,7 +1772,7 @@ end;
 
 procedure DoDirSeparators(var p:shortstring);
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   for i:=1 to length(p) do
     if p[i] in AllowDirectorySeparators then
@@ -1707,7 +1783,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
-  i : longint;
+  i : ObjpasInt;
   p : pchar;
   unique : boolean;
 begin
@@ -1730,7 +1806,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
-  i : longint;
+  i : ObjpasInt;
   p : pwidechar;
   unique : boolean;
 begin

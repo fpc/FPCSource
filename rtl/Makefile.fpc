@@ -20,12 +20,13 @@ dirs_freebsd=freebsd
 dirs_dragonfly=dragonfly
 dirs_darwin=darwin
 dirs_iphonesim=darwin
+dirs_ios=darwin
 dirs_beos=beos
 dirs_haiku=haiku
 dirs_amiga=amiga
 dirs_netbsd=netbsd
 dirs_openbsd=openbsd
-dirs_macos=macos
+dirs_macosclassic=macos
 dirs_morphos=morphos
 dirs_netware=netware
 dirs_netwlibc=netwlibc
@@ -50,6 +51,10 @@ dirs_aros=aros
 dirs_atari=atari
 dirs_win16=win16
 dirs_watcom=watcom
+dirs_freertos=freertos
+dirs_zxspectrum=zxspectrum
+dirs_msxdos=msxdos
+dirs_sinclairql=sinclairql
 
 [install]
 fpcpackage=y

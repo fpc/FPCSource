@@ -36,9 +36,9 @@ interface
         protected
          procedure set_labelsym_resultdef; override;
          procedure set_absvarsym_resultdef; override;
-         procedure pass_generate_code;override;
         public
          get_offset_only: boolean;
+         procedure pass_generate_code;override;
        end;
 
        ti8086derefnode = class(tx86derefnode)
@@ -96,7 +96,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_16);
             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidnearpointertype);
             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-              internalerror(2015103001);
+              internalerror(2015103003);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidnearpointertype,left.location.reference,location.register);
           end
         else
@@ -151,7 +151,7 @@ implementation
                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
                  end;
                else
-                 internalerror(200507031);
+                 internalerror(2005070302);
             end;
             if (cs_use_heaptrc in current_settings.globalswitches) and
                (cs_checkpointer in current_settings.localswitches) and
@@ -165,10 +165,10 @@ implementation
              begin
                if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                   (sym.typ<>procsym) then
-                 internalerror(2012010601);
+                 internalerror(2012010603);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init;
-               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paraloc1.done;

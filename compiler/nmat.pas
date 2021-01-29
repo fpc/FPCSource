@@ -131,7 +131,10 @@ implementation
               end;
             if rv = 0 then
               begin
-                Message(parser_e_division_by_zero);
+                { if the node is derived from a generic const parameter
+                  then don't issue an error }
+                if not (nf_generic_para in flags) then
+                  Message(parser_e_division_by_zero);
                 { recover }
                 tordconstnode(right).value := 1;
               end;
@@ -151,7 +154,14 @@ implementation
                  Message(cg_e_mod_only_defined_for_pos_quotient);
                  { recover }
                  tordconstnode(right).value := 1;
-               end;
+               end
+            else if (rv=-1) and
+              (nodetype=modn) then
+              begin
+                result:=cordconstnode.create(0,left.resultdef,true);
+                left:=nil;
+                exit;
+              end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
@@ -164,17 +174,17 @@ implementation
                 if nf_isomod in flags then
                   begin
                     if lv>=0 then
-                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline)
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
                     else
                       if ((-lv) mod rv)=0 then
-                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline)
+                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline,false)
                       else
-                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline);
+                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline,false);
                   end
                 else
-                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false);
               divn:
-                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline,cs_check_overflow in localswitches);
               else
                 internalerror(2019050519);
             end;
@@ -273,19 +283,32 @@ implementation
              (not is_signed(ld) and
               (rd.size >= ld.size))) then
            begin
-             inserttypeconv(left,right.resultdef);
-             ld:=torddef(left.resultdef);
-           end;
-         if (ld.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
+             if rd.size<uinttype.size then
+               begin
+                 inserttypeconv(left,uinttype);
+                 inserttypeconv(right,uinttype);
+               end
+             else
+               inserttypeconv(left,rd);
+             resultdef:=right.resultdef;
+           end
+         else if (ld.ordtype in [u8bit,u16bit,u32bit,u64bit]) and
             ((is_constintnode(right) and
               (tordconstnode(right).value >= 0) and
               (tordconstnode(right).value <= get_max_value(ld))) or
              (not is_signed(rd) and
               (ld.size >= rd.size))) then
-          begin
-            inserttypeconv(right,left.resultdef);
-            rd:=torddef(right.resultdef);
-          end;
+           begin
+             if ld.size<uinttype.size then
+               begin
+                 inserttypeconv(left,uinttype);
+                 inserttypeconv(right,uinttype);
+               end
+             else
+               inserttypeconv(right,ld);
+             resultdef:=left.resultdef;
+           end
+         else
 
          { when there is one currency value, everything is done
            using currency }
@@ -450,7 +473,7 @@ implementation
         if result.resultdef.typ<>orddef then
           internalerror(2013031701);
         if resultdef.typ<>orddef then
-          internalerror(2013031701);
+          internalerror(2013031702);
         if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
           inserttypeconv(result,resultdef);
       end;
@@ -687,7 +710,9 @@ implementation
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
       var
-        lvalue,rvalue : Tconstexprint;
+        lvalue, rvalue, mask : Tconstexprint;
+        rangedef: tdef;
+        size: longint;
       begin
         result:=nil;
         { constant folding }
@@ -695,7 +720,6 @@ implementation
           begin
             if forinline then
               begin
-                { shl/shr are unsigned operations, so cut off upper bits }
                 case resultdef.size of
                   1,2,4:
                     rvalue:=tordconstnode(right).value and byte($1f);
@@ -709,32 +733,24 @@ implementation
               rvalue:=tordconstnode(right).value;
             if is_constintnode(left) then
                begin
+                 lvalue:=tordconstnode(left).value;
+                 getrangedefmasksize(resultdef, rangedef, mask, size);
+                 { shr is an unsigned operation, so cut off upper bits }
                  if forinline then
-                   begin
-                     { shl/shr are unsigned operations, so cut off upper bits }
-                     case resultdef.size of
-                       1:
-                         lvalue:=tordconstnode(left).value and byte($ff);
-                       2:
-                         lvalue:=tordconstnode(left).value and word($ffff);
-                       4:
-                         lvalue:=tordconstnode(left).value and dword($ffffffff);
-                       8:
-                         lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-                       else
-                         internalerror(2013122301);
-                     end;
-                   end
-                 else
-                   lvalue:=tordconstnode(left).value;
+                   lvalue:=lvalue and mask;
                  case nodetype of
                     shrn:
-                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
+                      lvalue:=lvalue shr rvalue;
                     shln:
-                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
+                      lvalue:=lvalue shl rvalue;
                     else
                       internalerror(2019050517);
                  end;
+                 { discard shifted-out bits (shl never triggers overflow/range errors) }
+                 if forinline and
+                    (nodetype=shln) then
+                   lvalue:=lvalue and mask;
+                 result:=create_simplified_ord_const(lvalue,resultdef,forinline,false);
                end
             else if rvalue=0 then
               begin
@@ -745,19 +761,11 @@ implementation
         else if is_constintnode(left) then
           begin
             lvalue:=tordconstnode(left).value;
-            { shl/shr are unsigned operations, so cut off upper bits }
-            case resultdef.size of
-              1:
-                lvalue:=tordconstnode(left).value and byte($ff);
-              2:
-                lvalue:=tordconstnode(left).value and word($ffff);
-              4:
-                lvalue:=tordconstnode(left).value and dword($ffffffff);
-              8:
-                lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-              else
-                internalerror(2013122301);
-            end;
+            if forinline then
+              begin
+                getrangedefmasksize(resultdef, rangedef, mask, size);
+                lvalue:=lvalue and mask;
+              end;
             { '0 shl x' and '0 shr x' are 0 }
             if (lvalue=0) and
                ((cs_opt_level4 in current_settings.optimizerswitches) or
@@ -838,7 +846,7 @@ implementation
 {$elseif defined(cpu16bitalu) or defined(cpu8bitalu)}
                      inserttypeconv(left,get_common_intdef(torddef(left.resultdef),torddef(uinttype),true));
 {$else}
-                     internalerror(2013031301);
+                     internalerror(2013031302);
 {$endif}
                    end
                end;
@@ -884,8 +892,6 @@ implementation
 
 
     function tshlshrnode.pass_1 : tnode;
-      var
-         regs : longint;
       begin
          result:=nil;
          firstpass(left);
@@ -893,24 +899,12 @@ implementation
          if codegenerror then
            exit;
 
+         expectloc:=LOC_REGISTER;
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          { 64 bit ints have their own shift handling }
          if is_64bit(left.resultdef) then
-           begin
-             result := first_shlshr64bitint;
-             if assigned(result) then
-               exit;
-             regs:=2;
-           end
-         else
+           result := first_shlshr64bitint;
 {$endif not cpu64bitalu and not cpuhighleveltarget}
-           begin
-             regs:=1
-           end;
-
-         if (right.nodetype<>ordconstn) then
-           inc(regs);
-         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -930,7 +924,7 @@ implementation
         { constant folding }
         if is_constintnode(left) then
           begin
-             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline);
+             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline,cs_check_overflow in localswitches);
              exit;
           end;
         if is_constrealnode(left) then
@@ -1205,52 +1199,8 @@ implementation
           begin
              v:=tordconstnode(left).value;
              def:=left.resultdef;
-             case torddef(left.resultdef).ordtype of
-               pasbool1,
-               pasbool8,
-               pasbool16,
-               pasbool32,
-               pasbool64:
-                 v:=byte(not(boolean(int64(v))));
-               bool8bit,
-               bool16bit,
-               bool32bit,
-               bool64bit:
-                 begin
-                   if v=0 then
-                     v:=-1
-                   else
-                     v:=0;
-                 end;
-               uchar,
-               uwidechar,
-               u8bit,
-               s8bit,
-               u16bit,
-               s16bit,
-               s32bit,
-               u32bit,
-               s64bit,
-               u64bit:
-                 begin
-                   { unsigned, equal or bigger than the native int size? }
-                   if (torddef(left.resultdef).ordtype in [u64bit,u32bit,u16bit,u8bit,uchar,uwidechar]) and
-                      (is_nativeord(left.resultdef) or is_oversizedord(left.resultdef)) then
-                     begin
-                       { Delphi-compatible: not dword = dword (not word = longint) }
-                       { Extension: not qword = qword                              }
-                       v:=qword(not qword(v));
-                       { will be truncated by the ordconstnode for u32bit }
-                     end
-                   else
-                     begin
-                       v:=int64(not int64(v));
-                       def:=get_common_intdef(torddef(left.resultdef),torddef(sinttype),false);
-                     end;
-                 end;
-               else
-                 CGMessage(type_e_mismatch);
-             end;
+             if not calc_not_ordvalue(v,def) then
+               CGMessage(type_e_mismatch);
              { not-nodes are not range checked by the code generator -> also
                don't range check while inlining; the resultdef is a bit tricky
                though: the node's resultdef gets changed in most cases compared
@@ -1346,12 +1296,12 @@ implementation
            begin
              if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                expectloc:=LOC_REGISTER;
-            { before loading it into flags we need to load it into
-              a register thus 1 register is need PM }
-{$ifdef cpuflags}
+             { xtensa has boolean registers which are treateed as flags but they
+               are not used for boolean expressions }
+{$if defined(cpuflags) and not(defined(xtensa))}
              if left.expectloc<>LOC_JUMP then
                expectloc:=LOC_FLAGS;
-{$endif def cpuflags}
+{$endif defined(cpuflags) and not(defined(xtensa)}
            end
          else
 {$ifdef SUPPORT_MMX}

@@ -88,7 +88,7 @@ procedure next_section;
 
 var n_rules : Integer; (* current number of rules *)
 
-procedure define_start_state ( symbol : String; pos : Integer );
+procedure define_start_state ( symbol : String; pos : Integer; excl : Boolean );
   (* process start state definition *)
   begin
 {$ifdef fpc}
@@ -106,6 +106,7 @@ procedure define_start_state ( symbol : String; pos : Integer );
           writeln(yyout, 'const ', symbol, ' = ', 2*start_state, ';');
           first_pos_table^[2*start_state] := newIntSet;
           first_pos_table^[2*start_state+1] := newIntSet;
+          start_excl^[start_state] := excl;
         end
       else
         error(symbol_already_defined, pos)
@@ -505,12 +506,12 @@ procedure definitions;
     begin
       split(line, 2);
       com := upper(itemv(1));
-      if (com='%S') or (com='%START') then
+      if (com='%S') or (com='%START') or (com='%X') then
         begin
           split(line, max_items);
           for i := 2 to itemc do
             if check_id(itemv(i)) then
-              define_start_state(itemv(i), itempos[i])
+              define_start_state(itemv(i), itempos[i], com='%X')
             else
               error(syntax_error, itempos[i]);
         end

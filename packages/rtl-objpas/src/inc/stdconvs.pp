@@ -332,7 +332,7 @@ ResourceString  // Note, designations for FFU's are guesses.
   txttuYears               = 'Years (years)';
   txttuDecades             = 'Decades (decades)';
   txttuCenturies           = 'Centuries (centuries)';
-  txttuMillennia           = 'Millennia (millenia)';
+  txttuMillennia           = 'Millennia (millennia)';
   txttuDateTime            = 'DateTime (??)';
   txttuJulianDate          = 'JulianDate (??)';
   txttuModifiedJulianDate  = 'Modified JulianData (??)';

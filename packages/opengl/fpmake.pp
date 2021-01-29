@@ -20,7 +20,7 @@ begin
     P.Version:='3.3.1';
     P.OSes:=AllUnixOSes+[Win32,Win64]+[MorphOS]-[Android];
 
-    P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
+    P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim,ios]);
     if Defaults.CPU<>arm then
       P.Dependencies.Add('x11',[darwin]);
     P.Dependencies.Add('morphunits',[morphos]);
@@ -34,7 +34,7 @@ begin
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
     // T.Dependencies.Add('freeglut',AllOSes-[morphos]);
-    T:=P.Targets.AddUnit('glx.pp',AllUnixOSes-[darwin,iphonesim]);
+    T:=P.Targets.AddUnit('glx.pp',AllUnixOSes-[darwin,iphonesim,ios]);
     if Defaults.CPU<>arm then
       T:=P.Targets.AddUnit('glx.pp',[darwin]);
 

@@ -28,14 +28,23 @@ Unit racpugas;
 
     uses
       raatt,racpu,
-      cpubase;
+      aasmtai,
+      cgbase,cpubase;
 
     type
+
+      { taarch64attreader }
+
       taarch64attreader = class(tattreader)
         actoppostfix : TOpPostfix;
+        actinsmmsubreg : TSubRegister;
+        actsehdirective : TAsmSehDirective;
         function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
+        function is_targetdirective(const s: string): boolean;override;
         procedure handleopcode;override;
+        procedure handletargetdirective; override;
+       protected
         procedure BuildReference(oper: taarch64operand; is64bit: boolean);
         procedure BuildOperand(oper: taarch64operand; is64bit: boolean);
         function TryBuildShifterOp(instr: taarch64instruction; opnr: longint) : boolean;
@@ -43,6 +52,8 @@ Unit racpugas;
         procedure ReadSym(oper: taarch64operand; is64bit: boolean);
         procedure ConvertCalljmp(instr: taarch64instruction);
         function ToConditionCode(const hs: string; is_operand: boolean): tasmcond;
+        function ParseArrangementSpecifier(const hs: string): TSubRegister;
+        function ParseRegIndex(const hs: string): byte;
       end;
 
 
@@ -53,12 +64,12 @@ Unit racpugas;
       cutils,
       { global }
       globtype,verbose,
-      systems,aasmbase,aasmtai,aasmdata,aasmcpu,
+      systems,aasmbase,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils,paramgr;
+      cgutils,paramgr;
 
 
     function taarch64attreader.is_register(const s:string):boolean;
@@ -69,9 +80,10 @@ Unit racpugas;
         end;
 
       const
-        extraregs : array[0..3] of treg2str = (
+        extraregs : array[0..4] of treg2str = (
           (name: 'FP' ; reg: NR_FP),
           (name: 'LR' ; reg: NR_LR),
+          (name: 'XR' ; reg: NR_XR),
           (name: 'IP0'; reg: NR_IP0),
           (name: 'IP1'; reg: NR_IP1));
 
@@ -81,9 +93,9 @@ Unit racpugas;
       begin
         result:=inherited is_register(s);
         { reg found?
-          possible aliases are always 2 or 3 chars
+          possible aliases are always 2 chars
         }
-        if result or not(length(s) in [2,3]) then
+        if result or not(length(s) in [2]) then
           exit;
         for i:=low(extraregs) to high(extraregs) do
           begin
@@ -94,6 +106,46 @@ Unit racpugas;
                 actasmtoken:=AS_REGISTER;
                 exit;
               end;
+          end;
+      end;
+
+
+    const
+      { Aarch64 subset of SEH directives. .seh_proc, .seh_endproc and .seh_endepilogue
+        excluded because they are generated automatically when needed. }
+      recognized_directives: set of TAsmSehDirective=[
+        ash_endprologue,ash_handler,ash_handlerdata,
+        ash_stackalloc,ash_nop,ash_savefplr,ash_savefplr_x,
+        ash_savereg,ash_savereg_x,ash_saveregp,ash_saveregp_x,
+        ash_savefreg,ash_savefreg_x,ash_savefregp,ash_savefregp_x,
+        ash_setfp,ash_addfp
+      ];
+
+
+    function taarch64attreader.is_targetdirective(const s: string): boolean;
+      var
+        i: TAsmSehDirective;
+      begin
+        result:=false;
+        if target_info.system<>system_aarch64_win64 then
+          exit;
+
+        for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do
+          begin
+            if not (i in recognized_directives) then
+              continue;
+            if s=sehdirectivestr[i] then
+              begin
+                actsehdirective:=i;
+                result:=true;
+                break;
+              end;
+          end;
+        { allow SEH directives only in pure assember routines }
+        if result and not (po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            Message(asmr_e_seh_in_pure_asm_only);
+            result:=false;
           end;
       end;
 
@@ -461,7 +513,7 @@ Unit racpugas;
 
       const
         shiftmode2str: array[SM_LSL..SM_SXTX] of string[4] =
-          ('LSL','LSR','ASR',
+          ('LSL','LSR','ASR','ROR',
            'UXTB','UXTH','UXTW','UXTX',
            'SXTB','SXTH','SXTW','SXTX');
       var
@@ -526,7 +578,51 @@ Unit racpugas;
           else
             ;
         end;
-        result:=C_None;;
+        result:=C_None;
+      end;
+
+
+    function taarch64attreader.ParseArrangementSpecifier(const hs: string): TSubRegister;
+{$push}{$j-}
+      const
+        arrangements: array[R_SUBMM8B..R_SUBMM2D] of string[4] =
+          ('.8B','.16B','.4H','.8H','.2S','.4S','.1D','.2D');
+{$pop}
+      begin
+        if length(hs)>2 then
+          begin
+            for result:=low(arrangements) to high(arrangements) do
+              if hs=arrangements[result] then
+                exit;
+            result:=R_SUBNONE;
+          end
+        else
+          case hs of
+            '.B': result:=R_SUBMMB1;
+            '.H': result:=R_SUBMMH1;
+            '.S': result:=R_SUBMMS1;
+            '.D': result:=R_SUBMMD1;
+            else
+              result:=R_SUBNONE;
+          end
+      end;
+
+
+    function taarch64attreader.ParseRegIndex(const hs: string): byte;
+      var
+        b: cardinal;
+        error: longint;
+      begin
+        b:=0;
+        val(hs,b,error);
+        if (error<>0) then
+          Message(asmr_e_syn_constant)
+        else if b > 31 then
+          begin
+            Message(asmr_e_constant_out_of_bounds);
+            b:=0;
+          end;
+        result:=b;
       end;
 
 
@@ -565,7 +661,8 @@ Unit racpugas;
                oper.opr.symbol:=hl;
              end
             else if (actopcode=A_ADR) or
-               (actopcode=A_ADRP) then
+               (actopcode=A_ADRP) or
+               (actopcode=A_LDR) then
               begin
                 oper.InitRef;
                 MaybeAddGotAddrMode;
@@ -675,11 +772,50 @@ Unit racpugas;
             end; { end case }
           end;
 
+      function parsereg: tregister;
+         var
+           subreg: tsubregister;
+        begin
+          result:=actasmregister;
+          Consume(AS_REGISTER);
+          if (actasmtoken=AS_ID) and
+             (actasmpattern[1]='.') then
+            begin
+              subreg:=ParseArrangementSpecifier(upper(actasmpattern));
+              if (subreg<>R_SUBNONE) and
+                 (getregtype(result)=R_MMREGISTER) and
+                 ((actinsmmsubreg=R_SUBNONE) or
+                  (actinsmmsubreg=subreg)) then
+                begin
+                  setsubreg(result,subreg);
+                  { they all have to be the same }
+                  actinsmmsubreg:=subreg;
+                end
+              else
+                Message1(asmr_e_invalid_arrangement,actasmpattern);
+              Consume(AS_ID);
+            end
+          else if (getregtype(result)=R_MMREGISTER) then
+            begin
+              if actinsmmsubreg<>R_SUBNONE then
+                begin
+                  if (getsubreg(result)=R_SUBNONE) or
+                     (getsubreg(result)=actinsmmsubreg) then
+                    setsubreg(result,actinsmmsubreg)
+                  else
+                     Message1(asmr_e_invalid_arrangement,actasmpattern);
+                end
+              else if getsubreg(result)=R_SUBNONE then
+                { Vxx without an arrangement is invalid, use Qxx to specify the entire 128 bits}
+                Message1(asmr_e_invalid_arrangement,'');
+            end;
+        end;
 
       var
         tempreg: tregister;
         hl: tasmlabel;
         icond: tasmcond;
+        regindex: byte;
       Begin
         expr:='';
         case actasmtoken of
@@ -687,6 +823,35 @@ Unit racpugas;
             Begin
               oper.InitRef;
               BuildReference(oper,is64bit);
+            end;
+
+          AS_LSBRACKET: { register set }
+            begin
+              consume(AS_LSBRACKET);
+              oper.opr.typ:=OPR_REGSET;
+              oper.opr.basereg:=parsereg;
+              oper.opr.nregs:=1;
+              while (oper.opr.nregs<4) and
+                    (actasmtoken=AS_COMMA) do
+                begin
+                  consume(AS_COMMA);
+                  tempreg:=parsereg;
+                  if getsupreg(tempreg)<>((getsupreg(oper.opr.basereg)+oper.opr.nregs) mod 32) then
+                    Message(asmr_e_a64_invalid_regset);
+                  inc(oper.opr.nregs);
+                end;
+              consume(AS_RSBRACKET);
+              if actasmtoken=AS_LBRACKET then
+                begin
+                  consume(AS_LBRACKET);
+                  oper.opr.regsetindex:=ParseRegIndex(actasmpattern);
+                  consume(AS_INTNUM);
+                  consume(AS_RBRACKET);
+                end
+              else
+                oper.opr.regsetindex:=255;
+              if not(actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+                Message(asmr_e_syn_operand);
             end;
 
           AS_HASH: { Constant expression  }
@@ -790,8 +955,11 @@ Unit racpugas;
                           else
                             Message1(sym_e_unknown_id,expr);
                         end
-                       else
-                         MaybeAddGotAddrMode;
+                       else if oper.opr.typ<>OPR_LOCAL then
+                         begin
+                           oper.InitRef;
+                           MaybeAddGotAddrMode;
+                         end;
                      end;
                   end;
                   if actasmtoken=AS_DOT then
@@ -808,7 +976,7 @@ Unit racpugas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092005);
                      end;
                    end
                end;
@@ -821,14 +989,31 @@ Unit racpugas;
           AS_REGISTER:
             Begin
               { save the type of register used. }
-              tempreg:=actasmregister;
-              Consume(AS_REGISTER);
-              if (actasmtoken in [AS_end,AS_SEPARATOR,AS_COMMA]) then
-                Begin
-                  if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+              tempreg:=parsereg;
+              regindex:=255;
+              if (getregtype(tempreg)=R_MMREGISTER) and
+                 (actasmtoken=AS_LBRACKET) then
+                begin
+                  consume(AS_LBRACKET);
+                  regindex:=ParseRegIndex(actasmpattern);
+                  consume(AS_INTNUM);
+                  consume(AS_RBRACKET);
+                end;
+              if actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA] then
+                begin
+                  if (oper.opr.typ<>OPR_NONE) then
                     Message(asmr_e_invalid_operand_type);
-                  oper.opr.typ:=OPR_REGISTER;
-                  oper.opr.reg:=tempreg;
+                  if regindex=255 then
+                    begin
+                      oper.opr.typ:=OPR_REGISTER;
+                      oper.opr.reg:=tempreg;
+                    end
+                  else
+                    begin
+                      oper.opr.typ:=OPR_INDEXEDREG;
+                      oper.opr.indexedreg:=tempreg;
+                      oper.opr.regindex:=regindex;
+                    end;
                 end
               else
                 Message(asmr_e_syn_operand);
@@ -934,6 +1119,13 @@ Unit racpugas;
           PF_B,PF_H,PF_W,
           PF_S);
 
+                      { store replicate }
+        ldst14: array[boolean,boolean,'1'..'4'] of tasmop =
+          (((A_LD1,A_LD2,A_LD3,A_LD4),
+            (A_LD1R,A_LD2R,A_LD3R,A_LD4R)),
+           ((A_ST1,A_ST2,A_ST3,A_ST4),
+            (A_NONE,A_NONE,A_NONE,A_NONE)));
+
       var
         j  : longint;
         hs : string;
@@ -956,6 +1148,29 @@ Unit racpugas;
             actasmtoken:=AS_OPCODE;
             actcondition:=ToConditionCode(copy(hs,3,length(actasmpattern)-2),false);
             if actcondition<>C_None then
+              is_asmopcode:=true;
+            exit;
+          end;
+
+        (* ldN(r)/stN.size ? (shorthand for "ldN(r)/stN { Vx.size, Vy.size } ..."
+          supported by clang and possibly gas *)
+        actinsmmsubreg:=R_SUBNONE;
+        if (length(s)>=5) and
+           (((hs[1]='L') and
+             (hs[2]='D')) or
+            ((hs[1]='S') and
+             (hs[2]='T'))) and
+           (hs[3] in ['1'..'4']) and
+           ((hs[4]='.') or
+            ((hs[4]='R') and
+             (hs[5]='.'))) then
+          begin
+            actinsmmsubreg:=ParseArrangementSpecifier(copy(hs,4+ord(hs[4]='R'),255));
+            if actinsmmsubreg=R_SUBNONE then
+              exit;
+            actopcode:=ldst14[hs[1]='S',hs[4]='R',hs[3]];
+            actasmtoken:=AS_OPCODE;
+            if actopcode<>A_NONE then
               is_asmopcode:=true;
             exit;
           end;
@@ -1028,6 +1243,184 @@ Unit racpugas;
         instr.ConcatInstruction(curlist);
         instr.Free;
         actoppostfix:=PF_None;
+      end;
+
+
+    procedure taarch64attreader.handletargetdirective;
+
+      function maxoffset(ash:TAsmSehDirective):aint;
+        begin
+          case ash of
+            ash_savefplr,
+            ash_saveregp,
+            ash_savereg,
+            ash_savefregp,
+            ash_savefreg:
+              result:=504;
+            ash_savefplr_x,
+            ash_saveregp_x,
+            ash_savefregp_x:
+              result:=-512;
+            ash_savereg_x,
+            ash_savefreg_x:
+              result:=-256;
+            ash_addfp:
+              result:=2040;
+            else
+              internalerror(2020041204);
+          end;
+        end;
+
+      procedure add_reg_with_offset(ash:TAsmSehDirective;hreg:tregister;hnum:aint;neg:boolean);
+        begin
+          if (neg and ((hnum>0) or (hnum<maxoffset(ash)) or (((-hnum) and $7)<>0))) or
+              (not neg and ((hnum<0) or (hnum>maxoffset(ash)) or ((hnum and $7)<>0))) then
+            Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
+          else
+            begin
+              if neg then
+                hnum:=-hnum;
+              if hreg=NR_NO then
+                curlist.concat(cai_seh_directive.create_offset(actsehdirective,hnum))
+              else
+                curlist.concat(cai_seh_directive.create_reg_offset(actsehdirective,hreg,hnum));
+            end;
+        end;
+
+      var
+        hreg,
+        hreg2 : TRegister;
+        hnum : aint;
+        flags : integer;
+        ai : tai_seh_directive;
+        hs : string;
+        err : boolean;
+      begin
+        if actasmtoken<>AS_TARGET_DIRECTIVE then
+          InternalError(2020033102);
+        Consume(AS_TARGET_DIRECTIVE);
+        Include(current_procinfo.flags,pi_has_unwind_info);
+
+        case actsehdirective of
+          ash_nop,
+          ash_setfp,
+          ash_endprologue,
+          ash_handlerdata:
+            curlist.concat(cai_seh_directive.create(actsehdirective));
+
+          ash_handler:
+            begin
+              hs:=actasmpattern;
+              Consume(AS_ID);
+              flags:=0;
+              err:=false;
+              while actasmtoken=AS_COMMA do
+                begin
+                  Consume(AS_COMMA);
+                  if actasmtoken=AS_AT then
+                    begin
+                      Consume(AS_AT);
+                      if actasmtoken=AS_ID then
+                        begin
+                          uppervar(actasmpattern);
+                          if actasmpattern='EXCEPT' then
+                            flags:=flags or 1
+                          else if actasmpattern='UNWIND' then
+                            flags:=flags or 2
+                          else
+                            err:=true;
+                          Consume(AS_ID);
+                        end
+                      else
+                        err:=true;
+                    end
+                  else
+                    err:=true;
+                  if err then
+                    begin
+                      Message(asmr_e_syntax_error);
+                      RecoverConsume(false);
+                      exit;
+                    end;
+                end;
+
+              ai:=cai_seh_directive.create_name(ash_handler,hs);
+              ai.data.flags:=flags;
+              curlist.concat(ai);
+            end;
+          ash_savefplr,
+          ash_savefplr_x:
+            begin
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,NR_NO,hnum,actsehdirective=ash_savefplr_x);
+            end;
+          ash_savereg,
+          ash_savereg_x:
+            begin
+              hreg:=actasmregister;
+              Consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              Consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savereg_x);
+            end;
+          ash_saveregp,
+          ash_saveregp_x:
+            begin
+              hreg:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hreg2:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg2)<>R_INTREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_saveregp_x);
+            end;
+          ash_savefreg,
+          ash_savefreg_x:
+            begin
+              hreg:=actasmregister;
+              Consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              Consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefreg_x);
+            end;
+          ash_savefregp,
+          ash_savefregp_x:
+            begin
+              hreg:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hreg2:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg2)<>R_MMREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefregp_x);
+            end;
+          ash_stackalloc:
+            begin
+              hnum:=BuildConstExpression(false,false);
+              if (hnum<0) or (hnum>$FFFFFF) or ((hnum and 7)<>0) then
+                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
+              else
+                curlist.concat(cai_seh_directive.create_offset(ash_stackalloc,hnum));
+            end;
+          else
+            InternalError(2020033103);
+        end;
+        if actasmtoken<>AS_SEPARATOR then
+          Consume(AS_SEPARATOR);
       end;
 
 

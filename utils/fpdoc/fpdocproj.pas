@@ -51,16 +51,21 @@ Type
     FCPUTarget: String;
     FDefaultPackageName: String;
     FEmitNotes: Boolean;
+    FEndianNess: String;
     FFormat: String;
     FHidePrivate: Boolean;
     FHideProtected: Boolean;
+    FFallBackSeeAlsoLinks: Boolean;
     FIO: Boolean;
     FLanguage: String;
     FMoDir: String;
     FOSTarget: String;
     FSOPE: Boolean;
+    FWarnDocumentationEmpty: Boolean;
     FWarnNoNode: Boolean;
     FDontTrim : Boolean;
+    FInfoUsedFile: Boolean;
+    FWarnXCT: Boolean;
     procedure SetBackendOptions(const AValue: TStrings);
   Public
     Constructor Create;
@@ -69,18 +74,24 @@ Type
   Published
     Property OSTarget : String Read FOSTarget Write FOStarget;
     Property CPUTarget : String Read FCPUTarget Write FCPUTarget;
+    Property EndianNess : String Read FEndianNess Write FEndianNess;
     Property Language : String Read FLanguage Write fLanguage;
     Property Backend : String Read FFormat Write FFormat;
     Property BackendOptions : TStrings Read FBackEndoptions Write SetBackendOptions;
     Property StopOnParseError : Boolean Read FSOPE Write FSOPE;
     Property HideProtected : Boolean Read FHideProtected Write FHideProtected;
+    Property FallBackSeeAlsoLinks :Boolean Read  FFallBackSeeAlsoLinks Write FFallBackSeeAlsoLinks;
     Property WarnNoNode : Boolean Read FWarnNoNode Write FWarnNoNode;
+    Property InfoUsedFile : Boolean Read FInfoUsedFile Write FInfoUsedFile;
+    Property WarnDocumentationEmpty : Boolean Read FWarnDocumentationEmpty Write FWarnDocumentationEmpty;
+    Property WarnXCT : Boolean Read FWarnXCT Write FWarnXCT;
     Property ShowPrivate : Boolean Read FHidePrivate Write FHidePrivate;
     Property InterfaceOnly : Boolean Read FIO Write FIO;
     Property MoDir : String Read FMoDir Write FMODir;
     Property DefaultPackageName : String Read FDefaultPackageName Write FDefaultPackageName;
     Property DontTrim : Boolean Read FDontTrim Write FDontTrim;
     Property EmitNotes : Boolean Read FEmitNotes Write FEmitNotes;
+
   end;
 
   { TFPDocProject }
@@ -186,6 +197,9 @@ begin
     FSOPE:=O.StopOnParseError;
     HideProtected:=O.HideProtected;
     WarnNoNode:=O.WarnNoNode;
+    InfoUsedFile:=O.InfoUsedFile;
+    WarnDocumentationEmpty:=O.WarnDocumentationEmpty;
+    WarnXCT:=O.WarnXCT;
     ShowPrivate:=O.ShowPrivate;
     InterfaceOnly:=O.InterfaceOnly;
     MoDir:=O.MoDir;

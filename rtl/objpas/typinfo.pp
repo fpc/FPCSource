@@ -477,12 +477,12 @@ unit TypInfo;
         case TTypeKind of
           tkRecord: (
             Terminator: Pointer;
-            Size: Integer;
+            Size: Longint;
 {$ifndef VER3_0}
             InitOffsetOp: PRecOpOffsetTable;
             ManagementOp: Pointer;
 {$endif}
-            ManagedFieldCount: Integer;
+            ManagedFieldCount: Longint;
           { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
           );
           { include for proper alignment }
@@ -710,10 +710,10 @@ unit TypInfo;
 {$ifndef VER3_0}
                 RecInitInfo: Pointer; { points to TTypeInfo followed by init table }
 {$endif VER3_0}
-                RecSize: Integer;
+                RecSize: Longint;
                 case Boolean of
-                  False: (ManagedFldCount: Integer deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
-                  True: (TotalFieldCount: Integer);
+                  False: (ManagedFldCount: Longint deprecated 'Use RecInitData^.ManagedFieldCount or TotalFieldCount depending on your use case');
+                  True: (TotalFieldCount: Longint);
                 {ManagedFields: array[1..TotalFieldCount] of TManagedField}
               );
             tkHelper:
@@ -812,7 +812,7 @@ unit TypInfo;
         GetProc : CodePointer;
         SetProc : CodePointer;
         StoredProc : CodePointer;
-        Index : Integer;
+        Index : Longint;
         Default : Longint;
         NameIndex : SmallInt;
 
@@ -1196,11 +1196,18 @@ end;
 Function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
 
 begin
-  Result:=SetToString(PropInfo^.PropType, @Value, Brackets);
+  Result:=SetToString(PropInfo^.PropType, Value, Brackets);
 end;
 
 Function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
 begin
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Value := Value shl (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Value := Value shl (SizeOf(Integer)*8-16);
+  end;
+{$endif}
   Result := SetToString(TypeInfo, @Value, Brackets);
 end;
 
@@ -1295,12 +1302,19 @@ end;
 Function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 
 begin
-  StringToSet(PropInfo^.PropType,Value,@Result);
+  Result:=StringToSet(PropInfo^.PropType,Value);
 end;
 
 Function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 begin
   StringToSet(TypeInfo, Value, @Result);
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Result := Result shr (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Result := Result shr (SizeOf(Integer)*8-16);
+  end;
+{$endif}
 end;
 
 procedure StringToSet(TypeInfo: PTypeInfo; const Value: String; Result: Pointer);

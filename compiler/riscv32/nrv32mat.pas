@@ -63,9 +63,9 @@ implementation
       var
         tlabel, flabel: tasmlabel;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             case left.location.loc of
               LOC_FLAGS :
                 begin
@@ -80,13 +80,10 @@ implementation
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
-                  current_asmdata.getjumplabel(tlabel);
-                  current_asmdata.getjumplabel(flabel);
+                  location_reset(location,LOC_REGISTER,OS_INT);
+                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
 
-                  location_reset_jump(location,tlabel,flabel);
-
-                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,tlabel);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,flabel);
+                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,left.location.register,1));
                end;
               else
                 internalerror(2003042401);
@@ -103,7 +100,7 @@ implementation
         else
           op:=A_DIVU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,denum,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
       end;
 
     procedure trv32moddivnode.emit_mod_reg_reg(signed: boolean; denum, num: tregister);
@@ -115,7 +112,7 @@ implementation
         else
           op:=A_REMU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,denum,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
       end;
 
 

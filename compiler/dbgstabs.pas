@@ -158,7 +158,8 @@ implementation
       defutil, cgutils, parabase,
       cpuinfo,cpubase,cpupi,paramgr,
       aasmbase,procinfo,
-      finput,fmodule,ppu;
+      finput,fmodule,ppu,
+      symutil;
 
 
     const
@@ -196,7 +197,7 @@ implementation
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
@@ -206,7 +207,7 @@ implementation
       else
         result := SymTable.RealName^;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     const
@@ -428,8 +429,7 @@ implementation
         if (tsym(p).visibility=vis_hidden) then
           exit;
         { static variables from objects are like global objects }
-        if (Tsym(p).typ=fieldvarsym) and
-           not(sp_static in Tsym(p).symoptions) then
+        if is_normal_fieldvarsym(Tsym(p)) then
           begin
            case tsym(p).visibility of
              vis_private,
@@ -480,6 +480,9 @@ implementation
       begin
         if tsym(p).typ = procsym then
          begin
+           if (sp_generic_dummy in tsym(p).symoptions) and
+               (tprocsym(p).procdeflist.count=0) then
+             exit;
            pd :=tprocdef(tprocsym(p).ProcdefList[0]);
            if (po_virtualmethod in pd.procoptions) and
                not is_objectpascal_helper(pd.struct) then
@@ -557,8 +560,7 @@ implementation
 
     procedure TDebugInfoStabs.field_write_defs(p:TObject;arg:pointer);
       begin
-        if (Tsym(p).typ=fieldvarsym) and
-           not(sp_static in Tsym(p).symoptions) then
+        if is_normal_fieldvarsym(Tsym(p)) then
           appenddef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
@@ -569,7 +571,7 @@ implementation
           just associated to pointer types }
         use_tag_prefix:=(def.typ in tagtypes) and
                       ((def.typ<>stringdef) or
-                       (tstringdef(tdef).stringtype in [st_shortstring,st_longstring]));
+                       (tstringdef(def).stringtype in [st_shortstring,st_longstring]));
       end;
 
 
@@ -1191,7 +1193,7 @@ implementation
         if s='name' then
           result:=GetSymName(sym)
         else if s='mangledname' then
-          result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname)
+          result:=ApplyAsmSymbolRestrictions(sym.mangledname)
         else if s='ownername' then
           result:=GetSymTableName(sym.owner)
         else if s='line' then
@@ -1218,7 +1220,7 @@ implementation
 
     function TDebugInfoStabs.staticvarsym_mangled_name(sym: tstaticvarsym): string;
       begin
-        result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname);
+        result:=ApplyAsmSymbolRestrictions(sym.mangledname);
       end;
 
 
@@ -1229,7 +1231,7 @@ implementation
            assigned(def.owner.name) then
           list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                  def_stab_number(vmttype)+'",'+
-                 base_stabs_str(globalvarsym_inited_stab,'0','0',ReplaceForbiddenAsmSymbolChars(tobjectdef(def).vmt_mangledname))));
+                 base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname))));
       end;
 
 
@@ -1402,7 +1404,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        mangledname:=ReplaceForbiddenAsmSymbolChars(def.mangledname);
+        mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
         if target_info.system in systems_dotted_function_names then
           mangledname:='.'+mangledname;
         result.concat(Tai_stab.Create_ansistr(stabsdir,'"'+obj+':'+RType+def_stab_number(def.returndef)+info+'",'+
@@ -1562,7 +1564,7 @@ implementation
                   ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,getoffsetstr(sym.localloc.reference)])
                 end;
               else
-                internalerror(2003091814);
+                internalerror(2003091805);
             end;
           end;
         write_sym_stabstr(list,sym,ss);
@@ -1863,7 +1865,7 @@ implementation
         dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
+        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
           exit;
         new_section(list,sec_fpc,'links',0);
         { make sure the debuginfo doesn't get stripped out }

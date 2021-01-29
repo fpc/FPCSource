@@ -1243,7 +1243,10 @@ end;
 Procedure THandleStream.SetSize(const NewSize: Int64);
 
 begin
-  FileTruncate(FHandle,NewSize);
+  // We set the position afterwards, because the size can also be larger.
+  if not FileTruncate(FHandle,NewSize) then
+    Raise EInOutError.Create(SStreamSetSize);
+  Position:=NewSize;
 end;
 
 
@@ -1276,9 +1279,21 @@ begin
 
   If (THandle(FHandle)=feInvalidHandle) then
     If Mode=fmcreate then
+    begin
+      {$if declared(GetLastOSError)}
+      raise EFCreateError.createfmt(SFCreateErrorEx,[AFileName, SysErrorMessage(GetLastOSError)])
+      {$else}
       raise EFCreateError.createfmt(SFCreateError,[AFileName])
+      {$endif}
+    end
     else
+    begin
+      {$if declared(GetLastOSError)}
+      raise EFOpenError.Createfmt(SFOpenErrorEx,[AFilename, SysErrorMessage(GetLastOSError)]);
+      {$else}
       raise EFOpenError.Createfmt(SFOpenError,[AFilename]);
+      {$endif}
+    end;
 end;
 
 
@@ -1522,7 +1537,7 @@ begin
   Result:=FEncoding.GetAnsiString(Bytes,0,Size);
 end;
 
-function TStringStream.GetUnicodeDataString: String;
+function TStringStream.GetUnicodeDataString: UnicodeString;
 begin
   Result:=FEncoding.GetString(Bytes, 0, Size);
 end;
@@ -1640,6 +1655,7 @@ begin
   NewLen:=Size-FPosition;
   If NewLen>Count then NewLen:=Count;
   Result:=FEncoding.GetAnsiString(FBytes,FPosition,NewLen);
+  Inc(FPosition,NewLen);
 end;
 
 procedure TStringStream.WriteAnsiString(const AString: AnsiString);
@@ -1651,6 +1667,52 @@ begin
   B:=FEncoding.GetAnsiBytes(AString);
   if Length(B)>0 then
     WriteBuffer(B[0],Length(B));
+end;
+
+
+
+{****************************************************************************}
+{*                          TRawByteStringStream                            *}
+{****************************************************************************}
+
+constructor TRawByteStringStream.Create(const aData: RawByteString);
+begin
+  Inherited Create;
+  If Length(aData)>0 then
+    begin
+    WriteBuffer(aData[1],Length(aData));
+    Position:=0;
+    end;
+end;
+
+function TRawByteStringStream.DataString: RawByteString;
+begin
+  Result:='';
+  SetLength(Result,Size);
+  if Size>0 then
+    Move(Memory^, Result[1], Size);
+end;
+
+function TRawByteStringStream.ReadString(Count: Longint): RawByteString;
+Var
+  NewLen : Longint;
+
+begin
+  NewLen:=Size-FPosition;
+  If NewLen>Count then NewLen:=Count;
+  Result:='';
+  if NewLen>0 then
+    begin
+    SetLength(Result, NewLen);
+    Move(FBytes[FPosition],Result[1],NewLen);
+    inc(FPosition,Newlen);
+    end;
+end;
+
+procedure TRawByteStringStream.WriteString(const AString: RawByteString);
+begin
+  if Length(AString)>0 then
+    WriteBuffer(AString[1],Length(AString));
 end;
 
 
@@ -1974,14 +2036,6 @@ end;
 function TProxyStream.GetIStream: IStream;
 begin
   Result := FStream;
-end;
-
-procedure TProxyStream.Check(err:integer);
-var e : EInOutError;
-begin
-  e:= EInOutError.Create('Proxystream.Check');
-  e.Errorcode:=err;
-  raise e;
 end;
 
 {$pop}

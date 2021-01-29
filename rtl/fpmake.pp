@@ -91,7 +91,9 @@ begin
           AddInclude('$(CPU).inc');
           AddInclude('fastmove.inc',[i386],AllOSes);
           AddInclude('math.inc');
-          AddInclude('real2str.inc');
+          AddInclude('flt_conv.inc');
+          AddInclude('flt_core.inc');
+          AddInclude('flt_pack.inc');
           AddInclude('systhrd.inc',AllWindowsOSes+[Netware,Netwlibc,EMX,OS2]);
           // Unix implementations
           AddInclude('osdefs.inc',AllUnixOSes);

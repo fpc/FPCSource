@@ -126,10 +126,10 @@ implementation
         current_module.headerflags:=current_module.headerflags or uf_static_linked;
 
         if create_smartlink_library then
-         begin
-           current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
-           current_module.headerflags:=current_module.headerflags or uf_smart_linked;
-         end;
+          begin
+            current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
+            current_module.headerflags:=current_module.headerflags or uf_smart_linked;
+          end;
         if cs_lto in current_settings.moduleswitches then
           begin
             current_module.linkunitofiles.add(ChangeFileExt(current_module.objfilename,LTOExt),link_lto);
@@ -192,7 +192,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=cunitsym.create(hp.modulename^,hp,true);
+        unitsym:=cunitsym.create(hp.modulename^,hp);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         if addasused then
@@ -327,6 +327,9 @@ implementation
            { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in current_settings.globalswitches) then
              AddUnit('heaptrc');
+           { Valgrind requires c memory manager }
+           if (cs_gdb_valgrind in current_settings.globalswitches) then
+             AddUnit('cmem');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              case target_dbg.id of
@@ -338,9 +341,6 @@ implementation
                  AddUnit('lnfodwrf');
              end;
            end;
-           { Valgrind requires c memory manager }
-           if (cs_gdb_valgrind in current_settings.globalswitches) then
-             AddUnit('cmem');
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
@@ -408,7 +408,7 @@ implementation
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
         { CPU targets with microcontroller support can add a controller specific unit }
-        if ControllerSupport and (target_info.system in systems_embedded) and
+        if ControllerSupport and (target_info.system in (systems_embedded+systems_freertos)) and
           (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
@@ -491,7 +491,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               current_tokenpos:=filepos;
-              unitsym:=cunitsym.create(sorg,nil,false);
+              unitsym:=cunitsym.create(sorg,nil);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -550,7 +550,7 @@ implementation
                      end;
                    { update unitsym now that we have access to the full name }
                    pu.unitsym.free;
-                   pu.unitsym:=cunitsym.create(sorg,pu.u,true);
+                   pu.unitsym:=cunitsym.create(sorg,pu.u);
                  end
                else
                  begin
@@ -716,7 +716,7 @@ implementation
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
-                          vs_value,voidpointertype,[vo_is_external],true);
+                          vs_value,voidpointertype,[vo_is_external]);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
              { avoid unnecessary warnings }
@@ -827,7 +827,7 @@ implementation
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def,true);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}
@@ -933,7 +933,7 @@ type
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          { load default system unit, it must be loaded before interface is parsed
            else we cannot use e.g. feature switches before the next real token }
@@ -1705,7 +1705,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -1748,7 +1748,8 @@ type
 
          if target_info.system in systems_all_windows+systems_nativent then
            begin
-             main_procinfo:=create_main_proc('_DLLMainCRTStartup',potype_pkgstub,current_module.localsymtable);
+             main_procinfo:=create_main_proc('_PkgEntryPoint',potype_pkgstub,current_module.localsymtable);
+             main_procinfo.procdef.aliasnames.concat('_DLLMainCRTStartup');
              main_procinfo.code:=generate_pkg_stub(main_procinfo.procdef);
              main_procinfo.generate_code;
            end;
@@ -1962,7 +1963,7 @@ type
          sc:=nil;
 
          { DLL defaults to create reloc info }
-         if islibrary then
+         if islibrary or (target_info.system in [system_aarch64_win64]) then
            begin
              if not RelocSectionSetExplicitly then
                RelocSection:=true;
@@ -2150,7 +2151,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -2194,7 +2195,7 @@ type
 
             cnodeutils.RegisterModuleInitFunction(initpd);
           end
-         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
+         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
            begin
              { create a stub with the name of the desired main routine, with
                the same signature as the C "main" function, and call through to
@@ -2475,7 +2476,7 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    if (hp<>sysinitmod) and ((hp.headerflags and uf_in_library)=0) then
+                    if (hp<>sysinitmod) and not assigned(hp.package) then
                       begin
                         linker.AddModuleFiles(hp);
                         if mf_checkpointer_called in hp.moduleflags then

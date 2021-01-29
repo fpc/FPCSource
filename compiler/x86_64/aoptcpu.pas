@@ -35,7 +35,6 @@ type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
     function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
-    procedure PostPeepHoleOpts; override;
   end;
 
 implementation
@@ -72,23 +71,33 @@ uses
           ait_instruction:
             begin
               case taicpu(p).opcode of
+                A_ADD:
+                  Result:=OptPass1ADD(p);
                 A_AND:
                   Result:=OptPass1AND(p);
+                A_IMUL:
+                  Result:=OptPass1Imul(p);
                 A_MOV:
                   Result:=OptPass1MOV(p);
                 A_MOVSX,
+                A_MOVSXD,
                 A_MOVZX:
                   Result:=OptPass1Movx(p);
+                A_MOVAPD,
+                A_MOVAPS,
+                A_MOVUPD,
+                A_MOVUPS,
                 A_VMOVAPS,
                 A_VMOVAPD,
                 A_VMOVUPS,
                 A_VMOVUPD:
-                  result:=OptPass1VMOVAP(p);
-                A_MOVAPD,
-                A_MOVAPS,
-                A_MOVUPD,
-                A_MOVUPS:
-                  result:=OptPass1MOVAP(p);
+                  result:=OptPass1_V_MOVAP(p);
+                A_VMINSS,
+                A_VMINSD,
+                A_VMAXSS,
+                A_VMAXSD,
+                A_VSQRTSD,
+                A_VSQRTSS,
                 A_VDIVSD,
                 A_VDIVSS,
                 A_VSUBSD,
@@ -100,9 +109,7 @@ uses
                 A_VANDPD,
                 A_VANDPS,
                 A_VORPD,
-                A_VORPS,
-                A_VXORPD,
-                A_VXORPS:
+                A_VORPS:
                   result:=OptPass1VOP(p);
                 A_MULSD,
                 A_MULSS,
@@ -126,6 +133,18 @@ uses
                   result:=OptPass1FSTP(p);
                 A_FLD:
                   result:=OptPass1FLD(p);
+                A_CMP:
+                  result:=OptPass1Cmp(p);
+                A_VPXORD,
+                A_VPXORQ,
+                A_VXORPS,
+                A_VXORPD,
+                A_VPXOR:
+                  Result:=OptPass1VPXor(p);
+                A_XORPS,
+                A_XORPD,
+                A_PXOR:
+                  Result:=OptPass1PXor(p);
                 else
                   ;
               end;
@@ -146,12 +165,20 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=OptPass2MOV(p);
+                A_MOVZX:
+                  Result:=OptPass2Movx(p);
                 A_IMUL:
                   Result:=OptPass2Imul(p);
                 A_JMP:
                   Result:=OptPass2Jmp(p);
                 A_Jcc:
                   Result:=OptPass2Jcc(p);
+                A_Lea:
+                  Result:=OptPass2Lea(p);
+                A_SUB:
+                  Result:=OptPass2SUB(p);
+                A_ADD:
+                  Result:=OptPass2ADD(p);
                 else
                   ;
               end;
@@ -171,6 +198,10 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=PostPeepholeOptMov(p);
+                A_AND:
+                  Result:=PostPeepholeOptAnd(p);
+                A_MOVSX:
+                  Result:=PostPeepholeOptMOVSX(p);
                 A_MOVZX:
                   Result:=PostPeepholeOptMovzx(p);
                 A_CMP:
@@ -184,21 +215,25 @@ uses
                   Result:=PostPeepholeOptCall(p);
                 A_LEA:
                   Result:=PostPeepholeOptLea(p);
+                A_PUSH:
+                  Result:=PostPeepholeOptPush(p);
+                A_SHR:
+                  Result:=PostPeepholeOptShr(p);
                 else
                   ;
               end;
+
+              { Optimise any reference-type operands (if Result is True, the
+                instruction will be checked on the next iteration) }
+              if not Result then
+                OptimizeRefs(taicpu(p));
+
             end;
           else
             ;
         end;
       end;
 
-
-    procedure TCpuAsmOptimizer.PostPeepHoleOpts;
-      begin
-        inherited;
-        OptReferences;
-      end;
 
 begin
   casmoptimizer := TCpuAsmOptimizer;

@@ -2506,7 +2506,7 @@ wpo_cant_create_feedback_file=12019_E_евозможно создать файл обратной связи "$1"
 #
 option_logo=11023_[
 Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
-Copyright (c) 1993-2019 by Florian Klaempfl and others
+Copyright (c) 1993-2021 by Florian Klaempfl and others
 ]
 
 #
@@ -2544,7 +2544,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
 Report bugs, suggestions, etc. to:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

@@ -34,18 +34,16 @@ unit Dos;
 interface
 
 type
-  SearchRec = Packed Record
-    { watch out this is correctly aligned for all processors }
-    { don't modify.                                          }
-    { Replacement for Fill }
-{0} AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
-{4} AttrArg: Word;          { The initial Attributes argument }
-{6} Fill: Array[1..13] of Byte; {future use}
-    {End of replacement for fill}
-    Attr : BYTE;        {attribute of found file}
-    Time : LongInt;     {last modify date of found file}
-    Size : LongInt;     {file size of found file}
-    Name : String[255]; {name of found file}
+  SearchRec = record
+    { platform specific }
+    AnchorPtr : Pointer;  { Pointer to the AnchorPath structure }
+    AttrArg: Word;        { The initial Attributes argument }
+
+    { generic }
+    Attr : BYTE;        { attribute of found file }
+    Time : LongInt;     { last modify date of found file }
+    Size : LongInt;     { file size of found file }
+    Name : String;      { name of found file }
   End;
 
 {$I dosh.inc}
@@ -69,7 +67,7 @@ implementation
 {$I dos.inc}
 
 
-{ * include MorphOS specific functions & definitions * }
+{ * include OS specific functions & definitions * }
 
 {$include execd.inc}
 {$include execf.inc}
@@ -77,6 +75,16 @@ implementation
 {$include doslibd.inc}
 {$include doslibf.inc}
 {$include utilf.inc}
+
+{$ifdef cpum68k}
+{$if defined(amiga_v1_0_only) or defined(amiga_v1_2_only)}
+{$include legacyexech.inc}
+{$include legacydosh.inc}
+{$include legacyutilh.inc}
+{$endif}
+{$endif}
+
+{$packrecords default}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
@@ -230,7 +238,7 @@ begin
   dosSetProtection:=SetProtection(buffer,mask) <> 0;
 end;
 
-function dosSetFileDate(name: string; p : PDateStamp): Boolean;
+function dosSetFileDate(const name: string; p : PDateStamp): Boolean;
 var
   buffer : array[0..255] of Char;
 begin
@@ -405,11 +413,11 @@ begin
     tr^.tr_node.io_Command := TR_GETSYSTIME;
     DoIO(pIORequest(tr));
 
-   { structure assignment }
-   tv^ := tr^.tr_time;
+    { structure assignment }
+    tv^ := tr^.tr_time;
 
-   delete_timer(tr);
-   get_sys_time := 0;
+    delete_timer(tr);
+    get_sys_time := 0;
 end;
 
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
@@ -1073,6 +1081,10 @@ Var
   Res: Integer;
 begin
   SetLength(EnvList, 0);
+
+{$if not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
+  // pr_LocalVars are introduced with OS2.0
+
   ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
   LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
   LocalVar_Node  := pLocalVar(LocalVars_List^.mlh_head); //get the headnode of the LocalVars list
@@ -1101,6 +1113,8 @@ begin
     end;
     LocalVar_Node := pLocalVar(LocalVar_Node^.lv_node.ln_Succ); //we need to get the next node
   end;
+{$endif not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
+
   // search in env for all Variables
   FillChar(Anchor,sizeof(TAnchorPath),#0);
   Res := MatchFirst('ENV:#?', @Anchor);

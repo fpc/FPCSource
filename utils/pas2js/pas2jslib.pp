@@ -15,8 +15,10 @@ exports
   SetPas2JSWriteJSCallBack,
   SetPas2JSReadDirCallBack,
   AddPas2JSDirectoryEntry,
+  SetPas2JSUnitAliasCallBack,
   SetPas2JSCompilerLogCallBack,
-  GetPas2JSCompilerLastError;
+  GetPas2JSCompilerLastError,
+  SetPas2JSLogEncoding;
 
 end.
 

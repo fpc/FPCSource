@@ -2,6 +2,7 @@
 { @procvar in tp mode bugss                             OK 0.99.13 (PFV) }
 
 {$ifdef fpc}{$mode tp}{$endif}
+{$F+}
 
 function ReturnString: string;
 begin

@@ -94,7 +94,9 @@ unit paramgr;
           function get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;virtual;
           function get_saved_registers_mm(calloption : tproccalloption):tcpuregisterarray;virtual;
 
-          procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
+          { \brief Get a parameter location for calling a procdef directly instead of via a call node }
+          { \returns parameter location in \c cgpara for parameter \c nr of \c pd }
+          procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 
@@ -128,6 +130,7 @@ unit paramgr;
             forces the function result to something different than the real
             result.  }
           function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;virtual;abstract;
+          function  get_safecallresult_funcretloc(p : tabstractprocdef; side: tcallercallee): tcgpara; virtual;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
 
           { This is used to populate the location information on all parameters
@@ -158,6 +161,12 @@ unit paramgr;
           function use_fixed_stack: boolean;
           { whether stack pointer can be changed in the middle of procedure }
           function use_stackalloc: boolean;
+          { Returns true for platforms where the parameters are part of the signature
+            and checked by the runtime/backend compiler (e.g. JVM, LLVM).
+            The default implementation returns false. }
+          function has_strict_proc_signature: boolean; virtual;
+          { Returns true if parasym is unused and can be optimized. }
+          function can_opt_unused_para(parasym: tparavarsym): boolean;
          strict protected
           { common part of get_funcretloc; returns true if retloc is completely
             initialized afterwards }
@@ -188,6 +197,7 @@ implementation
 
     uses
        systems,
+       globals,
        cgobj,tgobj,
        defutil,verbose,
        hlcgobj;
@@ -441,6 +451,27 @@ implementation
       end;
 
 
+    function tparamanager.get_safecallresult_funcretloc(p: tabstractprocdef; side: tcallercallee): tcgpara;
+      var
+        paraloc: pcgparalocation;
+      begin
+        result.init;
+        result.def:=ossinttype;
+        result.intsize:=result.def.size;
+        result.size:=def_cgsize(result.def);
+        result.alignment:=result.def.alignment;
+        paraloc:=result.add_location;
+        paraloc^.size:=result.size;
+        paraloc^.def:=result.def;
+        paraloc^.loc:=LOC_REGISTER;
+        if side=callerside then
+          paraloc^.register:=NR_FUNCTION_RESULT_REG
+        else
+          paraloc^.register:=NR_FUNCTION_RETURN_REG;
+        result.Temporary:=true;
+      end;
+
+
     function tparamanager.is_stack_paraloc(paraloc: pcgparalocation): boolean;
       begin
         result:=
@@ -627,6 +658,12 @@ implementation
       end;
 
 
+    function tparamanager.has_strict_proc_signature: boolean;
+      begin
+        result:=false;
+      end;
+
+
     function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
       var
         paraloc : pcgparalocation;
@@ -724,7 +761,7 @@ implementation
       end;
 
 
-    procedure tparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
+    procedure tparamanager.getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
       begin
         if (nr<1) or (nr>pd.paras.count) then
           InternalError(2013060101);
@@ -798,6 +835,28 @@ implementation
         end;
       end;
 
+
+    function tparamanager.can_opt_unused_para(parasym: tparavarsym): boolean;
+      var
+        pd: tprocdef;
+      begin
+        { The parameter can be optimized as unused when:
+            this optimization is enabled
+            this is a direct call to a routine, not a procvar
+            and the routine is not an exception filter
+            and the parameter is not used by the routine
+            and implementation of the routine is already processed.
+        }
+        result:=(cs_opt_unused_para in current_settings.optimizerswitches) and
+          assigned(parasym.Owner) and
+          (parasym.Owner.defowner.typ=procdef);
+        if not result then
+          exit;
+        pd:=tprocdef(parasym.Owner.defowner);
+        result:=(pd.proctypeoption<>potype_exceptfilter) and
+          not parasym.is_used and
+          pd.is_implemented;
+      end;
 
 initialization
   ;

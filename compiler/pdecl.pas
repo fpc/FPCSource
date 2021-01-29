@@ -135,7 +135,10 @@ implementation
            setconstn :
              begin
                new(ps);
-               ps^:=tsetconstnode(p).value_set^;
+               if assigned(tsetconstnode(p).value_set) then
+                 ps^:=tsetconstnode(p).value_set^
+               else
+                 ps^:=[];
                hp:=cconstsym.create_ptr(orgname,constset,ps,p.resultdef);
              end;
            pointerconstn :
@@ -185,8 +188,22 @@ implementation
                end;
              end;
            else
-             Message(parser_e_illegal_expression);
+             begin
+               { the node is from a generic parameter constant and is
+                 untyped so we need to pass a placeholder constant
+                 instead of givng an error }
+               if nf_generic_para in p.flags then
+                 hp:=cconstsym.create_ord(orgname,constnil,0,p.resultdef)
+               else
+                 Message(parser_e_illegal_expression);
+             end;
         end;
+        { transfer generic param flag from node to symbol }
+        if nf_generic_para in p.flags then
+          begin
+            include(hp.symoptions,sp_generic_const);
+            include(hp.symoptions,sp_generic_para);
+          end;
         current_tokenpos:=storetokenpos;
         p.free;
         readconstant:=hp;
@@ -239,6 +256,7 @@ implementation
                        sym.deprecatedmsg:=deprecatedmsg;
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
+                       sym.register_sym;
 {$ifdef jvm}
                        { for the JVM target, some constants need to be
                          initialized at run time (enums, sets) -> create fake
@@ -285,16 +303,17 @@ implementation
                        { note: we keep hdef so that we might at least read the
                                constant data correctly for error recovery }
                        check_allowed_for_var_or_const(hdef,false);
-                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[],true);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
-                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[],true);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
+                   sym.register_sym;
                    current_tokenpos:=storetokenpos;
                    { procvar can have proc directives, but not type references }
                    if (hdef.typ=procvardef) and
@@ -368,18 +387,25 @@ implementation
                 if token=_ID then
                   labelsym:=clabelsym.create(orgpattern)
                 else
-                  labelsym:=clabelsym.create(pattern);
+                  begin
+                    { strip leading 0's in iso mode }
+                    if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                      while (length(pattern)>1) and (pattern[1]='0') do
+                        delete(pattern,1,1);
+                    labelsym:=clabelsym.create(pattern);
+                  end;
+
                 symtablestack.top.insert(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -587,7 +613,7 @@ implementation
 
     procedure types_dec(in_structure: boolean;out had_generic:boolean;var rtti_attrs_def: trtti_attribute_list);
 
-      function determine_generic_def(name:tidstring):tstoreddef;
+      function determine_generic_def(const name:tidstring):tstoreddef;
         var
           hashedid : THashedIDString;
           pd : tprocdef;
@@ -648,7 +674,8 @@ implementation
          gentypename,genorgtypename : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
-         hdef     : tdef;
+         hdef,
+         hdef2    : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
@@ -656,10 +683,10 @@ implementation
          first,
          isgeneric,
          isunique,
-         istyperenaming : boolean;
+         istyperenaming,
+         wasforward: boolean;
          generictypelist : tfphashobjectlist;
-         generictokenbuf : tdynamicarray;
-         vmtbuilder : TVMTBuilder;
+         localgenerictokenbuf : tdynamicarray;
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
@@ -681,7 +708,7 @@ implementation
            defpos:=current_tokenpos;
            istyperenaming:=false;
            generictypelist:=nil;
-           generictokenbuf:=nil;
+           localgenerictokenbuf:=nil;
 
            { class attribute definitions? }
            if m_prefixed_attributes in current_settings.modeswitches then
@@ -714,8 +741,9 @@ implementation
                { we are not freeing the type parameters, so register them }
                for i:=0 to generictypelist.count-1 do
                  begin
-                    ttypesym(generictypelist[i]).register_sym;
-                    tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
+                    tstoredsym(generictypelist[i]).register_sym;
+                    if tstoredsym(generictypelist[i]).typ=typesym then
+                      tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
                  end;
 
                str(generictypelist.Count,s);
@@ -743,8 +771,8 @@ implementation
            { Start recording a generic template }
            if assigned(generictypelist) then
              begin
-               generictokenbuf:=tdynamicarray.create(256);
-               current_scanner.startrecordtokens(generictokenbuf);
+               localgenerictokenbuf:=tdynamicarray.create(256);
+               current_scanner.startrecordtokens(localgenerictokenbuf);
              end;
 
            { is the type already defined? -- must be in the current symtable,
@@ -763,6 +791,7 @@ implementation
                    (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
+                 wasforward:=false;
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE) or
@@ -773,6 +802,7 @@ implementation
                     is_implicit_pointer_object_type(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
+                    wasforward:=true;
                     case token of
                       _CLASS :
                         objecttype:=default_class_type;
@@ -801,6 +831,9 @@ implementation
                     gendef:=determine_generic_def(gentypename);
                     { we can ignore the result, the definition is modified }
                     object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
+                    if wasforward and
+                      (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
+                      Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -826,7 +859,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true),true);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true));
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -867,7 +900,7 @@ implementation
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
-                  newtype:=ctypesym.create(genorgtypename,hdef,true);
+                  newtype:=ctypesym.create(genorgtypename,hdef);
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
@@ -895,9 +928,11 @@ implementation
                       if is_object(hdef) or
                          is_class_or_interface_or_dispinterface(hdef) then
                         begin
-                          { just create a child class type; this is
+                          { just create a copy that is a child of the original class class type; this is
                             Delphi-compatible }
-                          hdef:=cobjectdef.create(tobjectdef(hdef).objecttype,genorgtypename,tobjectdef(hdef),true);
+                          hdef2:=tstoreddef(hdef).getcopy;
+                          tobjectdef(hdef2).childof:=tobjectdef(hdef);
+                          hdef:=hdef2;
                         end
                       else
                         begin
@@ -927,6 +962,7 @@ implementation
                              (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
                             current_module.checkforwarddefs.add(hdef);
                         end;
+
                       include(hdef.defoptions,df_unique);
                     end;
                   if not assigned(hdef.typesym) then
@@ -1052,21 +1088,19 @@ implementation
                              cgmessage(type_e_function_reference_kind)
                            else
                              begin
-                               if (po_hascallingconvention in tprocvardef(hdef).procoptions) and
-                                  (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                                 begin
-                                   include(tprocvardef(hdef).procoptions,po_is_block);
-                                   { can't check yet whether the parameter types
-                                     are valid for a block, since some of them
-                                     may still be forwarddefs }
-                                 end
-                               else
-                                 { a regular anonymous function type: not yet supported }
-                                 { the }
-                                 Comment(V_Error,'Function references are not yet supported, only C blocks (add "cdecl;" at the end)');
-                             end
+                               { this message is only temporary; once Delphi style anonymous functions
+                                 are supported, this check is no longer required }
+                               if not (po_is_block in tprocvardef(hdef).procoptions) then
+                                 comment(v_error,'Function references are not yet supported, only C blocks (add "cblock;" at the end)');
+                             end;
                          end;
                        handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
+                       if po_is_function_ref in tprocvardef(hdef).procoptions then
+                         begin
+                           if (po_is_block in tprocvardef(hdef).procoptions) and
+                              not (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
+                             message(type_e_cblock_callconv);
+                         end;
                        if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          consume(_SEMICOLON);
                      end;
@@ -1084,13 +1118,9 @@ implementation
                       finalize_class_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
-                    if (hdef.typesym=newtype) and
+                    if not istyperenaming and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) then
-                      begin
-                        vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
-                        vmtbuilder.generate_vmt;
-                        vmtbuilder.free;
-                      end;
+                      build_vmt(tobjectdef(hdef));
 
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
@@ -1137,7 +1167,7 @@ implementation
            if assigned(generictypelist) then
              begin
                current_scanner.stoprecordtokens;
-               tstoreddef(hdef).generictokenbuf:=generictokenbuf;
+               tstoreddef(hdef).generictokenbuf:=localgenerictokenbuf;
                { Generic is never a type renaming }
                hdef.typesym:=newtype;
                generictypelist.free;
@@ -1156,6 +1186,11 @@ implementation
            first:=false;
            if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
              Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+
+ {$ifdef DEBUG_NODE_XML}
+          if Assigned(hdef) then
+            hdef.XMLPrintDef(newtype);
+ {$endif DEBUG_NODE_XML}
 
          until ((token<>_ID) and (token<>_LECKKLAMMER)) or
                (in_structure and

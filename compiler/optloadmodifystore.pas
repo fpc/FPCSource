@@ -161,7 +161,7 @@ unit optloadmodifystore;
                   xorn:
                     newinlinenodetype:=in_xor_assign_x_y;
                   else
-                    internalerror(2017032901);
+                    internalerror(2017032903);
                 end;
                 inserttypeconv_internal(taddnode(ttypeconvnode(right).left).right,left.resultdef);
                 if ttypeconvnode(right).left.nodetype in [addn,subn] then
@@ -343,7 +343,7 @@ unit optloadmodifystore;
                   shrn:
                     newinlinenodetype:=in_shr_assign_x_y;
                   else
-                    internalerror(2017051201);
+                    internalerror(2017051202);
                 end;
                 inserttypeconv_internal(tshlshrnode(ttypeconvnode(right).left).right,left.resultdef);
                 result:=cinlinenode.createintern(
@@ -486,7 +486,7 @@ unit optloadmodifystore;
                   in_ror_x_y:
                     newinlinenodetype:=in_ror_assign_x_y;
                   else
-                    internalerror(2017071701);
+                    internalerror(2017071702);
                 end;
                 result:=cinlinenode.createintern(
                   newinlinenodetype,false,ccallparanode.create(

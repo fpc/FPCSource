@@ -5,12 +5,12 @@ unit tcclasstype;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pscanner,pparser, pastree, testregistry, tctypeparser;
+  Classes, SysUtils, fpcunit, pscanner, pparser, pastree, testregistry, tctypeparser;
 
 type
 
   { TTestClassType }
-
+  TClassDeclType = (cdtClass,cdtObjCClass,cdtObjCCategory);
   TTestClassType = Class(TBaseTestTypeParser)
   Private
     FDecl : TStrings;
@@ -30,10 +30,10 @@ type
     function GetP2: TPasProperty;
     function GetT(AIndex : Integer) : TPasType;
   protected
-    Procedure StartClass (AncestorName : String = 'TObject'; InterfaceList : String = '');
+    Procedure StartClass (AncestorName : String = 'TObject'; InterfaceList : String = ''; aClassType : TClassDeclType = cdtClass);
     Procedure StartExternalClass (AParent : String; AExternalName,AExternalNameSpace : String );
     Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
-    Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False);
+    Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False; UseObjcClass : Boolean = False; UseExternal : Boolean = False);
     Procedure StartRecordHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartVisibility(A : TPasMemberVisibility);
     Procedure EndClass(AEnd : String = 'end');
@@ -69,6 +69,8 @@ type
     procedure TestEmptyDeprecated;
     procedure TestEmptyEnd;
     procedure TestEmptyEndNoParent;
+    procedure TestEmptyObjC;
+    procedure TestEmptyObjCCategory;
     Procedure TestOneInterface;
     Procedure TestTwoInterfaces;
     procedure TestOneSpecializedClass;
@@ -101,6 +103,9 @@ type
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
     Procedure TestMethodWithDotFails;
+    Procedure TestMethodWithDotOK;
+    Procedure TestMethodFunctionWithDotOK;
+    Procedure TestNoSemicolon;
     Procedure TestClassMethodSimple;
     Procedure TestClassMethodSimpleComment;
     Procedure TestConstructor;
@@ -159,10 +164,17 @@ type
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
     Procedure TestLocalSimpleConsts;
+    Procedure TestClassTypeAttributes;
+    Procedure TestClassConstAttributes;
     procedure TestClassHelperEmpty;
     procedure TestClassHelperParentedEmpty;
     procedure TestClassHelperOneMethod;
     procedure TestInterfaceEmpty;
+    procedure TestObjcProtocolEmpty;
+    procedure TestObjcProtocolEmptyExternal;
+    procedure TestObjcProtocolMultiParent;
+    procedure TestObjcProtocolOptional;
+    procedure TestObjcProtocolRequired;
     procedure TestInterfaceDisp;
     procedure TestInterfaceParentedEmpty;
     procedure TestInterfaceOneMethod;
@@ -248,7 +260,7 @@ begin
   Result:=TPasConst(Members[AIndex]);
 end;
 
-procedure TTestClassType.StartClass(AncestorName: String; InterfaceList: String);
+procedure TTestClassType.StartClass(AncestorName: String; InterfaceList: String = ''; aClassType : TClassDeclType = cdtClass);
 
 Var
   S : String;
@@ -256,7 +268,20 @@ begin
   if FStarted then
     Fail('TTestClassType.StartClass already started');
   FStarted:=True;
-  S:='TMyClass = Class';
+  case aClassType of
+  cdtObjCClass:
+    begin
+    FDecl.Add('{$modeswitch objectivec1}');
+    S:='TMyClass = ObjCClass';
+    end;
+  cdtObjCCategory:
+    begin
+    FDecl.Add('{$modeswitch objectivec1}');
+    S:='TMyClass = ObjCCategory(aParent)';
+    end;
+  else
+    S:='TMyClass = Class';
+  end;
   if (AncestorName<>'') then
     begin
     S:=S+'('+AncestorName;
@@ -300,12 +325,19 @@ begin
 end;
 
 procedure TTestClassType.StartInterface(AParent: String; UUID: String;
-  Disp: Boolean = False);
+  Disp: Boolean = False; UseObjcClass : Boolean = False; UseExternal : Boolean = False);
 Var
   S : String;
 begin
   FStarted:=True;
-  if Disp then
+  if UseObjCClass then
+    begin
+    FDecl.Add('{$modeswitch objectivec1}');
+    S:='TMyClass = objcprotocol';
+    if UseExternal then
+      S:=S+' external name ''abc'' ';
+    end
+  else if Disp then
     S:='TMyClass = DispInterface'
   else
     S:='TMyClass = Interface';
@@ -512,6 +544,23 @@ begin
   StartClass('','');
   ParseClass;
   AssertEquals('No members',0,TheClass.Members.Count);
+end;
+
+procedure TTestClassType.TestEmptyObjC;
+begin
+  StartClass('','',cdtObjCClass);
+  ParseClass;
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+end;
+
+procedure TTestClassType.TestEmptyObjCCategory;
+begin
+  StartClass('','',cdtObjCCategory);
+  ParseClass;
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertEquals('Is interface',okObjcCategory,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
 end;
 
 procedure TTestClassType.TestOneInterface;
@@ -908,7 +957,36 @@ begin
   ParseClassFail('Expected ";"',nParserExpectTokenError);
 end;
 
+procedure TTestClassType.TestMethodWithDotOK;
+
+begin
+  AddMember('Procedure DoSomething.Stupid=me');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 method resolution procedure',TPasMethodResolution,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertNotNull('1 method resolution procedure',TPasMethodResolution(members[0]).ImplementationProc);
+end;
+
+procedure TTestClassType.TestMethodFunctionWithDotOK;
+begin
+  AddMember('Function DoSomething.Stupid=me');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 method resolution procedure',TPasMethodResolution,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertNotNull('1 method resolution procedure',TPasMethodResolution(members[0]).ImplementationProc);
+end;
+
+procedure TTestClassType.TestNoSemicolon;
+begin
+  StartClass;
+  fDecl.Add('Y : String');
+  ParseClass;
+end;
+
 procedure TTestClassType.TestClassMethodSimple;
+
 begin
   AddMember('Class Procedure DoSomething');
   ParseClass;
@@ -923,6 +1001,7 @@ begin
 end;
 
 procedure TTestClassType.TestClassMethodSimpleComment;
+
 begin
   AddComment:=True;
   AddMember('{c} Class Procedure DoSomething');
@@ -1766,6 +1845,44 @@ begin
   AssertEquals('method name','Something', Method3.Name);
 end;
 
+procedure TTestClassType.TestClassTypeAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  type',
+  '    [Red]',
+  '    [White]',
+  '    TWord = word;',
+  '    [Blue]',
+  '    [Green]',
+  '    TChar = char;',
+  '  end;',
+  '']);
+  ParseDeclarations;
+end;
+
+procedure TTestClassType.TestClassConstAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  const',
+  '    [Red]',
+  '    [White]',
+  '    A = 1;',
+  '    [Blue]',
+  '    [Green]',
+  '    B = 2;',
+  '  end;',
+  '']);
+  ParseDeclarations;
+end;
+
 procedure TTestClassType.TestClassHelperEmpty;
 begin
   StartClassHelper('TOriginal','');
@@ -1812,6 +1929,70 @@ begin
   ParseClass;
   AssertEquals('Is interface',okInterface,TheClass.ObjKind);
   AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestObjcProtocolEmpty;
+begin
+  StartInterface('','',False,True);
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okObjcProtocol,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestObjcProtocolEmptyExternal;
+begin
+  StartInterface('','',False,True,true);
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okObjcProtocol,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestObjcProtocolMultiParent;
+begin
+  StartInterface('A, B','',False,True,true);
+  FParent:='A';
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okObjcProtocol,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+  AssertEquals('No members',0,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+  AssertEquals('Have 1 interface',1,TheClass.Interfaces.Count);
+  AssertNotNull('Correct class',TheClass.Interfaces[0]);
+  AssertEquals('Correct class',TPasUnresolvedTypeRef,TObject(TheClass.Interfaces[0]).ClassType);
+  AssertEquals('Interface name','B',TPasUnresolvedTypeRef(TheClass.Interfaces[0]).Name);
+end;
+
+procedure TTestClassType.TestObjcProtocolOptional;
+begin
+  StartInterface('','',False,True);
+  FDecl.Add('    optional');
+  AddMember('Procedure DoSomething(A : Integer)');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okObjcProtocol,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+  AssertEquals('No members',1,TheClass.Members.Count);
+  AssertNull('No UUID',TheClass.GUIDExpr);
+end;
+
+procedure TTestClassType.TestObjcProtocolRequired;
+begin
+  StartInterface('','',False,True);
+  FDecl.Add('    required');
+  AddMember('Procedure DoSomething(A : Integer)');
+  EndClass();
+  ParseClass;
+  AssertEquals('Is interface',okObjcProtocol,TheClass.ObjKind);
+  AssertTrue('Is objectivec',TheClass.IsObjCClass);
+  AssertEquals('No members',1,TheClass.Members.Count);
   AssertNull('No UUID',TheClass.GUIDExpr);
 end;
 

@@ -1572,22 +1572,27 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MUL_BYTE}
     function fpc_mul_byte(f1,f2 : byte) : byte;[public,alias: 'FPC_MUL_BYTE']; compilerproc;
       var
-        _f1, bitpos : byte;
-        b : byte;
+        v1,v2,res: byte;
       begin
-        fpc_mul_byte := 0;
-        bitpos := 1;
-
-        for b := 0 to 7 do
+        if f1<f2 then
           begin
-            if (f2 and bitpos) <> 0 then
-              begin
-                _f1 := fpc_mul_byte;
-                fpc_mul_byte := fpc_mul_byte + f1;
-              end;
-            f1 := f1 shl 1;
-            bitpos := bitpos shl 1;
+            v1:=f1;
+            v2:=f2;
+          end
+        else
+          begin
+            v1:=f2;
+            v2:=f1;
           end;
+        res:=0;
+        while v1<>0 do
+          begin
+            if v1 and 1<>0 then
+              inc(res,v2);
+            v2:=v2 shl 1;
+            v1:=v1 shr 1;
+          end;
+        fpc_mul_byte:=res;
       end;
 
     function fpc_mul_byte_checkoverflow(f1,f2 : byte) : byte;[public,alias: 'FPC_MUL_BYTE_CHECKOVERFLOW']; compilerproc;
@@ -1677,22 +1682,27 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MUL_WORD}
     function fpc_mul_word(f1,f2 : word) : word;[public,alias: 'FPC_MUL_WORD']; compilerproc;
       var
-        _f1,bitpos : word;
-        b : byte;
+        v1,v2,res: word;
       begin
-        fpc_mul_word:=0;
-        bitpos:=1;
-
-        for b:=0 to 15 do
+        if f1<f2 then
           begin
-            if (f2 and bitpos)<>0 then
-              begin
-                _f1:=fpc_mul_word;
-                fpc_mul_word:=fpc_mul_word+f1;
-              end;
-            f1:=f1 shl 1;
-            bitpos:=bitpos shl 1;
+            v1:=f1;
+            v2:=f2;
+          end
+        else
+          begin
+            v1:=f2;
+            v2:=f1;
           end;
+        res:=0;
+        while v1<>0 do
+          begin
+            if ALUUInt(v1) and 1<>0 then
+              inc(res,v2);
+            v2:=v2 shl 1;
+            v1:=v1 shr 1;
+          end;
+        fpc_mul_word:=res;
       end;
 
     function fpc_mul_word_checkoverflow(f1,f2 : word) : word;[public,alias: 'FPC_MUL_WORD_CHECKOVERFLOW']; compilerproc;
@@ -1783,22 +1793,27 @@ end;
 {$ifndef FPC_SYSTEM_HAS_MUL_DWORD}
     function fpc_mul_dword(f1,f2 : dword) : dword;[public,alias: 'FPC_MUL_DWORD']; compilerproc;
       var
-        _f1,bitpos : dword;
-        b : byte;
+        v1,v2,res: dword;
       begin
-        fpc_mul_dword:=0;
-        bitpos:=1;
-
-        for b:=0 to 31 do
+        if f1<f2 then
           begin
-            if (f2 and bitpos)<>0 then
-              begin
-                _f1:=fpc_mul_dword;
-                fpc_mul_dword:=fpc_mul_dword+f1;
-              end;
-            f1:=f1 shl 1;
-            bitpos:=bitpos shl 1;
+            v1:=f1;
+            v2:=f2;
+          end
+        else
+          begin
+            v1:=f2;
+            v2:=f1;
           end;
+        res:=0;
+        while v1<>0 do
+          begin
+            if ALUUInt(v1) and 1<>0 then
+              inc(res,v2);
+            v2:=v2 shl 1;
+            v1:=v1 shr 1;
+          end;
+        fpc_mul_dword:=res;
       end;
 
     function fpc_mul_dword_checkoverflow(f1,f2 : dword) : dword;[public,alias: 'FPC_MUL_DWORD_CHECKOVERFLOW']; compilerproc;
@@ -2648,13 +2663,13 @@ function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inlin
     { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
     { the sign bits from the upper 16 bits are shifted in rather than  }
     { zeroes.                                                          }
-    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
+    Result := SmallInt(((Word(AValue) shr 8) or (Word(AValue) shl 8)) and $ffff);
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    Result := Word((AValue shr 8) or (AValue shl 8));
+    Result := ((AValue shr 8) or (AValue shl 8)) and $ffff;
   end;
 {$endif}
 

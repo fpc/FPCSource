@@ -8517,6 +8517,14 @@
       Arr2InnerWakeLock = array of Arr1InnerWakeLock;
       Arr3InnerWakeLock = array of Arr2InnerWakeLock;
       InnerWakeLock = class external 'android.os' name 'WakeLock' 
+        procedure acquire; overload; virtual;
+        procedure acquire(timeout: jlong); overload; virtual;
+        function isHeld: boolean; overload; virtual;
+        procedure release; overload; virtual;
+        procedure release(flags: jint); overload; virtual;
+        procedure setReferenceCounted(value: boolean); overload; virtual;
+        procedure setWorkSource(ws: AOWorkSource); overload; virtual;
+        function toString(): JLString; overload; virtual;
       end;
 
   public

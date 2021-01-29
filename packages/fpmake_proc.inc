@@ -182,11 +182,7 @@ begin
 {$include fcl-stl/fpmake.pp}
 end;
 
-procedure add_fcl_web(const ADirectory: string);
-begin
-  with Installer do
 {$include fcl-web/fpmake.pp}
-end;
 
 procedure add_fcl_xml(const ADirectory: string);
 begin
@@ -683,6 +679,12 @@ begin
 {$include tosunits/fpmake.pp}
 end;
 
+procedure add_tplylib(const ADirectory: string);
+begin
+  with Installer do
+{$include tplylib/fpmake.pp}
+end;
+
 procedure add_univint(const ADirectory: string);
 begin
   with Installer do
@@ -807,5 +809,16 @@ begin
 {$include webidl/fpmake.pp}
 end;
 
+procedure add_vclcompat(const ADirectory: string);
+begin
+  with Installer do
+{$include vcl-compat/fpmake.pp}
+end;
+
+procedure add_qlunits(const ADirectory: string);
+begin
+  with Installer do
+{$include qlunits/fpmake.pp}
+end;
 
 {$include ide/fpmake.pp}

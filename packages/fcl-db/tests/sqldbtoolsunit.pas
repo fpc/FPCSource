@@ -56,6 +56,8 @@ type
     Function InternalGetFieldDataset : TDataSet; override;
   public
     procedure TryDropIfExist(ATableName : String);
+    procedure TryCreateSequence(ASequenceName : String);
+    procedure TryDropSequence(ASequenceName: String);
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
@@ -125,7 +127,13 @@ const
       {ftTimeStamp} 'TIMESTAMP',
       {ftFMTBcd} 'NUMERIC(18,6)',
       {ftFixedWideChar} '',
-      {ftWideMemo} ''
+      {ftWideMemo} '',
+      {ftOraTimeStamp} '',
+      {ftOraInterval} '',
+      {ftLongWord} '',
+      {ftShortint} '',
+      {ftByte} '',
+      {ftExtended} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
@@ -255,6 +263,7 @@ begin
       FieldtypeDefinitions[ftBlob]    := 'IMAGE';
       FieldtypeDefinitions[ftMemo]    := 'TEXT';
       FieldtypeDefinitions[ftGraphic] := '';
+      FieldtypeDefinitions[ftGuid]    := 'UNIQUEIDENTIFIER';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
@@ -307,6 +316,7 @@ begin
       FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      FieldtypeDefinitions[ftLongWord] := 'INT UNSIGNED';
       // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
       // PAD_CHAR_TO_FULL_LENGTH to avoid trimming trailing spaces contrary to SQL standard (MySQL 5.1.20+)
       FConnection.ExecuteDirect('SET SESSION sql_mode=''STRICT_ALL_TABLES,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
@@ -683,6 +693,53 @@ begin
     FTransaction.RollbackRetaining;
   end;
 end;
+
+procedure TSQLDBConnector.TryDropSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  try
+    case SQLServerType of
+      ssInterbase,
+      ssFirebird: FConnection.ExecuteDirect('DROP GENERATOR '+ASequenceName);
+      ssOracle,
+      ssPostgreSQL,
+      ssSybase,
+      ssMSSQL : FConnection.ExecuteDirect('DROP SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+      ssSQLite : FConnection.ExecuteDirect('delete from sqlite_sequence where (name='''+ASequenceName+''')');
+    else
+      NoSeq:=True;
+    end;
+  except
+    FTransaction.RollbackRetaining;
+  end;
+  if NoSeq then
+    Raise EDatabaseError.Create('Engine does not support sequences');
+end;
+
+procedure TSQLDBConnector.TryCreateSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  case SQLServerType of
+    ssInterbase,
+    ssFirebird: FConnection.ExecuteDirect('CREATE GENERATOR '+ASequenceName);
+    ssOracle,
+    ssPostgreSQL,
+    ssSybase,
+    ssMSSQL : FConnection.ExecuteDirect('CREATE SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+    ssSQLite : FConnection.ExecuteDirect('insert into sqlite_sequence (name,seq) values ('''+ASequenceName+''',1)');
+  else
+    Raise EDatabaseError.Create('Engine does not support sequences');
+  end;
+end;
+
 
 procedure TSQLDBConnector.ExecuteDirect(const SQL: string);
 begin

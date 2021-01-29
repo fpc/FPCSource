@@ -2772,7 +2772,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.SetCommand('print symbol on');
-  Debugger^.SetCommand('width 0xffffffff');
+  Debugger^.SetCommand('width 0');
   Debugger^.Command('disas /m '+FuncName);
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
@@ -2788,7 +2788,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.SetCommand('print symbol on');
-  Debugger^.SetCommand('width 0xffffffff');
+  Debugger^.SetCommand('width 0');
   Debugger^.Command('disas /m 0x'+HexStr(Addr,sizeof(Addr)*2));
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
@@ -4297,7 +4297,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2017 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2020 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);

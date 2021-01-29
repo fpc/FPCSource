@@ -82,7 +82,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b amigahunk $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b amigahunk -e_start $MAP $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -97,7 +97,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -q -n -b elf32amigaos -P_start -P__amigaos4__ -nostdlib $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -q -n -b elf32amigaos -P_start -P__amigaos4__ -nostdlib $MAP $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
      end;
   end;
 end;
@@ -262,6 +262,7 @@ begin
       Add('  .data           : {');
       Add('    PROVIDE(_DATA_BASE_ = .);');
       Add('    *(.data .data.* .gnu.linkonce.d.*)');
+      Add('    *(fpc.resources)');
       Add('    VBCC_CONSTRUCTORS_ELF');
       Add('  }');
       Add('  .ctors          : { *(.ctors .ctors.*) }');
@@ -293,6 +294,7 @@ begin
       Add('  .plt            : { *(.plt) }');
       Add('  .bss            : {');
       Add('    *(.bss .bss.* .gnu.linkonce.b.*)');
+      Add('    *(fpc.reshandles)');
       Add('    *(COMMON)');
       Add('  }');
       Add('  .bss68k         : { *(BSS bss) }');
@@ -349,11 +351,15 @@ var
   StripStr: string[40];
   DynLinkStr : string;
   GCSectionsStr : string;
+  MapStr: string;
 begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
+  MapStr:='';
 
+  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
   if rlinkpath<>'' Then
@@ -361,7 +367,7 @@ begin
   if UseVLink then
     begin
       if create_smartlink_sections then
-        GCSectionsStr:='-gc-all -sc -sd';
+        GCSectionsStr:='-gc-all -mtype';
     end;
 
   { Call linker }
@@ -370,6 +376,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -385,11 +392,15 @@ var
   StripStr: string[40];
   DynLinkStr : string;
   GCSectionsStr : string;
+  MapStr: string;
 begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
+  MapStr:='';
 
+  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
   if rlinkpath<>'' Then
@@ -406,6 +417,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);

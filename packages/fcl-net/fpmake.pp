@@ -30,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=P.OSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -73,7 +73,7 @@ begin
         end;
     T.ResourceStrings := True;
 
-    T:=P.Targets.AddUnit('cnetdb.pp',[linux,freebsd,solaris]);
+    T:=P.Targets.AddUnit('cnetdb.pp',[linux,freebsd,solaris,android]);
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/ip6test.pp');

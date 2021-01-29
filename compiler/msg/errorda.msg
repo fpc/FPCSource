@@ -3438,7 +3438,7 @@ option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEP
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
-option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+option_illegal_fpu_eabihf=11052_E_You must use one of the VFP FPU types when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
@@ -3535,7 +3535,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2019 Florian Klaempfl and others
+Copyright (c) 1993-2021 Florian Klaempfl and others
 ]
 
 #
@@ -3554,7 +3554,7 @@ Dette program dækkes af reglerne for GNU General Public License
 Læs COPYING.v2 for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk

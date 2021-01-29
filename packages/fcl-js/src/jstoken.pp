@@ -48,7 +48,8 @@ type
      tjsSWITCH,
      tjsTHIS, tjsTHROW, tjsTrue, tjsTRY, tjsTYPEOF,
      tjsVAR, tjsVOID,
-     tjsWHILE, tjsWITH
+     tjsWHILE, tjsWITH,
+     tjsAWAIT
    );
 
 const
@@ -83,7 +84,8 @@ const
      'switch',
      'this', 'throw', 'true', 'try', 'typeof',
      'var', 'void',
-     'while', 'with'
+     'while', 'with',
+     'await'
     );
 
 

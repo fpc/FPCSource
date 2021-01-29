@@ -1351,7 +1351,7 @@ implementation
                               include(current_settings.localswitches,cs_typed_const_writable);
                           end
                         else
-                          internalerror(201001110);
+                          internalerror(2010011103);
                       end;
                 end;
               end;

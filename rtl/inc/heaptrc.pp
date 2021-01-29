@@ -14,7 +14,6 @@
  **********************************************************************}
 
 {$checkpointer off}
-
 unit heaptrc;
 interface
 
@@ -823,7 +822,7 @@ var
   i, allocsize,
   movesize  : ptruint;
   pl : pdword;
-  pp : pheap_mem_info;
+  pp,prevpp{$ifdef EXTRA},ppv{$endif} : pheap_mem_info;
   oldsize,
   oldextrasize,
   oldexactsize : ptruint;
@@ -885,6 +884,7 @@ begin
    inc(allocsize,tail_size);
   { Try to resize the block, if not possible we need to do a
     getmem, move data, freemem }
+  prevpp:=pp;
   if not SysTryResizeMem(pp,allocsize) then
    begin
      { get a new block }
@@ -905,6 +905,45 @@ begin
      p:=newp;
      traceReAllocMem := newp;
      exit;
+   end
+  else
+   begin
+     if (pp<>prevpp) then
+       begin
+         { We need to update the previous/next chains }
+         if assigned(pp^.previous) then
+           pp^.previous^.next:=pp;
+         if assigned(pp^.next) then
+           pp^.next^.previous:=pp;
+         if prevpp=loc_info^.heap_mem_root then
+           loc_info^.heap_mem_root:=pp;
+{$ifdef EXTRA}
+         { remove prevpp from prev_valid chain }
+         ppv:=loc_info^.heap_valid_last;
+         if (ppv=prevpp) then
+           loc_info^.heap_valid_last:=pp^.prev_valid
+         else
+           begin
+             while assigned(ppv) do
+               begin
+                 if (ppv^.prev_valid=prevpp) then
+                   begin
+                     ppv^.prev_valid:=pp^.prev_valid;
+                     if prevpp=loc_info^.heap_valid_first then
+                       loc_info^.heap_valid_first:=ppv;
+                     ppv:=nil;
+                   end
+                 else
+                   ppv:=ppv^.prev_valid;
+               end;
+           end;
+         { Reinsert new value in last position }
+         pp^.prev_valid:=loc_info^.heap_valid_last;
+         loc_info^.heap_valid_last:=pp;
+         if not assigned(loc_info^.heap_valid_first) then
+           loc_info^.heap_valid_first:=pp;
+{$endif EXTRA}
+       end;
    end;
 { Recreate the info block }
   pp^.sig:=longword(AllocateSig);
@@ -1199,6 +1238,59 @@ begin
   DumpHeap(GlobalSkipIfNoLeaks);
 end;
 
+const
+{$ifdef BSD}   // dlopen is in libc on FreeBSD.
+  LibDL = 'c';
+{$else}
+  {$ifdef HAIKU}
+    LibDL = 'root';
+  {$else}
+    LibDL = 'dl';
+  {$endif}
+{$endif}
+{$if defined(LINUX) or defined(BSD)}
+type
+  Pdl_info = ^dl_info;
+  dl_info = record
+    dli_fname      : Pchar;
+    dli_fbase      : pointer;
+    dli_sname      : Pchar;
+    dli_saddr      : pointer;
+  end;
+
+  function _dladdr(Lib:pointer; info: Pdl_info): Longint; cdecl; external LibDL name 'dladdr';
+{$elseif defined(MSWINDOWS)}
+  function _GetModuleFileNameA(hModule:HModule;lpFilename:PAnsiChar;nSize:cardinal):cardinal;stdcall; external 'kernel32' name 'GetModuleFileNameA';
+{$endif}
+
+function GetModuleName:string;
+{$ifdef MSWINDOWS}
+var
+  sz:cardinal;
+  buf:array[0..8191] of char;
+{$endif}
+{$if defined(LINUX) or defined(BSD)}
+var
+  res:integer;
+  dli:dl_info;
+{$endif}
+begin
+  GetModuleName:='';
+{$if defined(LINUX) or defined(BSD)}
+  res:=_dladdr(@ParamStr,@dli); { get any non-eliminated address in SO space }
+  if res<=0 then 
+    exit;
+  if Assigned(dli.dli_fname) then
+    GetModuleName:=PAnsiChar(dli.dli_fname);
+{$elseif defined(MSWINDOWS)}
+  sz:=_GetModuleFileNameA(hInstance,PChar(@buf),sizeof(buf));
+  if sz>0 then
+    setstring(GetModuleName,PAnsiChar(@buf),sz)
+{$else}
+  GetModuleName:=ParamStr(0);
+{$endif}
+end;
+
 procedure dumpheap(SkipIfNoLeaks : Boolean);
 var
   pp : pheap_mem_info;
@@ -1216,7 +1308,7 @@ begin
   pp:=loc_info^.heap_mem_root;
   if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then
     exit;
-  Writeln(ptext^,'Heap dump by heaptrc unit of '+ParamStr(0));
+  Writeln(ptext^,'Heap dump by heaptrc unit of "'+GetModuleName()+'"');
   Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',
     loc_info^.getmem_size,'/',loc_info^.getmem8_size);
   Writeln(ptext^,loc_info^.freemem_cnt,' memory blocks freed     : ',
@@ -1587,7 +1679,7 @@ begin
     Add some way to specify heaptrc options? }
   GetEnv:=nil;
 end;
-{$elseif defined(msdos)}
+{$elseif defined(msdos) or defined(msxdos)}
    type
      PFarChar=^Char;far;
      PPFarChar=^PFarChar;

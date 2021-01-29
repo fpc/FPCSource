@@ -1220,13 +1220,14 @@ class function TSQLDBRestResource.FieldTypeToRestFieldType(
 
 Const
   Map : Array[TFieldType] of TRestFieldType =
-    (rftUnknown, rftString, rftInteger, rftInteger, rftInteger,                // ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
+    (rftUnknown, rftString, rftInteger, rftInteger, rftInteger,               // ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
      rftBoolean, rftFloat, rftFloat, rftFloat, rftDate, rftTime, rftDateTime, // ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
      rftBlob, rftBlob, rftInteger, rftBlob, rftString, rftUnknown, rftString, // ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
-     rftUnknown, rftUnknown, rftUnknown, rftUnknown, rftString,                // ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
+     rftUnknown, rftUnknown, rftUnknown, rftUnknown, rftString,               // ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
      rftString, rftLargeInt, rftUnknown, rftUnknown, rftUnknown,              // ftWideString, ftLargeint, ftADT, ftArray, ftReference,
-     rftUnknown, rftBlob, rftBlob, rftUnknown, rftUnknown,                    //  ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-     rftUnknown, rftString, rftDateTime, rftFloat, rftString, rftString       /// ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
+     rftUnknown, rftBlob, rftBlob, rftUnknown, rftUnknown,                    // ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
+     rftUnknown, rftString, rftDateTime, rftFloat, rftString, rftString,      // ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
+     rftDateTime, rftDateTime, rftInteger, rftInteger, rftInteger, rftFloat   // ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended
      );
 
 begin

@@ -72,6 +72,11 @@ implementation
          inherited;
          { tell the generic register allocator to generate SSA spilling code }
          ssa_safe:=true;
+         { all registers are "usable" for us; we only care about SSA form. This
+           prevents the register allocator from trying to spill every single
+           register (because our "usable registers" array contains just one,
+           dummy, register) }
+         usable_registers_cnt:=high(usable_registers_cnt);
        end;
 
      procedure trgllvm.do_register_allocation(list: TAsmList; headertai: tai);

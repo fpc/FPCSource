@@ -293,30 +293,36 @@ end;
 
 function TRegIniFile.OpenSection(const Section: string; CreateSection : Boolean = false): boolean;
 var
-  k: HKEY;
-  S : String;
-
+  s: string;
 begin
-  S:=Section;
-  If (S<>'') and (S[1] = '\') then
-    Delete(S,1,1);
-  if CreateSection then
-    CreateKey('\'+FPath+S);
-  if Section <> '' then
-    begin
-    k:=GetKey('\'+FPath+S);
-    if k = 0 then
-      begin
-      Result:=False;
-      exit;
-      end;
-    SetCurrentKey(k);
-  end;
-  Result:=True;
+  ASSERT(fOldCurKey = 0);
+  if Section <> '' then begin
+    fOldCurKey:=CurrentKey;
+    fOldCurPath:=CurrentPath;
+    // Detach the current key to prevent its closing in OpenKey()
+    SetCurrentKey(0);
+    if Section[1] = '\' then
+      s:=Section
+    else
+      s:='\' + string(fOldCurPath) + '\' + Section;
+    Result:=OpenKey(s, CreateSection);
+    if not Result then begin
+      // Restore on error
+      SetCurrentKey(fOldCurKey);
+      fOldCurKey:=0;
+      fOldCurPath:='';
+    end;
+  end
+  else
+    Result:=True;
 end;
 
 procedure TRegIniFile.CloseSection;
 begin
-  CloseKey(CurrentKey);
+  if fOldCurKey <> 0 then begin
+    ChangeKey(fOldCurKey, fOldCurPath);
+    fOldCurKey:=0;
+    fOldCurPath:='';
+  end;
 end;
 

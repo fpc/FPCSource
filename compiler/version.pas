@@ -80,6 +80,9 @@ interface
 {$ifdef cpuriscv32}
         source_cpu_string = 'riscv32';
 {$endif cpuriscv32}
+{$ifdef cpuxtensa}
+        source_cpu_string = 'xtensa';
+{$endif cpuxtensa}
 
 function version_string:string;
 function full_version_string:string;

@@ -59,10 +59,12 @@
       <Unit4>
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCOptimizations"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcsrcmap.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCSrcMap"/>
       </Unit5>
       <Unit6>
         <Filename Value="../src/fppjssrcmap.pp"/>
@@ -72,6 +74,7 @@
       <Unit7>
         <Filename Value="tcfiler.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCFiler"/>
       </Unit7>
       <Unit8>
         <Filename Value="../src/pas2jsfiler.pp"/>

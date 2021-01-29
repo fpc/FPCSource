@@ -29,7 +29,7 @@ unit HTTPDefs;
 
 interface
 
-uses typinfo,Classes, Sysutils, httpprotocol;
+uses typinfo, Classes, Sysutils, httpprotocol, uriparser;
 
 const
   DefaultTimeOut = 15;
@@ -89,7 +89,7 @@ const
   FieldCookie = HeaderCookie deprecated;
   FieldSetCookie = HeaderSetCookie deprecated;
 
-  NoHTTPFields    = 27;
+  NoHTTPFields    = 28;
 
   HTTPDateFmt     = httpProtocol.HTTPDateFmt;
   SCookieExpire   = httpProtocol.SCookieExpire;
@@ -97,6 +97,7 @@ const
   SCookiePath     = httpProtocol.SCookiePath;
   SCookieSecure   = httpProtocol.SCookieSecure;
   SCookieHttpOnly = httpProtocol.SCookieHttpOnly;
+  SCookieSameSite = httpProtocol.SCookieSameSite;
 
   HTTPMonths : array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -129,7 +130,7 @@ Const
                  fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
                  fieldPragma, fieldReferer, fieldRetryAfter, fieldServer,
                  fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
-                  fieldHost, fieldCacheControl,fieldXRequestedWith) deprecated;
+                  fieldHost, fieldCacheControl,fieldXRequestedWith,fieldIfNoneMatch) deprecated;
 
   // Map header names on indexes in property getter/setter. 0 means not mapped !
   HTTPFieldIndexes : THTTPIndexes
@@ -140,7 +141,7 @@ Const
                        14,15,16,17,
                        18,19,20,21,
                        22,23,24,
-                       34,0,36) deprecated;
+                       34,0,36,26) deprecated;
 
 
 
@@ -148,11 +149,13 @@ type
   TRequest = Class;
 
   { TCookie }
+  TSameSite = (ssEmpty,ssNone,ssStrict,ssLax);
 
   TCookie = class(TCollectionItem)
   private
     FHttpOnly: Boolean;
     FName: string;
+    FSameSite: TSameSite;
     FValue: string;
     FPath: string;
     FDomain: string;
@@ -171,6 +174,7 @@ type
     property Expires: TDateTime read FExpires write FExpires;
     property Secure: Boolean read FSecure write FSecure;
     property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
+    property SameSite: TSameSite Read FSameSite Write FSameSite;
     Property AsString : String Read GetAsString;
   end;
 
@@ -553,6 +557,8 @@ type
     Procedure RemoveVariable(VariableName : String); virtual; abstract;
     // Terminate session
     Procedure Terminate; virtual; abstract;
+    // checks if session variable exists
+    Function SessionVariableExists(VarName : String) : Boolean; Virtual; abstract;
     // Session timeout in minutes
     Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
     // ID of this session.
@@ -586,6 +592,52 @@ type
   end;
 
   HTTPError = EHTTP;
+  { CORS Support }
+
+  TCORSOption = (coAllowCredentials,   // Set Access-Control-Allow-Credentials header
+                 coEmptyDomainToOrigin // If allowedOrigins is empty, try to determine origin from request and echo that
+                 );
+  TCORSOptions = Set of TCORSOption;
+
+  THandleCORSOption = (hcDetect, // Detect OPTIONS request, send full headers
+                       hcFull,   // Force sending full headers
+                       hcHumanReadable, // Human readable result
+                       hcSend    // In case of full headers, send response
+                       );
+  THandleCORSOptions = set of THandleCORSOption;
+
+  { TCORSSupport }
+
+  TCORSSupport = Class(TPersistent)
+  private
+    FAllowedHeaders: String;
+    FAllowedMethods: String;
+    FAllowedOrigins: String;
+    FMaxAge: Integer;
+    FEnabled: Boolean;
+    FOptions: TCORSOptions;
+    procedure SetAllowedMethods(AValue: String);
+  Public
+    Constructor Create; virtual;
+    function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
+    // Handle CORS headers. Returns TRUE if the full headers were added.
+    Function HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions : THandleCORSOptions = [hcDetect]) : Boolean; virtual;
+    Procedure Assign(Source : TPersistent); override;
+  Published
+    // Enable CORS Support ? if False, the HandleRequest will exit at once
+    Property Enabled : Boolean Read FEnabled Write FEnabled;
+    // Options that control the behaviour
+    Property Options : TCORSOptions Read FOptions Write FOptions;
+    // Allowed methods
+    Property AllowedMethods : String Read FAllowedMethods Write SetAllowedMethods;
+    // Domains that are allowed to use this RPC service
+    Property AllowedOrigins: String Read FAllowedOrigins  Write FAllowedOrigins;
+    // Domains that are allowed to use this RPC service
+    Property AllowedHeaders: String Read FAllowedHeaders Write FAllowedHeaders;
+    // Access-Control-Max-Age header value. Set to zero not to send the header
+    Property MaxAge : Integer Read FMaxAge Write FMaxAge;
+  end;
+
 
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
@@ -597,6 +649,11 @@ Var
   UploadedFileClass : TUploadedFileClass = TUploadedFile;
   MimeItemsClass : TMimeItemsClass = TMimeItems;
   MimeItemClass : TMimeItemClass = nil;
+
+Const
+  DefaultAllowedHeaders = 'x-requested-with, content-type, authorization';
+  DefaultAllowedOrigins = '*';
+  DefaultAllowedMethods = 'GET, PUT, POST, OPTIONS, HEAD';
 
 //Procedure Touch(Const AName : String);
 
@@ -677,6 +734,103 @@ Type
   public
     Procedure Process(Stream : TStream); override;
   end;
+
+{ TCORSSupport }
+
+procedure TCORSSupport.SetAllowedMethods(AValue: String);
+begin
+  aValue:=UpperCase(aValue);
+  if FAllowedMethods=AValue then Exit;
+  FAllowedMethods:=AValue;
+end;
+
+constructor TCORSSupport.Create;
+begin
+  FOptions:=[coAllowCredentials,coEmptyDomainToOrigin];
+  AllowedHeaders:=DefaultAllowedHeaders;
+  AllowedOrigins:=DefaultAllowedOrigins;
+  AllowedMethods:=DefaultAllowedMethods;
+end;
+
+procedure TCORSSupport.Assign(Source: TPersistent);
+
+Var
+  CS : TCORSSupport absolute source;
+
+begin
+  if (Source is TPersistent) then
+    begin
+    Enabled:=CS.Enabled;
+    Options:=CS.Options;
+    AllowedHeaders:=CS.AllowedHeaders;
+    AllowedOrigins:=CS.AllowedOrigins;
+    AllowedMethods:=CS.AllowedMethods;
+    MaxAge:=CS.MaxAge;
+    end
+  else
+  inherited Assign(Source);
+end;
+
+function TCORSSupport.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
+
+Var
+  URl : String;
+  uri : TURI;
+
+begin
+  Result:=FAllowedOrigins;
+  if Result='' then
+    begin
+    // Sent with CORS request
+    Result:=aRequest.GetCustomHeader('Origin');
+    if (Result='') and (coEmptyDomainToOrigin in Options) then
+      begin
+      // Fallback
+      URL:=aRequest.Referer;
+      if (URL<>'') then
+        begin
+        uri:=ParseURI(URL,'http',0);
+        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
+        if (URI.Port<>0) then
+          Result:=Result+':'+IntToStr(URI.Port);
+        end;
+      end;
+    end;
+  if Result='' then
+    Result:='*';
+end;
+
+function TCORSSupport.HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions: THandleCORSOptions): Boolean;
+
+Var
+  S : String;
+  Full : Boolean;
+
+begin
+  Result:=False;
+  if Not Enabled then
+    exit;
+  Full:=(hcFull in aOptions) or ((hcDetect in aOptions) and SameText(aRequest.Method,'OPTIONS'));
+  With aResponse do
+    begin
+    SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(aRequest));
+    if (coAllowCredentials in Options) then
+      SetCustomHeader('Access-Control-Allow-Credentials','true');
+    if Full then
+      begin
+      SetCustomHeader('Access-Control-Allow-Methods',AllowedMethods);
+      SetCustomHeader('Access-Control-Allow-Headers',AllowedHeaders);
+      if MaxAge>0 then
+        SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
+      if (hcSend in aOptions) then
+        begin
+        Code:=200;
+        CodeText:='OK';
+        SendResponse;
+        end;
+      end;
+    end;
+end;
 
 { EHTTP }
 
@@ -945,7 +1099,7 @@ Const
        6,7,8,
        9,-1,-1,-1,
        10,12,-1,13,-1,
-       14,34,-1,15,-1,
+       14,34,-1,15,26,
        -1,-1,16,17,-1,
        18,-1,-1,-1,19,
        20,21,-1,-1,
@@ -1844,6 +1998,7 @@ var
   S : String;
 
 begin
+  S:='';
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
   SetLength(S,Stream.Size); // Skip added Null.
   Stream.ReadBuffer(S[1],Stream.Size);
@@ -2166,6 +2321,10 @@ function TCookie.GetAsString: string;
     Result:=Result+';'+S;
   end;
 
+Const
+  SSameSiteValues : Array[TSameSite] of string
+                  = ('','None','Strict','Lax');
+
 Var
   Y,M,D : Word;
 
@@ -2187,6 +2346,8 @@ begin
       AddToResult(SCookieHttpOnly);
     if FSecure then
       AddToResult(SCookieSecure);
+    if FSameSite<>ssEmpty then
+      AddToResult(SCookieSameSite+': '+SSameSiteValues[FSameSite]);
   except
 {$ifdef cgidebug}
     On E : Exception do

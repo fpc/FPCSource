@@ -490,11 +490,7 @@ end;
 { compilerproc name will fail (JM)                                       }
 
 {$ifndef FPUNONE}
-{$ifdef FLOAT_ASCII_FALLBACK}
-{$I real2str.inc}
-{$else not FLOAT_ASCII_FALLBACK}
 {$I flt_conv.inc}
-{$endif FLOAT_ASCII_FALLBACK}
 {$endif}
 
 {$ifndef FPUNONE}
@@ -506,7 +502,13 @@ end;
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
-
+{$ifndef FPC_HAS_FEATURE_RTTI}
+begin
+  int_str(ordinal,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+{$else with RTTI feature}
 { The following contains the TTypeInfo/TTypeData records from typinfo.pp
   specialized for the tkEnumeration case (and stripped of unused things). }
 type
@@ -654,7 +656,7 @@ begin
     end;
   fpc_shortstr_enum_intern:=0;
 end;
-
+{$endif with RTTI feature}
 
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 var
@@ -1560,357 +1562,12 @@ end;
   end;
 {$endif CPU16 or CPU8}
 
-{$ifdef FLOAT_ASCII_FALLBACK}
-{$ifndef FPUNONE}
-const
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-  valmaxexpnorm=4932;
-  mantissabits=64;
-{$else}
-{$ifdef FPC_HAS_TYPE_DOUBLE}
-  valmaxexpnorm=308;
-  mantissabits=53;
-{$else}
-{$ifdef FPC_HAS_TYPE_SINGLE}
-  valmaxexpnorm=38;
-  mantissabits=24;
-{$else}
-{$error Unknown floating point precision }
-{$endif}
-{$endif}
-{$endif}
-{$endif}
-
-{$ifndef FPUNONE}
-
-(******************
-
-   Derived from: ".\Free Pascal\source\rtl\inc\genmath.inc"
-
-   Origin: "fast 10^n routine"
-     function FPower10(val: Extended; Power: Longint): Extended;
-
-   Changes:
-    > adapted to "ValReal", so float can be single/double/extended
-    > slightly changed arrays [redundant 58+2 float constants gone away]
-    > added some checks etc..
-
-   Notes:
-    > denormalization and overflow should go smooth if corresponding
-      FPU exceptions are masked [no external care needed by now]
-    > adaption to real48 and real128 is not hard if one needed
-
- ******************)
-//
-   function mul_by_power10(x:ValReal;power:integer):ValReal;
-//
-// result:=X*(10^power)
-//
-// Routine achieves result with no more than 3 floating point mul/div's.
-// Up to ABS(power)=31, only 1 floating point mul/div is needed.
-//
-// Limitations:
-//  for ValReal=extended : power=-5119..+5119
-//  for ValReal=double   : power=-319..+319
-//  for ValReal=single   : power=-63..+63
-//
-// If "power" is beyond this limits, routine gives up and returns 0/+INF/-INF.
-// This is not generally correct, but should be ok when routine is used only
-// as "VAL"-helper, since "x" exponent is reasonably close to 0 in this case.
-//
-//==================================
-{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-  {$ERROR C_HIGH_EXPBITS_5TO8 declared somewhere in scope}
-{$ENDIF}
-
-{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-  {$ERROR C_HIGH_EXPBITS_9ANDUP declared somewhere in scope}
-{$ENDIF}
-
-{$IF SIZEOF(ValReal)=10}
-//==================================
-// assuming "type ValReal=extended;"
-//
-const
-  C_MAX_POWER = 5119;
-
-  C_HIGH_EXPBITS_5TO8   = 15;
-  C_HIGH_EXPBITS_9ANDUP = 9;
-
-{$ELSEIF SIZEOF(ValReal)=8}
-//==================================
-// assuming "type ValReal=double;"
-//
-const
-  C_MAX_POWER = 319;
-
-  C_HIGH_EXPBITS_5TO8 = 9;
-
-{$ELSEIF SIZEOF(ValReal)=4}
-//==================================
-// assuming "type ValReal=single;"
-//
-const
-  C_MAX_POWER = 63;
-
-{$ELSE}
-//==================================
-// assuming "ValReal=?"
-//
-  {$ERROR Unsupported ValReal type}
-{$ENDIF}
-
-//==================================
-const
-  C_INFTYP = ValReal( 1.0/0.0);
-  C_INFTYM = ValReal(-1.0/0.0);
-
-  mul_expbits_0_to_4:packed array[0..31]of ValReal=(
-   1E0,  1E1,  1E2,  1E3,
-   1E4,  1E5,  1E6,  1E7,
-   1E8,  1E9,  1E10, 1E11,
-   1E12, 1E13, 1E14, 1E15,
-   1E16, 1E17, 1E18, 1E19,
-   1E20, 1E21, 1E22, 1E23,
-   1E24, 1E25, 1E26, 1E27,
-   1E28, 1E29, 1E30, 1E31);
-
-{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-  mul_expbits_5_to_8:packed array[1..C_HIGH_EXPBITS_5TO8] of ValReal=(
-   1E32,  1E64,  1E96,  1E128,
-   1E160, 1E192, 1E224, 1E256, 1E288
-  {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)},
-   1E320, 1E352, 1E384, 1E416, 1E448, 1E480
-  {$ENDIF});
-{$ELSE}
-  mul_expbits_5_to_8:ValReal=1E32;
-{$ENDIF}
-
-{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-  mul_expbits_9_and_up:packed array[1..C_HIGH_EXPBITS_9ANDUP] of ValReal=(
-   1E512,  1E1024, 1E1536, 1E2048,
-   1E2560, 1E3072, 1E3584, 1E4096,
-   1E4608);
-{$ENDIF}
-
-begin
-  if power=0 then mul_by_power10:=x else
-  if power<-C_MAX_POWER then mul_by_power10:=0 else
-  if power>C_MAX_POWER then
-   if x<0 then mul_by_power10:=C_INFTYM else
-   if x>0 then mul_by_power10:=C_INFTYP else mul_by_power10:=0
-  else
-   if power<0 then
-    begin
-     power:=-power;
-     mul_by_power10:=x/mul_expbits_0_to_4[power and $1F];
-     power:=(power shr 5);
-     if power=0 then exit;
-    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-     if power and $F<>0 then
-      mul_by_power10:=
-       mul_by_power10/mul_expbits_5_to_8[power and $F];
-    {$ELSE} // "single", power<>0, so always div
-     mul_by_power10:=mul_by_power10/mul_expbits_5_to_8;
-    {$ENDIF}
-    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-     power:=(power shr 4);
-     if power<>0 then
-      mul_by_power10:=
-       mul_by_power10/mul_expbits_9_and_up[power];
-    {$ENDIF}
-    end
-   else
-    begin
-     mul_by_power10:=x*mul_expbits_0_to_4[power and $1F];
-     power:=(power shr 5);
-     if power=0 then exit;
-    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-     if power and $F<>0 then
-      mul_by_power10:=
-       mul_by_power10*mul_expbits_5_to_8[power and $F];
-    {$ELSE} // "single", power<>0, so always mul
-     mul_by_power10:=mul_by_power10*mul_expbits_5_to_8;
-    {$ENDIF}
-    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-     power:=(power shr 4);
-     if power<>0 then
-      mul_by_power10:=
-       mul_by_power10*mul_expbits_9_and_up[power];
-    {$ENDIF}
-    end;
-end;
-
-Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
-var
-  hd,
-  sign : valreal;
-  esign,
-  exponent,
-  expstart,
-  decpoint : SizeInt;
-  nint,
-  nlz,
-  explimit,
-  explastdigit: SizeInt;
-begin
-  fpc_Val_Real_ShortStr:=0.0;
-  code:=1;
-  exponent:=0;
-  decpoint:=0;
-  esign:=1;
-  hd:=0.0;
-  nlz:=0;
-  nint:=0;
-  sign:=1;
-  while (code<=length(s)) and (s[code] in [' ',#9]) do
-    inc(code);
-  if code<=length(s) then
-    case s[code] of
-     '+' : inc(code);
-     '-' : begin
-             sign:=-1;
-             inc(code);
-           end;
-    end;
-  { leading zeroes do not influence result, skip all but one of them }
-  expstart:=code;
-  while (code<Length(s)) and (s[code]='0') do
-    inc(code);
-  if (code>expstart) then
-    dec(code);
-  expstart:=code;
-  while (Code<=Length(s)) do
-    begin
-      case s[code] of
-        '0':
-          begin
-            if (hd=0) then
-              inc(nlz,ord(decpoint<>0))
-            else
-              inc(nint,ord(decpoint=0));
-            hd:=hd*10;
-          end;
-        '1'..'9':
-          begin
-            if (decpoint=0) then
-              inc(nint);
-            hd:=hd*10+(ord(s[code])-ord('0'));
-          end;
-        '.':
-          if decpoint=0 then
-            decpoint:=code
-          else
-            exit;
-      else
-        break;
-      end;
-      inc(code);
-    end;
-  { must have seen at least one digit }
-  if (code-expstart)<1+ord(decpoint<>0) then
-    exit;
-
-  if decpoint<>0 then
-    decpoint:=code-decpoint-1;
-
- { Exponent ? }
-  if (length(s)>=code) and (s[code] in ['e','E']) then
-    begin
-      inc(code);
-      if Length(s) >= code then
-        case s[code] of
-          '+': inc(code);
-          '-': begin
-                 esign:=-1;
-                 inc(code);
-               end;
-        end;
-      expstart:=code;
-      { Limit the exponent, accounting for digits in integer part of mantissa
-        and leading zeros in fractional part, e.g 100.0e306 = 1.0e308, etc. }
-      if (esign<0) then
-        explimit:=valmaxexpnorm+mantissabits-1+nint
-      else if (nint>0) then
-        explimit:=valmaxexpnorm+1-nint
-      else
-        explimit:=valmaxexpnorm+1+nlz;
-      explastdigit:=(explimit mod 10)+ord('0');
-      explimit:=explimit div 10;
-      while (length(s)>=code) and (s[code] in ['0'..'9']) do
-        begin
-          { Check commented out: since this code is used by compiler, it would error out
-            e.g. if compiling '1e3000' for non-x86 target. OTOH silently treating it
-            as infinity isn't a good option either. }
-          (*
-          if (exponent>explimit) or
-            ((exponent=explimit) and (ord(s[code])>explastdigit)) then
-            begin
-              { ignore exponent overflow for zero mantissa }
-              if hd<>0.0 then
-                exit;
-            end
-          else *)
-            exponent:=exponent*10+(ord(s[code])-ord('0'));
-          inc(code);
-        end;
-      if code=expstart then
-        exit;
-    end;
-{ Not all characters are read ? }
-  if length(s)>=code then
-    exit;
-
-{ adjust exponent based on decimal point }
-  dec(exponent,decpoint*esign);
-  if (exponent<0) then
-    begin
-      esign:=-1;
-      exponent:=-exponent;
-    end;
-
-{ evaluate sign }
-{ (before exponent, because the exponent may turn it into a denormal) }
-  fpc_Val_Real_ShortStr:=hd*sign;
-
-{ Calculate Exponent }
-  hd:=1.0;
-  { the magnitude range maximum (normal) is lower in absolute value than the }
-  { the magnitude range minimum (denormal). E.g. an extended value can go    }
-  { up to 1E4932, but "down" to 1E-4951. So make sure that we don't try to   }
-  { calculate 1E4951 as factor, since that would overflow and result in 0.   }
-  if (exponent>valmaxexpnorm-2) then
-    begin
-      hd:=mul_by_power10(hd,valmaxexpnorm-2);
-      if esign>0 then
-        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
-      else
-        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
-      dec(exponent,valmaxexpnorm-2);
-      hd:=1.0;
-    end;
-  hd:=mul_by_power10(hd,exponent);
-
-  if esign>0 then
-    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
-  else
-    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
-
-{ success ! }
-  code:=0;
-end;
-{$endif}
-
-{$else not FLOAT_ASCII_FALLBACK}
-
 {$ifndef FPUNONE}
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 begin
     fpc_Val_Real_ShortStr := val_real( s, code );
 end;
 {$endif FPUNONE}
-
-{$endif FLOAT_ASCII_FALLBACK}
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;

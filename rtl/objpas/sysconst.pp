@@ -68,7 +68,8 @@ const
   SInvalidBoolean        = '"%s" is not a valid boolean.';
   SInvalidCast           = 'Invalid type cast';
   SinvalidCurrency       = 'Invalid currency: "%s"';
-  SInvalidDateTime       = '%f is not a valid date/time value.';
+  SInvalidDateTime       = '"%s" is not a valid date/time value.';
+  SInvalidDateTimeFloat  = '%f is not a valid date/time value.';
   SInvalidDrive          = 'Invalid drive specified';
   SInvalidFileHandle     = 'Invalid file handle';
   SInvalidFloat          = '"%s" is an invalid float';
@@ -89,16 +90,17 @@ const
   SNoDynLibsSupport      = 'Dynamic libraries not supported. Recompile program with dynamic library driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
   SSigQuit               = 'SIGQUIT signal received.';
-  SObjectCheckError      = 'Object reference is Nil';
+  SObjectCheckError      = 'Object reference is Nil or VMT is damaged';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
-  SStackOverflow         = 'Stack overflow';
+  SStackOverflow         = 'Stack overflow or stack misalignment';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
   SThreadError           = 'Thread error';
+  SSeekFailed            = 'Seek operation failed';
 
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';

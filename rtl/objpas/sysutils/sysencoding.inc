@@ -23,7 +23,6 @@ begin
 {$endif}
     if not Assigned(FStandardEncodings[seAnsi]) then
     begin
-      // DefaultSystemCodePage can be set to non-ANSI
       if Assigned(widestringmanager.GetStandardCodePageProc) then
         FStandardEncodings[seAnsi] := TMBCSEncoding.Create(widestringmanager.GetStandardCodePageProc(scpAnsi))
       else
@@ -39,7 +38,10 @@ end;
 
 function TEncoding.GetAnsiBytes(const S: string): TBytes;
 begin
-  Result := GetAnsiBytes(S, 1, Length(S));
+  if S='' then
+    Result := nil
+  else
+    Result := GetAnsiBytes(S, 1, Length(S));
 end;
 
 function TEncoding.GetAnsiBytes(const S: string; CharIndex, CharCount: Integer
@@ -50,7 +52,10 @@ end;
 
 function TEncoding.GetAnsiString(const Bytes: TBytes): string;
 begin
-  Result := GetAnsiString(Bytes, 0, Length(Bytes));
+  if Length(Bytes)=0 then
+    Result := ''
+  else
+    Result := GetAnsiString(Bytes, 0, Length(Bytes));
 end;
 
 function TEncoding.GetAnsiString(const Bytes: TBytes; ByteIndex,
@@ -94,7 +99,7 @@ end;
 
 class function TEncoding.GetDefault: TEncoding;
 begin
-  Result := GetANSI;
+  Result := GetSystemEncoding;
 end;
 
 class function TEncoding.GetSystemEncoding: TEncoding;
@@ -241,9 +246,14 @@ var
   Encoding: TEncoding;
 begin
   if Assigned(AEncoding) then
+  begin
     for Encoding in FStandardEncodings do
       if Encoding = AEncoding then
         Exit(True);
+    for Encoding in FSystemEncodings do
+      if Encoding = AEncoding then
+        Exit(True);
+  end;
   Result := False;
 end;
 
@@ -290,7 +300,10 @@ end;
 
 function TEncoding.GetByteCount(const Chars: TUnicodeCharArray): Integer;
 begin
-  Result := GetByteCount(Chars, 0, Length(Chars));
+  if Length(Chars)=0 then
+    Result := 0
+  else
+    Result := GetByteCount(Chars, 0, Length(Chars));
 end;
 
 function TEncoding.GetByteCount(const Chars: TUnicodeCharArray; CharIndex,
@@ -305,7 +318,10 @@ end;
 
 function TEncoding.GetByteCount(const S: UnicodeString): Integer;
 begin
-  Result := GetByteCount(PUnicodeChar(S), Length(S));
+  if S='' then
+    Result := 0
+  else
+    Result := GetByteCount(PUnicodeChar(S), Length(S));
 end;
 
 function TEncoding.GetByteCount(const S: UnicodeString; CharIndex, CharCount: Integer): Integer;
@@ -320,7 +336,8 @@ end;
 function TEncoding.GetBytes(const Chars: TUnicodeCharArray): TBytes;
 begin
   SetLength(Result, GetByteCount(Chars));
-  GetBytes(@Chars[0], Length(Chars), @Result[0], Length(Result));
+  if Length(Result)>0 then
+    GetBytes(@Chars[0], Length(Chars), @Result[0], Length(Result));
 end;
 
 function TEncoding.GetBytes(const Chars: TUnicodeCharArray; CharIndex,
@@ -354,7 +371,8 @@ end;
 function TEncoding.GetBytes(const S: UnicodeString): TBytes;
 begin
   SetLength(Result, GetByteCount(S));
-  GetBytes(@S[1], Length(S), @Result[0], Length(Result));
+  if Length(Result)>0 then
+    GetBytes(@S[1], Length(S), @Result[0], Length(Result));
 end;
 
 function TEncoding.GetBytes(const S: UnicodeString; CharIndex, CharCount: Integer;
@@ -376,7 +394,10 @@ end;
 
 function TEncoding.GetCharCount(const Bytes: TBytes): Integer;
 begin
-  Result := GetCharCount(@Bytes[0], Length(Bytes));
+  if Length(Bytes)=0 then
+    Result := 0
+  else
+    Result := GetCharCount(@Bytes[0], Length(Bytes));
 end;
 
 function TEncoding.GetCharCount(const Bytes: TBytes; ByteIndex,
@@ -390,7 +411,8 @@ end;
 function TEncoding.GetChars(const Bytes: TBytes): TUnicodeCharArray;
 begin
   SetLength(Result, GetCharCount(Bytes));
-  GetChars(@Bytes[0], Length(Bytes), @Result[0], Length(Result));
+  if Length(Result)>0 then
+    GetChars(@Bytes[0], Length(Bytes), @Result[0], Length(Result));
 end;
 
 function TEncoding.GetChars(const Bytes: TBytes; ByteIndex, ByteCount: Integer): TUnicodeCharArray;
@@ -440,8 +462,13 @@ function TEncoding.GetString(const Bytes: TBytes): UnicodeString;
 var
   Chars: TUnicodeCharArray;
 begin
-  Chars := GetChars(Bytes);
-  SetString(Result, PUnicodeChar(Chars), Length(Chars));
+  if Length(Bytes)=0 then
+    Result := ''
+  else
+  begin
+    Chars := GetChars(Bytes);
+    SetString(Result, PUnicodeChar(Chars), Length(Chars));
+  end;
 end;
 
 function TEncoding.GetString(const Bytes: TBytes; ByteIndex, ByteCount: Integer): UnicodeString;
@@ -522,6 +549,11 @@ begin
   FCodePage := ACodePage;
   FMBToWCharFlags := MBToWCharFlags;
   FWCharToMBFlags := WCharToMBFlags;
+  case ACodePage of
+    CP_UTF7, CP_UTF8, CP_UTF16, CP_UTF16BE: FIsSingleByte := False;
+  else
+    FIsSingleByte := True;
+  end;
 end;
 
 function TMBCSEncoding.Clone: TEncoding;
@@ -560,7 +592,29 @@ end;
 
 function TMBCSEncoding.GetPreamble: TBytes;
 begin
-  Result := nil;
+  case CodePage of
+    CP_UTF8:
+    begin
+      SetLength(Result, 3);
+      Result[0] := $EF;
+      Result[1] := $BB;
+      Result[2] := $BF;
+    end;
+    CP_UTF16:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FF;
+      Result[1] := $FE;
+    end;
+    CP_UTF16BE:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FE;
+      Result[1] := $FF;
+    end;
+  else
+    Result := nil;
+  end;
 end;
 
 { TUTF7Encoding }

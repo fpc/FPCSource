@@ -117,6 +117,8 @@ Type
     procedure Execute;
     procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
     procedure PostAddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+    procedure LocaleToLanguageID(Locale: LongWord);
+    function  LocaleFromLanguageID: LongWord;
     property WindowSize: LongWord read FWindowSize write FWindowSize default 2; // in $8000 blocks
     property FrameSize: LongWord read FFrameSize write FFrameSize default 1; // in $8000 blocks
     property FilesToCompress: TStrings read FFileNames;
@@ -127,7 +129,7 @@ Type
     property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
     property Cores : integer read fcores write fcores;
     { MS Locale ID code }
-    property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+    property LocaleID: LongWord read LocaleFromLanguageID write LocaleToLanguageID;
   end;
 
   { TChmWriter }
@@ -274,6 +276,16 @@ begin
   end;
 end;
 
+procedure TITSFWriter.LocaleToLanguageID(Locale: LongWord);
+begin
+    ITSFHeader.LanguageID := NToLE(Locale);
+end;
+
+function  TITSFWriter.LocaleFromLanguageID: LongWord;
+begin
+    Result := LEToN(ITSFHeader.LanguageID);
+end;
+
 procedure TITSFWriter.InitHeaderSectionTable;
 begin
   // header section 0
@@ -315,7 +327,7 @@ begin
 
     Unknown2 := NToLE(Longint(-1));
     //DirectoryChunkCount: LongWord;
-    LanguageID := NToLE(DWord($0409));
+    LanguageID := ITSFHeader.LanguageID;
     GUID := ITSPHeaderGUID;
     LengthAgain := NToLE(DWord($54));
     Unknown3 := NToLE(Longint(-1));
@@ -798,6 +810,7 @@ begin
   FPostStream := TMemoryStream.Create;;
   FDestroyStream := FreeStreamOnDestroy;
   FFileNames := TStringList.Create;
+  InitITSFHeader;
 end;
 
 destructor TITSFWriter.Destroy;
@@ -815,7 +828,6 @@ end;
 
 procedure TITSFWriter.Execute;
 begin
-  InitITSFHeader;
   FOutStream.Position := 0;
   FSection1Size := 0;
 
@@ -987,7 +999,7 @@ begin
   FSection0.WriteWord(NToLE(Word(4)));
   FSection0.WriteWord(NToLE(Word(36))); // size
 
-  FSection0.WriteDWord(NToLE(DWord($0409)));
+  FSection0.WriteDWord(ITSFHeader.LanguageID);
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch and FFullTextSearchAvailable))));
 
@@ -1162,7 +1174,7 @@ const idxhdrmagic ='T#SM';
 procedure TChmWriter.CreateIDXHDRStream;
 var i : Integer;
 begin
-   if fmergefiles.count=0 then  // I assume text/site properties could also trigger idxhdr
+   if (fmergefiles.count=0) and not HasBinaryIndex then  // I assume text/site properties could also trigger idxhdr
      exit;
 
    FIDXHdrStream.setsize(4096);
@@ -2283,7 +2295,7 @@ begin
   mapstream.size:=2;
   mapstream.position:=2;
   propertystream :=TMemoryStream.Create;
-  propertystream.write(NToLE(0),sizeof(4));
+  propertystream.write(NToLE(0),sizeof(longint));
   // we iterate over all entries and write listingblocks directly to the stream.
   // and the first (and maybe last) level is written to blockn.
   // we can't do higher levels yet because we don't know how many listblocks we get
@@ -2429,6 +2441,19 @@ begin
   hdr.unknown3       :=NToLE(0);            // unknown 0
   hdr.unknown4       :=NToLE(0);            // unknown 0
   hdr.unknown5       :=NToLE(0);            // unknown 0
+
+  if totalentries<>0 then
+     begin
+       // If there are no links of this type in the CHM then this will be a zero DWORD. Othewise it contains the following DWORDs: 0, 0, 0, 0xC, 1, 1, 0, 0. AFAICS this file is pretty much useless.
+       // we already have written the first 0 dword
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE($C),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+     end;
 
   IndexStream.Position:=0;
   IndexStream.write(hdr,sizeof(hdr));

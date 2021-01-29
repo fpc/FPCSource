@@ -57,7 +57,7 @@ unit cpupara;
        cutils,sysutils,
        systems,verbose,
        symtable,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -433,7 +433,7 @@ unit cpupara;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
-        if po_interrupt in p.procoptions then
+        if (po_interrupt in p.procoptions) and (side=calleeside) then
           inc(parasize,8+6*4+4*2);
         { Offset is calculated like:
            sub esp,12
@@ -522,7 +522,7 @@ unit cpupara;
             else
               begin
                 if paralen=0 then
-                  internalerror(200501163);
+                  internalerror(2005011606);
                 firstparaloc:=true;
                 while (paralen>0) do
                   begin
@@ -688,7 +688,7 @@ unit cpupara;
                           else
                             begin
                               if paralen=0 then
-                                internalerror(200501163);
+                                internalerror(2005011607);
                               firstparaloc:=true;
                               while (paralen>0) do
                                 begin

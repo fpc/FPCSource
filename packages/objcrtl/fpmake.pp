@@ -16,7 +16,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.OSes:=[darwin,iphonesim];
+    P.OSes:=[darwin,iphonesim,ios];
     P.Author := 'Library: Apple, header: Dmitry "skalogryz" Boyarintsev';
     P.License := 'Library: Apple, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

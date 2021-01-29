@@ -119,7 +119,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rjvmnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }
@@ -303,11 +302,11 @@ uses
       regnumber_index : array[tregisterindex] of tregisterindex = (
         {$i rjvmrni.inc}
       );
-
+(*
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i rjvmsri.inc}
       );
-
+*)
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         result:=OS_NO;

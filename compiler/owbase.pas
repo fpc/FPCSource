@@ -55,6 +55,8 @@ type
 
   tobjectwriterclass = class of tobjectwriter;
 
+  { tobjectreader }
+
   tobjectreader=class
   private
     f      : TCCustomFileStream;
@@ -66,6 +68,7 @@ type
     function readbuf:boolean;
   protected
     function getfilename : string;virtual;
+    function GetSize: longint;virtual;
     function GetPos: longint;virtual;
     function GetIsArchive: boolean;virtual;
   public
@@ -78,7 +81,7 @@ type
     function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
     property filename : string read getfilename;
-    property size:longint read bufmax;
+    property size:longint read GetSize;
     property Pos:longint read GetPos;
     property IsArchive: boolean read GetIsArchive;
   end;
@@ -330,6 +333,11 @@ end;
 function tobjectreader.getfilename : string;
   begin
     result:=ffilename;
+  end;
+
+function tobjectreader.GetSize: longint;
+  begin
+    result:=bufmax;
   end;
 
 function tobjectreader.GetPos: longint;

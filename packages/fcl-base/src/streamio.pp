@@ -99,12 +99,15 @@ begin
         begin
         InOutFunc:=@StreamWrite;
         FlushFunc:=@StreamWrite;
-        if mode=fmAppend then
-          Try
-            GetStream(F).Seek(0,soFromEnd);
-          except
-            InOutRes:=156;
-          end;
+        if Mode=fmAppend then
+          begin 
+            Mode:=fmOutput; // see comments in text.inc  
+            Try
+              GetStream(F).Seek(0,soFromEnd);
+            except
+              InOutRes:=156;
+            end;
+          end;  
         end;
     end;
     end;
@@ -130,6 +133,7 @@ begin
     end;
   with TTextRec(F) do
     begin
+    
     OpenFunc:=@StreamOpen;
     CloseFunc:=@StreamClose;
     Case DefaultTextLineBreakStyle Of
@@ -143,6 +147,7 @@ begin
     BufPtr:=@Buffer;
     Name[0]:=#0;
     end;
+   SetTextCodePage(F,CP_ACP); 
 end;
 
 

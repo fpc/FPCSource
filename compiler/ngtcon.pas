@@ -342,20 +342,33 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (target_info.endian=endian_big) then
           begin
             { bitpacked format: left-aligned (i.e., "big endian bitness") }
-            bp.curval:=bp.curval or ((value shl (AIntBits-bp.packedbitsize)) shr bp.curbitoffset);
+            { work around broken x86 shifting }
+            if (AIntBits<>bp.packedbitsize) and
+               (bp.curbitoffset<AIntBits) then
+              bp.curval:=bp.curval or ((value shl (AIntBits-bp.packedbitsize)) shr bp.curbitoffset);
             shiftcount:=((AIntBits-bp.packedbitsize)-bp.curbitoffset);
             { carry-over to the next element? }
             if (shiftcount<0) then
-              bp.nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
-                          (AIntBits+shiftcount)
+              begin
+                if shiftcount>=-AIntBits then
+                  bp.nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
+                              (AIntBits+shiftcount)
+                else
+                  bp.nextval:=0;
+              end
           end
         else
           begin
             { bitpacked format: right aligned (i.e., "little endian bitness") }
-            bp.curval:=bp.curval or (value shl bp.curbitoffset);
+            { work around broken x86 shifting }
+            if bp.curbitoffset<AIntBits then
+              bp.curval:=bp.curval or (value shl bp.curbitoffset);
             { carry-over to the next element? }
             if (bp.curbitoffset+bp.packedbitsize>AIntBits) then
-              bp.nextval:=value shr (AIntBits-bp.curbitoffset)
+              if bp.curbitoffset>0 then
+                bp.nextval:=value shr (AIntBits-bp.curbitoffset)
+              else
+                bp.nextval:=0;
           end;
         inc(bp.curbitoffset,bp.packedbitsize);
       end;
@@ -627,7 +640,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constboolnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,rc_default);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def)
                   end
                 else
@@ -661,7 +674,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constintnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,rc_default);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def);
                   end
                 else
@@ -847,7 +860,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end
               else
                 begin
-                  IncompatibleTypes(node.resultdef, def);
+                  Message(parser_e_illegal_expression);
                   datadef:=carraydef.getreusable(cansichartype,1);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
@@ -896,7 +909,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    end;
                 end
               else
-                IncompatibleTypes(node.resultdef, def);
+                Message(parser_e_illegal_expression);
           end
         else
           if (node.nodetype=addrn) or
@@ -1074,7 +1087,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if equal_defs(node.resultdef,def) or
                is_subequal(node.resultdef,def) then
               begin
-                adaptrange(def,tordconstnode(node).value,rc_default);
+                adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
                 case longint(node.resultdef.size) of
                   1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
                   2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);
@@ -1237,6 +1250,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end
         { packed array constant }
         else if is_packed_array(def) and
+                (def.elementdef.typ in [orddef,enumdef]) and
                 ((def.elepackedbitsize mod 8 <> 0) or
                  not ispowerof2(def.elepackedbitsize div 8,i)) then
           begin
@@ -1307,7 +1321,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         inserttypeconv(n,cunicodestringtype);
                         if n.nodetype<>stringconstn then
-                          internalerror(2010033003);
+                          internalerror(2010033009);
                         ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)
                       end;
                     else
@@ -1343,13 +1357,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         inserttypeconv(n,cansichartype);
                         if not is_constcharnode(n) then
-                          internalerror(2010033001);
+                          internalerror(2010033006);
                         ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
                       end;
                     2:
                       widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                     else
-                      internalerror(2010033002);
+                      internalerror(2010033008);
                   end;
                   ca:=@ch;
                   len:=1;
@@ -1442,7 +1456,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { get the address of the procedure, except if it's a C-block (then we
           we will end up with a record that represents the C-block) }
         if not is_block(def) then
-          procaddrdef:=cprocvardef.getreusableprocaddr(def)
+          procaddrdef:=cprocvardef.getreusableprocaddr(def,pc_address_only)
         else
           procaddrdef:=def;
         ftcb.queue_init(procaddrdef);

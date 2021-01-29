@@ -75,6 +75,7 @@ type
     procedure ReadArchive;
   protected
     function getfilename:string;override;
+    function GetSize: longint;override;
     function GetPos: longint;override;
     function GetIsArchive: boolean; override;
   public
@@ -233,10 +234,18 @@ implementation
 
 
     procedure tarobjectwriter.closefile;
+      const
+        LF:char=#10;
+      var
+        filesize:longint;
       begin
-        ardata.align(2);
+        { preserve file size, before aligning on an even boundary }
+        filesize:=ardata.size-objpos-sizeof(tarhdr);
+        { align on an even boundary, by inserting an LF if necessary }
+        if odd(ardata.size) then
+          write(LF,1);
         { fix the size in the header }
-        createarhdr(objfn,ardata.size-objpos-sizeof(tarhdr),'42','42','644');
+        createarhdr(objfn,filesize,'42','42','644');
         { write the header }
         ardata.seek(objpos);
         ardata.write(arhdr,sizeof(tarhdr));
@@ -355,6 +364,12 @@ implementation
         result:=inherited getfilename;
         if CurrMemberName<>'' then
           result:=result+'('+CurrMemberName+')';
+      end;
+
+
+    function tarobjectreader.GetSize: longint;
+      begin
+        result:=CurrMemberSize;
       end;
 
 

@@ -49,6 +49,7 @@ unit agarmgas;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
 
@@ -107,6 +108,12 @@ unit agarmgas;
         case current_settings.fputype of
           fpu_soft:
             result:='-mfpu=softvfp '+result;
+          fpu_fpa:
+            result:='-mfpu=fpa '+result;
+          fpu_fpa10:
+            result:='-mfpu=fpa10 '+result;
+          fpu_fpa11:
+            result:='-mfpu=fpa11 '+result;
           fpu_vfpv2:
             result:='-mfpu=vfpv2 '+result;
           fpu_vfpv3:
@@ -115,6 +122,7 @@ unit agarmgas;
             result:='-mfpu=neon-vfpv3 '+result;
           fpu_vfpv3_d16:
             result:='-mfpu=vfpv3-d16 '+result;
+          fpu_fpv4_sp_d16,
           fpu_fpv4_s16:
             result:='-mfpu=fpv4-sp-d16 '+result;
           fpu_vfpv4:
@@ -160,6 +168,18 @@ unit agarmgas;
       end;
 
 
+    function TArmAppleGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result:=inherited MakeCmdLine;
+	if (asminfo^.id in [as_clang_gas,as_clang_asdarwin]) then
+          begin
+            if fputypestrllvm[current_settings.fputype] <> '' then
+              result:='-m'+fputypestrllvm[current_settings.fputype]+' '+result;
+            { Apple arm always uses softfp floating point ABI }
+            result:='-mfloat-abi=softfp '+result;
+          end;
+      end;
+
     procedure TArmAppleGNUAssembler.WriteExtraHeader;
       begin
         inherited WriteExtraHeader;
@@ -194,7 +214,9 @@ unit agarmgas;
                 if offset<>0 then
                   s:=s+tostr_with_plus(offset);
                 if refaddr=addr_pic then
-                  s:=s+'(PLT)';
+                  s:=s+'(PLT)'
+                else if refaddr=addr_tlscall then
+                  s:=s+'(tlscall)';
               end
             else
               begin
@@ -216,7 +238,7 @@ unit agarmgas;
                      else if shiftmode <> SM_None then
                        s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
                      if offset<>0 then
-                       Internalerror(2019012601);
+                       Internalerror(2019012602);
                   end
                 else if offset<>0 then
                   s:=s+', #'+tostr(offset);
@@ -404,7 +426,7 @@ unit agarmgas;
                      top_const:
                        s:=s+sep+tostr(taicpu(hp).oper[1]^.val);
                      else
-                       internalerror(200311292);
+                       internalerror(2003112903);
                    end;
                  end
                else
@@ -426,9 +448,10 @@ unit agarmgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_arm_linux,system_arm_netbsd,system_arm_wince,system_arm_gba,system_arm_palmos,system_arm_nds,
-                                 system_arm_embedded,system_arm_symbian,system_arm_android,system_arm_aros];
+                                 system_arm_embedded,system_arm_symbian,system_arm_android,system_arm_aros,system_arm_freertos];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -439,9 +462,10 @@ unit agarmgas;
             idtxt  : 'AS-DARWIN';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
-            supported_targets : [system_arm_darwin];
+            supported_targets : [system_arm_ios];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -449,13 +473,14 @@ unit agarmgas;
 
        as_arm_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
-            supported_targets : [system_arm_darwin];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
+            supported_targets : [system_arm_ios];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );

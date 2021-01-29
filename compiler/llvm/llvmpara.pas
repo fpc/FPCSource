@@ -45,12 +45,13 @@ unit llvmpara;
         architecture-specific code, or whether we will have to integrate parts
         into the various tcpuparamanager classes }
       tllvmparamanager = class(tcpuparamanager)
-        procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
+        procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         procedure createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara); override;
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
         function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara; override;
+        function has_strict_proc_signature: boolean; override;
        private
         procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
@@ -71,10 +72,10 @@ unit llvmpara;
 
   { tllvmparamanager }
 
-  procedure tllvmparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
+  procedure tllvmparamanager.getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
     begin
       if (nr<1) or (nr>pd.paras.count) then
-        InternalError(2015040401);
+        InternalError(2015040402);
       pd.init_paraloc_info(callerside);
       createtempparaloc(list,pd.proccalloption,tparavarsym(pd.paras[nr-1]),true,cgpara);
     end;
@@ -127,6 +128,12 @@ unit llvmpara;
               if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
                 internalerror(2019011902);
               reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
+            end
+          else if paraloc^.def=llvm_metadatatype then
+            begin
+              paraloc^.Loc:=LOC_REGISTER;
+              // will be overwritten with a "register" whose superregister is an index in the LLVM metadata table
+              paraloc^.register:=NR_INVALID;
             end;
         end;
     end;
@@ -142,7 +149,12 @@ unit llvmpara;
         paralocs }
       while assigned(paraloc) do
         begin
-          if vo_is_funcret in parasym.varoptions then
+          if (vo_is_funcret in parasym.varoptions)
+ {$ifdef aarch64}
+             { see AArch64's tcpuparamanager.create_paraloc_info_intern() }
+             and not is_managed_type(parasym.vardef)
+ {$endif aarch64}
+             then
             paraloc^.retvalloc:=true;
           { ordinal parameters must be passed as a single paraloc }
           if (cgpara.def.typ in [orddef,enumdef,floatdef]) and
@@ -244,9 +256,15 @@ unit llvmpara;
           not(po_assembler in p.procoptions)) then
         begin
           if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-            internalerror(2019011902);
+            internalerror(2019011901);
           reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
         end;
+    end;
+
+
+  function tllvmparamanager.has_strict_proc_signature: boolean;
+    begin
+      result:=true;
     end;
 
 

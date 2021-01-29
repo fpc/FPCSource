@@ -356,7 +356,7 @@ unit scandir;
          hs : string;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
-                                       system_i386_emx, system_powerpc_macos,
+                                       system_i386_emx, system_powerpc_macosclassic,
                                        system_arm_nds, system_i8086_msdos,
                                        system_i8086_embedded, system_m68k_atari] +
                                        systems_nativent) then
@@ -383,7 +383,7 @@ unit scandir;
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
                    SetApptype(app_fs)
-                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
+                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macosclassic]) then
                    SetApptype(app_tool)
                  else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm9)
@@ -1241,15 +1241,39 @@ unit scandir;
       if switchesstatestackpos > switchesstatestackmax then
         Message(scan_e_too_many_push);
 
-      flushpendingswitchesstate;
+      { do not flush here as we might have read directives which shall not be active yet,
+        see e.g. tests/webtbs/tw22744b.pp }
+      if psf_alignment_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].alignment:=pendingstate.nextalignment
+      else
+        switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
 
-      switchesstatestack[switchesstatestackpos].localsw:= current_settings.localswitches;
-      switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
-      switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
-      switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
-      switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
-      switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
-      switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
+      if psf_verbosity_full_switched in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].verbosity:=pendingstate.nextverbosityfullswitch
+      else
+        switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
+
+      if psf_local_switches_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].localsw:=pendingstate.nextlocalswitches
+      else
+        switchesstatestack[switchesstatestackpos].localsw:=current_settings.localswitches;
+
+      if psf_packenum_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packenum:=pendingstate.nextpackenum
+      else
+        switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
+
+      if psf_packrecords_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packrecords:=pendingstate.nextpackrecords
+      else
+        switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
+
+      if psf_setalloc_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].setalloc:=pendingstate.nextsetalloc
+      else
+        switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+
+      switchesstatestack[switchesstatestackpos].pmessage:=pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);
     end;
 
@@ -1338,31 +1362,31 @@ unit scandir;
 
     procedure dir_setpeflags;
       var
-        ident : string;
+        flags : int64;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
-        current_scanner.skipspace;
-        ident:=current_scanner.readid;
-        if ident<>'' then
-          peflags:=peflags or get_peflag_const(ident,scan_e_illegal_peflag)
-        else
-          peflags:=peflags or current_scanner.readval;
+        if current_scanner.readpreprocint(flags,'SETPEFLAGS') then
+          begin
+            if flags>$ffff then
+              message(scan_e_illegal_peflag);
+            peflags:=peflags or uint16(flags);
+          end;
         SetPEFlagsSetExplicity:=true;
       end;
 
     procedure dir_setpeoptflags;
       var
-        ident : string;
+        flags : int64;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeoptflags_not_support);
-        current_scanner.skipspace;
-        ident:=current_scanner.readid;
-        if ident<>'' then
-          peoptflags:=peoptflags or get_peflag_const(ident,scan_e_illegal_peoptflag)
-        else
-          peoptflags:=peoptflags or current_scanner.readval;
+        if current_scanner.readpreprocint(flags,'SETPEOPTFLAGS') then
+          begin
+            if flags>$ffff then
+              message(scan_e_illegal_peoptflag);
+            peoptflags:=peoptflags or uint16(flags);
+          end;
         SetPEOptFlagsSetExplicity:=true;
       end;
 
@@ -1503,15 +1527,20 @@ unit scandir;
       end;
 
     procedure dir_unitpath;
+      var
+        unitpath: TPathStr;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
-          with current_scanner,current_module,localunitsearchpath do
-            begin
-              skipspace;
-              AddPath(path,readcomment,false);
-            end;
+          begin
+            current_scanner.skipspace;
+            unitpath:=current_scanner.readcomment;
+            if (current_module.path<>'') and
+               not path_absolute(unitpath) then
+             unitpath:=current_module.path+source_info.DirSep+unitpath;
+            current_module.localunitsearchpath.AddPath(unitpath,false);
+          end;
       end;
 
     procedure dir_varparacopyoutcheck;

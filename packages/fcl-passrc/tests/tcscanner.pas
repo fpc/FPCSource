@@ -55,19 +55,29 @@ type
     FLI: String;
     FScanner : TPascalScanner;
     FResolver : TStreamResolver;
+    FDoCommentCalled : Boolean;
+    FComment: string;
+    FPathPrefix : String;
+    FTestTokenString: String;
   protected
+    procedure DoComment(Sender: TObject; aComment: String);
     procedure SetUp; override;
     procedure TearDown; override;
+    Procedure DoMultilineError;
     Function TokenToString(tk : TToken) : string;
     Procedure AssertEquals(Msg : String; Expected,Actual : TToken); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitch); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitches); overload;
+    // creates a virtual source file with name 'afile.pp', prepended with PathPrefix
     procedure NewSource(Const Source : string; DoClear : Boolean = True);
     Procedure DoTestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestTokens(t : array of TToken; Const ASource : String; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
     Property LastIDentifier : String Read FLI Write FLi;
     Property Scanner : TPascalScanner Read FScanner;
+    // Path for source filename.
+    Property PathPrefix : String Read FPathPrefix Write FPathPrefix;
+    Property TestTokenString : String Read FTestTokenString;
   published
     Procedure TestEmpty;
     procedure TestEOF;
@@ -77,18 +87,35 @@ type
     procedure TestComment3;
     procedure TestComment4;
     procedure TestComment5;
+    procedure TestComment6;
+    procedure TestComment7;
+    procedure TestComment8;
+    procedure TestComment9;
     procedure TestNestedComment1;
     procedure TestNestedComment2;
     procedure TestNestedComment3;
     procedure TestNestedComment4;
     procedure TestNestedComment5;
+    procedure TestonComment;
     procedure TestIdentifier;
     procedure TestSelf;
     procedure TestSelfNoToken;
     procedure TestString;
+    procedure TestMultilineStringError;
+    procedure TestMultilineStringSource;
+    Procedure TestMultilineStringLF;
+    Procedure TestMultilineStringCR;
+    Procedure TestMultilineStringCRLF;
+    Procedure TestMultilineStringPlatform;
+    Procedure TestMultilineLineEndingDirective;
+    Procedure TestMultilineTrimLeftDirective;
+    procedure TestMultilineStringTrimAll;
+    procedure TestMultilineStringTrimAuto;
+    procedure TestMultilineStringTrim2;
     procedure TestNumber;
     procedure TestChar;
     procedure TestCharString;
+    procedure TestCaretString;
     procedure TestBraceOpen;
     procedure TestBraceClose;
     procedure TestMul;
@@ -193,6 +220,12 @@ type
     procedure TestWith;
     procedure TestXor;
     procedure TestLineEnding;
+    procedure TestObjCClass;
+    procedure TestObjCClass2;
+    procedure TestObjCProtocol;
+    procedure TestObjCProtocol2;
+    procedure TestObjCCategory;
+    procedure TestObjCCategory2;
     procedure TestTab;
     Procedure TestEscapedKeyWord;
     Procedure TestTokenSeries;
@@ -221,6 +254,10 @@ type
     Procedure TestDefine14;
     Procedure TestInclude;
     Procedure TestInclude2;
+    Procedure TestInclude3;
+    Procedure TestIncludeString;
+    Procedure TestIncludeStringFile;
+    Procedure TestIncludeString2Lines;
     Procedure TestUnDefine1;
     Procedure TestMacro1;
     procedure TestMacro2;
@@ -242,9 +279,14 @@ type
     procedure TestIFLesserEqualThan;
     procedure TestIFDefinedElseIf;
     procedure TestIfError;
+    procedure TestIFCDefined;
+    procedure TestIFCNotDefined;
+    procedure TestIFCAndDefined;
+    procedure TestIFCFalse;
     Procedure TestModeSwitch;
     Procedure TestOperatorIdentifier;
     Procedure TestUTF8BOM;
+    Procedure TestBooleanSwitch;
   end;
 
 implementation
@@ -369,8 +411,16 @@ end;
   TTestScanner
   ---------------------------------------------------------------------}
 
+procedure TTestScanner.DoComment(Sender: TObject; aComment: String);
+begin
+  FDoCommentCalled:=True;
+  FComment:=aComment;
+end;
+
 procedure TTestScanner.SetUp;
 begin
+  FTestTokenString:='';
+  FDoCommentCalled:=False;
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
   FScanner:=TTestingPascalScanner.Create(FResolver);
@@ -381,6 +431,11 @@ procedure TTestScanner.TearDown;
 begin
   FreeAndNil(FScanner);
   FreeAndNil(FResolver);
+end;
+
+procedure TTestScanner.DoMultilineError;
+begin
+  TestToken(pscanner.tkString,'`A '#10'multiline string`');
 end;
 
 function TTestScanner.TokenToString(tk: TToken): string;
@@ -422,15 +477,25 @@ begin
 end;
 
 procedure TTestScanner.NewSource(const Source: string; DoClear : Boolean = True);
+
+Var
+  aFile : String;
+
 begin
+  aFile:='';
   if DoClear then
     FResolver.Clear;
-  FResolver.AddStream('afile.pp',TStringStream.Create(Source));
+  if (FPathPrefix<>'') then
+     aFile:=IncludeTrailingPathDelimiter(FPathPrefix);
+  aFile:=aFile+'afile.pp';
+  FResolver.AddStream(aFile,TStringStream.Create(Source));
+  {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// '+TestName);
   Writeln(Source);
+  {$EndIf}
 //  FreeAndNil(FScanner);
 //  FScanner:=TTestingPascalScanner.Create(FResolver);
-  FScanner.OpenFile('afile.pp');
+  FScanner.OpenFile(aFile);
 end;
 
 procedure TTestScanner.DoTestToken(t: TToken; const ASource: String;
@@ -443,6 +508,7 @@ begin
   NewSource(ASource);
   tk:=FScanner.FetchToken;
   AssertEquals('Read token equals expected token.',t,tk);
+  FTestTokenString:=FScanner.CurTokenString;
   if CheckEOF then
     begin
     tk:=FScanner.FetchToken;
@@ -481,7 +547,9 @@ begin
     tk:=FScanner.FetchToken;
     AssertEquals(Format('Read token %d equals expected token.',[i]),t[i],tk);
     if tk=tkIdentifier then
-      LastIdentifier:=FScanner.CurtokenString;
+      LastIdentifier:=FScanner.CurtokenString
+    else if tk=tkString then
+      fTestTokenString:=FScanner.CurTokenString;
     end;
   if CheckEOF then
     begin
@@ -546,6 +614,34 @@ begin
   AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
 end;
 
+procedure TTestScanner.TestComment6;
+
+begin
+  DoTestToken(tkComment,'{ abc }',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment7;
+
+begin
+  DoTestToken(tkComment,'{ abc'+LineEnding+'def }',False);
+  AssertEquals('Correct comment',' abc'+LineEnding+'def ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment8;
+
+begin
+  DoTestToken(tkComment,'// abc ',False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
+procedure TTestScanner.TestComment9;
+
+begin
+  DoTestToken(tkComment,'// abc '+LineEnding,False);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+end;
+
 procedure TTestScanner.TestNestedComment1;
 begin
   TestToken(tkComment,'// { comment } ');
@@ -571,6 +667,15 @@ begin
   TestToken(tkComment,'(* (* comment *) *)');
 end;
 
+procedure TTestScanner.TestonComment;
+begin
+  FScanner.OnComment:=@DoComment;
+  DoTestToken(tkComment,'(* abc *)',False);
+  assertTrue('Comment called',FDoCommentCalled);
+  AssertEquals('Correct comment',' abc ',Scanner.CurTokenString);
+  AssertEquals('Correct comment token',' abc ',FComment);
+end;
+
 
 procedure TTestScanner.TestIdentifier;
 
@@ -585,10 +690,152 @@ begin
   TestToken(pscanner.tkString,'''A string''');
 end;
 
+procedure TTestScanner.TestMultilineStringError;
+begin
+  AssertException('Need modeswitch',EScannerError,@DoMultilineError);
+end;
+
+procedure TTestScanner.TestMultilineStringSource;
+
+const
+  S = '''AB'#13#10'CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elSource;
+  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringLF;
+
+const
+  S = '''AB'#10'CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elLF;
+  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringCR;
+const
+  S = '''AB'#13'CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elCR;
+  DoTestToken(pscanner.tkString,'`AB'#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringCRLF;
+const
+  S = '''AB'#13#10'CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elCRLF;
+  DoTestToken(pscanner.tkString,'`AB'#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringPlatform;
+
+const
+  S = '''AB'+sLineBreak+'CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elPlatform;
+  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineLineEndingDirective;
+begin
+  AssertTrue('Default platform', FSCanner.MultilineLineFeedStyle=elPlatform);
+  TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING CR}');
+  AssertTrue('CR', FSCanner.MultilineLineFeedStyle=elCR);
+  TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING LF}');
+  AssertTrue('LF', FSCanner.MultilineLineFeedStyle=elLF);
+  TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING CRLF}');
+  AssertTrue('CRLF', FSCanner.MultilineLineFeedStyle=elCRLF);
+  TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING SOURCE}');
+  AssertTrue('SOURCE', FSCanner.MultilineLineFeedStyle=elSOURCE);
+  TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING PLATFORM}');
+  AssertTrue('Platform', FSCanner.MultilineLineFeedStyle=elPlatform);
+
+end;
+
+procedure TTestScanner.TestMultilineTrimLeftDirective;
+begin
+  AssertTrue('Default', FSCanner.MultilineLineTrimLeft=0);
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 1}');
+  AssertTrue('1', FSCanner.MultilineLineTrimLeft=1);
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 2}');
+  AssertTrue('2', FSCanner.MultilineLineTrimLeft=2);
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT ALL}');
+  AssertTrue('ALL', FSCanner.MultilineLineTrimLeft=-2);
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT AUTO}');
+  AssertTrue('AUTO', FSCanner.MultilineLineTrimLeft=-1);
+end;
+
+procedure TTestScanner.TestMultilineStringTrimAll;
+
+const
+   S = '''AB'#10'CD''';
+
+begin
+  SCanner.MultilineLineTrimLeft:=-2;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elLF;
+  DoTestToken(pscanner.tkString,'`AB'#13#10'    CD`');
+  AssertEquals('Correct trim',S,TestTokenString);
+
+end;
+
+procedure TTestScanner.TestMultilineStringTrimAuto;
+const
+   S = '''AB'#10' CD''';
+
+begin
+  SCanner.MultilineLineTrimLeft:=-1;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.SkipWhiteSpace:=True;
+  DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
+  AssertEquals('Correct trim',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringTrim2;
+
+const
+  S = '''AB'#10' CD''';
+  S2 = '''AB'#10'CD''';
+
+begin
+  SCanner.MultilineLineTrimLeft:=2;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.SkipWhiteSpace:=True;
+  DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
+  AssertEquals('Correct trim',S,TestTokenString);
+  DoTestToken(pscanner.tkString,' `AB'#13#10' CD`');
+  AssertEquals('Correct trim 2',S2,TestTokenString);
+end;
+
 procedure TTestScanner.TestCharString;
 
 begin
   TestToken(pscanner.tkChar,'''A''');
+end;
+
+procedure TTestScanner.TestCaretString;
+begin
+
+  TestTokens([tkIdentifier,tkWhiteSpace,tkEqual,tkwhiteSpace,pscanner.tkString,tkSemicolon],'a = ^C''abc'';',false);
 end;
 
 procedure TTestScanner.TestNumber;
@@ -707,6 +954,7 @@ procedure TTestScanner.TestSquaredBraceOpen;
 
 begin
   TestToken(tkSquaredBraceOpen,'[');
+  TestToken(tkSquaredBraceOpen,'(.'); // JC: Test for the BraceDotOpen
 end;
 
 
@@ -714,6 +962,8 @@ procedure TTestScanner.TestSquaredBraceClose;
 
 begin
   TestToken(tkSquaredBraceClose,']');
+  TestToken(tkSquaredBraceClose,'.)'); // JC: Test for the DotBraceClose
+  TestTokens([tkNumber,tkSquaredBraceClose],'1.)'); // JC: Test for a Number followed by DotBraceClose
 end;
 
 
@@ -1337,6 +1587,37 @@ begin
   TestToken(tkLineEnding,#10);
 end;
 
+procedure TTestScanner.TestObjCClass;
+begin
+  TestToken(tkObjCClass,'objcclass');
+end;
+
+procedure TTestScanner.TestObjCClass2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objcclass');
+end;
+
+procedure TTestScanner.TestObjCProtocol;
+begin
+  TestToken(tkObjCProtocol,'objcprotocol');
+end;
+
+procedure TTestScanner.TestObjCProtocol2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objcprotocol');
+end;
+
+procedure TTestScanner.TestObjCCategory;
+
+begin
+  TestToken(tkObjCCategory,'objccategory');
+end;
+
+procedure TTestScanner.TestObjCCategory2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objccategory');
+end;
+
 
 procedure TTestScanner.TestTab;
 
@@ -1530,6 +1811,44 @@ begin
   TestTokens([tkIf,tkTrue,tkThen,tkElse],'{$I myinclude.inc} else',True,False);
 end;
 
+procedure TTestScanner.TestInclude3;
+begin
+  PathPrefix:='src';
+  FResolver.AddStream('src/myinclude2.inc',TStringStream.Create(' true '));
+  FResolver.AddStream('src/myinclude1.inc',TStringStream.Create('if {$i myinclude2.inc} then '));
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkIf,tkTrue,tkThen,tkElse],'{$I src/myinclude1.inc} else',True,False);
+end;
+
+procedure TTestScanner.TestIncludeString;
+begin
+  FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'));
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkString],'{$INCLUDESTRING myinclude.inc}',False,False);
+  AssertEquals('Correct string','''if true then''',TestTokenString)
+end;
+
+procedure TTestScanner.TestIncludeStringFile;
+begin
+  FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'));
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkString],'{$INCLUDESTRINGFILE myinclude.inc}',False,False);
+  AssertEquals('Correct string','''if true then''',TestTokenString)
+end;
+
+procedure TTestScanner.TestIncludeString2Lines;
+begin
+  FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'#10'else'));
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.MultilineLineFeedStyle:=elCRLF;
+  TestTokens([tkString],'{$INCLUDESTRING myinclude.inc}',False,False);
+  AssertEquals('Correct string','''if true then'#13#10'else''',TestTokenString)
+end;
+
 procedure TTestScanner.TestUnDefine1;
 begin
   FSCanner.Defines.Add('ALWAYS');
@@ -1716,6 +2035,61 @@ begin
     +'end.',True,False);
 end;
 
+procedure TTestScanner.TestIFCDefined;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.AddDefine('cpu32');
+  TestTokens([tkconst,tkIdentifier,tkEqual,tkString,tkSemicolon,tkbegin,tkend,tkDot],
+    'const platform = '+LineEnding
+    +'{$ifc defined cpu32} ''x86'''+LineEnding
+    +'{$elseif defined(cpu64)} 1 '+LineEnding
+    +'{$else} {$error unknown platform} {$endc};'+LineEnding
+    +'begin end.',True,False);
+end;
+
+procedure TTestScanner.TestIFCNotDefined;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.AddDefine('cpu32');
+  TestTokens([tkconst,tkIdentifier,tkEqual,tkNumber,tkSemicolon,tkbegin,tkend,tkDot],
+    'const platform = '+LineEnding
+    +'{$ifc not defined cpu32} ''x86'''+LineEnding
+    +'{$else} 1 '+LineEnding
+    +'{$endc};'+LineEnding
+    +'begin end.',True,False);
+end;
+
+procedure TTestScanner.TestIFCAndDefined;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.AddDefine('cpu32');
+  FScanner.AddDefine('alpha');
+  TestTokens([tkconst,tkIdentifier,tkEqual,tkstring,tkSemicolon,tkbegin,tkend,tkDot],
+    'const platform = '+LineEnding
+    +'{$ifc defined cpu32 and defined alpha} ''x86'''+LineEnding
+    +'{$else} 1 '+LineEnding
+    +'{$endc};'+LineEnding
+    +'begin end.',True,False);
+end;
+
+procedure TTestScanner.TestIFCFalse;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.AddDefine('cpu32');
+  FScanner.AddDefine('alpha');
+  FScanner.AddMacro('MY','FALSE');
+  TestTokens([tkconst,tkIdentifier,tkEqual,tkNumber,tkSemicolon,tkbegin,tkend,tkDot],
+    'const platform = '+LineEnding
+    +'{$IFC MY} ''x86'''+LineEnding
+    +'{$else} 1 '+LineEnding
+    +'{$endc};'+LineEnding
+    +'begin end.',True,False);
+end;
+
 procedure TTestScanner.TestModeSwitch;
 
 Const
@@ -1730,7 +2104,7 @@ begin
       if SModeSwitchNames[M]<>'' then
         begin
         Scanner.CurrentModeSwitches:=[];
-        NewSource('{$MODESWITCH '+SModeSwitchNames[M]+' '+C+'}');
+        NewSource('{$MODESWITCH '+SModeSwitchNames[M]+C+'}');
         While not (Scanner.FetchToken=tkEOF) do;
         if C in [' ','+'] then
           AssertTrue(SModeSwitchNames[M]+C+' sets '+GetEnumName(TypeInfo(TModeSwitch),Ord(M)),M in Scanner.CurrentModeSwitches)
@@ -1749,6 +2123,16 @@ procedure TTestScanner.TestUTF8BOM;
 
 begin
   DoTestToken(tkLineEnding,#$EF+#$BB+#$BF);
+end;
+
+procedure TTestScanner.TestBooleanSwitch;
+
+begin
+  Scanner.CurrentBoolSwitches:=[bsHints];
+  // end space intentional.
+  NewSource('{$HINTS OFF }');
+  While not (Scanner.FetchToken=tkEOF) do;
+  AssertFalse('Hints off',bshints in Scanner.CurrentBoolSwitches);
 end;
 
 initialization

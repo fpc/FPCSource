@@ -169,7 +169,7 @@ implementation
                   helplist.concat(taicpu.op_reg_const_reg(A_XOR,hreg,(aint(spilltemp.offset) and aint($3ff)) or aint($1c00),hreg));
               end
             else
-              Internalerror(2017090901);
+              Internalerror(2017090902);
 {$endif SPARC}
 
             reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);

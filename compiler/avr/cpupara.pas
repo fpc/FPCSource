@@ -57,7 +57,10 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=VOLATILE_INTREGISTERS;
+        if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
+          result:=VOLATILE_INTREGISTERS-[RS_R0,RS_R1,RS_R18,RS_R19]
+        else
+          result:=VOLATILE_INTREGISTERS;
       end;
 
 
@@ -167,7 +170,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if (def.size > 8) then
+            if (def.size > 8) or ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and (def.size > 4)) then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
@@ -198,13 +201,13 @@ unit cpupara;
         paracgsize   : tcgsize;
         paralen : longint;
         i : integer;
-        firstparaloc: boolean;
 
       procedure assignintreg;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg>RS_R9) and
+           if (((nextintreg>RS_R9) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+               (nextintreg>RS_R21)) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
@@ -296,14 +299,14 @@ unit cpupara;
              if paralen=0 then
                internalerror(200410311);
 {$endif EXTDEBUG}
-             firstparaloc:=true;
              if loc=LOC_REGISTER then
                begin
                  { the lsb is located in the register with the lowest number,
                    by adding paralen mod 2, make the size even
                  }
                  nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
-                 if nextintreg>=RS_R8 then
+                 if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+                   (nextintreg>=RS_R20) then
                    curintreg:=nextintreg-1
                  else
                    begin
@@ -338,7 +341,8 @@ unit cpupara;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        if nextintreg>=RS_R8 then
+                        if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+                          (nextintreg>=RS_R20) then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.size:=OS_8;
@@ -355,19 +359,19 @@ unit cpupara;
                       begin
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
-                            paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
-                            assignintreg
-                          end
+                           paraloc^.size:=OS_ADDR;
+                           paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
+                           assignintreg;
+                         end
                         else
                           begin
-                             paraloc^.def:=hp.vardef;
-                             paraloc^.loc:=LOC_REFERENCE;
-                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                             paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vardef.size);
-                          end;
-                        dec(paralen,hp.vardef.size);
+                            paraloc^.def:=hp.vardef;
+                            paraloc^.loc:=LOC_REFERENCE;
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc^.reference.offset:=stack_offset;
+                            inc(stack_offset,paralen);
+                         end;
+                        paralen:=0;
                       end;
                     else
                       internalerror(2002071002);
@@ -380,7 +384,6 @@ unit cpupara;
                          inc(paraloc^.reference.offset,2);
                        end;
                    end;
-                 firstparaloc:=false;
                end;
           end;
         curfloatreg:=nextfloatreg;
@@ -394,7 +397,6 @@ unit cpupara;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
-        retcgsize  : tcgsize;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
@@ -549,7 +551,7 @@ unit cpupara;
               end;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102305);
       end;
 
 begin

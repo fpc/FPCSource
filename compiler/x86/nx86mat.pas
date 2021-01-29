@@ -164,47 +164,18 @@ interface
 
 
     procedure tx86unaryminusnode.second_float;
-      var
-        reg : tregister;
-        href : treference;
-        l1 : tasmlabel;
       begin
         secondpass(left);
 
         if expectloc=LOC_MMREGISTER then
           begin
-            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
-            { make life of register allocator easier }
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-
-            current_asmdata.getglobaldatalabel(l1);
-            new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
-            current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-            case def_cgsize(resultdef) of
-              OS_F32:
-                current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
-              OS_F64:
-                begin
-                  current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(0));
-                  current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(-(1 shl 31)));
-                end
-              else
-                internalerror(2004110215);
-            end;
-
-            reference_reset_symbol(href,l1,0,resultdef.alignment,[]);
-
-            if UseAVX then
-              cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
-            else
-              begin
-                reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-                cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
-                cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
-                cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
-              end;
+            cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,location.register,location.register,nil);
+            cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,left.location,location.register,mms_movescalar);
           end
         else
           begin
@@ -247,12 +218,9 @@ interface
       begin
         opsize:=def_cgsize(resultdef);
 
+        secondpass(left);
         if not handle_locjump then
          begin
-           { the second pass could change the location of left }
-           { if it is a register variable, so we've to do      }
-           { this before the case statement                    }
-           secondpass(left);
            case left.location.loc of
              LOC_FLAGS :
                begin
@@ -414,10 +382,11 @@ interface
         { put numerator in register }
         cgsize:=def_cgsize(resultdef);
         opsize:=TCGSize2OpSize[cgsize];
-        if not (cgsize in [OS_32,OS_S32,OS_64,OS_S64]) then
-          InternalError(2013102702);
         rega:=newreg(R_INTREGISTER,RS_EAX,cgsize2subreg(R_INTREGISTER,cgsize));
-        regd:=newreg(R_INTREGISTER,RS_EDX,cgsize2subreg(R_INTREGISTER,cgsize));
+        if cgsize in [OS_8,OS_S8] then
+          regd:=NR_AH
+        else
+          regd:=newreg(R_INTREGISTER,RS_EDX,cgsize2subreg(R_INTREGISTER,cgsize));
 
         location_reset(location,LOC_REGISTER,cgsize);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
@@ -643,6 +612,21 @@ interface
                   end;
               end;
           end
+        else if (nodetype=modn) and (right.nodetype=ordconstn) and (is_signed(left.resultdef)) and isabspowerof2(tordconstnode(right).value,power) then
+          begin
+            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            if power=1 then
+              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg1,hreg2)
+            else
+              begin
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg1,hreg2);
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg2,hreg2);
+              end;
+            emit_reg_reg(A_ADD,opsize,hreg1,hreg2);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,not((aint(1) shl power)-1),hreg2);
+            emit_reg_reg(A_SUB,opsize,hreg2,hreg1);
+            location.register:=hreg1;
+          end
         else
           begin
 DefaultDiv:
@@ -660,7 +644,7 @@ DefaultDiv:
                 4:
                   emit_none(A_CDQ,S_NO);
                 else
-                  internalerror(2013102701);
+                  internalerror(2013102704);
               end
             else
               emit_reg_reg(A_XOR,opsize,regd,regd);

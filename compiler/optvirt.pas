@@ -855,7 +855,7 @@ unit optvirt;
 {$ENDIF}
                  ;
                else
-                 internalerror(2008101101);
+                 internalerror(2008101106);
              end;
            end;
 

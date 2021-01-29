@@ -3403,7 +3403,7 @@ option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEP
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
-option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+option_illegal_fpu_eabihf=11052_E_You must use one of the VFP FPU types when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
@@ -3499,7 +3499,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 # Logo (option -l)
 #
 option_logo=11023_[ Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2019, Florian Klaempfl and others]
+Copyright (c) 1993-2021, Florian Klaempfl and others]
 #
 # Info (option -i)
 #
@@ -3513,7 +3513,7 @@ Optimisations supportées: $OPTIMIZATIONS
 Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
 Pour plus d'informations, consultez le fichier COPYING.v2.
 Rapports de bogues, suggestions, etc. à:
-    http://bugs.freepascal.org
+    https://bugs.freepascal.org
 ]
 #
 # Help pages (option -? and -h)
@@ -3571,12 +3571,12 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
 Please report bugs in our bug tracker on:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 
 More information may be found on our WWW pages (including directions
 for mailing lists useful for asking questions or discussing potential
 new features, etc.):
-                 http://www.freepascal.org
+                 https://www.freepascal.org
 ]
 
 #

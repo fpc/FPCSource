@@ -53,7 +53,9 @@ interface
       private
         FSections: TFPHashObjectList;
         FGroups: TFPHashObjectList;
+{$ifndef i8086}
         using_relative : boolean;
+{$endif i8086}
         function CodeSectionName(const aname:string): string;
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
@@ -84,7 +86,7 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,
+      cutils,globals,systems,fpccrc,
       fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
@@ -306,7 +308,7 @@ interface
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT'
+              result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
           end
@@ -341,7 +343,7 @@ interface
 {$endif x86_64}
            if assigned(symbol) then
             begin
-              writer.AsmWrite(symbol.name);
+              writer.AsmWrite(ApplyAsmSymbolRestrictions(symbol.name));
               if SmartAsm then
                 AddSymbol(symbol.name,false);
               first:=false;
@@ -390,7 +392,7 @@ interface
             begin
               if (ops=1) and (opcode<>A_RET) then
                writer.AsmWrite(sizestr(s,dest));
-              writer.AsmWrite(tostr(longint(o.val)));
+              writer.AsmWrite(tostr(o.val));
             end;
           top_ref :
             begin
@@ -440,7 +442,7 @@ interface
                    begin
                     if SmartAsm then
                       AddSymbol(o.ref^.symbol.name,false);
-                    writer.AsmWrite(o.ref^.symbol.name);
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                     if o.ref^.offset=0 then
                       exit;
                    end;
@@ -450,7 +452,7 @@ interface
                 end;
             end;
           else
-            internalerror(10001);
+            internalerror(2020100812);
         end;
       end;
 
@@ -475,7 +477,7 @@ interface
                    writer.AsmWrite('near ') just disables short branches, increasing code size.
                    Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
-                writer.AsmWrite(o.ref^.symbol.name);
+                writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
                 if o.ref^.offset>0 then
@@ -487,7 +489,7 @@ interface
           top_const :
             writer.AsmWrite(tostr(aint(o.val)));
           else
-            internalerror(10001);
+            internalerror(2020100813);
         end;
       end;
 
@@ -558,7 +560,8 @@ interface
           '.objc_protolist',
           '.stack',
           '.heap',
-          ',gcc_except_table'
+          ',gcc_except_table',
+          ',ARM_attributes'
         );
       var
         secname,secgroup: string;
@@ -571,14 +574,14 @@ interface
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
           writer.AsmWrite('.data')
-        else if (atype=sec_user) then
-          writer.AsmWrite(aname)
         else if (atype=sec_threadvar) and
           (target_info.system in (systems_windows+systems_wince)) then
           writer.AsmWrite('.tls'#9'bss')
         else if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
-            if secnames[atype]='.text' then
+            if (atype=sec_user) then
+              secname:=aname
+            else if secnames[atype]='.text' then
               secname:=CodeSectionName(aname)
             else if omf_segclass(atype)='FAR_DATA' then
               secname:=current_module.modulename^ + '_DATA'
@@ -603,6 +606,8 @@ interface
                   AddSegmentToGroup(secgroup,secname);
               end;
           end
+        else if (atype=sec_user) then
+          writer.AsmWrite(aname)
         else if secnames[atype]='.text' then
           writer.AsmWrite(CodeSectionName(aname))
         else
@@ -631,8 +636,14 @@ interface
         if target_info.system in systems_darwin then
           writer.AsmWrite(':private_extern')
         else
-          { no colon }
-          writer.AsmWrite(' hidden')
+          case sym.typ of
+            AT_FUNCTION:
+              writer.AsmWrite(':function hidden');
+            AT_DATA:
+              writer.AsmWrite(':data hidden');
+            else
+              Internalerror(2020111301);
+          end;
       end;
 
     procedure TX86NasmAssembler.ResetSectionsList;
@@ -672,10 +683,6 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteGroups;
-      {$ifdef i8086}
-      var
-        i: Integer;
-      {$endif i8086}
       begin
 {$ifdef i8086}
         if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
@@ -748,26 +755,6 @@ interface
           end;
 
          case hp.typ of
-           ait_comment :
-             Begin
-               writer.AsmWrite(asminfo^.comment);
-               writer.AsmWritePChar(tai_comment(hp).str);
-               writer.AsmLn;
-             End;
-
-           ait_regalloc :
-             begin
-               if (cs_asm_regalloc in current_settings.globalswitches) then
-                 writer.AsmWriteLn(#9#9+asminfo^.comment+'Register '+nasm_regname(tai_regalloc(hp).reg)+' '+
-                   regallocstr[tai_regalloc(hp).ratype]);
-             end;
-
-           ait_tempalloc :
-             begin
-               if (cs_asm_tempalloc in current_settings.globalswitches) then
-                 WriteTempalloc(tai_tempalloc(hp));
-             end;
-
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
@@ -801,8 +788,9 @@ interface
                   writer.AsmWrite(tai_datablock(hp).sym.name);
                   if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_datablock(hp).sym);
+                  writer.AsmLn;
                 end;
-               writer.AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
+               writer.AsmWrite(PadTabs(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name),':'));
                if SmartAsm then
                  AddSymbol(tai_datablock(hp).sym.name,true);
                writer.AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
@@ -827,13 +815,13 @@ interface
                        begin
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                          if tai_const(hp).value<>0 then
                            writer.AsmWrite(tostr_with_plus(tai_const(hp).value));
                          writer.AsmLn;
                          writer.AsmWrite(ait_const2str[aitconst_16bit]);
                          writer.AsmWrite('SEG ');
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                        end
                      else
                        writer.AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
@@ -848,7 +836,7 @@ interface
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
                          writer.AsmWrite('SEG ');
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                        end
                      else
                        internalerror(2015110501);
@@ -887,9 +875,9 @@ interface
                                  AddSymbol(tai_const(hp).endsym.name,false);
                              end;
                            if assigned(tai_const(hp).endsym) then
-                             s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).endsym.name)+'-'+ApplyAsmSymbolRestrictions(tai_const(hp).sym.name)
                            else
-                             s:=tai_const(hp).sym.name;
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).sym.name);
                            if tai_const(hp).value<>0 then
                              s:=s+tostr_with_plus(tai_const(hp).value);
                          end
@@ -1001,9 +989,9 @@ interface
                    if SmartAsm and (tai_label(hp).labsym.bind=AB_GLOBAL) then
                      begin
                        writer.AsmWrite(#9'GLOBAL ');
-                       writer.AsmWriteLn(tai_label(hp).labsym.name);
+                       writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name));
                      end;
-                   writer.AsmWriteLn(tai_label(hp).labsym.name+':');
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name)+':');
                  end;
                if SmartAsm then
                  AddSymbol(tai_label(hp).labsym.name,true);
@@ -1016,11 +1004,12 @@ interface
                if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
-                  writer.AsmWriteLn(tai_symbol(hp).sym.name);
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                   if tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_symbol(hp).sym);
+                  writer.AsmLn;
                 end;
-               writer.AsmWrite(tai_symbol(hp).sym.name);
+               writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                if SmartAsm then
                  AddSymbol(tai_symbol(hp).sym.name,true);
                if (not assigned(hp.next)) or (assigned(hp.next) and not(tai(hp.next).typ in
@@ -1308,23 +1297,15 @@ interface
                    writer.AsmWriteLn('; OMF LINNUM Line '+tai_directive(hp).name);
 {$endif OMFOBJSUPPORT}
                  else
-                   internalerror(200509191);
+                   internalerror(2005091903);
                end;
                writer.AsmLn;
              end;
            ait_seh_directive :
              { Ignore for now };
-           ait_varloc:
-             begin
-               if tai_varloc(hp).newlocationhi<>NR_NO then
-                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation))
-               else
-                 writer.AsmWriteLn(asminfo^.comment+'Var '+tai_varloc(hp).varsym.realname+' located in register '+
-                   std_regname(tai_varloc(hp).newlocation));
-             end;
            else
-             internalerror(10000);
+             if not WriteComments(hp) then
+               internalerror(2020100801);
          end;
          hp:=tai(hp.next);
        end;
@@ -1340,7 +1321,7 @@ interface
           begin
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
-              writer.AsmWriteln('EXTERN'#9+sym.name);
+              writer.AsmWriteln('EXTERN'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
       end;
 
@@ -1352,7 +1333,7 @@ interface
         while assigned(EC) do
           begin
             if not EC^.is_defined then
-              writer.AsmWriteln('EXTERN'#9+EC^.psym^);
+              writer.AsmWriteln('EXTERN'#9+ApplyAsmSymbolRestrictions(EC^.psym^));
             EC:=EC^.next;
           end;
       end;
@@ -1482,6 +1463,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1494,6 +1476,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1509,6 +1492,7 @@ interface
             supported_targets : [system_i386_go32v2];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1522,6 +1506,7 @@ interface
             supported_targets : [system_i386_win32];
             flags : [af_needar,af_no_debug,af_smartlink_sections];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1535,6 +1520,7 @@ interface
             supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1548,6 +1534,7 @@ interface
             supported_targets : [system_i386_wdosx];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1562,6 +1549,7 @@ interface
             supported_targets : [system_i386_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1575,6 +1563,7 @@ interface
             supported_targets : [system_i386_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1588,6 +1577,7 @@ interface
             supported_targets : [system_i386_beos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1601,6 +1591,7 @@ interface
             supported_targets : [system_i386_haiku];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1613,6 +1604,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1629,6 +1621,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar{,af_no_debug}];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1642,6 +1635,7 @@ interface
             supported_targets : [system_x86_64_win64];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1655,6 +1649,7 @@ interface
             supported_targets : [system_x86_64_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1669,6 +1664,7 @@ interface
             supported_targets : [system_x86_64_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );

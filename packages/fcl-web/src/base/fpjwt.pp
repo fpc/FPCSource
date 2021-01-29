@@ -128,7 +128,7 @@ Type
     Destructor Destroy; override;
     // Owned by the JWT. The JSON header.
     Property JOSE : TJOSE Read FJOSE Write SetJOSE;
-    // Owned by the JWT. The set of claims. The actuall class will depend on the descendant.
+    // Owned by the JWT. The set of claims. The actual class will depend on the descendant.
     Property Claims : TClaims Read FClaims Write SetClaims;
     Property Signature : String Read FSignature Write FSignature;
   end;
@@ -165,8 +165,10 @@ function TJWT.GetAsString: TJSONStringType;
 begin
   Result:=Base64ToBase64URL(EncodeStringBase64(JOSE.AsString));
   Result:=Result+'.'+Base64ToBase64URL(EncodeStringBase64(Claims.AsString));
-  If (Signature<>'') then
-    Result:=Result+'.'+Signature;
+  // Dot must always be present, even if signature is empty.
+  // https://tools.ietf.org/html/rfc7519#section-6.1
+  // (See also Bug ID 37830)
+  Result:=Result+'.'+Signature;
 end;
 
 

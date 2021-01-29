@@ -65,7 +65,7 @@ implementation
 uses xmlwrite, xmlread, base64;
 
 const
-  XMLFieldtypenames : Array [TFieldType] of String[16] =
+  XMLFieldTypeNames : Array [TFieldType] of String[16] =
     (
       'Unknown',
       'string',
@@ -106,7 +106,13 @@ const
       '',
       'fixedFMT',           // ftFmtBCD
       'string.uni',         // ftFixedWideChar
-      'bin.hex:WideText'    // ftWideMemo
+      'bin.hex:WideText',   // ftWideMemo
+      'SQLdateTime',        // ftOraTimeStamp
+      '',                   // ftOraInterval
+      'ui4',                // ftLongWord
+      'i1',                 // ftShortint
+      'ui1',                // ftByte
+      ''                    // ftExtended
     );
 
 resourcestring

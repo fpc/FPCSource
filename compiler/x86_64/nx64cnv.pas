@@ -64,7 +64,7 @@ implementation
       symconst,symdef,
       cgbase,cga,
       ncnv,
-      cpubase,
+      cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86;
 
 
@@ -72,7 +72,8 @@ implementation
       begin
         result:=nil;
         if use_vectorfpu(resultdef) and
-           (torddef(left.resultdef).ordtype=u32bit) then
+           (torddef(left.resultdef).ordtype=u32bit) and
+           not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
           begin
             inserttypeconv(left,s64inttype);
             firstpass(left);
@@ -90,7 +91,7 @@ implementation
          l1,l2 : tasmlabel;
          op : tasmop;
       begin
-        if use_vectorfpu(resultdef) then
+        if use_vectorfpu(resultdef) and not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
           begin
             if is_double(resultdef) then
               op:=A_CVTSI2SD

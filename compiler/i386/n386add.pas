@@ -50,6 +50,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
+      cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
 
@@ -140,7 +141,7 @@ interface
           else
             begin
               { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              internalerror(2001090505);
             end;
         end;
 
@@ -408,7 +409,7 @@ interface
                 end;
             end;
         else
-          internalerror(200203282);
+          internalerror(2002032803);
         end;
 
       end;
@@ -446,7 +447,7 @@ interface
 
     procedure ti386addnode.second_mul(unsigned: boolean);
 
-    var reg:Tregister;
+    var reg,reghi,reglo:Tregister;
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
@@ -473,30 +474,58 @@ interface
         end
       else
         begin
-          {LOC_CONSTANT for example.}
+          { LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
-      {Allocate EAX.}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-      {Load the right value.}
-      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
-      {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      if use_ref then
-        emit_ref(asmops[unsigned],S_L,ref)
-      else
-        emit_reg(asmops[unsigned],S_L,reg);
-      if needoverflowcheck and
+
+      if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+        (not(needoverflowcheck) or
         { 32->64 bit cannot overflow }
-        (not is_64bit(resultdef)) then
+        is_64bit(resultdef)) then
         begin
-          current_asmdata.getjumplabel(hl4);
-          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-          cg.a_label(current_asmdata.CurrAsmList,hl4);
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EDX);
+          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          if use_ref then
+            current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(A_MULX,S_L,ref,reglo,reghi))
+          else
+            emit_reg_reg_reg(A_MULX,S_L,reg,reglo,reghi);
+
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+          location.register64.reglo:=reglo;
+
+          if is_64bit(resultdef) then
+            location.register64.reghi:=reghi;
+
+          location_freetemp(current_asmdata.CurrAsmList,left.location);
+          location_freetemp(current_asmdata.CurrAsmList,right.location);
+        end
+      else
+        begin
+          { Allocate EAX. }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+          { Load the right value. }
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
+          { Also allocate EDX, since it is also modified by a mul (JM). }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          if use_ref then
+            emit_ref(asmops[unsigned],S_L,ref)
+          else
+            emit_reg(asmops[unsigned],S_L,reg);
+          if needoverflowcheck and
+            { 32->64 bit cannot overflow }
+            (not is_64bit(resultdef)) then
+            begin
+              current_asmdata.getjumplabel(hl4);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+              cg.a_label(current_asmdata.CurrAsmList,hl4);
+            end;
+          set_mul_result_location;
         end;
-      set_mul_result_location;
     end;
 
 
@@ -593,7 +622,7 @@ interface
       else if (hreg2<>NR_NO) then
         emit_reg_reg(A_ADD,S_L,hreg2,NR_EDX)
       else
-        InternalError(2014011604);
+        InternalError(2014011601);
 
       { Result is now in EDX:EAX. Copy it to virtual registers. }
       set_mul_result_location;

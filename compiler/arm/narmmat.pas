@@ -54,7 +54,7 @@ implementation
       globtype,compinnr,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
-      defutil,
+      defutil,systems,
       symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
@@ -315,12 +315,9 @@ implementation
       var
         tmpreg : TRegister;
       begin
-        { if the location is LOC_JUMP, we do the secondpass after the
-          labels are allocated
-        }
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             case left.location.loc of
               LOC_FLAGS :
                 begin
@@ -358,17 +355,9 @@ implementation
         procname: string[31];
         fdef : tdef;
       begin
-        if (current_settings.fputype=fpu_soft) and
-           (left.resultdef.typ=floatdef) then
-          begin
-            result:=nil;
-            firstpass(left);
-            expectloc:=LOC_REGISTER;
-            exit;
-          end;
-
-        if not(FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) or
-          (tfloatdef(resultdef).floattype=s32real) then
+        if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
+           (target_info.system = system_arm_wince) or
+           is_single(resultdef) then
           exit(inherited pass_1);
 
         result:=nil;
@@ -376,7 +365,10 @@ implementation
         if codegenerror then
           exit;
 
-        if (left.resultdef.typ=floatdef) then
+        { if we get here and VFP support is on, there is no 64 bit VFP operation support available,
+          so in this case the software version needs to be called }
+        if (left.resultdef.typ=floatdef) and ((current_settings.fputype=fpu_soft) or
+          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype])) then
           begin
             case tfloatdef(resultdef).floattype of
               s64real:
@@ -428,7 +420,7 @@ implementation
                 OS_64:
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
               else
-                internalerror(2014033101);
+                internalerror(2014033103);
               end;
             end
           else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then
@@ -447,7 +439,7 @@ implementation
                 location.register,left.location.register), pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[init_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;

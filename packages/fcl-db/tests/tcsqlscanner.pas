@@ -19,7 +19,7 @@ unit tcsqlscanner;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fpsqlscanner;
+  Classes, SysUtils, fpcunit, testregistry, fpsqlscanner;
 
 type
 
@@ -223,6 +223,11 @@ type
     procedure TestWhile;
     procedure TestWith;
     procedure TestWork;
+    procedure TestTerm;
+    procedure TestTermExclude;
+    procedure TestRecreate;
+    procedure TestRestart;
+    procedure TestSequence;
     Procedure Test2Words;
     procedure Test3Words;
     procedure TestIdentifier;
@@ -230,6 +235,7 @@ type
     procedure TestIdentifier3;
     procedure TestIdentifier4;
     procedure TestIdentifier5;
+    procedure TestIdentifier6;
     procedure TestIdentifierDotIdentifier;
     procedure TestEOLN;
     procedure TestEOLN2;
@@ -1350,7 +1356,34 @@ begin
   CheckToken(tsqlWork,'work');
 end;
 
-procedure TTestSQLScanner.CheckTokens(ASource : String; ATokens : Array of TSQLToken);
+procedure TTestSQLScanner.TestTerm;
+begin
+  CheckToken(tsqlTerm,'term');
+end;
+
+procedure TTestSQLScanner.TestTermExclude;
+begin
+  CreateScanner('term');
+  FScanner.Excludekeywords.Add('term');
+  AssertEquals('Term is identifier',tsqlIdentifier,FScanner.FetchToken);
+end;
+
+procedure TTestSQLScanner.TestRecreate;
+begin
+  CheckToken(tsqlRecreate,'recreate');
+end;
+
+procedure TTestSQLScanner.TestRestart;
+begin
+  CheckToken(tsqlRestart,'restart');
+end;
+
+procedure TTestSQLScanner.TestSequence;
+begin
+  CheckToken(tsqlSequence,'sequence');
+end;
+
+procedure TTestSQLScanner.CheckTokens(ASource: String; ATokens: array of TSQLToken);
 
 Var
   I : Integer;
@@ -1406,6 +1439,13 @@ procedure TTestSQLScanner.TestIdentifier5;
 begin
   // $0 should not be parsed as an identifier but as a symbol literal
   CheckToken(tsqlSymbolString,'$0');
+end;
+
+procedure TTestSQLScanner.TestIdentifier6;
+begin
+  CreateScanner('[A]',[soSquareBracketsIdentifier]);
+  AssertEquals('Identifier is returned',tsqlIdentifier,FScanner.FetchToken);
+  AssertEquals('Correct identifier','A',FScanner.CurTokenString);
 end;
 
 procedure TTestSQLScanner.TestIdentifierDotIdentifier;

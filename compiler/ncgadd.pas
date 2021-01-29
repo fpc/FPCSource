@@ -210,7 +210,7 @@ interface
             equaln:   result:=OC_EQ;
             unequaln: result:=OC_NE;
           else
-            internalerror(2011010412);
+            internalerror(2011010403);
           end
       end;
 
@@ -607,7 +607,7 @@ interface
                 end;
             end;
           else
-            internalerror(2002072803);
+            internalerror(2002072804);
         end;
 {$endif cpu64bitalu or cpuhighleveltarget}
 

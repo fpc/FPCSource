@@ -1,3 +1,4 @@
+{ %OPT=-Oonofastmath }
 var
   e: extended;
   d: double;

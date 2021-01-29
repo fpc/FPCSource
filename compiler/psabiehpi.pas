@@ -402,7 +402,7 @@ implementation
             landingpadstack:=TFPList.Create;
             typefilterlist:=TFPList.Create;
             gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
-            gcc_except_table.secflags:=SF_A;
+            gcc_except_table.secflags:=[SF_A];
             gcc_except_table.secprogbits:=SPB_PROGBITS;
 {$ifdef debug_eh}
             gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
@@ -622,7 +622,7 @@ implementation
       var
         cgpara1: tcgpara;
         pd: tprocdef;
-        action, ReRaiseLandingPad: TPSABIEHAction;
+        ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;
       begin
         if not(fc_catching_exceptions in flowcontrol) and
@@ -642,7 +642,7 @@ implementation
 
             pd:=search_system_proc('_unwind_resume');
             cgpara1.init;
-            paramanager.getintparaloc(list,pd,1,cgpara1);
+            paramanager.getcgtempparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             hlcg.g_call_system_proc(list,'_unwind_resume',[@cgpara1],nil).resetiftemp;
@@ -686,27 +686,26 @@ implementation
       var
         catchstartlab : tasmlabel;
         begincatchres,
-        typeidres,
         paraloc1: tcgpara;
         pd: tprocdef;
-        landingpadstructdef,
-        landingpadtypeiddef: tdef;
-        rttisym: TAsmSymbol;
+        {rttisym: TAsmSymbol;
         rttidef: tdef;
-        rttiref: treference;
-        wrappedexception,
-        exceptiontypeidreg,
-        landingpadres: tregister;
-        exceptloc: tlocation;
         indirect: boolean;
-        otherunit: boolean;
+        otherunit: boolean; }
+        wrappedexception: tregister;
+        exceptloc: tlocation;
+{$if defined(i386) or defined(x86_64)}
         typeindex : aint;
+{$endif}
       begin
         paraloc1.init;
+{
         rttidef:=nil;
         rttisym:=nil;
+}
         wrappedexception:=hlcg.getaddressregister(list,voidpointertype);
         hlcg.a_load_reg_reg(list,voidpointertype,voidpointertype,NR_FUNCTION_RESULT_REG,wrappedexception);
+(*
         if add_catch then
           begin
             if assigned(excepttype) then
@@ -721,10 +720,13 @@ implementation
                 rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
               end;
           end;
+*)
         { check if the exception is handled by this node }
         if assigned(excepttype) then
           begin
+{$if defined(i386) or defined(x86_64)}
             typeindex:=(current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(excepttype);
+{$endif}
             current_asmdata.getjumplabel(catchstartlab);
 {$if defined(i386)}
             hlcg.a_cmp_const_reg_label (list,osuinttype,OC_EQ,typeindex+1,NR_FUNCTION_RESULT64_HIGH_REG,catchstartlab);
@@ -741,7 +743,7 @@ implementation
           (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
         pd:=search_system_proc('fpc_psabi_begin_catch');
-        paramanager.getintparaloc(list, pd, 1, paraloc1);
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
         hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
         begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
         location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));

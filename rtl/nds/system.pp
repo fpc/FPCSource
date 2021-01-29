@@ -26,7 +26,10 @@ interface
 {$define FPC_HAS_FEATURE_THREADING}
 
 {$define CPUARM_HAS_UMULL} 
-{$define CPUARM_HAS_CLZ}
+{$ifdef FPC_HAS_INTERNAL_BSR}
+  {$define CPUARM_HAS_CLZ}
+{$endif def FPC_HAS_INTERNAL_BSR}
+
 
 {$i systemh.inc}
 {$i ndsbiosh.inc}
@@ -125,42 +128,17 @@ begin
   // Boo!
 end;
 
-
-
 {*****************************************************************************
                              ParamStr/Randomize
 *****************************************************************************}
-const
-  QRAN_SHIFT  = 15;
-  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
-  QRAN_MAX    = QRAN_MASK;
-  QRAN_A      = 1664525;
-  QRAN_C      = 1013904223;
 
 { set randseed to a new pseudo random value }
 procedure randomize;
 var
   IPC_Timer: array [0..2] of byte absolute $27FF01B;
 begin
-  RandSeed := (IPC_Timer[0]  * 3600) + (IPC_Timer[1] * 60) + IPC_Timer[2]; 
+  RandSeed := (IPC_Timer[0]  * 3600) + (IPC_Timer[1] * 60) + IPC_Timer[2];
 end;
-
-function random(): integer; 
-begin	
-	RandSeed := QRAN_A * RandSeed + QRAN_C;
-	random := (RandSeed shr 16) and QRAN_MAX;
-end;
-
-function random(value: integer): integer; 
-var
-  a: integer;
-begin	
-	RandSeed := QRAN_A * RandSeed + QRAN_C;
-	a := (RandSeed shr 16) and QRAN_MAX;
-  random := (a * value) shr 15;
-end;
-
-
 
 Function ParamCount: Longint;
 Begin

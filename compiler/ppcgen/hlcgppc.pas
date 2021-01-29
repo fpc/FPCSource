@@ -113,7 +113,7 @@ implementation
         href : treference;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061310);
         { call/jmp  vmtoffs(%eax) ; method offs }
         reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
         if tcgppcgen(cg).hasLargeOffset(href) then

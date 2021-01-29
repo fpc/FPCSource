@@ -167,9 +167,8 @@ begin
   Try
     T:=TDaemonThread.Create(FDaemon);
     T.FreeOnTerminate:=True;
+    T.OnTerminate := @FDaemon.DoThreadTerminate;
     T.Resume;
-    T.WaitFor;
-    FDaemon.FThread:=Nil;
   except
     On E : Exception do
       FDaemon.Logmessage(Format(SErrDaemonStartFailed,[FDaemon.Definition.Name,E.Message]));
@@ -181,7 +180,7 @@ procedure TDaemonController.Controller(ControlCode, EventType: DWord;
 
 begin
   // Send control code to daemon thread.
-  TDaemonThread(Daemon.DaemonThread).HandleControlCode(ControlCode);
+  TDaemonThread(Daemon.DaemonThread).HandleControlCode(ControlCode, 0, Nil);
 end;
 
 function TDaemonController.ReportStatus: Boolean;

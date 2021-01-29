@@ -120,6 +120,7 @@ interface
         '',
         '',
         '',
+        '',
         ''
       );
 
@@ -362,7 +363,7 @@ interface
                     DH_Plus:
                       tempstr:=tempstr+('+'+#9);
                     else
-                      internalerror(2003112901);
+                      internalerror(2003112904);
                   end;
                   case c.cond of
                     C_LT..C_NU:
@@ -726,8 +727,6 @@ interface
       consttype : taiconst_type;
       do_line,DoNotSplitLine,
       quoted   : boolean;
-      sin      : single;
-      d        : double;
 
     begin
       if not assigned(p) then
@@ -818,12 +817,12 @@ interface
                 case consttype of
                    aitconst_128bit:
                       begin
-                        internalerror(200404291);
+                        internalerror(2004042904);
                       end;
                    aitconst_64bit:
                       begin
                         if assigned(tai_const(hp).sym) then
-                          internalerror(200404292);
+                          internalerror(2004042905);
                         writer.AsmWrite(ait_const2str[aitconst_32bit]);
                         if target_info.endian = endian_little then
                           begin
@@ -1047,7 +1046,7 @@ interface
                begin
                   if tai_symbol(hp).sym.typ=AT_FUNCTION then
                     WriteProcedureHeader(hp)
-                  else if tai_symbol(hp).sym.typ=AT_DATA then
+                  else if tai_symbol(hp).sym.typ in [AT_DATA,AT_METADATA] then
                     begin
                        s:= tai_symbol(hp).sym.name;
                        WriteDataHeader(s, tai_symbol(hp).is_global, true);
@@ -1241,9 +1240,10 @@ interface
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM $EXTRAOPT -o $OBJ';
-            supported_targets : [system_powerpc_macos];
+            supported_targets : [system_powerpc_macosclassic];
             flags : [af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: 's';
           );

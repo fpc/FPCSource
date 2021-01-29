@@ -99,7 +99,7 @@ interface
 
       TSearchPathList = class(TCmdStrList)
         procedure AddPath(s:TCmdStr;addfirst:boolean);overload;
-        procedure AddPath(SrcPath,s:TCmdStr;addfirst:boolean);overload;
+        procedure AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);overload;
         procedure AddList(list:TSearchPathList;addfirst:boolean);
         function  FindFile(const f : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
@@ -526,7 +526,7 @@ end;
    function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
 
    begin
-     if systeminfo.system <> system_powerpc_macos then
+     if systeminfo.system <> system_powerpc_macosclassic then
        CurDirRelPath:= '.'+systeminfo.DirSep
      else
        CurDirRelPath:= ':'
@@ -877,7 +877,7 @@ end;
      var
        i      : longint;
      begin
-       if source_info.system = system_powerpc_MACOS then
+       if source_info.system = system_powerpc_macosclassic then
          FixFileName:= TranslatePathToMac(s, true)
        else
         if (tf_files_case_aware in source_info.flags) or
@@ -940,7 +940,7 @@ end;
      var
        i : longint;
      begin
-       if target_info.system = system_powerpc_MACOS then
+       if target_info.system = system_powerpc_macosclassic then
          TargetFixFileName:= TranslatePathToMac(s, true)
        else
         if (tf_files_case_aware in target_info.flags) or
@@ -995,11 +995,11 @@ end;
 
     procedure TSearchPathList.AddPath(s:TCmdStr;addfirst:boolean);
       begin
-        AddPath('',s,AddFirst);
+        AddLibraryPath('',s,AddFirst);
       end;
 
 
-   procedure TSearchPathList.AddPath(SrcPath,s:TCmdStr;addfirst:boolean);
+   procedure TSearchPathList.AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);
      var
        staridx,
        i,j      : longint;
@@ -1074,7 +1074,10 @@ end;
 
          { fix pathname }
          DePascalQuote(currPath);
-         currPath:=SrcPath+FixPath(currPath,false);
+         { GNU LD convention: if library search path starts with '=', it's relative to the
+           sysroot; otherwise, interpret it as a regular path }
+         if (length(currPath) >0) and (currPath[1]='=') then
+           currPath:=sysroot+FixPath(copy(currPath,2,length(currPath)-1),false);
          if currPath='' then
            currPath:= CurDirRelPath(source_info)
          else

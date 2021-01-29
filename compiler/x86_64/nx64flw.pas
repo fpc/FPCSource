@@ -52,7 +52,7 @@ interface
 implementation
 
   uses
-    globtype,globals,verbose,systems,
+    globtype,globals,verbose,systems,fmodule,
     nbas,ncal,nutils,
     symconst,symsym,symdef,
     cgbase,cgobj,cgutils,tgobj,
@@ -321,6 +321,12 @@ procedure tx64tryfinallynode.pass_generate_code;
         cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
       end;
 
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
+
     flowcontrol:=[fc_inflowcontrol];
     { generate finally code as a separate procedure }
     if not implicitframe then
@@ -366,6 +372,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     hnode : tnode;
     hlist : tasmlist;
     onnodecount : tai_const;
+    sym : tasmsymbol;
   label
     errorexit;
   begin
@@ -430,6 +437,12 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
+
     flowcontrol:=[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
@@ -448,8 +461,10 @@ procedure tx64tryexceptnode.pass_generate_code;
             if hnode.nodetype<>onn then
               InternalError(2011103101);
             current_asmdata.getjumplabel(onlabel);
-            hlist.concat(tai_const.create_rva_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
+            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            hlist.concat(tai_const.create_rva_sym(sym));
             hlist.concat(tai_const.create_rva_sym(onlabel));
+            current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);
             inc(onnodecount.value);
@@ -517,6 +532,12 @@ procedure tx64tryexceptnode.pass_generate_code;
 errorexit:
     { restore all saved labels }
     endexceptlabel:=oldendexceptlabel;
+
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
 
     { restore the control flow labels }
     current_procinfo.CurrExitLabel:=oldCurrExitLabel;

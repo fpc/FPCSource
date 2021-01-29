@@ -28,15 +28,15 @@ unit i_macos;
     uses
        systems;
      const
-       system_powerpc_macos_info : tsysteminfo =
+       system_powerpc_macosclassic_info : tsysteminfo =
           (
-            system       : system_powerpc_MACOS;
+            system       : system_powerpc_macosclassic;
             name         : 'Mac OS for PowerPC';
-            shortname    : 'MacOS';
+            shortname    : 'MacOSClassic';
             flags        : [tf_p_ext_support,tf_files_case_aware];
             cpu          : cpu_powerpc;
             unit_env     : '';
-            extradefines : '';
+            extradefines : 'MacOS';
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -95,15 +95,15 @@ unit i_macos;
           );
 
      const
-       system_m68k_macos_info : tsysteminfo =
+       system_m68k_macosclassic_info : tsysteminfo =
           (
-            system       : system_m68k_macos;
+            system       : system_m68k_macosclassic;
             name         : 'Mac OS for m68k';
-            shortname    : 'MacOS';
+            shortname    : 'MacOSClassic';
             flags        : [tf_p_ext_support,tf_files_case_aware];
             cpu          : cpu_m68k;
             unit_env     : '';
-            extradefines : '';
+            extradefines : 'MacOS';
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -129,9 +129,9 @@ unit i_macos;
             dirsep       : ':';
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_none;
-            ar           : ar_gnu_ar;
+            link         : ld_mpw;
+            linkextern   : ld_mpw;
+            ar           : ar_mpw_ar;
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_mpw;
@@ -166,12 +166,12 @@ unit i_macos;
 initialization
 {$ifdef cpupowerpc}
   {$ifdef macos}
-    set_source_info(system_powerpc_macos_info);
+    set_source_info(system_powerpc_macosclassic_info);
   {$endif macos}
 {$endif cpupowerpc}
 {$ifdef cpum68k}
   {$ifdef macos}
-    set_source_info(system_m68k_macos_info);
+    set_source_info(system_m68k_macosclassic_info);
   {$endif macos}
 {$endif cpum68k}
 end.

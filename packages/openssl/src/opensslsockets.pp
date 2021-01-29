@@ -25,6 +25,8 @@ Type
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
+    Function GetLastSSLErrorString : String; override;
+    Function GetLastSSLErrorCode : Integer; override;
   Public
     Constructor create; override;
     destructor destroy; override;
@@ -39,6 +41,7 @@ Type
     // Result of last CheckSSL call.
     Function SSLLastError: integer;
     property SSLLastErrorString: string read FSSLLastErrorString write SetSSLLastErrorString;
+    property SSL: TSSL read FSSL; // allow more lower level info and control
   end;
 
 implementation
@@ -78,8 +81,10 @@ begin
      if SendHostAsSNI  and (Socket is TInetSocket) then
        FSSL.Ctrl(SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,PAnsiChar(AnsiString((Socket as TInetSocket).Host)));
      Result:=CheckSSL(FSSL.Connect);
-     if Result and VerifyPeerCert then
-       Result:=(FSSL.VerifyResult<>0) or (not DoVerifyCert);
+     //if Result and VerifyPeerCert then
+     //  Result:=(FSSL.VerifyResult<>0) or (not DoVerifyCert);
+     if Result then
+       Result:= DoVerifyCert;
      if Result then
        SetSSLActive(True);
      end;
@@ -168,10 +173,20 @@ begin
     Result:=CheckSSL(FCTX.UseCertificate(CertificateData.Certificate));
   if Result and not CertificateData.PrivateKey.Empty then
     Result:=CheckSSL(FCTX.UsePrivateKey(CertificateData.PrivateKey));
-  if Result and (CertificateData.CertCA.FileName<>'') then
-    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,''));
+  if Result and ((CertificateData.CertCA.FileName<>'') or (CertificateData.TrustedCertsDir<>'')) then
+    Result:=CheckSSL(FCTX.LoadVerifyLocations(CertificateData.CertCA.FileName,CertificateData.TrustedCertsDir));
   if Result and not CertificateData.PFX.Empty then
     Result:=CheckSSL(FCTX.LoadPFX(CertificateData.PFX,CertificateData.KeyPassword));
+end;
+
+function TOpenSSLSocketHandler.GetLastSSLErrorString: String;
+begin
+  Result:=FSSLLastErrorString;
+end;
+
+function TOpenSSLSocketHandler.GetLastSSLErrorCode: Integer;
+begin
+  Result:=FSSLLastError;
 end;
 
 constructor TOpenSSLSocketHandler.create;
@@ -298,6 +313,8 @@ begin
   repeat
     Result:=FSSL.Read(@Buffer ,Count);
     e:=FSSL.GetError(Result);
+    if (e=SSL_ERROR_WANT_READ) and (Socket.IOTimeout>0) then
+      e:=SSL_ERROR_ZERO_RETURN;
   until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
   if (E=SSL_ERROR_ZERO_RETURN) then
     Result:=0

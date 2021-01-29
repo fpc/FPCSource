@@ -12,6 +12,8 @@ function GetRealTime(const st: TSystemTime): Real;
     Result := st.Hour*3600.0 + st.Minute*60.0 + st.Second + st.MilliSecond/1000.0;
   end;
 
+{$push}
+{$warn 5057 off}
 function GetRealTime : Real;
   var
     st:TSystemTime;
@@ -19,6 +21,7 @@ function GetRealTime : Real;
     GetLocalTime(st);
     result:=GetRealTime(st);
   end;
+{$pop}
 
 function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
   begin
@@ -1372,8 +1375,8 @@ procedure TSingleEntryAtMinus4WithElse.DoTestIteration(Iteration: Integer);
     { This helps catch errors where all branches, including else, are skipped }
     FResultStorage[Byte(Index)] := $FF;
     case Index of
-      -4: FResultStorage[Index] := 1;
-      else FResultStorage[Index] := 0;
+      -4: FResultStorage[Byte(Index)] := 1;
+      else FResultStorage[Byte(Index)] := 0;
     end;
   end;
 
@@ -1606,8 +1609,8 @@ procedure TSingleEntryWithMinus1To5RangeWithElse.DoTestIteration(Iteration: Inte
     { This helps catch errors where all branches, including else, are skipped }
     FResultStorage[Byte(Index)] := $FF;
     case Index of
-      -1..5: FResultStorage[Index] := 1;
-      else FResultStorage[Index] := 0;
+      -1..5: FResultStorage[Byte(Index)] := 1;
+      else FResultStorage[Byte(Index)] := 0;
     end;
   end;
 
@@ -1655,8 +1658,8 @@ procedure TSingleEntryWithMinus1To50RangeWithElse.DoTestIteration(Iteration: Int
     { This helps catch errors where all branches, including else, are skipped }
     FResultStorage[Byte(Index)] := $FF;
     case Index of
-      -1..50: FResultStorage[Index] := 1;
-      else FResultStorage[Index] := 0;
+      -1..50: FResultStorage[Byte(Index)] := 1;
+      else FResultStorage[Byte(Index)] := 0;
     end;
   end;
 
@@ -1736,8 +1739,11 @@ procedure TExtremeRange2.DoTestIteration(Iteration: Integer);
   var
     Index, Input: Word;
   begin
+{$push}
+{$r-}
     Index := (Iteration and $FFFF);
     Input := (Iteration and $1) - 1;
+{$pop}
     FResultStorage[Index] := 0; { Covers $FFFF }
     case Input of
       0..$FFFD:
@@ -1823,8 +1829,11 @@ procedure TExtremeRange4.DoTestIteration(Iteration: Integer);
   var
     Index, Input: Word;
   begin
+{$push}
+{$r-}
     Index := (Iteration and $FFFF);
     Input := (Iteration and $1) - 1;
+{$pop}
     FResultStorage[Index] := 2; { Covers 1..$FFFE }
     case Input of
       0:
@@ -2527,7 +2536,7 @@ function TCStyleCascade.WriteResults: Boolean;
 
 procedure TCStyleCascade.DoTestIteration(Iteration: Integer);
   var
-    X, Tmp: Byte; P: TInstructionSet;
+    X, Tmp: Byte;
   label
     Set1, Set2, Set3, Set4, Default;
   begin

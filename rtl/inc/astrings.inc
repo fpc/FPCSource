@@ -236,12 +236,16 @@ begin
   S2CP:=TranslatePlaceholderCP(S2CP);
 {$ifdef FPC_HAS_CPSTRING}
   { if the result is rawbytestring and both strings have the same code page,
-    keep that code page }
-  if (cp=CP_NONE) and
-     (S1CP=S2CP) then
-    DestCP:=S1CP;
+    keep that code page or keep the code page if the other string is empty }
+  if cp=CP_NONE then
+    begin
+     if (S1CP=S2CP) or (S2='') then
+       DestCP:=S1CP
+     else if S1='' then
+       DestCP:=S2CP;
+    end;
 {$endif FPC_HAS_CPSTRING}
-  if (S1CP<>DestCP) or (S2CP<>DestCP) then
+  if ((S1CP<>DestCP) and (s1<>'')) or ((S2CP<>DestCP) and (s2<>'')) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
       exit;
@@ -766,8 +770,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_H
 }
 Var
   Temp : Pointer;
-  lens, lena,
-  movelen : SizeInt;
+  lens, lena : SizeInt;
 begin
   if (l>0) then
     begin
@@ -798,13 +801,14 @@ begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
           PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-          { also move terminating null }
-          lens:=succ(length(s));
-          if l<lens then
-            movelen:=l
+          lens:=length(s);
+          if l<=lens then
+            lens:=l
           else
-            movelen:=lens;
-          Move(Pointer(S)^,Temp^,movelen);
+            { Also copy a trailing implicit #0 of the original string
+              to the new larger string }
+            Inc(lens);
+          Move(Pointer(S)^,Temp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
         end;

@@ -351,7 +351,7 @@ begin
           end;
         end;
       else
-       internalerror(2013120112);
+       internalerror(2013120113);
     end;
     { choose appropriate operand }
     if left.resultdef.typ <> floatdef then begin
@@ -377,11 +377,12 @@ end;
 procedure tppcnotnode.pass_generate_code;
 
 begin
+  secondpass(left);
   if is_boolean(resultdef) then
   begin
     if not handle_locjump then
     begin
-      secondpass(left);
+      { handle_locjump does call secondpass }
       case left.location.loc of
         LOC_FLAGS:
           begin
@@ -408,7 +409,6 @@ begin
   end
   else
   begin
-    secondpass(left);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
       left.resultdef, left.resultdef, true);
     location_copy(location, left.location);

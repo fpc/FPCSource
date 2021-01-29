@@ -482,7 +482,7 @@ implementation
         a typecast at the scanner level }
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
-        internalerror(2011032811);
+        internalerror(2011032804);
       { walk over all fields that need initialization }
       str:='begin ';
       for i:=0 to struct.symtable.symlist.count-1 do
@@ -1257,7 +1257,7 @@ implementation
       else
         begin
           symname:=sym.name;
-          symrealname:=sym.realname;
+          symrealname:=sym.EscapedRealName;
         end;
       result:=search_struct_member(trecorddef(nestedvarsdef),symname);
       if not assigned(result) then
@@ -1272,7 +1272,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
+          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1330,7 +1330,7 @@ implementation
           sl:=tpropaccesslist.create;
           sl.addsym(sl_load,pd.parentfpstruct);
           sl.addsym(sl_subscript,tfieldvarsym(fsym));
-          aliassym:=cabsolutevarsym.create_ref(lsym.name,tfieldvarsym(fsym).vardef,sl);
+          aliassym:=cabsolutevarsym.create_ref(lsym.EscapedRealName,tfieldvarsym(fsym).vardef,sl);
           { hide the original variable (can't delete, because there
             may be other loadnodes that reference it)
             -- only for locals; hiding parameters changes the
@@ -1394,7 +1394,10 @@ implementation
       hstaticvs.visibility:=fieldvs.visibility;
 {$else jvm}
       include(hstaticvs.symoptions,sp_internal);
-      tabstractrecordsymtable(recst).get_unit_symtable.insert(hstaticvs);
+      if df_generic in tdef(recst.defowner).defoptions then
+        tabstractrecordsymtable(recst).insert(hstaticvs)
+      else
+        tdef(tabstractrecordsymtable(recst).defowner).get_top_level_symtable(false).insert(hstaticvs);
 {$endif jvm}
       { generate the symbol for the access }
       sl:=tpropaccesslist.create;

@@ -133,7 +133,6 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-         function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
@@ -287,6 +286,11 @@ interface
        COFF_OPT_MAGIC   = $20b;
        TLSDIR_SIZE      = $28;
 {$endif x86_64}
+{$ifdef aarch64}
+       COFF_MAGIC       = $AA64;
+       COFF_OPT_MAGIC   = $20b;
+       TLSDIR_SIZE      = $28;
+{$endif aarch64}
        COFF_BIG_OBJ_MAGIC: array[0..15] of byte = ($C7, $A1, $BA, $D1, $EE, $BA, $A9, $4B, $AF, $20, $FA, $F6, $6A, $A4, $DC, $B8);
        COFF_BIG_OBJ_VERSION = 2;
 
@@ -358,6 +362,18 @@ implementation
        PE_FILE_DLL                     = $2000;
        PE_FILE_UP_SYSTEM_ONLY          = $4000;
        PE_FILE_BYTES_REVERSED_HI       = $8000;
+
+       PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA       = $0020;
+       PE_DLLCHARACTERISTICS_DYNAMIC_BASE          = $0040;
+       PE_DLLCHARACTERISTICS_FORCE_INTEGRITY       = $0080;
+       PE_DLLCHARACTERISTICS_NX_COMPAT             = $0100;
+       PE_DLLCHARACTERISTICS_NO_ISOLATION          = $0200;
+       PE_DLLCHARACTERISTICS_NO_SEH                = $0400;
+       PE_DLLCHARACTERISTICS_NO_BIND               = $0800;
+       PE_DLLCHARACTERISTICS_APPCONTAINER          = $1000;
+       PE_DLLCHARACTERISTICS_WDM_DRIVER            = $2000;
+       PE_DLLCHARACTERISTICS_GUARD_CF              = $4000;
+       PE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = $8000;
 
        PE_SCN_CNT_CODE               = $00000020; { Section contains code. }
        PE_SCN_CNT_INITIALIZED_DATA   = $00000040; { Section contains initialized data. }
@@ -464,6 +480,25 @@ implementation
        IMAGE_REL_I386_SECREL32 = 11;
        IMAGE_REL_I386_PCRLONG = 20;
 {$endif i386}
+
+{$ifdef aarch64}
+       IMAGE_REL_ARM64_ABSOLUTE       = $0000;  // No relocation required
+       IMAGE_REL_ARM64_ADDR32         = $0001;  // 32 bit address. Review! do we need it?
+       IMAGE_REL_ARM64_ADDR32NB       = $0002;  // 32 bit address w/o image base (RVA: for Data/PData/XData)
+       IMAGE_REL_ARM64_BRANCH26       = $0003;  // 26 bit offset << 2 & sign ext. for B & BL
+       IMAGE_REL_ARM64_PAGEBASE_REL21 = $0004;  // ADRP
+       IMAGE_REL_ARM64_REL21          = $0005;  // ADR
+       IMAGE_REL_ARM64_PAGEOFFSET_12A = $0006;  // ADD/ADDS (immediate) with zero shift, for page offset
+       IMAGE_REL_ARM64_PAGEOFFSET_12L = $0007;  // LDR (indexed, unsigned immediate), for page offset
+       IMAGE_REL_ARM64_SECREL         = $0008;  // Offset within section
+       IMAGE_REL_ARM64_SECREL_LOW12A  = $0009;  // ADD/ADDS (immediate) with zero shift, for bit 0:11 of section offset
+       IMAGE_REL_ARM64_SECREL_HIGH12A = $000A;  // ADD/ADDS (immediate) with zero shift, for bit 12:23 of section offset
+       IMAGE_REL_ARM64_SECREL_LOW12L  = $000B;  // LDR (indexed, unsigned immediate), for bit 0:11 of section offset
+       IMAGE_REL_ARM64_TOKEN          = $000C;
+       IMAGE_REL_ARM64_SECTION        = $000D;  // Section table index
+       IMAGE_REL_ARM64_ADDR64         = $000E;  // 64 bit address
+       IMAGE_REL_ARM64_BRANCH19       = $000F;  // 19 bit offset << 2 & sign ext. for conditional B
+{$endif aarch64}
 
        { .reloc section fixup types }
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
@@ -593,7 +628,8 @@ implementation
           '.objc_protolist',
           '.stack',
           '.heap',
-          '.gcc_except_table'
+          '.gcc_except_table',
+          '.ARM.attributes'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -878,6 +914,64 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
+    function encodeBase64(p:aword):string;
+      const
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+                   'abcdefghijklmnopqrstuvwxyz' +
+                   '0123456789+/';
+      var
+        i,
+        idx,
+        rem : longint;
+      begin
+        setlength(result,6);
+
+        idx := 6;
+        for i:=0 to 5 do
+          begin
+            rem:=p mod 64;
+            p:=p div 64;
+            result[idx]:=alphabet[rem+1];
+            dec(idx);
+          end;
+
+        if p<>0 then
+          internalerror(2020091601);
+      end;
+
+
+    function decodeBase64(const s:string;out p:longint):boolean;
+      var
+        i : longint;
+        v : aword;
+      begin
+        if length(s)>6 then
+          exit(false);
+
+        p:=0;
+        for i:=1 to length(s) do
+          begin
+            v:=0;
+            if (s[i]>='A') and (s[i]<='Z') then // 0..25
+              v:=Ord(s[i])-Ord('A')
+            else if (s[i]>='a') and (s[i]<='z') then // 26..51
+              v:=Ord(s[i])-Ord('a')+26
+            else if (s[i]>='0') and (s[i]<='9') then // 52..61
+              v:=Ord(s[i])-Ord('0')+52
+            else if s[i]='+' then // 62
+              v:=62
+            else if s[i]='/' then // 63
+              v:=63
+            else
+              exit(false);
+
+            p:=(p*64)+v;
+          end;
+
+        result:=true;
+      end;
+
+
 {****************************************************************************
                                TCoffObjSection
 ****************************************************************************}
@@ -905,9 +999,9 @@ const pemagic : array[0..3] of byte = (
         objreloc : TObjRelocation;
         address,
         relocval : aint;
-{$ifdef arm}
+{$if defined(arm) or defined(aarch64)}
         addend   : aint;
-{$endif arm}
+{$endif arm or aarch64}
         relocsec : TObjSection;
 {$ifdef cpu64bitaddr}
         s        : string;
@@ -1003,9 +1097,59 @@ const pemagic : array[0..3] of byte = (
                     address:=(address and $ff000000) or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
                     relocval:=relocval shr 25;
                     if (relocval<>$3f) and (relocval<>0) then
-                      internalerror(200606085);  { offset overflow }
+                      internalerror(2006060801);  { offset overflow }
                   end;
 {$endif arm}
+{$ifdef aarch64}
+                RELOC_RELATIVE_26:
+                  begin
+                    addend:=sarint64(((address and $3ffffff) shl 38),36); // Sign-extend while shifting left twice
+                    relocval:=int64(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $fc000000) or (relocval and $3ffffff);
+                    relocval:=relocval shr 58;
+                    if (relocval<>$f) and (relocval<>0) then
+                      internalerror(2020032202);  { offset overflow }
+                  end;
+                RELOC_RELATIVE_19:
+                  begin
+                    addend:=sarint64(((address and $7ffe0) shl 45),43); // Sign-extend while shifting left twice
+                    relocval:=int64(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $fff80000) or (relocval and $7ffff);
+                    relocval:=relocval shr 51;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(2020032203);  { offset overflow }
+                  end;
+                RELOC_ADR_PREL_LO21:
+                  begin
+                    addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
+                    { sign extend the value if necessary }
+                    if (addend and (1 shl 21)) <> 0 then
+                      addend:=addend or sarint64(1 shl 63,12);
+                    relocval:=relocval and $1fffff;
+                    relocval:=int64(relocval-objsec.mempos-objreloc.dataoffset+addend);
+                    address:=address and ($3 shl 29) and ($7ffff shl 5);
+                    address:=address or ((relocval and $3) shl 29) or (((relocval shr 2) and $7ffff) shl 5);
+                  end;
+                RELOC_ADR_PREL_PG_HI21:
+                  begin
+                    addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
+                    { sign extend the value if necessary }
+                    if (addend and (1 shl 21)) <> 0 then
+                      addend:=addend or sarint64(1 shl 63, 12);
+                    relocval:=relocval shr 12;
+                    relocval:=int64((relocval-(objsec.mempos+objreloc.dataoffset) shr 12)+addend);
+                    address:=address and not (($3 shl 29) or ($7ffff shl 5));
+                    address:=address or ((relocval and $3) shl 29) or (((relocval shr 2) and $7ffff) shl 5);
+                  end;
+                RELOC_LDST8_ABS_LO12,
+                RELOC_ADD_ABS_LO12:
+                  begin
+                    addend:=(address shr 10) and $fff;
+                    relocval:=(relocval + addend) and $fff;
+                    address:=address and not ($fff shl 10);
+                    address:=address or (relocval shl 10);
+                  end;
+{$endif aarch64}
 {$ifdef x86_64}
                 { 64 bit coff only }
                 RELOC_RELATIVE_1:
@@ -1033,8 +1177,10 @@ const pemagic : array[0..3] of byte = (
                     address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+9);
                   end;
-                RELOC_ABSOLUTE32,
 {$endif x86_64}
+{$ifdef cpu64bitaddr}
+                RELOC_ABSOLUTE32,
+{$endif cpu64bitaddr}
                 RELOC_ABSOLUTE :
                   begin
                     if (not win32) and assigned(objreloc.symbol) and
@@ -1125,19 +1271,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
-      begin
-        if (aType in [sec_rodata,sec_rodata_norel]) then
-          begin
-            if (target_info.system in systems_all_windows) then
-              aType:=sec_rodata_norel
-            else
-              aType:=sec_data;
-          end;
-        result:=inherited sectiontype2options(aType);
-      end;
-
-
     procedure TCoffObjData.CreateDebugSections;
       begin
         if target_dbg.id=dbg_stabs then
@@ -1154,7 +1287,7 @@ const pemagic : array[0..3] of byte = (
         symaddr : aword;
       begin
         if CurrObjSec=nil then
-          internalerror(200403072);
+          internalerror(2004030701);
         if assigned(p) then
           begin
             { current address }
@@ -1449,6 +1582,35 @@ const pemagic : array[0..3] of byte = (
               RELOC_SECREL32 :
                 rel.reloctype:=IMAGE_REL_AMD64_SECREL;
 {$endif x86_64}
+{$ifdef aarch64}
+              RELOC_NONE :
+                rel.reloctype:=IMAGE_REL_ARM64_ABSOLUTE;
+              RELOC_ABSOLUTE32 :
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR32;
+              RELOC_RVA :
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR32NB;
+              RELOC_RELATIVE_26 :
+                rel.reloctype:=IMAGE_REL_ARM64_BRANCH26;
+              RELOC_ADR_PREL_PG_HI21 :
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEBASE_REL21;
+              RELOC_ADR_PREL_LO21 :
+                rel.reloctype:=IMAGE_REL_ARM64_REL21;
+              RELOC_ADD_ABS_LO12:
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEOFFSET_12A;
+              RELOC_LDST8_ABS_LO12:
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEOFFSET_12L;
+              RELOC_SECREL32:
+                rel.reloctype:=IMAGE_REL_ARM64_SECREL;
+              {IMAGE_REL_ARM64_SECREL_LOW12A
+              IMAGE_REL_ARM64_SECREL_HIGH12A
+              IMAGE_REL_ARM64_SECREL_LOW12L
+              IMAGE_REL_ARM64_TOKEN
+              IMAGE_REL_ARM64_SECTION}
+              RELOC_ABSOLUTE:
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR64;
+              RELOC_RELATIVE_19:
+                rel.reloctype:=IMAGE_REL_ARM64_BRANCH19;
+{$endif aarch64}
               else
                 internalerror(200905071);
             end;
@@ -1548,7 +1710,12 @@ const pemagic : array[0..3] of byte = (
                strpos:=FCoffStrs.size+4;
                FCoffStrs.writestr(s);
                FCoffStrs.writestr(#0);
-               s:='/'+ToStr(strpos);
+               if strpos>=10000000 then
+                 s:='//'+encodeBase64(strpos)
+               else
+                 s:='/'+ToStr(strpos);
+               if length(s)>8 then
+                 internalerror(2020091501);
              end;
             move(s[1],sechdr.name,length(s));
             if not win32 then
@@ -1638,12 +1805,12 @@ const pemagic : array[0..3] of byte = (
                header.syms:=symidx;
                if win32 then
                  begin
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
                    header.flag:=PE_FILE_32BIT_MACHINE or
                                 PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$else x86_64}
+{$else cpu64bitaddr}
                    header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$endif x86_64}
+{$endif cpu64bitaddr}
                  end
                else
                  header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
@@ -1802,6 +1969,34 @@ const pemagic : array[0..3] of byte = (
              IMAGE_REL_AMD64_SECREL:
                rel_type:=RELOC_SECREL32;
 {$endif x86_64}
+{$ifdef aarch64}
+             IMAGE_REL_ARM64_ABSOLUTE:
+               rel_type:=RELOC_NONE;
+             IMAGE_REL_ARM64_ADDR32:
+               rel_type:=RELOC_ABSOLUTE32;
+             IMAGE_REL_ARM64_ADDR32NB:
+               rel_type:=RELOC_RVA;
+             IMAGE_REL_ARM64_BRANCH26:
+               rel_type:=RELOC_RELATIVE_26;
+             IMAGE_REL_ARM64_PAGEBASE_REL21:
+               rel_type:=RELOC_ADR_PREL_PG_HI21;
+             IMAGE_REL_ARM64_REL21:
+               rel_type:=RELOC_ADR_PREL_LO21;
+             IMAGE_REL_ARM64_PAGEOFFSET_12A:
+               rel_type:=RELOC_ADD_ABS_LO12;
+             IMAGE_REL_ARM64_PAGEOFFSET_12L:
+               rel_type:=RELOC_LDST8_ABS_LO12;
+             IMAGE_REL_ARM64_SECREL:
+               rel_type:=RELOC_SECREL32;
+             //IMAGE_REL_ARM64_SECREL_LOW12A
+             //IMAGE_REL_ARM64_SECREL_HIGH12A
+             //IMAGE_REL_ARM64_SECREL_LOW12L
+             //IMAGE_REL_ARM64_TOKEN
+             //IMAGE_REL_ARM64_SECTION
+             IMAGE_REL_ARM64_ADDR64:
+               rel_type:=RELOC_ABSOLUTE;
+             //IMAGE_REL_ARM64_BRANCH19
+{$endif aarch64}
            else
              begin
                InputError('Failed reading coff file, illegal reloctype $'+system.hexstr(rel.reloctype,4));
@@ -2191,13 +2386,26 @@ const pemagic : array[0..3] of byte = (
                secname:=strpas(secnamebuf);
                if secname[1]='/' then
                  begin
-                   Val(Copy(secname,2,8),strpos,code);
-                   if code=0 then
-                     secname:=Read_str(strpos)
+                   if secname[2]='/' then
+                     begin
+                       if not decodeBase64(copy(secname,3,8),strpos) then
+                         begin
+                           InputError('Error reading COFF Section Headers');
+                           secname:='error';
+                         end
+                       else
+                         secname:=Read_str(strpos);
+                     end
                    else
                      begin
-                       InputError('Error reading COFF Section Headers');
-                       secname:='error';
+                       Val(Copy(secname,2,8),strpos,code);
+                       if code=0 then
+                         secname:=Read_str(strpos)
+                       else
+                         begin
+                           InputError('Error reading COFF Section Headers');
+                           secname:='error';
+                         end;
                      end;
                  end;
                if win32 then
@@ -2211,9 +2419,7 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Pos('.edata',secname)=1) or
                       (Pos('.rsrc',secname)=1) or
-{$ifndef x86_64}
-                      (Pos('.pdata',secname)=1) or
-{$endif}
+                      ((target_info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
                       (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
                    if (Pos('.idata',secname)=1) then
@@ -2276,7 +2482,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
-        if target_info.system in [system_x86_64_win64] then
+        if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
           if target_info.system in systems_wince then
@@ -2315,7 +2521,7 @@ const pemagic : array[0..3] of byte = (
         exesec : TExeSection;
       begin
         if not assigned(texesymbol(p).objsymbol) then
-          internalerror(200603053);
+          internalerror(2006030505);
         with texesymbol(p).objsymbol do
           begin
             if assigned(objsection) then
@@ -2583,7 +2789,7 @@ const pemagic : array[0..3] of byte = (
         bssExeSec:=FindExeSection('.bss');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
-          internalerror(200602231);
+          internalerror(2006022302);
         { do we need to write symbols? }
         hassymbols:=(ExeWriteMode=ewm_dbgonly) or
                     (
@@ -2614,7 +2820,7 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if target_info.system in [system_x86_64_win64] then
+            if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
               header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
             else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
@@ -2703,10 +2909,15 @@ const pemagic : array[0..3] of byte = (
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
 
-            if SetPEOptFlagsSetExplicity then
-              peoptheader.DllCharacteristics:=peoptflags
+            if target_info.system in [system_aarch64_win64] then
+              peoptheader.DllCharacteristics:=PE_DLLCHARACTERISTICS_DYNAMIC_BASE or
+                                              PE_DLLCHARACTERISTICS_NX_COMPAT or
+                                              PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
             else
               peoptheader.DllCharacteristics:=0;
+
+            if SetPEOptFlagsSetExplicity then
+              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or peoptflags;
 
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
@@ -2822,7 +3033,7 @@ const pemagic : array[0..3] of byte = (
         objreloc:TObjRelocation;
         i,j:longint;
       begin
-        if target_info.system<>system_x86_64_win64 then
+        if not (target_info.system in [system_x86_64_win64,system_aarch64_win64]) then
           exit;
         exesec:=FindExeSection('.pdata');
         if exesec=nil then
@@ -2852,7 +3063,10 @@ const pemagic : array[0..3] of byte = (
                         .eh_frame sections. }
                     break;
                   end;
-                inc(j,3);
+                if target_info.system=system_aarch64_win64 then
+                  inc(j,2)
+                else
+                  inc(j,3);
               end;
           end;
       end;
@@ -2883,26 +3097,32 @@ const pemagic : array[0..3] of byte = (
         begin
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             idata4objsection.writezeros(sizeof(longint));
           { idata5 }
           idata5objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             idata5objsection.writezeros(sizeof(longint));
         end;
 
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
-  {$ifdef arm}
+  {$if defined(arm)}
           jmpopcode : array[0..7] of byte = (
             $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
             $00,$f0,$9c,$e5     // ldr pc, [ip]
           );
-  {$else arm}
+  {$elseif defined(aarch64)}
+          jmpopcode : array[0..11] of byte = (
+            $70,$00,$00,$58,    // ldr ip0, .+12
+            $10,$02,$40,$F9,    // ldr ip0, [ip0]
+            $00,$02,$1F,$D6     // br ip0
+          );
+  {$else}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
-  {$endif arm}
+  {$endif}
           nopopcodes : array[0..1] of byte = (
             $90,$90
           );
@@ -2914,14 +3134,14 @@ const pemagic : array[0..3] of byte = (
             if AOrdNr <= 0 then
               begin
                 objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   objsec.writezeros(sizeof(longint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=AOrdNr;
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   begin
                     objsec.write(ordint,sizeof(ordint));
                     ordint:=$80000000;
@@ -2957,11 +3177,13 @@ const pemagic : array[0..3] of byte = (
               textobjsection.writezeros(align_aword(textobjsection.size,16)-textobjsection.size);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               textobjsection.write(jmpopcode,sizeof(jmpopcode));
-{$ifdef x86_64}
+{$if defined(x86_64)}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_RELATIVE);
+{$elseif defined(aarch64)}
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,8,RELOC_ABSOLUTE);
 {$else}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
-{$endif x86_64}
+{$endif x86_64 or aarch64}
 
               textobjsection.write(nopopcodes,align(textobjsection.size,qword(sizeof(nopopcodes)))-textobjsection.size);
             end;
@@ -3137,7 +3359,7 @@ const pemagic : array[0..3] of byte = (
           begin
             exesec:=FindExeSection('.reloc');
             if exesec=nil then
-              InternalError(2012072401);
+              InternalError(2012072403);
             exesec.Disabled:=false;
           end;
         inherited;
@@ -3326,6 +3548,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_go32v2];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3339,6 +3562,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_win32,system_i386_nativent];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3352,6 +3576,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_wdosx];
             flags : [af_outputbinary];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3365,6 +3590,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3380,6 +3606,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_x86_64_win64];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3395,6 +3622,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_arm_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );

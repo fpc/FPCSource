@@ -34,6 +34,7 @@ interface
            procedure optimizevalues(var max_linear_list: int64; var max_dist: qword);override;
            function  has_jumptable: boolean;override;
            procedure genjumptable(hp: pcaselabel ;min_, max_: int64);override;
+           procedure genlinearlist(hp: pcaselabel);override;
        end;
 
 
@@ -41,7 +42,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,constexp,
+      verbose,globals,constexp,cutils,
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
@@ -66,6 +67,120 @@ implementation
       begin
         has_jumptable:=true;
       end;
+
+
+    procedure taarch64casenode.genlinearlist(hp : pcaselabel);
+      var
+        first : boolean;
+        lastrange : boolean;
+        last : TConstExprInt;
+        cond_lt,cond_le : tresflags;
+        opcgsize, unsigned_opcgsize: tcgsize;
+
+        procedure genitem(t : pcaselabel);
+          var
+           ovloc: tlocation;
+          begin
+            if assigned(t^.less) then
+              genitem(t^.less);
+            { need we to test the first value }
+            if first and (t^._low>get_min_value(left.resultdef)) then
+              begin
+                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+              end;
+            if t^._low=t^._high then
+              begin
+                 if t^._low-last=0 then
+                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                 else
+                   begin
+                     { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                       then genlinearlist wouldn't be used }
+                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
+                       true,ovloc);
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
+                   end;
+                 last:=t^._low;
+                 lastrange:=false;
+              end
+            else
+              begin
+                 { it begins with the smallest label, if the value }
+                 { is even smaller then jump immediately to the    }
+                 { ELSE-label                                }
+                 if first then
+                   begin
+                      { have we to ajust the first value ? }
+                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
+                        begin
+                          { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                            then genlinearlist wouldn't be use }
+                          cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
+                            true,ovloc);
+                        end;
+                   end
+                 else
+                   begin
+                     { if there is no unused label between the last and the }
+                     { present label then the lower limit can be checked    }
+                     { immediately. else check the range in between:       }
+
+                     { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                       then genlinearlist wouldn't be use }
+                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
+                       true,ovloc);
+                     { no jump necessary here if the new range starts at }
+                     { at the value following the previous one           }
+                     if (aint(t^._low.svalue - last.svalue) <> 1) or
+                        (not lastrange) then
+                       cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                   end;
+                 { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                   then genlinearlist wouldn't be use }
+                 cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
+                   true,ovloc);
+                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+
+                 last:=t^._high;
+                 lastrange:=true;
+              end;
+            first:=false;
+            if assigned(t^.greater) then
+              genitem(t^.greater);
+          end;
+
+        begin
+           opcgsize:=def_cgsize(opsize);
+           case opcgsize of
+             OS_8,OS_16,OS_32,OS_S8,OS_S16,OS_S32:
+               unsigned_opcgsize:=OS_32;
+             OS_64,OS_S64:
+               unsigned_opcgsize:=OS_64;
+             else
+               Internalerror(2019090902);
+           end;
+           if with_sign then
+             begin
+                cond_lt:=F_LT;
+                cond_le:=F_LE;
+             end
+           else
+              begin
+                cond_lt:=F_CC;
+                cond_le:=F_LS;
+             end;
+           { do we need to generate cmps? }
+           if (with_sign and (min_label<0)) then
+             genlinearcmplist(hp)
+           else
+             begin
+                last:=0;
+                lastrange:=false;
+                first:=true;
+                genitem(hp);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+             end;
+        end;
 
 
     procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: int64);
@@ -139,24 +254,37 @@ implementation
         { and finally jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
         { generate jump table }
-        if not(target_info.system in systems_darwin) then
-          sectype:=sec_rodata
+        if target_info.system=system_aarch64_win64 then
+          begin
+            { for Windows we need to make sure that the jump table is located in the
+              same section as the corresponding code as for one clang generates a
+              ABSOLUTE32 relocation that can not be handled correctly and armasm64
+              rejects the difference entries due to the symbols being located in
+              different sections }
+            sectype:=sec_code;
+            new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),getprocalign);
+          end
         else
           begin
-            { on Mac OS X, dead code stripping ("smart linking") happens based on
-              global symbols: every global/static symbol (symbols that do not
-              start with "L") marks the start of a new "subsection" that is
-              discarded by the linker if there are no references to this symbol.
-              This means that if you put the jump table in the rodata section, it
-              will become part of the block of data associated with the previous
-              non-L-label in the rodata section and stay or be thrown away
-              depending on whether that block of data is referenced. Therefore,
-              jump tables must be added in the code section and since aktlocaldata
-              is inserted right after the routine, it will become part of the
-              same subsection that contains the routine's code }
-            sectype:=sec_code;
+            if not(target_info.system in systems_darwin) then
+              sectype:=sec_rodata
+            else
+              begin
+                { on Mac OS X, dead code stripping ("smart linking") happens based on
+                  global symbols: every global/static symbol (symbols that do not
+                  start with "L") marks the start of a new "subsection" that is
+                  discarded by the linker if there are no references to this symbol.
+                  This means that if you put the jump table in the rodata section, it
+                  will become part of the block of data associated with the previous
+                  non-L-label in the rodata section and stay or be thrown away
+                  depending on whether that block of data is referenced. Therefore,
+                  jump tables must be added in the code section and since aktlocaldata
+                  is inserted right after the routine, it will become part of the
+                  same subsection that contains the routine's code }
+                sectype:=sec_code;
+              end;
+            new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
           end;
-        new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
         if target_info.system in systems_darwin then
           begin
             { additionally, these tables are now marked via ".data_region jt32"

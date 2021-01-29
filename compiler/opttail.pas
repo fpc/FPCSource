@@ -36,7 +36,7 @@ unit opttail;
       globtype,
       symconst,symsym,
       defcmp,defutil,
-      nutils,nbas,nflw,ncal,nld,ncnv,
+      nutils,nbas,nflw,ncal,nld,ncnv,nmem,
       pass_1,
       paramgr;
 
@@ -50,14 +50,35 @@ unit opttail;
         var
           usedcallnode : tcallnode;
 
-        function is_recursivecall(n : tnode) : boolean;
+        function has_copyback_paras(call: tcallnode): boolean;
+          var
+            n: tcallparanode;
           begin
-            result:=(n.nodetype=calln) and (tcallnode(n).procdefinition=p) and not(assigned(tcallnode(n).methodpointer));
+            n:=tcallparanode(call.left);
+            result:=false;
+            while assigned(n) do
+              begin
+                if assigned(n.fparacopyback) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+                n:=tcallparanode(n.right);
+              end;
+          end;
+
+        function is_optimizable_recursivecall(n : tnode) : boolean;
+          begin
+            result:=
+              (n.nodetype=calln) and
+              (tcallnode(n).procdefinition=p) and
+              not(assigned(tcallnode(n).methodpointer)) and
+              not has_copyback_paras(tcallnode(n));
             if result then
               usedcallnode:=tcallnode(n)
             else
               { obsolete type cast? }
-              result:=((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_recursivecall(ttypeconvnode(n).left));
+              result:=((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_optimizable_recursivecall(ttypeconvnode(n).left));
           end;
 
         function is_resultassignment(n : tnode) : boolean;
@@ -77,6 +98,7 @@ unit opttail;
           tempnode : ttempcreatenode;
           loadnode : tloadnode;
           oldnodetree : tnode;
+          useaddr : boolean;
         begin
           { no tail call found and replaced so far }
           result:=false;
@@ -101,9 +123,9 @@ unit opttail;
             calln,
             assignn:
               begin
-                if ((n.nodetype=calln) and is_recursivecall(n)) or
+                if ((n.nodetype=calln) and is_optimizable_recursivecall(n)) or
                    ((n.nodetype=assignn) and is_resultassignment(tbinarynode(n).left) and
-                   is_recursivecall(tbinarynode(n).right)) then
+                   is_optimizable_recursivecall(tbinarynode(n).right)) then
                   begin
                     { found one! }
                     {
@@ -120,20 +142,46 @@ unit opttail;
                     paranode:=tcallparanode(usedcallnode.left);
                     while assigned(paranode) do
                       begin
-                        tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
-                        addstatement(calcstatements,tempnode);
-                        addstatement(calcstatements,
-                          cassignmentnode.create(
-                            ctemprefnode.create(tempnode),
-                            paranode.left
-                            ));
+                        if assigned(paranode.fparainit) then
+                          begin
+                            addstatement(calcstatements,paranode.fparainit);
+                            paranode.fparainit:=nil;
+                          end;
+                        useaddr:=(paranode.parasym.varspez in [vs_var,vs_constref]) or
+                          ((paranode.parasym.varspez=vs_const) and
+                          paramanager.push_addr_param(paranode.parasym.varspez,paranode.parasym.vardef,p.proccalloption)) or
+                          ((paranode.parasym.varspez=vs_value) and
+                          is_open_array(paranode.parasym.vardef));
+                        if useaddr then
+                          begin
+                            tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                            addstatement(calcstatements,tempnode);
+                            addstatement(calcstatements,
+                              cassignmentnode.create(
+                                ctemprefnode.create(tempnode),
+                                caddrnode.create_internal(paranode.left)
+                                ));
+                          end
+                        else
+                          begin
+                            tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
+                            addstatement(calcstatements,tempnode);
+                            addstatement(calcstatements,
+                              cassignmentnode.create_internal(
+                                ctemprefnode.create(tempnode),
+                                paranode.left
+                                ));
+                          end;
 
                         { "cast" away const varspezs }
                         loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner);
                         include(tloadnode(loadnode).loadnodeflags,loadnf_isinternal_ignoreconst);
 
+                        { load the address of the symbol instead of symbol }
+                        if useaddr then
+                          include(tloadnode(loadnode).loadnodeflags,loadnf_load_addr);
                         addstatement(copystatements,
-                          cassignmentnode.create(
+                          cassignmentnode.create_internal(
                             loadnode,
                             ctemprefnode.create(tempnode)
                             ));
@@ -190,14 +238,12 @@ unit opttail;
         { check if the parameters actually would support tail recursion elimination }
         for i:=0 to p.paras.count-1 do
           with tparavarsym(p.paras[i]) do
-            if (varspez in [vs_out,vs_var,vs_constref]) or
-              ((varspez=vs_const) and
-               (paramanager.push_addr_param(varspez,vardef,p.proccalloption)) or
+            if (varspez=vs_out) or
                { parameters requiring tables are too complicated to handle
                  and slow down things anyways so a tail recursion call
                  makes no sense
                }
-               is_managed_type(vardef)) then
+               is_managed_type(vardef) then
                exit;
 
         labelsym:=clabelsym.create('$opttail');

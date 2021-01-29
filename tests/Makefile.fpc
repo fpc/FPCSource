@@ -36,6 +36,11 @@ ifndef TEST_OPT
 TEST_OPT=
 endif
 
+# Use TEST_USE_LONGLOG by default, as it transfers less data to server
+ifndef TEST_DISABLE_LONGLOG
+TEST_USE_LONGLOG=1
+endif
+
 # disable directory cache; completely loading all directories significantly
 # slows down running the testsuite because the programs use very few units
 # and most testsuite directories contain thousands of files
@@ -154,12 +159,12 @@ LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faill
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
-TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs
+TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs linux unixutil types nullable
 TESTDIRECTDIRS=
 TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt $(addprefix units/,$(TESTUNITDIRS))
 TESTPACKAGESDIRS=win-base webtbs hash fcl-registry fcl-process zlib fcl-db fcl-xml cocoaint bzip2
 TESTPACKAGESUBDIRS=$(addprefix packages/,$(TESTPACKAGESDIRS))
-TESTPACKAGESDIRECTDIRS=rtl-objpas rtl-generics
+TESTPACKAGESDIRECTDIRS=rtl-objpas rtl-generics hash regexpr fcl-registry
 TESTPACKAGESDIRECTSUBDIRS=$(addprefix ../packages/,$(addsuffix /tests,$(TESTPACKAGESDIRECTDIRS)))
 
 ifdef QUICKTEST
@@ -223,9 +228,9 @@ endif
 
 tstunits:
 ifdef inOS2
-        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) NATIVE_FPC=$(FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 else
-        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) NATIVE_FPC=$(FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 endif
 
 ################################
@@ -250,6 +255,7 @@ TASM_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .asm,.obj, $(TASM_SOURCES)))
 
 create_c_objects:
 ifneq ($(TEST_CCOMPILER),)
+		$(MKDIRTREE) $(C_OBJECTS_DIR)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(C_SOURCES)) $(C_OBJECTS_DIR)
 		$(MAKE) $(C_OBJECTS)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(CPP_SOURCES)) $(C_OBJECTS_DIR)
@@ -273,7 +279,7 @@ $(C_OBJECTS) : %.o: %.c
 
 $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
-		
+
 copyfiles:
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
@@ -384,6 +390,10 @@ ifdef EMULATOR
 override DOTESTOPT+=-M$(EMULATOR)
 endif
 
+ifdef EMULATOR_OPTS
+override DOTESTOPT+=-N$(EMULATOR_OPTS)
+endif
+
 
 ifdef USEENV
 override DOTESTENV:=$(DOTESTOPT)
@@ -455,7 +465,7 @@ test_c_objects: testprep
 	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcalext*.pp))
 	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcppcl*.pp))
 	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcppcl*.pp))
-	
+
 ################################
 # Compile and Run tests
 #
@@ -617,6 +627,10 @@ SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
 endif
 
+ifeq ($(TEST_COMMENT),)
+TEST_COMMENT=$(TEST_OPT)
+endif
+
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) OS=$(TEST_OS_TARGET) > $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -627,7 +641,7 @@ ifneq ($(TEST_USE_LONGLOG),)
 endif
         $(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Comment=$(TEST_COMMENT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifneq ($(TEST_DATETIME),)
         $(ECHOREDIR) Date=$(TEST_DATETIME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif

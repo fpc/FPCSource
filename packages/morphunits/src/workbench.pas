@@ -466,7 +466,7 @@ var
 
 function AddAppIconA(Id: LongWord location 'd0'; UserData: LongWord location 'd1'; Text_: PChar location 'a0'; MsgPort: PMsgPort location 'a1'; Lock: BPTR location 'a2'; DiskObj: PDiskObject location 'a3'; const TagList: PTagItem location 'a4'): PAppIcon; syscall WorkbenchBase 060;
 function AddAppMenuItemA(Id: LongWord location 'd0'; UserData: LongWord location 'd1'; Text_: PChar location 'a0'; MsgPort: PMsgPort location 'a1'; const TagList: PTagItem location 'a2'): PAppMenuItem; syscall WorkbenchBase 072;
-function AddAppWindowA(Id: LongWord location 'd0'; UserData: LongWord location 'd1'; Window: PWindow location 'a0'; MsgPort: PMsgPort location 'a1'; const TagList: PTagItem location 'a2'): PAppWindow; syscall WorkbenchBase 042;
+function AddAppWindowA(Id: LongWord location 'd0'; UserData: LongWord location 'd1'; Window: PWindow location 'a0'; MsgPort: PMsgPort location 'a1'; const TagList: PTagItem location 'a2'): PAppWindow; syscall WorkbenchBase 048;
 function RemoveAppIcon(AppIcon: PAppIcon location 'a0'): LongBool; syscall WorkbenchBase 066;
 function RemoveAppMenuItem(AppMenuItem: PAppMenuItem location 'a0'): LongBool; syscall WorkbenchBase 078;
 function RemoveAppWindow(AppWindow: PAppWindow location 'a0'): LongBool; syscall WorkbenchBase 054;

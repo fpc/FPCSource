@@ -298,11 +298,13 @@ var
   Function FormatExponent(ASign: FChar; aExponent: Integer) : FString;
 
   begin
-    Result:=IntToStr(aExponent);
+    if E = 0 then
+      aExponent := 0;
+    Result:=IntToStr(Abs(aExponent));
     Result:=StringOfChar('0',ExpSize-Length(Result))+Result;
     if (aExponent<0) then
       Result:='-'+Result
-    else if (aExponent>0) and (aSign='+') then
+    else if (aExponent>=0) and (aSign='+') then
       Result:=aSign+Result;
   end;
 
@@ -383,7 +385,12 @@ begin
                 Inc(I);
               end;
             end;
-          end;  
+          end
+        else if I< SectionLength Then
+          begin
+          inc(I);
+          ToResult(Section[i]);
+          end;
         end;
       else
         ToResult(C);

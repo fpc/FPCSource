@@ -28,7 +28,7 @@ begin
   case sig of
     SIGFPE :
       case (SigInfo^.si_code) of
-        FPE_FLTDIV : res := 200;
+        FPE_FLTDIV : res := 208;
         FPE_FLTOVF : res := 205;
         FPE_FLTUND : res := 206;
         else

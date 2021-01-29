@@ -24,9 +24,9 @@ begin
     { palmos does not support command line parameters }
     P.OSes := P.OSes - [palmos];
     { Program does not fit in 16-bit memory constraints }
-    P.OSes := P.OSes - [msdos,win16];
+    P.OSes := P.OSes - [msdos,win16,zxspectrum,msxdos,amstradcpc];
     { avr-embedded and i8086-embedded do not meet needed requirements }
-    if Defaults.CPU in [avr,i8086] then
+    if Defaults.CPU in [avr,i8086,z80] then
       P.OSes := P.OSes - [embedded];
 
     P.Author := '<various>';
@@ -38,6 +38,8 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
+
+    P.Dependencies.Add('tplylib');
 
     P.Options.Add('-Sg');
 
@@ -62,10 +64,6 @@ begin
     T.Dependencies.AddUnit('yacclr0');
     T.Dependencies.AddUnit('yacctabl');
 
-
-    P.Targets.AddUnit('lexlib.pas');
-    P.Targets.AddUnit('yacclib.pas');
-
     P.Targets.AddUnit('lexbase.pas').install:=false;
     P.Targets.AddUnit('lexopt.pas').install:=false;
     P.Targets.AddUnit('lexdfa.pas').install:=false;
@@ -88,7 +86,7 @@ begin
       begin
       // Do not install these files when performing a cross-installation
       if Defaults.OS in AllUnixOSes then
-        lexyaccpath:='$(baseinstalldir)../lexyacc'
+        lexyaccpath:='$(prefix)lib/fpc/lexyacc'
       else
         lexyaccpath:='$(bininstalldir)';
       P.InstallFiles.Add('yylex.cod',lexyaccpath);

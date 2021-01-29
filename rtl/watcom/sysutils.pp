@@ -49,6 +49,7 @@ implementation
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -226,6 +227,7 @@ end;
 Function FileSeek (Handle, FOffset, Origin : Longint) : Longint;
 var
   Regs: registers;
+  res: dword;
 begin
   Regs.Eax := $4200;
   Regs.Al := Origin;
@@ -236,8 +238,9 @@ begin
   if Regs.Flags and CarryFlag <> 0 then
      result := -1
   else begin
-     LongRec(result).Lo := Regs.Ax;
-     LongRec(result).Hi := Regs.Dx;
+     LongRec(res).Lo := Regs.Ax;
+     LongRec(res).Hi := Regs.Dx;
+     result:=res;
      end ;
 end;
 
@@ -281,7 +284,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -406,9 +409,10 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : Longint) : Int64;
 var
   Regs: registers;
+  res: dword;
 begin
   //!! for win95 an alternative function is available.
   Regs.Ebx := Handle;
@@ -418,20 +422,21 @@ begin
    result := -1
   else
    begin
-     LongRec(result).Lo := Regs.cx;
-     LongRec(result).Hi := Regs.dx;
+     LongRec(res).Lo := Regs.cx;
+     LongRec(res).Hi := Regs.dx;
+     result := res;
    end ;
 end;
 
 
-Function FileSetDate (Handle, Age : Longint) : Longint;
+Function FileSetDate (Handle: longint; Age: Int64) : Longint;
 var
   Regs: registers;
 begin
   Regs.Ebx := Handle;
   Regs.Eax := $5701;
-  Regs.Ecx := Lo(Age);
-  Regs.Edx := Hi(Age);
+  Regs.Ecx := Lo(dword(Age));
+  Regs.Edx := Hi(dword(Age));
   RealIntr($21, Regs);
   if Regs.Flags and CarryFlag <> 0 then
    result := -Regs.Ax
@@ -631,6 +636,8 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$I tzenv.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   Regs: Registers;
@@ -646,6 +653,7 @@ begin
   SystemTime.Year := Regs.Cx;
   SystemTime.Month := Regs.Dh;
   SystemTime.Day := Regs.Dl;
+  SystemTime.DayOfWeek := Regs.Al;
 end ;
 
 
@@ -653,6 +661,17 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
+const
+  BeepChars: array [1..2] of char = #7'$';
+
+procedure sysBeep;
+var
+  Regs: Registers;
+begin
+  Regs.dx := Ofs (BeepChars);
+  Regs.ah := 9;
+  MsDos (Regs);
+end;
 
 {****************************************************************************
                               Locale Functions
@@ -897,6 +916,8 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   InitDelay;
+  OnBeep:=@SysBeep;
+  InitTZ;
 Finalization
   FreeTerminateProcs;
   DoneExceptions;

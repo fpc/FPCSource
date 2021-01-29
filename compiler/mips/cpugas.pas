@@ -35,6 +35,7 @@ unit cpugas;
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
+        procedure WriteExtraHeader; override;
       end;
 
       TMIPSInstrWriter = class(TCPUInstrWriter)
@@ -87,6 +88,13 @@ unit cpugas;
          Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
 //          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');      
       end;
+
+    procedure TMIPSGNUAssembler.WriteExtraHeader;
+      begin
+        if not (cs_asm_pre_binutils_2_25 in current_settings.globalswitches) then
+          writer.AsmWriteln(#9'.module nomips16');
+      end;
+
 
 {****************************************************************************}
 {                  Helper routines for Instruction Writer                    }
@@ -169,7 +177,7 @@ unit cpugas;
             top_ref:
               getopstr := getreferencestring(ref^);
             else
-              internalerror(10001);
+              internalerror(2020100809);
           end;
       end;
 
@@ -255,6 +263,7 @@ unit cpugas;
         supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
+        labelmaxlen : -1;
         comment: '# ';
         dollarsign: '$';
         );
@@ -268,6 +277,7 @@ unit cpugas;
         supported_targets: [system_mipseb_linux];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
+        labelmaxlen : -1;
         comment: '# ';
         dollarsign: '$';
         );

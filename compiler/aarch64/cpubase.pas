@@ -48,8 +48,6 @@ unit cpubase;
     type
       TAsmOp= {$i a64op.inc}
 
-      TAsmOps = set of TAsmOp;
-
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
@@ -58,6 +56,13 @@ unit cpubase;
       firstop = low(tasmop);
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
+      { Last value of opcode for TCommonAsmOps set below  }
+      LastCommonAsmOp = A_MOV;
+
+    type
+      { See comment for this type in arm/cpubase.pas }
+      TCommonAsmOps = Set of A_None .. LastCommonAsmOp;
+
 
 {*****************************************************************************
                                   Registers
@@ -73,6 +78,7 @@ unit cpubase;
 
       RS_IP0 = RS_X16;
       RS_IP1 = RS_X17;
+      RS_XR = RS_X8;
 
       R_SUBWHOLE = R_SUBQ;
 
@@ -81,6 +87,7 @@ unit cpubase;
 
       NR_IP0 = NR_X16;
       NR_IP1 = NR_X17;
+      NR_XR = NR_X8;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_X0;
@@ -106,7 +113,7 @@ unit cpubase;
       std_param_align = 8;
 
       { TODO: Calculate bsstart}
-      regnumber_count_bsstart = 128;
+      regnumber_count_bsstart = 512;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ra64num.inc}
@@ -122,9 +129,6 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X30];
       VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
-
-    type
-      totherregisterset = set of tregisterindex;
 
 {*****************************************************************************
                           Instruction post fixes
@@ -202,7 +206,7 @@ unit cpubase;
       tshiftmode = (SM_None,
                     { shifted register instructions. LSL can also be used for
                       the index register of certain loads/stores }
-                    SM_LSL,SM_LSR,SM_ASR,
+                    SM_LSL,SM_LSR,SM_ASR,SM_ROR,
                     { extended register instructions: zero/sign extension +
                         optional shift (interpreted as LSL after extension)
                        -- the index register of certain loads/stores can be
@@ -324,6 +328,9 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     procedure shifterop_reset(var so : tshifterop); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function dwarf_reg(r:tregister):shortint;
@@ -331,6 +338,7 @@ unit cpubase;
     function eh_return_data_regno(nr: longint): longint;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
+    function IsFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
 
 
   implementation
@@ -403,6 +411,23 @@ unit cpubase;
                   result:=OS_F64;
                 R_SUBMMS:
                   result:=OS_F32;
+                { always use OS_M128, because these could be the top or bottom bytes (or middle in some cases) }
+                R_SUBMM8B:
+                  result:=OS_M128;
+                R_SUBMM16B:
+                  result:=OS_M128;
+                R_SUBMM4H:
+                  result:=OS_M128;
+                R_SUBMM8H:
+                  result:=OS_M128;
+                R_SUBMM2S:
+                  result:=OS_M128;
+                R_SUBMM4S:
+                  result:=OS_M128;
+                R_SUBMM1D:
+                  result:=OS_M128;
+                R_SUBMM2D:
+                  result:=OS_M128;
                 R_SUBMMWHOLE:
                   result:=OS_M128;
                 else
@@ -487,6 +512,26 @@ unit cpubase;
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
+      end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        { Please update as necessary. [Kit] }
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_LE]);
+            C_LT:
+              Result := (c in [C_LE]);
+            C_GT:
+              Result := (c in [C_GE]);
+            else
+              Result := False;
+          end;
       end;
 
 
@@ -618,5 +663,35 @@ unit cpubase;
       else
         result:=-1;
     end;
+
+
+  function IsFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
+    var
+      singlerec : tcompsinglerec;
+      doublerec : tcompdoublerec;
+    begin
+      Result:=false;
+      case ft of
+        s32real:
+          begin
+            singlerec.value:=value;
+            singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+            Result:=(singlerec.bytes[0]=0) and (singlerec.bytes[1]=0) and ((singlerec.bytes[2] and 7)=0)  and
+              (((singlerec.bytes[3] and $7e)=$40) or ((singlerec.bytes[3] and $7e)=$3e));
+          end;
+        s64real:
+          begin
+            doublerec.value:=value;
+            doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+            Result:=(doublerec.bytes[0]=0) and (doublerec.bytes[1]=0) and (doublerec.bytes[2]=0) and
+                    (doublerec.bytes[3]=0) and (doublerec.bytes[4]=0) and (doublerec.bytes[5]=0) and
+                    ((((doublerec.bytes[6] and $c0)=$0) and ((doublerec.bytes[7] and $7f)=$40)) or
+                     (((doublerec.bytes[6] and $c0)=$c0) and ((doublerec.bytes[7] and $7f)=$3f)));
+          end;
+        else
+          ;
+      end;
+    end;
+
 
 end.

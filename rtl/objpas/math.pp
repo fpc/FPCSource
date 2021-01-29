@@ -56,10 +56,6 @@ interface
        sysutils;
 
 {$IFDEF FPDOC_MATH}
-{$DEFINE FPC_HAS_TYPE_SINGLE}
-{$DEFINE FPC_HAS_TYPE_DOUBLE}
-{$DEFINE FPC_HAS_TYPE_EXTENDED}
-{$DEFINE FPC_HAS_TYPE_COMP}
 Type
   Float = MaxFloatType;
 
@@ -71,13 +67,19 @@ Const
     { Ranges of the IEEE floating point types, including denormals }
 {$ifdef FPC_HAS_TYPE_SINGLE}
     const
-      MinSingle    =  1.5e-45;
-      MaxSingle    =  3.4e+38;
+      { values according to
+        https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Single-precision_examples
+      }
+      MinSingle    =  1.1754943508e-38;
+      MaxSingle    =  3.4028234664e+38;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
     const
-      MinDouble    =  5.0e-324;
-      MaxDouble    =  1.7e+308;
+      { values according to
+        https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Double-precision_examples
+      }
+      MinDouble    =  2.2250738585072014e-308;
+      MaxDouble    =  1.7976931348623157e+308;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
@@ -151,6 +153,17 @@ Const
        Infinity = 1.0/0.0;
        NegInfinity = -1.0/0.0;
 {$pop}
+
+
+{$IFDEF FPDOC_MATH}
+
+// This must be after the above defines.
+
+{$DEFINE FPC_HAS_TYPE_SINGLE}
+{$DEFINE FPC_HAS_TYPE_DOUBLE}
+{$DEFINE FPC_HAS_TYPE_EXTENDED}
+{$DEFINE FPC_HAS_TYPE_COMP}
+{$ENDIF}
 
 { Min/max determination }
 function MinIntValue(const Data: array of Integer): Integer;
@@ -496,6 +509,7 @@ function MaxValue(const data : PInteger; Const N : Integer) : Integer;
 
 { returns random values with gaussian distribution }
 function RandG(mean,stddev : float) : float;
+
 function RandomRange(const aFrom, aTo: Integer): Integer;
 function RandomRange(const aFrom, aTo: Int64): Int64;
 

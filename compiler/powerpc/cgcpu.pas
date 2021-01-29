@@ -192,7 +192,7 @@ const
                    list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
                end;
 
-             if target_info.system in [system_powerpc_macos,system_powerpc_aix] then
+             if target_info.system in [system_powerpc_macosclassic,system_powerpc_aix] then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
@@ -216,7 +216,7 @@ const
         tmpref : treference;
 
       begin
-        if target_info.system=system_powerpc_macos then
+        if target_info.system=system_powerpc_macosclassic then
           begin
             {Generate instruction to load the procedure address from
             the transition vector.}
@@ -240,7 +240,7 @@ const
 
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090906);
           if (a >= low(smallint)) and
              (a <= high(smallint)) then
             list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a)))
@@ -1161,7 +1161,7 @@ const
             abi_powerpc_sysv:
               firstfpureg := RS_F9;
             else
-              internalerror(2003122903);
+              internalerror(2003122904);
           end;
           for regcounter:=firstfpureg to RS_F31 do
            begin

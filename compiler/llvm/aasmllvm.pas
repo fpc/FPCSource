@@ -671,7 +671,7 @@ uses
                 2:
                   result:=oper[1]^.def;
                 else
-                  internalerror(2013110105);
+                  internalerror(2013110111);
               end;
             end;
           la_fence,
@@ -735,7 +735,7 @@ uses
                 internalerror(2015111904);
             end
           else
-            internalerror(2013103101)
+            internalerror(2013103103)
         end;
       end;
 

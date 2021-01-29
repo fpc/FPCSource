@@ -46,6 +46,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
+    function SessionVariableExists(VarName: String): Boolean; override;
     Procedure UpdateResponse(AResponse : TResponse); override;
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
     Procedure InitResponse(AResponse : TResponse); override;
@@ -359,6 +360,12 @@ begin
   RemoveFromSessionState(ssExpired);
 end;
 
+function TIniWebSession.SessionVariableExists(VarName: String): Boolean;
+begin
+  CheckSession;
+  Result:=FIniFile.ValueExists(SData,VarName);
+end;
+
 procedure TIniWebSession.UpdateResponse(AResponse: TResponse);
 begin
   // Do nothing. Init has done the job.
@@ -406,8 +413,6 @@ begin
   If (S='') then
     begin
     AddToSessionState(ssNew);
-    If Assigned(OnNewSession) then
-      OnNewSession(Self);
     GetSessionID;
     S:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+SessionID;
 {$ifdef cgidebug}SendDebug('Expired or new session. Creating new Ini file : '+S);{$endif}
@@ -415,6 +420,8 @@ begin
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
     FSessionStarted:=True;
+    If Assigned(OnNewSession) then
+      OnNewSession(Self);
     end;
   FIniFile.WriteDateTime(SSession,KeyLast,Now);
   If not FCached then

@@ -279,7 +279,7 @@ implementation
                     andn :
                       cgop:=OP_AND;
                     else
-                      internalerror(200203247);
+                      internalerror(2002032413);
                   end;
 
                   if right.location.loc <> LOC_CONSTANT then
@@ -339,7 +339,7 @@ implementation
               { clang does not recognize fcmpo instruction,
                 so we need to fall back to fcmpu, which does not
                 generate the same exeception information }
-              if target_asm.id = as_clang then
+              if target_asm.id in [as_clang_gas,as_clang_asdarwin] then
                 op:=A_FCMPU
               else
                 op:=A_FCMPO;
@@ -550,7 +550,7 @@ implementation
               opdone := true;
             end;
           else
-            internalerror(2002072701);
+            internalerror(2002072702);
         end;
 
         if not opdone then

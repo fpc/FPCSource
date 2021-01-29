@@ -57,7 +57,12 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(t.FullName) then
+    Do_Open(t,PFileTextRecChar(t.FullName),Flags,False)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -98,8 +103,16 @@ begin
   InitText(t);
 {$ifdef FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -114,8 +127,16 @@ Begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   { ensure the characters in the record's filename are encoded correctly }
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -183,6 +204,13 @@ Begin
       End
     else inOutRes := 103;
   End;
+{$ifdef USE_FILEREC_FULLNAME}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  RawByteString(TextRec(t).FullName):='';
+{$else FPC_ANSI_TEXTFILEREC}
+  UnicodeString(TextRec(t).FullName):='';
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif USE_FILEREC_FULLNAME}
 End;
 
 
@@ -440,11 +468,6 @@ End;
 
 
 Function SeekEof (Var t : Text) : Boolean;
-var
-  oldfilepos : Int64;
-  oldbufpos, oldbufend : SizeInt;
-  reads: longint;
-  isdevice: boolean;
 Begin
   If (InOutRes<>0) then
    exit(true);
@@ -456,31 +479,12 @@ Begin
       InOutRes:=103;
      exit(true);
    end;
-  { try to save the current position in the file, seekeof() should not move }
-  { the current file position (JM)                                          }
-  oldbufpos := TextRec(t).BufPos;
-  oldbufend := TextRec(t).BufEnd;
-  reads := 0;
-  oldfilepos := -1;
-  isdevice := Do_IsDevice(TextRec(t).handle);
   repeat
     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
      begin
-       { signal that the we will have to do a seek }
-       inc(reads);
-       if not isdevice and
-          (reads = 1) then
-         begin
-           oldfilepos := Do_FilePos(TextRec(t).handle) - TextRec(t).BufEnd;
-           InOutRes:=0;
-         end;
        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
        If TextRec(t).BufPos>=TextRec(t).BufEnd Then
         begin
-          { if we only did a read in which we didn't read anything, the }
-          { old buffer is still valid and we can simply restore the     }
-          { pointers (JM)                                               }
-          dec(reads);
           SeekEof := true;
           break;
         end;
@@ -502,24 +506,6 @@ Begin
     end;
    inc(TextRec(t).BufPos);
   until false;
-  { restore file position if not working with a device }
-  if not isdevice then
-    { if we didn't modify the buffer, simply restore the BufPos and BufEnd  }
-    { (the latter because it's now probably set to zero because nothing was }
-    {  was read anymore)                                                    }
-    if (reads = 0) then
-      begin
-        TextRec(t).BufPos:=oldbufpos;
-        TextRec(t).BufEnd:=oldbufend;
-      end
-    { otherwise return to the old filepos and reset the buffer }
-    else
-      begin
-        do_seek(TextRec(t).handle,oldfilepos);
-        InOutRes:=0;
-        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
-        TextRec(t).BufPos:=oldbufpos;
-      end;
 End;
 
 
@@ -1457,7 +1443,7 @@ begin
     end;
   if TextRec(f).BufPos>=TextRec(f).BufEnd Then
     FileFunc(TextRec(f).InOutFunc)(TextRec(f));
-  CheckRead:=True;
+  CheckRead:=InOutRes=0;
 end;
 
 
@@ -1991,11 +1977,15 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-    ReadInteger(f,hs);
+  l:=0;
+  if not CheckRead(f) then
+    Exit;
 
-    Val(hs,l,code);
-    if Code <> 0 then
-        InOutRes:=106;
+  ReadInteger(f,hs);
+
+  Val(hs,l,code);
+  if Code <> 0 then
+    InOutRes:=106;
 End;
 
 
@@ -2031,10 +2021,14 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,u,code);
-   If code<>0 Then
-       InOutRes:=106;
+  u:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,u,code);
+  If code<>0 Then
+     InOutRes:=106;
 End;
 
 
@@ -2067,6 +2061,10 @@ var
   hs : string;
   code : Word;
 begin
+  v:=0.0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2127,6 +2125,10 @@ var
   hs : string;
   code : ValSInt;
 begin
+  v:=0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2163,10 +2165,14 @@ var
   hs   : String;
   code : longint;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,q,code);
-   If code<>0 Then
-       InOutRes:=106;
+  q:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,q,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
@@ -2196,10 +2202,14 @@ var
   hs   : String;
   code : Longint;
 Begin
-    ReadInteger(f,hs);
-    Val(hs,i,code);
-    If code<>0 Then
-       InOutRes:=106;
+  i:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,i,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 
@@ -2636,6 +2646,17 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var t:Text) : UnicodeString;
+  begin
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(TextRec(t).FullName) then
+    Result:=UnicodeString(TextRec(t).FullName)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Result:=PFileTextRecChar(@TextRec(t).Name);
+  end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {*****************************************************************************
                                Initializing

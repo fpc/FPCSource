@@ -192,7 +192,7 @@ unit rarv64gas;
                       OPR_REFERENCE :
                         inc(oper.opr.ref.offset,l);
                       else
-                        internalerror(200309202);
+                        internalerror(2003092016);
                     end;
                   end;
                 AS_MINUS:
@@ -568,7 +568,7 @@ unit rarv64gas;
                        OPR_REFERENCE :
                          inc(oper.opr.ref.offset,l);
                        else
-                         internalerror(200309202);
+                         internalerror(2003092017);
                      end;
                    end
                end;
@@ -609,7 +609,11 @@ unit rarv64gas;
 
             oper.opr.ref.refaddr:=refaddr;
             Consume(AS_RPAREN);
-          end;
+          end
+        else if (oper.opr.typ=OPR_REFERENCE) and
+           (oper.opr.ref.refaddr=addr_no) and
+           assigned(oper.opr.ref.symbol) then
+          oper.opr.ref.refaddr:=addr_full;
       end;
 
 

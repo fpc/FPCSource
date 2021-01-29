@@ -29,16 +29,16 @@ interface
       cpuBase,cgBase;
 
     type
-      TRegNameTable = array[tregisterindex] of string[14];
+      TRegNameTable = array[tregisterindex] of string[19];
       TRegisterIndexTable = array[tregisterindex] of tregisterindex;
 
     function findreg_by_number_table(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
-    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
+    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):tregisterindex;
 
 
 implementation
 
-    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
+    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):tregisterindex;
       var
         i,p,q : tregisterindex;
       begin

@@ -4,21 +4,24 @@ program fpmake;
 
 uses fpmkunit;
 
+{$endif ALLPACKAGES}
+
+procedure add_fcl_web(const ADirectory: string);
+
+Const
+  LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
+
 Var
   T : TTarget;
   P : TPackage;
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
-
     P:=AddPackage('fcl-web');
     P.ShortName:='fclw';
-{$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -36,8 +39,8 @@ begin
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX,iphonesim]);
-
+    P.Dependencies.Add('univint',[MacOSX,iphonesim,ios]);
+    P.Dependencies.Add('libmicrohttpd',LibMicroHttpdOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -139,12 +142,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('cgiprotocol');
         Dependencies.AddUnit('custcgi');
@@ -190,6 +193,28 @@ begin
         OSes:=[Win32,Win64];
         Dependencies.AddUnit('custhttpsys');
       end;
+    with P.Targets.AddUnit('custmicrohttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        ResourceStrings:=true;
+        OSes := LibMicroHttpdOSes;
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+    with P.Targets.AddUnit('microhttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('custmicrohttpapp');
+        OSes := LibMicroHttpdOSes;
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+
+      
     with P.Targets.AddUnit('fphttpstatus.pas') do
       begin
         Dependencies.AddUnit('fphttpserver');
@@ -214,6 +239,20 @@ begin
     // T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
     T:=P.Targets.AddUnit('fpwebfile.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httproute');
+      end;
+    T:=P.Targets.AddUnit('fpwebproxy.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httpprotocol');
+      AddUnit('fphttpclient');
+      end;
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;
@@ -388,9 +427,12 @@ begin
       AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestconst');
       end;
+    end;
+end;
     
 {$ifndef ALLPACKAGES}
-    Run;
-    end;
+begin
+  add_fcl_web('');
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}

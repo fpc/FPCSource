@@ -14,9 +14,13 @@
 
  **********************************************************************}
 unit getopts;
-Interface
+
 {$modeswitch advancedrecords}
 {$modeswitch defaultparameters}
+{$h+}
+
+Interface
+
 Const
   No_Argument       = 0;
   Required_Argument = 1;
@@ -50,11 +54,6 @@ Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longin
 
 Implementation
 
-
-Procedure TOption.SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
-begin
-  Name:=aName; Has_Arg:=AHas_Arg; Flag:=AFlag; Value:=Avalue;
-end;
 
 
 {$IFNDEF FPC}
@@ -147,6 +146,20 @@ end;
 
 {$ENDIF}
 
+function strpas(p : pchar) : ansistring;
+
+begin
+  if p=nil then 
+    strpas:=''
+  else
+    strpas:=p;
+end;
+
+Procedure TOption.SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
+begin
+  Name:=aName; Has_Arg:=AHas_Arg; Flag:=AFlag; Value:=Avalue;
+end;
+
 {***************************************************************************
                                Real Getopts
 ***************************************************************************}
@@ -207,7 +220,9 @@ begin
   Last_nonopt:=1;
   OptOpt:='?';
   Nextchar:=0;
-  case opts[1] of
+  ordering:=permute;
+  if length(opts)>0 then
+   case opts[1] of
    '-' : begin
            ordering:=return_in_order;
            delete(opts,1,1);
@@ -217,7 +232,7 @@ begin
            delete(opts,1,1);
          end;
   else
-   ordering:=permute;
+    ordering:=permute; 
   end;
 end;
 
@@ -445,8 +460,8 @@ begin
      exit;
    end;
   Internal_getopt:=optstring[temp];
-  if optstring[temp+1]=':' then
-   if optstring[temp+2]=':' then
+  if (length(optstring)>temp) and (optstring[temp+1]=':') then
+   if (length(optstring)>temp+1) and (optstring[temp+2]=':') then
     begin { optional argument }
       if nextchar>0 then
        begin

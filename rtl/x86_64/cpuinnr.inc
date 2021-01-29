@@ -26,3 +26,8 @@
   fpc_in_x86_get_es   = fpc_in_cpu_first+11;
   fpc_in_x86_get_fs   = fpc_in_cpu_first+12;
   fpc_in_x86_get_gs   = fpc_in_cpu_first+13;
+  
+   { include automatically generated numbers }
+   {$ifdef VER3_3_1}
+   {$i cpumminnr.inc}
+   {$endif}

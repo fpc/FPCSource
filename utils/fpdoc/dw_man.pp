@@ -99,9 +99,10 @@ Type
     Procedure WriteExampleFile(FN : String); virtual;
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode; Comma : Boolean);
+    // Here we write the documentation.
+    procedure DoWriteDocumentation; override;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
-    procedure WriteDoc; override;
     // Documentation writing methods.
     // Package
     Procedure WritePackagePage;
@@ -138,6 +139,8 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -182,6 +185,8 @@ Type
   end;
 
 implementation
+
+uses fpdocstrs;
 
 { TManWriter }
 
@@ -421,6 +426,17 @@ begin
 end;
 
 procedure TManWriter.DescrEndEmph;
+begin
+  NewLine;
+end;
+
+procedure TManWriter.DescrBeginUnderline;
+begin
+  NewLine;
+  Write('.I '); //use ITALIC!
+end;
+
+procedure TManWriter.DescrEndUnderline;
 begin
   NewLine;
 end;
@@ -955,7 +971,7 @@ end;
   Actual man page writing
   ---------------------------------------------------------------------}
 
-procedure TManWriter.WriteDoc;
+procedure TManWriter.DoWriteDocumentation;
 
 var
   i : Integer;

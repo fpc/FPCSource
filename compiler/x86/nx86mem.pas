@@ -139,6 +139,7 @@ implementation
            end;
          end;
          location.reference.index:=hreg;
+         location.reference.alignment:=newalignment(location.reference.alignment,l);
        end;
 
 begin

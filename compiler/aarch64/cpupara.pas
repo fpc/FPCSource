@@ -266,7 +266,7 @@ unit cpupara;
                     size:=OS_ADDR;
                     def:=hp.paraloc[side].def;
                     loc:=LOC_REGISTER;
-                    register:=NR_X8;
+                    register:=NR_XR;
                   end
               end
             else
@@ -280,6 +280,7 @@ unit cpupara;
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize: tcgsize;
+        otherside: tcallercallee;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
@@ -287,11 +288,18 @@ unit cpupara;
          { in this case, it must be returned in registers as if it were passed
            as the first parameter }
          init_para_alloc_values;
-         alloc_para(result,p,vs_value,side,result.def,false,false);
+         { if we're on the callee side, filling the result location is actually the "callerside"
+          as far passing it as a parameter value is concerned }
+         if side=callerside then
+           otherside:=calleeside
+         else
+           otherside:=callerside;
+         alloc_para(result,p,vs_value,otherside,result.def,false,false);
          { sanity check (LOC_VOID for empty records) }
          if not assigned(result.location) or
             not(result.location^.loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_VOID]) then
            internalerror(2014113001);
+{$ifndef llvm}
          {
            According to ARM64 ABI: "If the size of the argument is less than 8 bytes then
            the size of the argument is set to 8 bytes. The effect is as if the argument
@@ -310,6 +318,7 @@ unit cpupara;
              result.location^.size:=OS_64;
              result.location^.def:=u64inttype;
            end;
+{$endif}
       end;
 
 
@@ -340,7 +349,7 @@ unit cpupara;
         paracgsize, locsize: tcgsize;
         firstparaloc: boolean;
       begin
-        result.reset;
+        result.init;
 
         { currently only support C-style array of const,
           there should be no location assigned to the vararg array itself }
@@ -374,7 +383,7 @@ unit cpupara;
             else
               paralen:=tcgsize2size[def_cgsize(paradef)];
             loc:=getparaloc(p.proccalloption,paradef);
-            if (paradef.typ in [objectdef,arraydef,recorddef]) and
+            if (paradef.typ in [objectdef,arraydef,recorddef,setdef]) and
                not is_special_array(paradef) and
                (varspez in [vs_value,vs_const]) then
               paracgsize:=int_cgsize(paralen)
@@ -486,47 +495,45 @@ unit cpupara;
              end
            else
              begin
-{$ifndef llvm}
                paraloc^.size:=locsize;
                paraloc^.def:=locdef;
-{$else llvm}
-               case locsize of
-                 OS_8,OS_16,OS_32:
-                   begin
-                     paraloc^.size:=OS_64;
-                     paraloc^.def:=u64inttype;
-                   end;
-                 OS_S8,OS_S16,OS_S32:
-                   begin
-                     paraloc^.size:=OS_S64;
-                     paraloc^.def:=s64inttype;
-                   end;
-                 OS_F32:
-                   begin
-                     paraloc^.size:=OS_F32;
-                     paraloc^.def:=s32floattype;
-                   end;
-                 OS_F64:
-                   begin
-                     paraloc^.size:=OS_F64;
-                     paraloc^.def:=s64floattype;
-                   end;
-                 else
-                   begin
-                     if is_record(locdef) or
-                        ((locdef.typ=arraydef) and
-                         not is_special_array(locdef)) then
+{$ifdef llvm}
+               if not is_ordinal(paradef) then
+                 begin
+                   case locsize of
+                     OS_8,OS_16,OS_32:
                        begin
                          paraloc^.size:=OS_64;
                          paraloc^.def:=u64inttype;
-                       end
+                       end;
+                     OS_S8,OS_S16,OS_S32:
+                       begin
+                         paraloc^.size:=OS_S64;
+                         paraloc^.def:=s64inttype;
+                       end;
+                     OS_F32:
+                       begin
+                         paraloc^.size:=OS_F32;
+                         paraloc^.def:=s32floattype;
+                       end;
+                     OS_F64:
+                       begin
+                         paraloc^.size:=OS_F64;
+                         paraloc^.def:=s64floattype;
+                       end;
                      else
                        begin
-                         paraloc^.size:=locsize;
-                         paraloc^.def:=locdef;
+                         if is_record(locdef) or
+                            is_set(locdef) or
+                            ((locdef.typ=arraydef) and
+                             not is_special_array(locdef)) then
+                           begin
+                             paraloc^.size:=OS_64;
+                             paraloc^.def:=u64inttype;
+                           end
                        end;
                    end;
-               end;
+                 end;
 {$endif llvm}
              end;
 
@@ -559,6 +566,7 @@ unit cpupara;
                              paraloc^.def:=u32inttype;
                            end;
                        end
+{$ifndef llvm}
                      else
                        begin
                          if side=calleeside then
@@ -567,6 +575,7 @@ unit cpupara;
                              paraloc^.def:=u32inttype;
                            end;
                        end;
+{$endif llvm}
                    end;
 
                  { in case it's a composite, "The argument is passed as though
@@ -590,6 +599,10 @@ unit cpupara;
                begin
                   paraloc^.size:=paracgsize;
                   paraloc^.loc:=LOC_REFERENCE;
+                  if assigned(hfabasedef) then
+                    paraloc^.def:=carraydef.getreusable_no_free(hfabasedef,paralen div hfabasedef.size)
+                  else
+                    paraloc^.def:=paradef;
 
                   { the current stack offset may not be properly aligned in
                     case we're on Darwin and have allocated a non-variadic argument
@@ -669,7 +682,7 @@ unit cpupara;
             result:=curstackoffset;
           end
         else
-          internalerror(200410231);
+          internalerror(2004102303);
 
         create_funcretloc_info(p,side);
       end;

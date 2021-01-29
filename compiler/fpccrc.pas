@@ -26,7 +26,9 @@ Unit fpccrc;
 Interface
 
 Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:integer):cardinal;
-
+{ If needed trims the string to maxlen, adding at the end the CRC32 of discarded chars.
+  The resulting string is guaranteed to be not longer than maxlen. }
+function TrimStrCRC32(const s: ansistring; maxlen: longint): ansistring;
 
 Implementation
 
@@ -72,5 +74,22 @@ begin
   result:=not result;
 end;
 
+
+function TrimStrCRC32(const s: ansistring; maxlen: longint): ansistring;
+var
+  crc: DWord;
+  len: longint;
+begin
+  len:=length(s);
+  if (len<=maxlen) or (len<12) then
+    result:=s
+  else
+   begin
+     dec(maxlen,11);
+     crc:=0;
+     crc:=UpdateCrc32(crc,s[maxlen+1],len-maxlen);
+     result:=copy(s,1,maxlen)+'$CRC'+hexstr(crc,8);
+   end;
+end;
 
 end.

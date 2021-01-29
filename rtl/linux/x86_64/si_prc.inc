@@ -35,12 +35,9 @@
 
 {$L abitag.o}
 
+{$ifndef FPC_USE_LIBC}
 procedure InitTLS; [external name 'FPC_INITTLS'];
-
-{ so far, I found no case where this is actually called, so it is a dummy so far (FK) }
-function __tls_get_addr(p : pointer) : pointer; public name '__tls_get_addr';
-  begin
-  end;
+{$endif}
 
 {******************************************************************************
                           Process start/halt
@@ -78,7 +75,11 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     movq    %r10,%rdi
 
     xorq    %rbp, %rbp
+{$ifdef FPC_USE_LIBC}
+    call    SysEntry
+{$else}
     call    SysEntry_InitTLS
+{$endif}
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     popq     %rsi                                  { Pop the argument count.  }
     movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
@@ -95,9 +96,9 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     movq    initialstkptr@GOTPCREL(%rip),%rax
     movq    %rsp,(%rax)
 
-{$if FPC_FULLVERSION>30200}
+{$if (FPC_FULLVERSION>30200) and not defined(FPC_USE_LIBC)}
     call    InitTLS
-{$endif FPC_FULLVERSION>30200}
+{$endif FPC_FULLVERSION>30200 and not FPC_USE_LIBC}
 
     xorq    %rbp, %rbp
     call    PASCALMAIN

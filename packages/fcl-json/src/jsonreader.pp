@@ -12,9 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-{$h+}
 unit jsonreader;
+
+{$I fcl-json.inc}
 
 interface
 
@@ -175,10 +175,12 @@ Resourcestring
   SErrExpectedColon   = 'Expected colon (:), got token "%s".';
   //SErrEmptyElement = 'Empty element encountered.';
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
-  SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
+  SExpectedCommaorBraceClose = 'Expected comma (,) or square bracket (]), got token "%s".';
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
   SErrNoScanner = 'No scanner. No source specified ?';
-  
+  SErrorAt = 'Error at line %d, Pos %d: ';
+  SErrGarbageFound = 'Expected EOF, but got %s';
+
 { TBaseJSONReader }
 
 
@@ -188,6 +190,14 @@ begin
   if (FScanner=Nil) then
     DoError(SErrNoScanner);
   DoParse(False,True);
+  if joStrict in Options then
+    begin
+    Repeat
+       GetNextToken;
+    Until CurrentToken<>tkWhiteSpace;
+    If CurrentToken<>tkEOF then
+      DoError(Format(SErrGarbageFound,[CurrentTokenString]));
+   end;
 end;
 
 {
@@ -246,6 +256,8 @@ begin
         DoError(SErrUnexpectedToken);
     tkIdentifier :
         DoError(SErrUnexpectedToken);
+  else
+    // Do nothing
   end;
 end;
 
@@ -331,6 +343,7 @@ Procedure TBaseJSONReader.ParseObject;
 Var
   T : TJSONtoken;
   LastComma : Boolean;
+  S : TJSONStringType;
 
 begin
   LastComma:=False;
@@ -340,7 +353,9 @@ begin
     begin
     If (T<>tkString) and (T<>tkIdentifier) then
       DoError(SErrExpectedElementName);
-    KeyValue(CurrentTokenString);
+    S:=CurrentTokenString;
+    KeyValue(S);
+    // Writeln(S);
     T:=GetNextToken;
     If (T<>tkColon) then
       DoError(SErrExpectedColon);
@@ -403,7 +418,7 @@ Var
 
 begin
   S:=Format(Msg,[CurrentTokenString]);
-  S:=Format('Error at line %d, Pos %d:',[FScanner.CurRow,FSCanner.CurColumn])+S;
+  S:=Format(SErrorAt,[FScanner.CurRow,FSCanner.CurColumn])+S;
   Raise EJSONParser.Create(S);
 end;
 

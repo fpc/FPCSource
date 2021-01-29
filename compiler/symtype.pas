@@ -55,6 +55,15 @@ interface
         protected
          { whether this def is already registered in the unit's def list }
          function registered : boolean;
+         { initialize the defid field; only call from a constructor as it threats
+           0 as an invalid value! }
+         procedure init_defid;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintDefTree(var T: Text; Sym: TSym); virtual;
+         procedure XMLPrintDefInfo(var T: Text; Sym: TSym); dynamic;
+         procedure XMLPrintDefData(var T: Text; Sym: TSym); virtual;
+         function XMLPrintType: ansistring; virtual;
+{$endif DEBUG_NODE_XML}
         public
          typesym    : tsym;  { which type the definition was generated this def }
          { stabs debugging }
@@ -94,11 +103,14 @@ interface
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
-         function  get_top_level_symtable: tsymtable;
+         function  get_top_level_symtable(skipprocdefs: boolean): tsymtable;
          { only valid for registered defs and defs for which a unique id string
            has been requested; otherwise, first call register_def }
          function  deflist_index: longint;
          procedure register_def; virtual; abstract;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintDef(Sym: TSym);
+{$endif DEBUG_NODE_XML}
          property is_registered: boolean read registered;
       end;
 
@@ -273,6 +285,91 @@ implementation
       end;
 
 
+    procedure tdef.init_defid;
+      begin
+        if defid=0 then
+          defid:=defid_not_registered;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure tdef.XMLPrintDefTree(var T: Text; Sym: TSym);
+      begin
+        Write(T, PrintNodeIndention, '<definition');
+        XMLPrintDefInfo(T, Sym);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        { Printing the type here instead of in XMLPrintDefData ensures it
+          always appears first no matter how XMLPrintDefData is overridden }
+        WriteLn(T, PrintNodeIndention, '<type>', XMLPrintType, '</type>');
+        XMLPrintDefData(T, Sym);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</definition>');
+        WriteLn(T, PrintNodeIndention);
+      end;
+
+
+    procedure tdef.XMLPrintDefInfo(var T: Text; Sym: TSym);
+      var
+        i: TSymOption;
+        first: Boolean;
+      begin
+        { Note that if we've declared something like "INT = Integer", the
+          INT name gets lost in the system and 'typename' just returns
+          Integer, so the correct details can be found via Sym }
+        Write(T, ' name="', SanitiseXMLString(Sym.RealName),
+          '" pos="', Sym.fileinfo.line, ',', Sym.fileinfo.column);
+
+        First := True;
+        for i := Low(TSymOption) to High(TSymOption) do
+          if i in Sym.symoptions then
+            begin
+              if First then
+                begin
+                  Write(T, '" symoptions="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+
+        Write(T, '"');
+      end;
+
+
+    procedure tdef.XMLPrintDefData(var T: Text; Sym: TSym);
+      begin
+        WriteLn(T, PrintNodeIndention, '<size>', size, '</size>');
+
+        if (alignment = structalignment) and (alignment = aggregatealignment) then
+          begin
+            { Straightforward and simple }
+            WriteLn(T, PrintNodeIndention, '<alignment>', alignment, '</alignment>');
+          end
+        else
+          begin
+            WriteLn(T, PrintNodeIndention, '<alignment>');
+            printnodeindent;
+            WriteLn(T, PrintNodeIndention, '<basic>', alignment, '</basic>');
+
+            if (structalignment <> alignment) then
+              WriteLn(T, PrintNodeIndention, '<struct>', structalignment, '</struct>');
+
+            if (aggregatealignment <> alignment) and (aggregatealignment <> structalignment) then
+              WriteLn(T, PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
+
+            printnodeunindent;
+            WriteLn(T, PrintNodeIndention, '</alignment>');
+          end;
+      end;
+
+
+    function tdef.XMLPrintType: ansistring;
+      begin
+        Result := SanitiseXMLString(GetTypeName);
+      end;
+
+{$endif DEBUG_NODE_XML}
+
     constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
@@ -282,7 +379,7 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
-         defid:=defid_not_registered;
+         init_defid;
       end;
 
 
@@ -432,11 +529,12 @@ implementation
       end;
 
 
-    function tdef.get_top_level_symtable: tsymtable;
+    function tdef.get_top_level_symtable(skipprocdefs: boolean): tsymtable;
       begin
         result:=owner;
         while assigned(result) and
-              assigned(result.defowner) do
+              assigned(result.defowner) and
+              (skipprocdefs or (result.symtabletype in [ObjectSymtable,recordsymtable])) do
           result:=tdef(result.defowner).owner;
       end;
 
@@ -450,6 +548,33 @@ implementation
         else
           internalerror(2015102502)
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TDef.XMLPrintDef(Sym: TSym);
+      var
+        T: Text;
+
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult <> 0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+
+        XMLPrintDefTree(T, Sym);
+        Close(T);
+      end;
+
+{$endif DEBUG_NODE_XML}
+
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -695,7 +820,7 @@ implementation
              sl_vec:
                hp^.valuedef:=tdef(hp^.valuedefderef.resolve);
              else
-              internalerror(200110205);
+              internalerror(2001102001);
            end;
            hp:=hp^.next;
          end;
@@ -721,7 +846,7 @@ implementation
              sl_vec:
                hp^.valuedefderef.build(hp^.valuedef);
              else
-              internalerror(200110205);
+              internalerror(2001102002);
            end;
            hp:=hp^.next;
          end;
@@ -766,13 +891,13 @@ implementation
              begin
                { same as above }
                if tdef(s).defid=defid_registered_nost then
-                 Internalerror(2015102505);
+                 Internalerror(2015102501);
                if not tdef(s).registered then
                  tdef(s).register_def;
                st:=FindUnitSymtable(tdef(s).owner);
              end
            else
-             internalerror(2016090201);
+             internalerror(2016090204);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
@@ -1136,7 +1261,7 @@ implementation
                  putderef(hp^.valuedefderef);
                end;
              else
-              internalerror(200110205);
+              internalerror(2001102003);
            end;
            hp:=hp^.next;
          end;

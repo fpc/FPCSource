@@ -67,7 +67,8 @@ Type
       fpu_sse41,
       fpu_sse42,
       fpu_avx,
-      fpu_avx2
+      fpu_avx2,
+      fpu_avx512f
      );
 
    tcontrollertype =
@@ -122,7 +123,8 @@ Const
      'COREAVX2'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[7] = (
+     'NONE',
 //     'SOFT',
      'X87',
      'SSE',
@@ -132,13 +134,14 @@ Const
      'SSE41',
      'SSE42',
      'AVX',
-     'AVX2'
+     'AVX2',
+     'AVX512F'
    );
 
-   sse_singlescalar = [fpu_sse..fpu_avx2];
-   sse_doublescalar = [fpu_sse2..fpu_avx2];
+   sse_singlescalar = [fpu_sse..fpu_avx512f];
+   sse_doublescalar = [fpu_sse2..fpu_avx512f];
 
-   fpu_avx_instructionsets = [fpu_avx,fpu_avx2];
+   fpu_avx_instructionsets = [fpu_avx,fpu_avx2,fpu_avx512f];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -146,14 +149,14 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_peephole,cs_opt_regvar,cs_opt_stackframe,
+                                 [cs_opt_peephole{$ifndef llvm},cs_opt_regvar{$endif},cs_opt_stackframe,
                                   cs_opt_loopunroll,cs_opt_uncertain,
                                   cs_opt_tailrecursion,cs_opt_nodecse,cs_useebp,
 				  cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
 
@@ -173,7 +176,9 @@ type
 
    tfpuflags =
       (FPUX86_HAS_AVXUNIT,
-       FPUX86_HAS_32MMREGS
+       FPUX86_HAS_AVX512F,
+       FPUX86_HAS_AVX512VL,
+       FPUX86_HAS_AVX512DQ
       );
 
  const
@@ -201,7 +206,8 @@ type
       { fpu_sse41    } [],
       { fpu_sse42    } [],
       { fpu_avx      } [FPUX86_HAS_AVXUNIT],
-      { fpu_avx2     } [FPUX86_HAS_AVXUNIT]
+      { fpu_avx2     } [FPUX86_HAS_AVXUNIT],
+      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ]
    );
 
 Implementation

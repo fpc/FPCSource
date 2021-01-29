@@ -326,7 +326,7 @@ implementation
       if pcpfile.readentry<>ibpackagefiles then
         begin
           message(package_f_pcp_read_error);
-          internalerror(424242);
+          internalerror(2020100818);
         end;
       pplfilename:=pcpfile.getstring;
 
@@ -342,13 +342,13 @@ implementation
       if pcpfile.readentry<>ibstartcontained then
         begin
           message(package_f_pcp_read_error);
-          internalerror(424242);
+          internalerror(2020100819);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendcontained then
         begin
           message(package_f_pcp_read_error);
-          internalerror(424242);
+          internalerror(2020100820);
         end;
       for i:=0 to cnt-1 do
         begin

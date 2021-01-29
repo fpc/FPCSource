@@ -134,7 +134,8 @@ var
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
 function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
 function UTF8Encode(const s : RawByteString) : RawByteString; inline;
 function UTF8Encode(const s : UnicodeString) : RawByteString;
 function UTF8Decode(const s : RawByteString): UnicodeString;
@@ -156,13 +157,13 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
 function UCS4StringToWideString(const s : UCS4String) : WideString;
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
-Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetWideStringManager (Out Manager : TUnicodeStringManager);
 Procedure SetWideStringManager (Const New : TUnicodeStringManager);
-Procedure SetWideStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetWideStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 
-Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetUnicodeStringManager (Out Manager : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
-Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 
 function StringElementSize(const S : UnicodeString): Word; overload;
 function StringRefCount(const S : UnicodeString): SizeInt; overload;

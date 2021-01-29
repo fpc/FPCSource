@@ -1220,7 +1220,7 @@ program install;
        end;
 
        New(Tab, Init(TabR,
-         NewTabDef('~G~eneral',IlPath,
+         NewTabDef('Gener~a~l',IlPath,
            NewTabItem(TitleText,
            NewTabItem(LabPath,
            NewTabItem(ILPath,

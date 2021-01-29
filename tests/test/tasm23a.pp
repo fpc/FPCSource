@@ -7,14 +7,14 @@ program tasm23a;
 
 const
   t_size = 19;
-procedure t; assembler;
+procedure t; nostackframe; assembler;
 asm
   mov eax, [ebx[5]][edi][54][-17][45][4]      { mov eax, [ebx+edi+5Bh] }
   mov eax, [[ebx+5]+[edi+54]+[-17]+[45]+[4]]  { mov eax, [ebx+edi+5Bh] }
   mov eax, [5[7]]                             { mov eax, [000Ch] }
   mov eax, [5+[7]]                            { mov eax, [000Ch] }
 end;
-procedure t_verify; assembler;
+procedure t_verify; nostackframe; assembler;
 asm
   mov eax, [ebx+edi+5Bh]  { mov eax, [ebx[5]][edi][54][-17][45][4]     }
   mov eax, [ebx+edi+5Bh]  { mov eax, [[ebx+5]+[edi+54]+[-17]+[45]+[4]] }

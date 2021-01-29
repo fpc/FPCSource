@@ -119,6 +119,7 @@ interface
           function typecheck_array_2_dynarray : tnode; virtual;
           function typecheck_elem_2_openarray : tnode; virtual;
           function typecheck_arrayconstructor_to_dynarray : tnode; virtual;
+          function typecheck_arrayconstructor_to_array : tnode; virtual;
        private
           function _typecheck_int_to_int : tnode;
           function _typecheck_cord_to_pointer : tnode;
@@ -150,7 +151,8 @@ interface
           function _typecheck_interface_to_variant : tnode;
           function _typecheck_array_2_dynarray : tnode;
           function _typecheck_elem_2_openarray : tnode;
-          function _typecheck_arrayconstructor_to_dynarray: tnode;
+          function _typecheck_arrayconstructor_to_dynarray : tnode;
+          function _typecheck_arrayconstructor_to_array : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -318,9 +320,9 @@ implementation
 
    uses
       globtype,systems,constexp,compinnr,
-      cutils,verbose,globals,widestr,
+      cutils,verbose,globals,widestr,ppu,
       symconst,symdef,symsym,symcpu,symtable,
-      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,nflw,
       cgbase,procinfo,
       htypechk,blockutl,pass_1,cpuinfo;
 
@@ -843,10 +845,12 @@ implementation
               if iscvarargs then
                 p:=ctypeconvnode.create(p,voidpointertype);
             objectdef :
-              if (iscvarargs and
-                  not is_objc_class_or_protocol(p.resultdef)) or
+              if is_objc_class_or_protocol(p.resultdef) then
+                p:=ctypeconvnode.create(p,voidpointertype)
+              else if iscvarargs or
                  is_object(p.resultdef) then
-                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
+              else
             else
               CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
           end;
@@ -990,7 +994,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(totypedefderef);
         convtype:=tconverttype(ppufile.getbyte);
-        ppufile.getsmallset(convnodeflags);
+        ppufile.getset(tppuset1(convnodeflags));
       end;
 
 
@@ -999,7 +1003,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(totypedefderef);
         ppufile.putbyte(byte(convtype));
-        ppufile.putsmallset(convnodeflags);
+        ppufile.putset(tppuset1(convnodeflags));
       end;
 
 
@@ -1173,14 +1177,14 @@ implementation
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
         pchtemp  : pchar;
-        arrsize  : aint;
+        arrsize  : tcgint;
         chartype : string[8];
       begin
         result := nil;
         with tarraydef(resultdef) do
           begin
             if highrange<lowrange then
-             internalerror(200501051);
+             internalerror(2005010502);
             arrsize := highrange-lowrange+1;
           end;
         if (left.nodetype = stringconstn) and
@@ -1488,7 +1492,7 @@ implementation
                     v:=v div 10000;
                  end
                else if (resultdef.typ in [orddef,enumdef]) then
-                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
+                 adaptrange(resultdef,v,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags,cs_check_range in localswitches);
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
@@ -1521,11 +1525,13 @@ implementation
             begin
               result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
+              include(taddnode(result).left.flags,nf_internal);
             end
            else if is_currency(left.resultdef) then
             begin
               result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
+              include(tmoddivnode(result).left.flags,nf_internal);
             end;
          end;
       end;
@@ -1578,17 +1584,25 @@ implementation
         if not is_currency(resultdef) then
           internalerror(200304221);
         result:=nil;
-        left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
-        include(left.flags,nf_is_currency);
-        typecheckpass(left);
-        { Convert constants directly, else call Round() }
-        if left.nodetype=realconstn then
-          result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
+        if not(nf_internal in flags) then
+          begin
+            left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
+            include(left.flags,nf_is_currency);
+            { Convert constants directly, else call Round() }
+            if left.nodetype=realconstn then
+              result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
+            else
+              begin
+                result:=cinlinenode.create(in_round_real,false,left);
+                { Internal type cast to currency }
+                result:=ctypeconvnode.create_internal(result,s64currencytype);
+                left:=nil;
+              end
+          end
         else
           begin
-            result:=cinlinenode.create(in_round_real,false,left);
-            { Internal type cast to currency }
-            result:=ctypeconvnode.create_internal(result,s64currencytype);
+            include(left.flags,nf_is_currency);
+            result:=left;
             left:=nil;
           end;
       end;
@@ -1597,19 +1611,25 @@ implementation
     function ttypeconvnode.typecheck_real_to_real : tnode;
       begin
          result:=nil;
-         if is_currency(left.resultdef) and not(is_currency(resultdef)) then
+         if not(nf_internal in flags) then
            begin
-             left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef));
-             include(left.flags,nf_is_currency);
-             typecheckpass(left);
+             if is_currency(left.resultdef) and not(is_currency(resultdef)) then
+               begin
+                 left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef));
+                 include(left.flags,nf_is_currency);
+                 typecheckpass(left);
+               end
+             else
+               if is_currency(resultdef) and not(is_currency(left.resultdef)) then
+                 begin
+                   left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
+                   include(left.flags,nf_is_currency);
+                   include(flags,nf_is_currency);
+                   typecheckpass(left);
+                 end;
            end
          else
-           if is_currency(resultdef) and not(is_currency(left.resultdef)) then
-             begin
-               left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef));
-               include(left.flags,nf_is_currency);
-               typecheckpass(left);
-             end;
+           include(flags,nf_is_currency);
       end;
 
 
@@ -1981,15 +2001,21 @@ implementation
 
     function ttypeconvnode.typecheck_arrayconstructor_to_dynarray : tnode;
       var
-        newstatement,assstatement:tstatementnode;
-        arrnode:ttempcreatenode;
-        temp2:ttempcreatenode;
-        assnode:tnode;
-        paracount:integer;
-        elemnode:tarrayconstructornode;
+        newstatement,
+        assstatement : tstatementnode;
+        arrnode : ttempcreatenode;
+        temp2 : ttempcreatenode;
+        assnode : tnode;
+        paracount : integer;
+        elemnode : tarrayconstructornode;
       begin
         { assignment of []? }
-        if (left.nodetype=arrayconstructorn) and not assigned(tarrayconstructornode(left).left) then
+        if (
+              (left.nodetype=arrayconstructorn) and
+              not assigned(tarrayconstructornode(left).left)
+            ) or
+              is_emptyset(left)
+            then
           begin
             result:=cnilnode.create;
             exit;
@@ -2016,7 +2042,7 @@ implementation
           begin
             { arr[i] := param_i }
             if not assigned(elemnode.left) then
-              internalerror(2017050101);
+              internalerror(2017050103);
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
@@ -2048,6 +2074,64 @@ implementation
                  nil))))
 
           ));
+        { add assignment statememnts }
+        addstatement(newstatement,ctempdeletenode.create(temp2));
+        addstatement(newstatement,assnode);
+        { the last statement should return the value as
+          location and type, this is done be referencing the
+          temp and converting it first from a persistent temp to
+          normal temp }
+        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
+        addstatement(newstatement,ctemprefnode.create(arrnode));
+      end;
+
+
+    function ttypeconvnode.typecheck_arrayconstructor_to_array : tnode;
+      var
+        newstatement,
+        assstatement : tstatementnode;
+        arrnode : ttempcreatenode;
+        temp2 : ttempcreatenode;
+        assnode : tnode;
+        paracount : integer;
+        elemnode : tarrayconstructornode;
+      begin
+        tarrayconstructornode(left).force_type(tarraydef(resultdef).elementdef);
+
+        result:=internalstatements(newstatement);
+        { create temp for result }
+        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true);
+        addstatement(newstatement,arrnode);
+
+        paracount:=0;
+
+        { create an assignment call for each element }
+        assnode:=internalstatements(assstatement);
+        if left.nodetype=arrayconstructorrangen then
+          internalerror(2020041402);
+        elemnode:=tarrayconstructornode(left);
+        while assigned(elemnode) do
+          begin
+            { arr[i] := param_i }
+            if not assigned(elemnode.left) then
+              internalerror(2020041403);
+            addstatement(assstatement,
+              cassignmentnode.create(
+                cvecnode.create(
+                  ctemprefnode.create(arrnode),
+                  cordconstnode.create(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false)),
+                elemnode.left));
+            elemnode.left:=nil;
+            inc(paracount);
+            elemnode:=tarrayconstructornode(elemnode.right);
+            if assigned(elemnode) and (elemnode.nodetype<>arrayconstructorn) then
+              internalerror(2020041404);
+          end;
+
+        { get temp for array of lengths }
+        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
+        addstatement(newstatement,temp2);
+
         { add assignment statememnts }
         addstatement(newstatement,ctempdeletenode.create(temp2));
         addstatement(newstatement,assnode);
@@ -2246,6 +2330,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_arrayconstructor_to_array : tnode;
+      begin
+        result:=typecheck_arrayconstructor_to_array;
+      end;
+
+
     function ttypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
@@ -2321,7 +2411,7 @@ implementation
              copytype:=pc_address_only
            else
              copytype:=pc_normal;
-           resultdef:=pd.getcopyas(procvardef,copytype,'');
+           resultdef:=cprocvardef.getreusableprocaddr(pd,copytype);
          end;
       end;
 
@@ -2370,22 +2460,20 @@ implementation
           { interface_2_variant} @ttypeconvnode._typecheck_variant_to_interface,
           { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray,
           { elem_2_openarray } @ttypeconvnode._typecheck_elem_2_openarray,
-          { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray
+          { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray,
+          { arrayconstructor_2_array } @ttypeconvnode._typecheck_arrayconstructor_to_array
          );
       type
          tprocedureofobject = function : tnode of object;
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
       begin
          result:=nil;
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=resultdefconvert[c];
-         r.obj:=self;
-         if assigned(r.proc) then
+         r.Code:=resultdefconvert[c];
+         r.Data:=self;
+         if assigned(r.Code) then
           result:=tprocedureofobject(r)();
       end;
 
@@ -2513,7 +2601,7 @@ implementation
               te_convert_operator :
                 begin
                   include(current_procinfo.flags,pi_do_call);
-                  addsymref(aprocdef.procsym);
+                  addsymref(aprocdef.procsym,aprocdef);
                   hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
@@ -2784,6 +2872,9 @@ implementation
 
     function checkremovebiginttypeconvs(n: tnode; out gotsint: boolean;validints : tordtypeset;const l,h : Tconstexprint): boolean;
       var
+        gotminus1,
+        gotsigned,
+        gotunsigned,
         gotdivmod: boolean;
 
       { checks whether a node has an accepted resultdef, or originally
@@ -2792,6 +2883,13 @@ implementation
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
+          gotsigned:=gotsigned or is_signed(n.resultdef);
+          gotunsigned:=gotunsigned or not(is_signed(n.resultdef));
+          { actually, we should only check right (denominator) nodes here, but
+            setting it always is a safe approximation }
+          if ((n.nodetype=ordconstn) and
+            (tordconstnode(n).value=-1)) then
+            gotminus1:=true;
           if (torddef(n.resultdef).ordtype in validints) then
             begin
               if is_signed(n.resultdef) then
@@ -2816,7 +2914,12 @@ implementation
                   is_signed(ttypeconvnode(n).left.resultdef)) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
-                gotsint:=true;
+                begin
+                  gotsint:=true;
+                  gotsigned:=true;
+                end
+              else
+                gotunsigned:=true;
               exit(true);
             end;
           result:=false;
@@ -2837,17 +2940,24 @@ implementation
                   docheckremoveinttypeconvs(tbinarynode(n).left) and
                   docheckremoveinttypeconvs(tbinarynode(n).right);
               end;
-            addn,muln,divn,modn,andn:
+            unaryminusn:
+              begin
+                gotsint:=true;
+                result:=docheckremoveinttypeconvs(tunarynode(n).left);
+              end;
+            notn:
+              result:=docheckremoveinttypeconvs(tunarynode(n).left);
+            addn,muln,divn,modn,andn,shln:
               begin
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
                   (docheckremoveinttypeconvs(tbinarynode(n).left) and
-                   docheckremoveinttypeconvs(tbinarynode(n).right)) or
-                  { in case of div/mod, the result of that division/modulo can
-                    usually be different in 32 and 64 bit }
-                  (not gotdivmod and
-                   (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                   docheckremoveinttypeconvs(tbinarynode(n).right) and
+
+                   (not(n.nodetype in [modn,divn]) or (not(gotminus1)))
+                  ) or
+                  ((((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
                     ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
               end;
             else
@@ -2858,25 +2968,58 @@ implementation
       begin { checkremove64bittypeconvs }
         gotdivmod:=false;
         gotsint:=false;
+        gotminus1:=false;
+        gotsigned:=false;
+        gotunsigned:=false;
         result:=
           docheckremoveinttypeconvs(n) and
-          not(gotdivmod and gotsint);
+          (not(gotdivmod) or (gotsigned xor gotunsigned));
       end;
 
 
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
+      var
+        newblock: tblocknode;
+        newstatements: tstatementnode;
+        originaldivtree: tnode;
+        tempnode: ttempcreatenode;
       begin
         case n.nodetype of
-          subn,addn,muln,divn,modn,xorn,andn,orn:
+          subn,addn,muln,divn,modn,xorn,andn,orn,shln:
             begin
               exclude(n.flags,nf_internal);
               if not forceunsigned and
                  is_signed(n.resultdef) then
                 begin
+                  originaldivtree:=nil;
+                  if n.nodetype in [divn,modn] then
+                    originaldivtree:=n.getcopy;
                   doremoveinttypeconvs(tbinarynode(n).left,signedtype,false,signedtype,unsignedtype);
                   doremoveinttypeconvs(tbinarynode(n).right,signedtype,false,signedtype,unsignedtype);
                   n.resultdef:=signedtype;
+                  if n.nodetype in [divn,modn] then
+                    begin
+                      newblock:=internalstatements(newstatements);
+                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true);
+                      addstatement(newstatements,tempnode);
+                      addstatement(newstatements,cifnode.create_internal(
+                        caddnode.create_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false)),
+                          cassignmentnode.create_internal(
+                            ctemprefnode.create(tempnode),
+                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false))
+                          ),
+                          cassignmentnode.create_internal(
+                            ctemprefnode.create(tempnode),n
+                          )
+                        )
+                      );
+                      addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode));
+                      addstatement(newstatements,ctemprefnode.create(tempnode));
+                      n:=newblock;
+                      do_typecheckpass(n);
+                      originaldivtree.free;
+                    end;
                 end
               else
                 begin
@@ -2891,6 +3034,21 @@ implementation
               //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
               //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
               //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
+            end;
+          unaryminusn,notn:
+            begin
+              exclude(n.flags,nf_internal);
+              if not forceunsigned and
+                 is_signed(n.resultdef) then
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,signedtype,false,signedtype,unsignedtype);
+                  n.resultdef:=signedtype;
+                end
+              else
+                begin
+                  doremoveinttypeconvs(tunarynode(n).left,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  n.resultdef:=unsignedtype;
+                end;
             end;
           typeconvn:
             begin
@@ -2931,6 +3089,7 @@ implementation
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
+        v: Tconstexprint;
 {$ifndef CPUNO32BITOPS}
         foundsint: boolean;
 {$endif not CPUNO32BITOPS}
@@ -2953,12 +3112,14 @@ implementation
                ) then
               begin
                 { output string consts in local ansistring encoding }
-                if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                if is_ansistring(resultdef) and
+                  { do not mess with the result type for internally created nodes }
+                  not(nf_internal in flags) and
+                  ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
                   tstringconstnode(left).changestringtype(getansistringdef)
                 else
                   tstringconstnode(left).changestringtype(resultdef);
                 result:=left;
-                resultdef:=left.resultdef;
                 left:=nil;
                 exit;
               end
@@ -2990,6 +3151,8 @@ implementation
                 begin
                   hp:=result;
                   result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef);
+                  if nf_is_currency in hp.flags then
+                    include(result.flags,nf_is_currency);
                   if ([nf_explicit,nf_internal] * flags <> []) then
                     include(result.flags, nf_explicit);
                   hp.free;
@@ -3081,7 +3244,14 @@ implementation
                        { for constant values on absolute variables, swapping is required }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
-                       adaptrange(resultdef,tordconstnode(left).value,([nf_internal,nf_absolute]*flags)<>[],nf_explicit in flags);
+                       if not(nf_generic_para in flags) then
+                          adaptrange(
+                            resultdef,tordconstnode(left).value,
+                            { when evaluating an explicit typecast during inlining, don't warn about
+                              lost bits; only warn if someone literally typed e.g. byte($1ff) }
+                            (([nf_internal,nf_absolute]*flags)<>[]) or (forinline and (nf_explicit in flags)),
+                            nf_explicit in flags,
+                            cs_check_range in localswitches);
                        { swap value back, but according to new type }
                        if (target_info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
@@ -3115,6 +3285,15 @@ implementation
                    result:=left;
                    left:=nil;
                    exit;
+                end
+              else if (convtype=tc_int_2_int) and
+                is_currency(resultdef) then
+                begin
+                  v:=tordconstnode(left).value;
+                  if not(nf_internal in flags) and not(is_currency(left.resultdef)) then
+                    v:=v*10000;
+                  result:=cordconstnode.create(v,resultdef,false);
+                  exit;
                 end;
             end;
 
@@ -3151,6 +3330,8 @@ implementation
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
+          tc_bool_2_int,
+          tc_int_2_bool,
           tc_int_2_int:
             begin
               if (localswitches * [cs_check_range,cs_check_overflow] = []) and
@@ -3160,20 +3341,20 @@ implementation
                     to 64 bit                                               }
                   if (resultdef.size <= 4) and
                     is_64bitint(left.resultdef) and
-                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s32inttype,u32inttype);
 {$if defined(cpu16bitalu)}
                   if (resultdef.size <= 2) and
                     (is_32bitint(left.resultdef) or is_64bitint(left.resultdef)) and
-                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln]) and
                     checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit],int64(low(smallint)),high(word)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s16inttype,u16inttype);
 {$endif defined(cpu16bitalu)}
 {$if defined(cpu8bitalu)}
                  if (resultdef.size<left.resultdef.size) and
                   is_integer(left.resultdef) and
-                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn,notn,unaryminusn,shln]) and
                   checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s8inttype,u8inttype);
 {$endif defined(cpu8bitalu)}
@@ -3181,6 +3362,14 @@ implementation
                     typeconv (e.g. int32 to int32). If that's the case, we remove it }
                   if equal_defs(left.resultdef,resultdef) then
                     begin
+                      result:=left;
+                      left:=nil;
+                      exit;
+                    end;
+                  if (convtype=tc_int_2_int) and (left.nodetype=typeconvn) and (ttypeconvnode(left).convtype=tc_bool_2_int) then
+                    begin
+                      ttypeconvnode(left).totypedef:=resultdef;
+                      ttypeconvnode(left).resultdef:=resultdef;
                       result:=left;
                       left:=nil;
                       exit;
@@ -3498,7 +3687,11 @@ implementation
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
+{$ifdef xtensa}
+             expectloc:=LOC_REGISTER;
+{$else xtensa}
              expectloc:=left.expectloc;
+{$endif xtensa}
              exit;
            end;
          { when converting 64bit int to C-ctyle boolean, first convert to an int32 and then }
@@ -3929,21 +4122,19 @@ implementation
            nil,
            nil,
            @ttypeconvnode._first_nothing,
+           @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing
          );
       type
          tprocedureofobject = function : tnode of object;
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=firstconvert[c];
-         r.obj:=self;
-         if not assigned(r.proc) then
+         r.Code:=firstconvert[c];
+         r.Data:=self;
+         if not assigned(r.Code) then
            internalerror(200312081);
          first_call_helper:=tprocedureofobject(r)()
       end;
@@ -3974,7 +4165,9 @@ implementation
 
     function ttypeconvnode.retains_value_location:boolean;
       begin
-        result:=(convtype=tc_equal) or
+        result:=assigned(left.resultdef) and
+                (
+                (convtype=tc_equal) or
                 { typecasting from void is always allowed }
                 is_void(left.resultdef) or
                 (left.resultdef.typ=formaldef) or
@@ -3996,7 +4189,8 @@ implementation
                 { on managed platforms, converting an element to an open array
                   involves creating an actual array -> value location changes }
                 ((convtype=tc_elem_2_openarray) and
-                 not(target_info.system in systems_managed_vm));
+                 not(target_info.system in systems_managed_vm))
+                );
       end;
 
 
@@ -4209,22 +4403,20 @@ implementation
            @ttypeconvnode._second_nothing,  { interface_2_variant }
            @ttypeconvnode._second_nothing,  { array_2_dynarray }
            @ttypeconvnode._second_elem_to_openarray,  { elem_2_openarray }
-           @ttypeconvnode._second_nothing   { arrayconstructor_2_dynarray }
+           @ttypeconvnode._second_nothing,  { arrayconstructor_2_dynarray }
+           @ttypeconvnode._second_nothing   { arrayconstructor_2_array }
          );
       type
          tprocedureofobject = procedure of object;
 
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
 
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=secondconvert[c];
-         r.obj:=self;
+         r.Code:=secondconvert[c];
+         r.Data:=self;
          tprocedureofobject(r)();
       end;
 

@@ -21,9 +21,15 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
-{$define FPC_HAS_ANSI_TEXTFILEREC}
+{$define FPC_ANSI_TEXTFILEREC}
 
-{.$define FPC_AMIGA_USE_TINYHEAP}
+{$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
+{$define AMIGA_LEGACY}
+{$endif}
+
+{$ifdef AMIGA_LEGACY}
+{$.define FPC_AMIGA_USE_TINYHEAP}
+{$endif}
 
 {$ifdef FPC_AMIGA_USE_TINYHEAP}
 {$define HAS_MEMORYMANAGER}
@@ -40,6 +46,25 @@ interface
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 {$endif defined(cpum68k) and defined(fpusoft)}
+
+const
+{$if defined(AMIGA_V1_0_ONLY)}
+  AMIGA_OS_MINVERSION = 0;
+{$else}
+{$if defined(AMIGA_V1_2_ONLY)}
+  AMIGA_OS_MINVERSION = 33;
+{$else}
+{$if defined(AMIGA_V2_0_ONLY)}
+  AMIGA_OS_MINVERSION = 37;
+{$else}
+{$ifndef cpupowerpc}
+  AMIGA_OS_MINVERSION = 39;
+{$else}
+  AMIGA_OS_MINVERSION = 50;
+{$endif}
+{$endif}
+{$endif}
+{$endif}
 
 const
   LineEnding = #10;
@@ -250,11 +275,13 @@ begin
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
   end;
 
-  AOS_DOSBase:=OpenLibrary('dos.library',37);
+  AOS_DOSBase:=OpenLibrary('dos.library',AMIGA_OS_MINVERSION);
   if AOS_DOSBase=nil then Halt(1);
-  AOS_UtilityBase:=OpenLibrary('utility.library',37);
+{$ifndef AMIGA_LEGACY}
+  AOS_UtilityBase:=OpenLibrary('utility.library',AMIGA_OS_MINVERSION);
   if AOS_UtilityBase=nil then Halt(1);
-  AOS_IntuitionBase:=OpenLibrary('intuition.library',37); { amunits support kludge }
+{$endif}
+  AOS_IntuitionBase:=OpenLibrary('intuition.library',AMIGA_OS_MINVERSION); { amunits support kludge }
   if AOS_IntuitionBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}
@@ -264,7 +291,7 @@ begin
 {$ENDIF}
 
   { Creating the memory pool for growing heap }
-  ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+  ASYS_heapPool:=CreatePool(MEMF_ANY,growheapsize2,growheapsize1);
   if ASYS_heapPool=nil then Halt(1);
   ASYS_heapSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
   if ASYS_heapSemaphore = nil then Halt(1);
@@ -295,10 +322,11 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 
 function GetProcessID: SizeUInt;

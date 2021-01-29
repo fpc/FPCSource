@@ -17,7 +17,7 @@
    ./testpas2js --suite=TTestOptimizations
    ./testpas2js --suite=TTestOptimizations.TestOmitLocalVar
 }
-unit tcoptimizations;
+unit TCOptimizations;
 
 {$mode objfpc}{$H+}
 
@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, testregistry, fppas2js, pastree,
   PScanner, Pas2jsUseAnalyzer, PasResolver, PasResolveEval,
-  tcmodules;
+  TCModules;
 
 type
 
@@ -56,6 +56,25 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
+    // unit optimization: jsshortrefglobals
+    procedure TestOptShortRefGlobals_Program;
+    procedure TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
+    procedure TestOptShortRefGlobals_Enums;
+    procedure TestOptShortRefGlobals_Property;
+    procedure TestOptShortRefGlobals_ExternalAbstract;
+    procedure TestOptShortRefGlobals_Class;
+    procedure TestOptShortRefGlobals_GenericFunction;
+    procedure TestOptShortRefGlobals_GenericMethod_Call;
+    procedure TestOptShortRefGlobals_GenericStaticMethod_Call;
+    // ToDo: GenericMethod_CallInherited ObjFPC+Delphi
+    procedure TestOptShortRefGlobals_GenericClassHelperMethod;
+    procedure TestOptShortRefGlobals_GenericMethod_ProcVar;
+    procedure TestOptShortRefGlobals_GenericStaticMethod_ProcVar;
+    procedure TestOptShortRefGlobals_SameUnit_EnumType;
+    procedure TestOptShortRefGlobals_SameUnit_ClassType;
+    procedure TestOptShortRefGlobals_SameUnit_RecordType;
+    procedure TestOptShortRefGlobals_Unit_InitNoImpl;
+
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
     procedure TestWPO_OmitLocalProc;
@@ -186,6 +205,1395 @@ begin
 end;
 
 { TTestOptimizations }
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Program;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TColor = (red,green,blue);',
+    '  TColors = set of TColor;',
+    'const',
+    '  cRedBlue = [red,blue];',
+    'type',
+    '  TBird = class',
+    '  public',
+    '    class var c: word;',
+    '    class function Run(w: word): word; virtual; abstract;',
+    '  end;',
+    '  TRec = record',
+    '    x: word;',
+    '  end;',
+    'var b: TBird;',
+    '']),
+  LinesToStr([
+    '']));
+
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    class function Run(w: word = 5): word; override;',
+  '  end;',
+  'class function TEagle.Run(w: word): word;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  '  r: TRec;',
+  '  c: TColors;',
+  'begin',
+  '  e:=TEagle.Create;',
+  '  b:=TBird.Create;',
+  '  e.c:=e.c+1;',
+  '  r.x:=TBird.c;',
+  '  r.x:=b.c;',
+  '  r.x:=e.Run;',
+  '  r.x:=e.Run();',
+  '  r.x:=e.Run(4);',
+  '  c:=cRedBlue;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOptShortRefGlobals_Program',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lt2 = $lm.TRec;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Run = function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    'this.r = $lt2.$new();',
+    'this.c = {};',
+    '']),
+    LinesToStr([
+    '$mod.e = $lt.$create("Create");',
+    '$lm.b = $lt1.$create("Create");',
+    '$lt1.c = $mod.e.c + 1;',
+    '$mod.r.x = $lt1.c;',
+    '$mod.r.x = $lm.b.c;',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(4);',
+    '$mod.c = rtl.refSet($lm.cRedBlue);',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '  public Speed: word;',
+    '  end;',
+    '  TRecA = record',
+    '    x: word;',
+    '  end;',
+    'var Bird: TBird;',
+    '']),
+  LinesToStr([
+    '']));
+  AddModuleWithIntfImplSrc('UnitB.pas',
+  LinesToStr([
+    'type',
+    '  TAnt = class',
+    '  public Size: word;',
+    '  end;',
+    '  TRecB = record',
+    '    y: word;',
+    '  end;',
+    '  TBear = class',
+    '  end;',
+    '  TFrog = class',
+    '  end;',
+    'var Ant: TAnt;',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)', // intf-JS to intf-uses
+  '    procedure Fly;',
+  '  end;',
+  'implementation',
+  'uses unitb;',
+  'type',
+  '  TRedAnt = class(TAnt)', // impl-JS to impl-uses
+  '    procedure Run;',
+  '  end;',
+  'procedure TEagle.Fly;',
+  'begin',
+  '  TRedAnt.Create;', // intf-JS to impl-JS
+  '  TAnt.Create;', // intf-JS to impl-uses
+  '  TBird.Create;', // intf-JS to intf-uses
+  '  TEagle.Create;', // intf-JS to intf-JS
+  'end;',
+  'procedure TRedAnt.Run;',
+  'begin',
+  '  TRedAnt.Create;', // impl-JS to impl-JS
+  '  TAnt.Create;', // impl-JS to impl-uses
+  '  TBird.Create;', // impl-JS to intf-uses
+  '  TEagle.Create;', // impl-JS to intf-JS
+  '  TBear.Create', // only in impl-JS to impl-uses
+  'end;',
+  'var',
+  '  RedAnt: TRedAnt;',
+  '  Ant: TAnt;',
+  '  Bird: TBird;',
+  '  Eagle: TEagle;',
+  'initialization',
+  '  RedAnt:=TRedAnt.Create;', // init to impl-JS
+  '  Ant:=TAnt.Create;', // init to impl-uses
+  '  Bird:=TBird.Create;', // init to intf-uses
+  '  Eagle:=TEagle.Create;', // init to intf-JS
+  '  TFrog.Create;', // only in init to impl-uses
+  '  Eagle.Fly;',
+  '  RedAnt.Run;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Unit_FromIntfImpl_ToIntfImpl',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt2 = $lm.TBird;',
+    'var $lm1 = null;',
+    'var $lt3 = null;',
+    'var $lt4 = null;',
+    'var $lt5 = null;',
+    'rtl.createClass(this, "TEagle", $lt2, function () {',
+    '  $lt = this;',
+    '  this.Fly = function () {',
+    '    $lt1.$create("Create");',
+    '    $lt3.$create("Create");',
+    '    $lt2.$create("Create");',
+    '    $lt.$create("Create");',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '$impl.RedAnt = $lt1.$create("Create");',
+    '$impl.Ant = $lt3.$create("Create");',
+    '$impl.Bird = $lt2.$create("Create");',
+    '$impl.Eagle = $lt.$create("Create");',
+    '$lt5.$create("Create");',
+    '$impl.Eagle.Fly();',
+    '$impl.RedAnt.Run();',
+    '']),
+    LinesToStr([
+    '$lm1 = pas.UnitB;',
+    '$lt3 = $lm1.TAnt;',
+    '$lt4 = $lm1.TBear;',
+    '$lt5 = $lm1.TFrog;',
+    'rtl.createClass($impl, "TRedAnt", $lt3, function () {',
+    '  $lt1 = this;',
+    '  this.Run = function () {',
+    '    $lt1.$create("Create");',
+    '    $lt3.$create("Create");',
+    '    $lt2.$create("Create");',
+    '    $lt.$create("Create");',
+    '    $lt4.$create("Create");',
+    '  };',
+    '});',
+    '$impl.RedAnt = null;',
+    '$impl.Ant = null;',
+    '$impl.Bird = null;',
+    '$impl.Eagle = null;',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Enums;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TColor = (red,green,blue);',
+    '',
+    '']),
+  LinesToStr([
+    '']));
+  AddModuleWithIntfImplSrc('UnitB.pas',
+  LinesToStr([
+    'type',
+    '  TSize = (small,big);',
+    '',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supWriteln]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'const',
+  '  ColorRed = TColor.Red;',
+  'procedure Fly;',
+  'implementation',
+  'uses unitb;',
+  'const',
+  '  SizeSmall = TSize.Small;',
+  'procedure Fly;',
+  'begin',
+  '  writeln(ColorRed);',
+  '  writeln(TColor.Blue);',
+  '  writeln(SizeSmall);',
+  '  writeln(TSize.Big);',
+  '  writeln(unitb.TSize.Big);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Enums',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lm = pas.UnitA;',
+    'var $lt = $lm.TColor;',
+    'var $lt1 = $lt.red;',
+    'var $lt2 = $lt.blue;',
+    'var $lm1 = null;',
+    'var $lt3 = null;',
+    'var $lt4 = null;',
+    'var $lt5 = null;',
+    'this.ColorRed = $lt1;',
+    'this.Fly = function () {',
+    '  console.log($lt1);',
+    '  console.log($lt2);',
+    '  console.log($lt4);',
+    '  console.log($lt5);',
+    '  console.log($lt5);',
+    '};',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '$lm1 = pas.UnitB;',
+    '$lt3 = $lm1.TSize;',
+    '$lt4 = $lt3.small;',
+    '$lt5 = $lt3.big;',
+    '$impl.SizeSmall = $lt4;',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Property;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    FWing: TObject;',
+    '    class var FLeg: TObject;',
+    '  public',
+    '    property Wing: TObject read FWing write FWing;',
+    '    class property Leg: TObject read FLeg write FLeg;',
+    '  end;',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)', // intf-JS to intf-uses
+  '    procedure Fly(o: TObject);',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Fly(o: TObject);',
+  'begin',
+  '  Fly(Wing);',
+  '  Fly(Leg);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Property',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Fly = function (o) {',
+    '    this.Fly(this.FWing);',
+    '    this.Fly(this.FLeg);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_ExternalAbstract;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    generic function FlyExt<T>(a: word = 103): T; external name ''Flying'';',
+    '    class procedure JumpVirtual(a: word = 104); virtual; abstract;',
+    '    class procedure RunStaticExt(a: word = 105); static; external name ''Running'';',
+    '  end;',
+    'procedure SayExt(a: word = 106); external name ''Saying'';',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize FlyExt<Word>;',
+  '  specialize FlyExt<Word>(1);',
+  '  specialize JumpVirtual;',
+  '  specialize JumpVirtual(2);',
+  '  specialize RunStaticExt;',
+  '  specialize RunStaticExt(3);',
+  '  specialize SayExt;',
+  '  specialize SayExt(4);',
+  '  Self.specialize FlyExt<Word>;',
+  '  Self.specialize FlyExt<Word>(11);',
+  '  Self.specialize JumpVirtual;',
+  '  Self.specialize JumpVirtual(12);',
+  '  Self.specialize RunStaticExt;',
+  '  Self.specialize RunStaticExt(13);',
+  '  with Self do begin',
+  '    specialize FlyExt<Word>;',
+  '    specialize FlyExt<Word>(21);',
+  '    specialize JumpVirtual;',
+  '    specialize JumpVirtual(22);',
+  '    specialize RunStaticExt;',
+  '    specialize RunStaticExt(23);',
+  '  end;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_ExternalAbstract',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    this.Flying(103);',
+    '    this.Flying(1);',
+    '    this.$class.JumpVirtual(104);',
+    '    this.$class.JumpVirtual(2);',
+    '    this.Running(105);',
+    '    this.Running(3);',
+    '    Saying(106);',
+    '    Saying(4);',
+    '    this.Flying(103);',
+    '    this.Flying(11);',
+    '    this.$class.JumpVirtual(104);',
+    '    this.$class.JumpVirtual(12);',
+    '    this.Running(105);',
+    '    this.Running(13);',
+    '    this.Flying(103);',
+    '    this.Flying(21);',
+    '    this.$class.JumpVirtual(104);',
+    '    this.$class.JumpVirtual(22);',
+    '    this.Running(105);',
+    '    this.Running(23);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Class;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '  end;',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    Size: TBird;',
+  '    class var Color: TBird;',
+  '    procedure Fly;',
+  '    class procedure Run;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Fly;',
+  'begin',
+  '  Size:=Size;',
+  '  Self.Size:=Self.Size;',
+  '  Color:=Color;',
+  '  Self.Color:=Self.Color;',
+  'end;',
+  'class procedure TEagle.Run;',
+  'begin',
+  '  Color:=Color;',
+  '  Self.Color:=Self.Color;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Class',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Color = null;',
+    '  this.$init = function () {',
+    '    $lt1.$init.call(this);',
+    '    this.Size = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Size = undefined;',
+    '    $lt1.$final.call(this);',
+    '  };',
+    '  this.Fly = function () {',
+    '    this.Size = this.Size;',
+    '    this.Size = this.Size;',
+    '    $lt.Color = this.Color;',
+    '    $lt.Color = this.Color;',
+    '  };',
+    '  this.Run = function () {',
+    '    $lt.Color = this.Color;',
+    '    $lt.Color = this.Color;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericFunction;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'generic function Run<T>(a: T): T;',
+    '']),
+  LinesToStr([
+    'generic function Run<T>(a: T): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class',
+  '  end;',
+  'procedure Fly;',
+  'implementation',
+  'procedure Fly;',
+  'begin',
+  '  specialize Run<TEagle>(nil);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericFunction',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.system;',
+    'var $lt1 = $lm.TObject;',
+    'var $lm1 = pas.UnitA;',
+    'var $lp = $lm1.Run$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '});',
+    'this.Fly = function () {',
+    '  $lp(null);',
+    '};',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericMethod_Call;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    generic function Fly<T>(a: word = 13): T;',
+    '    generic class function Jump<T>(b: word = 14): T;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic function TBird.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'generic class function TBird.Jump<T>(b: word): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    generic function Run<T>(c: word = 25): T;',
+  '    generic class function Sing<T>(d: word = 26): T;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize Run<Word>;',
+  '  specialize Run<Word>(1);',
+  '  specialize Sing<Word>;',
+  '  specialize Sing<Word>(2);',
+  '  specialize Fly<Word>;',
+  '  specialize Fly<Word>(3);',
+  '  specialize Jump<Word>;',
+  '  specialize Jump<Word>(4);',
+  '  Self.specialize Fly<Word>;',
+  '  Self.specialize Fly<Word>(5);',
+  '  Self.specialize Jump<Word>;',
+  '  Self.specialize Jump<Word>(6);',
+  '  with Self do begin',
+  '    specialize Fly<Word>;',
+  '    specialize Fly<Word>(7);',
+  '    specialize Jump<Word>;',
+  '    specialize Jump<Word>(8);',
+  '  end;',
+  'end;',
+  'generic function TEagle.Run<T>(c: word): T;',
+  'begin',
+  '  specialize Fly<T>;',
+  '  specialize Fly<T>(7);',
+  'end;',
+  'generic class function TEagle.Sing<T>(d: word): T;',
+  'begin',
+  '  specialize Jump<T>;',
+  '  specialize Jump<T>(8);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericMethod_Call',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lp = null;',
+    'var $lp1 = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lp2 = $lt1.Fly$G1;',
+    'var $lp3 = $lt1.Jump$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    $lp.apply(this, 25);',
+    '    $lp.apply(this, 1);',
+    '    $lp1.apply(this.$class, 26);',
+    '    $lp1.apply(this.$class, 2);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 3);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this.$class, 4);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 5);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this, 6);',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 7);',
+    '    $lp3.apply(this.$class, 14);',
+    '    $lp3.apply(this.$class, 8);',
+    '  };',
+    '  this.Run$G1 = $lp = function (c) {',
+    '    var Result = 0;',
+    '    $lp2.apply(this, 13);',
+    '    $lp2.apply(this, 7);',
+    '    return Result;',
+    '  };',
+    '  this.Sing$G1 = $lp1 = function (d) {',
+    '    var Result = 0;',
+    '    $lp3.apply(this, 14);',
+    '    $lp3.apply(this, 8);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericStaticMethod_Call;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    generic class function Fly<T>(a: word = 13): T; static;',
+    '    class function Say(a: word = 13): word; static;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic class function TBird.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'class function TBird.Say(a: word): word;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    generic class function Run<T>(c: word = 25): T; static;',
+  '    class function Lay(c: word = 25): word; static;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize Fly<Word>;',
+  '  specialize Fly<Word>(31);',
+  '  Say;',
+  '  Say(32);',
+  '  specialize Run<Word>;',
+  '  specialize Run<Word>(33);',
+  '  Lay;',
+  '  Lay(34);',
+  '  self.specialize Fly<Word>;',
+  '  self.specialize Fly<Word>(41);',
+  '  self.Say;',
+  '  self.Say(42);',
+  '  self.specialize Run<Word>;',
+  '  self.specialize Run<Word>(43);',
+  '  with Self do begin',
+  '    specialize Fly<Word>;',
+  '    specialize Fly<Word>(51);',
+  '    Say;',
+  '    Say(52);',
+  '    specialize Run<Word>;',
+  '    specialize Run<Word>(53);',
+  '  end;',
+  'end;',
+  'generic class function TEagle.Run<T>(c: word): T;',
+  'begin',
+  'end;',
+  'class function TEagle.Lay(c: word): word;',
+  'begin',
+  '  TEagle.specialize Fly<Word>;',
+  '  TEagle.specialize Fly<Word>(61);',
+  '  TEagle.Say;',
+  '  TEagle.Say(62);',
+  '  TEagle.specialize Run<Word>;',
+  '  specialize Run<Word>(63);',
+  '  Lay;',
+  '  Lay(64);',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericStaticMethod_Call',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lp = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lp1 = $lt1.Fly$G1;',
+    'var $lp2 = $lt1.Say;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    $lp1(13);',
+    '    $lp1(31);',
+    '    $lp2(13);',
+    '    $lp2(32);',
+    '    $lp(25);',
+    '    $lp(33);',
+    '    $lt.Lay(25);',
+    '    $lt.Lay(34);',
+    '    $lp1(13);',
+    '    $lp1(41);',
+    '    $lp2(13);',
+    '    $lp2(42);',
+    '    $lp(25);',
+    '    $lp(43);',
+    '    $lp1(13);',
+    '    $lp1(51);',
+    '    $lp2(13);',
+    '    $lp2(52);',
+    '    $lp(25);',
+    '    $lp(53);',
+    '  };',
+    '  this.Lay = function (c) {',
+    '    var Result = 0;',
+    '    $lp1(13);',
+    '    $lp1(61);',
+    '    $lp2(13);',
+    '    $lp2(62);',
+    '    $lp(25);',
+    '    $lp(63);',
+    '    $lt.Lay(25);',
+    '    $lt.Lay(64);',
+    '    return Result;',
+    '  };',
+    '  this.Run$G1 = $lp = function (c) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericClassHelperMethod;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '  end;',
+    '  TBirdHelper = class helper for TBird',
+    '    generic function Fly<T>(a: word = 13): T;',
+    '    generic class function Say<T>(a: word = 13): T;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic function TBirdHelper.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'generic class function TBirdHelper.Say<T>(a: word): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    class procedure Lay;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'begin',
+  '  specialize Fly<Word>;',
+  '  specialize Fly<Word>(31);',
+  '  specialize Say<word>;',
+  '  specialize Say<Word>(32);',
+  '  self.specialize Fly<Word>;',
+  '  self.specialize Fly<Word>(41);',
+  '  self.specialize Say<Word>;',
+  '  self.specialize Say<Word>(42);',
+  '  with Self do begin',
+  '    specialize Fly<Word>;',
+  '    specialize Fly<Word>(51);',
+  '    specialize Say<Word>;',
+  '    specialize Say<Word>(52);',
+  '  end;',
+  'end;',
+  'class procedure TEagle.Lay;',
+  'begin',
+  '  specialize Say<Word>;',
+  '  specialize Say<Word>(32);',
+  '  self.specialize Say<Word>;',
+  '  self.specialize Say<Word>(42);',
+  '  with Self do begin',
+  '    specialize Say<Word>;',
+  '    specialize Say<Word>(52);',
+  '  end;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericClassHelperMethod',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lt2 = $lm.TBirdHelper;',
+    'var $lp = $lt2.Fly$G1;',
+    'var $lp1 = $lt2.Say$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 31);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 32);',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 41);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 42);',
+    '    $lp.call(this, 13);',
+    '    $lp.call(this, 51);',
+    '    $lp1.call(this.$class, 13);',
+    '    $lp1.call(this.$class, 52);',
+    '  };',
+    '  this.Lay = function () {',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 32);',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 42);',
+    '    $lp1.call(this, 13);',
+    '    $lp1.call(this, 52);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericMethod_ProcVar;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    '{$mode delphi}',
+    'type',
+    '  TBird = class',
+    '    function Fly<T>(a: word = 13): T;',
+    '    class function Jump<T>(b: word = 14): T;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'function TBird.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'class function TBird.Jump<T>(b: word): T;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TFunc<T> = function(a: word): T of object;',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    function Run<T>(c: word = 25): T;',
+  '    class function Sing<T>(d: word = 26): T;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'var f: TFunc<word>;',
+  'begin',
+  '  f:=@Run<Word>;',
+  '  f:=@Sing<Word>;',
+  '  f:=@Fly<Word>;',
+  '  f:=@Jump<Word>;',
+  '  f:=@Self.Fly<Word>;',
+  '  f:=@Self.Jump<Word>;',
+  '  with Self do begin',
+  '    f:=@Fly<Word>;',
+  '    f:=@Jump<Word>;',
+  '  end;',
+  'end;',
+  'function TEagle.Run<T>(c: word): T;',
+  'begin',
+  'end;',
+  'class function TEagle.Sing<T>(d: word): T;',
+  'var f: TFunc<T>;',
+  'begin',
+  '  f:=@Jump<T>;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericMethod_ProcVar',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lp = null;',
+    'var $lp1 = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lp2 = $lt1.Fly$G1;',
+    'var $lp3 = $lt1.Jump$G1;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    var f = null;',
+    '    f = rtl.createCallback(this, $lp);',
+    '    f = rtl.createCallback(this.$class, $lp1);',
+    '    f = rtl.createCallback(this, $lp2);',
+    '    f = rtl.createCallback(this.$class, $lp3);',
+    '    f = rtl.createCallback(this, $lp2);',
+    '    f = rtl.createCallback(this.$class, $lp3);',
+    '    f = rtl.createCallback(this, $lp2);',
+    '    f = rtl.createCallback(this.$class, $lp3);',
+    '  };',
+    '  this.Run$G1 = $lp = function (c) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.Sing$G1 = $lp1 = function (d) {',
+    '    var Result = 0;',
+    '    var f = null;',
+    '    f = rtl.createCallback(this, $lp3);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_GenericStaticMethod_ProcVar;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  TBird = class',
+    '    generic class function Fly<T>(a: word = 13): T; static;',
+    '    class function Say(a: word = 13): word; static;',
+    '  end;',
+    '']),
+  LinesToStr([
+    'generic class function TBird.Fly<T>(a: word): T;',
+    'begin',
+    'end;',
+    'class function TBird.Say(a: word): word;',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TFunc = function(a: word): word;',
+  '  TEagle = class(TBird)',
+  '    procedure Test;',
+  '    generic class function Run<T>(c: word = 25): T; static;',
+  '    class function Lay(c: word = 25): word; static;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.Test;',
+  'var f: TFunc;',
+  'begin',
+  '  F:=@specialize Fly<Word>;',
+  '  F:=@Say;',
+  '  F:=@specialize Run<Word>;',
+  '  F:=@Lay;',
+  '  F:=@self.specialize Fly<Word>;',
+  '  F:=@self.Say;',
+  '  F:=@self.specialize Run<Word>;',
+  '  with Self do begin',
+  '    F:=@specialize Fly<Word>;',
+  '    F:=@Say;',
+  '    F:=@specialize Run<Word>;',
+  '  end;',
+  'end;',
+  'generic class function TEagle.Run<T>(c: word): T;',
+  'begin',
+  'end;',
+  'class function TEagle.Lay(c: word): word;',
+  'var f: TFunc;',
+  'begin',
+  '  f:=@TEagle.specialize Fly<Word>;',
+  '  f:=@TEagle.Say;',
+  '  f:=@TEagle.specialize Run<Word>;',
+  '  f:=@Lay;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_GenericStaticMethod_ProcVar',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lp = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lp1 = $lt1.Fly$G1;',
+    'var $lp2 = $lt1.Say;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Test = function () {',
+    '    var f = null;',
+    '    f = $lp1;',
+    '    f = $lp2;',
+    '    f = $lp;',
+    '    f = $lt.Lay;',
+    '    f = $lp1;',
+    '    f = $lp2;',
+    '    f = $lp;',
+    '    f = $lp1;',
+    '    f = $lp2;',
+    '    f = $lp;',
+    '  };',
+    '  this.Lay = function (c) {',
+    '    var Result = 0;',
+    '    var f = null;',
+    '    f = $lp1;',
+    '    f = $lp2;',
+    '    f = $lp;',
+    '    f = $lt.Lay;',
+    '    return Result;',
+    '  };',
+    '  this.Run$G1 = $lp = function (c) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_EnumType;
+begin
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'type',
+  '  TBird = class',
+  '  type',
+  '    TFlag = (big,small);',
+  '    procedure Fly;',
+  '  end;',
+  '  TEnum = (red,blue);',
+  'var',
+  '  e: TEnum;',
+  '  f: TBird.TFlag;',
+  'procedure Run;',
+  'implementation',
+  'procedure TBird.Fly;',
+  'begin',
+  '  e:=blue;',
+  '  f:=small;',
+  'end;',
+  'procedure Run;',
+  'type TSub = (left,right);',
+  'var s: TSub;',
+  'begin',
+  '  e:=red;',
+  '  s:=right;',
+  '  f:=big;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_EnumType',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
+    'var $lm = pas.system;',
+    'var $lt3 = $lm.TObject;',
+    'rtl.createClass(this, "TBird", $lt3, function () {',
+    '  $lt = this;',
+    '  $lt1 = this.TFlag = {',
+    '    "0": "big",',
+    '    big: 0,',
+    '    "1": "small",',
+    '    small: 1',
+    '  };',
+    '  this.Fly = function () {',
+    '    $mod.e = $lt2.blue;',
+    '    $mod.f = $lt1.small;',
+    '  };',
+    '});',
+    '$lt2 = this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'this.e = 0;',
+    'this.f = 0;',
+    'var TSub = {',
+    '  "0": "left",',
+    '  left: 0,',
+    '  "1": "right",',
+    '  right: 1',
+    '};',
+    'this.Run = function () {',
+    '  var s = 0;',
+    '  $mod.e = $lt2.red;',
+    '  s = TSub.right;',
+    '  $mod.f = $lt1.big;',
+    '};',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_ClassType;
+begin
+  WithTypeInfo:=true;
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'type',
+  '  TBird = class;',
+  '  TAnt = class',
+  '  type',
+  '    TLeg = class',
+  '    end;',
+  '    procedure Run;',
+  '  published',
+  '    Bird: TBird;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TFrog = class',
+  '  end;',
+  'procedure TAnt.Run;',
+  'begin',
+  '  if typeinfo(TBird)=nil then;',
+  '  Bird:=TBird.Create;',
+  '  TLeg.Create;',
+  '  TFrog.Create;',
+  'end;',
+  'procedure TBird.Fly;',
+  'begin',
+  '  if typeinfo(TAnt)=nil then;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_ClassType',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
+    'var $lt3 = null;',
+    'var $lm = pas.system;',
+    'var $lt4 = $lm.TObject;',
+    'this.$rtti.$Class("TBird");',
+    'rtl.createClass(this, "TAnt", $lt4, function () {',
+    '  $lt = this;',
+    '  rtl.createClass(this, "TLeg", $lt4, function () {',
+    '    $lt1 = this;',
+    '  }, "TAnt.TLeg");',
+    '  this.$init = function () {',
+    '    $lt4.$init.call(this);',
+    '    this.Bird = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.Bird = undefined;',
+    '    $lt4.$final.call(this);',
+    '  };',
+    '  this.Run = function () {',
+    '    if ($mod.$rtti["TBird"] === null) ;',
+    '    this.Bird = $lt2.$create("Create");',
+    '    $lt1.$create("Create");',
+    '    $lt3.$create("Create");',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("Bird", $mod.$rtti["TBird"]);',
+    '});',
+    'rtl.createClass(this, "TBird", $lt4, function () {',
+    '  $lt2 = this;',
+    '  this.Fly = function () {',
+    '    if ($mod.$rtti["TAnt"] === null) ;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'rtl.createClass($impl, "TFrog", $lt4, function () {',
+    '  $lt3 = this;',
+    '});',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_SameUnit_RecordType;
+begin
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  '{$modeswitch advancedrecords}',
+  'interface',
+  'type',
+  '  TAnt = record',
+  '  type',
+  '    TLeg = record',
+  '      l: word;',
+  '    end;',
+  '    procedure Run;',
+  '    Leg: TLeg;',
+  '  end;',
+  'implementation',
+  'type',
+  '  TBird = record',
+  '    b: word;',
+  '  end;',
+  'procedure TAnt.Run;',
+  'type',
+  '  TFoot = record',
+  '    f: word;',
+  '  end;',
+  'var',
+  '  b: TBird;',
+  '  l: TLeg;',
+  '  a: TAnt;',
+  '  f: TFoot;',
+  'begin',
+  '  b.b:=1;',
+  '  l.l:=2;',
+  '  a.Leg.l:=3;',
+  '  f.f:=4;',
+  'end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_SameUnit_RecordType',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lt = null;',
+    'var $lt1 = null;',
+    'var $lt2 = null;',
+    'rtl.recNewT(this, "TAnt", function () {',
+    '  $lt = this;',
+    '  rtl.recNewT(this, "TLeg", function () {',
+    '    $lt1 = this;',
+    '    this.l = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.l === b.l;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.l = s.l;',
+    '      return this;',
+    '    };',
+    '  });',
+    '  this.$new = function () {',
+    '    var r = Object.create(this);',
+    '    r.Leg = $lt1.$new();',
+    '    return r;',
+    '  };',
+    '  this.$eq = function (b) {',
+    '    return this.Leg.$eq(b.Leg);',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.Leg.$assign(s.Leg);',
+    '    return this;',
+    '  };',
+    '  var TFoot = rtl.recNewT(null, "", function () {',
+    '    this.f = 0;',
+    '    this.$eq = function (b) {',
+    '      return this.f === b.f;',
+    '    };',
+    '    this.$assign = function (s) {',
+    '      this.f = s.f;',
+    '      return this;',
+    '    };',
+    '  });',
+    '  this.Run = function () {',
+    '    var b = $lt2.$new();',
+    '    var l = $lt1.$new();',
+    '    var a = $lt.$new();',
+    '    var f = TFoot.$new();',
+    '    b.b = 1;',
+    '    l.l = 2;',
+    '    a.Leg.l = 3;',
+    '    f.f = 4;',
+    '  };',
+    '}, true);',
+    '']),
+    LinesToStr([
+    '']),
+    LinesToStr([
+    'rtl.recNewT($impl, "TBird", function () {',
+    '  $lt2 = this;',
+    '  this.b = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.b === b.b;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.b = s.b;',
+    '    return this;',
+    '  };',
+    '});',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptShortRefGlobals_Unit_InitNoImpl;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'var a: word;',
+    'procedure Run(w: word);',
+    '']),
+  LinesToStr([
+    'procedure Run(w: word);',
+    'begin',
+    'end;',
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization JSShortRefGlobals}',
+  'interface',
+  'implementation',
+  'uses UnitA;', // empty implementation function
+  'begin',
+  '  Run(a);',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptShortRefGlobals_Unit_InitNoImpl',
+    LinesToStr([
+    'var $impl = $mod.$impl;',
+    'var $lm = null;',
+    'var $lp = null;',
+    '']),
+    LinesToStr([
+    '$lp($lm.a);',
+    '']),
+    LinesToStr([
+    '$lm = pas.UnitA;',
+    '$lp = $lm.Run;',
+    '']));
+end;
 
 procedure TTestOptimizations.TestWPO_OmitLocalVar;
 begin
@@ -390,7 +1798,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitRecordMember',
     LinesToStr([
-    'rtl.recNewT($mod, "TRec", function () {',
+    'rtl.recNewT(this, "TRec", function () {',
     '  this.a = 0;',
     '  this.$eq = function (b) {',
     '    return this.a === b.a;',
@@ -400,7 +1808,7 @@ begin
     '    return this;',
     '  };',
     '});',
-    'this.r = $mod.TRec.$new();',
+    'this.r = this.TRec.$new();',
     '']),
     LinesToStr([
     '$mod.r.a = 3;',
@@ -438,7 +1846,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_TObject',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -478,7 +1886,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_Class_TObject',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -510,7 +1918,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassField',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.a = 0;',
     '  };',
@@ -539,7 +1947,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -569,7 +1977,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -605,7 +2013,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter1',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -636,7 +2044,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter2',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -677,7 +2085,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter1',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -708,7 +2116,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter2',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -755,7 +2163,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_Class_KeepNewInstance',
     LinesToStr([
-    'rtl.createClassExt($mod, "TBird", Object, "NewInstance", function () {',
+    'rtl.createClassExt(this, "TBird", Object, "NewInstance", function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -804,7 +2212,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_CallInherited',
     LinesToStr([
-    'rtl.createClass($mod, "TObject", null, function () {',
+    'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -814,7 +2222,7 @@ begin
     '  this.DoB = function () {',
     '  };',
     '});',
-    ' rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
+    ' rtl.createClass(this, "TMobile", this.TObject, function () {',
     '  this.DoA$1 = function () {',
     '    $mod.TObject.DoA.call(this);',
     '  };',
@@ -881,7 +2289,7 @@ begin
   LinesToStr([
   'rtl.module("system", [], function () {',
   '  var $mod = this;',
-  '  rtl.recNewT($mod, "TVarRec", function () {',
+  '  rtl.recNewT(this, "TVarRec", function () {',
   '    this.VType = 0;',
   '    this.VJSValue = undefined;',
   '    this.$eq = function (b) {',
@@ -960,7 +2368,7 @@ begin
   LinesToStr([
   'rtl.module("unit1", ["system"], function () {',
   '  var $mod = this;',
-  '  rtl.createClass($mod, "TObject", null, function () {',
+  '  rtl.createClass(this, "TObject", null, function () {',
   '    this.$init = function () {',
   '      this.FA = 0;',
   '    };',
@@ -1008,7 +2416,7 @@ procedure TTestOptimizations.TestWPO_ConstructorDefaultValueConst;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
   Add([
   'const gcBlack = 0;',
@@ -1035,7 +2443,7 @@ begin
   'rtl.module("program",["system"],function () {',
   '  var $mod = this;',
   '  this.gcBlack = 0;',
-  '  rtl.createClass($mod,"TObject",null,function () {',
+  '  rtl.createClass(this,"TObject",null,function () {',
   '    this.$init = function () {',
   '      this.FColor = 0;',
   '    };',
@@ -1059,30 +2467,33 @@ procedure TTestOptimizations.TestWPO_RTTI_PublishedField;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
-  Add('type');
-  Add('  TArrA = array of char;');
-  Add('  TArrB = array of string;');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    PublicA: TArrA;');
-  Add('  published');
-  Add('    PublishedB: TArrB;');
-  Add('  end;');
-  Add('var');
-  Add('  C: TObject;');
-  Add('begin');
-  Add('  C.PublicA:=nil;');
+  Add([
+  'type',
+  '  TArrA = array of char;',
+  '  TArrB = array of string;',
+  '  TObject = class',
+  '  public',
+  '    PublicA: TArrA;',
+  '  published',
+  '    PublishedB: TArrB;',
+  '  end;',
+  'var',
+  '  C: TObject;',
+  'begin',
+  '  C.PublicA:=nil;',
+  '  if typeinfo(TObject)=nil then ;',
+  '']);
   ConvertProgram;
   ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
-    '  $mod.$rtti.$DynArray("TArrB", {',
+    '  this.$rtti.$DynArray("TArrB", {',
     '    eltype: rtl.string',
     '  });',
-    '  rtl.createClass($mod, "TObject", null, function () {',
+    '  rtl.createClass(this, "TObject", null, function () {',
     '    this.$init = function () {',
     '      this.PublicA = [];',
     '      this.PublishedB = [];',
@@ -1097,6 +2508,7 @@ begin
     '  this.C = null;',
     '  $mod.$main = function () {',
     '    $mod.C.PublicA = [];',
+    '    if ($mod.$rtti["TObject"] === null) ;',
     '  };',
     '});',
     '']);
@@ -1107,7 +2519,7 @@ procedure TTestOptimizations.TestWPO_RTTI_TypeInfo;
 var
   ActualSrc, ExpectedSrc: String;
 begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  WithTypeInfo:=true;
   StartProgram(true);
   Add('type');
   Add('  TArrA = array of char;');
@@ -1124,7 +2536,7 @@ begin
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
-    '  $mod.$rtti.$DynArray("TArrB", {',
+    '  this.$rtti.$DynArray("TArrB", {',
     '    eltype: rtl.string',
     '  });',
     '  this.A = [];',

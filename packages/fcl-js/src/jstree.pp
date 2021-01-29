@@ -126,6 +126,7 @@ Type
   TJSFuncDef = Class(TJSObject)
   private
     FBody: TJSFunctionBody;
+    FIsAsync: Boolean;
     FIsEmpty: Boolean;
     FName: TJSString;
     FParams: TStrings;
@@ -137,6 +138,7 @@ Type
     Property Body : TJSFunctionBody Read FBody Write FBody; // can be nil
     Property Name : TJSString Read FName Write FName;
     Property IsEmpty : Boolean Read FIsEmpty Write FIsEmpty;
+    Property IsAsync : Boolean Read FIsAsync Write FIsAsync;
   end;
 
   { TJSElement }
@@ -228,7 +230,7 @@ Type
     Property Elements[AIndex : Integer] : TJSArrayLiteralElement Read GetE ; default;
   end;
 
-  { TJSArrayLiteral - [element1,...] }
+  { TJSArrayLiteral - [element1,...] or Args of a function }
 
   TJSArrayLiteral = Class(TJSElement)
   private
@@ -326,6 +328,7 @@ Type
   Public
     Destructor Destroy; override;
     procedure AddArg(El: TJSElement);
+    procedure InsertArg(Index: integer; El: TJSElement);
     Property Expr : TJSElement Read FExpr Write FExpr;
     Property Args : TJSArguments Read FArgs Write FArgs;
   end;
@@ -381,6 +384,13 @@ Type
   TJSUnaryTypeOfExpression = Class(TJSUnaryExpression)
   Public
     Class function PrefixOperatorToken : tjsToken; override;
+  end;
+
+  { TJSAwaitExpression - e.g. 'await A' }
+
+  TJSAwaitExpression = Class(TJSUnaryExpression)
+  Public
+    Class function PrefixOperatorToken : tjsToken; Override;
   end;
 
   { TJSUnaryPrePlusPlusExpression - e.g. '++A' }
@@ -966,6 +976,7 @@ Type
     function GetN(AIndex : Integer): TJSElementNode;
   Public
     Function AddNode : TJSElementNode;
+    Function InsertNode(Index: integer) : TJSElementNode;
     Property Nodes[AIndex : Integer] : TJSElementNode Read GetN ; default;
   end;
 
@@ -1514,6 +1525,13 @@ begin
   Result:=tjsTypeOf;
 end;
 
+{ TJSAwaitExpression }
+
+class function TJSAwaitExpression.PrefixOperatorToken: tjsToken;
+begin
+  Result:=tjsAwait;
+end;
+
 { TJSUnaryDeleteExpression }
 
 Class function TJSUnaryDeleteExpression.PrefixOperatorToken : tjsToken;
@@ -1681,6 +1699,14 @@ begin
   Args.Elements.AddElement.Expr:=El;
 end;
 
+procedure TJSCallExpression.InsertArg(Index: integer; El: TJSElement);
+var
+  NewEl: TJSArrayLiteralElement;
+begin
+  NewEl:=TJSArrayLiteralElement(Args.Elements.Insert(Index));
+  NewEl.Expr:=El;
+end;
+
 { TJSUnary }
 
 Class function TJSUnary.PrefixOperatorToken: tjsToken;
@@ -1705,7 +1731,7 @@ begin
   else
     begin
     Result:=TokenInfos[t];
-    if t in [tjsTypeOf,tjsVoid,tjsDelete,tjsThrow] then
+    if t in [tjsTypeOf,tjsVoid,tjsDelete,tjsThrow,tjsAwait] then
       Result:=Result+' ';
     end;
 end;
@@ -1919,6 +1945,11 @@ end;
 function TJSElementNodes.AddNode: TJSElementNode;
 begin
   Result:=TJSElementNode(Add);
+end;
+
+function TJSElementNodes.InsertNode(Index: integer): TJSElementNode;
+begin
+  Result:=TJSElementNode(Insert(Index));
 end;
 
 { TJSFunction }

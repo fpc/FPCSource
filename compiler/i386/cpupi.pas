@@ -88,29 +88,27 @@ unit cpupi;
     procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
-        { Para_stack_size is only used to determine how many bytes to remove }
-        { from the stack at the end of the procedure (in the "ret $xx").     }
-        { If the stack is fixed, nothing has to be removed by the callee     }
-        if paramanager.use_fixed_stack then
+        { Para_stack_size is only used to determine how many bytes to remove
+          from the stack at the end of the procedure (in the "ret $xx").
+          If the stack is fixed, nothing has to be removed by the callee, except
+          if a 16 byte aligned stack on i386-linux is used     }
+        if paramanager.use_fixed_stack and not(target_info.abi=abi_i386_dynalignedstack) then
           para_stack_size := 0;
       end;
 
 
     procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
-        if (cs_create_pic in current_settings.moduleswitches) then
+        if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
           begin
-            if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) then
-              begin
-                { FIXME: It is better to use an imaginary register for GOT and
-                  if EBX is needed for some reason just allocate EBX and
-                  copy GOT into it before its usage. }
-                cg.getcpuregister(list,NR_EBX);
-                got := NR_EBX;
-              end
-            else
-              got := cg.getaddressregister(list);
-          end;
+            { FIXME: It is better to use an imaginary register for GOT and
+              if EBX is needed for some reason just allocate EBX and
+              copy GOT into it before its usage. }
+            cg.getcpuregister(list,NR_EBX);
+            got := NR_EBX;
+          end
+        else if cs_create_pic in current_settings.moduleswitches then
+          got := cg.getaddressregister(list);
       end;
 
 begin

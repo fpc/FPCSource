@@ -124,7 +124,6 @@ const
 type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rrv32nor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       maxvarregs = 32-6; { 32 int registers - r0 - stackpointer - r2 - 3 scratch registers }
@@ -329,8 +328,8 @@ const
                                     Helpers
   *****************************************************************************}
 
-    function is_imm12(value: aint): boolean;
-    function is_lui_imm(value: aint): boolean;
+    function is_imm12(value: tcgint): boolean;
+    function is_lui_imm(value: tcgint): boolean;
 
     function is_calljmp(o:tasmop):boolean;
 
@@ -348,6 +347,9 @@ const
     function eh_return_data_regno(nr: longint): longint;
 
     function conditions_equal(const c1,c2: TAsmCond): boolean;
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
 
 implementation
 
@@ -372,13 +374,13 @@ implementation
                                   Helpers
 *****************************************************************************}
 
-    function is_imm12(value: aint): boolean;
+    function is_imm12(value: tcgint): boolean;
       begin
         result:=(value >= -2048) and (value <= 2047);
       end;
 
 
-    function is_lui_imm(value: aint): boolean;
+    function is_lui_imm(value: tcgint): boolean;
       begin
         result:=SarInt64((value and $FFFFF000) shl 32, 32) = value;
       end;
@@ -473,6 +475,21 @@ implementation
     function conditions_equal(const c1, c2: TAsmCond): boolean;
       begin
         result:=c1=c2;
+      end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_GEU]);
+            else
+              Result := False;
+          end;
       end;
 
 end.

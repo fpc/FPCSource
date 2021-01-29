@@ -118,6 +118,7 @@
   add_syslog(ADirectory+IncludeTrailingPathDelimiter('syslog'));
   add_tcl(ADirectory+IncludeTrailingPathDelimiter('tcl'));
   add_tosunits(ADirectory+IncludeTrailingPathDelimiter('tosunits'));
+  add_tplylib(ADirectory+IncludeTrailingPathDelimiter('tplylib'));
   add_univint(ADirectory+IncludeTrailingPathDelimiter('univint'));
   add_unixutil(ADirectory+IncludeTrailingPathDelimiter('unixutil'));
   add_unzip(ADirectory+IncludeTrailingPathDelimiter('unzip'));
@@ -142,4 +143,6 @@
   add_webidl(ADirectory+IncludeTrailingPathDelimiter('webidl'));
   add_gnutls(ADirectory+IncludeTrailingPathDelimiter('gnutls'));
   add_ide(ADirectory+IncludeTrailingPathDelimiter('ide'));
+  add_vclcompat(ADirectory+IncludeTrailingPathDelimiter('vcl-compat'));
+  add_qlunits(ADirectory+IncludeTrailingPathDelimiter('qlunits'));
   

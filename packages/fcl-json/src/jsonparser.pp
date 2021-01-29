@@ -129,7 +129,17 @@ begin
   // Add to existing structural type
   if (FStruct is TJSONObject) then
     begin
-    TJSONObject(FStruct).Add(FKey,AValue);
+    if (Not (joIgnoreDuplicates in options)) then
+      try
+        TJSONObject(FStruct).Add(FKey,AValue);
+      except
+        AValue.Free;
+        Raise;
+      end
+    else if (TJSONObject(FStruct).IndexOfName(FKey)=-1) then
+      TJSONObject(FStruct).Add(FKey,AValue)
+    else
+      AValue.Free;
     FKey:='';
     end
   else if (FStruct is TJSONArray) then

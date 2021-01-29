@@ -126,7 +126,7 @@ Unit Rax86int;
        aasmtai,
 {$endif i8086}
        { symtable }
-       symconst,symbase,symtype,symsym,symdef,
+       symconst,symbase,symtype,symsym,symutil,symdef,
 {$ifdef i8086}
        symcpu,
 {$endif i8086}
@@ -307,9 +307,6 @@ Unit Rax86int;
         forcelabel : boolean;
         srsym : tsym;
         srsymtable : TSymtable;
-        scomment: string;
-        schar: char;
-        old_commentstyle: tcommentstyle;
       begin
         actoperextention := '';
 
@@ -1145,7 +1142,7 @@ Unit Rax86int;
                       SetSegmentOverride(dest,segreg);
                   end;
                 else
-                  internalerror(2018030701);
+                  internalerror(2018030704);
               end;
             end;
           OPR_LOCAL:
@@ -1226,7 +1223,7 @@ Unit Rax86int;
               oper.opr.localsegment:=seg;
             end;
           else
-            internalerror(2018030703);
+            internalerror(2018030705);
         end;
       end;
 
@@ -1620,8 +1617,7 @@ Unit Rax86int;
                     end;
                    if (actasmtoken=AS_DOT) or
                       (assigned(sym) and
-                       (sym.typ = fieldvarsym) and
-                       not(sp_static in sym.symoptions)) then
+                       is_normal_fieldvarsym(sym)) then
                      begin
                       BuildRecordOffsetSize(tempstr,l,size,hs,needvmtofs,hastypecast);
                       if hs <> '' then
@@ -3154,7 +3150,7 @@ Unit Rax86int;
                      end
                    else
 {$endif i8086}
-                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value,constsize,cseof_hasofs in cse_out_flags);
+                     ConcatConstSymbol(curlist,asmsym,'',asmsymtyp,value,constsize,cseof_hasofs in cse_out_flags);
                  end
                 else
                  ConcatConstant(curlist,value,constsize);

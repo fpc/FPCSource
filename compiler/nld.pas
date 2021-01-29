@@ -37,7 +37,10 @@ interface
 
        tloadnodeflags = (
          loadnf_is_self,
-         loadnf_load_self_pointer,
+         { tell the load node the address of the symbol into the location, i.e. location^ must
+           be used to access the symbol
+           this is for example needed to load self for objects }
+         loadnf_load_addr,
          loadnf_inherited,
          { the loadnode is generated internally and a varspez=vs_const should be ignore,
            this requires that the parameter is actually passed by value
@@ -179,18 +182,45 @@ interface
        { Current assignment node }
        aktassignmentnode : tassignmentnode;
 
+       { Create a node tree to load a variable if symbol is assigned, otherwise an error node.
+         Generates an internalerror if called for an absolutevarsym of the "tovar" kind (those
+         are only supported for expansion in the parser) }
+       function gen_load_var(sym: tabstractvarsym): tnode;
 
 implementation
 
     uses
       verbose,globtype,globals,systems,constexp,compinnr,
+      ppu,
       symtable,
       defutil,defcmp,
       cpuinfo,
       htypechk,pass_1,procinfo,paramgr,
-      ncon,ninl,ncnv,nmem,ncal,nutils,
+      nbas,ncon,nflw,ninl,ncnv,nmem,ncal,nutils,
       cgbase
       ;
+
+
+    function gen_load_var(sym: tabstractvarsym): tnode;
+      begin
+        result:=nil;
+        if assigned(sym) then
+          begin
+            if (sym.typ<>absolutevarsym) or
+               (tabsolutevarsym(sym).abstyp<>tovar) then
+              begin
+                result:=cloadnode.create(sym,sym.owner);
+              end
+            else
+              internalerror(2020122601);
+          end
+        else
+          begin
+            result:=cerrornode.create;
+            CGMessage(parser_e_illegal_expression);
+          end;
+      end;
+
 
 {*****************************************************************************
                              TLOADNODE
@@ -231,7 +261,7 @@ implementation
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
         ppufile.getderef(fprocdefderef);
-        ppufile.getsmallset(loadnodeflags);
+        ppufile.getset(tppuset1(loadnodeflags));
       end;
 
 
@@ -240,7 +270,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
         ppufile.putderef(fprocdefderef);
-        ppufile.putsmallset(loadnodeflags);
+        ppufile.putset(tppuset1(loadnodeflags));
       end;
 
 
@@ -273,12 +303,28 @@ implementation
     function tloadnode.dogetcopy : tnode;
       var
          n : tloadnode;
+         orglabel,
+         labelcopy : tlabelnode;
       begin
          n:=tloadnode(inherited dogetcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
          n.fprocdef:=fprocdef;
          n.loadnodeflags:=loadnodeflags;
+         if symtableentry.typ=labelsym then
+           begin
+             { see the comments for the tgotonode.labelsym field }
+             orglabel:=tlabelnode(tlabelsym(symtableentry).code);
+             labelcopy:=tlabelnode(orglabel.dogetcopy);
+             if not assigned(labelcopy.labsym) then
+               begin
+                 if not assigned(orglabel.labsym) then
+                   internalerror(2019091301);
+                 labelcopy.labsym:=clabelsym.create('$copiedlabelfrom$'+orglabel.labsym.RealName);
+                 labelcopy.labsym.code:=labelcopy;
+               end;
+             n.symtableentry:=labelcopy.labsym;
+           end;
          result:=n;
       end;
 
@@ -288,7 +334,7 @@ implementation
         result:=(symtable.symtabletype=parasymtable) and
                 (symtableentry.typ=paravarsym) and
                 not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
-                not(loadnf_load_self_pointer in loadnodeflags) and
+                not(loadnf_load_addr in loadnodeflags) and
                 paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vardef,tprocdef(symtable.defowner).proccalloption);
       end;
 
@@ -337,25 +383,22 @@ implementation
                    if assigned(left) then
                      internalerror(200309289);
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
-                   { we can't inline the referenced parent procedure }
-                   include(tprocdef(symtable.defowner).implprocoptions,pio_nested_access);
+                   current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);
                  end;
                resultdef:=tabstractvarsym(symtableentry).vardef;
-               { self for objects is passed as var-parameter on the caller
+
+               { e.g. self for objects is passed as var-parameter on the caller
                  side, but on the callee-side we use it as a pointer ->
                  adjust }
-               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) then
-                 begin
-                   if (is_object(resultdef) or is_record(resultdef)) and
-                      (loadnf_load_self_pointer in loadnodeflags) then
-                     resultdef:=cpointerdef.getreusable(resultdef)
-                   else if (resultdef=objc_idtype) and
-                      (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                     resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
-                 end
+               if (loadnf_load_addr in loadnodeflags) then
+                 resultdef:=cpointerdef.getreusable(resultdef);
+
+               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) and (resultdef=objc_idtype) and
+                 (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                 resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
              end;
            procsym :
              begin
@@ -372,6 +415,9 @@ implementation
                  typeconvn need this as resultdef so they know
                  that the address needs to be returned }
                resultdef:=fprocdef;
+
+               if is_nested_pd(fprocdef) and is_nested_pd(current_procinfo.procdef) then
+                 current_procinfo.set_needs_parentfp(tprocdef(fprocdef.owner.defowner).parast.symtablelevel);
 
                { process methodpointer/framepointer }
                if assigned(left) then
@@ -412,8 +458,8 @@ implementation
               ;
             constsym:
               begin
-                 if tconstsym(symtableentry).consttyp=constresourcestring then
-                   expectloc:=LOC_CREFERENCE;
+                if tconstsym(symtableentry).consttyp=constresourcestring then
+                  expectloc:=LOC_CREFERENCE;
               end;
             staticvarsym,
             localvarsym,
@@ -435,25 +481,25 @@ implementation
                   end;
               end;
             procsym :
-                begin
-                   { initialise left for nested procs if necessary }
-                   if (m_nested_procvars in current_settings.modeswitches) then
-                     setprocdef(fprocdef);
-                   { method pointer or nested proc ? }
-                   if assigned(left) then
-                     begin
-                        expectloc:=LOC_CREGISTER;
-                        firstpass(left);
-                     end;
-                end;
-           labelsym :
-             begin
-               if not assigned(tlabelsym(symtableentry).asmblocklabel) and
-                  not assigned(tlabelsym(symtableentry).code) then
-                 Message(parser_e_label_outside_proc);
-             end
-           else
-             internalerror(200104143);
+              begin
+                { initialise left for nested procs if necessary }
+                if (m_nested_procvars in current_settings.modeswitches) then
+                  setprocdef(fprocdef);
+                { method pointer or nested proc ? }
+                if assigned(left) then
+                  begin
+                     expectloc:=LOC_CREGISTER;
+                     firstpass(left);
+                  end;
+              end;
+            labelsym :
+              begin
+                if not assigned(tlabelsym(symtableentry).asmblocklabel) and
+                   not assigned(tlabelsym(symtableentry).code) then
+                  Message(parser_e_label_outside_proc);
+              end
+            else
+              internalerror(200104143);
          end;
       end;
 
@@ -733,6 +779,10 @@ implementation
                 and (use_vectorfpu(left.resultdef) and
                      use_vectorfpu(right.resultdef) and
                      (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype))
+{$endif arm}
+{$ifdef xtensa}
+                and not((FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) xor
+                  (FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype]))
 {$endif}
         then
           begin
@@ -1229,6 +1279,8 @@ implementation
         if do_variant then
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
+
+        inc(current_procinfo.estimatedtempsize,(tarraydef(resultdef).highrange+1)*tarraydef(resultdef).elementdef.size);
       end;
 
 

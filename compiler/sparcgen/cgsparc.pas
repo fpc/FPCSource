@@ -799,7 +799,7 @@ implementation
                   tmpreg1:=GetIntRegister(list,OS_INT);
                   tmpreg2:=GetIntRegister(list,OS_INT);
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
-                  list.concat(taicpu.op_reg_const_reg(A_SRL,dst,31,tmpreg2));
+                  list.concat(taicpu.op_reg_const_reg(A_SRA,dst,31,tmpreg2));
                   list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
                   ovloc.loc:=LOC_FLAGS;
                   ovloc.resflags.Init(NR_ICC,F_NE);
@@ -1113,9 +1113,9 @@ implementation
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
-        paramanager.getintparaloc(list,pd,3,paraloc3);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_SINT,len,paraloc3);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);

@@ -92,7 +92,10 @@ Type
   TCursorName = Class(TSQLCursor)
   protected
     FRes: PMYSQL_RES;                   { Record pointer }
-    FStatement : String;
+    // Statement with param placeholders $1 $2 etc.
+    FPreparedStatement : String;
+    // Statement with param placeholders replaced with actual values.
+    FActualStatement : String;
     Row : MYSQL_ROW;
     Lengths : pculong;                  { Lengths of the columns of the current row }
     RowsAffected : QWord;
@@ -123,6 +126,7 @@ Type
     function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
     function InternalStrToFloat(C: pchar; Len: integer): Extended;
     function InternalStrToInt(C: pchar; Len: integer): integer;
+    function InternalStrToDWord(C: pchar; Len: integer): DWord;
     function InternalStrToInt64(C: pchar; Len: integer): Int64;
     function InternalStrToTime(C: pchar; Len: integer): TDateTime;
     function StrToMSecs(C: pchar; Len: integer): Word;
@@ -589,9 +593,10 @@ begin
 //    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
   With Cursor as TCursorName do
     begin
-    FStatement:=Buf;
+    FPreparedStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
-      FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
+      FPreparedStatement := AParams.ParseSQL(FPreparedStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
+    FPrepared:=True;
     end
 end;
 
@@ -620,6 +625,7 @@ begin
     mysql_free_result(C.FRes);
     C.FRes:=Nil;
     end;
+  C.FInitFieldDef:=True;
   SetLength(c.MapDSRowToMSQLRow,0);
   inherited;
 end;
@@ -647,18 +653,19 @@ begin
         ParamNames[AParams.count-i-1] := C.ParamReplaceString+inttostr(AParams[i].Index+1);
         ParamValues[AParams.count-i-1] := GetAsSQLText(AParams[i]);
         end;
-      // paramreplacestring kan een probleem geven bij postgres als hij niet meer gewoon $ is?
-      C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
-      end;
+      C.FActualStatement := stringsreplace(C.FPreparedStatement,ParamNames,ParamValues,[rfReplaceAll]);
+      end
+    else
+      C.FActualStatement:=C.FPreparedStatement;
 
     if LogEvent(detParamValue) then
       LogParams(AParams);
     if LogEvent(detExecute) then
-      Log(detExecute, C.FStatement);
+      Log(detExecute, C.FPreparedStatement);
     if LogEvent(detActualSQL) then
-      Log(detActualSQL,C.FStatement);
+      Log(detActualSQL,C.FActualStatement);
 
-    if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
+    if mysql_query(FMySQL,Pchar(C.FActualStatement))<>0 then
       begin
       if not ForcedClose then
         MySQLError(FMYSQL,SErrExecuting,Self)
@@ -736,6 +743,8 @@ begin
       begin
       if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
         NewType := ftAutoInc
+      else if AField^.flags and UNSIGNED_FLAG <> 0 then
+        NewType := ftLongWord
       else
         NewType := ftInteger;
       end;
@@ -920,6 +929,17 @@ begin
   Result:=StrToInt(S);
 end;
 
+function TConnectionName.InternalStrToDWord(C: pchar; Len: integer): DWord;
+Var
+  S : String;
+begin
+  Result := 0;
+  if (Len=0) or (C=Nil) then
+    exit;
+  SetString(S,C,Len);
+  Result:=StrToDWord(S);
+end;
+
 function TConnectionName.InternalStrToInt64(C: pchar; Len: integer): Int64;
 
 Var
@@ -1038,7 +1058,7 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := ComposeDateTime(Result, EncodeTime(EH, EN, ES, EMS));
+  Result := ComposeDateTime(Result, EncodeTimeInterval(EH, EN, ES, EMS));
 end;
 
 function TConnectionName.InternalStrToTime(C: pchar; Len: integer): TDateTime;
@@ -1106,6 +1126,7 @@ var
   VL: LargeInt;
   VS: Smallint;
   VW: Word;
+  VO: LongWord;
   VF: Double;
   VC: Currency;
   VD: TDateTime;
@@ -1146,6 +1167,11 @@ begin
       {$ENDIF}
       VL := InternalStrToInt64(Source, Len);
       Move(VL, Dest^, SizeOf(LargeInt));
+      end;
+    ftLongWord:
+      begin
+      VO := InternalStrToDWord(Source, Len);
+      Move(VO, Dest^, SizeOf(LongWord));
       end;
     ftFloat:
       begin

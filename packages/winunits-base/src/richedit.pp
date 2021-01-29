@@ -692,7 +692,7 @@ Const
      COMPCOLOR = _compcolor;
      TCOMPCOLOR = _compcolor;
 
-     EDITSTREAMCALLBACK = function (dwCookie:PDWORD; pbBuff:LPBYTE; cb:LONG; var pcb:LONG):DWORD;
+     EDITSTREAMCALLBACK = function (dwCookie:DWORD_PTR; pbBuff:LPBYTE; cb:LONG; var pcb:LONG):DWORD;
 
      _editstream = record
           dwCookie : DWORD_PTR;

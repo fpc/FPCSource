@@ -169,14 +169,14 @@ begin
       end;
     stringdef:
       begin
-        internalerror(2002072402);
+        internalerror(2002072401);
         exit;
       end;
     setdef:
       begin
         { normalsets are already handled in pass1 }
         if not is_smallset(left.resultdef) then
-          internalerror(200109041);
+          internalerror(2001090403);
         second_addsmallset;
         exit;
       end;
@@ -196,7 +196,7 @@ begin
         exit;
       end;
     else
-      ;;
+      ;
   end;
 
   { defaults }
@@ -284,7 +284,7 @@ begin
       ltn, lten, gtn, gten, equaln, unequaln:
         begin
           {$ifdef extdebug}
-          current_asmdata.CurrAsmList.concat(tai_comment.create('tppcaddnode.pass2'));
+          current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
           {$endif extdebug}
 
           emit_compare(unsigned);

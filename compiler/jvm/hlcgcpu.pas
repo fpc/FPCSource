@@ -188,6 +188,8 @@ uses
       procedure gen_initialize_fields_code(list:TAsmList);
 
       procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
+
+      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
      protected
       procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
 
@@ -197,8 +199,6 @@ uses
       procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
-
-      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
 
       procedure inittempvariables(list:TAsmList);override;
 
@@ -756,7 +756,7 @@ implementation
                 end;
               end;
             else
-              internalerror(2011081801);
+              internalerror(2011081802);
           end;
         end;
     end;
@@ -843,7 +843,7 @@ implementation
               decstack(list,2);
             end;
           else
-            internalerror(2010120538);
+            internalerror(2010120505);
         end;
       end;
 
@@ -1618,7 +1618,7 @@ implementation
             s64real:
               opc:=a_dreturn;
             else
-              internalerror(2011010213);
+              internalerror(2011010202);
           end;
         else
           opc:=a_areturn;
@@ -2429,7 +2429,7 @@ implementation
         exit;
       selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));
       if not assigned(selfpara) then
-        internalerror(2011033001);
+        internalerror(2011033002);
       selfreg:=getaddressregister(list,selfpara.vardef);
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
       cgutils.reference_reset_base(ref,selfreg,0,ctempposinvalid,1,[]);

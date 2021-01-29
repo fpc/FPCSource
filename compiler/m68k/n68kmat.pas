@@ -76,9 +76,9 @@ implementation
         hreg: tregister;
         opsize : tcgsize;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             opsize:=def_cgsize(resultdef);
 
             if ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(left.location.reference.alignment,opsize)) then
@@ -218,7 +218,7 @@ implementation
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
             end;
           else
-            internalerror(200306021);
+            internalerror(2003060202);
         end;
       end;
 

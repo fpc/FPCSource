@@ -81,6 +81,7 @@ Type
     // These interpret the Data buffer as unicode data
     Function GetValueDataUnicode(Name : UnicodeString; Out DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
     Function SetValueDataUnicode(Name : UnicodeString; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
+    Property CurrentKey: UnicodeString read FCurrentKey; //used by TRegistry
     Property FileName : String Read FFileName Write SetFileName;
     Property RootKey : UnicodeString Read FRootKey Write SetRootkey;
     Property AutoFlush : Boolean Read FAutoFlush Write FAutoFlush;
@@ -234,23 +235,13 @@ end;
 Function TXmlRegistry.DeleteKey(KeyPath : UnicodeString) : Boolean;
 
 Var
-  N, Curr : TDomElement;
-  Node: TDOMNode;
+  N : TDomElement;
 
 begin
  N:=FindKey(KeyPath);
  Result:=(N<>Nil);
  If Result then
    begin
-   //if a key has subkeys, result shall be false and nothing shall be deleted
-   Curr:=N;
-   Node:=Curr.FirstChild;
-   While Assigned(Node) do
-     begin
-     If (Node.NodeType=ELEMENT_NODE) and (Node.NodeName=SKey) then
-       Exit(False);
-     Node:=Node.NextSibling;
-     end;
    (N.ParentNode as TDomElement).RemoveChild(N);
    FDirty:=True;
    MaybeFlush;
@@ -268,6 +259,8 @@ begin
   Result:=(Length(KeyPath)>0);
   If Not Result then
     Exit;
+  If (KeyPath[1] in ['/','\']) then
+    FCurrentElement:=Nil;
   KeyPath:=NormalizeKey(KeyPath);
   If (FCurrentElement<>nil) then
   begin
@@ -916,6 +909,8 @@ begin
   Result:=Nil;
   If (Length(S)=0) then
     Exit;
+  if S[1] in ['/','\'] then
+    FCurrentElement:=nil;
   S:=NormalizeKey(S);
   If (FCurrentElement<>nil) then
   begin

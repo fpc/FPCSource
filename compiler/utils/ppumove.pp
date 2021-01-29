@@ -24,10 +24,6 @@
 Program ppumove;
 uses
 
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
-
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,
 {$ELSE}
@@ -47,7 +43,7 @@ const
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
 
-  ShortOpts = 'o:e:d:i:qhsvb';
+  ShortOpts = 'o:e:d:i:P:qhsvb';
   BufSize = 4096;
   PPUExt = 'ppu';
   ObjExt = 'o';
@@ -83,7 +79,8 @@ Var
   InputPath,
   DestPath,
   PPLExt,
-  LibExt      : string;
+  LibExt,
+  BinutilsPrefix      : string;
   DoStrip,
   Batch,
   Quiet,
@@ -531,9 +528,9 @@ begin
    Err:=Shell(arbin+' rs '+outputfile+' '+names)<>0
   else
    begin
-     Err:=Shell(ldbin+' -shared -E -o '+OutputFile+' '+names+' '+libs)<>0;
+     Err:=Shell(BinutilsPrefix+ldbin+' -shared -E -o '+OutputFile+' '+names+' '+libs)<>0;
      if (not Err) and dostrip then
-      Shell(stripbin+' --strip-unneeded '+OutputFile);
+      Shell(BinutilsPrefix+stripbin+' --strip-unneeded '+OutputFile);
    end;
   If Err then
    Error('Fatal: Library building stage failed.',true);
@@ -555,7 +552,7 @@ Procedure usage;
   Print usage and exit.
 }
 begin
-  Writeln(paramstr(0),': [-qhvbsS] [-e ext] [-o name] [-d path] file [file ...]');
+  Writeln(paramstr(0),': [-qhvbsS] [-e ext] [-o name] [-d path] [-P binutils prefix] file [file ...]');
   Halt(0);
 end;
 
@@ -580,6 +577,7 @@ begin
   ArBin:='ar';
   LdBin:='ld';
   StripBin:='strip';
+  BinutilsPrefix:='';
   repeat
     c:=Getopt (ShortOpts);
     Case C of
@@ -598,6 +596,7 @@ begin
       's' : DoStrip:=true;
       '?' : Usage;
       'h' : Usage;
+      'P' : BinutilsPrefix:=OptArg;
     end;
   until false;
 { Test filenames on the commandline }

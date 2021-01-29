@@ -125,6 +125,7 @@ unit agppcvasm;
          supported_targets : [system_powerpc_amiga,system_powerpc_morphos,system_powerpc_linux];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

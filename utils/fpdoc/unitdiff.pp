@@ -105,10 +105,10 @@ Procedure Usage;
 begin
   Writeln('Usage : ',ExtractFileName(Paramstr(0)),' [options] file1 file2');
   Writeln('Where [options] is one or more of :');
+  Writeln(' -h or --help        Emit help.');
   Writeln(' --disable-arguments Do not check function arguments.');
   Writeln(' --disable-private   Do not check class private fields.');
   Writeln(' --disable-protected Do not check class protected fields.');
-  Writeln(' --help              Emit help.');
   Writeln(' --input=cmdline     Input file to create skeleton for.');
   Writeln('                     Use options are as for compiler.');
   Writeln(' --lang=language     Use selected language.');
@@ -193,14 +193,18 @@ begin
     // Translate internal documentation strings
     TranslateDocStrings(DocLang);
     end;
-  if (cmdLineAction<>ActionHelp) and (InputFile1='') and (InputFile2='') then
-  begin
-    Writeln(StdErr,SErrNoInputFile);
-    cmdLineAction := actionHelp;
-  end else if (InputFile2='') and (CmdLineAction<>ActionList) then
+  if (cmdLineAction<>ActionHelp) then
     begin
-    Writeln(StdErr,SWarnAssumingList);
-    CmdLineAction:=ActionList;
+    if (InputFile1='') and (InputFile2='') then
+      begin
+      Writeln(StdErr,SErrNoInputFile);
+      cmdLineAction := actionHelp;
+      end
+    else if (InputFile2='') and (CmdLineAction<>ActionList) then
+      begin
+      Writeln(StdErr,SWarnAssumingList);
+      CmdLineAction:=ActionList;
+      end;
     end;
 end;
 

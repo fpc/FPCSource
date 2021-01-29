@@ -21,7 +21,9 @@ unit compinnr;
 interface
 
 const
-  fpc_in_cpu_first   = 10000;
+  { this file needs to be kept in sync with rtl/inc/innr.in }
+  in_cpu_first   = 10000;
+  in_x86_mm_first    = 11000;
 
 type
    tinlinenumber=(
@@ -118,6 +120,7 @@ type
      in_gettypekind_x     = 96,
      in_faraddr_x         = 97,
      in_volatile_x        = 98,
+     in_ismanagedtype_x   = 99,
 
 { Internal constant functions }
      in_const_sqr        = 100,
@@ -151,6 +154,25 @@ type
      in_fma_extended     = 135,
      in_fma_float128     = 136,
 
+     { the min/max intrinsics must follow the x86 sse
+       behaviour of min/max regarding handling
+       NaN: in case of a NaN the result is always the second
+       operand. This allows a simple translation of
+       if a>b then result:=a else result:=b;
+       statements into these intrinsics
+
+       The min/max intrinsics are not supposed to
+       be exposed to the user but only
+       used internally by the compiler/optimizer }
+     in_max_single       = 137,
+     in_max_double       = 138,
+     in_min_single       = 139,
+     in_min_double       = 140,
+     in_min_dword        = 141,
+     in_min_longint      = 142,
+     in_max_dword        = 143,
+     in_max_longint      = 144,
+
 { MMX functions }
 { these contants are used by the mmx unit }
 
@@ -160,11 +182,14 @@ type
      in_mmx_pcmpeqd      = 202,
      in_mmx_pcmpgtb      = 203,
      in_mmx_pcmpgtw      = 204,
-     in_mmx_pcmpgtd      = 205
+     in_mmx_pcmpgtd      = 205,
 
      { 3DNow }
 
      { SSE }
+
+{ More internal functions }
+     in_isconstvalue_x    = 1000
 
 {$if defined(X86)}
      ,
@@ -174,6 +199,10 @@ type
      ,
      {$i ccpuinnr.inc}
 {$endif }
+{$if defined(Z80)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
    );
 
 implementation

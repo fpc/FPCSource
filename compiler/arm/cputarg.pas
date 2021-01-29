@@ -62,9 +62,16 @@ implementation
     {$ifndef NOTARGETBSD}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETDARWIN}
+      ,t_darwin
+    {$endif}
     {$ifndef NOTARGETAROS}
       ,t_aros
     {$endif}
+    {$ifndef NOTARGETFREERTOS}
+      ,t_freertos
+    {$endif}
+
 
 {**************************************
              Assemblers

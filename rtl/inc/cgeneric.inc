@@ -21,7 +21,7 @@
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure bcopy(const source;var dest;count:size_t); cdecl; external 'c' name 'bcopy';
+procedure bcopy(const source;var dest;count:size_t); cdecl; external clib name 'bcopy';
 
 { we need this separate move declaration because we can't add a "public, alias" to the above }
 procedure Move(const source;var dest;count:sizeint); [public, alias: 'FPC_MOVE'];{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -35,7 +35,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure memset(var x; value: byte; count: size_t); cdecl; external 'c';
+procedure memset(var x; value: byte; count: size_t); cdecl; external clib;
 
 Procedure FillChar(var x;count: sizeint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
@@ -53,9 +53,9 @@ end;
   {$define BUGGYMEMCHR}
 {$endif}
 
-function memchr(const buf; b: cint; len: size_t): pointer; cdecl; external 'c';
+function memchr(const buf; b: cint; len: size_t): pointer; cdecl; external clib;
 {$ifdef BUGGYMEMCHR}
-function rawmemchr(const buf; b: cint): pointer; cdecl; external 'c';
+function rawmemchr(const buf; b: cint): pointer; cdecl; external clib;
 {$endif BUGGYMEMCHR}
 
 function IndexByte(Const buf;len:sizeint;b:byte):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -83,7 +83,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function memcmp_comparechar(Const buf1,buf2;len:size_t):cint; cdecl; external 'c' name 'memcmp';
+function memcmp_comparechar(Const buf1,buf2;len:size_t):cint; cdecl; external clib name 'memcmp';
 
 function CompareByte(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
@@ -104,7 +104,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 {$define FPC_SYSTEM_HAS_COMPARECHAR0}
-function strncmp_comparechar0(Const buf1,buf2;len:size_t):longint; cdecl; external 'c' name 'strncmp';
+function strncmp_comparechar0(Const buf1,buf2;len:size_t):longint; cdecl; external clib name 'strncmp';
 
 function CompareChar0(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
@@ -120,7 +120,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function libc_pchar_length(p:pchar):size_t; cdecl; external 'c' name 'strlen';
+function libc_pchar_length(p:pchar):size_t; cdecl; external clib name 'strlen';
 
 function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin

@@ -31,7 +31,7 @@ procedure _FPC_rv_enter(sp: pptruint);
     initialstkptr:=sp;
     operatingsystem_parameter_argc:=argc;
     operatingsystem_parameter_argv:=@sp[1];
-    operatingsystem_parameter_envp:=@sp[1+argc];
+    operatingsystem_parameter_envp:=@sp[argc+2];
 
     PascalMain;
   end;
@@ -60,7 +60,11 @@ procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynami
     .option norelax
 .L1:
     auipc t0, %pcrel_hi(dlexitproc)
+{$ifdef RISCV64}
     sd    a0, %pcrel_lo(.L1)(t0)
+{$else 32-bit code }
+    sw    a0, %pcrel_lo(.L1)(t0)
+{$endif}
     .option pop
 
     jal   x0, _FPC_proc_start

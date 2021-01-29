@@ -17,6 +17,7 @@ implicitunits=ndk ndkutils ddk \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes \
       $(CPU_UNITS) charset getopts \
+      softfpu sfpux80 ufloatx80 sfpu128 ufloat128 \
 #      sockets printer \
 #      keyboard
 #      sharemem exeinfo fpintres \

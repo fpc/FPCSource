@@ -31,6 +31,15 @@
 {$include execf.inc}
 {$include doslibf.inc}
 
+{$ifdef cpum68k}
+{$if defined(amiga_v1_0_only) or defined(amiga_v1_2_only) or defined(amiga_v2_0_only)}
+{$include legacyexec.inc}
+{$if not defined(amiga_v2_0_only)}
+{$include legacydos.inc}
+{$include legacyutil.inc}
+{$endif}
+{$endif}
+{$endif}
 
 {*****************************************************************************
                              CPU specific
@@ -43,6 +52,8 @@
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
+
+{$packrecords default}
 
 {$ifndef FPC_SYSTEM_HAS_STACKTOP}
 {$define FPC_SYSTEM_HAS_STACKTOP}

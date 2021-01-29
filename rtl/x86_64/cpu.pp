@@ -33,6 +33,13 @@ unit cpu;
     function AVXSupport : boolean;inline;
     function AVX2Support: boolean;inline;
     function FMASupport: boolean;inline;
+    function POPCNTSupport: boolean;inline;
+    function SSE41Support: boolean;inline;
+    function SSE42Support: boolean;inline;
+    function MOVBESupport: boolean;inline;
+    function F16CSupport: boolean;inline;
+    function RDRANDSupport: boolean;inline;
+    function RTMSupport: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -48,7 +55,14 @@ unit cpu;
       _AVXSupport,
       _InterlockedCompareExchange128Support,
       _AVX2Support,
-      _FMASupport : boolean;
+      _FMASupport,
+      _POPCNTSupport,
+      _SSE41Support,
+      _SSE42Support,
+      _MOVBESupport,
+      _F16CSupport,
+      _RDRANDSupport,
+      _RTMSupport: boolean;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -141,6 +155,12 @@ unit cpu;
         end ['rax','rbx','rcx','rdx'];
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
         _AESSupport:=(_ecx and $2000000)<>0;
+        _POPCNTSupport:=(_ecx and $800000)<>0;
+        _SSE41Support:=(_ecx and $80000)<>0;
+        _SSE42Support:=(_ecx and $100000)<>0;
+        _MOVBESupport:=(_ecx and $400000)<>0;
+        _F16CSupport:=(_ecx and $20000000)<>0;
+        _RDRANDSupport:=(_ecx and $40000000)<>0;
 
         _AVXSupport:=
           { XGETBV suspport? }
@@ -161,6 +181,7 @@ unit cpu;
            movl %ebx,_ebx
         end ['rax','rbx','rcx','rdx'];
         _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
+        _RTMSupport:=((_ebx and $800)<>0);
       end;
 
 
@@ -193,6 +214,46 @@ unit cpu;
         result:=_FMASupport;
       end;
 
+
+    function POPCNTSupport: boolean;inline;
+      begin
+        result:=_POPCNTSupport;
+      end;
+
+    function SSE41Support: boolean;inline;
+      begin
+        result:=_SSE41Support;
+      end;
+
+
+    function SSE42Support: boolean;inline;
+      begin
+        result:=_SSE42Support;
+      end;
+
+
+    function MOVBESupport: boolean;inline;
+      begin
+        result:=_MOVBESupport;
+      end;
+
+
+    function F16CSupport: boolean;inline;
+      begin
+        result:=_F16CSupport;
+      end;
+
+
+    function RDRANDSupport: boolean;inline;
+      begin
+        result:=_RDRANDSupport;
+      end;
+
+
+    function RTMSupport: boolean;inline;
+      begin
+        result:=_RTMSupport;
+      end;
 
 begin
   SetupSupport;

@@ -37,7 +37,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
 
-          procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -68,7 +68,7 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -93,7 +93,7 @@ unit cpupara;
                if nr=0 then
                  internalerror(200309271);
                loc:=LOC_REGISTER;
-               register:=newreg(R_INTREGISTER,RS_X10+nr,R_SUBWHOLE);
+               register:=newreg(R_INTREGISTER,RS_X10+nr-1,R_SUBWHOLE);
              end
            else
              begin
@@ -418,16 +418,6 @@ unit cpupara;
                         begin
                           paraloc^.size:=paracgsize;
                           paraloc^.def:=locdef;
-                        end;
-                      { aix requires that record data stored in parameter
-                        registers is left-aligned }
-                      if (target_info.system in systems_aix) and
-                         (paradef.typ = recorddef) and
-                         (paralen < sizeof(aint)) then
-                        begin
-                          paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
-                          paraloc^.size := OS_INT;
-                          paraloc^.def := u32inttype;
                         end;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);

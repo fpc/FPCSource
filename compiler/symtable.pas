@@ -125,7 +125,6 @@ interface
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
           function has_single_field(out def:tdef): boolean;
-          function get_unit_symtable: tsymtable;
           { collects all management operators of the specified type in list (which
             is not cleared); the entries are copies and thus must be freed by the
             caller }
@@ -198,10 +197,10 @@ interface
          procedure generate;
          // helpers
          procedure appenddefoffset(vardef:tdef; fieldoffset: aint; derefclass: boolean);
-         procedure findvariantstarts(variantstarts: tfplist);
+         procedure preprocess(out tempsymlist, variantstarts: tfplist);
          procedure addalignmentpadding(finalsize: aint);
-         procedure buildmapping(variantstarts: tfplist);
-         procedure buildtable(variantstarts: tfplist);
+         procedure buildmapping(tempsymlist, variantstarts: tfplist);
+         procedure buildtable(tempsymlist, variantstarts: tfplist);
        end;
 {$endif llvm}
 
@@ -334,7 +333,8 @@ interface
     procedure write_system_parameter_lists(const name:string);
 
 {*** Search ***}
-    procedure addsymref(sym:tsym);
+    procedure addsymref(sym:tsym);inline;
+    procedure addsymref(sym:tsym;def:tdef);
     function  is_owned_by(nesteddef,ownerdef:tdef):boolean;
     function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
     function  defs_belong_to_same_generic(def1,def2:tdef):boolean;
@@ -474,7 +474,7 @@ implementation
 
     uses
       { global }
-      verbose,globals,
+      verbose,globals,systems,
       { symtable }
       symutil,defutil,defcmp,objcdef,
       { module }
@@ -482,7 +482,7 @@ implementation
       { codegen }
       procinfo,
       { ppu }
-      entfile,
+      entfile,ppu,
       { parser }
       scanner
       ;
@@ -525,7 +525,7 @@ implementation
         { load the table's flags }
         if ppufile.readentry<>ibsymtableoptions then
           Message(unit_f_ppu_read_error);
-        ppufile.getsmallset(tableoptions);
+        ppufile.getset(tppuset1(tableoptions));
 
         { load definitions }
         loaddefs(ppufile);
@@ -544,7 +544,7 @@ implementation
            needs_init_final;
 
          { write the table's flags }
-         ppufile.putsmallset(tableoptions);
+         ppufile.putset(tppuset1(tableoptions));
          ppufile.writeentry(ibsymtableoptions);
 
          { write definitions }
@@ -1246,7 +1246,7 @@ implementation
         recordalignmin:=shortint(ppufile.getbyte);
         if (usefieldalignment=C_alignment) then
           fieldalignment:=shortint(ppufile.getbyte);
-        ppufile.getsmallset(has_fields_with_mop);
+        ppufile.getset(tppuset1(has_fields_with_mop));
         inherited ppuload(ppufile);
       end;
 
@@ -1267,7 +1267,7 @@ implementation
          { it's not really a "symtableoption", but loading this from the record
            def requires storing the set in the recorddef at least between
            ppuload and deref/derefimpl }
-         ppufile.putsmallset(has_fields_with_mop);
+         ppufile.putset(tppuset1(has_fields_with_mop));
          ppufile.writeentry(ibrecsymtableoptions);
 
          inherited ppuwrite(ppufile);
@@ -1425,12 +1425,18 @@ implementation
         changed: boolean;
       begin
         if maybereorder and
-           (cs_opt_reorder_fields in current_settings.optimizerswitches) then
+           (cs_opt_reorder_fields in current_settings.optimizerswitches) and
+           (list.count>1) then
           begin
             { assign dummy field offsets so we can know their order in the
               sorting routine }
             for i:=0 to list.count-1 do
-              tfieldvarsym(list[i]).fieldoffset:=i;
+              begin
+                fieldvs:=tfieldvarsym(list[i]);
+                if sp_static in fieldvs.symoptions then
+                  continue;
+                fieldvs.fieldoffset:=i;
+              end;
             { sort the non-class fields to minimise losses due to alignment }
             list.sort(@field_alignment_compare);
             { now fill up gaps caused by alignment skips with smaller fields
@@ -1526,7 +1532,12 @@ implementation
         end;
         { reset the dummy field offsets }
         for i:=0 to list.count-1 do
-          tfieldvarsym(list[i]).fieldoffset:=-1;
+          begin
+            fieldvs:=tfieldvarsym(list[i]);
+            if sp_static in fieldvs.symoptions then
+              continue;
+            fieldvs.fieldoffset:=-1;
+          end;
         { finally, set the actual field offsets }
         for i:=0 to list.count-1 do
           begin
@@ -1555,8 +1566,7 @@ implementation
         for i:=0 to SymList.count-1 do
           begin
             sym:=tsym(symlist[i]);
-            if (sym.typ=fieldvarsym) and
-               not(sp_static in sym.symoptions) and
+            if is_normal_fieldvarsym(sym) and
                (tfieldvarsym(sym).fieldoffset>=offset) then
               begin
                 result:=tfieldvarsym(sym);
@@ -1637,8 +1647,7 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if (tsym(currentsymlist[i]).typ=fieldvarsym) and
-                 not(sp_static in tsym(currentsymlist[i]).symoptions) then
+              if is_normal_fieldvarsym(tsym(currentsymlist[i])) then
                 begin
                   if result then
                     begin
@@ -1678,14 +1687,6 @@ implementation
         until false;
       end;
 
-    function tabstractrecordsymtable.get_unit_symtable: tsymtable;
-      begin
-        result:=defowner.owner;
-        while assigned(result) and (result.symtabletype in [ObjectSymtable,recordsymtable]) do
-          result:=result.defowner.owner;
-      end;
-
-
     procedure tabstractrecordsymtable.do_get_managementoperator_offset_list(data:tobject;arg:pointer);
       var
         sym : tsym absolute data;
@@ -1695,7 +1696,7 @@ implementation
         sublist : tfplist;
         i : longint;
       begin
-        if sym.typ<>fieldvarsym then
+        if not is_normal_fieldvarsym(sym) then
           exit;
         if not is_record(fsym.vardef) and not is_object(fsym.vardef) and not is_cppclass(fsym.vardef) then
           exit;
@@ -1871,7 +1872,7 @@ implementation
         for i:=0 to unionst.SymList.Count-1 do
           begin
             sym:=TSym(unionst.SymList[i]);
-            if sym.typ<>fieldvarsym then
+            if not is_normal_fieldvarsym(sym) then
               internalerror(200601272);
             if tfieldvarsym(sym).fieldoffset=0 then
               include(tfieldvarsym(sym).varoptions,vo_is_first_field);
@@ -2003,7 +2004,7 @@ implementation
                   )
                  ) then
                 begin
-                  { only watn when a parameter/local variable in a method
+                  { only warn when a parameter/local variable in a method
                     conflicts with a category method, because this can easily
                     happen due to all possible categories being imported via
                     CocoaAll }
@@ -2128,71 +2129,85 @@ implementation
 
     procedure tllvmshadowsymtable.addalignmentpadding(finalsize: aint);
       begin
-        case equivst.usefieldalignment of
-          { already correct in this case }
-          bit_alignment:
-            ;
-          else if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
-            begin
-              { add padding fields }
-              while (finalsize>curroffset) do
-                begin
-                  symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
-                  inc(curroffset);
-                end;
-            end;
-        end;
+        if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
+          begin
+            if equivst.usefieldalignment=bit_alignment then
+              curroffset:=align(curroffset,8) div 8;
+            { add padding fields }
+            while (finalsize>curroffset) do
+              begin
+                symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
+                inc(curroffset);
+              end;
+          end;
       end;
 
 
-    procedure tllvmshadowsymtable.findvariantstarts(variantstarts: tfplist);
+    function field_offset_compare(item1, item2: pointer): integer;
       var
-        sym: tfieldvarsym;
-        lastoffset: aint;
+        field1: tfieldvarsym absolute item1;
+        field2: tfieldvarsym absolute item2;
+      begin
+        result:=field1.fieldoffset-field2.fieldoffset;
+      end;
+
+
+    procedure tllvmshadowsymtable.preprocess(out tempsymlist, variantstarts: tfplist);
+      var
+        fieldvs: tfieldvarsym;
+        lastvariantstartoffset, prevfieldoffset: aint;
         newalignment: aint;
         i, j: longint;
+        sorttempsymlist: boolean;
       begin
         i:=0;
+        variantstarts:=nil;
+        tempsymlist:=tfplist.create;
+        sorttempsymlist:=false;
+        prevfieldoffset:=-1;
         while (i<equivst.symlist.count) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
+            if not is_normal_fieldvarsym(tsym(equivst.symlist[i])) then
               begin
                 inc(i);
                 continue;
               end;
-            sym:=tfieldvarsym(equivst.symlist[i]);
+            fieldvs:=tfieldvarsym(equivst.symlist[i]);
+            tempsymlist.Add(fieldvs);
             { a "better" algorithm might be to use the largest }
             { variant in case of (bit)packing, since then      }
             { alignment doesn't matter                         }
-            if (vo_is_first_field in sym.varoptions) then
+            if (vo_is_first_field in fieldvs.varoptions) then
               begin
                 { we assume that all fields are processed in order. }
-                if (variantstarts.count<>0) then
-                  lastoffset:=tfieldvarsym(variantstarts[variantstarts.count-1]).fieldoffset
+                if assigned(variantstarts) then
+                  lastvariantstartoffset:=tfieldvarsym(variantstarts[variantstarts.count-1]).fieldoffset
                 else
-                  lastoffset:=-1;
+                  begin
+                    lastvariantstartoffset:=-1;
+                    variantstarts:=tfplist.create;
+                  end;
 
                 { new variant at same level as last one: use if higher alignment }
-                if (lastoffset=sym.fieldoffset) then
+                if (lastvariantstartoffset=fieldvs.fieldoffset) then
                   begin
-                    if (equivst.fieldalignment<>bit_alignment) then
-                      newalignment:=used_align(sym.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
+                    if (equivst.usefieldalignment<>bit_alignment) then
+                      newalignment:=used_align(fieldvs.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
                     else
                       newalignment:=1;
                     if (newalignment>tfieldvarsym(variantstarts[variantstarts.count-1]).vardef.alignment) then
-                      variantstarts[variantstarts.count-1]:=sym;
+                      variantstarts[variantstarts.count-1]:=fieldvs;
                   end
                 { variant at deeper level than last one -> add }
-                else if (lastoffset<sym.fieldoffset) then
-                  variantstarts.add(sym)
+                else if (lastvariantstartoffset<fieldvs.fieldoffset) then
+                  variantstarts.add(fieldvs)
                 else
                   begin
                     { a variant at a less deep level, so backtrack }
                     j:=variantstarts.count-2;
                     while (j>=0) do
                       begin
-                        if (tfieldvarsym(variantstarts[j]).fieldoffset=sym.fieldoffset) then
+                        if (tfieldvarsym(variantstarts[j]).fieldoffset=fieldvs.fieldoffset) then
                           break;
                         dec(j);
                       end;
@@ -2200,13 +2215,13 @@ implementation
                       internalerror(2008051003);
                     { new variant has higher alignment? }
                     if (equivst.fieldalignment<>bit_alignment) then
-                      newalignment:=used_align(sym.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
+                      newalignment:=used_align(fieldvs.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
                     else
                       newalignment:=1;
                     { yes, replace and remove previous nested variants }
                     if (newalignment>tfieldvarsym(variantstarts[j]).vardef.alignment) then
                       begin
-                        variantstarts[j]:=sym;
+                        variantstarts[j]:=fieldvs;
                         variantstarts.count:=j+1;
                       end
                    { no, skip this variant }
@@ -2214,95 +2229,96 @@ implementation
                       begin
                         inc(i);
                         while (i<equivst.symlist.count) and
-                              ((tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-                               (sp_static in tsym(equivst.symlist[i]).symoptions) or
-                               (tfieldvarsym(equivst.symlist[i]).fieldoffset>sym.fieldoffset)) do
-                          inc(i);
+                              (not is_normal_fieldvarsym(tsym(equivst.symlist[i])) or
+                               (tfieldvarsym(equivst.symlist[i]).fieldoffset>fieldvs.fieldoffset)) do
+                          begin
+                            if is_normal_fieldvarsym(tsym(equivst.symlist[i])) then
+                              tempsymlist.Add(equivst.symlist[i]);
+                            inc(i);
+                          end;
                         continue;
                       end;
                   end;
               end;
+            if not assigned(variantstarts) and
+               (fieldvs.fieldoffset<prevfieldoffset) then
+              sorttempsymlist:=true;
+            prevfieldoffset:=fieldvs.fieldoffset;
             inc(i);
           end;
+        if sorttempsymlist then
+          tempsymlist.Sort(@field_offset_compare);
       end;
 
 
-    procedure tllvmshadowsymtable.buildtable(variantstarts: tfplist);
+    procedure tllvmshadowsymtable.buildtable(tempsymlist, variantstarts: tfplist);
       var
         lastvaroffsetprocessed: aint;
-        i, equivcount, varcount: longint;
+        i, symcount, varcount: longint;
+        fieldvs: tfieldvarsym;
       begin
         { if it's an object/class, the first entry is the parent (if there is one) }
         if (equivst.symtabletype=objectsymtable) and
            assigned(tobjectdef(equivst.defowner).childof) then
           appenddefoffset(tobjectdef(equivst.defowner).childof,0,is_class_or_interface_or_dispinterface(tobjectdef(equivst.defowner).childof));
-        equivcount:=equivst.symlist.count;
+        symcount:=tempsymlist.count;
         varcount:=0;
         i:=0;
         lastvaroffsetprocessed:=-1;
-        while (i<equivcount) do
+        while (i<symcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
-              begin
-                inc(i);
-                continue;
-              end;
+            fieldvs:=tfieldvarsym(tempsymlist[i]);
             { start of a new variant? }
-            if (vo_is_first_field in tfieldvarsym(equivst.symlist[i]).varoptions) then
+            if (vo_is_first_field in fieldvs.varoptions) then
               begin
                 { if we want to process the same variant offset twice, it means that we  }
                 { got to the end and are trying to process the next variant part -> stop }
-                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<=lastvaroffsetprocessed) then
+                if (fieldvs.fieldoffset<=lastvaroffsetprocessed) then
                   break;
 
                 if (varcount>=variantstarts.count) then
                   internalerror(2008051005);
                 { new variant part -> use the one with the biggest alignment }
-                i:=equivst.symlist.indexof(tobject(variantstarts[varcount]));
-                lastvaroffsetprocessed:=tfieldvarsym(equivst.symlist[i]).fieldoffset;
+                i:=tempsymlist.indexof(tobject(variantstarts[varcount]));
+                lastvaroffsetprocessed:=fieldvs.fieldoffset;
                 inc(varcount);
                 if (i<0) then
                   internalerror(2008051004);
               end;
-            appenddefoffset(tfieldvarsym(equivst.symlist[i]).vardef,tfieldvarsym(equivst.symlist[i]).fieldoffset,false);
+            appenddefoffset(fieldvs.vardef,fieldvs.fieldoffset,false);
             inc(i);
           end;
         addalignmentpadding(equivst.datasize);
       end;
 
 
-    procedure tllvmshadowsymtable.buildmapping(variantstarts: tfplist);
+    procedure tllvmshadowsymtable.buildmapping(tempsymlist, variantstarts: tfplist);
       var
+        fieldvs: tfieldvarsym;
         i, varcount: longint;
         shadowindex: longint;
-        equivcount : longint;
+        symcount : longint;
       begin
         varcount:=0;
         shadowindex:=0;
-        equivcount:=equivst.symlist.count;
+        symcount:=tempsymlist.count;
         i:=0;
-        while (i < equivcount) do
+        while (i<symcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
-              begin
-                inc(i);
-                continue;
-              end;
+            fieldvs:=tfieldvarsym(tempsymlist[i]);
             { start of a new variant? }
-            if (vo_is_first_field in tfieldvarsym(equivst.symlist[i]).varoptions) then
+            if (vo_is_first_field in fieldvs.varoptions) then
               begin
                 { back up to a less deeply nested variant level? }
-                while (tfieldvarsym(equivst.symlist[i]).fieldoffset<tfieldvarsym(variantstarts[varcount]).fieldoffset) do
+                while fieldvs.fieldoffset<tfieldvarsym(variantstarts[varcount]).fieldoffset do
                   dec(varcount);
                 { it's possible that some variants are more deeply nested than the
                   one we recorded in the shadowsymtable (since we recorded the one
                   with the biggest alignment, not necessarily the biggest one in size
                 }
-                if (tfieldvarsym(equivst.symlist[i]).fieldoffset>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                if fieldvs.fieldoffset>tfieldvarsym(variantstarts[varcount]).fieldoffset then
                   varcount:=variantstarts.count-1
-                else if (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                else if fieldvs.fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset then
                   internalerror(2008051006);
                 { reset the shadowindex to the start of this variant. }
                 { in case the llvmfieldnr is not (yet) set for this   }
@@ -2314,15 +2330,15 @@ implementation
               end;
 
             { find the last shadowfield whose offset <= the current field's offset }
-            while (tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset<tfieldvarsym(equivst.symlist[i]).fieldoffset) and
+            while (tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset<fieldvs.fieldoffset) and
                   (shadowindex<symdeflist.count-1) and
-                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset<=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
+                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset<=fieldvs.fieldoffset) do
               inc(shadowindex);
             { set the field number and potential offset from that field (in case }
             { of overlapping variants)                                           }
-            tfieldvarsym(equivst.symlist[i]).llvmfieldnr:=shadowindex;
-            tfieldvarsym(equivst.symlist[i]).offsetfromllvmfield:=
-              tfieldvarsym(equivst.symlist[i]).fieldoffset-tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset;
+            fieldvs.llvmfieldnr:=shadowindex;
+            fieldvs.offsetfromllvmfield:=
+              fieldvs.fieldoffset-tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset;
             inc(i);
           end;
       end;
@@ -2330,23 +2346,22 @@ implementation
 
     procedure tllvmshadowsymtable.generate;
       var
-        variantstarts: tfplist;
+        variantstarts, tempsymlist: tfplist;
       begin
-        variantstarts:=tfplist.create;
-
         { first go through the entire record and }
         { store the fieldvarsyms of the variants }
         { with the highest alignment             }
-        findvariantstarts(variantstarts);
+        preprocess(tempsymlist, variantstarts);
 
         { now go through the regular fields and the selected variants, }
-        { and add them to the  llvm shadow record symtable             }
-        buildtable(variantstarts);
+        { and add them to the llvm shadow record symtable             }
+        buildtable(tempsymlist, variantstarts);
 
         { finally map all original fields to the llvm definition }
-        buildmapping(variantstarts);
+        buildmapping(tempsymlist, variantstarts);
 
         variantstarts.free;
+        tempsymlist.free;
       end;
 
 {$endif llvm}
@@ -2465,7 +2480,7 @@ implementation
            assigned(tprocdef(defowner).struct) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
-            not(m_delphi in current_settings.modeswitches) or
+            not(m_duplicate_names in current_settings.modeswitches) or
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
@@ -2566,6 +2581,8 @@ implementation
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
               end
+            else if (m_iso in current_settings.modeswitches) and (hsym.typ=unitsym) then
+              HideSym(hsym)
             else
               DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
@@ -2642,7 +2659,7 @@ implementation
           begin
             { first check the class... }
             if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-              result^:=true;;
+              result^:=true;
             { ... and then also check all subclasses }
             if not result^ then
               tabstractrecorddef(p).symtable.deflist.foreachcall(@CheckForClassConDestructors,arg);
@@ -3029,9 +3046,9 @@ implementation
                                   Search
 *****************************************************************************}
 
-     procedure addsymref(sym:tsym);
+     procedure addsymref(sym:tsym;def:tdef);
        var
-         owner: tsymtable;
+         owner,procowner : tsymtable;
        begin
          { for symbols used in preprocessor expressions, we don't want to
            increase references count (for smaller final binaries) }
@@ -3063,8 +3080,47 @@ implementation
                  { symbol is imported from another unit }
                  current_module.addimportedsym(sym);
              end;
+         { static symbols that are used in public functions must be exported
+           for packages as well }
+         if ([tf_supports_packages,tf_supports_hidden_symbols]<=target_info.flags) and
+             (owner.symtabletype=staticsymtable) and
+             assigned(current_procinfo) and
+             (
+               (
+                 (sym.typ=staticvarsym) and
+                 ([vo_is_public,vo_has_global_ref]*tstaticvarsym(sym).varoptions=[])
+               ) or (
+                 (sym.typ=localvarsym) and
+                 assigned(tlocalvarsym(sym).defaultconstsym) and
+                 ([vo_is_public,vo_has_global_ref]*tstaticvarsym(tlocalvarsym(sym).defaultconstsym).varoptions=[])
+               ) or (
+                 (sym.typ=procsym) and
+                 assigned(def) and
+                 (def.typ=procdef) and
+                 not (df_has_global_ref in def.defoptions) and
+                 not (po_public in tprocdef(def).procoptions)
+               )
+             ) then
+           begin
+             procowner:=current_procinfo.procdef.owner;
+             while procowner.symtabletype in [objectsymtable,recordsymtable] do
+               procowner:=tdef(procowner.defowner).owner;
+             if procowner.symtabletype=globalsymtable then
+               begin
+                 if sym.typ=procsym then
+                   current_procinfo.add_local_ref_def(def)
+                 else if sym.typ=staticvarsym then
+                   current_procinfo.add_local_ref_sym(sym)
+                 else
+                   current_procinfo.add_local_ref_sym(tlocalvarsym(sym).defaultconstsym);
+               end;
+           end;
        end;
 
+     procedure addsymref(sym:tsym);
+       begin
+         addsymref(sym,nil);
+       end;
 
     function is_owned_by(nesteddef,ownerdef:tdef):boolean;
       begin
@@ -3318,6 +3374,8 @@ implementation
                     exit;
                   end;
               end;
+            if (tprocsym(sym).procdeflist.count=0) and (sp_generic_dummy in tprocsym(sym).symoptions) then
+              result:=is_visible_for_object(sym.owner,sym.visibility,contextobjdef);
           end
         else
           result:=is_visible_for_object(sym.owner,sym.visibility,contextobjdef);
@@ -3580,6 +3638,10 @@ implementation
         formalnameptr,
         foundnameptr: pshortstring;
       begin
+        while pd.is_unique_objpasdef do
+          begin
+            pd:=pd.childof;
+          end;
         { not a formal definition -> return it }
         if not(oo_is_formal in pd.objectoptions) then
           begin
@@ -3916,8 +3978,17 @@ implementation
               exit;
           end;
         { now search all helpers using the extendeddef as the starting point }
-        if m_multi_helpers in current_settings.modeswitches then
-          result:=search_best_objectpascal_helper(s,classh.extendeddef,contextclassh,srsym,srsymtable);
+        if (m_multi_helpers in current_settings.modeswitches) and
+            (
+              (current_structdef<>classh) or
+              assigned(classh.extendeddef)
+            ) then
+          begin
+            { this is only allowed if classh is currently parsed }
+            if not assigned(classh.extendeddef) then
+              internalerror(2019110101);
+            result:=search_best_objectpascal_helper(s,classh.extendeddef,contextclassh,srsym,srsymtable);
+          end;
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
@@ -3929,11 +4000,21 @@ implementation
         currpd,
         bestpd : tprocdef;
         stackitem : psymtablestackitem;
+        shortstringcount : longint;
+        isexplicit,
+        checkshortstring : boolean;
       begin
         hashedid.id:=overloaded_names[assignment_type];
         besteq:=te_incompatible;
         bestpd:=nil;
         stackitem:=symtablestack.stack;
+        { special handling for assignments to shortstrings with a specific length:
+          - if we get an operator to ShortString we use that
+          - if we get only a single String[x] operator we use that
+          - otherwise it's a nogo }
+        isexplicit:=assignment_type=_OP_EXPLICIT;
+        shortstringcount:=0;
+        checkshortstring:=not isexplicit and is_shortstring(to_def) and (tstringdef(to_def).len<>255);
         while assigned(stackitem) do
           begin
             sym:=Tprocsym(stackitem^.symtable.FindWithHash(hashedid));
@@ -3943,17 +4024,36 @@ implementation
                   internalerror(200402031);
                 { if the source type is an alias then this is only the second choice,
                   if you mess with this code, check tw4093 }
-                currpd:=sym.find_procdef_assignment_operator(from_def,to_def,curreq);
+                currpd:=sym.find_procdef_assignment_operator(from_def,to_def,curreq,isexplicit);
+                { we found a ShortString overload, use that and be done }
+                if checkshortstring and
+                    assigned(currpd) and
+                    is_shortstring(currpd.returndef) and
+                    (tstringdef(currpd.returndef).len=255) then
+                  begin
+                    besteq:=curreq;
+                    bestpd:=currpd;
+                    break;
+                  end;
+                { independently of the operator being better count if we encountered
+                  multpile String[x] operators }
+                if checkshortstring and assigned(currpd) and is_shortstring(currpd.returndef) then
+                  inc(shortstringcount);
                 if curreq>besteq then
                   begin
                     besteq:=curreq;
                     bestpd:=currpd;
-                    if (besteq=te_exact) then
+                    { don't stop searching if we have a String[x] operator cause
+                      we might find a ShortString one or multiple ones (which
+                      leads to no operator use) }
+                    if (besteq=te_exact) and not checkshortstring then
                       break;
                   end;
               end;
             stackitem:=stackitem^.next;
           end;
+        if checkshortstring and (shortstringcount>1) then
+          bestpd:=nil;
         result:=bestpd;
       end;
 
@@ -4156,6 +4256,14 @@ implementation
                         result:=true;
                         exit;
                       end;
+                    if (sp_generic_dummy in tprocsym(srsym).symoptions) and
+                        (tprocsym(srsym).procdeflist.count=0) and
+                        is_visible_for_object(srsym.owner,srsym.visibility,contextclassh) then
+                      begin
+                        srsymtable:=srsym.owner;
+                        result:=true;
+                        exit;
+                      end;
                   end;
                 typesym,
                 fieldvarsym,
@@ -4187,6 +4295,16 @@ implementation
           anything }
         if current_module.extendeddefs.count=0 then
           exit;
+        if (df_genconstraint in pd.defoptions) then
+          begin
+            { if we have a constraint for a class type or a single interface we
+              use that to resolve helpers at declaration time of the generic,
+              otherwise there can't be any helpers as the type isn't known yet }
+            if pd.typ=objectdef then
+              pd:=tobjectdef(pd).getparentdef
+            else
+              exit;
+          end;
         { no helpers for anonymous types }
         if ((pd.typ in [recorddef,objectdef]) and
             (
@@ -4210,10 +4328,8 @@ implementation
 
     function search_best_objectpascal_helper(const name: string;pd : tdef;contextclassh : tabstractrecorddef;out srsym: tsym;out srsymtable: tsymtable):boolean;
       var
-        s : string;
         list : TFPObjectList;
         i : integer;
-        st : tsymtable;
         odef : tobjectdef;
       begin
         result:=false;
@@ -4234,7 +4350,6 @@ implementation
 
     function search_last_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
       var
-        s : string;
         list : TFPObjectList;
         i : integer;
       begin

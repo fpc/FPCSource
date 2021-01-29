@@ -143,12 +143,27 @@ type
     procedure TestUS_Program_FU;
     procedure TestUS_Program_FU_o;
     procedure TestUS_Program_FE_o;
-    procedure TestUS_IncludeSameDir;
 
+    // include files
+    procedure TestUS_IncludeSameDir;
+    Procedure TestUS_Include_NestedDelphi;
+    Procedure TestUS_Include_NestedObjFPC;
+
+    // uses 'in' modifier
     procedure TestUS_UsesInFile;
     procedure TestUS_UsesInFile_Duplicate;
     procedure TestUS_UsesInFile_IndirectDuplicate;
     procedure TestUS_UsesInFile_WorkNotEqProgDir;
+    procedure TestUS_UsesInFileTwice;
+
+    procedure TestUS_UseUnitTwiceFail;
+    procedure TestUS_UseUnitTwiceViaNameSpace;
+
+    // namespace
+    Procedure TestDefaultNameSpaceLast;
+    Procedure TestDefaultNameSpaceAfterNameSpace;
+    Procedure TestNoNameSpaceBeforeDefaultNameSpace;
+    Procedure TestNoNameSpaceAndDefaultNameSpace;
   end;
 
 function LinesToStr(const Lines: array of string): string;
@@ -383,6 +398,7 @@ begin
   aFile.Attr:=faNormal;
   aFile.Age:=DateTimeToFileDate(CurDate);
   writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' Found=',FindFile(aFilename)<>nil,' "',LeftStr(aFile.Source,50),'" ');
+  //writeln('TCustomTestCLI.OnWriteFile ',aFile.Source);
 end;
 
 procedure TCustomTestCLI.WriteSources;
@@ -717,6 +733,54 @@ begin
   Compile(['test1.pas','-Fusub','-FElib','-ofoo.js']);
 end;
 
+procedure TTestCLI_UnitSearch.TestUS_Include_NestedDelphi;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('sub/inc1.inc',[
+    'type number = longint;',
+    '{$I sub/deep/inc2.inc}',
+    '']);
+  AddFile('sub/deep/inc2.inc',[
+    'type numero = number;',
+    '{$I sub/inc3.inc}',
+    '']);
+  AddFile('sub/inc3.inc',[
+    'type nummer = numero;',
+    '']);
+  AddFile('test1.pas',[
+  '{$mode delphi}',
+  '{$i sub/inc1.inc}',
+  'var',
+  '  n: nummer;',
+  'begin',
+  'end.']);
+  Compile(['test1.pas','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_Include_NestedObjFPC;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('sub/inc1.inc',[
+    'type number = longint;',
+    '{$I deep/inc2.inc}',
+    '']);
+  AddFile('sub/deep/inc2.inc',[
+    'type numero = number;',
+    '{$I ../inc3.inc}',
+    '']);
+  AddFile('sub/inc3.inc',[
+    'type nummer = numero;',
+    '']);
+  AddFile('test1.pas',[
+  '{$mode objfpc}',
+  '{$i sub/inc1.inc}',
+  'var',
+  '  n: nummer;',
+  'begin',
+  'end.']);
+  Compile(['test1.pas','-Jc']);
+end;
+
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile;
 begin
   AddUnit('system.pp',[''],['']);
@@ -738,6 +802,7 @@ end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_Duplicate;
 begin
+  // check if using two different units with same name
   AddUnit('system.pp',[''],['']);
   AddUnit('unit1.pas',
   ['var a: longint;'],
@@ -757,6 +822,7 @@ end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_IndirectDuplicate;
 begin
+  // check if using two different units with same name
   AddUnit('system.pp',[''],['']);
   AddUnit('unit1.pas',
   ['var a: longint;'],
@@ -789,6 +855,133 @@ begin
     'begin',
     'end.']);
   Compile(['sub/test1.pas','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_UsesInFileTwice;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('unit1.pas',
+  ['var a: longint;'],
+  ['']);
+  AddFile('test1.pas',[
+    'uses foo in ''unit1.pas'', bar in ''unit1.pas'';',
+    'begin',
+    '  bar.a:=foo.a;',
+    '  a:=a;',
+    'end.']);
+  Compile(['test1.pas','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_UseUnitTwiceFail;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('sub.unit1.pas',
+  ['var a: longint;'],
+  ['']);
+  AddFile('test1.pas',[
+    'uses sub.Unit1, sub.unit1;',
+    'begin',
+    '  a:=a;',
+    'end.']);
+  Compile(['test1.pas','-FNsub','-Jc'],ExitCodeSyntaxError);
+  AssertEquals('ErrorMsg','Duplicate identifier "sub.unit1"',ErrorMsg);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_UseUnitTwiceViaNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('sub.unit1.pas',
+  ['var a: longint;'],
+  ['']);
+  AddFile('test1.pas',[
+    'uses unit1, sub.unit1;',
+    'begin',
+    '  unit1.a:=sub.unit1.a;',
+    '  a:=a;',
+    'end.']);
+  Compile(['test1.pas','-FNsub','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestDefaultNameSpaceLast;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddUnit('NS1.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddFile('test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['test1.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestDefaultNameSpaceAfterNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('prg.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddUnit('sub.Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddFile('prg.test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['prg.test1.pas','-FNsub','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestNoNameSpaceBeforeDefaultNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('prg.Unit2.pas',
+    ['var j: longint;'],
+    ['']);
+  AddUnit('Unit2.pas',
+    ['var i: longint;'],
+    ['']);
+  AddFile('prg.test1.pas',[
+    'uses unIt2;',
+    'var',
+    '  k: longint;',
+    'begin',
+    '  k:=i;',
+    'end.']);
+  Compile(['prg.test1.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestNoNameSpaceAndDefaultNameSpace;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('UnitA.pas',
+    ['type TBool = boolean;'],
+    ['']);
+  AddUnit('ThirdParty.UnitB.pas',
+    ['uses UnitA;',
+     'type TAlias = TBool;'],
+    ['']);
+  AddUnit('MyProject.UnitA.pas',
+    [
+    'uses ThirdParty.UnitB;',
+    'var a: TAlias;'],
+    ['']);
+  AddFile('MyProject.Main.pas',[
+    'uses MyProject.UnitA;',
+    'var',
+    '  b: boolean;',
+    'begin',
+    '  b:=a;',
+    'end.']);
+  Compile(['MyProject.Main.pas','','-Jc']);
 end;
 
 Initialization

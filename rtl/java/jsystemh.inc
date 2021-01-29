@@ -499,7 +499,9 @@ Function  hexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { Char functions }
-Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$if defined(VER3_2) or defined(VER3_0)}
+Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$endif defined(VER3_2) or defined(VER3_0)}
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
 function  pos(const substr : shortstring;c:char; Offset : Sizeint=1): SizeInt;
@@ -894,9 +896,7 @@ const
                            RTTI support
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rttih.inc}
-{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                    Internal helper routines support

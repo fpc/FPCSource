@@ -139,10 +139,7 @@ uses
       begin
         resstrdef:=search_system_type('TRESOURCESTRINGRECORD').typedef;
 
-        { Put resourcestrings in a new objectfile. Putting it in multiple files
-          makes the linking too dependent on the linker script requiring a SORT(*) for
-          the data sections }
-        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section,tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_start,tcalo_data_force_indirect,tcalo_is_public_asm]);
         { Write unitname entry }
         tcb.maybe_begin_aggregate(resstrdef);
         namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage);
@@ -162,7 +159,7 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_vectorized_dead_strip_item,tcalo_data_force_indirect]);
+            tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_item,tcalo_data_force_indirect]);
             if assigned(R.value) and (R.len<>0) then
               valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage)
             else
@@ -194,7 +191,7 @@ uses
             R:=TResourceStringItem(R.Next);
             tcb.free;
           end;
-        tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm]);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
           default_settings.packrecords,sizeof(pint),
           targetinfos[target_info.system]^.alignment.recordalignmin);

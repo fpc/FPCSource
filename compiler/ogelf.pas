@@ -388,11 +388,16 @@ implementation
     procedure encodesechdrflags(aoptions:TObjSectionOptions;out AshType:longint;out Ashflags:longint);
       begin
         { Section Type }
-        AshType:=SHT_PROGBITS;
         if oso_strings in aoptions then
           AshType:=SHT_STRTAB
         else if not(oso_data in aoptions) then
-          AshType:=SHT_NOBITS;
+          AshType:=SHT_NOBITS
+        else if oso_note in aoptions then
+          AshType:=SHT_NOTE
+        else if oso_arm_attributes in aoptions then
+          AshType:=SHT_ARM_ATTRIBUTES
+        else
+          AshType:=SHT_PROGBITS;
         { Section Flags }
         Ashflags:=0;
         if oso_load in aoptions then
@@ -401,6 +406,8 @@ implementation
           Ashflags:=Ashflags or SHF_EXECINSTR;
         if oso_write in aoptions then
           Ashflags:=Ashflags or SHF_WRITE;
+        if oso_threadvar in aoptions then
+          Ashflags:=Ashflags or SHF_TLS;
       end;
 
 
@@ -419,6 +426,8 @@ implementation
           include(aoptions,oso_write);
         if Ashflags and SHF_EXECINSTR<>0 then
           include(aoptions,oso_executable);
+        if Ashflags and SHF_TLS<>0 then
+          include(aoptions,oso_threadvar);
       end;
 
 
@@ -558,7 +567,8 @@ implementation
           '.objc_protolist',
           '.stack',
           '.heap',
-          '.gcc_except_table'
+          '.gcc_except_table',
+          '.ARM.attributes'
         );
       var
         sep : string[3];
@@ -575,6 +585,15 @@ implementation
                 result:=secname+'.'+aname;
                 exit;
               end;
+
+            if atype=sec_threadvar then
+              begin
+                if (target_info.system in (systems_windows+systems_wince)) then
+                  secname:='.tls'
+                else if (target_info.system in systems_linux) then
+                  secname:='.tbss';
+              end;
+
             if create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
@@ -653,7 +672,7 @@ implementation
         if assigned(objreloc) then
           begin
             objreloc.size:=len;
-            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
+            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_TLSGD,RELOC_GOTPCREL{$endif}] then
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin
@@ -772,8 +791,8 @@ implementation
         else
           InternalError(2012111801);
         end;
-        { External symbols must be NOTYPE in relocatable files }
-        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) then
+        { External symbols must be NOTYPE in relocatable files except if they are TLS symbols }
+        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) or (objsym.typ=AT_TLS) then
           begin
             case objsym.typ of
               AT_FUNCTION :

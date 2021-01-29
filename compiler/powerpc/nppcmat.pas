@@ -93,8 +93,6 @@ implementation
          procedure genOrdConstNodeDiv;
          const
              negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
-         var
-             divreg : tregister;
          begin
              if (tordconstnode(right).value = 0) then begin
                  internalerror(2005061701);
@@ -250,7 +248,7 @@ implementation
          secondpass(left);
          secondpass(right);
 
-         if is_64bitint(left.resultdef) then
+         if is_64bit(left.resultdef) then
            begin
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
                left.resultdef,left.resultdef,true);
@@ -479,7 +477,7 @@ implementation
                        end;
                   end;
                 else
-                  internalerror(2019050947);
+                  internalerror(2019050913);
               end;
               { choose appropriate operand }
               if left.resultdef.typ <> floatdef then
@@ -517,11 +515,12 @@ implementation
       var
          tmpreg: tregister;
       begin
-         if is_boolean(resultdef) then
+        secondpass(left);
+        if is_boolean(resultdef) then
           begin
             if not handle_locjump then
               begin
-                secondpass(left);
+                { handle_locjump does call secondpass }
                 case left.location.loc of
                   LOC_FLAGS :
                     begin
@@ -557,7 +556,6 @@ implementation
           end
          else if is_64bitint(left.resultdef) then
            begin
-             secondpass(left);
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
              location_copy(location,left.location);
              { perform the NOT operation }
@@ -568,7 +566,6 @@ implementation
            end
          else
            begin
-             secondpass(left);
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              location.loc := LOC_REGISTER;

@@ -22,12 +22,7 @@
 program tcalobj4;
 {$R+}
 
-{$ifdef cpu68k}
-  {$define cpusmall}
-{$endif}
-{$ifdef cpui8086}
-  {$define cpusmall}
-{$endif}
+{$i cpudefs.inc}
 
  const
  { should be defined depending on CPU target }

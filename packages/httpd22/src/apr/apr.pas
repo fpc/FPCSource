@@ -56,7 +56,7 @@ const
   LibAPR = '';
 {$ENDIF}
 
-{$IFDEF WINDOWS}
+{$IFDEF WIN32}
   LibNamePrefix = '_';
   LibSuff0 = '@0';
   LibSuff4 = '@4';

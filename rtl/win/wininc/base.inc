@@ -206,7 +206,6 @@
      LPPTSTR = ^LPTSTR;
 
      PWINBOOL = ^WINBOOL;
-     PBOOLEAN = ^BYTE {$ifndef VER2_2} deprecated {$endif};
 
      PBYTE = System.PByte;
 

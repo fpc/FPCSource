@@ -81,7 +81,7 @@ implementation
                   inc(pushedparasize,2); { kludge, trap code should be a hidden para instead... }
                 end
               else
-                internalerror(2016100301);
+                internalerror(2016100302);
             end;
           system_m68k_amiga:
             begin

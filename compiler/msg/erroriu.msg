@@ -2693,7 +2693,7 @@ wpo_cant_create_feedback_file=12019_E_Impossibile creare il file di feedback "$1
 #
 option_logo=11023_[
 Compilatore Free Pascal, versione $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2019 di Florian Klaempfl and others
+Copyright (c) 1993-2021 di Florian Klaempfl and others
 ]
 
 #
@@ -2731,7 +2731,7 @@ Questo programma è distribuito sotto la GNU General Public Licence
 Per ulteriori informazioni leggere il file COPYING.v2
 
 Riferire difetti, suggerimenti ecc. a:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

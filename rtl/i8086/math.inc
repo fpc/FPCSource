@@ -42,10 +42,10 @@
     procedure Handle_I8086_Error(InterruptNumber : dword); public name 'FPC_HANDLE_I8086_ERROR';
       var
         FpuStatus : word;
-        OutError : dword;
+        OutError : byte;
       begin
         OutError:=InterruptNumber;
-        case InterruptNumber of
+        case byte(InterruptNumber) of
          0 : OutError:=200;    {'Division by Zero'}
          5 : OutError:=201;    {'Bounds Check', not caught yet }
          12 : OutError:=202;   {'Stack Fault', not caught yet }
@@ -64,7 +64,7 @@
             else if (FpuStatus and FPU_Denormal)<>0 then
               OutError:=216
             else if (FpuStatus and FPU_DivisionByZero)<>0 then
-              OutError:=200
+              OutError:=208
             else if (FpuStatus and FPU_Overflow)<>0 then
               OutError:=205
             else if (FpuStatus and FPU_Underflow)<>0 then

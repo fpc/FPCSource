@@ -77,7 +77,7 @@ type
   TPQTranConnection = class
   protected
     FPGConn        : PPGConn;
-    FTranActive    : boolean
+    FTranActive    : boolean;
   end;
 
   { TPQConnection }
@@ -103,6 +103,8 @@ type
     procedure AddConnection(T: TPQTranConnection);
     // Release connection in pool.
     procedure ReleaseConnection(Conn: PPGConn; DoClear : Boolean);
+
+    function PortParamName: string; override;
 
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -276,7 +278,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning,sqSequences];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FConnectionPool:=TThreadlist.Create;
@@ -869,7 +871,13 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftTimeStamp
       'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
-      'Unknown'    // ftWideMemo
+      'Unknown',   // ftWideMemo
+      'Unknown',   // ftOraTimeStamp
+      'Unknown',   // ftOraInterval
+      'Unknown',   // ftLongWord
+      'Unknown',   // ftShortint
+      'Unknown',   // ftByte
+      'Unknown'    // ftExtended
     );
 
 
@@ -883,6 +891,7 @@ begin
   with (cursor as TPQCursor) do
     begin
     FPrepared := False;
+    FDirect := False;
     // Prior to v8 there is no support for cursors and parameters.
     // So that's not supported.
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
@@ -930,8 +939,6 @@ begin
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      if LogEvent(detPrepare) then
-        Log(detPrepare,S);
       if LogEvent(detActualSQL) then
         Log(detActualSQL,S);
       res := PQexec(tr.PGConn,pchar(s));
@@ -948,7 +955,13 @@ begin
       FPrepared := True;
       end
     else
-      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      begin
+      if Assigned(AParams) then
+        Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL)
+      else
+        Statement:=Buf;
+      FDirect:=True;
+      end;
     end;
 end;
 
@@ -994,6 +1007,7 @@ var ar  : array of PAnsiChar;
 begin
   with cursor as TPQCursor do
     begin
+    CurTuple:=-1;
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
@@ -1405,6 +1419,11 @@ begin
       end;
       end;
     end;
+end;
+
+function TPQConnection.PortParamName: string;
+begin
+  Result := 'port';
 end;
 
 procedure TPQConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);

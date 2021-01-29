@@ -19,7 +19,7 @@ unit tcparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, fpsqltree, fpsqlscanner, fpsqlparser, testregistry;
+  Classes, SysUtils, fpcunit, fpsqltree, fpsqlscanner, fpsqlparser, testregistry;
 
 type
 
@@ -37,16 +37,18 @@ type
 
   TTestSQLParser = class(TTestCase)
   Private
+    FParserOptions: TParserOptions;
     FSource : TStringStream;
     FParser : TTestParser;
     FToFree : TSQLElement; //will be freed by test teardown
     FErrSource : string;
+    function GetParserOptions: TParserOptions;
   protected
     procedure AssertTypeDefaults(TD: TSQLTypeDefinition; Len: Integer=0);
     procedure TestStringDef(ASource: String; ExpectDT: TSQLDataType; ExpectLen: Integer; ExpectCharset : TSQLStringType='');
     function TestType(ASource : string; AFlags : TParseTypeFlags; AExpectedType : TSQLDataType) : TSQLTypeDefinition;
     function TestCheck(ASource : string; AExpectedConstraint : TSQLElementClass) : TSQLExpression;
-    procedure CreateParser(Const ASource : string);
+    procedure CreateParser(Const ASource : string; aOptions : TParserOptions = []);
     function CheckClass(E : TSQLElement; C : TSQLElementClass) : TSQLElement;
     procedure TestDropStatement(Const ASource : string;C : TSQLElementClass);
     function TestCreateStatement(Const ASource,AName : string;C: TSQLElementClass) : TSQLCreateOrAlterStatement;
@@ -81,6 +83,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     property Parser : TTestParser Read FParser;
+    property ParserOptions : TParserOptions Read GetParserOptions Write FParserOptions;
     property ToFree : TSQLElement Read FToFree Write FTofree;
   end;
 
@@ -107,8 +110,19 @@ type
   TTestGeneratorParser = Class(TTestSQLParser)
   Published
     procedure TestCreateGenerator;
+    procedure TestCreateSequence;
+    procedure TestAlterSequence;
     procedure TestSetGenerator;
   end;
+
+  { TTestSetTermParser }
+
+  TTestSetTermParser = Class(TTestSQLParser)
+  Published
+    procedure TestSetTermNoOption;
+    procedure TestSetTermOption;
+  end;
+
 
   { TTestRoleParser }
 
@@ -216,6 +230,12 @@ type
     procedure TestAnd;
     procedure TestOr;
     procedure TestNotOr;
+    procedure TestCase;
+    procedure TestCaseWithSelector;
+    procedure TestAdd;
+    procedure TestSubtract;
+    procedure TestMultiply;
+    procedure TestDivide;
   end;
 
   { TTestDomainParser }
@@ -369,7 +389,7 @@ type
   TTestSelectParser = Class(TTestSQLParser)
   Private
     FSelect : TSQLSelectStatement;
-    function TestSelect(Const ASource : String) : TSQLSelectStatement;
+    function TestSelect(Const ASource : String; AOptions : TParserOptions = []; AScannerOptions : TSQLScannerOptions = []) : TSQLSelectStatement;
     procedure TestSelectError(Const ASource : String);
     procedure DoExtractSimple(Expected : TSQLExtractElement);
     property Select : TSQLSelectStatement Read FSelect;
@@ -385,6 +405,7 @@ type
     procedure TestSelectOneAllFieldOneTable;
     procedure TestSelectAsteriskOneTable;
     procedure TestSelectDistinctAsteriskOneTable;
+    procedure TestSelectAsteriskWithPath;
     procedure TestSelectOneFieldOneTableAlias;
     procedure TestSelectOneFieldOneTableAsAlias;
     procedure TestSelectTwoFieldsTwoTables;
@@ -397,6 +418,18 @@ type
     procedure TestSelectTwoFieldsThreeTablesJoin;
     procedure TestSelectTwoFieldsBracketThreeTablesJoin;
     procedure TestSelectTwoFieldsThreeBracketTablesJoin;
+    procedure TestSelectTableWithSchema;
+    procedure TestSelectFieldWithSchema;
+    procedure TestSelectFieldAsStringLiteral;
+    procedure TestSelectFirst;
+    procedure TestSelectFirstSkip;
+    procedure TestSelectTop;
+    procedure TestSelectLimit;
+    procedure TestSelectLimitAll;
+    procedure TestSelectLimitAllOffset;
+    procedure TestSelectLimitOffset1;
+    procedure TestSelectLimitOffset2;
+    procedure TestSelectOffset;
     procedure TestAggregateCount;
     procedure TestAggregateCountAsterisk;
     procedure TestAggregateCountAll;
@@ -419,6 +452,8 @@ type
     procedure TestAggregateAvgDistinct;
     procedure TestUpperConst;
     procedure TestUpperError;
+    procedure TestLeft;
+    procedure TestFunctionWithPath;
     procedure TestGenID;
     procedure TestGenIDError1;
     procedure TestGenIDError2;
@@ -462,6 +497,8 @@ type
     procedure TestWhereSome;
     procedure TestParam;
     procedure TestParamExpr;
+    procedure TestNoTable;
+    procedure TestSourcePosition;
   end;
 
   { TTestRollBackParser }
@@ -660,6 +697,7 @@ type
     procedure TestParseStatementError;
     function TestStatement(Const ASource : String) : TSQLStatement;
     procedure TestStatementError(Const ASource : String);
+  Public
     property Statement : TSQLStatement Read FStatement;
   Published
     procedure TestException;
@@ -855,6 +893,21 @@ implementation
 
 uses typinfo;
 
+{ TTestSetTermParser }
+
+procedure TTestSetTermParser.TestSetTermNoOption;
+begin
+  FErrSource:='SET TERM ^ ;';
+  AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestSetTermParser.TestSetTermOption;
+begin
+  CreateParser('SET TERM ^ ;');
+  FToFree:=Parser.Parse([poAllowSetTerm]);
+  AssertEquals('Terminator set','^',Parser.Scanner.AlternateTerminator);
+end;
+
 { TTestGlobalParser }
 
 procedure TTestGlobalParser.TestEmpty;
@@ -904,11 +957,13 @@ begin
   FreeAndNil(FToFree);
 end;
 
-procedure TTestSQLParser.CreateParser(const ASource: string);
+procedure TTestSQLParser.CreateParser(const ASource: string; aOptions: TParserOptions = []);
 begin
   FSource:=TStringStream.Create(ASource);
+  FParserOptions:=aOptions;
   FParser:=TTestParser.Create(FSource);
 end;
+
 
 Function TTestSQLParser.CheckClass(E: TSQLElement; C: TSQLElementClass) : TSQLElement;
 begin
@@ -1062,9 +1117,6 @@ end;
 
 procedure TTestSQLParser.AssertEquals(const AMessage: String; Expected,
   Actual: TTriggerOperations);
-Var
-  NE,NA : String;
-
 begin
   If Expected<>Actual then
     Fail(Amessage)
@@ -1270,13 +1322,21 @@ begin
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
 end;
 
+function TTestSQLParser.GetParserOptions: TParserOptions;
+begin
+  if Assigned(FParser) then
+    Result:=FParser.Options
+  else
+    Result:=FParserOptions;
+end;
+
 procedure TTestSQLParser.AssertTypeDefaults(TD : TSQLTypeDefinition;Len : Integer = 0);
 
 begin
   AssertNull(TD.DefaultValue);
   AssertNull(TD.Check);
   AssertNull(TD.Collation);
-  AssertEquals('Array dim 0',0,TD.ArrayDim);
+  AssertEquals('Array dim 0',0,Length(TD.ArrayDims));
   AssertEquals('Blob type 0',0,TD.BlobType);
   AssertEquals('Not required',False,TD.NotNull);
   AssertEquals('Length',Len,TD.Len);
@@ -1402,6 +1462,26 @@ procedure TTestGeneratorParser.TestCreateGenerator;
 
 begin
   TestCreateStatement('CREATE GENERATOR A','A',TSQLCreateGeneratorStatement);
+end;
+
+procedure TTestGeneratorParser.TestCreateSequence;
+
+Var
+  C : TSQLCreateOrAlterStatement;
+begin
+  C:=TestCreateStatement('CREATE SEQUENCE A','A',TSQLCreateGeneratorStatement);
+  AssertEquals('Sequence detected',True,TSQLCreateGeneratorStatement(c).IsSequence);
+end;
+
+procedure TTestGeneratorParser.TestAlterSequence;
+Var
+  C : TSQLCreateOrAlterStatement;
+  D : TSQLAlterGeneratorStatement absolute C;
+begin
+  C:=TestCreateStatement('ALTER SEQUENCE A RESTART WITH 100','A',TSQLAlterGeneratorStatement);
+  AssertEquals('Sequence detected',True,D.IsSequence);
+  AssertEquals('Sequence restart ',True,D.HasRestart);
+  AssertEquals('Sequence restart value',100,D.Restart);
 end;
 
 procedure TTestGeneratorParser.TestSetGenerator;
@@ -1611,7 +1691,9 @@ Var
 
 begin
   TD:=TestType('INT [3]',[],sdtInteger);
-  AssertEquals('Array of length 3',3,TD.ArrayDim);
+  AssertEquals('Array of length',1,Length(TD.ArrayDims));
+  AssertEquals('Upper bound',3,TD.ArrayDims[0][2]);
+  AssertEquals('Lower bound',1,TD.ArrayDims[0][1]);
   AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
 end;
 
@@ -1781,31 +1863,26 @@ end;
 
 procedure TTestTypeParser.TestSmallInt;
 
-Var
-  TD : TSQLTypeDefinition;
 begin
-  TD:=TestType('SMALLINT',[],sdtSmallint);
+  TestType('SMALLINT',[],sdtSmallint);
 end;
 
 procedure TTestTypeParser.TestFloat;
-Var
-  TD : TSQLTypeDefinition;
+
 begin
-  TD:=TestType('FLOAT',[],sdtFloat);
+  TestType('FLOAT',[],sdtFloat);
 end;
 
 procedure TTestTypeParser.TestDoublePrecision;
-var
-  TD : TSQLTypeDefinition;
+
 begin
-  TD:=TestType('DOUBLE PRECISION',[],sdtDoublePrecision);
+  TestType('DOUBLE PRECISION',[],sdtDoublePrecision);
 end;
 
 procedure TTestTypeParser.TestDoublePrecisionDefault;
-var
-  TD : TSQLTypeDefinition;
+
 begin
-  TD:=TestType('DOUBLE PRECISION DEFAULT 0',[],sdtDoublePrecision);
+  TestType('DOUBLE PRECISION DEFAULT 0',[],sdtDoublePrecision);
 end;
 
 procedure TTestTypeParser.TestBlobError1;
@@ -2055,6 +2132,19 @@ begin
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestDivide;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE / 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boDivide, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotContaining;
 
 Var
@@ -2109,6 +2199,19 @@ begin
   AssertLiteralExpr('Right is string',B.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestSubtract;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE - 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boSubtract, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotStartingWith;
 
 Var
@@ -2136,6 +2239,64 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is integer',T.Middle,TSQLIntegerLiteral);
   AssertLiteralExpr('Right is integer',T.Right,TSQLIntegerLiteral);
+end;
+
+procedure TTestCheckParser.TestCase;
+
+Var
+  T : TSQLCaseExpression;
+  B : TSQLBinaryExpression;
+  R : TSQLIdentifierName;
+
+begin
+  T:=TSQLCaseExpression(TestCheck('CASE WHEN A=1 THEN "a" WHEN B=2 THEN "b" ELSE "c" END',TSQLCaseExpression));
+  AssertEquals('Branch count = 2',2,T.BranchCount);
+  AssertNotNull('Else branch exists',T.ElseBranch);
+
+  B:=(T.Branches[0].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[0].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('First WHEN Identifier is A', 'A', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('First WHEN Number is 1', 1, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('First THEN result is "a"', 'a', R.Name);
+
+  B:=(T.Branches[1].Condition as TSQLBinaryExpression);
+  R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Second WHEN Identifier is B', 'B', (B.Left as TSQLIdentifierExpression).Identifier.Name);
+  AssertEquals('Second WHEN Number is 2', 2, ((B.Right as TSQLLiteralExpression).Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('Second THEN result is "b"', 'b', R.Name);
+
+  R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;
+  AssertEquals('ELSE result is "c"', 'c', R.Name);
+end;
+
+procedure TTestCheckParser.TestCaseWithSelector;
+
+Var
+  T : TSQLCaseExpression;
+  L : TSQLLiteralExpression;
+  R : TSQLIdentifierName;
+
+begin
+  T:=TSQLCaseExpression(TestCheck('CASE A WHEN 1 THEN "a" WHEN 2 THEN "b" ELSE "c" END',TSQLCaseExpression));
+  AssertNotNull('Selector exists',T.Selector);
+  AssertEquals('Branch count = 2',2,T.BranchCount);
+  AssertNotNull('Else branch exists',T.ElseBranch);
+
+  R:=(T.Selector as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Selector identifier is "A"', 'A', R.Name);
+
+  L:=(T.Branches[0].Condition as TSQLLiteralExpression);
+  R:=(T.Branches[0].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('First WHEN Number is 1', 1, (L.Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('First THEN result is "a"', 'a', R.Name);
+
+  L:=(T.Branches[1].Condition as TSQLLiteralExpression);
+  R:=(T.Branches[1].Expression as TSQLIdentifierExpression).Identifier;
+  AssertEquals('Second WHEN Number is 2', 2, (L.Literal as TSQLIntegerLiteral).Value);
+  AssertEquals('Second THEN result is "b"', 'b', R.Name);
+
+  R:=(T.ElseBranch as TSQLIdentifierExpression).Identifier;
+  AssertEquals('ELSE result is "c"', 'c', R.Name);
 end;
 
 procedure TTestCheckParser.TestNotBetween;
@@ -2168,6 +2329,19 @@ begin
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
 end;
 
+procedure TTestCheckParser.TestMultiply;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE * 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boMultiply, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
+end;
+
 procedure TTestCheckParser.TestNotLikeEscape;
 Var
   U : TSQLUnaryExpression;
@@ -2182,6 +2356,19 @@ begin
   AssertLiteralExpr('Left is value',T.Left,TSQLValueLiteral);
   AssertLiteralExpr('Middle is string',T.Middle,TSQLStringLiteral);
   AssertLiteralExpr('Right is string',T.Right,TSQLStringLiteral);
+end;
+
+procedure TTestCheckParser.TestAdd;
+
+Var
+  B : TSQLBinaryExpression;
+
+begin
+  B:=TSQLBinaryExpression(TestCheck('VALUE + 1',TSQLBinaryExpression));
+  AssertEquals('Correct operator', boAdd, B.Operation);
+  AssertLiteralExpr('Left is value',B.Left,TSQLValueLiteral);
+  AssertLiteralExpr('Right is integer',B.Right,TSQLIntegerLiteral);
+  AssertEquals('Right is 1',1, TSQLIntegerLiteral(TSQLLiteralExpression(B.Right).Literal).Value);
 end;
 
 procedure TTestCheckParser.TestAnd;
@@ -3667,9 +3854,11 @@ end;
 
 { TTestSelectParser }
 
-function TTestSelectParser.TestSelect(const ASource : String): TSQLSelectStatement;
+function TTestSelectParser.TestSelect(const ASource: String; AOptions: TParserOptions;
+  AScannerOptions: TSQLScannerOptions): TSQLSelectStatement;
 begin
-  CreateParser(ASource);
+  CreateParser(ASource,AOptions);
+  Parser.Scanner.Options:=AScannerOptions;
   FToFree:=Parser.Parse;
   Result:=TSQLSelectStatement(CheckClass(FToFree,TSQLSelectStatement));
   FSelect:=Result;
@@ -3680,6 +3869,110 @@ procedure TTestSelectParser.TestSelectError(const ASource: String);
 begin
   FErrSource:=ASource;
   AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestSelectParser.TestSelectFieldAsStringLiteral;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLStringLiteral;
+
+begin
+  TestSelect('SELECT ''B'' ''C'''); // 'B' as 'C'
+  AssertEquals('One field',1,Select.Fields.Count);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLStringLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLStringLiteral));
+  AssertEquals('Field literal is B','B',L.Value);
+  AssertEquals('Field alias is C','C',F.AliasName.Name);
+  AssertEquals('No table',0,Select.Tables.Count);
+end;
+
+procedure TTestSelectParser.TestSelectFieldWithSchema;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
+begin
+  TestSelect('SELECT S.A.B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field[0] path has 3 identifiers',3,Expr.IdentifierPath.Count);
+  AssertEquals('Field[0] schema is S','S',Expr.IdentifierPath[0].Name);
+  AssertEquals('Field[0] table is A','A',Expr.IdentifierPath[1].Name);
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
+procedure TTestSelectParser.TestSelectFirst;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+end;
+
+procedure TTestSelectParser.TestSelectFirstSkip;
+begin
+  // FireBird
+  TestSelect('SELECT FIRST 100 SKIP 200 A FROM B');
+  AssertEquals('Limit style',Ord(lsFireBird),Ord(Select.Limit.Style));
+  AssertEquals('Limit FIRST 100',100,Select.Limit.First);
+  AssertEquals('Limit SKIP 200',200,Select.Limit.Skip);
+end;
+
+procedure TTestSelectParser.TestSelectLimit;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAll;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount -1',-1,Select.Limit.RowCount);
+end;
+
+procedure TTestSelectParser.TestSelectLimitAllOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B LIMIT ALL OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset1;
+begin
+  // MySQL
+  TestSelect('SELECT A FROM B LIMIT 200, 100');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectLimitOffset2;
+begin
+  // MySQL&Postgres
+  TestSelect('SELECT A FROM B LIMIT 100 OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit RowCount 100',100,Select.Limit.RowCount);
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
+end;
+
+procedure TTestSelectParser.TestSelectOffset;
+begin
+  // Postgres
+  TestSelect('SELECT A FROM B OFFSET 200');
+  AssertEquals('Limit style',Ord(lsPostgres),Ord(Select.Limit.Style));
+  AssertEquals('Limit Offset 200',200,Select.Limit.Offset);
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTable;
@@ -3717,10 +4010,10 @@ end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsOneTable;
 begin
-  TestSelect('SELECT B,C FROM A');
+  TestSelect('SELECT B,_C FROM A');
   AssertEquals('Two fields',2,Select.Fields.Count);
   AssertField(Select.Fields[0],'B');
-  AssertField(Select.Fields[1],'C');
+  AssertField(Select.Fields[1],'_C');
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
@@ -3747,14 +4040,39 @@ end;
 
 procedure TTestSelectParser.TestSelectOneTableFieldOneTable;
 
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT A.B FROM A');
   AssertEquals('One field',1,Select.Fields.Count);
-  // Field does not support linking/refering to a table, so the field name is
-  // assigned as A.B (instead of B with a <link to table A>)
-  AssertField(Select.Fields[0],'A.B');
+  // Field supports linking/refering to a table
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named A','A',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
+end;
+
+procedure TTestSelectParser.TestSelectTableWithSchema;
+begin
+  TestSelect('SELECT B,C FROM S.A');
+  AssertEquals('Two fields',2,Select.Fields.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertField(Select.Fields[1],'C');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A','');
+  AssertEquals('Table path has 2 objects',2,(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath.Count);
+  AssertEquals('Schema name = S','S',(Select.Tables[0] as TSQLSimpleTableReference).ObjectNamePath[0].Name);
+end;
+
+procedure TTestSelectParser.TestSelectTop;
+begin
+  // MSSQL
+  TestSelect('SELECT TOP 100 A FROM B');
+  AssertEquals('Limit style',Ord(lsMSSQL),Ord(Select.Limit.Style));
+  AssertEquals('Limit TOP 100',100,Select.Limit.Top);
 end;
 
 procedure TTestSelectParser.TestSelectOneDistinctFieldOneTable;
@@ -3786,6 +4104,17 @@ begin
   AssertTable(Select.Tables[0],'A');
 end;
 
+procedure TTestSelectParser.TestSelectAsteriskWithPath;
+begin
+  TestSelect('SELECT A.* FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  CheckClass(Select.Fields[0],TSQLSelectAsterisk);
+  AssertEquals('Path count = 1',1,TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath.Count);
+  AssertEquals('Path table = A','A',TSQLSelectAsterisk(Select.Fields[0]).Expression.IdentifierPath[0].Name);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+end;
+
 procedure TTestSelectParser.TestSelectDistinctAsteriskOneTable;
 begin
   TestSelect('SELECT DISTINCT * FROM A');
@@ -3797,19 +4126,33 @@ begin
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
 
 procedure TTestSelectParser.TestSelectOneFieldOneTableAsAlias;
+
+Var
+  Expr: TSQLIdentifierExpression;
+
 begin
   TestSelect('SELECT C.B FROM A AS C');
   AssertEquals('One field',1,Select.Fields.Count);
-  AssertField(Select.Fields[0],'C.B');
+  AssertField(Select.Fields[0],'B');
+  Expr := ((Select.Fields[0] as TSQLSelectField).Expression as TSQLIdentifierExpression);
+  AssertEquals('Field has explicit table',2,Expr.IdentifierPath.Count);
+  AssertEquals('Field has explicit table named C','C',Expr.IdentifierPath[0].Name);
   AssertEquals('One table',1,Select.Tables.Count);
   AssertTable(Select.Tables[0],'A');
 end;
@@ -3838,6 +4181,27 @@ begin
   AssertEquals('One table',1,Select.Tables.Count);
   J:=AssertJoin(Select.Tables[0],'A','D',jtNone);
   AssertJoinOn(J.JoinClause,'E','F',boEq);
+end;
+
+procedure TTestSelectParser.TestSourcePosition;
+begin
+  TestSelect('SELECT X FROM ABC ORDER BY Y');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('FROM source line = 1', 1, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 10', 10, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 1', 1, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 19', 19, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 1', 1, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 15', 15, Select.Tables[0].SourcePos);
+
+  TestSelect('SELECT X'+sLineBreak+'FROM ABC'+sLineBreak+'ORDER BY Y');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertEquals('FROM source line = 2', 2, Select.Tables.SourceLine);
+  AssertEquals('FROM source position = 1', 1, Select.Tables.SourcePos);
+  AssertEquals('ORDER BY source line = 3', 3, Select.Orderby.SourceLine);
+  AssertEquals('ORDER BY source position = 1', 1, Select.Orderby.SourcePos);
+  AssertEquals('Table source line = 2', 2, Select.Tables[0].SourceLine);
+  AssertEquals('Table source position = 6', 6, Select.Tables[0].SourcePos);
 end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsTwoInnerTablesJoin;
@@ -4239,6 +4603,33 @@ begin
     DoExtractSimple(E);
 end;
 
+procedure TTestSelectParser.TestFunctionWithPath;
+
+Var
+  E : TSQLFunctionCallExpression;
+  L : TSQLLiteralExpression;
+  S : TSQLStringLiteral;
+  I : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT [dbo].[myFunc] (''abc'', 1) FROM A', [], [soSquareBracketsIdentifier]);
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+  CheckClass(Select.Fields[0],TSQLSelectField);
+  E:=TSQLFunctionCallExpression(CheckClass(TSQLSelectField(Select.Fields[0]).Expression,TSQLFunctionCallExpression));
+  AssertEquals('Function two identifiers',2,E.IdentifierPath.Count);
+  AssertEquals('dbo function first identifier','dbo',E.IdentifierPath[0].Name);
+  AssertEquals('myFunc function second identifier','myFunc',E.IdentifierPath[1].Name);
+  AssertEquals('Two function elements',2,E.Arguments.Count);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[0],TSQLLiteralExpression));
+  S:=TSQLStringLiteral(CheckClass(L.Literal,TSQLStringLiteral));
+  AssertEquals('Correct string constant','abc',S.Value);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[1],TSQLLiteralExpression));
+  I:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
+  AssertEquals('Correct integer constant',1,I.Value);
+end;
+
 procedure TTestSelectParser.TestOrderByOneField;
 
 begin
@@ -4465,6 +4856,48 @@ begin
   S:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
   AssertEquals('One',1,S.Value);
   AssertAggregateExpression(H.Left,afCount,'C',aoNone);
+end;
+
+procedure TTestSelectParser.TestLeft;
+
+Var
+  E : TSQLFunctionCallExpression;
+  L : TSQLLiteralExpression;
+  S : TSQLStringLiteral;
+  I : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT LEFT(''abc'', 1) FROM A');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+  CheckClass(Select.Fields[0],TSQLSelectField);
+  E:=TSQLFunctionCallExpression(CheckClass(TSQLSelectField(Select.Fields[0]).Expression,TSQLFunctionCallExpression));
+  AssertEquals('LEFT function name','LEFT',E.Identifier);
+  AssertEquals('Two function elements',2,E.Arguments.Count);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[0],TSQLLiteralExpression));
+  S:=TSQLStringLiteral(CheckClass(L.Literal,TSQLStringLiteral));
+  AssertEquals('Correct string constant','abc',S.Value);
+  L:=TSQLLiteralExpression(CheckClass(E.Arguments[1],TSQLLiteralExpression));
+  I:=TSQLIntegerLiteral(CheckClass(L.Literal,TSQLIntegerLiteral));
+  AssertEquals('Correct integer constant',1,I.Value);
+end;
+
+procedure TTestSelectParser.TestNoTable;
+
+Var
+  F : TSQLSelectField;
+  L : TSQLIntegerLiteral;
+
+begin
+  TestSelect('SELECT 1');
+  AssertEquals('0 tables in select',0,Select.Tables.Count);
+  AssertEquals('1 field in select',1,Select.Fields.Count);
+  AssertNotNull('Have field',Select.Fields[0]);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  L:=TSQLIntegerLiteral(AssertLiteralExpr('Field is a literal',F.Expression,TSQLIntegerLiteral));
+  AssertEquals('SELECT 1',1,L.Value);
 end;
 
 procedure TTestSelectParser.TestUnionSimple;
@@ -4736,7 +5169,6 @@ end;
 procedure TTestSelectParser.TestWhereExists;
 
 Var
-  F : TSQLSelectField;
   E : TSQLExistsExpression;
   S : TSQLSelectStatement;
 
@@ -6163,19 +6595,14 @@ end;
 
 procedure TTestProcedureStatement.TestExit;
 
-Var
-  E : TSQLExitStatement;
 begin
-  E:=TSQLExitStatement(CheckClass(TestStatement('EXIT'),TSQLExitStatement));
+  CheckClass(TestStatement('EXIT'),TSQLExitStatement);
 end;
 
 procedure TTestProcedureStatement.TestSuspend;
 
-Var
-  E : TSQLSuspendStatement;
-
 begin
-  E:=TSQLSuspendStatement(CheckClass(TestStatement('Suspend'),TSQLSuspendStatement));
+  CheckClass(TestStatement('Suspend'),TSQLSuspendStatement);
 end;
 
 procedure TTestProcedureStatement.TestEmptyBlock;
@@ -7594,8 +8021,6 @@ end;
 procedure TTestGrantParser.TestPublicPrivilege;
 Var
   t : TSQLTableGrantStatement;
-  P : TSQLPublicGrantee;
-
 begin
   TestGrant('GRANT SELECT ON A TO PUBLIC');
   T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
@@ -8051,8 +8476,6 @@ end;
 procedure TTestRevokeParser.TestPublicPrivilege;
 Var
   t : TSQLTableRevokeStatement;
-  P : TSQLPublicGrantee;
-
 begin
   TestRevoke('Revoke SELECT ON A FROM PUBLIC');
   T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
@@ -8171,6 +8594,7 @@ initialization
                  TTestDeclareExternalFunctionParser,
                  TTestGrantParser,
                  TTestRevokeParser,
-                 TTestGlobalParser]);
+                 TTestGlobalParser,
+                 TTestSetTermParser]);
 end.
 

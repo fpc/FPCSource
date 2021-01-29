@@ -42,7 +42,7 @@ type
     FTree : TClassTreeBuilder;
     FObjects : TStringList;
   public
-    Constructor Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
+    Constructor Create(AClassTree : TXMLDocument; AObjectKindSet : TPasObjKindSet);
     Destructor Destroy; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility :TPasMemberVisibility;
@@ -442,14 +442,12 @@ begin
     end;
 end;
 
-Constructor TClassTreeEngine.Create(AClassTree : TXMLDocument; AObjectKind : TPasObjKind);
-
-
+Constructor TClassTreeEngine.Create(AClassTree : TXMLDocument; AObjectKindSet : TPasObjKindSet);
 begin
-  FPackage:=TPasPackage.Create('dummy',Nil);
-  FTree:=TClassTreeBuilder.Create(FPackage,AObjectKind);
-  FObjects:=TStringList.Create;
   Inherited Create;
+  FPackage:=TPasPackage.Create('dummy',Nil);
+  FTree:=TClassTreeBuilder.Create(Self,FPackage,AObjectKindSet);
+  FObjects:=TStringList.Create;
 end;
 
 destructor TClassTreeEngine.Destroy;
@@ -509,7 +507,49 @@ begin
   else
     Writeln(StdErr,Format(SSkipMerge,[S.NodeName,D.NodeName]));
 end;
-  
+
+Function MergeTrees (Dest : TXMLDocument; aRootNode : TPasElementNode) : Integer;
+
+Var
+  aSrc : TXMLDocument;
+
+  Procedure AppendChildClasses(aParent : TDomElement; aNode : TPasElementNode);
+
+  Var
+    El : TDomElement;
+    aChild : TPasElementNode;
+    I : Integer;
+    M : TPasModule;
+
+  begin
+    If (ANode=Nil) or (aNode.ChildCount=0)  then exit;
+    for I:=0 to aNode.ChildCount-1 do
+      begin
+      aChild:=aNode.Children[I];
+      El:=aSrc.CreateElement(UTF8Decode(aChild.Element.Name));
+      M:=aChild.Element.GetModule;
+      If M<>Nil then
+        EL['unit']:=UTF8Decode(M.Name);
+      aParent.AppendChild(El);
+      AppendChildClasses(El,aChild);
+      end;
+  end;
+
+begin
+  Result:= 0;
+  aSrc:=TXMLDocument.Create();
+  try
+    aSrc.AppendChild(aSrc.CreateElement('TObject'));
+    AppendChildClasses(aSrc.DocumentElement,aRootNode);
+    MergeTrees(Dest,aSrc);
+    Inc(Result);
+  finally
+    aSrc.Free;
+  end;
+end;
+
+
+
 Function AnalyseFiles(Const AOutputName : String; InputFiles,MergeFiles : TStrings; AObjectKind : TPasObjKind) : String;
 
 
@@ -538,11 +578,11 @@ begin
       end;
     For I:=0 to InputFiles.Count-1 do
       begin
-      Engine := TClassTreeEngine.Create(XML,AObjectKind);
+      Engine := TClassTreeEngine.Create(XML,[AObjectKind]);
       Try
         ParseSource(Engine,InputFiles[I],OSTarget,CPUTarget);
         Engine.Ftree.BuildTree(Engine.FObjects);
-        ACount:=ACount+MergeTrees(XML,Engine.FTree.ClassTree);
+        ACount:=ACount+MergeTrees(XML,Engine.FTree.RootNode);
       Finally
         FreeAndNil(Engine);
       end;

@@ -135,7 +135,11 @@ begin
   Memo.Layout.Top := 20;
   Memo.Layout.Width := 50;
   Memo.Layout.Height := 8;
+  {$IFDEF fptestX}
+  Memo.Text := 'Report Date: 2020-01-15';
+  {$ELSE}
   Memo.Text := 'Report Date: [TODAY]';
+  {$ENDIF}
 
   Memo := TFPReportMemo.Create(TitleBand);
   Memo.Layout.Left := 0;
@@ -206,7 +210,7 @@ begin
   Memo.Layout.Top := 2;
   Memo.Layout.Width := 25;
   Memo.Layout.Height := 5;
-  Memo.Text := '[2 + RecNo - 6]';
+  Memo.Text := '[2 + RecNo('''') - 6]';
   Memo.Options := [moHideZeros];
 
   Memo := TFPReportMemo.Create(DataBand);
@@ -214,7 +218,7 @@ begin
   Memo.Layout.Top := 2;
   Memo.Layout.Width := 25;
   Memo.Layout.Height := 5;
-  Memo.Text := 'RecNo = [RecNo].';
+  Memo.Text := 'RecNo = [RecNo('''')].';
 
   PageFooter := TFPReportPageFooterBand.Create(p);
   PageFooter.Layout.Height := 20;

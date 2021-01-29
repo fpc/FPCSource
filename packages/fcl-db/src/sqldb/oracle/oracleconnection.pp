@@ -1051,7 +1051,7 @@ begin
     OCI_SUCCESS : Result := True;
     OCI_SUCCESS_WITH_INFO : Begin
                             Result := True;
-                            HandleError;
+                            // HandleError;
                             end;
   end; {case}
 end;
@@ -1263,7 +1263,7 @@ end;
 constructor TOracleConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat];
+  FConnOptions := FConnOptions + [sqEscapeRepeat,sqSequences];
   FOciEnvironment := nil;
   FOciError := nil;
   FOciServer := nil;

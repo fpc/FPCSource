@@ -84,42 +84,54 @@ uses
 {$ENDIF OS2}
   DynLibs, cTypes, SysUtils;
 
-var
-  {$IFDEF WINDOWS}
-  DLLSSLName: string = 'ssleay32.dll';
-  DLLSSLName2: string = 'libssl32.dll';
-  DLLUtilName: string = 'libeay32.dll';
-  {$ELSE}
-   {$IFDEF OS2}
-    {$IFDEF OS2GCC}
-  DLLSSLName: string = 'kssl10.dll';
-  DLLUtilName: string = 'kcrypt10.dll';
-  DLLSSLName2: string = 'kssl.dll';
-  DLLUtilName2: string = 'kcrypto.dll';
-    {$ELSE OS2GCC}
-  DLLSSLName: string = 'emssl10.dll';
-  DLLUtilName: string = 'emcrpt10.dll';
-  DLLSSLName2: string = 'ssl.dll';
-  DLLUtilName2: string = 'crypto.dll';
-    {$ENDIF OS2GCC}
-   {$ELSE OS2}
-  DLLSSLName: string = 'libssl';
-  DLLUtilName: string = 'libcrypto';
+Type
+  TLibreSSLSupport = (lssFirst,lssLast,lssDisabled);
 
+const
+// SSL and Crypto DLL arrays must have the same length and contain
+// matched pairs of DLL filenames. Place newer versions at the beginning.
+{$IFDEF WIN64}
+  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1-x64',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1-x64', 'libeay32', 'libeay32');
+{$ELSEIF DEFINED(WINDOWS)}
+  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1', 'libeay32', 'libeay32');
+{$ELSEIF DEFINED(OS2GCC)}
+  SSL_DLL_Names:    array[1..2] of string = ('kssl10',   'kssl');
+  Crypto_DLL_Names: array[1..2] of string = ('kcrypt10', 'kcrypto');
+{$ELSEIF DEFINED(OS2)}
+  SSL_DLL_Names:    array[1..2] of string = ('emssl10',  'ssl');
+  Crypto_DLL_Names: array[1..2] of string = ('emcrpt10', 'crypto');
+{$ELSE}
+  BaseSSLName: string = 'libssl';
+  BaseCryptoName: string = 'libcrypto';
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
-  DLLVersions: array[1..16] of string = ('', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
+  DLLVersions: array[1..19] of string = ('', '.1.1', '.11', '.10', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
                                         '.1.0.2', '.1.0.1','.1.0.0','.0.9.8',
                                         '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
                                         '.0.9.3', '.0.9.2', '.0.9.1');
-   {$ENDIF OS2}
-  {$ENDIF WINDOWS}
+  LibreSSLVersions : Array[1..8] of string =
+                     ('', '.48', '.47', '.46', '.45', '.44', '.43', '.35');
+
+  // Mac OS no longer allows you to load the unversioned one. Bug ID 36484.
+  {$IFDEF DARWIN}
+  StartVersionOffset = 1;
+  DefaultLibreSSLSupport = lssFirst;
+  {$ElSE}
+  StartVersionOffset = 0;
+  DefaultLibreSSLSupport = lssLast;
+  {$ENDIF}
+
+Var
+   LibreSSLSupport : TLibreSSLSupport = DefaultLibreSSLSupport;
+{$ENDIF}
 
 const
   // EVP.h Constants
 
-  EVP_MAX_MD_SIZE               = 64; //* longest known is SHA512 */
+  EVP_MAX_MD_SIZE       = 64; //* longest known is SHA512 */
   EVP_MAX_KEY_LENGTH    = 32;
   EVP_MAX_IV_LENGTH     = 16;
   EVP_MAX_BLOCK_LENGTH  = 32;
@@ -1150,13 +1162,13 @@ var
   function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
   function EvpGetDigestByName(Name: String): PEVP_MD;
   procedure EVPcleanup;
-  function SSLeayversion(t: cInt): string;  deprecated 'For 1.1+ use OpenSSL_version';
+  function SSLeayversion(t: cInt): string;  deprecated 'For 1.1+ use OpenSSLGetVersion';
   procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
   function ErrGetError: cInt;
   procedure ErrClearError;
   procedure ErrFreeStrings;
   procedure ErrRemoveState(pid: cInt);
-  procedure RandScreen;
+  procedure RandScreen; deprecated 'Deprecated as of 1.1+';
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
@@ -1241,7 +1253,7 @@ var
 
   // Crypto Functions
 
-  function SSLeay_version(t: cint): PChar;
+  function SSLeay_version(t: cint): PChar; deprecated 'For 1.1+ use OpenSSLGetVersion';
 
   // EVP Functions - evp.h
   function EVP_des_ede3_cbc : PEVP_CIPHER;
@@ -1455,6 +1467,7 @@ var
   procedure BN_free(a:PBIGNUM);
 
 function IsSSLloaded: Boolean;
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean; overload;
 function InitSSLInterface: Boolean; overload;
 function DestroySSLInterface: Boolean;
 
@@ -1549,7 +1562,6 @@ end;
 
 type
 // libssl.dll
-  TOpenSSLversion = function (arg : cint) : pchar; cdecl;
   TSslGetError = function(s: PSSL; ret_code: cInt):cInt; cdecl;
   TSslLibraryInit = function:cInt; cdecl;
   TOPENSSL_INIT_new = function : POPENSSL_INIT_SETTINGS; cdecl;
@@ -1629,6 +1641,7 @@ type
   TEvpPkeyAssign = function(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt; cdecl;
   TEvpGetDigestByName = function(Name: PChar): PEVP_MD; cdecl;
   TEVPcleanup = procedure; cdecl;
+  TOpenSSLversion = function (arg : cint) : pchar; cdecl;
   TSSLeayversion = function(t: cInt): PChar; cdecl;
   TErrErrorString = procedure(e: cInt; buf: PChar; len: cInt); cdecl;
   TErrGetError = function: cInt; cdecl;
@@ -1714,7 +1727,6 @@ type
 
   // Crypto Functions
 
-  TSSLeay_version = function(t: cint): PChar; cdecl;
   TCRYPTOcleanupAllExData = procedure; cdecl;
   TOPENSSLaddallalgorithms = procedure; cdecl;
 
@@ -1787,7 +1799,6 @@ type
 
 var
 // libssl.dll
-  _OpenSSLVersion : TOpenSSLversion = Nil;
   _SslGetError: TSslGetError = nil;
   _SslLibraryInit: TSslLibraryInit = nil;
   _OPENSSL_init_ssl : TOPENSSL_init_ssl = Nil;
@@ -1866,6 +1877,7 @@ var
   _EvpPkeyAssign: TEvpPkeyAssign = nil;
   _EvpGetDigestByName: TEvpGetDigestByName = nil;
   _EVPcleanup: TEVPcleanup = nil;
+  _OpenSSLVersion : TOpenSSLversion = Nil;
   _SSLeayversion: TSSLeayversion = nil;
   _ErrErrorString: TErrErrorString = nil;
   _ErrGetError: TErrGetError = nil;
@@ -1969,7 +1981,6 @@ var
 
   // Crypto Functions
 
-  _SSLeay_version: TSSLeay_version = nil;
   _CRYPTOcleanupAllExData: TCRYPTOcleanupAllExData = nil;
   _OPENSSLaddallalgorithms: TOPENSSLaddallalgorithms = nil;
 
@@ -3348,8 +3359,8 @@ end;
 
 function SSLeay_version(t: cint): PChar;
 begin
-  if InitSSLInterface and Assigned(_SSLeay_version) then
-    Result := _SSLeay_version(t)
+  if InitSSLInterface and Assigned(_SSLeayversion) then
+    Result := _SSLeayversion(t)
   else
     Result := nil;
 end;
@@ -4753,42 +4764,6 @@ begin
     _OPENSSLaddallalgorithms;
 end;
 
-{$IFNDEF WINDOWS}
- {$IFNDEF OS2}
-{ Try to load all library versions until you find or run out }
-function LoadLibHack(const Value: String): HModule;
-var
-  i: cInt;
-begin
-  Result := NilHandle;
-
-  for i := Low(DLLVersions) to High(DLLVersions) do begin
-    {$IFDEF DARWIN}
-    Result := LoadLibrary(Value + DLLVersions[i] + '.dylib');
-    {$ELSE}
-    Result := LoadLibrary(Value + '.so' + DLLVersions[i]);
-    {$ENDIF}
-
-    if Result <> NilHandle then
-      Break;
-  end;
-end;
- {$ENDIF OS2}
-{$ENDIF WINDOWS}
-
-function LoadLib(const Value: String): HModule;
-begin
-  {$IFDEF WINDOWS}
-  Result := LoadLibrary(Value);
-  {$ELSE WINDOWS}
-   {$IFDEF OS2}
-  Result := LoadLibrary(Value);
-   {$ELSE OS2}
-  Result := LoadLibHack(Value);
-   {$ENDIF OS2}
-  {$ENDIF WINDOWS}
-end;
-
 Function CheckOK(ProcName : string ) : string;
 
 
@@ -4856,7 +4831,6 @@ end;
 Procedure LoadSSLEntryPoints;
 
 begin
-  _OpenSSLVersion := GetProcAddr(SSLLibHandle, 'OpenSSL_version');
   _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error');
   _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init');
   _OPENSSL_init_ssl := GetProcAddr(SSLLibHandle, 'OPENSSL_init_ssl');
@@ -4948,9 +4922,10 @@ begin
   _EvpPkeyAssign := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_assign');
   _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup');
   _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
+  _OpenSSLVersion := GetProcAddr(SSLUtilHandle, 'OpenSSL_version');
   _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
   if @_SSLeayversion=Nil then
-    _SSLeayversion := GetProcAddr(SSLUtilHandle, 'OpenSSL_version');
+    _SSLeayversion := _OpenSSLVersion;
   _ErrErrorString := GetProcAddr(SSLUtilHandle, 'ERR_error_string_n');
   _ErrGetError := GetProcAddr(SSLUtilHandle, 'ERR_get_error');
   _ErrClearError := GetProcAddr(SSLUtilHandle, 'ERR_clear_error');
@@ -5088,8 +5063,6 @@ begin
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
   _BIO_new_file := GetProcAddr(SSLUtilHandle, 'BIO_new_file');
   _BIO_new_mem_buf := GetProcAddr(SSLUtilHandle, 'BIO_new_mem_buf');
-  // Crypto Functions
-  _SSLeay_version := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
   // PKCS7
   _PKCS7_ISSUER_AND_SERIAL_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_new');
   _PKCS7_ISSUER_AND_SERIAL_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_free');
@@ -5199,23 +5172,9 @@ begin
   _BN_free:=GetProcAddr(SSLUtilHandle,'BN_free');
 end;
 
-Function LoadUtilLibrary : Boolean;
-
-begin
-  Result:=(SSLUtilHandle<>0);
-  if not Result then
-    begin
-    SSLUtilHandle := LoadLib(DLLUtilName);
-    Result:=(SSLUtilHandle<>0);
-    end;
-end;
-
-
-
 Procedure ClearSSLEntryPoints;
 
 begin
-  _OpenSSLVersion := Nil;
   _SslGetError := nil;
   _SslLibraryInit := nil;
   _OPENSSL_init_ssl:=Nil;
@@ -5371,29 +5330,10 @@ begin
   _BN_free:=nil;
 end;
 
-Procedure UnloadSSLLib;
-
-begin
-  if (SSLLibHandle<>0) then
-    begin
-    FreeLibrary(SSLLibHandle);
-    SSLLibHandle:=0;
-    end;
-end;
-
-Procedure UnloadUtilLib;
-
-begin
-  if (SSLUtilHandle<>0) then
-     begin
-     FreeLibrary(SSLUtilHandle);
-     SSLUtilHandle := 0;
-     end;
-end;
-
 Procedure ClearUtilEntryPoints;
 
 begin
+  _OpenSSLVersion := Nil;
   _SSLeayversion := nil;
   _ERR_load_crypto_strings := nil;
   _OPENSSL_init_crypto:=Nil;
@@ -5562,10 +5502,6 @@ begin
   _BIO_s_file := nil;
   _BIO_new_file := nil;
   _BIO_new_mem_buf := nil;
-
-  // Crypto Functions
-
-  _SSLeay_version := nil;
 end;
 
 procedure locking_callback(mode, ltype: integer; lfile: PChar; line: integer); cdecl;
@@ -5619,27 +5555,101 @@ begin
   end;
 end;
 
-Function LoadLibraries : Boolean;
+function TryLoadLibPair(const SSL_DLL_Name, Crypto_DLL_Name: string):boolean;
+begin
+  Assert((SSLUtilHandle = 0) and (SSLLibHandle = 0),
+    'LoadTryLoadLibPair: Handle is not zero');
+
+  SSLUtilHandle := LoadLibrary(Crypto_DLL_Name);
+  if (SSLUtilHandle <> 0) then
+    SSLLibHandle := LoadLibrary(SSL_DLL_Name);
+
+  Result := (SSLUtilHandle <> 0) and (SSLLibHandle <> 0);
+  if not Result then UnloadLibraries;
+end;
+
+ Function MakeLibName(Const aBase,aVersion : String) : string;
+
+ begin
+   {$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
+   Result:=aBase+aVersion+'.dll';
+   {$ELSE}
+   {$IFNDEF DARWIN}
+   Result:=aBase+'.so'+aVersion;
+   {$ELSE}
+   Result:=aBase+aVersion+'.dylib';
+   {$ENDIF}
+   {$ENDIF}
+ end;
+
+{$IF NOT(DEFINED(WINDOWS) OR DEFINED(OS2))}
+Function LoadOpenSSl : Boolean;
+
+var
+  Idx: Integer;
+begin
+  Result:=False;
+  Idx := Low(DLLVersions)+StartVersionOffset;
+  While (not Result) and (Idx<=High(DLLVersions)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(BaseSSLName,DLLVersions[Idx]),
+                             MakeLibName(BaseCryptoName,DLLVersions[Idx]));
+    Inc(Idx);
+    end;
+end;
+
+Function LoadLibreSSl : Boolean;
+
+var
+  Idx: Integer;
+begin
+  Result:=False;
+  Idx := Low(LibreSSLVersions)+StartVersionOffset;
+  While (not Result) and (Idx<=High(LibreSSLVersions)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(BaseSSLName,LibreSSLVersions[Idx]),
+                             MakeLibName(BaseCryptoName,LibreSSLVersions[Idx]));
+    Inc(Idx);
+    end;
+end;
+{$ENDIF}
+
+Function LoadLibraries(Const aSSLName, aCryptoName : String) : Boolean;
+
+var
+  Idx: Integer;
 
 begin
   Result:=False;
-  SSLUtilHandle := LoadLib(DLLUtilName);
-  SSLLibHandle := LoadLib(DLLSSLName);
-  {$IFDEF MSWINDOWS}
-  if (SSLLibHandle = 0) then
-    SSLLibHandle := LoadLib(DLLSSLName2);
-  {$ELSE MSWINDOWS}
-   {$IFDEF OS2}
-  if (SSLUtilHandle = 0) then
-    SSLUtilHandle := LoadLib(DLLUtilName2);
-  if (SSLLibHandle = 0) then
-    SSLLibHandle := LoadLib(DLLSSLName2);
-   {$ENDIF OS2}
-  {$ENDIF MSWINDOWS}
-  Result:=(SSLLibHandle<>0) and (SSLUtilHandle<>0);
+  if (aSSLName<>'') and (aCryptoName<>'') then
+    Exit(TryLoadLibPair(aSSLName,aCryptoName));
+{$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
+  Assert(Low(SSL_DLL_Names) = Low(Crypto_DLL_Names));
+  Assert(High(SSL_DLL_Names) = High(Crypto_DLL_Names));
+  Idx:=Low(SSL_DLL_Names);
+  While (not Result) and (Idx<=High(SSL_DLL_Names)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(SSL_DLL_Names[Idx],''), MakeLibName(Crypto_DLL_Names[Idx],''));
+    Inc(Idx);
+    end;
+{$ELSE}
+  if LibreSSLSupport=lssFirst then
+    Result:=LoadLibreSSL;
+  if not Result then
+    Result:=LoadOpenSSL;
+  if (Not Result) and (LibreSSLSupport=lssFirst) then
+    Result:=LoadLibreSSL;
+{$ENDIF}
 end;
 
 function InitSSLInterface: Boolean;
+
+begin
+  Result:=InitSSLInterface('','');
+end;
+
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean;
+
 begin
   Result:=SSLLoaded;
   if Result then
@@ -5648,7 +5658,7 @@ begin
   try
     if SSLloaded then
       Exit;
-    Result:=LoadLibraries;
+    Result:=LoadLibraries(aSSLName,aCryptoName);
     if Not Result then
       begin
       UnloadLibraries;
@@ -5663,8 +5673,6 @@ begin
       _SslLoadErrorStrings;
     if assigned(_OPENSSLaddallalgorithms) then
       _OPENSSLaddallalgorithms;
-    if assigned(_RandScreen) then
-      _RandScreen;
     if assigned(_CRYPTOnumlocks) and assigned(_CRYPTOsetlockingcallback) then
       InitLocks;
     SSLloaded := True;

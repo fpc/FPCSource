@@ -65,6 +65,10 @@ implementation
       symtablestack:=nil;
       result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
       result.returndef:=resultdef;
+      { if the parent is a generic or a specialization, the new function is one
+        as well }
+      if st.symtabletype=localsymtable then
+        result.defoptions:=result.defoptions+(tstoreddef(st.defowner).defoptions*[df_generic,df_specialization]);
       symtablestack:=oldsymtablestack;
       st.insertdef(result);
       result.struct:=astruct;

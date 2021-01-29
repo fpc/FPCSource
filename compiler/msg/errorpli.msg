@@ -2119,7 +2119,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2019 by Florian Klaempfl and others
+Copyright (c) 1993-2021 by Florian Klaempfl and others
 ]
 
 #
@@ -2144,7 +2144,7 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.v2 aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #

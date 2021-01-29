@@ -276,7 +276,7 @@ interface
           top_const :
               owner.writer.AsmWrite('$'+tostr(o.val));
           else
-            internalerror(10001);
+            internalerror(2020100810);
         end;
 
            if o.vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
@@ -328,7 +328,7 @@ interface
           top_const :
             owner.writer.AsmWrite(tostr(o.val));
           else
-            internalerror(10001);
+            internalerror(2020100811);
         end;
       end;
 
@@ -395,6 +395,8 @@ interface
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
         begin
+          if (gas_needsuffix[op]<>AttSufMMX) or
+	     (taicpu(hp).opsize in [S_XMM,S_YMM]) then
           owner.writer.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         end;
 
@@ -441,6 +443,7 @@ interface
                                  system_x86_64_android,system_x86_64_haiku];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -454,6 +457,7 @@ interface
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,system_x86_64_win64,system_x86_64_embedded];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -467,6 +471,7 @@ interface
             supported_targets : [system_x86_64_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -481,6 +486,7 @@ interface
             supported_targets : [system_x86_64_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -496,19 +502,21 @@ interface
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
 
        as_x86_64_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch x86_64 $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs,af_llvm];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -526,6 +534,7 @@ interface
                                 system_i386_nativent,system_i386_android,system_i386_aros];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -542,6 +551,7 @@ interface
                                 system_i386_nativent];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -556,6 +566,7 @@ interface
             supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
             flags : [af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -570,19 +581,21 @@ interface
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
 
        as_i386_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch i386 $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs,af_llvm];
             labelprefix : 'L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -599,6 +612,7 @@ interface
                                 system_x86_6432_linux,system_i386_android];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -612,6 +626,7 @@ interface
             supported_targets : [system_i386_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );

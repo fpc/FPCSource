@@ -159,7 +159,7 @@ implementation
 
     uses
       globtype,systems,constexp,
-      cutils,verbose,globals,
+      cutils,verbose,globals,ppu,
       symconst,defutil,defcmp,
       nadd,nbas,nflw,nutils,objcutil,
       wpobase,
@@ -370,32 +370,9 @@ implementation
 
 
     function tloadparentfpnode.pass_typecheck:tnode;
-{$ifdef dummy}
-      var
-        currpi : tprocinfo;
-        hsym   : tparavarsym;
-{$endif dummy}
       begin
         result:=nil;
         resultdef:=parentfpvoidpointertype;
-{$ifdef dummy}
-        { currently parentfps are never loaded in registers (FK) }
-        if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
-          begin
-            currpi:=current_procinfo;
-            { walk parents }
-            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
-              begin
-                currpi:=currpi.parent;
-                if not assigned(currpi) then
-                  internalerror(2005040602);
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-                if not assigned(hsym) then
-                  internalerror(2005040601);
-                hsym.varregable:=vr_none;
-              end;
-          end;
-{$endif dummy}
       end;
 
 
@@ -404,7 +381,6 @@ implementation
         result:=nil;
         expectloc:=LOC_REGISTER;
       end;
-
 
 {*****************************************************************************
                              TADDRNODE
@@ -438,7 +414,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(getprocvardefderef);
-        ppufile.getsmallset(addrnodeflags);
+        ppufile.getset(tppuset1(addrnodeflags));
       end;
 
 
@@ -446,7 +422,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(getprocvardefderef);
-        ppufile.putsmallset(addrnodeflags);
+        ppufile.putset(tppuset1(addrnodeflags));
       end;
 
     procedure Taddrnode.mark_write;
@@ -535,6 +511,22 @@ implementation
 
 
     function taddrnode.pass_typecheck:tnode;
+
+      procedure check_mark_read_written;
+        begin
+          if mark_read_written then
+            begin
+              { This is actually only "read", but treat it nevertheless as
+                modified due to the possible use of pointers
+                To avoid false positives regarding "uninitialised"
+                warnings when using arrays, perform it in two steps         }
+              set_varstate(left,vs_written,[]);
+              { vsf_must_be_valid so it doesn't get changed into
+                vsf_referred_not_inited                          }
+              set_varstate(left,vs_read,[vsf_must_be_valid]);
+            end;
+        end;
+
       var
          hp : tnode;
          hsym : tfieldvarsym;
@@ -629,9 +621,11 @@ implementation
               end
             else
               begin
+                check_mark_read_written;
                 { Return the typeconvn only }
                 result:=left;
                 left:=nil;
+                exit;
               end;
           end
         else
@@ -650,17 +644,8 @@ implementation
               CGMessage(type_e_variable_id_expected);
           end;
 
-        if mark_read_written then
-          begin
-            { This is actually only "read", but treat it nevertheless as  }
-            { modified due to the possible use of pointers                }
-            { To avoid false positives regarding "uninitialised"          }
-            { warnings when using arrays, perform it in two steps         }
-            set_varstate(left,vs_written,[]);
-            { vsf_must_be_valid so it doesn't get changed into }
-            { vsf_referred_not_inited                          }
-            set_varstate(left,vs_read,[vsf_must_be_valid]);
-          end;
+        check_mark_read_written;
+
         if not(assigned(result)) then
           result:=simplify(false);
       end;
@@ -1031,7 +1016,13 @@ implementation
                          (right.resultdef.typ=enumdef) and
                          (tenumdef(htype).basedef=tenumdef(right.resultdef).basedef) and
                     ((tarraydef(left.resultdef).lowrange<>tenumdef(htype).min) or
-                     (tarraydef(left.resultdef).highrange<>tenumdef(htype).max)) then
+                     (tarraydef(left.resultdef).highrange<>tenumdef(htype).max) or
+                   { while we could assume that the value might not be out of range,
+                     memory corruption could have resulted in an illegal value,
+                     so do not skip the type conversion in case of range checking
+
+                     After all, range checking is a safety mean }
+                     (cs_check_range in current_settings.localswitches)) then
                    {Convert array indexes to low_bound..high_bound.}
                    inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
@@ -1060,17 +1051,31 @@ implementation
                         and not is_64bit(right.resultdef)
 {$endif not cpu64bitaddr}
                         then
-                       newordtyp:=Torddef(right.resultdef).ordtype
+                        begin
+                          { in case of an integer type, we need a new type which covers declaration range and index range,
+                            see tests/webtbs/tw38413.pp
+                          }
+                          if is_integer(right.resultdef) then
+                            newordtyp:=range_to_basetype(min(TConstExprInt(Tarraydef(left.resultdef).lowrange),torddef(right.resultdef).low),
+                              max(TConstExprInt(Tarraydef(left.resultdef).highrange),torddef(right.resultdef).high))
+                          else
+                            newordtyp:=Torddef(right.resultdef).ordtype;
+                        end
                      else
                        newordtyp:=torddef(sizesinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),
                                                          true
-                                                        ))
+                                                        ));
                    end
                  else
-                   inserttypeconv(right,htype)
+                   begin
+                     inserttypeconv(right,htype);
+                     { insert type conversion so cse can pick it up }
+                     if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in current_settings.localswitches) then
+                       inserttypeconv_internal(right,ptrsinttype);
+                   end;
                end;
              stringdef:
                if is_open_string(left.resultdef) then

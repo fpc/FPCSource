@@ -53,7 +53,7 @@ unit cpupara;
             other memory models, this mechanism has to be extended somehow to
             support 32-bit addresses on a 16-bit CPU.
           }
-          procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -70,7 +70,7 @@ unit cpupara;
        cutils,
        systems,verbose,
        symtable,symcpu,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_AX,RS_DX,RS_BX);
@@ -101,8 +101,6 @@ unit cpupara;
 
 
     function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
-      var
-        size: longint;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
@@ -120,7 +118,7 @@ unit cpupara;
     function tcpuparamanager.asm_result_var(def:tdef;pd:tabstractprocdef):boolean;
       begin
         if not(po_assembler in pd.procoptions) then
-          internalerror(2018021501);
+          internalerror(2018021502);
         result:=ret_in_param(def,pd);
       end;
 
@@ -256,7 +254,7 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym: tparavarsym;
@@ -307,7 +305,6 @@ unit cpupara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
-        sym: tfieldvarsym;
         usedef: tdef;
         handled: boolean;
       begin
@@ -495,7 +492,7 @@ unit cpupara;
             else
               begin
                 if paralen=0 then
-                  internalerror(200501163);
+                  internalerror(2005011604);
                 firstparaloc:=true;
                 while (paralen>0) do
                   begin
@@ -691,7 +688,7 @@ unit cpupara;
                           else
                             begin
                               if paralen=0 then
-                                internalerror(200501163);
+                                internalerror(2005011605);
                               firstparaloc:=true;
                               while (paralen>0) do
                                 begin

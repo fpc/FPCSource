@@ -1,16 +1,5 @@
-{$IFDEF MORPHOS}
+{$IFDEF HASAMIGA}
  {$DEFINE NO_UNIT_PROCESS}
- {$DEFINE NO_THREADING}
-{$ENDIF}
-
-{$IFDEF AROS}
- {$DEFINE NO_UNIT_PROCESS}
- {$DEFINE NO_THREADING}
-{$ENDIF}
-
-{$IFDEF AMIGA}
- {$DEFINE NO_UNIT_PROCESS}
- {$DEFINE NO_THREADING}
 {$ENDIF}
 
 {$IFDEF OS2}
@@ -143,6 +132,8 @@ begin
             SVNProcess.Free;
           end;
 
+          oldrev:=0;
+          olddate:='';
           // Write the latest change-date and revision to file revision.inc
           system.assign(f,BuildEngine.AddPathPrefix(P,'revision.inc'));
           io:=ioresult;
@@ -178,19 +169,23 @@ begin
                 end;
 
             end;
-
-          BuildEngine.Log(vlCommand,'revision.inc set to '''+lastdate+' rev '+IntToStr(lastrev)+'''');
-
-          system.assign(f,BuildEngine.AddPathPrefix(P,'revision.inc'));
-          rewrite(f);
-          io:=ioresult;
-          if io <> 0 then
+          if (lastdate=olddate) and (lastrev=oldrev) then
+            BuildEngine.Log(vlCommand,'revision.inc unchanged')
+           else
             begin
-              BuildEngine.Log(vlError, 'Error opening revision.inc for writing');
-              halt(3);
-            end;
-          Writeln(f,'''',lastdate,' rev ',lastrev,'''');
-          close(f);
+              BuildEngine.Log(vlCommand,'revision.inc set to '''+lastdate+' rev '+IntToStr(lastrev)+'''');
+
+              system.assign(f,BuildEngine.AddPathPrefix(P,'revision.inc'));
+              rewrite(f);
+              io:=ioresult;
+              if io <> 0 then
+                begin
+                  BuildEngine.Log(vlError, 'Error opening revision.inc for writing');
+                  halt(3);
+                end;
+              Writeln(f,'''',lastdate,' rev ',lastrev,'''');
+              close(f);
+            end
         end
       else
         BuildEngine.Log(vlWarning,'Subversion executable (svn) not found. Svn-revision in fpcmake executable might be out of date.');
@@ -210,7 +205,7 @@ begin
     begin
     P:=AddPackage('utils-fpcm');
     P.ShortName:='fpcm';
-    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,macos,atari,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,nativent,win16,macosclassic,atari,palmos,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

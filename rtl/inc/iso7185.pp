@@ -44,12 +44,27 @@ unit iso7185;
 
     Procedure Get(Var t: Text);
     Procedure Put(Var t: Text);
+    procedure Get;
+    Procedure Put;
 
     Procedure Get(Var f: TypedFile);
     Procedure Put(Var f: TypedFile);
     Procedure Seek(var f:TypedFile;Pos:Int64);
+    Function FilePos(var f:TypedFile):Int64;
 
     Function Eof(var f:TypedFile): Boolean;
+
+{$ifndef FPUNONE}
+{$ifdef FPC_CURRENCY_IS_INT64}
+    function round(c : currency) : int64;
+{$ifndef cpujvm}
+    function round(c : comp) : int64;
+{$else not cpujvm}
+    function round_comp(c : comp) : int64;
+{$endif not cpujvm}
+{$endif FPC_CURRENCY_IS_INT64}
+    function Round(d : ValReal) : int64;
+{$endif FPUNONE}
 
   implementation
 
@@ -131,7 +146,7 @@ unit iso7185;
         else
           begin
             OldCtrlZMarksEof:=CtrlZMarksEOF;
-            CtrlZMarksEof:=false;
+            CtrlZMarksEof:=true;
             Eof:=System.Eof(t);
             CtrlZMarksEof:=OldCtrlZMarksEOF;
           end;
@@ -191,10 +206,30 @@ unit iso7185;
       end;
 
 
+    procedure Get;[IOCheck];
+      var
+        c : char;
+      Begin
+        Read(input,c);
+      End;
+
+
+    Procedure Put;[IOCheck];
+      type
+        FileFunc = Procedure(var t : TextRec);
+      begin
+        inc(TextRec(Output).BufPos);
+        If TextRec(Output).BufPos>=TextRec(Output).BufSize Then
+          FileFunc(TextRec(Output).InOutFunc)(TextRec(Output));
+      end;
+
+
     procedure Get(var f:TypedFile);[IOCheck];
       Begin
-        if not(eof(f)) then
-          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1);
+        if not(system.eof(f)) then
+          BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+        else
+          FileRec(f)._private[1]:=1;
       End;
 
 
@@ -210,7 +245,7 @@ unit iso7185;
       End;
 
 
-    Procedure Seek(var f:TypedFile;Pos:Int64);
+    Procedure Seek(var f:TypedFile;Pos:Int64);[IOCheck];
       Begin
         System.Seek(f,Pos);
         if (FileRec(f).mode=fmInOut) or
@@ -225,6 +260,57 @@ unit iso7185;
               FileRec(f)._private[1]:=1;
           end;
       End;
+
+
+    Function FilePos(var f:TypedFile):Int64;[IOCheck];
+      Begin
+        FilePos:=System.FilePos(f);
+        { in case of reading a file, the buffer is always filled, so the result of Do_FilePos is off by one }
+        if (FileRec(f).mode=fmInOut) or
+          (FileRec(f).mode=fmInput) then
+          dec(FilePos);
+      End;
+
+
+{$ifndef FPUNONE}
+{$ifdef FPC_CURRENCY_IS_INT64}
+    function round(c : currency) : int64;
+      begin
+        if c>=0.0 then
+          Round:=Trunc(c+0.5)
+        else
+          Round:=Trunc(c-0.5);
+      end;
+
+
+{$ifndef cpujvm}
+    function round(c : comp) : int64;
+      begin
+        if c>=0.0 then
+          round:=Trunc(c+0.5)
+        else
+          round:=Trunc(c-0.5);
+      end;
+{$else not cpujvm}
+    function round_comp(c : comp) : int64;
+      begin
+        if c>=0.0 then
+          round_comp:=Trunc(c+0.5)
+        else
+          round_comp:=Trunc(c-0.5);
+      end;
+{$endif cpujvm}
+{$endif FPC_CURRENCY_IS_INT64}
+
+
+    function Round(d : ValReal) : int64;
+      begin
+        if d>=0.0 then
+          Round:=Trunc(d+0.5)
+        else
+          Round:=Trunc(d-0.5);
+      end;
+{$endif FPUNONE}
 
 begin
   { we shouldn't do this because it might confuse user programs, but for now it

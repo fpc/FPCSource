@@ -85,11 +85,13 @@ Resourcestring
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
   SInvPacketRecordsValueFieldNames = 'PacketRecords must be -1 if IndexFieldNames is set';
+  SInvPacketRecordsValueUniDirectional = 'PacketRecords must not be -1 on an unidirectional dataset';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
   SFieldIsNull             = 'The field is null';
   SOnUpdateError           = 'An error occurred while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
+  SErrUpdatesInProgess     = 'Apply updates in progress: %d records being processed.';
   SNoWhereFields           = 'No %s query specified and failed to generate one. (No fields for inclusion in where statement found)';
   SNoUpdateFields          = 'No %s query specified and failed to generate one. (No fields for insert- or update-statement found)';
   SNotSupported            = 'Operation is not supported by this type of database';

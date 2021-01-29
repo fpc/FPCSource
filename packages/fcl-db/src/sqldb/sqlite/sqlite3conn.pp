@@ -19,7 +19,8 @@
 
   TSQLite3Connection properties
       Params - "foreign_keys=ON" - enable foreign key support for this connection:
-                                   http://www.sqlite.org/foreignkeys.html#fk_enable
+                                   https://www.sqlite.org/foreignkeys.html#fk_enable
+               "journal_mode=..."  https://www.sqlite.org/pragma.html#pragma_journal_mode
 
 } 
  
@@ -44,7 +45,6 @@ type
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
 
-  // VFS not supported at this time.
   // Do not change the order. See NativeFlags constant in GetSQLiteOpenFlags.
 
   TSQLiteOpenFlag = (
@@ -69,8 +69,10 @@ Type
   private
     fhandle: psqlite3;
     FOpenFlags: TSQLiteOpenFlags;
+    FVFS: String;
     function GetSQLiteOpenFlags: Integer;
     procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
+    procedure SetVFS(const AValue: String);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -107,6 +109,9 @@ Type
     procedure checkerror(const aerror: integer);
     function stringsquery(const asql: string): TArrayStringArray;
     procedure execsql(const asql: string);
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
+    function GetAlwaysUseBigint : Boolean; virtual;
+    Procedure SetAlwaysUseBigint(aValue : Boolean); virtual;
   public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -122,6 +127,8 @@ Type
     procedure LoadExtension(const LibraryFile: string);
   Published
     Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
+    Property VFS : String Read FVFS Write SetVFS;
+    Property AlwaysUseBigint : Boolean Read GetAlwaysUseBigint Write SetAlwaysUseBigint;
   end;
 
   { TSQLite3ConnectionDef }
@@ -170,7 +177,6 @@ type
  public
    RowsAffected : Largeint;
  end;
-
 procedure freebindstring(astring: pointer); cdecl;
 begin
   StrDispose(astring);
@@ -296,10 +302,36 @@ end;
 constructor TSQLite3Connection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
+  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID, sqSequences];
   FieldNameQuoteChars:=DoubleQuotes;
   FOpenFlags:=DefaultOpenFlags;
 end;
+
+Const
+  SUseBigint = 'AlwaysUseBigint';
+
+function TSQLite3Connection.GetAlwaysUseBigint : Boolean; 
+
+begin
+  Result:=Params.Values[SUseBigint]='1'
+end;
+
+Procedure TSQLite3Connection.SetAlwaysUseBigint(aValue : Boolean); 
+
+Var
+  I : Integer;
+
+begin
+  if aValue then 
+    Params.Values[SUseBigint]:='1'
+  else
+    begin
+    I:=Params.IndexOfName(SUseBigint);
+    if I<>-1 then 
+      Params.Delete(I);
+    end;    
+end;
+
 
 procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 
@@ -503,6 +535,11 @@ begin
     size1:=0;
     size2:=0;
     case FT of
+      ftInteger,
+      ftSMallint,
+      ftWord: 
+        If AlwaysUseBigint then
+          ft:=ftLargeInt;
       ftString,
       ftFixedChar,
       ftFixedWideChar,
@@ -823,20 +860,38 @@ begin
   FOpenFlags:=AValue;
 end;
 
+procedure TSQLite3Connection.SetVFS(const AValue: String);
+begin
+  if FVFS=AValue then Exit;
+  CheckDisConnected;
+  FVFS:=AValue;
+end;
+
 procedure TSQLite3Connection.DoInternalConnect;
+const
+  PRAGMAS:array[0..1] of string=('foreign_keys','journal_mode');
 var
   filename: ansistring;
+  pvfs: PChar;
+  i,j: integer;
 begin
   Inherited;
   if DatabaseName = '' then
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSQLite;
   filename := DatabaseName;
-  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,Nil));
+  if FVFS <> '' then
+    pvfs := PAnsiChar(FVFS)
+  else
+    pvfs := Nil;
+  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,pvfs));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
-  if Params.IndexOfName('foreign_keys') <> -1 then
-    execsql('PRAGMA foreign_keys =  '+Params.Values['foreign_keys']);
+  for i:=Low(PRAGMAS) to High(PRAGMAS) do begin
+    j:=Params.IndexOfName(PRAGMAS[i]);
+    if j <> -1 then
+      execsql('PRAGMA '+Params[j]);
+  end;
 end;
 
 procedure TSQLite3Connection.DoInternalDisconnect;
@@ -893,6 +948,11 @@ begin
    databaseerror(str1);
 end;
 
+function TSQLite3Connection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result:=Format('SELECT seq+%d FROM sqlite_sequence WHERE (name=''%s'')',[IncrementBy,SequenceName]);
+end;
+
 function execcallback(adata: pointer; ncols: longint; //adata = PStringArray
                 avalues: PPchar; anames: PPchar):longint; cdecl;
 var
@@ -939,6 +999,14 @@ begin
     stTables     : result := 'select name as table_name from sqlite_master where type = ''table'' order by 1';
     stSysTables  : result := 'select ''sqlite_master'' as table_name';
     stColumns    : result := 'pragma table_info(''' + (SchemaObjectName) + ''')';
+    stSequences  : Result := 'SELECT 1 as recno, '+
+                          '''' + DatabaseName + ''' as sequence_catalog,' +
+                          '''''                     as sequence_schema,' +
+                          'name as sequence_name ' +
+                        'FROM ' +
+                          'sqlite_sequence ' +
+                        'ORDER BY ' +
+                          'name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}

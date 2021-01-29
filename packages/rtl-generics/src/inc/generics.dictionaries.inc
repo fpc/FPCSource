@@ -138,6 +138,7 @@ var
   i: SizeInt;
   LEnumerator: TEnumerator<TDictionaryPair>;
 begin
+  Result := nil;
   SetLength(Result, ACount);
   LEnumerator := DoGetEnumerator;
 
@@ -292,6 +293,7 @@ var
   i: SizeInt;
   LEnumerator: TPointersEnumerator;
 begin
+  Result := nil;
   SetLength(Result, GetCount);
 
   try
@@ -480,6 +482,7 @@ begin
   if ASizePow2 < 0 then
     OutOfMemoryError;
 
+  LNewItems := nil;
   SetLength(LNewItems, ASizePow2);
   UpdateItemsThreshold(ASizePow2);
 
@@ -602,6 +605,15 @@ begin
     AValue := FItems[LIndex].Pair.Value
   else
     AValue := Default(TValue);
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryAdd(constref AKey: TKey; constref AValue: TValue): Boolean;
+var
+  LHash: UInt32;
+begin
+  Result := FindBucketIndex(FItems, AKey, LHash) < 0;
+  if Result then
+    DoAdd(AKey, AValue);
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
@@ -2163,7 +2175,7 @@ end;
 
 { TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPKeyEnumerator }
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPKeyEnumerator.GetCurrent: TKey;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPKeyEnumerator.GetCurrent: PKey;
 begin
   if FMainIndex = TCuckooCfg.D then
     Result := @(TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FQueue.FItems[FIndex].Pair.Value.Pair.Key)

@@ -649,6 +649,7 @@ Implementation
                  CreateLocalLabel(actasmpattern,hl,false);
                  Consume(AS_ID);
                  AddLabelOperand(hl);
+                 MaybeGetPICModifier(oper);
                end
               else
                { Check for label }
@@ -656,6 +657,7 @@ Implementation
                 begin
                   Consume(AS_ID);
                   AddLabelOperand(hl);
+                  MaybeGetPICModifier(oper);
                 end
               else
                { probably a variable or normal expression }
@@ -720,22 +722,23 @@ Implementation
                       if (actasmtoken=AS_PLUS) then
                         begin
                           l:=BuildConstExpression(true,false);
-                          case oper.opr.typ of
-                            OPR_CONSTANT :
-                              inc(oper.opr.val,l);
-                            OPR_LOCAL :
-                              begin
-                                inc(oper.opr.localsymofs,l);
-                                inc(oper.opr.localconstoffset, l);
-                              end;
-                            OPR_REFERENCE :
-                              begin
-                                inc(oper.opr.ref.offset,l);
-                                inc(oper.opr.constoffset, l);
-                              end;
-                            else
-                              internalerror(200309202);
-                          end;
+                          if errorcount=0 then
+                            case oper.opr.typ of
+                              OPR_CONSTANT :
+                                inc(oper.opr.val,l);
+                              OPR_LOCAL :
+                                begin
+                                  inc(oper.opr.localsymofs,l);
+                                  inc(oper.opr.localconstoffset, l);
+                                end;
+                              OPR_REFERENCE :
+                                begin
+                                  inc(oper.opr.ref.offset,l);
+                                  inc(oper.opr.constoffset, l);
+                                end;
+                              else
+                                internalerror(2003092011);
+                            end;
                         end;
                     end;
                end;
@@ -1040,6 +1043,8 @@ Implementation
                        actopsize:=att_sizefpuintsuffix[sufidx]
                       else if gas_needsuffix[actopcode]=attsufMM then
                        actopsize:=att_sizemmsuffix[sufidx]
+                      else if gas_needsuffix[actopcode]=attsufMMX then
+                       actopsize:=att_sizemmXsuffix[sufidx]
                       else
                        actopsize:=att_sizesuffix[sufidx];
                       { only accept suffix from the same category that the opcode belongs to }

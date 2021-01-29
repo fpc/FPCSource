@@ -28,7 +28,7 @@ Procedure CreateTxtDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 implementation
 
-uses SysUtils, Classes, dwLinear;
+uses fpdocstrs, SysUtils, Classes, dwLinear;
 
 Const
   MaxListLevel     = 10;
@@ -89,6 +89,8 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -156,18 +158,19 @@ Function FindSpace(Const S : String; P : Integer) : Integer;
 
 Var
   I,L : Integer;
-
+  SP: set of char;
 begin
   Result:=0;
+  SP := [#10,#13,' ',#9];
   I:=P;
   L:=Length(S);
-  While (I>0) and (I<=L) and not (S[i] in [#10,#13,' ',#9]) do
-    Dec(i);
+  While (I>0) and (I<=L) and not (S[i] in SP) do
+    Dec(I);
   If (I=0) then
     begin
-    I:=P;
-    While (I<=L) and not (S[i] in [#10,#13,' ',#9]) do
-      Inc(i);
+    Inc(I);
+    While (I<=L) and not (S[I] in SP) do
+      Inc(I);
     end;
   Result:=I;
 end;
@@ -184,7 +187,7 @@ begin
     exit;
   N:=S;
   Repeat
-    If ((FCurrentPos+Length(N))>LineWidth) then
+    If ((FCurrentPos+Length(N)+1)>LineWidth) then
       begin
       L:=FindSpace(N,LineWidth-FCurrentPos+1);
       inherited Write(Copy(N,1,L-1));
@@ -193,8 +196,8 @@ begin
       end
     else
       begin
-      L:=Length(N)+1;
-      inherited Write(Copy(N,1,L-1));
+      L:=Length(N);
+      inherited Write(Copy(N,1,L));
       Inc(FCurrentPos,L);
       If FCheckEOL then
         If (L>=LEOL) then
@@ -267,6 +270,14 @@ begin
 end;
 
 procedure TTXTWriter.DescrEndEmph;
+begin
+end;
+
+procedure TTXTWriter.DescrBeginUnderline;
+begin
+end;
+
+procedure TTXTWriter.DescrEndUnderline;
 begin
 end;
 
@@ -592,7 +603,7 @@ var
 begin
   Writer := TTxtWriter.Create(APackage, AEngine);
   try
-    Writer.WriteDoc;
+    Writer.DoWriteDocumentation;
   finally
     Writer.Free;
   end;

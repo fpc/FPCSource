@@ -181,7 +181,7 @@ end;
 
 function HMACSHA1Match(const ADigest1, ADigest2: THMACSHA1Digest): boolean;
 begin
-  Result := HMACSHA1Match(ADigest1, ADigest2);
+  Result := SHA1Match(ADigest1, ADigest2);
 end;
 
 function HMACSHA1(const AKey, AMessage: string): string;

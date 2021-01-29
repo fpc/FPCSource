@@ -29,23 +29,70 @@ Type
 
   { TXMLWriter }
 
-  TXMLWriter = Class(TFPDocWriter)
+  TXMLWriter = Class(TMultiFileDocWriter)
   private
-    FShowSourceInfo: Boolean;
+    FShowSourceInfo:Boolean;
+    FUseFlatStructure:Boolean;
+  protected
+    function CreateAllocator : TFileAllocator; override;
+    procedure AllocatePackagePages; override;
+    procedure AllocateModulePages(AModule: TPasModule; {%H-}LinkList: TObjectList); override;
+    procedure WriteDocPage(const aFileName: String; aElement: TPasElement; {%H-}aSubPageIndex: Integer); override;
+    //  Here we write the documentation.
+    Procedure DoWriteDocumentation; override;
   public
+    constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     function ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
-    Procedure WriteDoc; override;
     class procedure Usage(List: TStrings); override;
     function  InterPretOption(const Cmd,Arg : String): boolean; override;
   end;
 
+  { TFlatFileAllocator }
 
+  TFlatFileAllocator = class(TFileAllocator)
+  private
+    FExtension: String;
+  public
+    constructor Create(const AExtension: String);
+    function GetFilename(AElement: TPasElement; ASubindex: Integer): String; override;
+    function GetRelativePathToTop(AElement: TPasElement): String; override;
+    property Extension: String read FExtension;
+  end;
 
 
 implementation
 
+uses fpdocstrs;
+
 const
   DefaultVisibility = [visDefault, visPublic, visPublished, visProtected];
+
+{ TXmlFileAllocator }
+
+constructor TFlatFileAllocator.Create(const AExtension: String);
+begin
+  FExtension:= AExtension;
+  inherited Create();
+end;
+
+function TFlatFileAllocator.GetFilename(AElement: TPasElement; ASubindex: Integer
+  ): String;
+begin
+  Result:='';
+  if AElement.ClassType = TPasPackage then
+    Result := 'index'
+  else if AElement.ClassType = TPasModule then
+    Result := LowerCase(AElement.Name);
+
+  if ASubindex > 0 then
+    Result := Result + '-' + GetFilePostfix(ASubindex);
+  Result := Result + Extension;
+end;
+
+function TFlatFileAllocator.GetRelativePathToTop(AElement: TPasElement): String;
+begin
+  Result:=inherited GetRelativePathToTop(AElement);
+end;
 
 function TXMLWriter.ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
 
@@ -64,6 +111,8 @@ var
       visAutomated       : Result := 'automated';
       visStrictPrivate   : Result := 'strictprivate';
       visStrictProtected : Result := 'strictprotected';
+      visRequired        : Result := 'required';
+      visOptional        : Result := 'optional';
     end;
   end;
 
@@ -585,25 +634,66 @@ end;
 
 { TXMLWriter }
 
-procedure TXMLWriter.WriteDoc;
+procedure TXMLWriter.DoWriteDocumentation;
+begin
+  inherited DoWriteDocumentation;
+end;
+
+function TXMLWriter.CreateAllocator: TFileAllocator;
+begin
+  if FUseFlatStructure then
+    Result:=TFlatFileAllocator.Create('.xml')
+  else
+    Result:=TLongNameFileAllocator.Create('.xml');
+end;
+
+procedure TXMLWriter.AllocatePackagePages;
+begin
+  AddPage(Package, IdentifierIndex);
+  AddPage(Package, ClassHierarchySubIndex);
+  AddPage(Package, InterfaceHierarchySubIndex);
+end;
+
+procedure TXMLWriter.AllocateModulePages(AModule: TPasModule;
+  LinkList: TObjectList);
+begin
+  if not assigned(Amodule.Interfacesection) then
+    exit;
+  AddPage(AModule, IdentifierIndex);
+end;
+
+procedure TXMLWriter.WriteDocPage(const aFileName: String;
+  aElement: TPasElement; aSubPageIndex: Integer);
 var
   doc: TXMLDocument;
-  i: Integer;
 begin
-  if Engine.Output <> '' then
-    Engine.Output := IncludeTrailingBackSlash(Engine.Output);
-
-  for i := 0 to Package.Modules.Count - 1 do
+  if (aElement is TPasModule) then
   begin
-    doc := ModuleToXMLStruct(TPasModule(Package.Modules[i]));
-    WriteXMLFile(doc, Engine.Output + TPasModule(Package.Modules[i]).Name + '.xml' );
+    doc := ModuleToXMLStruct(TPasModule(aElement));
+    WriteXMLFile(doc, GetFileBaseDir(Engine.Output) + aFileName);
     doc.Free;
+  end
+  else if (aElement is TPasPackage) then
+  begin
+    if aSubPageIndex = ClassHierarchySubIndex then
+      TreeClass.SaveToXml(GetFileBaseDir(Engine.Output) + aFileName);
+    if aSubPageIndex = InterfaceHierarchySubIndex then
+      TreeInterface.SaveToXml(GetFileBaseDir(Engine.Output) + aFileName);
   end;
+end;
+
+constructor TXMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
+begin
+  FUseFlatStructure:= False;
+  FShowSourceInfo:= False;
+  inherited Create(APackage, AEngine);
 end;
 
 class procedure TXMLWriter.Usage(List: TStrings);
 begin
+  inherited Usage(List);
   List.AddStrings(['--source-info', SXMLUsageSource]);
+  List.AddStrings(['--flat-structure', SXMLUsageFlatStructure]);
 end;
 
 function TXMLWriter.InterPretOption(const Cmd, Arg: String): boolean;
@@ -611,6 +701,8 @@ begin
   Result := True;
   if Cmd = '--source-info' then
     FShowSourceInfo:=True
+  else if Cmd = '--flat-structure' then
+      FUseFlatStructure:=True
   else
     Result:=inherited InterPretOption(Cmd, Arg);
 end;

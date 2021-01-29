@@ -143,7 +143,13 @@ implementation
              A_VANDPS,
              A_VUNPCKLPS,
              A_VUNPCKHPS,
-             A_VSHUFPD:
+             A_VSHUFPD,
+             A_VREDUCEPD,
+             A_VREDUCEPS,
+             A_VREDUCESD,
+             A_VREDUCESS,
+             A_VROUNDSS,
+             A_VROUNDSD:
                result:=true;
              else
                result:=false;
@@ -274,6 +280,11 @@ implementation
                               A_UNPCKLPD,
                               A_UNPCKLPS :
                                 replaceoper:=-1;
+
+                              { movlhps/movhlps requires the second parameter to be XMM registers }
+                              A_MOVHLPS,
+                              A_MOVLHPS:
+                                replaceoper:=-1;
                               else
                                 ;
                             end;
@@ -327,6 +338,9 @@ implementation
                               A_CVTTSS2SI,
                               A_XORPD,
                               A_XORPS,
+                              A_PXOR,
+                              A_PAND,
+                              A_POR,
                               A_ORPD,
                               A_ORPS,
                               A_ANDPD,

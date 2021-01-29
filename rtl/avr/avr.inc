@@ -31,6 +31,7 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   end;
 
 
+{$if not(defined(CPUAVR_16_REGS)) and defined(CPUAVR_HAS_MOVW)}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; assembler; nostackframe;
 asm
@@ -70,7 +71,7 @@ asm
   pop r29
   pop r28
 end;
-
+{$endif not(defined(CPUAVR_16_REGS)) and defined(CPUAVR_HAS_MOVW)}
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
@@ -92,21 +93,30 @@ end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;
-  asm
+{ this is never going to work on avr properly this way, so inline and return nil so the compiler
+  can optimize it }
+function get_frame:pointer;inline;
+  begin
+    result:=nil;
   end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
-  asm
+{ this is never going to work on avr properly this way, so inline and return nil so the compiler
+  can optimize it }
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;inline;
+  begin
+    result:=nil;
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
-  asm
+{ this is never going to work on avr properly this way, so inline and return nil so the compiler
+  can optimize it }
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;inline;
+  begin
+    result:=nil;
   end;
 
 

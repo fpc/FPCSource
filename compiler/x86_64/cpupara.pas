@@ -55,8 +55,8 @@ unit cpupara;
     uses
        cutils,verbose,
        systems,
-       defutil,
-       symtable,
+       globals,defutil,
+       symtable,symutil,
        cpupi,
        cgx86,cgobj,cgcpu;
 
@@ -178,10 +178,13 @@ unit cpupara;
                cl.typ:=X86_64_INTEGERSI_CLASS;
                { gcc/clang sign/zero-extend all values to 32 bits, except for
                  _Bool (= Pascal boolean), which is only zero-extended to 8 bits
-                 as per the x86-64 ABI -> do the same }
+                 as per the x86-64 ABI -> do the same
+
+                 some testing showed, that this is not true for 8 bit values:
+                 in case of an 8 bit value, it is not zero/sign extended }
                if not assigned(cl.def) or
-                  not is_pasbool(cl.def) or
-                  (torddef(cl.def).ordtype<>pasbool1) then
+                  not(cl.def.typ=orddef) or
+                  not(torddef(cl.def).ordtype in [uchar,u8bit,s8bit,pasbool1]) then
                  cl.def:=u32inttype;
              end
            else
@@ -760,7 +763,7 @@ unit cpupara;
         (* Merge the fields of the structure.  *)
         for i:=0 to tabstractrecorddef(def).symtable.symlist.count-1 do
           begin
-            if tsym(tabstractrecorddef(def).symtable.symlist[i]).typ<>fieldvarsym then
+            if not is_normal_fieldvarsym(tsym(tabstractrecorddef(def).symtable.symlist[i])) then
               continue;
             vs:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[i]);
             checkalignment:=true;
@@ -1358,9 +1361,9 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         if x86_64_use_ms_abi(calloption) then
-          result:=[RS_XMM0..RS_XMM5]
+          result:=[RS_XMM0..RS_XMM5,RS_XMM16..RS_XMM31]
         else
-          result:=[RS_XMM0..RS_XMM15];
+          result:=[RS_XMM0..RS_XMM15,RS_XMM16..RS_XMM31];
       end;
 
 
@@ -1454,7 +1457,12 @@ unit cpupara;
             numclasses:=classify_argument(p.proccalloption,result.def,nil,vs_value,result.def.size,classes,0,False);
             { this would mean a memory return }
             if (numclasses=0) then
-              internalerror(2010021502);
+              begin
+                { we got an error before, so we just skip all the return type generation }
+                if result.def.typ=errordef then
+                  exit;
+                internalerror(2010021502);
+              end;
 
             if (numclasses > MAX_PARA_CLASSES) then
               internalerror(2010021503);
@@ -1553,6 +1561,7 @@ unit cpupara;
                               else
                                 InternalError(2018012901);
                             end;
+                            paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                           end;
                         else
                           if (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
@@ -1858,6 +1867,7 @@ unit cpupara;
                                   else
                                     InternalError(2018012903);
                                 end;
+                                paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                               end;
                             else
                               if (use_ms_abi and (p.proccalloption <> pocall_vectorcall)) then

@@ -306,12 +306,12 @@ interface
               { should be handled in pass_1 (JM) }
               if not(torddef(left.resultdef).ordtype in [U32bit,s32bit]) or
                  (torddef(left.resultdef).typ <> torddef(right.resultdef).typ) then
-                internalerror(200109051);
+                internalerror(2001090504);
               { handled separately }
               op := OP_NONE;
             end;
           else
-            internalerror(2002072705);
+            internalerror(2002072703);
         end;
 
         if not cmpop or
@@ -483,7 +483,7 @@ interface
                      end;
                 end;
               else
-                internalerror(2002072803);
+                internalerror(2002072805);
             end;
           end
         else
@@ -604,7 +604,7 @@ interface
              end;
            stringdef :
              begin
-               internalerror(2002072402);
+               internalerror(2002072403);
                exit;
              end;
            setdef :

@@ -219,7 +219,9 @@ begin
   else if not a.signed and (a.uvalue>qword(high(int64))) then
     goto try_qword
   else
+    {$push} {$Q-}
     sspace:=a.uvalue+abs_low_int64;
+    {$pop}
   if sspace>=b then
     begin
       result.signed:=true;

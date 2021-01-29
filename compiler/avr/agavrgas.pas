@@ -93,7 +93,7 @@ unit agavrgas;
               //   internalerror(200308293);
   {$endif extdebug}
               if index<>NR_NO then
-                internalerror(2011021701)
+                internalerror(2011021707)
               else if base<>NR_NO then
                 begin
                   if addressmode=AM_PREDRECEMENT then
@@ -122,7 +122,7 @@ unit agavrgas;
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
-                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
+                    s:=ApplyAsmSymbolRestrictions(symbol.name);
 
                   if s='' then
                     s:=tostr(offset)
@@ -154,8 +154,6 @@ unit agavrgas;
       function getopstr(const o:toper) : string;
         var
           hs : string;
-          first : boolean;
-          r : tsuperregister;
         begin
           case o.typ of
             top_reg:
@@ -165,7 +163,7 @@ unit agavrgas;
             top_ref:
               if o.ref^.refaddr=addr_full then
                 begin
-                  hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
+                  hs:=ApplyAsmSymbolRestrictions(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
                     hs:=hs+'+'+tostr(o.ref^.offset)
                   else if o.ref^.offset<0 then
@@ -216,6 +214,7 @@ unit agavrgas;
             supported_targets : [system_avr_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: 's';
           );

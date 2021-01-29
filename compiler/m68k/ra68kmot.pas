@@ -82,11 +82,11 @@ unit ra68kmot;
          function try_to_consume(t : tasmtoken):boolean;
          procedure consume_all_until(tokens : tasmtokenset);
          function findopcode(const s: string; var opsize: topsize): tasmop;
-         Function BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : longint;
-         Procedure BuildConstant(maxvalue: longint);
+         Function BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : tcgint;
+         Procedure BuildConstant(constsize: tcgint);
          Procedure BuildRealConstant(typ : tfloattype);
          Procedure BuildScaling(const oper:tm68koperand);
-         Function BuildRefExpression: longint;
+         Function BuildRefExpression: tcgint;
          procedure BuildReference(const oper:tm68koperand);
          procedure BuildRegList(const oper:tm68koperand);
          procedure BuildRegPair(const oper:tm68koperand);
@@ -178,12 +178,16 @@ const
         actopcode:=tasmop(PtrUInt(iasmops.Find(hs)));
         { Also filter the helper opcodes, they can't be valid
           while reading an assembly source }
-        if not (actopcode in
-           [A_NONE, A_LABEL, A_DBXX, A_SXX, A_BXX, A_FBXX]) then
-          begin
-            actasmtoken:=AS_OPCODE;
-            result:=TRUE;
-            exit;
+        case actopcode of
+          A_NONE, A_DBXX, A_SXX, A_BXX, A_FBXX:
+            begin
+            end;
+          else
+            begin
+              actasmtoken:=AS_OPCODE;
+              result:=TRUE;
+              exit;
+            end;
           end;
       end;
 
@@ -280,10 +284,8 @@ const
 
       if c = ':' then
       begin
-           case token of
-             AS_NONE: token := AS_LABEL;
-             AS_LLABEL: ; { do nothing }
-           end; { end case }
+           if token = AS_NONE then
+             token := AS_LABEL;
            { let us point to the next character }
            c := current_scanner.asmgetchar;
            actasmtoken := token;
@@ -617,9 +619,9 @@ const
 
 
 
-    Function tm68kmotreader.BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : longint;
+    Function tm68kmotreader.BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : tcgint;
   {*********************************************************************}
-  { FUNCTION BuildExpression: longint                                   }
+  { FUNCTION BuildExpression: tcgint                                    }
   {  Description: This routine calculates a constant expression to      }
   {  a given value. The return value is the value calculated from       }
   {  the expression.                                                    }
@@ -930,72 +932,53 @@ const
   end;
 
 
-  Procedure tm68kmotreader.BuildConstant(maxvalue: longint);
+  procedure tm68kmotreader.BuildConstant(constsize: tcgint);
   {*********************************************************************}
   { PROCEDURE BuildConstant                                             }
   {  Description: This routine takes care of parsing a DB,DD,or DW      }
   {  line and adding those to the assembler node. Expressions, range-   }
-  {  checking are fullly taken care of.                                 }
-  {   maxvalue: $ff -> indicates that this is a DB node.                }
-  {             $ffff -> indicates that this is a DW node.              }
-  {             $ffffffff -> indicates that this is a DD node.          }
+  {  checking are fully taken care of.                                  }
   {*********************************************************************}
   { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
   {*********************************************************************}
   var
-   expr: string;
-   value : longint;
+    expr: string;
+    value : tcgint;
   begin
-      Repeat
-        Case actasmtoken of
-          AS_STRING: begin
-                      if maxvalue <> $ff then
-                         Message(asmr_e_string_not_allowed_as_const);
-                      expr := actasmpattern;
-                      if length(expr) > 1 then
-                        Message(asmr_e_string_not_allowed_as_const);
-                      Consume(AS_STRING);
-                      Case actasmtoken of
-                       AS_COMMA: Consume(AS_COMMA);
-                       AS_SEPARATOR: ;
-                      else
-                       Message(asmr_e_invalid_string_expression);
-                      end; { end case }
-                      ConcatString(curlist,expr);
-                    end;
-          AS_INTNUM,AS_BINNUM,
-          AS_OCTALNUM,AS_HEXNUM:
-                    begin
-                      value:=BuildExpression(false,nil);
-                      ConcatConstant(curlist,value,maxvalue);
-                    end;
-          AS_ID:
-                     begin
-                      value:=BuildExpression(false,nil);
-                      if value > maxvalue then
-                      begin
-                         Message(asmr_e_constant_out_of_bounds);
-                         { assuming a value of maxvalue }
-                         value := maxvalue;
-                      end;
-                      ConcatConstant(curlist,value,maxvalue);
-                  end;
-          { These terms can start an assembler expression }
-          AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT: begin
-                                          value := BuildExpression(false,nil);
-                                          ConcatConstant(curlist,value,maxvalue);
-                                         end;
-          AS_COMMA:  begin
-                       Consume(AS_COMMA);
-                     END;
-          AS_SEPARATOR: ;
+    repeat
+      case actasmtoken of
+        AS_STRING:
+            begin
+              expr:=actasmpattern;
+              Consume(AS_STRING);
+              if (constsize <> 1) or (length(expr) > 1) then
+                Message(asmr_e_string_not_allowed_as_const);
 
-        else
-         begin
-           Message(asmr_e_syntax_error);
-         end;
-    end; { end case }
-   Until actasmtoken = AS_SEPARATOR;
+              if not (actasmtoken in [AS_COMMA, AS_SEPARATOR]) then
+                Message(asmr_e_invalid_string_expression);
+
+              ConcatString(curlist,expr);
+            end;
+        AS_ID,
+        AS_INTNUM,AS_BINNUM,
+        AS_OCTALNUM,AS_HEXNUM,
+        { These terms can start an assembler expression }
+        AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT:
+            begin
+              value:=BuildExpression(false,nil);
+              ConcatConstant(curlist,value,constsize);
+            end;
+        AS_COMMA:
+            begin
+              Consume(AS_COMMA);
+            end;
+        AS_SEPARATOR: ;
+      else
+        begin
+          Message(asmr_e_syntax_error);
+        end;
+      end; { end case }
+    until actasmtoken = AS_SEPARATOR;
   end;
 
 
@@ -1055,9 +1038,9 @@ const
   end;
 
 
-  Function TM68kMotreader.BuildRefExpression: longint;
+  Function TM68kMotreader.BuildRefExpression: tcgint;
   {*********************************************************************}
-  { FUNCTION BuildRefExpression: longint                                   }
+  { FUNCTION BuildRefExpression: tcgint                                 }
   {  Description: This routine calculates a constant expression to      }
   {  a given value. The return value is the value calculated from       }
   {  the expression.                                                    }
@@ -1146,10 +1129,17 @@ const
             end;
         else
           begin
+            if actasmtoken in [AS_COMMA,AS_SEPARATOR] then
+              begin
+                { no longer in an expression }
+                if not ErrorFlag then
+                  BuildRefExpression := CalculateExpression(expr);
+                exit;
+              end;
+
             { write error only once. }
             if not errorflag then
               Message(asmr_e_invalid_constant_expression);
-            if actasmtoken in [AS_COMMA,AS_SEPARATOR] then exit;
             { consume tokens until we find COMMA or SEPARATOR }
             errorflag := true;
         end;
@@ -1173,7 +1163,7 @@ const
   {*********************************************************************}
   procedure TM68kMotreader.BuildReference(const oper:tm68koperand);
     var
-      l:longint;
+      l:tcgint;
       code: integer;
       str: string;
     begin
@@ -1419,7 +1409,8 @@ const
                          Message(asmr_e_invalid_operand_type);
                       { identifiers are handled by BuildExpression }
                       oper.opr.typ := OPR_CONSTANT;
-                      oper.opr.val :=BuildExpression(true,@tempstr);
+                      l:=BuildExpression(true,@tempstr);
+                      oper.opr.val :=aint(l);
                       if tempstr<>'' then
                         begin
                           l:=oper.opr.val;
@@ -1429,13 +1420,13 @@ const
                         end;
                  end;
    { // Constant memory offset .              // }
-   { // This must absolutely be followed by ( // }
      AS_HEXNUM,AS_INTNUM,
      AS_BINNUM,AS_OCTALNUM,AS_PLUS:
                    begin
                       Oper.InitRef;
                       oper.opr.ref.offset:=BuildRefExpression;
-                      BuildReference(oper);
+                      if actasmtoken = AS_LPAREN then
+                        BuildReference(oper);
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  begin
@@ -1473,7 +1464,8 @@ const
                    begin
                      Oper.InitRef;
                      oper.opr.ref.offset:=BuildRefExpression;
-                     BuildReference(oper);
+                     if actasmtoken = AS_LPAREN then
+                       BuildReference(oper);
                    end
                  else { is it a label variable ? }
 
@@ -1513,10 +1505,14 @@ const
                                 if oper.opr.typ=OPR_SYMBOL then
                                   oper.initref;
                               end;
+                            else
+                              ;
                           end;
                         end
                        else
                         begin
+                          if actasmtoken = AS_LPAREN then
+                            oper.initref;
                           if not oper.SetupVar(expr,false) then
                             begin
                               { not a variable, check special variables.. }
@@ -1698,17 +1694,17 @@ const
               AS_DW:
                 begin
                   Consume(AS_DW);
-                  BuildConstant($ffff);
+                  BuildConstant(sizeof(word));
                 end;
               AS_DB:
                 begin
                   Consume(AS_DB);
-                  BuildConstant($ff);
+                  BuildConstant(sizeof(byte));
                 end;
               AS_DD:
                 begin
                   Consume(AS_DD);
-                  BuildConstant(longint($ffffffff));
+                  BuildConstant(sizeof(dword));
                 end;
               AS_XDEF:
                 begin

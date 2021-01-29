@@ -126,7 +126,6 @@ unit cgppc;
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
-     function cgsize2string(const size : TCgSize) : string;
      function cgop2string(const op : TOpCg) : String;
 {$endif extdebug}
 
@@ -149,35 +148,6 @@ unit cgppc;
          result := 'base : ' + inttostr(ord(ref.base)) + ' index : ' + inttostr(ord(ref.index)) + ' refaddr : ' + inttostr(ord(ref.refaddr)) + ' offset : ' + inttostr(ref.offset) + ' symbol : ';
          if (assigned(ref.symbol)) then
            result := result + ref.symbol.name;
-       end;
-
-     function cgsize2string(const size : TCgSize) : string;
-       const
-       (* TCgSize = (OS_NO,
-                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
-                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
-                 { single, double, extended, comp, float128 }
-                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
-                 { multi-media sizes: split in byte, word, dword, ... }
-                 { entities, then the signed counterparts             }
-                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512,
-                  OS_MS8, OS_MS16, OS_MS32, OS_MS64, OS_MS128, OS_MS256, OS_MS512,
-                 { multi-media sizes: single-precision floating-point }
-                  OS_MF32, OS_MF128, OS_MF256, OS_MF512,
-                 { multi-media sizes: double-precision floating-point }
-                  OS_MD64, OS_MD128, OS_MD256, OS_MD512); *)
-
-          cgsize_strings : array[TCgSize] of string[8] = (
-           'OS_NO',
-           'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128',
-           'OS_S8', 'OS_S16', 'OS_S32', 'OS_S64', 'OS_S128',
-           'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
-           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_M512',
-           'OS_MS8', 'OS_MS16', 'OS_MS32', 'OS_MS64', 'OS_MS128', 'OS_MS256', 'OS_MS512',
-           'OS_MF32', 'OS_MF128', 'OS_MF256', 'OS_MF512',
-           'OS_MD64', 'OS_MD128', 'OS_MD256', 'OS_MD512');
-       begin
-         result := cgsize_strings[size];
        end;
 
      function cgop2string(const op : TOpCg) : String;
@@ -417,7 +387,7 @@ unit cgppc;
          fixref(list,ref2);
          if assigned(ref2.symbol) then
            begin
-             if target_info.system = system_powerpc_macos then
+             if target_info.system = system_powerpc_macosclassic then
                begin
                  if macos_direct_globals then
                    begin
@@ -563,11 +533,10 @@ unit cgppc;
         );
     var
       ref2: TReference;
-      tmpreg: tregister;
       op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
-        internalerror(2002090904);
+        internalerror(2002090911);
       if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090905);
 
@@ -712,7 +681,7 @@ unit cgppc;
         begin
           pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(list,pd,1,paraloc1);
+          paramanager.getcgtempparaloc(list,pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;
@@ -812,9 +781,6 @@ unit cgppc;
       AutoDirectTOCLimit = (high(smallint) div sizeof(pint)) - 500;
     var
       tmpref: treference;
-      { can have more than 16384 (32 bit) or 8192 (64 bit) toc entries and, as
-        as consequence, toc subsections -> 5 extra characters for the number}
-      tocsecname: string[length('tocsubtable')+5];
       nlsymname: string;
       newsymname: ansistring;
       sym: TAsmSymbol;
@@ -850,7 +816,7 @@ unit cgppc;
                 current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
                 current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
-              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname);
               current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
         end
@@ -883,7 +849,7 @@ unit cgppc;
               ref.symbol:=tocsym;
               tocsym.ftocsecnr:=tocnr;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
-              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname);
               sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
             end;
@@ -1117,7 +1083,7 @@ unit cgppc;
         tmpreg := NR_NO;
         largeOffset:= hasLargeOffset(ref);
 
-        if target_info.system in ([system_powerpc_macos]+systems_aix) then
+        if target_info.system in ([system_powerpc_macosclassic]+systems_aix) then
           begin
 
             if assigned(ref.symbol) and
@@ -1190,7 +1156,7 @@ unit cgppc;
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end
-        else {if target_info.system <> system_powerpc_macos}
+        else {if target_info.system <> system_powerpc_macosclassic}
           begin
             if assigned(ref.symbol) or
                largeOffset then

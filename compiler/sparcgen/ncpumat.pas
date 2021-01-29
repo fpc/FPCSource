@@ -449,9 +449,9 @@ implementation
 
     procedure tsparcnotnode.second_boolean;
       begin
+        secondpass(left);
         if not handle_locjump then
           begin
-            secondpass(left);
             case left.location.loc of
               LOC_FLAGS :
                 begin

@@ -170,12 +170,17 @@ interface
          { initial heap segment for 16-bit DOS }
          sec_heap,
          { dwarf based/gcc style exception handling }
-         sec_gcc_except_table
+         sec_gcc_except_table,
+         sec_arm_attribute
        );
 
        TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
+
+       TSectionFlag = (SF_A,SF_W,SF_X);
+       TSectionFlags = set of TSectionFlag;
+       TSectionProgbits = (SPB_None,SPB_PROGBITS,SPB_NOBITS,SPB_NOTE,SPB_ARM_ATTRIBUTES);
 
        TAsmSymbol = class(TFPHashObject)
        private
@@ -224,6 +229,7 @@ interface
          labeltype : TAsmLabelType;
          is_set    : boolean;
          is_public : boolean;
+         defined_in_asmstatement : boolean;
          constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
@@ -234,7 +240,7 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -251,7 +257,7 @@ interface
 implementation
 
     uses
-      verbose;
+      verbose,fpccrc;
 
 
     function create_smartlink_sections:boolean;inline;
@@ -282,16 +288,33 @@ implementation
       end;
 
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
         i : longint;
-        rchar: char;
+        rchar, ochar: char;
+        crc: Cardinal;
+        charstoremove: integer;
       begin
         Result:=s;
         rchar:=target_asm.dollarsign;
-        for i:=1 to Length(Result) do
-          if Result[i]='$' then
-            Result[i]:=rchar;
+        if target_asm.id=as_i386_wasm then
+          ochar:='.'
+        else
+          ochar:='$';
+        if (ochar<>rchar) then
+          for  i:=1 to Length(Result) do
+            if Result[i]=ochar then
+              Result[i]:=rchar;
+        if (target_asm.labelmaxlen<>-1) and (Length(Result)>target_asm.labelmaxlen) then
+          begin
+            crc:=0;
+            crc:=UpdateCrc32(crc,Result[1],Length(Result));
+            charstoremove:=Length(Result)-target_asm.labelmaxlen+13;
+            Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
+            Result:='_'+target_asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
+            if Length(Result)>target_asm.labelmaxlen then
+              Internalerror(2020042502);
+          end;
       end;
 
 

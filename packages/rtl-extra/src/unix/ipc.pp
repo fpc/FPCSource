@@ -546,7 +546,7 @@ type
     msg_lrpid  : ipc_pid_t;
     pad1 : qword;
     pad2 : qword;
-{$ENDIF}    
+{$ENDIF}
   end;
 {$else}
   {$if defined(Darwin)}
@@ -888,7 +888,7 @@ uses Syscall;
 
 {$ifndef FPC_USE_LIBC}
  {$if defined(Linux)}
-  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpuriscv32) or defined(cpuriscv64) or defined(NO_SYSCALL_IPC)}
+  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpuriscv32) or defined(cpuriscv64) or defined(cpuxtensa) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}
     {$i ipccall.inc}

@@ -74,6 +74,7 @@ interface
       private
         FClassName: string;
         FOverlayName: string;
+        FFirstSym: TObjSymbol;
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
         FPrimaryGroup: TObjSectionGroup;
@@ -81,6 +82,8 @@ interface
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         FLinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList;
         function GetOmfAlignment: TOmfSegmentAlignment;
+      protected
+        function GetAltName: string; override;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         destructor destroy;override;
@@ -128,9 +131,8 @@ interface
       public
         constructor create(const n:string);override;
         destructor destroy;override;
-        function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
-        function sectiontype2class(atype:TAsmSectiontype):string;
+        class function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
@@ -336,15 +338,15 @@ interface
         property DwarfUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property Header: TMZExeHeader read FHeader;
       protected
-        procedure Load_Symbol(const aname:string);override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
-        procedure MemPos_ExeSection(const aname:string);override;
-        procedure MemPos_EndExeSection;override;
         function writeData:boolean;override;
       public
         constructor create;override;
         destructor destroy;override;
+        procedure Load_Symbol(const aname:string);override;
+        procedure MemPos_EndExeSection;override;
+        procedure MemPos_ExeSection(const aname:string);override;
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
@@ -801,7 +803,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,verbose,globals,
+       cutils,verbose,globals,fpccrc,
        fmodule,aasmtai,aasmdata,
        ogmap,owomflib,elfbase,
        version
@@ -905,7 +907,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041408);
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_RELATIVE16,RELOC_RELATIVE32] then
               begin
                 FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
@@ -943,7 +945,7 @@ implementation
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
-              internalerror(2015041501);
+              internalerror(2015041505);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
@@ -951,7 +953,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041409);
             FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
@@ -966,7 +968,7 @@ implementation
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
-              internalerror(2015041501);
+              internalerror(2015041506);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
             if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
@@ -974,7 +976,7 @@ implementation
             else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
-              internalerror(2015041401);
+              internalerror(2015041410);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
             FOmfFixup.TargetDatum:=group.index;
@@ -1005,6 +1007,14 @@ implementation
           else
             internalerror(2015041504);
         end;
+      end;
+
+    function TOmfObjSection.GetAltName: string;
+      begin
+        if FFirstSym<>nil then
+          result:='/'+FFirstSym.Name
+        else
+          result:='';
       end;
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
@@ -1043,7 +1053,7 @@ implementation
         if current_settings.x86memorymodel in x86_far_code_models then
           begin
             if cs_huge_code in current_settings.moduleswitches then
-              result:=aname + '_TEXT'
+              result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
           end
@@ -1070,21 +1080,12 @@ implementation
         inherited destroy;
       end;
 
-    function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
-      begin
-        Result:=inherited sectiontype2options(atype);
-        { in the huge memory model, BSS data is actually written in the regular
-          FAR_DATA segment of the module }
-        if sectiontype2class(atype)='FAR_DATA' then
-          Result:=Result+[oso_data,oso_sparse_data];
-      end;
-
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): longint;
       begin
         Result:=omf_sectiontype2align(atype);
       end;
 
-    function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
+    class function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
       begin
         Result:=omf_segclass(atype);
       end;
@@ -1189,14 +1190,14 @@ implementation
         else if Reloctype=RELOC_FARPTR48 then
           begin
             if len<>6 then
-              internalerror(2015041502);
+              internalerror(2015041507);
             writeReloc(Data,4,p,RELOC_ABSOLUTE32);
             writeReloc(0,2,p,RELOC_SEG);
             exit;
           end;
 
         if CurrObjSec=nil then
-          internalerror(200403072);
+          internalerror(2004030704);
         objreloc:=nil;
         if Reloctype in [RELOC_FARDATASEG,RELOC_FARDATASEGREL] then
           begin
@@ -1341,7 +1342,7 @@ implementation
         if (oso_data in sec.SecOptions) then
           begin
             if sec.Data=nil then
-              internalerror(200403073);
+              internalerror(2004030705);
             for I:=0 to sec.ObjRelocations.Count-1 do
               TOmfRelocation(sec.ObjRelocations[I]).BuildOmfFixup;
             SegIndex:=Segments.FindIndexOf(sec.Name);
@@ -1425,7 +1426,7 @@ implementation
         if (oso_data in sec.SecOptions) then
           begin
             if sec.Data=nil then
-              internalerror(200403073);
+              internalerror(2004030706);
             if sec.LinNumEntries.Count=0 then
               exit;
             SegIndex:=Segments.FindIndexOf(sec.Name);
@@ -1519,7 +1520,6 @@ implementation
         RawRecord: TOmfRawRecord;
         i,idx: Integer;
         objsym: TObjSymbol;
-        ExternalNameElem: TOmfExternalNameElement;
         ExtDefRec: TOmfRecord_EXTDEF;
       begin
         ExtNames:=TFPHashObjectList.Create;
@@ -1531,7 +1531,7 @@ implementation
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
             if objsym.bind=AB_EXTERNAL then
               begin
-                ExternalNameElem:=TOmfExternalNameElement.Create(ExtNames,objsym.Name);
+                TOmfExternalNameElement.Create(ExtNames,objsym.Name);
                 objsym.symidx:=idx;
                 Inc(idx);
               end;
@@ -1566,7 +1566,6 @@ implementation
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
         nsections,ngroups: Integer;
-        objsym: TObjSymbol;
       begin
         { calc amount of sections we have and set their index, starting with 1 }
         nsections:=1;
@@ -1993,6 +1992,8 @@ implementation
             objsym.objsection:=objsec;
             objsym.offset:=PubDefElem.PublicOffset;
             objsym.size:=0;
+            if (objsym.bind=AB_GLOBAL) and (objsec.FFirstSym=nil) then
+              objsec.FFirstSym:=objsym;
           end;
         PubDefRec.Free;
         Result:=True;
@@ -2100,7 +2101,7 @@ implementation
               if Is32Bit then
                 begin
                   if (NextOfs+3)>=RawRec.RecordLength then
-                    internalerror(2015040504);
+                    internalerror(2015040512);
                   EnumeratedDataOffset := RawRec.RawData[NextOfs]+
                                          (RawRec.RawData[NextOfs+1] shl 8)+
                                          (RawRec.RawData[NextOfs+2] shl 16)+
@@ -2110,7 +2111,7 @@ implementation
               else
                 begin
                   if (NextOfs+1)>=RawRec.RecordLength then
-                    internalerror(2015040504);
+                    internalerror(2015040513);
                   EnumeratedDataOffset := RawRec.RawData[NextOfs]+
                                          (RawRec.RawData[NextOfs+1] shl 8);
                   Inc(NextOfs,2);
@@ -2158,7 +2159,7 @@ implementation
               FixupRawRec:=RawRec;
             end;
           else
-            internalerror(2015040301);
+            internalerror(2015040316);
         end;
 
         { also read all the FIXUPP records that may follow;                     }
@@ -2909,7 +2910,7 @@ implementation
         i: Integer;
       begin
         if SegmentList.Count=0 then
-          internalerror(2015082201);
+          internalerror(2015082202);
         for i:=0 to SegmentList.Count-1 do
           begin
             UniSeg:=TMZExeUnifiedLogicalSegment(SegmentList[i]);
@@ -3154,9 +3155,6 @@ implementation
         i: Integer;
         ExeSec: TMZExeSection;
         ObjSec: TOmfObjSection;
-        StartDataPos: LongWord;
-        buf: array [0..1023] of byte;
-        bytesread: LongWord;
       begin
         Header.LoadableImageSize:=0;
         ExeSec:=MZFlatContentSection;
@@ -3268,7 +3266,6 @@ implementation
         i: Integer;
         ExeSec: TMZExeSection;
         ObjSec: TOmfObjSection;
-        StartDataPos: LongWord;
         buf: array [0..1023] of byte;
         bytesread: LongWord;
       begin
@@ -3543,7 +3540,13 @@ cleanup:
                 else if assigned(objreloc.symbol.group) then
                   framebase:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups.Find(objreloc.symbol.group.Name)).MemPos
                 else
-                  framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
+                  if assigned(TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment) then
+                    framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos
+                  else
+                    begin
+                      framebase:=0;
+                      Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
+                    end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
                     fixupamount:=target-framebase;
@@ -3592,7 +3595,7 @@ cleanup:
                     else
                       begin
                         framebase:=0;
-                        Comment(V_Warning,'Encountered an OMF reference to a section, that has been removed by smartlinking: '+TOmfObjSection(objreloc.objsection).Name);
+                        Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
                       end;
                   end;
                 case objreloc.typ of
@@ -4093,9 +4096,8 @@ cleanup:
 
     function TNewExeEntryTable.GetSize: QWord;
       var
-        CurBundleStart, i: Integer;
+        CurBundleStart: Integer;
         CurBundleSize: Byte;
-        cp: TNewExeEntryPoint;
       begin
         Result:=0;
         CurBundleStart:=1;
@@ -4156,7 +4158,7 @@ cleanup:
     function TNewExeEntryTable.GetItems(i: Integer): TNewExeEntryPoint;
       begin
         if (i<1) or (i>Length(FItems)) then
-          internalerror(2019081002);
+          internalerror(2019081011);
         Result:=FItems[i-1];
       end;
 
@@ -4408,7 +4410,7 @@ cleanup:
       var
         s: TSymStr;
         Separator: SizeInt;
-        SegName, SegClass: string;
+        {SegName,} SegClass: string;
         IsStack, IsBss: Boolean;
       begin
         { allow mixing initialized and uninitialized data in the same section
@@ -4420,12 +4422,12 @@ cleanup:
         Separator:=Pos('||',s);
         if Separator>0 then
           begin
-            SegName:=Copy(s,1,Separator-1);
+            //SegName:=Copy(s,1,Separator-1);
             SegClass:=Copy(s,Separator+2,Length(s)-Separator-1);
           end
         else
           begin
-            SegName:=s;
+            //SegName:=s;
             SegClass:='';
           end;
         { wlink recognizes the stack segment by the class name 'STACK' }
@@ -4930,6 +4932,7 @@ cleanup:
             supported_targets : [system_i8086_msdos,system_i8086_embedded,system_i8086_win16];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );

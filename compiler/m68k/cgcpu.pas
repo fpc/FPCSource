@@ -576,8 +576,8 @@ unit cgcpu;
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_const_cgpara(list,size,a,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg,paraloc1);
         paramanager.freecgpara(list,paraloc2);
@@ -600,8 +600,8 @@ unit cgcpu;
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
         paramanager.freecgpara(list,paraloc2);
@@ -1051,10 +1051,40 @@ unit cgcpu;
     procedure tcg68k.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);
       var
         instr : taicpu;
+        op: tasmop;
+        href: treference;
+        hreg: tregister;
       begin
-        instr:=taicpu.op_reg_reg(A_FMOVE,fpuregopsize,reg1,reg2);
-        add_move_instruction(instr);
-        list.concat(instr);
+        if fromsize > tosize then
+          begin
+            { we have to do a load-store through an intregister or the stack in this case,
+              which is probably the fastest way, and simpler than messing around with FPU control
+              words for one-off custom rounding (KB) }
+            case tosize of
+              OS_F32:
+                  begin
+                    //list.concat(tai_comment.create(strpnew('a_loadfpu_reg_reg rounding via intreg')));
+                    hreg := getintregister(list,OS_32);
+                    list.concat(taicpu.op_reg_reg(A_FMOVE, tcgsize2opsize[tosize], reg1, hreg));
+                    list.concat(taicpu.op_reg_reg(A_FMOVE, tcgsize2opsize[tosize], hreg, reg2));
+                  end;
+            else
+              begin
+                //list.concat(tai_comment.create(strpnew('a_loadfpu_reg_reg rounding via stack')));
+                reference_reset_base(href, NR_STACK_POINTER_REG, 0, ctempposinvalid, 0, []);
+                href.direction:=dir_dec;
+                list.concat(taicpu.op_reg_ref(A_FMOVE, tcgsize2opsize[tosize], reg1, href));
+                href.direction:=dir_inc;
+                list.concat(taicpu.op_ref_reg(A_FMOVE, tcgsize2opsize[tosize], href, reg2));
+              end;
+            end;
+          end
+        else
+          begin
+            instr:=taicpu.op_reg_reg(A_FMOVE,fpuregopsize,reg1,reg2);
+            add_move_instruction(instr);
+            list.concat(instr);
+          end;
       end;
 
 
@@ -1067,6 +1097,8 @@ unit cgcpu;
         href := ref;
         fixref(list,href,current_settings.fputype = fpu_coldfire);
         list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+        if fromsize > tosize then
+          a_load_reg_reg(list,fromsize,tosize,reg,reg);
       end;
 
     procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
@@ -1084,7 +1116,7 @@ unit cgcpu;
       var
         ref : treference;
       begin
-        if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+        if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
           begin
             cgpara.check_simple_location;
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, ctempposinvalid, cgpara.alignment, []);
@@ -1117,7 +1149,7 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+          if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
             begin
               //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara copy')));
               cgpara.check_simple_location;
@@ -1155,6 +1187,13 @@ unit cgcpu;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
+        if (a >0) and (a<=high(dword)) then
+          a:=longint(dword(a))
+        else if (a>=low(longint)) then
+          a:=longint(a)
+        else
+          internalerror(201810201);
+
         case op of
           OP_NONE :
             begin
@@ -1187,7 +1226,7 @@ unit cgcpu;
           OP_DIV,
           OP_IDIV:
               begin
-                 internalerror(20020816);
+                 internalerror(2002081601);
               end;
           OP_MUL,
           OP_IMUL:
@@ -1287,7 +1326,7 @@ unit cgcpu;
                 move_if_needed(list, size, scratch_reg, reg);
               end;
         else
-            internalerror(20020729);
+            internalerror(2002072901);
          end;
       end;
 
@@ -1418,7 +1457,7 @@ unit cgcpu;
           OP_DIV,
           OP_IDIV :
               begin
-                internalerror(20020816);
+                internalerror(2002081602);
               end;
           OP_MUL,
           OP_IMUL:
@@ -1464,7 +1503,7 @@ unit cgcpu;
                 move_if_needed(list, size, hreg2, dst);
               end;
         else
-            internalerror(20020729);
+            internalerror(2002072902);
          end;
       end;
 
@@ -1730,7 +1769,10 @@ unit cgcpu;
          srcrefp,dstrefp : treference;
          srcref,dstref : treference;
       begin
-         if (len = 1) or ((len in [2,4]) and (current_settings.cputype <> cpu_mc68000)) then
+         if (len = 1) or
+            ((len in [2,4]) and
+             not needs_unaligned(source.alignment,lentocgsize[len]) and
+             not needs_unaligned(dest.alignment,lentocgsize[len])) then
            begin
              //list.concat(tai_comment.create(strpnew('g_concatcopy: small')));
              a_load_ref_ref(list,lentocgsize[len],lentocgsize[len],source,dest);
@@ -1836,10 +1878,12 @@ unit cgcpu;
             { MUL/DIV always sets the overflow flag, and never the carry flag }
             { Note/Fixme: This still doesn't cover the ColdFire, where none of these opcodes
               set either the overflow or the carry flag. So CF must be handled in other ways. }
-            if taicpu(list.last).opcode in [A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL] then
-              cond:=C_VC
-            else
-              cond:=C_CC;
+            case taicpu(list.last).opcode of
+              A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL:
+                cond:=C_VC;
+              else
+                cond:=C_CC;
+            end;
           end;
         ai:=Taicpu.Op_Sym(A_Bxx,S_NO,hl);
         ai.SetCondition(cond);
@@ -1859,13 +1903,22 @@ unit cgcpu;
           begin
             localsize:=align(localsize,4);
 
-            if (localsize > high(smallint)) then
+            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
               begin
-                list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
-                list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
+                if (localsize > high(smallint)) then
+                  begin
+                    list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
+                    list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
+                  end
+                else
+                  list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
               end
             else
-              list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
+              begin
+                if localsize<>0 then
+                  list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
+                current_procinfo.final_localsize:=localsize;
+              end;
           end;
       end;
 
@@ -1875,59 +1928,75 @@ unit cgcpu;
         ref : TReference;
         ref2: TReference;
       begin
+        { if a subroutine is marked as non-returning, we do
+          not generate any exit code, so we really trust the noreturn directive
+        }
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
         if not nostackframe then
           begin
-            list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
-
-            { if parasize is less than zero here, we probably have a cdecl function.
-              According to the info here: http://www.makestuff.eu/wordpress/gcc-68000-abi/
-              68k GCC uses two different methods to free the stack, depending if the target
-              architecture supports RTD or not, and one does callee side, the other does
-              caller side free, which looks like a PITA to support. We have to figure this 
-              out later. More info welcomed. (KB) }
-
-            if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
+            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
               begin
-                if CPUM68K_HAS_RTD in cpu_capabilities[current_settings.cputype] then
-                  list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
-                else
+                list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
+
+                { if parasize is less than zero here, we probably have a cdecl function.
+                  According to the info here: http://www.makestuff.eu/wordpress/gcc-68000-abi/
+                  68k GCC uses two different methods to free the stack, depending if the target
+                  architecture supports RTD or not, and one does callee side, the other does
+                  caller side free, which looks like a PITA to support. We have to figure this
+                  out later. More info welcomed. (KB) }
+
+                if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
                   begin
-                    { We must pull the PC Counter from the stack, before  }
-                    { restoring the stack pointer, otherwise the PC would }
-                    { point to nowhere!                                   }
+                    if CPUM68K_HAS_RTD in cpu_capabilities[current_settings.cputype] then
+                      list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
+                    else
+                      begin
+                        { We must pull the PC Counter from the stack, before  }
+                        { restoring the stack pointer, otherwise the PC would }
+                        { point to nowhere!                                   }
 
-                    { Instead of doing a slow copy of the return address while trying    }
-                    { to feed it to the RTS instruction, load the PC to A1 (scratch reg) }
-                    { then free up the stack allocated for paras, then use a JMP (A1) to }
-                    { return to the caller with the paras freed. (KB) }
+                        { Instead of doing a slow copy of the return address while trying    }
+                        { to feed it to the RTS instruction, load the PC to A1 (scratch reg) }
+                        { then free up the stack allocated for paras, then use a JMP (A1) to }
+                        { return to the caller with the paras freed. (KB) }
 
-                    hregister:=NR_A1;
-                    cg.a_reg_alloc(list,hregister);
-                    reference_reset_base(ref,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
-                    list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
+                        hregister:=NR_A1;
+                        cg.a_reg_alloc(list,hregister);
+                        reference_reset_base(ref,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
+                        list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
 
-                    { instead of using a postincrement above (which also writes the     }
-                    { stackpointer reg) simply add 4 to the parasize, the instructions  }
-                    { below then take that size into account as well, so SP reg is only }
-                    { written once (KB) }
-                    parasize:=parasize+4;
+                        { instead of using a postincrement above (which also writes the     }
+                        { stackpointer reg) simply add 4 to the parasize, the instructions  }
+                        { below then take that size into account as well, so SP reg is only }
+                        { written once (KB) }
+                        parasize:=parasize+4;
 
-                    r:=NR_SP;
-                    { can we do a quick addition ... }
-                    if (parasize < 9) then
-                       list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
-                    else { nope ... }
-                       begin
-                         reference_reset_base(ref2,NR_STACK_POINTER_REG,parasize,ctempposinvalid,4,[]);
-                         list.concat(taicpu.op_ref_reg(A_LEA,S_NO,ref2,r));
-                       end;
+                        r:=NR_SP;
+                        { can we do a quick addition ... }
+                        if (parasize < 9) then
+                           list.concat(taicpu.op_const_reg(A_ADDQ,S_L,parasize,r))
+                        else { nope ... }
+                           begin
+                             reference_reset_base(ref2,NR_STACK_POINTER_REG,parasize,ctempposinvalid,4,[]);
+                             list.concat(taicpu.op_ref_reg(A_LEA,S_NO,ref2,r));
+                           end;
 
-                    reference_reset_base(ref,hregister,0,ctempposinvalid,4,[]);
-                    list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
-                  end;
+                        reference_reset_base(ref,hregister,0,ctempposinvalid,4,[]);
+                        list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
+                      end;
+                    end
+                  else
+                    list.concat(taicpu.op_none(A_RTS,S_NO));
               end
             else
-              list.concat(taicpu.op_none(A_RTS,S_NO));
+              begin
+                if parasize<>0 then
+                  Internalerror(2020112901);
+                if  current_procinfo.final_localsize<>0 then
+                  list.concat(taicpu.op_const_reg(A_ADDA,S_L,current_procinfo.final_localsize,NR_STACK_POINTER_REG));
+                list.concat(taicpu.op_none(A_RTS,S_NO));
+              end;
           end
         else
           begin
@@ -2163,6 +2232,8 @@ unit cgcpu;
                   else
                     list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
                 end;
+              else
+                ;
             end;
           OS_S32, OS_32:
             case _oldsize of
@@ -2201,11 +2272,15 @@ unit cgcpu;
               OS_16:
                 begin
                   if (isaddressregister(reg)) then
-                    internalerror(2015031502);
+                    internalerror(2015031503);
                   //list.concat(tai_comment.create(strpnew('zero extend word')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
                 end;
+              else
+                ;
             end;
+          else
+            ;
         end; { otherwise the size is already correct }
       end; 
 
@@ -2237,14 +2312,11 @@ unit cgcpu;
     function tcg68k.force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
       var
         scratch_reg: TRegister;
-        instr: Taicpu;
       begin
         if isaddressregister(reg) then
           begin
             scratch_reg:=getintregister(list,OS_INT);
-            instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg);
-            add_move_instruction(instr);
-            list.concat(instr);
+            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,scratch_reg));
             result:=scratch_reg;
           end
         else
@@ -2448,6 +2520,8 @@ unit cgcpu;
               list.concat(taicpu.op_reg(opcode,S_L,regdst.reglo));
               list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
             end;
+          else
+            ;
         end; { end case }
       end;
 
@@ -2549,27 +2623,29 @@ unit cgcpu;
             begin
               hreg:=cg.getintregister(list,OS_INT);
               { cg.a_load_const_reg provides optimized loading to register for special cases }
-              cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
+              cg.a_load_const_reg(list,OS_S32,tcgint(highvalue),hreg);
               { don't use cg.a_op_const_reg() here, because a possible optimized
                 ADDQ/SUBQ wouldn't set the eXtend bit }
-              list.concat(taicpu.op_const_reg(opcode,S_L,longint(lowvalue),regdst.reglo));
+              list.concat(taicpu.op_const_reg(opcode,S_L,tcgint(lowvalue),regdst.reglo));
               list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
             end;
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,OS_S32,longint(lowvalue),regdst.reglo);
-              cg.a_op_const_reg(list,op,OS_S32,longint(highvalue),regdst.reghi);
+              cg.a_op_const_reg(list,op,OS_S32,tcgint(lowvalue),regdst.reglo);
+              cg.a_op_const_reg(list,op,OS_S32,tcgint(highvalue),regdst.reghi);
             end;
           { this is handled in 1st pass for 32-bit cpus (helper call) }
           OP_IDIV,OP_DIV,
           OP_IMUL,OP_MUL:
-            internalerror(2002081701);
+            internalerror(2002081703);
           { this is also handled in 1st pass for 32-bit cpus (helper call) }
           OP_SAR,OP_SHL,OP_SHR:
-            internalerror(2002081702);
+            internalerror(2002081704);
           { these should have been handled already by earlier passes }
           OP_NOT,OP_NEG:
             internalerror(2012110403);
+          else
+            ;
         end; { end case }
       end;
 

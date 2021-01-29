@@ -52,7 +52,7 @@ type
       destructor Destroy;override;
    end;
 
-   THandleObject = class(TSynchroObject)
+   THandleObject = class abstract  (TSynchroObject)
    protected
       FHandle : TEventHandle;
       FLastError : Integer;

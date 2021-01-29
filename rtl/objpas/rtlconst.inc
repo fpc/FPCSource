@@ -309,7 +309,8 @@ ResourceString
   SErrCannotWriteToProperty     = 'Cannot write to property "%s".';
   SErrCannotReadProperty        = 'Cannot read property "%s".';
   SErrNoNameValuePairAt         = 'No name=value pair at position %d.';
-
+  SErrCannotConvertNullToType   = 'Cannot convert Null to type %s';
+  
 { ---------------------------------------------------------------------
     Keysim Names
   ---------------------------------------------------------------------}

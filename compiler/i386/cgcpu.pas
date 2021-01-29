@@ -56,6 +56,7 @@ unit cgcpu;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref: treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -308,7 +309,14 @@ unit cgcpu;
           list.concat(Taicpu.op_none(A_EMMS,S_NO));
 
         { remove stackframe }
-        if not nostackframe then
+        if not(nostackframe) and
+          { we do not need an exit stack frame when we never return
+
+            * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
+            * the entry stack frame must be normally generated because the subroutine could be still left by
+              an exception and then the unwinding code might need to restore the registers stored by the entry code
+          }
+          not(po_noreturn in current_procinfo.procdef.procoptions) then
           begin
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
@@ -330,10 +338,11 @@ unit cgcpu;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
+        if pi_uses_ymm in current_procinfo.flags then
+          list.Concat(taicpu.op_none(A_VZEROUPPER));
+
         { return from proc }
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
-           { this messes up stack alignment }
-           (target_info.stackalign=4) then
+        if po_interrupt in current_procinfo.procdef.procoptions then
           begin
             if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
                (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
@@ -540,9 +549,8 @@ unit cgcpu;
         tmpreg: TRegister;
       begin
         { allocate PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in target_info.flags) and
+          (pi_needs_got in current_procinfo.flags) then
           begin
             if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
@@ -628,7 +636,7 @@ unit cgcpu;
               op2:=A_AND;
             end;
           else
-            internalerror(200203241);
+            internalerror(2002032408);
         end;
       end;
 
@@ -667,27 +675,8 @@ unit cgcpu;
         l1, l2: TAsmLabel;
       begin
         case op of
-          OP_NOT:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-            end;
-          OP_NEG:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-              dec(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
-              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-            end;
+          OP_NOT,OP_NEG:
+            inherited;
           OP_SHR,OP_SHL,OP_SAR:
             begin
               { load right operators in a register }
@@ -868,7 +857,7 @@ unit cgcpu;
                     list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reghi));
                   end;
                 else
-                  internalerror(2017041801);
+                  internalerror(2017041802);
               end;
               cg.a_label(list,l2);
 
@@ -991,7 +980,7 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
                         end;
                       else
-                        internalerror(2017041201);
+                        internalerror(2017041202);
                     end;
                 end;
             end;
@@ -1060,7 +1049,7 @@ unit cgcpu;
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       else
-                        internalerror(2019050901);
+                        internalerror(2019050903);
                     end
                   else if value>31 then
                     case op of
@@ -1097,7 +1086,7 @@ unit cgcpu;
                           cg.a_load_const_ref(list,OS_32,0,tempref);
                         end;
                       else
-                        internalerror(2017041801);
+                        internalerror(2017041803);
                     end
                   else
                     case op of
@@ -1141,7 +1130,7 @@ unit cgcpu;
                             end;
                         end;
                       else
-                        internalerror(2017041201);
+                        internalerror(2017041203);
                     end;
                 end;
             end;
@@ -1149,6 +1138,39 @@ unit cgcpu;
             internalerror(200204022);
         end;
       end;
+
+
+    procedure tcg64f386.a_op64_ref(list: TAsmList; op: TOpCG; size: tcgsize; const ref: treference);
+      var
+        tempref : treference;
+      begin
+        case op of
+          OP_NOT:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+            end;
+          OP_NEG:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              dec(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          else
+            internalerror(2020050708);
+        end;
+      end;
+
 
     procedure create_codegen;
       begin

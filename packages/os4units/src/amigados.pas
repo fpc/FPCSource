@@ -1407,46 +1407,37 @@ Type
        END;
 
 // COMBINED structure for all types.
-  PDosList = ^TDosList;
-  TDosList = record
-    dol_Next: BPTR;      // bptr to next device on list
-    dol_Type: LongInt;   // see DLT below
-    dol_Port: PMsgPort;  // ptr to handler task
-    case smallint of
-    0:(
-        dol_Device: record
-          dol_Reserved1: LongInt; // Reserved for use by DOS.
-          dol_Handler: BSTR;      // BSTR file name to LoadSeg if dol_Seglist = nil.
-          dol_StackSize: LongInt; // Stacksize to use when starting process.
-          dol_Priority: LongInt;  // Task priority when starting process
-          dol_Startup: BPTR;      // Startup msg: FileSysStartupMsg for disks
-          dol_SegList: BPTR;      // Already loaded seglist for new process.
-          dol_GlobVec: LongInt;   // Global vector locking method key (-1 or -2)
-        end;
-    );
-    1 : (
-        dol_Volume: record
-          dol_Reserved2: LongInt;     // Reserved for use by DOS.
-          dol_VolumeDate: TDateStamp; // creation date
-          dol_LockList: BPTR;         // Unused, leave as 0
-          dol_DiskType: LongInt;      // 'DOS\0' - 32 bit hex identity
-          dol_FSPrivate: LongInt;     // Used privately by filesystems.
-        end;
-    );
-    2 : (
-        dol_Assign       :  record
-          dol_Lock: BPTR;         // Used by DLT_LOCK assign type only.
-          dol_AssignName: STRPTR; // name for non-OR-late-binding assign
-          dol_List: PAssignList;  // for multi-directory assigns (regular)
-          dol_MultiAssignList: PMultiAssign;   // Chain of DLT_LOCK multi-assigns
-          dol_NBMultiAssignList: PMultiAssign; // Chain of DLT_NONBINDING multi-assigns (V54)
-          dol_Unused: array[0..2] of LongInt;  // Not used for assigns, leave as 0
-        END;
-    dol_Name: BSTR;          // BSTR formatted name string
-    dol_StructSize: LongInt; // (See NOTES) FULL allocated size of struct
-    dol_Reserved: array[0..3] of LongInt; // DOS reserved expansion space.
-    );
-   END;
+  PDOSList = ^TDOSList;
+  TDOSList = record
+      dol_Next: DWord;    { BPTR }
+      dol_Type: LongInt;
+      dol_Task: PMsgPort;
+      dol_Lock: DWord;    { BPTR }
+      case Byte of
+      0: ( dol_handler : record
+             dol_Handler  : DWord;    { BSTR }
+             dol_StackSize: LongInt;
+             dol_Priority : LongInt;
+             dol_Startup  : DWord;
+             dol_SegList  : DWord;    { BPTR }
+             dol_GlobVec  : DWord;    { BPTR }
+           end;
+         );
+      1: ( dol_volume : record
+             dol_VolumeDate: TDateStamp;
+             dol_LockList  : DWord;   { BPTR }
+             dol_DiskType  : LongInt;
+           end;
+         );
+      2: ( dol_assign : record
+             dol_AssignName: PChar;
+             dol_List      : PAssignList;
+           end;
+         );
+      3: ( dol_Misc: array[0..23] of Byte;
+           dol_Name: DWord;    { BPTR }
+         );
+    end; 
 
 
 { This structure can take on different values depending on whether it is

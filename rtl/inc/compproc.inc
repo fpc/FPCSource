@@ -67,8 +67,15 @@ Procedure fpc_shortstr_insert_char(source:Char;var s:shortstring;index:SizeInt);
 {$endif VER3_0}
 
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
+{$if defined(VER3_0) or defined(VER3_2)}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : fpc_stub_dynarray;compilerproc;
+{$endif VER3_0 or VER3_2}
+function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
+    lowidx,count,maxcount:tdynarrayindex;
+    elesize : sizeint;
+    eletype : pointer
+    ) : fpc_stub_dynarray;compilerproc;
 function  fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
@@ -790,7 +797,7 @@ Procedure fpc_do_exit; compilerproc;
 Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : pointer); compilerproc;
 }
 Procedure fpc_lib_exit; compilerproc;
-Procedure fpc_HandleError (Errno : longint); compilerproc;
+Procedure fpc_HandleError (Errno : TExitCode); compilerproc;
 
 procedure fpc_AbstractErrorIntern;compilerproc;
 procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); compilerproc;
@@ -806,6 +813,11 @@ Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : String;S
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
+
+Procedure fpc_typedfile_init_iso(var t : TypedFile;nr : DWord);compilerproc;
+Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : string); compilerproc;
+Procedure fpc_typedfile_close_iso(var t : TypedFile); compilerproc;
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}

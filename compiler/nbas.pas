@@ -190,7 +190,7 @@ interface
        ttempinfoflags = set of ttempinfoflag;
 
      const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync,ti_nofini,ti_const];
 
      type
        { to allow access to the location by temp references even after the temp has }
@@ -338,9 +338,10 @@ implementation
 
     uses
       verbose,globals,systems,
+      ppu,
       symconst,symdef,defutil,defcmp,
       pass_1,
-      nutils,nld,
+      nutils,nld,ncnv,
       procinfo
 {$ifdef DEBUG_NODE_XML}
 {$ifndef jvm}
@@ -695,13 +696,26 @@ implementation
       end;
 
 
+    function NodesEqual(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if n.IsEqual(tnode(arg)) then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
     function tblocknode.simplify(forinline : boolean): tnode;
+{$ifdef break_inlining}
+      var
+        a : array[0..3] of tstatementnode;
+{$endif break_inlining}
       begin
         result := nil;
-        { Warning: never replace a blocknode with another node type,      }
-        {  since the block may be the main block of a procedure/function/ }
-        {  main program body, and those nodes should always be blocknodes }
-        {  since that's what the compiler expects elsewhere.              }
+        { Warning: never replace a blocknode with another node type,
+          since the block may be the main block of a procedure/function/
+          main program body, and those nodes should always be blocknodes
+          since that's what the compiler expects elsewhere. }
 
         if assigned(left) and
            not assigned(tstatementnode(left).right) then
@@ -730,6 +744,30 @@ implementation
                 ;
             end;
           end;
+{$ifdef break_inlining}
+        { simple sequence of tempcreate, assign and return temp.? }
+        if GetStatements(left,a) and
+          (a[0].left.nodetype=tempcreaten) and
+          (a[1].left.nodetype=assignn) and
+          (actualtargetnode(@tassignmentnode(a[1].left).left)^.nodetype=temprefn) and
+          (a[2].left.nodetype=tempdeleten) and
+          (a[3].left.nodetype=temprefn) and
+          (ttempcreatenode(a[0].left).tempinfo=ttemprefnode(actualtargetnode(@tassignmentnode(a[1].left).left)^).tempinfo) and
+          (ttempcreatenode(a[0].left).tempinfo=ttempdeletenode(a[2].left).tempinfo) and
+          (ttempcreatenode(a[0].left).tempinfo=ttemprefnode(a[3].left).tempinfo) and
+          { the temp. node might not be references inside the assigned expression }
+          not(foreachnodestatic(tassignmentnode(a[1].left).right,@NodesEqual,actualtargetnode(@tassignmentnode(a[1].left).left)^)) then
+          begin
+            result:=tassignmentnode(a[1].left).right;
+            tassignmentnode(a[1].left).right:=nil;
+            { ensure the node is first passed, so the resultdef does not get changed if the
+              the type conv. below is merged }
+            firstpass(result);
+            result:=ctypeconvnode.create_internal(result,ttemprefnode(a[3].left).resultdef);
+            firstpass(result);
+            exit;
+          end;
+{$endif break_inlining}
       end;
 
 
@@ -987,8 +1025,8 @@ implementation
                   if segment <> NR_NO then
                     Result := gas_regname(segment) + ':'
                   else
-                    Result := '';
 {$endif defined(x86)}
+                    Result := '';
 
                   if Assigned(symbol) then
                     begin
@@ -1287,7 +1325,7 @@ implementation
         size:=ppufile.getlongint;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
-        ppufile.getsmallset(tempinfo^.flags);
+        ppufile.getset(tppuset2(tempinfo^.flags));
         ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
@@ -1300,7 +1338,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
-        ppufile.putsmallset(tempinfo^.flags);
+        ppufile.putset(tppuset2(tempinfo^.flags));
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
         ppuwritenode(ppufile,tempinfo^.withnode);
@@ -1344,7 +1382,13 @@ implementation
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
-        inc(current_procinfo.estimatedtempsize,size);;
+        inc(current_procinfo.estimatedtempsize,size);
+        { if a temp. create node is loaded from a ppu, it could be that the unit was compiled with other settings which
+          enabled a certain type to be stored in a register while the current settings do not support this, so correct this here
+          if needed
+        }
+        if not(tstoreddef(tempinfo^.typedef).is_fpuregable) and not(tstoreddef(tempinfo^.typedef).is_intregable) and (ti_may_be_in_reg in tempflags) then
+          excludetempflag(ti_may_be_in_reg);
       end;
 
 
@@ -1373,10 +1417,23 @@ implementation
 
 
     procedure ttempcreatenode.printnodedata(var t:text);
+      var
+        f: ttempinfoflag;
+        first: Boolean;
       begin
         inherited printnodedata(t);
         writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        write(t,printnodeindention,'[');
+        first:=true;
+        for f in tempflags do
+          begin
+            if not(first) then
+              write(t,',');
+            write(t,f);
+            first:=false;
+          end;
+        writeln(t,']');
         writeln(t,printnodeindention,'tempinit =');
         printnode(t,tempinfo^.tempinitcode);
       end;
@@ -1617,7 +1674,7 @@ implementation
       begin
         temp:=ttempcreatenode(nodeppuidxget(tempidx));
         if temp.nodetype<>tempcreaten then
-          internalerror(200311075);
+          internalerror(2003110701);
         tempinfo:=temp.tempinfo;
       end;
 

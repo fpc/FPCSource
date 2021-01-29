@@ -131,13 +131,13 @@ function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystem
       Result:=DefaultFileSystemCodePage
   end;
 
-Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetUnicodeStringManager (Out Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
 end;
 
 
-Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Out Old: TUnicodeStringManager);
 begin
   Old:=widestringmanager;
   widestringmanager:=New;
@@ -150,13 +150,13 @@ begin
 end;
 
 
-Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
+Procedure GetWideStringManager (out Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
 end;
 
 
-Procedure SetWideStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+Procedure SetWideStringManager (Const New : TUnicodeStringManager; Out old: TUnicodeStringManager);
 begin
   Old:=widestringmanager;
   widestringmanager:=New;
@@ -1792,13 +1792,20 @@ end;
 function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
-      Result:=Utf8ToUnicode(Dest,MaxChars,Source,length(Source))
+      Result:=Utf8ToUnicode(Dest,MaxChars,Source,length(Source),True)
     else
       Result:=0;
   end;
 
 
-function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  Result:=Utf8ToUnicode(Dest,MaxDestChars,Source,SourceBytes,True);
+end;
+
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
+
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(217);
@@ -1832,44 +1839,12 @@ end;
             IBYTE:=byte(Source[InputUTF8]);
             if (IBYTE and $80) = 0 then
               begin
-                //One character US-ASCII, convert it to unicode
-                if IBYTE = 10 then
-                  begin
-(*
-                    If (PreChar<>13) and FALSE then
-                      begin
-                        //Expand to crlf, conform UTF-8.
-                        //This procedure will break the memory alocation by
-                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
-                        if OutputUnicode+1<MaxDestChars then
-                          begin
-                            Dest[OutputUnicode]:=WideChar(13);
-                            inc(OutputUnicode);
-                            Dest[OutputUnicode]:=WideChar(10);
-                            inc(OutputUnicode);
-                            PreChar:=10;
-                          end
-                        else
-                          begin
-                            Dest[OutputUnicode]:=WideChar(13);
-                            inc(OutputUnicode);
-                          end;
-                      end
-                    else
-*)
-                      begin
-                        Dest[OutputUnicode]:=WideChar(IBYTE);
-                        inc(OutputUnicode);
-                        PreChar:=IBYTE;
-                      end;
-                  end
-                else
-                  begin
-                    Dest[OutputUnicode]:=WideChar(IBYTE);
-                    inc(OutputUnicode);
-                    PreChar:=IBYTE;
-                  end;
-                inc(InputUTF8);
+              // One character US-ASCII, convert it to unicode
+              // Commented code to convert LF to CRLF has been removed
+              Dest[OutputUnicode]:=WideChar(IBYTE);
+              inc(OutputUnicode);
+              PreChar:=IBYTE;
+              inc(InputUTF8);
               end
             else
               begin
@@ -1961,6 +1936,8 @@ end;
                 end;
                 if CharLen > 0 then
                   begin
+                    if (UC=UNICODE_INVALID) and Not IgnoreInvalid then
+                      HandleError(231); // Will be converted to EConversionError in sysutils
                     PreChar:=UC;
                     Dest[OutputUnicode]:=WideChar(UC);
                     inc(OutputUnicode);
@@ -1977,31 +1954,11 @@ end;
             IBYTE:=byte(Source[InputUTF8]);
             if (IBYTE and $80) = 0 then
               begin
-                //One character US-ASCII, convert it to unicode
-                if IBYTE = 10 then
-                  begin
-(*
-                    if (PreChar<>13) and FALSE then
-                      begin
-                        //Expand to crlf, conform UTF-8.
-                        //This procedure will break the memory alocation by
-                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
-                        inc(OutputUnicode,2);
-                        PreChar:=10;
-                      end
-                    else
-*)
-                      begin
-                        inc(OutputUnicode);
-                        PreChar:=IBYTE;
-                      end;
-                  end
-                else
-                  begin
-                    inc(OutputUnicode);
-                    PreChar:=IBYTE;
-                  end;
-                inc(InputUTF8);
+              // One character US-ASCII, convert it to unicode
+              // Commented code to convert LF to CRLF has been removed
+              inc(OutputUnicode);
+              PreChar:=IBYTE;
+              inc(InputUTF8);
               end
             else
               begin
@@ -2077,6 +2034,8 @@ end;
                 end;
                 if CharLen > 0 then
                   begin
+                    if (UC=UNICODE_INVALID) and Not IgnoreInvalid then
+                      HandleError(231); // Will be converted to EConversionError in sysutils
                     PreChar:=UC;
                     inc(OutputUnicode);
                   end;
@@ -2276,11 +2235,13 @@ const
 procedure unimplementedunicodestring;
   begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef HAS_WIDESTRINGMANAGER}
     If IsConsole then
       begin
       Writeln(StdErr,SNoUnicodestrings);
       Writeln(StdErr,SRecompileWithUnicodestrings);
       end;
+{$endif HAS_WIDESTRINGMANAGER}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
     HandleErrorAddrFrameInd(234{RuntimeErrorExitCodes[reCodesetConversion]},get_pc_addr,get_frame);
   end;
@@ -2353,13 +2314,13 @@ procedure initunicodestringmanager;
     widestringmanager.Ansi2UnicodeMoveProc:=@DefaultAnsi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@StubUnicodeCase;
     widestringmanager.LowerUnicodeStringProc:=@StubUnicodeCase;
+    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@StubCompareWideString;
 //    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
     widestringmanager.CompareUnicodeStringProc:=@StubCompareUnicodeString;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
-    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 

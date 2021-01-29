@@ -199,3 +199,44 @@ Begin
   Result:=pbyte(@f)+sizeof(TypedFile);
 end;
 
+
+Procedure fpc_typedfile_init_iso(var t : TypedFile;nr : DWord);compilerproc;
+begin
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+  assign(t,paramstr(nr));
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+  { primitive workaround for targets supporting no command line arguments,
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
+  assign(t,chr((nr mod 16)+65));
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+end;
+
+
+Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : string);compilerproc;
+begin
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+  if paramstr(nr)='' then
+    assign(t,filename)
+  else
+    assign(t,paramstr(nr));
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+  { primitive workaround for targets supporting no command line arguments,
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
+  assign(t,chr((nr mod 16)+65));
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+end;
+
+
+
+Procedure fpc_typedfile_close_iso(var t : TypedFile);compilerproc;
+begin
+  { reset inout result as this procedure is only called by the compiler and no I/O checking is carried out,
+    so further I/O does not fail }
+  inoutres:=0;
+  close(t);
+  inoutres:=0;
+end;
+
+

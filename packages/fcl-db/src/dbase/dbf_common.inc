@@ -223,6 +223,7 @@
   {$define SUPPORT_SEPARATE_VARIANTS_UNIT}
   {$define SUPPORT_REFRESHEVENTS}
   {$define SUPPORT_BACKWARD_FIELDDATA}
+  {$define SUPPORT_LONGWORD}
 
   // FPC 1.0.x exceptions: no 0/0 support
   {$ifdef VER1_0}

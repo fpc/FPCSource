@@ -14,13 +14,9 @@
   **********************************************************************}
 unit jswriter;
 
-{$mode objfpc}{$H+}
-{ $DEFINE DEBUGJSWRITER}
-{AllowWriteln}
+{$i fcl-js.inc}
 
-{$if defined(fpc) or defined(NodeJS)}
-  {$define HasFileWriter}
-{$endif}
+{ $DEFINE DEBUGJSWRITER}
 
 interface
 
@@ -50,6 +46,7 @@ Type
     FCurElement: TJSElement;
     FCurLine: integer;
     FCurColumn: integer;
+    FLineBreak: string;
     FOnWriting: TTextWriterWriting;
   protected
     Function DoWrite(Const S : TJSWriterString) : Integer; virtual; abstract;
@@ -74,6 +71,7 @@ Type
     Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
     Property CurElement: TJSElement read FCurElement write SetCurElement;
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
+    Property LineBreak: string read FLineBreak write FLineBreak;
   end;
 
   {$ifdef HasFileWriter}
@@ -445,6 +443,7 @@ end;
 {$endif}
 
 { TJSWriter }
+{AllowWriteln}
 
 procedure TJSWriter.SetOptions(AValue: TWriteOptions);
 begin
@@ -612,10 +611,9 @@ begin
               begin
               inc(I,2); // surrogate, two char codepoint
               continue;
-              end
-            else
-              // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
-              R:=R+'\u'+TJSString(HexStr(ord(c),4));
+              end;
+            // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
+            R:=R+'\u'+TJSString(HexStr(ord(S[i]),4));
             end
           else
             // invalid UTF-16 at end of string, cannot be encoded as UTF-8 -> encode as hex
@@ -653,6 +651,15 @@ const
       inc(h);
       end;
     p:=h;
+  end;
+
+  function SkipToNextLineEnd(const S: TJSString; p: integer): integer;
+  var
+    l: SizeInt;
+  begin
+    l:=length(S);
+    while (p<=l) and not (S[p] in [#10,#13]) do inc(p);
+    Result:=p;
   end;
 
   function SkipToNextLineStart(const S: TJSString; p: integer): integer;
@@ -714,9 +721,11 @@ begin
     GetLineIndent(JS,p); // the first line is already indented, skip
     repeat
       StartP:=p;
-      p:=SkipToNextLineStart(JS,StartP);
+      p:=SkipToNextLineEnd(JS,StartP);
       Write(copy(JS,StartP,p-StartP));
       if p>length(JS) then break;
+      Write(sLineBreak);
+      p:=SkipToNextLineStart(JS,p);
       CurLineIndent:=GetLineIndent(JS,p);
       Write(StringOfChar(FIndentChar,FCurIndent+CurLineIndent-MinIndent));
     until false;
@@ -927,6 +936,8 @@ Var
 begin
   LastEl:=Writer.CurElement;
   C:=(woCompact in Options);
+  if fd.IsAsync then
+    Write('async ');
   Write('function ');
   If (FD.Name<>'') then
     Write(FD.Name);
@@ -1228,9 +1239,46 @@ procedure TJSWriter.WriteStatementList(El: TJSStatementList);
 
 Var
   C : Boolean;
-  B : Boolean;
   LastEl: TJSElement;
+  ElStack: array of TJSElement;
+  ElStackIndex: integer;
 
+  procedure WriteNonListEl(CurEl: TJSElement);
+  begin
+    if IsEmptyStatement(CurEl) then exit;
+    if (LastEl<>nil) then
+      begin
+      if FLastChar<>';' then
+        Write(';');
+      if C then
+        Write(' ')
+      else
+        Writeln('');
+      end;
+    WriteJS(CurEl);
+    LastEl:=CurEl;
+  end;
+
+  procedure Push(CurEl: TJSElement);
+  begin
+    if CurEl=nil then exit;
+    if ElStackIndex=length(ElStack) then
+      SetLength(ElStack,ElStackIndex+8);
+    ElStack[ElStackIndex]:=CurEl;
+    inc(ElStackIndex);
+  end;
+
+  function Pop: TJSElement;
+  begin
+    if ElStackIndex=0 then exit(nil);
+    dec(ElStackIndex);
+    Result:=ElStack[ElStackIndex];
+  end;
+
+var
+  B : Boolean;
+  CurEl: TJSElement;
+  List: TJSStatementList;
 begin
   //write('TJSWriter.WriteStatementList '+BoolToStr(FSkipCurlyBrackets,true));
   //if El.A<>nil then write(' El.A='+El.A.ClassName) else write(' El.A=nil');
@@ -1239,43 +1287,55 @@ begin
 
   C:=(woCompact in Options);
   B:= Not FSkipCurlyBrackets;
+  FSkipCurlyBrackets:=True;
   if B then
     begin
     Write('{');
     Indent;
     if not C then writeln('');
     end;
-  if not IsEmptyStatement(El.A) then
+
+  // traverse statementlist using a heap stack to avoid large stack depths
+  LastEl:=nil;
+  ElStackIndex:=0;
+  CurEl:=El;
+  while CurEl<>nil do
     begin
-    WriteJS(El.A);
-    LastEl:=El.A;
-    if Assigned(El.B) then
+    if CurEl is TJSStatementList then
       begin
-      if not (LastEl is TJSStatementList) then
+      List:=TJSStatementList(CurEl);
+      if List.A is TJSStatementList then
         begin
-        if FLastChar<>';' then
-          Write(';');
-        if C then
-          Write(' ')
-        else
-          Writeln('');
-        end;
-      FSkipCurlyBrackets:=True;
-      WriteJS(El.B);
-      LastEl:=El.B;
-      end;
-    if (not C) and not (LastEl is TJSStatementList) then
-      writeln(';');
-    end
-  else if Assigned(El.B) and not IsEmptyStatement(El.B) then
-    begin
-    WriteJS(El.B);
-    if (not C) and not (El.B is TJSStatementList) then
-      if FLastChar=';' then
-        writeln('')
+        Push(List.B);
+        CurEl:=List.A;
+        end
       else
-        writeln(';');
+        begin
+        WriteNonListEl(List.A);
+        if List.B is TJSStatementList then
+          CurEl:=List.B
+        else
+          begin
+          WriteNonListEl(List.B);
+          CurEl:=nil;
+          end;
+        end;
+      end
+    else
+      begin
+      WriteNonListEl(CurEl);
+      CurEl:=nil;
+      end;
+    if CurEl=nil then
+      CurEl:=Pop;
     end;
+
+  if (LastEl<>nil) and not C then
+    if FLastChar=';' then
+      writeln('')
+    else
+      writeln(';');
+
   if B then
     begin
     Undent;
@@ -1892,6 +1952,7 @@ begin
 //  Write('/* '+El.ClassName+' */');
   FSkipCurlyBrackets:=False;
 end;
+{AllowWriteln-}
 
 {$ifdef HasFileWriter}
 { TFileWriter }
@@ -1968,6 +2029,7 @@ constructor TTextWriter.Create;
 begin
   FCurLine:=1;
   FCurColumn:=1;
+  FLineBreak:=sLineBreak;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
@@ -2036,7 +2098,7 @@ end;
 
 function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
 begin
-  Result:=Write(S)+Write(sLineBreak);
+  Result:=Write(S)+Write(LineBreak);
 end;
 
 function TTextWriter.Write(const Fmt: TJSWriterString;

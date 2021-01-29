@@ -1069,7 +1069,7 @@ implementation
           else
             begin
               writeln(objsec.fullname,'+',objreloc.dataoffset,' ',objreloc.ftype);
-              internalerror(200604014);
+              internalerror(2006040106);
             end;
           end
         else           { not relocsec.Used }

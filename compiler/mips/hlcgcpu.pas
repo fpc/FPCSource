@@ -249,7 +249,7 @@ implementation
       list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
 
       if (procdef.extnumber=$ffff) then
-        Internalerror(200006139);
+        Internalerror(2000061303);
 
       { TODO: case of large VMT is not handled }
       { We have no reason not to use $t9 even in non-PIC mode. }

@@ -1171,8 +1171,8 @@ begin
         if HasAncestor then
           DefInt64Value := GetInt64Prop(Ancestor, PropInfo)
         else
-          DefInt64Value := 0;
-        if Int64Value <> DefInt64Value then
+          DefInt64Value := PPropInfo(PropInfo)^.Default;
+        if (Int64Value <> DefInt64Value) or (DefInt64Value=longint($80000000)) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteInteger(Int64Value);

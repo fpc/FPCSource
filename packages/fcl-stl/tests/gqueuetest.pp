@@ -13,7 +13,7 @@ type TGTQueueTest = class(TTestCase)
     procedure TQueueTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:TQueuelli;
   end;
 
@@ -27,7 +27,7 @@ begin
     data.push(i);
   for i:=0 to 10 do begin
     AssertEquals('Wrong data', i, data.front);
-    AssertEquals('Wrong size', 11-i, data.size);
+    AssertEquals('Wrong size', 11-i, SizeInt(data.size));
     data.pop;
   end;
   AssertEquals('Not IsEmpty', true, data.IsEmpty);

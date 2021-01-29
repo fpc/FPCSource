@@ -350,7 +350,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ctypesym.create('unnamed',hdef,true);
+                  dummytype:=ctypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;
@@ -535,6 +535,7 @@ implementation
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
+        addgendummy,
         hadspecialize,
         firstpart,
         found,
@@ -628,7 +629,7 @@ implementation
               for i:=0 to genericparams.count-1 do
                 begin
                   sym:=ttypesym(genericparams[i]);
-                  if tstoreddef(sym.typedef).is_registered then
+                  if (sym.typ<>constsym) and tstoreddef(sym.typedef).is_registered then
                     begin
                       sym.typedef.free;
                       sym.typedef:=nil;
@@ -683,7 +684,7 @@ implementation
             firstpart:=false;
           end;
 
-        function search_object_name(sp:TIDString;gen_error:boolean):tsym;
+        function search_object_name(const sp:TIDString;gen_error:boolean):tsym;
           var
             storepos:tfileposinfo;
             srsymtable:TSymtable;
@@ -813,9 +814,11 @@ implementation
         function check_generic_parameters(def:tstoreddef):boolean;
           var
             i : longint;
-            decltype,
-            impltype : ttypesym;
+            declsym,
+            implsym : tsym;
+            impltype : ttypesym absolute implsym;
             implname : tsymstr;
+            fileinfo : tfileposinfo;
           begin
             result:=true;
             if not assigned(def.genericparas) then
@@ -826,13 +829,23 @@ implementation
               internalerror(2018090104);
             for i:=0 to def.genericparas.count-1 do
               begin
-                decltype:=ttypesym(def.genericparas[i]);
-                impltype:=ttypesym(genericparams[i]);
+                declsym:=tsym(def.genericparas[i]);
+                implsym:=tsym(genericparams[i]);
                 implname:=upper(genericparams.nameofindex(i));
-                if decltype.name<>implname then
+                if declsym.name<>implname then
                   begin
-                    messagepos1(impltype.fileinfo,sym_e_generic_type_param_mismatch,impltype.realname);
-                    messagepos1(decltype.fileinfo,sym_e_generic_type_param_decl,decltype.realname);
+                    messagepos1(implsym.fileinfo,sym_e_generic_type_param_mismatch,implsym.realname);
+                    messagepos1(declsym.fileinfo,sym_e_generic_type_param_decl,declsym.realname);
+                    result:=false;
+                  end;
+                if ((implsym.typ=typesym) and (df_genconstraint in impltype.typedef.defoptions)) or
+                    (implsym.typ=constsym) then
+                  begin
+                    if implsym.typ=constsym then
+                      fileinfo:=impltype.fileinfo
+                    else
+                      fileinfo:=tstoreddef(impltype.typedef).genconstraintdata.fileinfo;
+                    messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
                     result:=false;
                   end;
               end;
@@ -855,6 +868,7 @@ implementation
         srsym:=nil;
         genericparams:=nil;
         hadspecialize:=false;
+        addgendummy:=false;
 
         if not assigned(genericdef) then
           begin
@@ -1052,13 +1066,15 @@ implementation
                            end
                          else if (srsym.typ=typesym) and
                              (sp_generic_dummy in srsym.symoptions) and
-                             (ttypesym(srsym).typedef.typ=undefineddef) then
+                             (ttypesym(srsym).typedef.typ=undefineddef) and
+                             not assigned(genericparams) then
                            begin
                              { this is a generic dummy symbol that has not yet
                                been used; so we rename the dummy symbol and continue
                                as if nothing happened }
                              hidesym(srsym);
                              searchagain:=true;
+                             addgendummy:=true;
                            end
                          else
                           begin
@@ -1094,6 +1110,8 @@ implementation
                   aprocsym:=cprocsym.create('$'+lower(sp))
                 else
                   aprocsym:=cprocsym.create(orgsp);
+                if addgendummy then
+                  include(aprocsym.symoptions,sp_generic_dummy);
                 symtablestack.top.insert(aprocsym);
               end;
           end;
@@ -1115,45 +1133,70 @@ implementation
 
         if assigned(genericparams) then
           begin
-            include(pd.defoptions,df_generic);
-            { push the parameter symtable so that constraint definitions are added
-              there and not in the owner symtable }
-            symtablestack.push(pd.parast);
-            { register the parameters }
-            for i:=0 to genericparams.count-1 do
+            if potype=potype_constructor then
               begin
-                 ttypesym(genericparams[i]).register_sym;
-                 tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
-              end;
-            insert_generic_parameter_types(pd,nil,genericparams);
-            { the list is no longer required }
-            genericparams.free;
-            genericparams:=nil;
-            symtablestack.pop(pd.parast);
-            parse_generic:=true;
-            { also generate a dummy symbol if none exists already }
-            if assigned(astruct) then
-              dummysym:=tsym(astruct.symtable.find(spnongen))
+                Message(parser_e_constructurs_cannot_take_type_parameters);
+                genericparams.free;
+                genericparams:=nil;
+              end
             else
               begin
-                dummysym:=tsym(symtablestack.top.find(spnongen));
-                if not assigned(dummysym) and
-                    (symtablestack.top=current_module.localsymtable) and
-                    assigned(current_module.globalsymtable) then
-                  dummysym:=tsym(current_module.globalsymtable.find(spnongen));
-              end;
-            if not assigned(dummysym) then
-              begin
-                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true),true);
+                include(pd.defoptions,df_generic);
+                { push the parameter symtable so that constraint definitions are added
+                  there and not in the owner symtable }
+                symtablestack.push(pd.parast);
+                { register the parameters }
+                for i:=0 to genericparams.count-1 do
+                  begin
+                     tsym(genericparams[i]).register_sym;
+                     if tsym(genericparams[i]).typ=typesym then
+                       tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
+                  end;
+                insert_generic_parameter_types(pd,nil,genericparams);
+                { the list is no longer required }
+                genericparams.free;
+                genericparams:=nil;
+                symtablestack.pop(pd.parast);
+                parse_generic:=true;
+                { also generate a dummy symbol if none exists already }
                 if assigned(astruct) then
-                  astruct.symtable.insert(dummysym)
+                  dummysym:=tsym(astruct.symtable.find(spnongen))
                 else
-                  symtablestack.top.insert(dummysym);
+                  begin
+                    dummysym:=tsym(symtablestack.top.find(spnongen));
+                    if not assigned(dummysym) and
+                        (symtablestack.top=current_module.localsymtable) and
+                        assigned(current_module.globalsymtable) then
+                      dummysym:=tsym(current_module.globalsymtable.find(spnongen));
+                  end;
+                if not assigned(dummysym) then
+                  begin
+                    { overloading generic routines with non-generic types is not
+                      allowed, so we create a procsym as dummy }
+                    dummysym:=cprocsym.create(orgspnongen);
+                    if assigned(astruct) then
+                      astruct.symtable.insert(dummysym)
+                    else
+                      symtablestack.top.insert(dummysym);
+                  end
+                else if (dummysym.typ<>procsym) and
+                    (
+                      { show error only for the declaration, not also the implementation }
+                      not assigned(astruct) or
+                      (symtablestack.top.symtablelevel<>main_program_level)
+                    ) then
+                  Message1(sym_e_duplicate_id,dummysym.realname);
+                if not (sp_generic_dummy in dummysym.symoptions) then
+                  begin
+                    include(dummysym.symoptions,sp_generic_dummy);
+                    add_generic_dummysym(dummysym);
+                  end;
+                if dummysym.typ=procsym then
+                  tprocsym(dummysym).add_generic_overload(aprocsym);
+                { start token recorder for the declaration }
+                pd.init_genericdecl;
+                current_scanner.startrecordtokens(pd.genericdecltokenbuf);
               end;
-            include(dummysym.symoptions,sp_generic_dummy);
-            { start token recorder for the declaration }
-            pd.init_genericdecl;
-            current_scanner.startrecordtokens(pd.genericdecltokenbuf);
           end
         else if assigned(genericdef) then
           insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist);
@@ -1326,7 +1369,7 @@ implementation
             parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
               symtablestack.push(pd.parast);
-            single_type(pd.returndef,[stoAllowSpecialization]);
+            pd.returndef:=result_type([stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
@@ -1537,10 +1580,6 @@ implementation
             include(pd.procoptions,po_variadic);
           end;
 
-        { file types can't be function results }
-        if assigned(pd) and
-           (pd.returndef.typ=filedef) then
-          message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           begin
@@ -1783,7 +1822,7 @@ end;
 procedure pd_public(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
-    internalerror(200304266);
+    internalerror(2003042601);
   if try_to_consume(_NAME) then
     begin
       tprocdef(pd).aliasnames.insert(get_stringconst);
@@ -1833,7 +1872,7 @@ var v:Tconstexprint;
 
 begin
   if pd.typ<>procdef then
-    internalerror(200304268);
+    internalerror(2003042602);
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
@@ -2223,7 +2262,8 @@ begin
     end;
 
   if consume_sym(sym,symtable) then
-    if (sym.typ=staticvarsym) and
+    if ((sym.typ=staticvarsym) or
+        (sym.typ=absolutevarsym) and (tabsolutevarsym(sym).abstyp=toaddr)) and
        ((tabstractvarsym(sym).vardef.typ=pointerdef) or
         is_32bitint(tabstractvarsym(sym).vardef)) then
       begin
@@ -2357,10 +2397,11 @@ end;
 
 procedure pd_winapi(pd:tabstractprocdef);
 begin
-  if not(target_info.system in systems_wince) then
+  if not(target_info.system in systems_all_windows+[system_i386_nativent]) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
+  include(pd.procoptions,po_hascallingconvention);
 end;
 
 
@@ -2388,7 +2429,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=52;
+  num_proc_directives=53;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2433,6 +2474,15 @@ const
       handler  : nil;
       pocall   : pocall_cdecl;
       pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_assembler,po_external]
+    ),(
+      idtok:_CBLOCK;
+      pd_flags : [pd_procvar];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_is_block];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]
@@ -3155,6 +3205,14 @@ const
                     result:=target_info.Cprefix+tprocdef(pd).procsym.realname
                   else
                     result:=pd.procsym.realname;
+{$ifdef i8086}
+                  { Turbo Pascal expects names of external routines
+                    to be all uppercase }
+                  if (target_info.system=system_i8086_msdos) and
+                    (m_tp7 in current_settings.modeswitches) and
+                    (pd.proccalloption=pocall_pascal) then
+                    result:=UpCase(result);
+{$endif i8086}
                 end;
             end;
           end;

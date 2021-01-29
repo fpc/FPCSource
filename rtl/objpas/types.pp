@@ -64,6 +64,7 @@ type
   TShortIntDynArray = array of ShortInt;
   TSmallIntDynArray = array of SmallInt;
   TStringDynArray = array of AnsiString;
+  TObjectDynArray = array of TObject;
   TWideStringDynArray   = array of WideString;
   TWordDynArray = array of Word;
   TCurrencyArray = Array of currency;
@@ -130,6 +131,8 @@ type
           function  Floor   : TPoint;
           function  Round   : TPoint;
           function  Length  : Single;
+          class function Create(const ax, ay: Single): TPointF; overload; static; inline;
+          class function Create(const apt: TPoint): TPointF; overload; static; inline;
           class operator = (const apt1, apt2 : TPointF) : Boolean;
           class operator <> (const apt1, apt2 : TPointF): Boolean;
           class operator + (const apt1, apt2 : TPointF): TPointF;
@@ -337,6 +340,16 @@ function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 function Size(AWidth, AHeight: Integer): TSize; inline;
 function Size(const ARect: TRect): TSize;
+
+{$ifndef VER3_0}
+type
+  TBitConverter = class
+    generic class procedure UnsafeFrom<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0); static; {inline;}
+    generic class procedure From<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0); static;
+    generic class function UnsafeInTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T; static; {inline;}
+    generic class function InTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T; static;
+  end;
+{$endif}
 
 implementation
 
@@ -662,6 +675,17 @@ begin
   x:=ax; y:=ay;
 end;
 
+class function TPointF.Create(const ax, ay: Single): TPointF;
+begin
+  Result.x := ax;
+  Result.y := ay;
+end;
+
+class function TPointF.Create(const apt: TPoint): TPointF;
+begin
+  Result.x := apt.X;
+  Result.y := apt.Y;
+end;
 { TRectF }
 
 function TRectF.GetHeight: Single;
@@ -697,5 +721,45 @@ begin
   left:=left+dx; right:=right+dx;
   bottom:=bottom+dy; top:=top+dy;
 end;
+
+{$ifndef VER3_0}
+generic class procedure TBitConverter.UnsafeFrom<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0);
+begin
+  move(ASrcValue, ADestination[AOffset], SizeOf(T));
+end;
+
+generic class procedure TBitConverter.From<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0);
+begin
+  if AOffset < 0 then
+    System.Error(reRangeError);
+
+  if IsManagedType(T) then
+    System.Error(reInvalidCast);
+
+  if Length(ADestination) < (SizeOf(T) + AOffset) then
+    System.Error(reRangeError);
+
+  TBitConverter.specialize UnsafeFrom<T>(ASrcValue, ADestination, AOffset);
+end;
+
+generic class function TBitConverter.UnsafeInTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T;
+begin
+  move(ASource[AOffset], Result, SizeOf(T));
+end;
+
+generic class function TBitConverter.InTo<T>(const ASource: Array of Byte; AOffset: Integer = 0): T;
+begin
+  if AOffset < 0 then
+    System.Error(reRangeError);
+
+  if IsManagedType(T) then
+    System.Error(reInvalidCast);
+
+  if Length(ASource) < (SizeOf(T) + AOffset) then
+    System.Error(reRangeError);
+
+  Result := TBitConverter.specialize UnsafeInTo<T>(ASource, AOffset);
+end;
+{$endif}
 
 end.

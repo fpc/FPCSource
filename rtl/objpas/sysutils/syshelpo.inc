@@ -1,8 +1,12 @@
 
 Class Function TORDINALHELPER.Parse(const AString: string): TORDINALTYPE; inline; static;
 
+var
+  Error: Integer;
 begin
-  Result:=StrToInt(AString);
+  Val(AString,Result,Error);
+  if Error<>0 then
+    raise EConvertError.CreateFmt(SInvalidInteger,[AString]);
 end;
 
 Class Function TORDINALHELPER.Size: Integer; inline; static;
@@ -14,7 +18,7 @@ end;
 Class Function TORDINALHELPER.ToString(const AValue: TORDINALTYPE): string; overload; inline; static;
 
 begin
-  Result:=IntToStr(AValue);
+  Str(AValue,Result);
 end;
 
 Class Function TORDINALHELPER.TryParse(const AString: string; out AValue: TORDINALTYPE): Boolean; inline; static;
@@ -45,6 +49,12 @@ begin
   Result:=Self;
 end;
 
+Function TORDINALHELPER.ToBinString: string; inline;
+
+begin
+  Result:=BinStr(Self,SizeOf(TORDINALTYPE)*8);
+end;
+
 Function TORDINALHELPER.ToHexString(const AMinDigits: Integer): string;
 overload; inline;
 
@@ -55,7 +65,7 @@ end;
 Function TORDINALHELPER.ToHexString: string; overload; inline;
 
 begin
-  Result:=IntToHex(Self,SizeOf(TORDINALTYPE)*2);
+  Result:=IntToHex(Self);
 end;
 
 Function TORDINALHELPER.ToSingle: Single; inline;
@@ -67,5 +77,32 @@ end;
 Function TORDINALHELPER.ToString: string; overload; inline;
 
 begin
-  Result:=IntToStr(Self);
+  Str(Self,Result);
+end;
+
+Function TORDINALHELPER.SetBit(const index: TORDINALBITINDEX) : TORDINALTYPE; inline;
+
+begin
+  Self := Self or (TORDINALTYPE(1) shl index);
+  Result:=Self;
+end;
+
+Function TORDINALHELPER.ClearBit(const index: TORDINALBITINDEX) : TORDINALTYPE; inline;
+
+begin
+  Self:=Self and not TORDINALTYPE((TORDINALTYPE(1) shl index));
+  Result:=Self;
+end;
+
+Function TORDINALHELPER.ToggleBit(const index: TORDINALBITINDEX) : TORDINALTYPE; inline;
+
+begin
+  Self := Self xor TORDINALTYPE((TORDINALTYPE(1) shl index));
+  Result:=Self;
+end;
+
+Function TORDINALHELPER.TestBit(const Index: TORDINALBITINDEX):Boolean; inline;
+
+begin
+  Result := (Self and TORDINALTYPE((TORDINALTYPE(1) shl index)))<>0;
 end;

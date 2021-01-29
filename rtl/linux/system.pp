@@ -28,6 +28,9 @@ Unit System;
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}
+{$ifdef CPUM68K}
+{$define FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
+{$endif}
 
 {$i osdefs.inc}
 
@@ -45,9 +48,9 @@ const
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
-{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6)) or defined(CPUXTENSA)}
 {$define FPC_LOAD_SOFTFPU}
-{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6)) or defined(CPUXTENSA)}
 
 {$ifdef FPC_SOFT_FPUX80}
 {$define FPC_SOFTFLOAT_FLOATX80}
@@ -110,6 +113,8 @@ procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 
 {$endif FPC_LOAD_SOFTFPU}
 
+{$define HAS_GETCPUCOUNT}
+
 {$I system.inc}
 
 {$ifdef android}
@@ -119,6 +124,9 @@ procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 {*****************************************************************************
                                TLS handling
 *****************************************************************************}
+
+{ TLS initialization is not required if linking against libc }
+{$if not defined(FPC_USE_LIBC)}
 
 {$if defined(CPUARM)}
 {$define INITTLS}
@@ -179,6 +187,8 @@ begin
     end;
 end;
 {$endif defined(CPUX86_64)}
+
+{$endif not FPC_USE_LIBC}
 
 
 {$ifdef INITTLS}
@@ -318,6 +328,8 @@ begin
   info.PascalMain();
 end;
 
+
+{$ifndef FPC_USE_LIBC}
 procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
 begin
   SetupEntryInformation(info);
@@ -329,6 +341,7 @@ begin
 {$endif cpui386}
   info.PascalMain();
 end;
+{$endif FPC_USE_LIBC}
 
 {$else}
 var
@@ -356,6 +369,7 @@ begin
 end;
 
 
+{$ifdef FPC_USE_LIBC}
 procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
 begin
   initialstkptr := info.OS.stkptr;
@@ -370,6 +384,7 @@ begin
 {$endif cpui386}
   info.PascalMain();
 end;
+{$endif FPC_USE_LIBC}
 
 {$endif FPC_BOOTSTRAP_INDIRECT_ENTRY}
 
@@ -422,12 +437,26 @@ end;}
 var
  execpathstr : shortstring;
 
+procedure SysInitExecPath;
+var
+  i    : longint;
+begin
+  execpathstr[0]:=#0;
+  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
+  { it must also be an absolute filename, linux 2.0 points to a memory
+    location so this will skip that }
+  if (i>0) and (execpathstr[1]='/') then
+     execpathstr[0]:=char(i);
+end;
+
 function paramstr(l: longint) : string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
    if l=0 then
      begin
+       if execpathstr='' then
+         SysInitExecPath;
        paramstr := execpathstr;
      end
    else if (l < argc) then
@@ -440,6 +469,24 @@ Procedure Randomize;
 Begin
   randseed:=longint(Fptime(nil));
 End;
+
+function GetCPUCount: LongWord;
+  var
+    cpus : tcpu_set_t;
+    BytesWritten,i : cint;
+  begin
+    Result := 1;
+    { same approach as nproc uses:
+      we return the number of available CPUs }
+    BytesWritten:=FpSchedGetAffinity(0,sizeof(cpus),@cpus);
+    if BytesWritten>0 then
+      begin
+        Result := 0;
+        for i:=0 to BytesWritten-1 do
+          Result:=Result+Popcnt((PByte(@cpus)+i)^);
+      end;
+  end;
+
 
 {*****************************************************************************
                                     cmdline
@@ -597,19 +644,6 @@ begin
   FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
-
-procedure SysInitExecPath;
-var
-  i    : longint;
-begin
-  execpathstr[0]:=#0;
-  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
-  { it must also be an absolute filename, linux 2.0 points to a memory
-    location so this will skip that }
-  if (i>0) and (execpathstr[1]='/') then
-     execpathstr[0]:=char(i);
-end;
-
 function GetProcessID: SizeUInt;
 begin
  GetProcessID := SizeUInt (fpGetPID);
@@ -687,8 +721,6 @@ begin
   initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
-  { Arguments }
-  SysInitExecPath;
   { Reset IO Error }
   InOutRes:=0;
   { threading }

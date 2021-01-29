@@ -42,6 +42,8 @@ type
 
   { TTestReader }
 
+  { TBaseTestReader }
+
   TBaseTestReader = class(TTestJSON)
   private
     FOptions : TJSONOptions;
@@ -60,6 +62,7 @@ type
     procedure TestTrue;
     procedure TestFalse;
     procedure TestFloat;
+    procedure TestFloatError;
     procedure TestInteger;
     procedure TestInt64;
     procedure TestString;
@@ -72,6 +75,8 @@ type
     procedure TestMixed;
     Procedure TestComment;
     procedure TestErrors;
+    procedure TestGarbageOK;
+    procedure TestGarbageFail;
   end;
 
   TTestReader = Class(TBaseTestReader)
@@ -299,6 +304,14 @@ begin
   DoTestFloat(0,'0.0');
 end;
 
+procedure TBaseTestReader.TestFloatError;
+begin
+  DoTestError('.12',[joStrict]);
+  DoTestError('.12E',[]);
+  DoTestError('0.12E+',[]);
+  DoTestError('.12E+-1',[]);
+end;
+
 procedure TBaseTestReader.TestString;
 
 begin
@@ -437,6 +450,18 @@ begin
   DoTestError('[,,]');
   DoTestError('[1,,]');
 
+end;
+
+procedure TBaseTestReader.TestGarbageOK;
+begin
+  TestRead('"a"sss',['string:a']);
+  TestRead('[null]xxx',['sa','null','ea']);
+end;
+
+procedure TBaseTestReader.TestGarbageFail;
+begin
+  DoTestError('"a"sss',[joStrict]);
+  DoTestError('[null]aaa',[joStrict]);
 end;
 
 

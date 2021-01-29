@@ -22,7 +22,7 @@ unit fpreport;
 // Global debugging
 { $define gdebug}
 // Separate for aggregate variables
-{$define gdebuga}
+{ $define gdebuga}
 
 interface
 
@@ -33,6 +33,7 @@ uses
   contnrs,
   fpCanvas,
   fpImage,
+  fpTTF,
   fpreportstreamer,
 {$IF FPC_FULLVERSION>=30101}
   fpexprpars,
@@ -142,6 +143,12 @@ type
             moResetAggregateOnColumn
             );
   TFPReportMemoOptions    = set of TFPReportMemoOption;
+  TFPReportWordOverflow = (woTruncate, // truncate the word
+                           woOverflow, // Allow to overflow
+                           woSplit,    // Split word at max char count that fits length.
+                           woAsterisk,  // Replace word with * chars.
+                           woEllipsis  // Truncate word, add ... ellipsis.
+                           );
 
   TFPReportSections    = set of rsPage..rsColumn;
 
@@ -240,10 +247,13 @@ const
        bmOncePerDataloop,bmOncePerPage,bmOncePerPage,bmOncePerPage,
        bmUnrestricted);
 
+  DefaultImageType = 'png';
+
 const
   cMMperInch = 25.4;
   cCMperInch = 2.54;
   cMMperCM = 10;
+  cEllipsis : UnicodeChar = #$2026; // '…';
   DefaultBandNames : Array[TFPReportBandType] of string
     = ('Unknown','Page Header','Report Title','Column Header', 'Data Header','Group Header','Data','Group Footer',
        'Data Footer','Column Footer','Report Summary','PageFooter','Child');
@@ -1668,6 +1678,7 @@ type
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    procedure WriteRTElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil);
     procedure ReadElement(AReader: TFPReportStreamer); override;
     procedure AddPage(APage: TFPReportCustomPage);
     procedure RemovePage(APage: TFPReportCustomPage);
@@ -1929,12 +1940,13 @@ type
     ExpressionNodes: array of TExprNodeInfoRec;
     FFont: TFPReportFont;
     FUseParentFont: Boolean;
+    FWordOverflow: TFPReportWordOverflow;
     function    GetParentFont: TFPReportFont;
     procedure   HandleFontChange(Sender: TObject);
     procedure   SetCullThreshold(AValue: TFPReportCullThreshold);
     procedure   SetText(AValue: TFPReportString);
     procedure   SetUseParentFont(AValue: Boolean);
-    procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
+    procedure   SetWordOverflow(AValue: TFPReportWordOverflow);
     procedure   ApplyHorzTextAlignment;
     procedure   ApplyVertTextAlignment;
     function    GetTextLines: TStrings;
@@ -1944,9 +1956,11 @@ type
     function    PixelsToMM(APixels: single): single; inline;
     function    mmToPixels(mm: single): integer; inline;
     { Result is in millimeters. }
-    function    TextHeight(const AText: string; out ADescender: TFPReportUnits): TFPReportUnits;
+    function TextHeight(const AText, FontName: string; FontSize: Integer; out
+      ADescender: TFPReportUnits): TFPReportUnits;
     { Result is in millimeters. }
-    function    TextWidth(const AText: string): TFPReportUnits;
+    function TextWidth(const AText, FontName: string; FontSize: Integer
+      ): TFPReportUnits;
     procedure   SetLinkColor(AValue: TFPReportColor);
     procedure   SetTextAlignment(AValue: TFPReportTextAlignment);
     procedure   SetOptions(const AValue: TFPReportMemoOptions);
@@ -1958,6 +1972,8 @@ type
     procedure   SetFont(const AValue: TFPReportFont);
     procedure   CullTextOutOfBounds;
   protected
+    procedure   AddTextLine(lFC: TFPFontCacheItem; var S: UTF8String; MaxW: TFPReportUnits);
+    procedure   WrapText(const AText: UTF8String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);  virtual;
     procedure   ReassignParentFont;
     procedure   ParentFontChanged; override;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
@@ -1981,6 +1997,7 @@ type
     property    UseParentFont: Boolean read FUseParentFont write SetUseParentFont default True;
     { % of line height that should be visible, otherwise it's culled if StretchMode = smDontStretch. Valid range is 1-100% and default is 75%}
     property    CullThreshold: TFPReportCullThreshold read FCullThreshold write SetCullThreshold default 75;
+    Property    WordOverflow : TFPReportWordOverflow read FWordOverflow write SetWordOverflow;
   protected
     // *****************************
     //   This block is made Protected simply for Unit Testing purposes.
@@ -2022,6 +2039,7 @@ type
     property  LineSpacing;
     property  LinkColor;
     property  Options;
+    Property  WordOverflow;
     property  StretchMode;
     property  Text;
     property  TextAlignment;
@@ -2074,10 +2092,12 @@ type
     FImage: TFPCustomImage;
     FStretched: boolean;
     FFieldName: TFPReportString;
+    FDBImageType : TFPReportString;
     FImageID: integer;
     procedure   SetImage(AValue: TFPCustomImage);
     procedure   SetStretched(AValue: boolean);
-    procedure   SetFieldName(AValue: TFPReportString);
+    procedure   SetFieldName(AValue: TFPReportString); 
+    procedure   SetDBImageType(AValue: TFPReportString);
     procedure   LoadDBData(AData: TFPReportData);
     procedure   SetImageID(AValue: integer);
     function    GetImage: TFPCustomImage;
@@ -2089,6 +2109,7 @@ type
     property    ImageID: integer read FImageID write SetImageID;
     property    Stretched: boolean read FStretched write SetStretched;
     property    FieldName: TFPReportString read FFieldName write SetFieldName;
+    property    DBImageType : TFPReportString read FDBImageType write SetDBImageType;
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
@@ -2110,6 +2131,7 @@ type
     property    ImageID;
     property    Stretched;
     property    FieldName;
+    property    DBImageType;
     property    OnBeforePrint;
   end;
 
@@ -2328,11 +2350,14 @@ Function ReportExportManager : TFPReportExportManager;
 { this should probably be more configurable or flexible per platform }
 
 Const
+
+  { Note, these are the postscript names, not the human-readable ones. }
+
 {$IFDEF UNIX}
   cDefaultFont = 'LiberationSans';
 {$ELSE}
 {$IFDEF WINDOWS}
-  cDefaultFont = 'Arial';
+  cDefaultFont = 'ArialMT';
 {$ELSE}
   cDefaultFont = 'Helvetica';
 {$ENDIF}
@@ -2348,8 +2373,7 @@ uses
   typinfo,
   FPReadPNG,
   FPWritePNG,
-  base64,
-  fpTTF;
+  base64;
 
 resourcestring
   cPageCountMarker = '~PC~';
@@ -2498,7 +2522,7 @@ function ReportSectionsToString(AValue: TFPReportSections): string;
     lIndex: integer;
   begin
     Result := '';
-    for lIndex := Ord(Low(TFPReportSection)) to Ord(High(TFPReportSection)) do
+    for lIndex := Ord(Low(TFPReportSections)) to Ord(High(TFPReportSections)) do
     begin
       if TFPReportSection(lIndex) in AValue then
       begin
@@ -2586,6 +2610,16 @@ end;
 function StringToFramePen(AName: string): TFPPenStyle; inline;
 begin
   Result := TFPPenStyle(GetEnumValue(TypeInfo(TFPPenStyle), AName));
+end;
+
+function ColumnLayoutToString(AEnum: TFPReportColumnLayout): string; inline;
+begin
+  result := GetEnumName(TypeInfo(TFPReportColumnLayout), Ord(AEnum));
+end;
+
+function StringToColumnLayout(AName: string): TFPReportColumnLayout; inline;
+begin
+  Result := TFPReportColumnLayout(GetEnumValue(TypeInfo(TFPReportColumnLayout), AName));
 end;
 
 function OrientationToString(AEnum: TFPReportOrientation): string; inline;
@@ -3278,9 +3312,9 @@ begin
   if (aNode is TFPExprVariable) then
     begin
     DS:=ExtractWord(1,TFPExprVariable(ANode).Identifier.Name,['.']);
-    If AData.FindReportData(DS)<>Nil then
+      If AData.FindReportData(DS)<>Nil then
       FDataName:=DS;
-    end
+      end
   else if (ANode is TFPExprFunction) then
     begin
     I:=0;
@@ -3485,11 +3519,7 @@ begin
   if Not SameText(aData.Name,FDataName) then
     exit;
   If not IsFirstPass then
-    begin
-    FLastValue.ResultType:=rtFloat;
-    FLastValue.ResFloat:=0;
     exit;
-    end;
   if (FResetValue=#0) then
     begin
     FResetValue:=#255;
@@ -3596,8 +3626,8 @@ begin
         inc(FAggregateValuesIndex);
         end;
       FResetValue:=lResetValue;
-      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
       FLastValue:=FAggregateValue;
+      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
       end
     else
       begin
@@ -3616,7 +3646,7 @@ begin
     begin
     WriteString('Name',Self.Name);
     WriteString('DataType',ResultTypeName(DataType));
-    WriteString('Value',Value);
+//    WriteString('Value',Value);
     WriteString('Expression',Expression);
     WriteString('ResetValueExpression',ResetValueExpression);
     WriteString('ResetType',GetEnumName(TypeInfo(TFPReportResetType),Ord(ResetType)));
@@ -3641,7 +3671,7 @@ begin
       DataType:=rtString
     else
       DataType:=TResultType(I);
-    Value:=ReadString('Value','');
+//    Value:=ReadString('Value','');
     Expression:=ReadString('Expression','');
     ResetValueExpression:=ReadString('ResetValueExpression','');
     S:=ReadString('ResetType','');
@@ -3911,82 +3941,109 @@ begin
   Changed;
 end;
 
-procedure TFPReportCustomMemo.WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out
-  AHeight: TFPReportUnits);
+procedure TFPReportCustomMemo.SetWordOverflow(AValue: TFPReportWordOverflow);
+begin
+  if FWordOverflow=AValue then Exit;
+  FWordOverflow:=AValue;
+  Changed;
+end;
+
+{ All = True) indicates that if the text is split over multiple lines the last
+  line must also be processed before continuing. If All = False, then double
+  CR can be ignored. }
+
+procedure TFPReportCustomMemo.AddTextLine(lFC: TFPFontCacheItem; Var S : UTF8String; MaxW : TFPReportUnits);
+
+var
+  w: single;
+  m: integer;
+  s2, s3: UTF8String;
+
+begin
+  s2  := s;
+  w   := lFC.TextWidth(s2, Font.Size);
+  if (Length(s2) > 1) and (w > maxw) then
+  begin
+    while w > maxw do
+    begin
+      m := Length(s);
+      repeat
+        Dec(m);
+        s2  := Copy(s,1,m);
+        w   := lFC.TextWidth(s2, Font.Size);
+      until w <= maxw;
+
+      s3 := s2; // we might need the value of s2 later again
+
+      // are we in the middle of a word. If so find the beginning of word.
+      while (m > 0) and (s2[m] <> ' ') do
+        Dec(m);
+      s2  := Copy(s,1,m);
+
+      if s2 = '' then
+        begin
+        // Single word does not fit. S3 is max word that fits.
+        s2 := s3;
+        Case WordOverflow of
+          woOverflow:
+            begin
+              { We reached the beginning of the line without finding a word that fits the maxw.
+                So we are forced to use a longer than maxw word. We were in the middle of
+                a word, so now find the end of the current word. }
+            m := Length(s2);
+            while (m < Length(s)) and (s[m]<> ' ') do
+              Inc(m);
+            s2:=Copy(s,1,m);
+            end;
+          woTruncate:
+            m:=Length(S); // Discard the remainder of the word.
+          woSplit:
+            m:=Length(S3); // S3 was the longest possible part of the word. Split after
+          woEllipsis:
+            begin
+            repeat
+              S2:=Copy(S2,1,Length(S2)-1);
+            Until (Length(S2)<1) or (lFC.TextWidth(s2+UTF8Encode(cEllipsis), Font.Size)<MaxW);
+            S2:=S2+UTF8Encode(cEllipsis);
+            m:=Length(S); // Discard the remainder of the word.
+            end;
+          woAsterisk:
+            begin
+            w:= lFC.TextWidth('*', Font.Size);
+            S2:=StringOfChar('*',round(MaxW / w));
+            m:=Length(S); // Discard the remainder of the word.
+            end;
+       end;
+       end;
+      FTextLines.Add(s2);
+      s   := Copy(s, m+1, Length(s));
+      s2  := s;
+      w   := lFC.TextWidth(s2, Font.Size);
+    end; { while }
+    if s2 <> '' then
+      FTextLines.Add(s2);
+    s := '';
+  end
+  else
+  begin
+    if s2 <> '' then
+      FTextLines.Add(s2);
+    s := '';
+  end; { if/else }
+end;
+
+procedure TFPReportCustomMemo.WrapText(const AText: UTF8String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
+
 var
   maxw: single; // value in pixels
   n: integer;
-  s: string;
+  s: UTF8String;
   c: char;
   lWidth: single;
-  lFC: TFPFontCacheItem;
+
   lDescenderHeight: single;
   lHeight: single;
 
-  // -----------------
-  { All = True) indicates that if the text is split over multiple lines the last
-    line must also be processed before continuing. If All = False, then double
-    CR can be ignored. }
-  procedure AddLine(all: boolean);
-  var
-    w: single;
-    m: integer;
-    s2, s3: string;
-  begin
-    s2  := s;
-    w   := lFC.TextWidth(s2, Font.Size);
-    if (Length(s2) > 1) and (w > maxw) then
-    begin
-      while w > maxw do
-      begin
-        m := Length(s);
-        repeat
-          Dec(m);
-          s2  := Copy(s,1,m);
-          w   := lFC.TextWidth(s2, Font.Size);
-        until w <= maxw;
-
-        s3 := s2; // we might need the value of s2 later again
-
-        // are we in the middle of a word. If so find the beginning of word.
-        while (m > 0) and (Copy(s2, m, m+1) <> ' ') do
-        begin
-          Dec(m);
-          s2  := Copy(s,1,m);
-        end;
-
-        if s2 = '' then
-        begin
-          s2 := s3;
-          m := Length(s2);
-          { We reached the beginning of the line without finding a word that fits the maxw.
-            So we are forced to use a longer than maxw word. We were in the middle of
-            a word, so now find the end of the current word. }
-          while (m < Length(s)) and (Copy(s2, m, m+1) <> ' ') do
-          begin
-            Inc(m);
-            s2  := Copy(s,1,m);
-          end;
-        end;
-        ALines.Add(s2);
-        s   := Copy(s, m+1, Length(s));
-        s2  := s;
-        w   := lFC.TextWidth(s2, Font.Size);
-      end; { while }
-      if all then
-      begin
-        if s2 <> '' then
-          ALines.Add(s2);
-        s := '';
-      end;
-    end
-    else
-    begin
-      if s2 <> '' then
-        ALines.Add(s2);
-      s := '';
-    end; { if/else }
-  end;
 
 begin
   if AText = '' then
@@ -3994,10 +4051,6 @@ begin
 
   if ALineWidth = 0 then
     Exit;
-  { We are doing a PostScript Name lookup (it contains Bold, Italic info) }
-  lFC := gTTFontCache.FindFont(Font.Name);
-  if not Assigned(lFC) then
-    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
   { result is in pixels }
   lWidth := lFC.TextWidth(Text, Font.Size);
   lHeight := lFC.TextHeight(Text, Font.Size, lDescenderHeight);
@@ -4005,35 +4058,34 @@ begin
   AHeight := PixelsToMM(lHeight+lDescenderHeight);
 
   s := '';
-  ALines.Clear;
   n := 1;
   maxw := mmToPixels(ALineWidth - TextAlignment.LeftMargin - TextAlignment.RightMargin);
   { Do we really need to do text wrapping? There must be no linefeed characters and lWidth must be less than maxw. }
   if ((Pos(#13, AText) = 0) and (Pos(#10, AText) = 0)) and (lWidth <= maxw) then
   begin
-    ALines.Add(AText);
+    FTextLines.Add(AText);
     Exit;
   end;
 
   { We got here, so wrapping is needed. First process line wrapping as indicated
     by LineEnding characters in the text. }
   while n <= Length(AText) do
-  begin
+    begin
     c := AText[n];
     if (c = #13) or (c = #10) then
     begin
       { See code comment of AddLine() for the meaning of the True argument. }
-      AddLine(true);
+      AddTextLine(lfc,S,maxw);
       if (c = #13) and (n < Length(AText)) and (AText[n+1] = #10) then
         Inc(n);
     end
     else
       s := s + c;
     Inc(n);
-  end; { while }
+    end; { while }
 
   { Now wrap lines that are longer than ALineWidth }
-  AddLine(true);
+  AddTextLine(lfc,S,maxW);
 end;
 
 procedure TFPReportElement.ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
@@ -4467,8 +4519,8 @@ begin
 
     FCurTextBlock.FontName := lNewFontName;
 
-    FCurTextBlock.Width := TextWidth(FCurTextBlock.Text);
-    FCurTextBlock.Height := TextHeight(FCurTextBlock.Text, lDescender);
+    FCurTextBlock.Width := TextWidth(FCurTextBlock.Text, FCurTextBlock.FontName, Font.Size);
+    FCurTextBlock.Height := TextHeight(FCurTextBlock.Text,FCurTextBlock.FontName, Font.Size, lDescender);
     FCurTextBlock.Descender := lDescender;
 
     // get X offset from previous textblocks
@@ -4495,36 +4547,35 @@ begin
   Result := Round(mm * (gTTFontCache.DPI / cMMperInch));
 end;
 
-function TFPReportCustomMemo.TextHeight(const AText: string; out ADescender: TFPReportUnits): TFPReportUnits;
+function TFPReportCustomMemo.TextHeight(const AText, FontName: string; FontSize: Integer; out ADescender: TFPReportUnits): TFPReportUnits;
 var
   lHeight: single;
   lDescenderHeight: single;
   lFC: TFPFontCacheItem;
 
 begin
-  // TODO: FontName might need to change to TextBlock.FontName.
-  lFC := gTTFontCache.FindFont(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
+  lFC := gTTFontCache.FindFont(FontName); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
   if not Assigned(lFC) then
-    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
+    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [FontName]);
   { Both lHeight and lDescenderHeight are in pixels }
-  lHeight := lFC.TextHeight(AText, Font.Size, lDescenderHeight);
+  lHeight := lFC.TextHeight(AText, FontSize, lDescenderHeight);
 
   { convert pixels to mm. }
   ADescender := PixelsToMM(lDescenderHeight);
   Result := PixelsToMM(lHeight);
 end;
 
-function TFPReportCustomMemo.TextWidth(const AText: string): TFPReportUnits;
+function TFPReportCustomMemo.TextWidth(const AText, FontName: string; FontSize: Integer): TFPReportUnits;
 var
   lWidth: single;
   lFC: TFPFontCacheItem;
 begin
   // TODO: FontName might need to change to TextBlock.FontName.
-  lFC := gTTFontCache.FindFont(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
+  lFC := gTTFontCache.FindFont(FontName); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
   if not Assigned(lFC) then
-    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
+    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [FontName]);
   { result is in pixels }
-  lWidth := lFC.TextWidth(AText, Font.Size);
+  lWidth := lFC.TextWidth(AText, FontSize);
 
   { convert pixels to mm. }
   Result := PixelsToMM(lWidth);
@@ -4644,8 +4695,8 @@ begin
   try
     FCurTextBlock.Text := AText;
     FCurTextBlock.FontName := Font.Name;
-    FCurTextBlock.Width := TextWidth(FCurTextBlock.Text);
-    FCurTextBlock.Height := TextHeight(FCurTextBlock.Text, lDescender);
+    FCurTextBlock.Width := TextWidth(FCurTextBlock.Text, FCurTextBlock.FontName, Font.Size);
+    FCurTextBlock.Height := TextHeight(FCurTextBlock.Text, FCurTextBlock.FontName, Font.Size, lDescender);
     FCurTextBlock.Descender := lDescender;
 
     // get X offset from previous textblocks
@@ -4878,7 +4929,10 @@ procedure TFPReportCustomMemo.RecalcLayout;
   end;
 
 var
-  h: TFPReportUnits;
+  h, maxW: TFPReportUnits;
+  lFC : TFPFontCacheItem;
+  S : UTF8String;
+
 begin
   FTextBlockList.Clear;
   FCurTextBlock := nil;
@@ -4886,11 +4940,18 @@ begin
     FTextLines := TStringList.Create
   else
     FTextLines.Clear;
-
+  { We are doing a PostScript Name lookup (it contains Bold, Italic info) }
+  lFC := gTTFontCache.FindFont(Font.Name);
+  if not Assigned(lFC) then
+    raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
   if not (moDisableWordWrap in Options) then
-    WrapText(Text, FTextLines, Layout.Width, h)
+    WrapText(Text, lfc, Layout.Width, h)
   else
-    FTextLines.Add(Text);
+    begin
+    maxw := mmToPixels(Layout.Width - TextAlignment.LeftMargin - TextAlignment.RightMargin);
+    S:=Text;
+    AddTextLine(lfc,S,maxw);
+    end;
 
   if StretchMode <> smDontStretch then
     ApplyStretchMode(CalcNeededHeight(h));
@@ -5079,6 +5140,7 @@ begin
   FUseParentFont := True;
   FFont := TFPReportFont.Create;
   FFont.OnChanged:=@HandleFontChange;
+  ReassignParentFont;
   FCullThreshold := 75;
 end;
 
@@ -5114,6 +5176,7 @@ begin
     TextAlignment.Assign(E.TextAlignment);
     Options := E.Options;
     Original := E;
+    WordOverflow:= E.WordOverflow;
   end;
 end;
 
@@ -5274,16 +5337,55 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomImage.SetDBImageType(AValue: TFPReportString);
+begin
+  if FDBImageType = AValue then
+    exit;
+  FDBImageType := AValue;
+  Changed;
+end;
+
+function TryVarByteArrayToStream(var AValue : Variant; Stream : TMemoryStream) : boolean;
+var
+  p : Pointer;
+  c : Integer;
+begin
+  Result := False;
+  if not VarIsArray(AValue) then
+    exit;
+  c := VarArrayHighBound(AValue,1) - VarArrayLowBound(AValue,1) + 1;
+  Result := (c > 0) and VarIsType(AValue[VarArrayLowBound(AValue,1)],varByte);
+  if not Result then
+    exit;
+  p := VarArrayLock(AValue);
+  try
+    Stream.SetSize(c);
+    Move(p^,Stream.Memory^,c);
+  finally
+    VarArrayUnlock(AValue);
+  end;
+end;
+
 procedure TFPReportCustomImage.LoadDBData(AData: TFPReportData);
 var
+  v : Variant;
   s: string;
   lStream: TMemoryStream;
+  irc : TFPCustomImageReaderClass;
 begin
-  s := AData.FieldValues[FFieldName];
+  v := AData.FieldValues[FFieldName];
   lStream := TMemoryStream.Create;
   try
-    FPReportMIMEEncodeStringToStream(s, lStream);
-    LoadPNGFromStream(lStream)
+    if not TryVarByteArrayToStream(v,lStream) then
+    begin
+      s := v;
+      FPReportMIMEEncodeStringToStream(s, lStream);
+    end;
+    s := Trim(DBImageType);
+    if (s = '') then
+      s := DefaultImageType;
+    irc := TFPCustomImage.FindReaderFromExtension(s);
+    LoadFromStream(lStream,irc);
   finally
     lStream.Free;
   end;
@@ -5332,7 +5434,8 @@ begin
   idx := TFPReportCustomBand(Parent).Page.Report.Images.GetIndexFromID(ImageID);
   AWriter.WriteInteger('ImageIndex', idx);
   AWriter.WriteBoolean('Stretched', Stretched);
-  AWriter.WriteString('FieldName', FieldName);
+  AWriter.WriteString('FieldName', FieldName);  
+  AWriter.WriteString('DBImageType', DBImageType);
 end;
 
 procedure TFPReportCustomImage.RecalcLayout;
@@ -5345,15 +5448,25 @@ function TFPReportCustomImage.PrepareObject(aRTParent: TFPReportElement): TFPRep
 Var
   Img : TFPReportCustomImage;
   B : TFPReportCustomBand;
+  D : TFPReportData;
 
 begin
   Result:=inherited PrepareObject(aRTParent);
   if Result=Nil then
     exit;
   img := TFPReportCustomImage(Result);
-  B:=artParent as TFPReportCustomBand;
-  if (img.FieldName <> '') and Assigned(B.GetData) then
-    img.LoadDBData(B.GetData);
+  if Assigned(Band) then
+    B := Band
+  else
+    B := artParent as TFPReportCustomBand;
+  if (img.FieldName <> '') then
+  begin
+    D := B.GetData;
+    if not(Assigned(D)) and Assigned(B.Page.Data) then
+      D := B.Page.Data;
+    if Assigned(D) then
+      img.LoadDBData(D);
+  end;
 end;
 
 constructor TFPReportCustomImage.Create(AOwner: TComponent);
@@ -5362,6 +5475,7 @@ begin
   FImage := nil;
   FStretched := False;
   FImageID := -1;
+  FDBImageType := DefaultImageType;
 end;
 
 destructor TFPReportCustomImage.Destroy;
@@ -5401,6 +5515,7 @@ begin
     end;
     FStretched := i.Stretched;
     FFieldName := i.FieldName;
+    FDBImageType := i.DBImageType;
     FImageID := i.ImageID;
   end;
 end;
@@ -5411,7 +5526,8 @@ begin
   { See code comments in DoWriteLocalProperties() }
   ImageID := AReader.ReadInteger('ImageIndex', -1);
   Stretched := AReader.ReadBoolean('Stretched', Stretched);
-  FieldName := AReader.ReadString('FieldName', FieldName);
+  FieldName := AReader.ReadString('FieldName', FieldName);  
+  DBImageType := AReader.ReadString('DBImageType', DBImageType);
 end;
 
 procedure TFPReportCustomImage.LoadFromFile(const AFileName: string);
@@ -7674,6 +7790,7 @@ begin
     Report := E.Report;
     Font.Assign(E.Font);
     ColumnCount := E.ColumnCount;
+    ColumnGap := E.ColumnGap;
   end;
   inherited Assign(Source);
 end;
@@ -7682,6 +7799,9 @@ procedure TFPReportCustomPage.ReadElement(AReader: TFPReportStreamer);
 var
   E: TObject;
 begin
+  ColumnCount := AReader.ReadInteger('ColumnCount', 1);
+  ColumnGap := AReader.ReadFloat('ColumnGap', 0);
+  ColumnLayout := StringToColumnLayout(AReader.ReadString('ColumnLayout', 'clVertical'));
   Orientation := StringToPaperOrientation(AReader.ReadString('Orientation', 'poPortrait'));
   Pagesize.PaperName := AReader.ReadString('PageSize.PaperName', 'A4');
   Pagesize.Width := AReader.ReadFloat('PageSize.Width', 210);
@@ -7820,6 +7940,9 @@ end;
 procedure TFPReportCustomPage.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
 begin
   inherited DoWriteLocalProperties(AWriter, AOriginal);
+  AWriter.WriteFloat('ColumnCount', ColumnCount);
+  AWriter.WriteFloat('ColumnGap', ColumnGap);
+  AWriter.WriteString('ColumnLayout', ColumnLayoutToString(ColumnLayout));
   AWriter.WriteString('Orientation', PaperOrientationToString(Orientation));
   AWriter.WriteString('PageSize.PaperName', PageSize.PaperName);
   AWriter.WriteFloat('PageSize.Width', PageSize.Width);
@@ -8659,6 +8782,39 @@ begin
   // TODO: Implement writing OnRenderReport, OnBeginReport, OnEndReport
 end;
 
+procedure TFPCustomReport.WriteRTElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
+var
+  i: integer;
+begin
+  // ignore AOriginal here as we don't support whole report diffs, only element diffs
+  AWriter.PushElement('Report');
+  try
+    inherited WriteElement(AWriter, AOriginal);
+    // local properties
+    AWriter.WriteString('Title', Title);
+    AWriter.WriteString('Author', Author);
+    AWriter.WriteBoolean('TwoPass',TwoPass);
+    AWriter.WriteDateTime('DateCreated', DateCreated);
+    // now the pages
+    AWriter.PushElement('Pages');
+    try
+      for i := 0 to RTObjects.Count - 1 do
+      begin
+        AWriter.PushElement(IntToStr(i)); // use page index as identifier
+        try
+          TFPReportComponent(RTObjects[i]).WriteElement(AWriter);
+        finally
+          AWriter.PopElement;
+        end;
+      end;
+    finally
+      AWriter.PopElement;
+    end;
+  finally
+    AWriter.PopElement;
+  end;
+end;
+
 procedure TFPCustomReport.ReadElement(AReader: TFPReportStreamer);
 var
   E: TObject;
@@ -8862,6 +9018,7 @@ end;
 procedure TFPCustomReport.RunReport;
 begin
   DoBeginReport;
+  ClearPreparedReport;
   StartLayout;
   CollectReportData;
   Validate;
@@ -9374,6 +9531,7 @@ begin
   FBandPosition := bpNormal;
   FFont:=TFPReportFont.Create;
   FFont.OnChanged:=@HandleFontChange;
+  ReassignParentFont;
 end;
 
 destructor TFPReportCustomBand.Destroy;
@@ -11830,12 +11988,11 @@ begin
         {$endif}
         // DumpData(lData);
         PrepareRecord(lData);
+        Report.UpdateAggregates(lPage,lData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
-        // This must be done after the groups were handled.
-        Report.UpdateAggregates(lPage,lData);
         ShowDataBand;
         lData.Next;
         end;  { while not lData.EOF }
@@ -12031,12 +12188,11 @@ begin
         {$endif}
         // DumpData(aPageData);
         PrepareRecord(aData);
+        Report.UpdateAggregates(aPage,aData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
-        // This must be done after the groups were handled.
-        Report.UpdateAggregates(aPage,aData);
         ShowDataBand;
         aData.Next;
         end;
@@ -12186,7 +12342,7 @@ begin
       if CurrentLoop.FGroupHeaderList.Count > 0 then
       begin
         { when data band overflows use start with lowest gropup header }
-        if aBand is TFPReportCustomDataBand and
+        if (aBand is TFPReportCustomDataBand) and
         not Assigned(TFPReportCustomDataBand(aband).MasterBand) then
           lToMoveGrp := TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[0])
         { when group header overflows use start with parent group header }

@@ -131,6 +131,9 @@ const
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testWordValues : Array[0..testValuesCount-1] of Word = (1,2,3,4,5,6,7,8,0,1,127,128,255,256,maxSmallint,maxSmallint+1,maxSmallInt-1,maxSmallInt,65535,100,130,150,151,132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
+  testByteValues: Array[0..testValuesCount-1] of Byte = (1,2,3,4,5,6,7,8,0,1,127,128,255,0,0,0,0,0,0,0,0,0,0,0,0);
+  testShortintValues: Array[0..testValuesCount-1] of ShortInt = (1,2,3,4,5,6,7,8,0,1,-128,-127,-64,64,126,127,0,0,0,0,0,0,0,0,0);
+  testLongWordValues : Array[0..testValuesCount-1] of LongWord = (1,2,3,4,5,6,7,8,0,1,$FF,$FFFF,$FFFFFF,$FFFFFFFF,0,0,0,0,0,0,0,0,0,0,0);
   testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = (-$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
   testBooleanValues : Array[0..testValuesCount-1] of boolean = (true,false,false,true,true,false,false,true,false,true,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false);
   testStringValues : Array[0..testValuesCount-1] of string = (
@@ -566,6 +569,7 @@ begin
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftWord,i] := IntToStr(testWordValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
+    testValues[ftLongWord,i] := IntToStr(testLongWordValues[i]);
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     // For date '0001-01-01' other time-part like '00:00:00' causes "Invalid variant type cast", because of < MinDateTime constant

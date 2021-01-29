@@ -51,7 +51,7 @@ unit optcse;
       nutils,compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
-      symconst,symdef,symsym,
+      symconst,symdef,symsym,symtable,symtype,
       defutil,
       optbase;
 
@@ -70,7 +70,10 @@ unit optcse;
              in_abs_real,in_exp_real,in_ln_real,in_pi_real,in_popcnt_x,in_arctan_real,in_round_real,in_trunc_real,
              { cse on fma will still not work because it would require proper handling of call nodes
                with more than one parameter }
-             in_fma_single,in_fma_double,in_fma_extended,in_fma_float128])
+             in_fma_single,in_fma_double,in_fma_extended,in_fma_float128,
+             in_min_single,in_min_double,in_max_single,in_max_double,
+             in_max_longint,in_max_dword,in_min_longint,in_min_dword
+             ])
           ) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
@@ -138,6 +141,7 @@ unit optcse;
 
       var
         i : longint;
+        tempdef : tdef;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -160,14 +164,29 @@ unit optcse;
         if
           { node possible to add? }
           assigned(n.resultdef) and
-          (
+          ((
             { regable expressions }
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
-            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
+            (
+              tstoreddef(n.resultdef).is_intregable or
+              tstoreddef(n.resultdef).is_fpuregable or
+              tstoreddef(n.resultdef).is_const_intregable
+            ) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef]))) or
-             is_dynamic_array(n.resultdef) or
-             ((n.resultdef.typ in [arraydef,recorddef]) and not(is_special_array(tstoreddef(n.resultdef))) and not(tstoreddef(n.resultdef).is_intregable) and not(tstoreddef(n.resultdef).is_fpuregable))
+            (
+              not(n.resultdef.typ in [arraydef,recorddef]) or
+              (
+                (
+                  (n.resultdef.typ = recorddef) and
+                  tabstractrecordsymtable(tabstractrecorddef(n.resultdef).symtable).has_single_field(tempdef)
+                ) or
+                is_dynamic_array(n.resultdef) or
+                (
+                  not(is_special_array(tstoreddef(n.resultdef))) and
+                  not(tstoreddef(n.resultdef).is_intregable) and
+                  not(tstoreddef(n.resultdef).is_fpuregable)
+                )
+              )
             ) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
@@ -196,7 +215,7 @@ unit optcse;
              not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
              { apply cse on non-regable variables }
              ((tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) and
-               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(false)) and
+               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(true)) and
                not(vo_volatile in tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varoptions)) or
              (node_complexity(n)>1)
             ) and
@@ -291,7 +310,10 @@ unit optcse;
       begin
         result:=fen_false;
         nodes:=nil;
-        if n.nodetype in cseinvariant then
+        if (n.nodetype in cseinvariant) and
+          { a setelement node is cseinvariant, but it might not be replaced by a block so
+            it cannot be the root of the cse search }
+          (n.nodetype<>setelementn) then
           begin
             csedomain:=true;
             foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);

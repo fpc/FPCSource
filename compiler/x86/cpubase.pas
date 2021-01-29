@@ -170,7 +170,7 @@ uses
 
       { Number of first imaginary register }
 {$ifdef x86_64}
-      first_mm_imreg     = $10;
+      first_mm_imreg     = $20;
 {$else x86_64}
       first_mm_imreg     = $08;
 {$endif x86_64}
@@ -250,10 +250,6 @@ uses
       RS_DEFAULTFLAGS = RS_FLAGS;
       NR_DEFAULTFLAGS = NR_FLAGS;
 {$endif}
-
-   type
-      totherregisterset = set of tregisterindex;
-
 
 {*****************************************************************************
                                 Conditions
@@ -357,6 +353,9 @@ topsize2memsize: array[topsize] of integer =
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     { checks whether two segment registers are normally equal in the current memory model }
     function segment_regs_equal(r1,r2:tregister):boolean;
 
@@ -386,11 +385,15 @@ topsize2memsize: array[topsize] of integer =
     function requires_fwait_on_8087(op: TAsmOp): boolean;
 {$endif i8086}
 
+   function UseAVX: boolean;
+   function UseAVX512: boolean;
+
 implementation
 
     uses
       globtype,
-      rgbase,verbose;
+      rgbase,verbose,
+      cpuinfo;
 
     const
     {$if defined(x86_64)}
@@ -464,11 +467,11 @@ implementation
               else
                 internalerror(2009071902);
             end;
-          OS_M128,OS_MS128,OS_MF128,OS_MD128:
+          OS_M128:
             cgsize2subreg:=R_SUBMMX;
-          OS_M256,OS_MS256,OS_MF256,OS_MD256:
+          OS_M256:
             cgsize2subreg:=R_SUBMMY;
-          OS_M512,OS_MS512,OS_MF512,OS_MD512:
+          OS_M512:
             cgsize2subreg:=R_SUBMMZ;
           OS_NO:
             { error message should have been thrown already before, so avoid only
@@ -482,7 +485,7 @@ implementation
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_NO,OS_M128,OS_M256,OS_M512,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_NO,OS_M128,OS_M256,OS_M512,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -506,11 +509,11 @@ implementation
             end;
           R_ADDRESSREGISTER:
             case reg of
-              NR_K0..NR_K7: reg_cgsize:=OS_64;
+              NR_K0..NR_K7: reg_cgsize:=OS_NO;
               else internalerror(2003031801);
             end;
           else
-            internalerror(2003031801);
+            internalerror(2003031802);
           end;
         end;
 
@@ -518,7 +521,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -592,7 +595,7 @@ implementation
       begin
         result := flags_2_cond[f];
         if (result=C_None) then
-          InternalError(2014041301);
+          InternalError(2014041302);
       end;
 
 
@@ -669,6 +672,49 @@ implementation
         result := c1 = c2;
       end;
 
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+        if not Result then
+          case Subset of
+            C_A,  C_NBE:
+              Result := (c in [C_A,  C_AE, C_NB, C_NBE]);
+            C_AE, C_NB:
+              Result := (c in [C_AE, C_NB]);
+            C_B,  C_NAE:
+              Result := (c in [C_B,  C_BE, C_C,  C_NA, C_NAE]);
+            C_BE, C_NA:
+              Result := (c in [C_BE, C_NA]);
+            C_C:
+              { C_B  / C_NAE: CF = 1
+                C_BE / C_NA:  CF = 1 or ZF = 1 }
+              Result := (c in [C_B,  C_BE, C_NA, C_NAE]);
+            C_E,  C_Z:
+              Result := (c in [C_AE, C_BE, C_E,  C_NA, C_NB, C_NG, C_NL]);
+            C_G,  C_NLE:
+              Result := (c in [C_G,  C_GE, C_NL, C_NLE]);
+            C_GE, C_NL:
+              Result := (c in [C_GE, C_NL]);
+            C_L,  C_NGE:
+              Result := (c in [C_L,  C_LE, C_NG, C_NGE]);
+            C_LE, C_NG:
+              Result := (c in [C_LE, C_NG]);
+            C_NC:
+              { C_A  / C_NBE: CF = 0 and ZF = 0; not a subset because ZF has to be zero as well
+                C_AE / C_NB:  CF = 0 }
+              Result := (c in [C_AE, C_NB]);
+            C_NE, C_NZ:
+              Result := (c in [C_NE, C_NZ, C_A,  C_B,  C_NAE,C_NBE,C_L,  C_G,  C_NLE,C_NGE]);
+            C_NP, C_PO:
+              Result := (c in [C_NP, C_PO]);
+            C_P,  C_PE:
+              Result := (c in [C_P,  C_PE]);
+            else
+              Result := False;
+          end;
+      end;
 
     function dwarf_reg(r:tregister):shortint;
       begin
@@ -904,6 +950,18 @@ implementation
         end;
       end;
 {$endif i8086}
+
+
+  function UseAVX: boolean;
+    begin
+      Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]){$endif i8086};
+    end;
+
+
+  function UseAVX512: boolean;
+    begin
+      Result:={$ifdef i8086}false{$else i8086}UseAVX and (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]){$endif i8086};
+    end;
 
 
 end.

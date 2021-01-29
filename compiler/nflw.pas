@@ -46,7 +46,10 @@ interface
          { Should the value of the loop variable on exit be correct. }
          lnf_dont_mind_loopvar_on_exit,
          { Loop simplify flag }
-         lnf_simplify_processing);
+         lnf_simplify_processing,
+         { set if in a for loop the counter is not used, so an easier exit check
+           can be carried out }
+         lnf_counter_not_used);
        tloopflags = set of tloopflag;
 
     const
@@ -110,6 +113,7 @@ interface
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function makewhileloop : tnode;
           function simplify(forinline : boolean) : tnode;override;
        end;
        tfornodeclass = class of tfornode;
@@ -142,6 +146,42 @@ interface
        private
           labelnodeidx : longint;
        public
+          { * Set when creating the gotonode (since that's all we know at that
+              point).
+            * Used in pass_typecheck to find the corresponding labelnode (when a
+              labelnode is created for a tlabelsym, the label assigns itself to
+              the "code" field of the labelsym), which is then assigned to the
+              labelnode field
+            * After this, the labelsym is (and must) never be used anymore, and
+              instead the labelnode must always be used. The reason is that the
+              labelsym may not be owned by anything, and will be freed by the
+              label node when it gets freed
+            * The above is the reason why the labelsym field does not get copied
+              by tgotonode.dogetcopy, but instead the copy of the labelnode gets
+              tracked (both the labelnode and its goto nodes must always all be
+              copied).
+
+            The labelnode itself will not copy the labelsym either in dogetcopy.
+            Instead, since the link between the gotos and the labels gets
+            tracked via node tree references, the label node will generate a new
+            asmlabel on the fly and the goto node will get it from there (if the
+            goto node gets processed before the label node has been processed,
+            it will ask the label node to generate the asmsymbol at that point).
+
+            The original tlabelsym will get emitted only for the original
+            label node. It is only actually used if there is a reference to it
+            from
+              * an inline assembly block. Since inline assembly blocks cannot be
+                inlined at this point, it doesn't matter that this would break
+                in case the node gets copied
+              * global goto/label. Inlining is not supported for these, so no
+                problem here either for now.
+              * a load node (its symtableentry field). Since the symtableentry
+                of loadnodes is always expected to be valid, we cannot do like
+                with the goto nodes. Instead, we will create a new labelsym
+                when performing a dogetcopy of such a load node and assign this
+                labelsym to the copied labelnode (and vice versa)
+          }
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
@@ -205,6 +245,8 @@ interface
           function simplify(forinline:boolean): tnode;override;
        protected
           procedure adjust_estimated_stack_size; virtual;
+       public
+          function dogetcopy: tnode;override;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -244,11 +286,15 @@ interface
        enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
     function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
 
+    { converts all for nodes in the tree into while nodes,
+      returns true if something was converted }
+    function ConvertForLoops(var n : tnode) : Boolean;
+
 implementation
 
     uses
       globtype,systems,constexp,compinnr,
-      cutils,verbose,globals,
+      cutils,verbose,globals,ppu,
       symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
     {$ifdef state_tracking}
@@ -257,6 +303,9 @@ implementation
     {$ifdef i8086}
       cpuinfo,
     {$endif i8086}
+    {$if defined(xtensa) or defined(i386)}
+      cpuinfo,
+    {$endif defined(xtensa) or defined(i386)}
       cgbase,procinfo
       ;
 
@@ -757,7 +806,7 @@ implementation
             enum_get_params:=ccallparanode.create(expr.getcopy,nil);
             enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil);
             tcallnode(enum_get).procdefinition:=enumerator_get;
-            addsymref(enumerator_get.procsym);
+            addsymref(enumerator_get.procsym,enumerator_get);
           end
         else
           enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, [],nil);
@@ -940,9 +989,14 @@ implementation
                         typecheckpass(expr);
                       end;
                     case expr.resultdef.typ of
-                      stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
-                      arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
-                      setdef: result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
+                      stringdef:
+                        result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
+                      arraydef:
+                        result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
+                      setdef:
+                        result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
+                      undefineddef:
+                        result:=cnothingnode.create;
                     else
                       begin
                         result:=cerrornode.create;
@@ -955,6 +1009,28 @@ implementation
               end;
           end;
         current_filepos:=storefilepos;
+      end;
+
+
+    function _ConvertForLoops(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        hp : tnode;
+      begin
+        Result:=fen_false;
+        if n.nodetype=forn then
+          begin
+            Result:=fen_true;
+            hp:=n;
+            n:=tfornode(n).makewhileloop;
+            do_firstpass(n);
+            hp.Free;
+          end;
+      end;
+
+
+    function ConvertForLoops(var n : tnode) : boolean;
+      begin
+        result:=foreachnodestatic(pm_postprocess,n,@_ConvertForLoops,nil);
       end;
 
 {****************************************************************************
@@ -984,7 +1060,7 @@ implementation
         inherited ppuload(t,ppufile);
         t1:=ppuloadnode(ppufile);
         t2:=ppuloadnode(ppufile);
-        ppufile.getsmallset(loopflags);
+        ppufile.getset(tppuset1(loopflags));
       end;
 
 
@@ -993,7 +1069,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,t1);
         ppuwritenode(ppufile,t2);
-        ppufile.putsmallset(loopflags);
+        ppufile.putset(tppuset1(loopflags));
       end;
 
 
@@ -1230,6 +1306,7 @@ implementation
          if (lnf_testatbegin in loopflags) and
             (left.nodetype=ordconstn) and
             (tordconstnode(left).value.uvalue=0) and
+            not(nf_internal in left.flags) and
             assigned(right) then
            CGMessagePos(right.fileinfo,cg_w_unreachable_code);
       end;
@@ -1481,6 +1558,12 @@ implementation
 
 
     function tifnode.internalsimplify(warn: boolean) : tnode;
+{$if defined(i386) or defined(x86_64) or defined(xtensa)}
+      var
+        thenstmnt, elsestmnt: tnode;
+        in_nr: tinlinenumber;
+        paratype: tdef;
+{$endif}
       begin
         result:=nil;
         { optimize constant expressions }
@@ -1493,7 +1576,7 @@ implementation
                   else
                     result:=cnothingnode.create;
                   right:=nil;
-                  if warn and assigned(t1) then
+                  if warn and assigned(t1) and not(nf_internal in left.flags) then
                     CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
                end
              else
@@ -1503,10 +1586,123 @@ implementation
                   else
                     result:=cnothingnode.create;
                   t1:=nil;
-                  if warn and assigned(right) then
+                  if warn and assigned(right) and not(nf_internal in left.flags) then
                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                end;
           end;
+{$ifndef llvm}
+{$if defined(i386) or defined(x86_64) or defined(xtensa)}
+        { use min/max intrinsic?
+          convert (with <op> being <, >, >=, <=
+          if a <op> b then
+            x:=a
+          else
+            x:=b;
+
+          and
+
+          if a <op> b then
+            x:=a;
+
+          into appropriate min/max intrinsics
+
+          }
+        elsestmnt:=nil;
+        in_nr:=Default(tinlinenumber);
+        if (cs_opt_level2 in current_settings.optimizerswitches) and
+           (left.nodetype in [gtn,gten,ltn,lten]) and IsSingleStatement(right,thenstmnt) and
+           ((t1=nil) or IsSingleStatement(t1,elsestmnt)) and
+          (thenstmnt.nodetype=assignn) and ((t1=nil) or (elsestmnt.nodetype=assignn)) and
+          not(might_have_sideeffects(left)) and
+          ((t1=nil) or tassignmentnode(thenstmnt).left.isequal(tassignmentnode(elsestmnt).left)) and
+{$if defined(i386) or defined(x86_64)}
+{$ifdef i386}
+          (((current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef))
+          ) and
+{$else i386}
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+{$endif i386}
+{$endif defined(i386) or defined(x86_64)}
+{$if defined(xtensa)}
+          (CPUXTENSA_HAS_MINMAX in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
+{$endif defined(xtensa)}
+          (
+          { the right size of the assignment in the then clause must either }
+
+          { equal to the left ... }
+           (tassignmentnode(thenstmnt).right.isequal(taddnode(left).left) and
+
+            { ... and the else clause must be either not exist                 }
+            { and the left side of the assignment in the then clause must be   }
+            {  equal to the right operand of the comparison operator           }
+            (
+              ((t1=nil) and (tassignmentnode(thenstmnt).left.isequal(taddnode(left).right))) or
+
+              { or the else clause exists and the right side of the assignment in the else clause }
+              { must be equal to the right side of the comparison operator                        }
+              (assigned(elsestmnt) and tassignmentnode(elsestmnt).right.isequal(taddnode(left).right)))
+           ) or
+           { ... or right operand of the comparison operator }
+
+            (tassignmentnode(thenstmnt).right.isequal(taddnode(left).right) and
+            { ... and the else clause must be either not exist                 }
+            { and the left side of the assignment in the then clause must be   }
+            {  equal to the left operand of the comparison operator            }
+             (
+              ((t1=nil) and (tassignmentnode(thenstmnt).left.isequal(taddnode(left).left))) or
+
+              { or the else clause exists and the right side of the assignment in the else clause }
+              { must be equal to the left side of the comparison operator                         }
+              (assigned(elsestmnt) and tassignmentnode(elsestmnt).right.isequal(taddnode(left).left))
+             )
+           )
+          ) then
+          begin
+            paratype:=tassignmentnode(thenstmnt).left.resultdef;
+            if ((left.nodetype in [gtn,gten]) and
+              tassignmentnode(thenstmnt).right.isequal(taddnode(left).left)) or
+              ((left.nodetype in [ltn,lten]) and
+              tassignmentnode(thenstmnt).right.isequal(taddnode(left).right)) then
+              begin
+                if is_double(paratype) then
+                  in_nr:=in_max_double
+                else if is_single(paratype) then
+                  in_nr:=in_max_single
+                else if is_u32bitint(paratype) then
+                  in_nr:=in_max_dword
+                else if is_s32bitint(paratype) then
+                  in_nr:=in_max_longint;
+              end
+            else
+              begin
+                if is_double(paratype) then
+                  in_nr:=in_min_double
+                else if is_single(paratype) then
+                  in_nr:=in_min_single
+                else if is_u32bitint(paratype) then
+                  in_nr:=in_min_dword
+                else if is_s32bitint(paratype) then
+                  in_nr:=in_min_longint;
+              end;
+            { for inline nodes, the first parameter is the last one in the linked list
+
+              Due to the defined behaviour for the min/max intrinsics that in case of a NaN
+              the second parameter is taken, we have to put the else part into the second parameter
+              thus pass it to the first callparanode call }
+            if t1=nil then
+              Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
+                cinlinenode.create(in_nr,false,ccallparanode.create(tassignmentnode(thenstmnt).left.getcopy,
+                      ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil)))
+                )
+            else
+              Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
+                cinlinenode.create(in_nr,false,ccallparanode.create(tassignmentnode(elsestmnt).right.getcopy,
+                      ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil)))
+                );
+          end;
+{$endif defined(i386) or defined(x86_64) or defined(xtensa)}
+{$endif llvm}
       end;
 
 
@@ -1627,8 +1823,26 @@ implementation
 
          set_varstate(left,vs_written,[]);
 
+         { Make sure that the loop var and the
+           from and to values are compatible types }
+         if not(m_iso in current_settings.modeswitches) then
+           rangedef:=left.resultdef
+         else
+           rangedef:=get_iso_range_type(left.resultdef);
+
+         check_ranges(right.fileinfo,right,rangedef);
+         inserttypeconv(right,rangedef);
+
+         check_ranges(t1.fileinfo,t1,rangedef);
+         inserttypeconv(t1,rangedef);
+
+         if assigned(t2) then
+           typecheckpass(t2);
+         result:=simplify(false);
+
          { loop unrolling }
-         if (cs_opt_loopunroll in current_settings.optimizerswitches) and
+         if not(assigned(result)) and
+           (cs_opt_loopunroll in current_settings.optimizerswitches) and
            assigned(t2) and
            { statements must be error free }
            not(nf_error in t2.flags) then
@@ -1646,26 +1860,33 @@ implementation
                end;
            end;
 
-         { Make sure that the loop var and the
-           from and to values are compatible types }
-         if not(m_iso in current_settings.modeswitches) then
-           rangedef:=left.resultdef
-         else
-           rangedef:=get_iso_range_type(left.resultdef);
-
-         check_ranges(right.fileinfo,right,rangedef);
-         inserttypeconv(right,rangedef);
-
-         check_ranges(t1.fileinfo,t1,rangedef);
-         inserttypeconv(t1,rangedef);
-
-         if assigned(t2) then
-           typecheckpass(t2);
-         result:=simplify(false);
       end;
 
 
     function tfornode.pass_1 : tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_VOID;
+
+        firstpass(left);
+        firstpass(right);
+        firstpass(t1);
+
+        if assigned(t2) then
+          firstpass(t2);
+      end;
+
+
+    function checkcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+      begin
+        if n.nodetype=continuen then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
+    function tfornode.makewhileloop : tnode;
       var
         ifblock,loopblock : tblocknode;
         ifstatements,statements,loopstatements : tstatementnode;
@@ -1680,6 +1901,8 @@ implementation
         usetotemp : boolean;
         { if the lower bound is not constant, it must be store in a temp before calculating the upper bound }
         usefromtemp : boolean;
+        storefilepos: tfileposinfo;
+        countermin, countermax: Tconstexprint;
 
       procedure iterate_counter(var s : tstatementnode;fw : boolean);
         begin
@@ -1701,39 +1924,52 @@ implementation
 
       begin
         result:=nil;
-        expectloc:=LOC_VOID;
-        fromtemp:=nil;
         totemp:=nil;
+        fromtemp:=nil;
+        storefilepos:=current_filepos;
+        current_filepos:=fileinfo;
 
-        firstpass(left);
-        firstpass(right);
-        firstpass(t1);
+        case left.resultdef.typ of
+          enumdef:
+            begin
+              countermin:=tenumdef(left.resultdef).min;
+              countermax:=tenumdef(left.resultdef).max;
+            end;
+          orddef:
+            begin
+              countermin:=torddef(left.resultdef).low;
+              countermax:=torddef(left.resultdef).high;
+            end;
+          else
+            Internalerror(2020012601);
+        end;
 
-        if assigned(t2) then
-          begin
-            firstpass(t2);
-            if codegenerror then
-              exit;
-          end;
+        { check if we can pred/succ the loop var at the end }
+        do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags) and
+          is_constnode(right) and is_constnode(t1) and
+          { we cannot test at the end after the pred/succ if the to value is equal to the max./min. value of the counter variable
+            because we either get an overflow/underflow or the compiler removes the check as it never can be true }
 
-        { first set the to value
-          because the count var can be in the expression ! }
-        do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags)
-        { if the loop is unrolled and there is a jump into the loop,
-          then we can't do the trick with incrementing the loop var only at the
-          end
-        }
-          and not(assigned(entrylabel));
+          { checking just the min./max. value depending on the pure size of the counter does not work as the check might
+            get optimized away
+          not(not(lnf_backward in loopflags) and not(is_signed(left.resultdef)) and (get_ordinal_value(t1)=((1 shl (left.resultdef.size*8))-1))) and
+          not(not(lnf_backward in loopflags) and is_signed(left.resultdef) and (get_ordinal_value(t1)=((1 shl (left.resultdef.size*8-1))-1))) and
+          not((lnf_backward in loopflags) and not(is_signed(left.resultdef)) and (get_ordinal_value(t1)=0)) and
+          not((lnf_backward in loopflags) and is_signed(left.resultdef) and (get_ordinal_value(t1)=(-Tconstexprint(1 shl (left.resultdef.size*8-1))))) and
+          }
 
-         { calculate pointer value and check if changeable and if so
-           load into temporary variable                              }
-         if (right.nodetype<>ordconstn) or (t1.nodetype<>ordconstn) then
-           begin
-             do_loopvar_at_end:=false;
-             needsifblock:=true;
-           end
-         else
-           needsifblock:=false;
+          not(not(lnf_backward in loopflags) and (get_ordinal_value(t1)=countermax)) and
+          not((lnf_backward in loopflags) and (get_ordinal_value(t1)=countermin)) and
+          { neither might the for loop contain a continue statement as continue in a while loop would skip the increment at the end
+            of the loop, this could be overcome by replacing the continue statement with an pred/succ; continue sequence }
+          not(foreachnodestatic(t2,@checkcontinue,nil)) and
+          { if the loop is unrolled and there is a jump into the loop,
+            then we can't do the trick with incrementing the loop var only at the
+            end
+          }
+          not(assigned(entrylabel));
+
+        needsifblock:=not(is_constnode(right)) or not(is_constnode(t1));
 
         { convert the for loop into a while loop }
         result:=internalstatements(statements);
@@ -1853,9 +2089,15 @@ implementation
           end
         else
           begin
-            addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,left.getcopy,t1.getcopy),loopblock,false,true));
+            { is a simple comparision for equality sufficient? }
+            if do_loopvar_at_end and (lnf_backward in loopflags) and (lnf_counter_not_used in loopflags) then
+              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(equaln,left.getcopy,
+                caddnode.create_internal(subn,t1.getcopy,cordconstnode.create(1,t1.resultdef,false))),loopblock,false,true))
+            else
+              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,left.getcopy,t1.getcopy),loopblock,false,true));
             addstatement(statements,ifblock);
           end;
+        current_filepos:=storefilepos;
       end;
 
 
@@ -1910,7 +2152,7 @@ implementation
           gets inserted before the exit label to which this node will jump }
         if (target_info.system in systems_fpnestedstruct) and
            not(nf_internal in flags) and
-           current_procinfo.procdef.getfuncretsyminfo(ressym,resdef) and
+           current_procinfo.procdef.get_funcretsym_info(ressym,resdef) and
            (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
             if not assigned(result) then
@@ -2065,7 +2307,7 @@ implementation
               { nested exits don't need the non local goto switch }
               (labelsym.realname='$nestedexit') then
               begin
-                if current_procinfo.procdef.parast.symtablelevel>labelsym.owner.symtablelevel then
+                if current_procinfo.procdef.parast.symtablelevel>=labelsym.owner.symtablelevel then
                   begin
                     { don't mess with the exception blocks, global gotos in/out side exception blocks are not allowed }
                     if exceptionblock>0 then
@@ -2079,7 +2321,8 @@ implementation
                     p2:=current_procinfo;
                     while true do
                       begin
-                        if (p2.flags*[pi_needs_implicit_finally,pi_uses_exceptions,pi_has_implicit_finally])<>[] then
+                        if ((cs_implicit_exceptions in current_settings.moduleswitches) and ((p2.flags*[pi_needs_implicit_finally,pi_has_implicit_finally])<>[])) or
+                        ((p2.flags*[pi_uses_exceptions])<>[]) then
                           Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
                         if labelsym.owner=p2.procdef.localst then
                           break;
@@ -2088,7 +2331,6 @@ implementation
 
                     if assigned(labelsym.jumpbuf) then
                       begin
-                        labelsym.nonlocal:=true;
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
@@ -2098,7 +2340,7 @@ implementation
                       CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
                   end
                 else
-                  CGMessage(cg_e_interprocedural_goto_only_to_outer_scope_allowed);
+                  CGMessagePos(self.fileinfo,cg_e_interprocedural_goto_only_to_outer_scope_allowed);
               end
             else
               CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
@@ -2126,8 +2368,11 @@ implementation
           end;
 
         p.labelsym:=labelsym;
+        { do not copy the label node here as we do not know if the label node is part of the tree or not,
+          this will be fixed after the copying in node.setuplabelnode: if the labelnode has copiedto set,
+          labelnode of the goto node is update }
         if assigned(labelnode) then
-          p.labelnode:=tlabelnode(labelnode.dogetcopy)
+          p.labelnode:=labelnode
         else
           begin
             { don't trigger IE when there was already an error, i.e. the
@@ -2480,7 +2725,21 @@ implementation
            result:=right;
            right:=nil;
          end;
+       { if the finally block contains no code, we can kill
+         it and just return the try part }
+       if has_no_code(right) and not(assigned(third)) and not(implicitframe) then
+         begin
+           result:=left;
+           left:=nil;
+         end;
      end;
+
+
+    function ttryfinallynode.dogetcopy: tnode;
+       begin
+         result:=inherited dogetcopy;
+         ttryfinallynode(result).implicitframe:=implicitframe;
+       end;
 
 
     procedure ttryfinallynode.adjust_estimated_stack_size;

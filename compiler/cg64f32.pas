@@ -72,6 +72,7 @@ unit cg64f32;
         procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
         procedure a_op64_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);override;
         procedure a_op64_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);override;
+        procedure a_op64_ref_loc(list: TAsmList; op: TOpCG; size: tcgsize;const ref: treference; const l: tlocation);override;
         procedure a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
 
@@ -324,8 +325,23 @@ unit cg64f32;
             reg.reglo:=reg.reghi;
             reg.reghi:=tmpreg;
           end;
-        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,ref);
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
         inc(tmpref.offset,4);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
@@ -356,6 +372,21 @@ unit cg64f32;
             reg.reghi := tmpreg;
           end;
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
         if (tmpref.base=reg.reglo) then
          begin
            tmpreg:=cg.getaddressregister(list);
@@ -674,7 +705,7 @@ unit cg64f32;
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,longint(hi(l.value64)),reg);
           else
-            internalerror(200203244);
+            internalerror(2002032411);
         end;
       end;
 
@@ -704,6 +735,25 @@ unit cg64f32;
         end;
       end;
 
+
+    procedure tcg64f32.a_op64_ref_loc(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;const l : tlocation);
+      var
+        tempreg: tregister64;
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            begin
+              tempreg.reghi:=cg.getintregister(list,OS_32);
+              tempreg.reglo:=cg.getintregister(list,OS_32);
+              a_load64_ref_reg(list,ref,tempreg);
+              a_op64_reg_ref(list,op,size,tempreg,l.reference);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_ref_reg(list,op,size,ref,l.register64);
+          else
+            internalerror(2020042803);
+        end;
+      end;
 
 
     procedure tcg64f32.a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);
@@ -738,12 +788,17 @@ unit cg64f32;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
-        a_load64_ref_reg(list,ref,tempreg);
         if op in [OP_NEG,OP_NOT] then
-          a_op64_reg_reg(list,op,size,tempreg,tempreg)
+          begin
+            a_op64_reg_reg(list,op,size,reg,tempreg);
+            a_load64_reg_ref(list,tempreg,ref);
+          end
         else
-          a_op64_reg_reg(list,op,size,reg,tempreg);
-        a_load64_reg_ref(list,tempreg,ref);
+          begin
+            a_load64_ref_reg(list,ref,tempreg);
+            a_op64_reg_reg(list,op,size,reg,tempreg);
+            a_load64_reg_ref(list,tempreg,ref);
+          end;
       end;
 
 

@@ -332,7 +332,9 @@ unit optdfa;
                   begin
                     { if yes, then we should warn }
                     { !!!!!! }
-                  end;
+                  end
+                else
+                  Include(tfornode(node).loopflags,lnf_dont_mind_loopvar_on_exit);
 
                 { first update the dummy node }
 
@@ -506,20 +508,32 @@ unit optdfa;
 
             exitn:
               begin
-                if not(is_void(current_procinfo.procdef.returndef)) then
+                { in case of inlining, an exit node can have a successor, in this case, we do not have to
+                  use the faked resultnode }
+                if assigned(node.successor) then
+                  begin
+                    l:=node.optinfo^.life;
+                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    UpdateLifeInfo(node,l);
+                  end
+                else if assigned(resultnode) and (resultnode.nodetype<>nothingn) then
                   begin
                     if not(assigned(node.optinfo^.def)) and
                        not(assigned(node.optinfo^.use)) then
                       begin
                         if assigned(texitnode(node).left) then
                           begin
-                            node.optinfo^.def:=resultnode.optinfo^.def;
+{                           this should never happen as
+                            texitnode.pass_typecheck converts the left node into a separate node already
+
+                             node.optinfo^.def:=resultnode.optinfo^.def;
 
                             dfainfo.use:=@node.optinfo^.use;
                             dfainfo.def:=@node.optinfo^.def;
                             dfainfo.map:=map;
                             foreachnodestatic(pm_postprocess,texitnode(node).left,@AddDefUse,@dfainfo);
-                            calclife(node);
+                            calclife(node); }
+                            Internalerror(2020122901);
                           end
                         else
                           begin
@@ -602,6 +616,10 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
+        nodemap.Free;
+        nodemap:=nil;
+        resultnode.Free;
+        resultnode:=nil;
         foreachnodestatic(pm_postprocess,node,@ResetDFA,nil);
       end;
 
@@ -708,7 +726,8 @@ unit optdfa;
                    ((vo_is_funcret in sym.varoptions) and
                     (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel)
                    )
-                  ) and not(vo_is_external in sym.varoptions)
+                  ) and not(vo_is_external in sym.varoptions) and
+                  not sym.inparentfpstruct;
         end;
 
       var
@@ -921,8 +940,11 @@ unit optdfa;
                 MaybeSearchIn(texitnode(node).left);
                 { exit uses the resultnode implicitly, so searching for a matching node is
                   useless, if we reach the exit node and found the living node not in left, then
-                  it can be only the resultnode  }
-                if not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
+                  it can be only the resultnode
+
+                  successor might be assigned in case of an inlined exit node, in this case we do not warn about an unassigned
+                  result as this had happened already when the routine has been compiled }
+                if not(assigned(node.successor)) and not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
                   not(assigned(texitnode(node).resultexpr)) and
                   { don't warn about constructors }
                   not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then

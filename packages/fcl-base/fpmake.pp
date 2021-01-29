@@ -18,8 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
-    P.Dependencies.Add('fcl-res');
+    P.Dependencies.Add('univint',[Darwin,iPhoneSim,ios]);
     p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
@@ -27,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -120,8 +119,6 @@ begin
     T:=P.Targets.AddUnit('fpexprpars.pp');
       T.ResourceStrings:=true;
 
-    T:=P.Targets.AddUnit('fileinfo.pp');
-      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('csvreadwrite.pp');
     T:=P.Targets.addUnit('csvdocument.pp');
     With T.Dependencies do
@@ -149,7 +146,6 @@ begin
       T:=P.Targets.AddExampleProgram('base64decodingtestcase.pas');
       T:=P.Targets.AddExampleProgram('cachetest.pp');
       T:=P.Targets.AddExampleProgram('cfgtest.pp');
-      T:=P.Targets.AddExampleProgram('dbugsrv.pp');
       T:=P.Targets.AddExampleProgram('debugtest.pp');
       T:=P.Targets.AddExampleProgram('doecho.pp');
       T:=P.Targets.AddExampleProgram('dparser.pp');
@@ -166,7 +162,6 @@ begin
       T:=P.Targets.AddExampleProgram('poolmm1.pp');
       T:=P.Targets.AddExampleProgram('poolmm2.pp');
       T:=P.Targets.AddExampleProgram('restest.pp');
-      T:=P.Targets.AddExampleProgram('showver.pp');
       T:=P.Targets.AddExampleProgram('sockcli.pp');
       T:=P.Targets.AddExampleProgram('socksvr.pp');
       T:=P.Targets.AddExampleProgram('sstream.pp');
@@ -208,8 +203,6 @@ begin
       // README
       // kword.xml
       // overview.rtf
-      // showver.rc
-      // showver.res
       // simple.xml
       // parser.dat
       // testcgi.html

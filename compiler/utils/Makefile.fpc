@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins
+programs=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins
 rst=fpcsubst
 
 [clean]
@@ -24,6 +24,11 @@ fpcdir=../..
 
 [shared]
 build=n
+
+[prerules]
+ifdef OPTNEW
+override FPCOPT+=$(OPTNEW)
+endif
 
 [rules]
 #
@@ -52,10 +57,10 @@ ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 
 else
 ppu$(PPUEXT): ../ppu.pas
-        $(COMPILER) ../ppu.pas -Fu../generic -dGENERIC_CPU -Fi..
+        $(COMPILER) ../ppu.pas -Fu../llvm -Fu../generic -dGENERIC_CPU -Fi..
 
 ppudump$(EXEEXT): ppuutils/ppudump.pp ppu$(PPUEXT)
-        $(COMPILER) ppuutils/ppudump.pp -Fu../generic -dGENERIC_CPU -Fi..
+        $(COMPILER) ppuutils/ppudump.pp -Fu../llvm -Fu../generic -dGENERIC_CPU -Fi..
 
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
         $(COMPILER) ppufiles.pp -Fu../generic -dGENERIC_CPU -Fi..

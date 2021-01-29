@@ -62,7 +62,10 @@ interface
          cl6_count,
          coper_count : integer; { should be signed }
          ordinal_distance : double;
-         invalid     : boolean;
+         invalid : boolean;
+{$ifndef DISABLE_FAST_OVERLOAD_PATCH}
+         saved_validity : boolean;
+{$endif}
          wrongparanr : byte;
       end;
 
@@ -216,7 +219,7 @@ implementation
     uses
        systems,constexp,globals,
        cutils,verbose,
-       symtable,
+       symtable,symutil,
        defutil,defcmp,
        nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
        pgenutil
@@ -333,6 +336,7 @@ implementation
                              (treetyp in order_theoretic_operators)
                            ) or
                            (
+                             (m_mac in current_settings.modeswitches) and
                              is_stringlike(rd) and
                              (ld.typ=orddef) and
                              (treetyp in string_comparison_operators)) or
@@ -617,6 +621,7 @@ implementation
         i : longint;
         eq : tequaltype;
         conv : tconverttype;
+        cdo : tcompare_defs_options;
         pd : tprocdef;
         oldcount,
         count: longint;
@@ -662,20 +667,13 @@ implementation
                 { assignment is a special case }
                 if optoken in [_ASSIGNMENT,_OP_EXPLICIT] then
                   begin
-                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
+                    cdo:=[];
+                    if optoken=_OP_EXPLICIT then
+                      include(cdo,cdo_explicit);
+                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,cdo);
                     result:=
                       (eq=te_exact) or
-                      (
-                        (eq=te_incompatible) and
-                        { don't allow overloading assigning to custom shortstring
-                          types, because we also don't want to differentiate based
-                          on different shortstring types (e.g.,
-                          "operator :=(const v: variant) res: shorstring" also
-                          has to work for assigning a variant to a string[80])
-                        }
-                        (not is_shortstring(pf.returndef) or
-                         (tstringdef(pf.returndef).len=255))
-                      );
+                      (eq=te_incompatible);
                   end
                 else
                 { enumerator is a special case too }
@@ -857,7 +855,7 @@ implementation
             exit;
           end;
 
-        addsymref(operpd.procsym);
+        addsymref(operpd.procsym,operpd);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
@@ -1052,7 +1050,7 @@ implementation
             exit;
           end;
 
-        addsymref(operpd.procsym);
+        addsymref(operpd.procsym,operpd);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
@@ -1296,6 +1294,9 @@ implementation
                break;
              loadn :
                begin
+                 { the methodpointer/framepointer is read }
+                 if assigned(tunarynode(p).left) then
+                   set_varstate(tunarynode(p).left,vs_read,[vsf_must_be_valid]);
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                    begin
                      hsym:=tabstractvarsym(tloadnode(p).symtableentry);
@@ -1376,6 +1377,8 @@ implementation
                  end;
                  break;
                end;
+             addrn:
+               break;
              callparan :
                internalerror(200310081);
              else
@@ -1793,6 +1796,7 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
+             arrayconstructorn,
              setconstn,
              stringconstn,
              guidconstn :
@@ -2096,6 +2100,7 @@ implementation
                  (tstringdef(def_to).encoding=tstringdef(p.resultdef).encoding) then
                 eq:=te_equal
             end;
+          formaldef,
           setdef :
             begin
               { set can also be a not yet converted array constructor }
@@ -2294,7 +2299,8 @@ implementation
               srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
               if assigned(srsym) and
                   { Delphi allows hiding a property by a procedure with the same name }
-                  (srsym.typ=procsym) then
+                  (srsym.typ=procsym) and
+                  (tprocsym(srsym).procdeflist.count>0) then
                 begin
                   hasoverload:=processprocsym(tprocsym(srsym),foundanything);
                   { when there is no explicit overload we stop searching }
@@ -2383,7 +2389,8 @@ implementation
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
                if assigned(srsym) and
                   { Delphi allows hiding a property by a procedure with the same name }
-                  (srsym.typ=procsym) then
+                  (srsym.typ=procsym) and
+                  (tprocsym(srsym).procdeflist.count>0) then
                  begin
                    hasoverload:=processprocsym(tprocsym(srsym),foundanything);
                    { when there is no explicit overload we stop searching }
@@ -2458,7 +2465,8 @@ implementation
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
-                   (srsym.typ=procsym) then
+                   (srsym.typ=procsym) and
+                   (tprocsym(srsym).procdeflist.count>0) then
                   begin
                     { add all definitions }
                     hasoverload:=false;
@@ -2573,7 +2581,11 @@ implementation
 
             { only when the # of parameter are supported by the procedure and
               it is visible }
+{$ifdef DISABLE_FAST_OVERLOAD_PATCH}
             if (FParalength>=pd.minparacount) and
+{$else}
+            if (pd.seenmarker<>pointer(self)) and (FParalength>=pd.minparacount) and
+{$endif}
                (
                 (
                  allowdefaultparas and
@@ -2613,6 +2625,7 @@ implementation
                   cpoptions:=cpoptions+[cpo_rtlproc];
                 found:=false;
                 hp:=FCandidateProcs;
+{$ifdef DISABLE_FAST_OVERLOAD_PATCH}
                 while assigned(hp) do
                   begin
                     if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,cpoptions)>=te_equal) and
@@ -2624,10 +2637,14 @@ implementation
                       end;
                     hp:=hp^.next;
                   end;
+{$endif}
                 if not found then
                   begin
                     proc_add(st,pd,objcidcall);
                     added:=true;
+{$ifndef DISABLE_FAST_OVERLOAD_PATCH}
+                    pd.seenmarker:=self;
+{$endif}
                   end;
               end;
 
@@ -2641,6 +2658,14 @@ implementation
                 pd.free;
               end;
           end;
+{$ifndef DISABLE_FAST_OVERLOAD_PATCH}
+        {cleanup modified duplicate pd markers}
+        hp := FCandidateProcs;
+        while assigned(hp) do begin
+          hp^.data.seenmarker := nil;
+          hp := hp^.next;
+        end;
+{$endif}
 
         calc_distance(st,objcidcall);
 
@@ -2769,7 +2794,7 @@ implementation
               internalerror(2015060301);
             { check whether the given parameters are compatible
               to the def's constraints }
-            if not check_generic_constraints(pd,spezcontext.genericdeflist,spezcontext.poslist) then
+            if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
               exit;
             def:=generate_specialization_phase2(spezcontext,pd,false,'');
             case def.typ of
@@ -3227,6 +3252,8 @@ implementation
       end;
 
 
+
+
     function is_better_candidate(currpd,bestpd:pcandidate):integer;
       var
         res : integer;
@@ -3477,6 +3504,9 @@ implementation
       end;
 
 
+
+{$ifdef DISABLE_FAST_OVERLOAD_PATCH}
+
     function tcallcandidates.choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
       var
         pd: tprocdef;
@@ -3562,6 +3592,232 @@ implementation
           end;
         result:=cntpd;
       end;
+
+
+{$else}
+
+    function compare_by_old_sortout_check(pd,bestpd:pcandidate):integer;
+      var cpoptions : tcompare_paras_options;
+      begin
+        { don't add duplicates, only compare visible parameters for the user }
+        cpoptions:=[cpo_ignorehidden];
+        if (po_compilerproc in bestpd^.data.procoptions) then
+          cpoptions:=cpoptions+[cpo_compilerproc];
+        if (po_rtlproc in bestpd^.data.procoptions) then
+          cpoptions:=cpoptions+[cpo_rtlproc];
+
+        compare_by_old_sortout_check := 0; // can't decide, bestpd probably wasn't sorted out in unpatched
+        if (compare_paras(pd^.data.paras,bestpd^.data.paras,cp_value_equal_const,cpoptions)>=te_equal) and
+          (not(po_objc in bestpd^.data.procoptions) or (bestpd^.data.messageinf.str^=pd^.data.messageinf.str^)) then
+          compare_by_old_sortout_check := 1; // bestpd was sorted out before patch
+     end;
+
+    function decide_restart(pd,bestpd:pcandidate) : boolean;
+      begin
+        decide_restart := false;
+        if assigned(bestpd) then
+          begin
+            { don't restart if bestpd is marked invalid already }
+            if not bestpd^.invalid then
+              decide_restart := compare_by_old_sortout_check(pd,bestpd)<>0;
+        end;
+      end;
+
+
+    procedure save_validity(c : pcandidate);
+      begin
+        while assigned(c) do
+          begin
+            c^.saved_validity := c^.invalid;
+            c := c^.next;
+          end;
+      end;
+
+
+    procedure restore_validity(c : pcandidate);
+      begin
+        while assigned(c) do begin
+          c^.invalid := c^.saved_validity;
+          c := c^.next;
+        end;
+      end;
+
+
+    function tcallcandidates.choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
+      var
+        pd: tprocdef;
+        besthpstart,
+        hp,hp2        : pcandidate;
+        cntpd,
+        res           : integer;
+        restart : boolean;
+      begin
+        res:=0;
+        {
+          Returns the number of candidates left and the
+          first candidate is returned in pdbest
+        }
+       if not(assigned(FCandidateProcs)) then
+         begin
+           choose_best := 0;
+           exit;
+         end;
+
+        bestpd:=FCandidateProcs^.data;
+        if FCandidateProcs^.invalid then
+          cntpd:=0
+        else
+          cntpd:=1;
+
+        if assigned(FCandidateProcs^.next) then
+         begin
+           save_validity(FCandidateProcs);
+           restart := false;
+           { keep restarting, until there wasn't a sorted-out besthpstart }
+           repeat
+             besthpstart:=FCandidateProcs;
+             bestpd:=FCandidateProcs^.data;
+             if restart then
+               begin
+                 restore_validity(FCandidateProcs);
+                 restart := false;
+               end;
+             { Setup the first procdef as best, only count it as a result
+               when it is valid }
+             if besthpstart^.invalid then
+               cntpd:=0
+             else
+               cntpd:=1;
+             hp:=FCandidateProcs^.next;
+             while assigned(hp) and not(restart) do
+               begin
+                 restart := decide_restart(hp,besthpstart);
+                 if not restart then
+                   begin
+                   if besthpstart^.invalid then res := 1
+                   else if hp^.invalid then res := -1
+                   else if not singlevariant then
+                     res:=is_better_candidate(hp,besthpstart)
+                   else
+                     res:=is_better_candidate_single_variant(hp,besthpstart);
+                 end;
+                 if restart then
+                   begin
+                     { mark the sorted out invalid globally }
+                     besthpstart^.saved_validity := true;
+                   end
+                 else if (res>0) then
+                   begin
+                     { hp is better, flag all procs to be incompatible }
+                     while (besthpstart<>hp) do
+                       begin
+                         besthpstart^.invalid:=true;
+                         besthpstart:=besthpstart^.next;
+                       end;
+                     { besthpstart is already set to hp }
+                     bestpd:=besthpstart^.data;
+                     if besthpstart^.invalid then
+                       cntpd:=0
+                     else
+                       cntpd:=1;
+                   end
+                 else if (res<0) then
+                   begin
+                    { besthpstart is better, flag current hp to be incompatible }
+                    hp^.invalid:=true;
+                   end
+                 else
+                   begin
+                     { res=0, both are valid }
+                     if not hp^.invalid then
+                       inc(cntpd);
+                   end;
+                 hp:=hp^.next;
+               end;
+           until not(restart);
+         end;
+
+        { check the alternate choices if they would have been sorted out before patch... }
+
+        { note we have procadded the candidates, so order is reversed procadd order here.
+          this was also used above: each sorted-out always has an "outsorter" counterpart
+          deeper down the next chain
+        }
+
+        { for the intial implementation, let's first do some more consistency checking}
+        res := 0;
+        hp := FCandidateProcs;
+        while assigned(hp) do
+          begin
+            if not(hp^.invalid) then
+              inc(res);
+            hp := hp^.next;
+          end;
+        if (res<>cntpd) then
+          internalerror(202002161);
+
+        { check all valid choices for sortout }
+        cntpd := 0;
+        hp := FCandidateProcs;
+        while assigned(hp) do
+          begin
+            if not(hp^.invalid) then
+              begin
+                hp2 := hp^.next;
+                while assigned(hp2) do begin
+                  if compare_by_old_sortout_check(hp2,hp)<>0 then
+                    begin
+                      hp^.invalid := true;
+                      hp2 := nil;
+                    end
+                  else
+                    hp2:=hp2^.next;
+                end;
+                if not(hp^.invalid) then
+                  begin
+                    inc(cntpd);
+                    { check for the impossible event bestpd had become invalid}
+                    if (cntpd=1) and (hp^.data<>bestpd) then
+                      internalerror(202002162);
+                  end;
+              end;
+            hp := hp^.next;
+          end;
+
+
+        { if we've found one, check the procdefs ignored for overload choosing
+          to see whether they contain one from a child class with the same
+          parameters (so the overload choosing was not influenced by their
+          presence, but now that we've decided which overloaded version to call,
+          make sure we call the version closest in terms of visibility }
+        if cntpd=1 then
+          begin
+            for res:=0 to FIgnoredCandidateProcs.count-1 do
+              begin
+                pd:=tprocdef(FIgnoredCandidateProcs[res]);
+                { stop searching when we start comparing methods of parent of
+                  the struct in which the current best method was found }
+                if assigned(pd.struct) and
+                   (pd.struct<>tprocdef(bestpd).struct) and
+                   def_is_related(tprocdef(bestpd).struct,pd.struct) then
+                  break;
+                if (pd.proctypeoption=bestpd.proctypeoption) and
+                   ((pd.procoptions*[po_classmethod,po_methodpointer])=(bestpd.procoptions*[po_classmethod,po_methodpointer])) and
+                   (compare_paras(pd.paras,bestpd.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv,cpo_openequalisexact])=te_exact) then
+                  begin
+                    { first one encountered is closest in terms of visibility }
+                    bestpd:=pd;
+                    break;
+                  end;
+              end;
+          end;
+        result:=cntpd;
+      end;
+
+{$endif}
+
+
+
 
 
     procedure tcallcandidates.find_wrong_para;
@@ -3651,7 +3907,7 @@ implementation
           for i:=0 to def.symtable.symlist.count-1 do
             begin
               sym:=tsym(def.symtable.symlist[i]);
-              if (sym.typ<>fieldvarsym) or (sp_static in sym.symoptions) then
+              if not is_normal_fieldvarsym(sym) then
                 continue;
               if not is_valid_for_default(tfieldvarsym(sym).vardef) then
                 begin

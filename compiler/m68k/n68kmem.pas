@@ -35,6 +35,7 @@ interface
        t68kvecnode = class(tcgvecnode)
           procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
           procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint); override;
+          function valid_index_size(size: tcgsize): boolean; override;
           //procedure pass_generate_code;override;
        end;
 
@@ -53,6 +54,14 @@ implementation
 {*****************************************************************************
                              T68KVECNODE
 *****************************************************************************}
+
+     function t68kvecnode.valid_index_size(size: tcgsize): boolean;
+       begin
+         if (CPUM68K_HAS_INDEXWORD in cpu_capabilities[current_settings.cputype]) then
+           result:=tcgsize2signed[size] in [OS_S16,OS_S32]
+         else
+           result:=inherited;
+       end;
 
     { this routine must, like any other routine, not change the contents }
     { of base/index registers of references, as these may be regvars.    }
@@ -73,14 +82,12 @@ implementation
           begin
             //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
             { if we have a possibility, setup a scalefactor instead of the MUL }
-            if (location.reference.index<>NR_NO) or
-               (current_settings.cputype in [cpu_mc68000]) or
-               ((current_settings.cputype in cpu_coldfire) and not (l in [2,4])) or
-               not (l in [2,4,8]) then
+            if not (((CPUM68K_HAS_INDEXSCALE in cpu_capabilities[current_settings.cputype]) and (l in [2,4])) or
+               ((CPUM68K_HAS_INDEXSCALE8 in cpu_capabilities[current_settings.cputype]) and (l in [2,4,8]))) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
-                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_S32);
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,def_cgsize(regsize),l,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end
             else
@@ -92,36 +99,43 @@ implementation
 
         if (location.reference.base=NR_NO) and not (scaled) and not assigned(location.reference.symbol) then
           begin
-           { prefer an address reg, if we will be a base, for indexes any register works }
+            { prefer an address reg, if we will be a base, for indexes any register works }
             if isintregister(maybe_const_reg) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
                 hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,maybe_const_reg,hreg);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,def_cgsize(regsize),OS_ADDR,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end;
             location.reference.base:=maybe_const_reg;
           end
-        else if location.reference.index=NR_NO then
-          begin
-            location.reference.index:=maybe_const_reg;
-            if (scaled) then
-              location.reference.scalefactor:=l;
-          end
         else
           begin
-            hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
+            if location.reference.index<>NR_NO then
+              begin
+                { if we already have an index register, dereference the ref to a new base, to be able to insert an index }
+                hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
+                reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
+              end;
+            if def_cgsize(regsize) in [OS_8,OS_16] then
+              begin
+                { index registers are always sign extended on m68k, so we have to zero extend by hand,
+                  if the index variable is unsigned, and its width is less than the whole register }
+                //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: index zero extend')));
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,def_cgsize(regsize),OS_ADDR,maybe_const_reg,hreg);
+                maybe_const_reg:=hreg;
+              end;
             { insert new index register }
             location.reference.index:=maybe_const_reg;
             if (scaled) then
               location.reference.scalefactor:=l;
           end;
-          { update alignment }
-          if (location.reference.alignment=0) then
-            internalerror(2009020704);
-          location.reference.alignment:=newalignment(location.reference.alignment,l);
+        { update alignment }
+        if (location.reference.alignment=0) then
+          internalerror(2009020704);
+        location.reference.alignment:=newalignment(location.reference.alignment,l);
       end;
 
      { see remarks for tcgvecnode.update_reference_reg_mul above }
@@ -147,7 +161,7 @@ implementation
              exit;
            end;
          if (l > 8*sizeof(aint)) then
-           internalerror(200608051);
+           internalerror(2006080503);
          sref.ref := location.reference;
          hreg := cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);

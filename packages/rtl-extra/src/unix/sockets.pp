@@ -12,6 +12,7 @@
  **********************************************************************}
 unit Sockets;
 Interface
+{$ModeSwitch out}
 
 {$ifdef Unix}
 Uses baseunix,UnixType;

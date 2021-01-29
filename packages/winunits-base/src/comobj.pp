@@ -325,6 +325,7 @@ unit ComObj;
       CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
       CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
       CoInitFlags : Longint = -1;
+      CoInitDisable : Boolean = False;
 
   {$ifdef DEBUG_COM}
      var printcom : boolean=true;
@@ -1183,7 +1184,7 @@ HKCR
         { we can't pass pascal ansistrings to COM routines so we've to convert them
           to/from widestring. This array contains the mapping to do so
         }
-        StringMap : array[0..255] of record passtr : pansistring; comstr : pwidechar; end;
+        StringMap : array[0..255] of record passtr : pansistring; paswstr : punicodestring; comstr : pwidechar; end;
         invokekind,
         i : longint;
         invokeresult : HResult;
@@ -1209,7 +1210,7 @@ HKCR
               writeln('DispatchInvoke: Params = ',hexstr(Params));
 {$endif DEBUG_COMDISPATCH}
               { get plain type }
-              CurrType:=CallDesc^.ArgTypes[i] and $3f;
+              CurrType:=CallDesc^.ArgTypes[i] and $7f;
               { a skipped parameter? Don't increment Params pointer if so. }
               if CurrType=varError then
                 begin
@@ -1229,8 +1230,23 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                         StringMap[NextString].ComStr:=StringToOleStr(PString(Params^)^);
                         StringMap[NextString].PasStr:=PString(Params^);
+                        StringMap[NextString].PasWStr:=Nil;
                         Arguments[i].VType:=varOleStr or varByRef;
-                        Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
+                        inc(NextString);
+                        inc(PPointer(Params));
+                      end;
+                    varUStrArg:
+                      begin
+{$ifdef DEBUG_COMDISPATCH}
+                        if printcom then
+                        writeln('Translating var unicodestring argument ',PUnicodeString(Params^)^);
+{$endif DEBUG_COMDISPATCH}
+                        StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params^)^);
+                        StringMap[NextString].PasStr:=Nil;
+                        StringMap[NextString].PasWStr:=PUnicodeString(Params^);
+                        Arguments[i].VType:=varOleStr or varByRef;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
                         inc(NextString);
                         inc(PPointer(Params));
                       end;
@@ -1281,6 +1297,22 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                       StringMap[NextString].ComStr:=StringToOleStr(PString(Params)^);
                       StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
+                      Arguments[i].VType:=varOleStr;
+                      Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                      inc(NextString);
+                      inc(PPointer(Params));
+                    end;
+
+                  varUStrArg:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                    if printcom then
+                      writeln('Translating unicodestring argument ',PUnicodeString(Params)^);
+{$endif DEBUG_COMDISPATCH}
+                      StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params)^);
+                      StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
                       Arguments[i].VType:=varOleStr;
                       Arguments[i].VPointer:=StringMap[NextString].ComStr;
                       inc(NextString);
@@ -1349,7 +1381,13 @@ HKCR
           case InvokeKind of
             DISPATCH_PROPERTYPUT:
               begin
-                if (Arguments[0].VType and varTypeMask) = varDispatch then
+                if ((Arguments[0].VType and varTypeMask) in [varDispatch]) or
+                    { if we have a variant that's passed as a reference we pass it
+                      to the property as a reference as well }
+                    (
+                      ((Arguments[0].VType and varTypeMask) in [varVariant]) and
+                      ((CallDesc^.argtypes[0] and $80) <> 0)
+                    ) then
                   InvokeKind:=DISPATCH_PROPERTYPUTREF;
                 { first name is actually the name of the property to set }
                 DispIDs^[0]:=DISPID_PROPERTYPUT;
@@ -1372,9 +1410,12 @@ HKCR
             DispatchInvokeError(invokeresult,exceptioninfo);
 
           { translate strings back }
-          for i:=0 to NextString-1 do
+          for i:=0 to NextString-1 do begin
             if assigned(StringMap[i].passtr) then
-              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^);
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^)
+            else if assigned(StringMap[i].paswstr) then
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].paswstr^);
+          end;
         finally
           for i:=0 to NextString-1 do
             SysFreeString(StringMap[i].ComStr);
@@ -1877,6 +1918,20 @@ const
   Initialized : boolean = false;
 var
   Ole32Dll : HModule;
+  SaveInitProc : CodePointer;
+
+procedure InitComObj;
+begin
+  if SaveInitProc<>nil then
+    TProcedure(SaveInitProc)();
+  if not CoInitDisable then
+{$ifndef wince}
+    if (CoInitFlags=-1) or not(assigned(ComObj.CoInitializeEx)) then
+      Initialized:=Succeeded(CoInitialize(nil))
+    else
+{$endif wince}
+      Initialized:=Succeeded(ComObj.CoInitializeEx(nil, CoInitFlags));
+end;
 
 initialization
   Uninitializing:=false;
@@ -1893,12 +1948,10 @@ initialization
     end;
 
   if not(IsLibrary) then
-{$ifndef wince}
-    if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
-      Initialized:=Succeeded(CoInitialize(nil))
-    else
-{$endif wince}
-      Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
+    begin
+      SaveInitProc:=InitProc;
+      InitProc:=@InitComObj;
+    end;
 
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
