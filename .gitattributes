@@ -16111,6 +16111,7 @@ tests/test/units/fpwidestring/twide7fpwidestring.pp svneol=native#text/pascal
 tests/test/units/lineinfo/tlininfo.pp svneol=native#text/plain
 tests/test/units/linux/tepoll1.pp svneol=native#text/pascal
 tests/test/units/linux/tstatx.pp svneol=native#text/pascal
+tests/test/units/linux/tutimensat.pp svneol=native#text/pascal
 tests/test/units/math/tcmpnan.pp svneol=native#text/plain
 tests/test/units/math/tdivmod.pp svneol=native#text/plain
 tests/test/units/math/tmask.inc svneol=native#text/plain
