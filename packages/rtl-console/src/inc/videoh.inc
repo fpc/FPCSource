@@ -11,6 +11,9 @@
 
  **********************************************************************}
 
+{$mode objfpc}
+{$modeswitch advancedrecords}
+
 type
   PVideoMode = ^TVideoMode;
   TVideoMode = record
@@ -24,6 +27,30 @@ type
 
   TVideoBuf = array[0..{$ifdef CPU16}16382{$else}32759{$endif}] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
+
+  TEnhancedVideoCell = record
+  private
+    class operator Initialize(var evc: TEnhancedVideoCell);
+    class operator Finalize(var evc: TEnhancedVideoCell);
+    class operator AddRef(var evc: TEnhancedVideoCell);
+    class operator Copy(constref aSrc: TEnhancedVideoCell; var aDst: TEnhancedVideoCell);
+    function GetExtendedGraphemeCluster: WideString;
+    procedure SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: WideString);
+    function GetAttribute: Byte;
+    procedure SetAttribute(Attr: Byte);
+  public
+    property ExtendedGraphemeCluster: WideString read GetExtendedGraphemeCluster write SetExtendedGraphemeCluster;
+    property Attribute: Byte read GetAttribute write SetAttribute;
+
+  private
+    FAttributes: Word;
+    case integer of
+      0: (EGC_SingleChar: WideChar);
+      1: (EGC_WideStr: Pointer);
+  end;
+  PEnhancedVideoCell = ^TEnhancedVideoCell;
+
+  TEnhancedVideoBuf = array of TEnhancedVideoCell;
 
   TVideoDriver = Record
     InitDriver        : Procedure;
