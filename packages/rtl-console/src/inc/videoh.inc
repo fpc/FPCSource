@@ -125,7 +125,8 @@ var
   OldVideoBuf  : PVideoBuf;
   VideoBufSize : Longint;
   CursorLines  : Byte;
-  EnhancedVideoBuf: TEnhancedVideoBuf;
+  EnhancedVideoBuf,
+  OldEnhancedVideoBuf: TEnhancedVideoBuf;
 
 const {The following constants were variables in the past.
        - Lowascii was set to true if ASCII characters < 32 were available
