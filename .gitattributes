@@ -13982,6 +13982,7 @@ tests/test/cg/tobjsize.pp svneol=native#text/plain
 tests/test/cg/tpara1.pp svneol=native#text/plain
 tests/test/cg/tpara2.pp svneol=native#text/plain
 tests/test/cg/tpara3.pp svneol=native#text/plain
+tests/test/cg/tpara4.pp svneol=native#text/pascal
 tests/test/cg/tprintf.pp svneol=native#text/plain
 tests/test/cg/tprintf2.pp svneol=native#text/plain
 tests/test/cg/tprintf3.pp svneol=native#text/plain
