@@ -54,6 +54,7 @@ type
 
   TVideoDriver = Record
     InitDriver        : Procedure;
+    InitEnhancedDriver: Procedure;
     DoneDriver        : Procedure;
     UpdateScreen      : Procedure(Force : Boolean);
     ClearScreen       : Procedure;

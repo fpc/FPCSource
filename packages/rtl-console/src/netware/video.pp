@@ -174,6 +174,7 @@ end;
 Const
   SysVideoDriver : TVideoDriver = (
   InitDriver        : @SysInitVideo;
+  InitEnhancedDriver: nil;
   DoneDriver        : @SysDoneVideo;
   UpdateScreen      : @SysUpdateScreen;
   ClearScreen       : Nil;

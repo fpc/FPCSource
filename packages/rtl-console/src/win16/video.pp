@@ -256,6 +256,7 @@ end;
 const
   SysVideoDriver: TVideoDriver = (
     InitDriver: @SysInitVideo;
+    InitEnhancedDriver: nil;
     DoneDriver: @SysDoneVideo;
     UpdateScreen: @SysUpdateScreen;
     ClearScreen: nil;
