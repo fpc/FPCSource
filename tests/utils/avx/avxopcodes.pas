@@ -3693,10 +3693,15 @@ begin
                   slHeader.Add('                                            $D0, $D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8, $D9, $DA, $DB, $DC, $DD, $DE, $DF,');
                   slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
                   slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
-
+                  slHeader.Add('var');
+                  slHeader.Add('  DataBlock: Array[0..$FFFF) of byte;');
+                  slheader.Add('  i: integer;');
 
 
                   slHeader.Add('begin');
+                  slHeader.Add('  for i := 0 to high(DataBlock) do
+                  slHeader.Add('   DataBlock[i] := cDataBlockByte[i mod 256];');
+
                   slHeader.Add('  asm');
 
                   slHeader.Add('      vpxord   zmm0,  zmm0,  zmm0');
