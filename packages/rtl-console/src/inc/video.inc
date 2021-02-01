@@ -105,19 +105,22 @@ Var
 
 Const
   VideoInitialized : Boolean = False;
+  EnhancedVideoInitialized : Boolean = False;
   DriverInitialized : Boolean = False;
   NextVideoModeSet  : Boolean = False;
 
 Function SetVideoDriver (Const Driver : TVideoDriver) : Boolean;
 { Sets the videodriver to be used }
 begin
-  If Not VideoInitialized then
-    Begin
-    CurrentVideoDriver:=Driver;
+  if (not VideoInitialized) and (not EnhancedVideoInitialized) then
+    begin
+      CurrentVideoDriver:=Driver;
       DriverInitialized:=true;
       NextVideoModeSet:=false;
-    End;
-  SetVideoDriver:=Not VideoInitialized;
+      SetVideoDriver:=true;
+    end
+  else
+    SetVideoDriver:=false;
 end;
 
 Procedure GetVideoDriver (Var Driver : TVideoDriver);
@@ -141,6 +144,12 @@ begin
     OldVideoBuf:=Nil;
     VideoBufSize:=0;
     end;
+end;
+
+procedure FreeEnhancedVideoBuf;
+begin
+  SetLength(EnhancedVideoBuf,0);
+  SetLength(OldEnhancedVideoBuf,0);
 end;
 
 (*
@@ -185,32 +194,42 @@ var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
     NewVideoBufSize : longint;
 
 begin
-  NewVideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
-  GetMem(NewVideoBuf,NewVideoBufSize);
-  GetMem(NewOldVideoBuf,NewVideoBufSize);
-  {Move contents of old videobuffers to new if there are any.}
-  if VideoBuf<>nil then
+  if VideoInitialized or Assigned(CurrentVideoDriver.InitDriver) then
     begin
-      if ScreenWidth<OldCols then
-        OldCols:=ScreenWidth;
-      if ScreenHeight<OldRows then
-        OldRows:=ScreenHeight;
-      old_rowstart:=0;
-      new_rowstart:=0;
-      while oldrows>0 do
+      NewVideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
+      GetMem(NewVideoBuf,NewVideoBufSize);
+      GetMem(NewOldVideoBuf,NewVideoBufSize);
+      {Move contents of old videobuffers to new if there are any.}
+      if VideoBuf<>nil then
         begin
-          move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-          move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-          inc(old_rowstart,OldCols);
-          inc(new_rowstart,ScreenWidth);
-          dec(OldRows);
+          if ScreenWidth<OldCols then
+            OldCols:=ScreenWidth;
+          if ScreenHeight<OldRows then
+            OldRows:=ScreenHeight;
+          old_rowstart:=0;
+          new_rowstart:=0;
+          while oldrows>0 do
+            begin
+              move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+              move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+              inc(old_rowstart,OldCols);
+              inc(new_rowstart,ScreenWidth);
+              dec(OldRows);
+            end;
         end;
+      FreeVideoBuf;
+      { FreeVideoBuf sets VideoBufSize to 0 }
+      VideoBufSize:=NewVideoBufSize;
+      VideoBuf:=NewVideoBuf;
+      OldVideoBuf:=NewOldVideoBuf;
     end;
-  FreeVideoBuf;
-  { FreeVideoBuf sets VideoBufSize to 0 }
-  VideoBufSize:=NewVideoBufSize;
-  VideoBuf:=NewVideoBuf;
-  OldVideoBuf:=NewOldVideoBuf;
+  if EnhancedVideoInitialized or Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+    begin
+      NewVideoBufSize:=ScreenWidth*ScreenHeight;
+      { todo: move contents of old to new buf, so the rows match, when the width changes }
+      SetLength(EnhancedVideoBuf,NewVideoBufSize);
+      SetLength(OldEnhancedVideoBuf,NewVideoBufSize);
+    end;
 end;
 
 Procedure InitVideo;
@@ -218,7 +237,9 @@ Procedure InitVideo;
 begin
   if not VideoInitialized then
     begin
-      if Assigned(CurrentVideoDriver.InitDriver) then
+      if Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+        CurrentVideoDriver.InitEnhancedDriver
+      else if Assigned(CurrentVideoDriver.InitDriver) then
         CurrentVideoDriver.InitDriver;
       if errorcode=viook then
         begin
@@ -241,16 +262,102 @@ begin
     If Assigned(CurrentVideoDriver.DoneDriver) then
       CurrentVideoDriver.DoneDriver;
     FreeVideoBuf;
+    FreeEnhancedVideoBuf;
     VideoInitialized:=False;
+    end;
+end;
+
+procedure InitEnhancedVideo;
+begin
+  if not EnhancedVideoInitialized then
+    begin
+      if Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+        CurrentVideoDriver.InitEnhancedDriver
+      else if Assigned(CurrentVideoDriver.InitDriver) then
+        CurrentVideoDriver.InitDriver;
+      if errorcode=viook then
+        begin
+          EnhancedVideoInitialized:=true;
+          if NextVideoModeSet then
+            SetVideoMode(NextVideoMode)
+          else
+            AssignVideoBuf(0,0);
+          ClearScreen;
+        end;
+    end;
+end;
+
+procedure DoneEnhancedVideo;
+begin
+  if EnhancedVideoInitialized then
+    begin
+      if Assigned(CurrentVideoDriver.DoneDriver) then
+        CurrentVideoDriver.DoneDriver;
+      FreeVideoBuf;
+      FreeEnhancedVideoBuf;
+      EnhancedVideoInitialized:=False;
+    end;
+end;
+
+function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString): Char;
+begin
+  if (Length(EGC) = 1) and (Ord(EGC[1])<=127) then
+    Result:=Chr(Ord(EGC[1]))
+  else
+    Result:='?';
+end;
+
+function LegacyChar2ExtendedGraphemeCluster(const Ch: Char): UnicodeString;
+begin
+  Result := Ch;
+end;
+
+procedure Enhanced2Legacy;
+var
+  I: Integer;
+begin
+  { todo: optimize this }
+  for I := 0 to Length(EnhancedVideoBuf) do
+    begin
+      with EnhancedVideoBuf[I] do
+        VideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster));
+      with OldEnhancedVideoBuf[I] do
+        OldVideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster));
+    end;
+end;
+
+procedure Legacy2Enhanced;
+var
+  I: Integer;
+begin
+  { todo: optimize this }
+  for I := 0 to Length(EnhancedVideoBuf) do
+    begin
+      with EnhancedVideoBuf[I] do
+        begin
+          Attribute:=Byte(VideoBuf^[I] shr 8);
+          ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(VideoBuf^[I])));
+        end;
+      with OldEnhancedVideoBuf[I] do
+        begin
+          Attribute:=Byte(OldVideoBuf^[I] shr 8);
+          ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(OldVideoBuf^[I])));
+        end;
     end;
 end;
 
 Procedure UpdateScreen (Force : Boolean);
 
 begin
-  If (LockUpdateScreen<=0) and
+  if (LockUpdateScreen<=0) and
      Assigned(CurrentVideoDriver.UpdateScreen) then
+    begin
+      if EnhancedVideoInitialized and Assigned(CurrentVideoDriver.InitDriver) then
+        Enhanced2Legacy
+      else if VideoInitialized and Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+        Legacy2Enhanced;
       CurrentVideoDriver.UpdateScreen(Force);
+    end;
 end;
 
 Procedure ClearScreen;
@@ -318,7 +425,7 @@ begin
   SetVideoMode:=DriverInitialized;
   if not DriverInitialized then
     exit;
-  If VideoInitialized then
+  If VideoInitialized or EnhancedVideoInitialized then
     begin
       OldC:=ScreenWidth;
       OldR:=ScreenHeight;

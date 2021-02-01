@@ -157,6 +157,10 @@ procedure InitVideo;
 { Initializes the video subsystem }
 procedure DoneVideo;
 { Deinitializes the video subsystem }
+procedure InitEnhancedVideo;
+{ Initializes the enhanced (Unicode) video subsystem }
+procedure DoneEnhancedVideo;
+{ Deinitializes the enhanced (Unicode) video subsystem }
 function GetCapabilities: Word;
 { Return the capabilities of the current environment }
 procedure ClearScreen;
