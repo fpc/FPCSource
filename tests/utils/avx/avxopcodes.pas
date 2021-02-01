@@ -3713,12 +3713,12 @@ begin
 
                   if aX64 then
                   begin
-                    slHeader.Add('      lea       rax, cDataBlockByte');
+                    slHeader.Add('      lea       rax, DataBlock');
                     slHeader.Add('      push      rax');
                   end
                   else
                   begin
-                    slHeader.Add('      lea       eax, cDataBlockByte');
+                    slHeader.Add('      lea       eax, DataBlock');
                     slHeader.Add('      push      eax');
                   end;
 
