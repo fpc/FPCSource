@@ -360,16 +360,52 @@ begin
     end;
 end;
 
-Procedure ClearScreen;
-
-begin
+procedure ClearScreen;
+const
+  DefaultChar=#32;
   // Should this not be the current color ?
-  FillWord(VideoBuf^,VideoBufSize shr 1,$0720);
-  If Assigned(CurrentVideoDriver.ClearScreen) then
-    CurrentVideoDriver.ClearScreen
-  else
-    UpdateScreen(True);
-  FillWord(OldVideoBuf^,VideoBufSize shr 1,$0720);
+  DefaultAttr=7;
+var
+  I: Integer;
+begin
+  if VideoInitialized then
+    begin
+      FillWord(VideoBuf^,VideoBufSize shr 1,(DefaultAttr shl 8) or Ord(DefaultChar));
+      If Assigned(CurrentVideoDriver.ClearScreen) then
+        begin
+          if Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+            Legacy2Enhanced;
+          CurrentVideoDriver.ClearScreen;
+        end
+      else
+        UpdateScreen(True);
+      FillWord(OldVideoBuf^,VideoBufSize shr 1,(DefaultAttr shl 8) or Ord(DefaultChar));
+    end
+  else if EnhancedVideoInitialized then
+    begin
+      { todo: optimize }
+      for I:=0 to Length(EnhancedVideoBuf) do
+        with EnhancedVideoBuf[I] do
+          begin
+            Attribute:=DefaultAttr;
+            ExtendedGraphemeCluster:=DefaultChar;
+          end;
+      If Assigned(CurrentVideoDriver.ClearScreen) then
+        begin
+          if Assigned(CurrentVideoDriver.InitDriver) then
+            Enhanced2Legacy;
+          CurrentVideoDriver.ClearScreen;
+        end
+      else
+        UpdateScreen(True);
+      { todo: optimize }
+      for I:=0 to Length(EnhancedVideoBuf) do
+        with OldEnhancedVideoBuf[I] do
+          begin
+            Attribute:=DefaultAttr;
+            ExtendedGraphemeCluster:=DefaultChar;
+          end;
+    end;
 end;
 
 Procedure SetCursorType (NewType : Word);
