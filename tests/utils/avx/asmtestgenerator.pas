@@ -3578,6 +3578,7 @@ var
   il_Op2: integer;
   il_Op3: integer;
   il_Op4: integer;
+  iAsmCounter: integer;
 
   sSuffix: string;
   sl_Operand: String;
@@ -3735,6 +3736,8 @@ var
 
 begin
   result := TStringList.Create;
+
+  iAsmCounter := 0;
 
   OItem1 := TOperandListItem.Create;
   try
@@ -4873,9 +4876,12 @@ begin
                         //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
                         result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
 
+                        inc(iAsmCounter);
                         case OpMode of
                             omKXM: begin
                                      result.Add(format('%20s%6s,%6s, %s + $00', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
+
+
                                      //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
                                      //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
                                      result.Add('');
@@ -4894,8 +4900,15 @@ begin
                                    end;
                             omXXM: begin
                                      result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s%6s',               ['    push', 'EDX']));
+                                     result.Add(format('%20s%6s,%s',            ['     mov', 'EDX', str(iAsmCounter)]));
+                                     result.Add(format('%20s%6s',               ['    push', 'EDX']));
+                                     result.Add(format('%20s%6s,%6s',           ['   kmovd', 'EDX', 'K2']));
+                                     result.Add(format('%20s%6s,%6s',           ['     cmp', 'EDX', '$03']));
+                                     result.Add(format('%20s%6s',               ['     pop', 'EDX']));
+                                     result.Add(format('%20s%6s',               ['     jne', '@@CHECKRESULT']));
+                                     result.Add(format('%20s%6s',               ['     pop', 'EDX']));
                                      result.Add('');
                                    end;
                           omXXB32,
