@@ -23,22 +23,22 @@ begin
   FAttributes := (FAttributes and $FF00) or Attr;
 end;
 
-function TEnhancedVideoCell.GetExtendedGraphemeCluster: WideString;
+function TEnhancedVideoCell.GetExtendedGraphemeCluster: UnicodeString;
 begin
   if (FAttributes and $8000) = 0 then
     GetExtendedGraphemeCluster := EGC_SingleChar
   else
-    GetExtendedGraphemeCluster := WideString(EGC_WideStr);
+    GetExtendedGraphemeCluster := UnicodeString(EGC_WideStr);
 end;
 
-procedure TEnhancedVideoCell.SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: WideString);
+procedure TEnhancedVideoCell.SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: UnicodeString);
 begin
   if Length(AExtendedGraphemeCluster) = 1 then
   begin
     if (FAttributes and $8000) <> 0 then
     begin
       FAttributes := FAttributes and $7FFF;
-      WideString(EGC_WideStr) := '';
+      UnicodeString(EGC_WideStr) := '';
     end;
     EGC_SingleChar := AExtendedGraphemeCluster[1];
   end
@@ -49,7 +49,7 @@ begin
       FAttributes := FAttributes or $8000;
       EGC_WideStr := nil;
     end;
-    WideString(EGC_WideStr) := AExtendedGraphemeCluster;
+    UnicodeString(EGC_WideStr) := AExtendedGraphemeCluster;
   end;
 end;
 
@@ -61,15 +61,15 @@ end;
 class operator TEnhancedVideoCell.Finalize(var evc: TEnhancedVideoCell);
 begin
   if (evc.FAttributes and $8000) <> 0 then
-    WideString(evc.EGC_WideStr) := '';
+    UnicodeString(evc.EGC_WideStr) := '';
 end;
 
-procedure fpc_WideStr_Incr_Ref(var S: Pointer); external name 'FPC_WIDESTR_INCR_REF';
+Procedure fpc_UnicodeStr_Incr_Ref(S : Pointer); external name 'FPC_UNICODESTR_INCR_REF';
 
 class operator TEnhancedVideoCell.AddRef(var evc: TEnhancedVideoCell);
 begin
   if (evc.FAttributes and $8000) <> 0 then
-    fpc_WideStr_Incr_Ref(evc.EGC_WideStr);
+    fpc_UnicodeStr_Incr_Ref(evc.EGC_WideStr);
 end;
 
 class operator TEnhancedVideoCell.Copy(constref aSrc: TEnhancedVideoCell; var aDst: TEnhancedVideoCell);

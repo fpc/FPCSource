@@ -34,12 +34,12 @@ type
     class operator Finalize(var evc: TEnhancedVideoCell);
     class operator AddRef(var evc: TEnhancedVideoCell);
     class operator Copy(constref aSrc: TEnhancedVideoCell; var aDst: TEnhancedVideoCell);
-    function GetExtendedGraphemeCluster: WideString;
-    procedure SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: WideString);
+    function GetExtendedGraphemeCluster: UnicodeString;
+    procedure SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: UnicodeString);
     function GetAttribute: Byte;
     procedure SetAttribute(Attr: Byte);
   public
-    property ExtendedGraphemeCluster: WideString read GetExtendedGraphemeCluster write SetExtendedGraphemeCluster;
+    property ExtendedGraphemeCluster: UnicodeString read GetExtendedGraphemeCluster write SetExtendedGraphemeCluster;
     property Attribute: Byte read GetAttribute write SetAttribute;
 
   private
