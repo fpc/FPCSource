@@ -138,11 +138,11 @@ Procedure FreeVideoBuf;
 begin
   if (VideoBuf<>Nil) then
     begin
-    FreeMem(VideoBuf);
-    FreeMem(OldVideoBuf);
-    VideoBuf:=Nil;
-    OldVideoBuf:=Nil;
-    VideoBufSize:=0;
+      FreeMem(VideoBuf);
+      FreeMem(OldVideoBuf);
+      VideoBuf:=Nil;
+      OldVideoBuf:=Nil;
+      VideoBufSize:=0;
     end;
 end;
 
