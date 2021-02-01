@@ -4,12 +4,13 @@ uses
 
 var
   un : utsname;
-  mystatx : tstatx;
   res : cint;
-  f : text;
+  f1,f2 : text;
+  err : word;
+  mystatx1,mystatx2 : tstatx;
+  times : tkernel_timespecs;
   st,major,minor : string;
   i,p,e : longint;
-  err : word;
   major_release, minor_release : longint;
 begin
   fpuname(un);
@@ -49,20 +50,35 @@ begin
   else
     writeln('This linux version ',st,' should support statx syscall');
 
-  assign(f,'test.txt');
-  rewrite(f);
-  write(f,'ccccc');
-  close(f);
-  res:=statx(AT_FDCWD,'test.txt',AT_SYMLINK_NOFOLLOW,STATX_ALL,mystatx);
-  erase(f);
+  assign(f1,'tutimensat1.txt');
+  rewrite(f1);
+  write(f1,'ccccc');
+  assign(f2,'tutimensat2.txt');
+  rewrite(f2);
+  write(f2,'ccccc');
+
+  res:=statx(AT_FDCWD,'tutimensat1.txt',AT_SYMLINK_NOFOLLOW,STATX_ALL,mystatx1);
   if res<>0 then
-    begin
-      halt(1);
-    end;
-  writeln('statx.stx_mask = %',binstr(mystatx.stx_mask,32));
-  writeln('statx.size = ',mystatx.stx_size);
-  if mystatx.stx_size<>5 then
     halt(1);
-  writeln('statx.mode = %',binstr(mystatx.stx_mode,16));
+  times[0].tv_sec:=mystatx1.stx_atime.tv_sec;
+  times[0].tv_nsec:=mystatx1.stx_atime.tv_nsec;
+  times[1].tv_sec:=mystatx1.stx_mtime.tv_sec;
+  times[1].tv_nsec:=mystatx1.stx_mtime.tv_nsec;
+  res:=futimens(textrec(f2).handle,times);
+  if res<>0 then
+    halt(1);
+  res:=statx(AT_FDCWD,'tutimensat2.txt',AT_SYMLINK_NOFOLLOW,STATX_ALL,mystatx2);
+  if res<>0 then
+    halt(1);
+
+  close(f1);
+  close(f2);
+
+  erase(f1);
+  erase(f2);
+
+  if (mystatx1.stx_atime.tv_sec<>mystatx2.stx_atime.tv_sec) or (mystatx1.stx_atime.tv_nsec<>mystatx2.stx_atime.tv_nsec) or
+    (mystatx1.stx_mtime.tv_sec<>mystatx2.stx_mtime.tv_sec) or (mystatx1.stx_mtime.tv_nsec<>mystatx2.stx_mtime.tv_nsec) then
+    halt(1);
   writeln('ok');
 end.
