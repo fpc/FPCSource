@@ -3581,6 +3581,7 @@ var
   iAsmCounter: integer;
 
   sSuffix: string;
+  sReg: string;
   sl_Operand: String;
   sl_Inst   : String;
   sRegCombi: String;
@@ -4900,15 +4901,20 @@ begin
                                    end;
                             omXXM: begin
                                      result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     result.Add(format('%20s%6s',               ['    push', 'EDX']));
-                                     result.Add(format('%20s%6s,%s',            ['     mov', 'EDX', str(iAsmCounter)]));
-                                     result.Add(format('%20s%6s',               ['    push', 'EDX']));
-                                     result.Add(format('%20s%6s,%6s',           ['   kmovd', 'EDX', 'K2']));
-                                     result.Add(format('%20s%6s,%6s',           ['     cmp', 'EDX', '$03']));
-                                     result.Add(format('%20s%6s',               ['     pop', 'EDX']));
-                                     result.Add(format('%20s%6s',               ['     jne', '@@CHECKRESULT']));
-                                     result.Add(format('%20s%6s',               ['     pop', 'EDX']));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+
+                                     case Fx64 of
+                                       true: sReg := 'RAX';
+                                        else sReg := 'EAX';
+                                     end;
+
+                                     result.Add(format('%20s%6s',               ['    push', sReg]));
+                                     result.Add(format('%20s%6s,%s',            ['     mov', sReg, str(iAsmCounter)]));
+                                     result.Add(format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']));
+                                     result.Add(format('%20s%6s',               ['     pop', sReg]));
+
+                                     result.Add(format('%20s%6s,%6s',           ['kortestb', 'K1', 'K2']));
+                                     result.Add(format('%20s%6s',               ['     jnc', '@@CHECKRESULT']));
                                      result.Add('');
                                    end;
                           omXXB32,
