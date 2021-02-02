@@ -3722,8 +3722,13 @@ begin
                     slHeader.Add('      push      eax');
                   end;
 
+
                   for i := 1 to 10 do
                    slHeader.Add('NOP');
+
+                  slFooter.Add('        xor   eax, eax');
+                  slFooter.Add('  @@CHECKRESULT:   ');
+
 
                   if aX64 then slFooter.Add('        pop rax')
                    else slFooter.Add('        pop eax');
