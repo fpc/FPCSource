@@ -94,6 +94,7 @@ type
 
     procedure MemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
     procedure VectorMemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
+    function ParseBaseIndexReg(const aOp: string; var aBaseReg, aIndexReg: string): boolean;
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
     function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
@@ -3589,6 +3590,9 @@ var
   sRegCombi2: String;
   sRegCombi3: String;
   sRegCombi4: String;
+  sBaseReg  : String;
+  sIndexReg : String;
+
   sl_Prefix: String;
   UsePrefix: boolean;
   il_Operands: integer;
@@ -4900,6 +4904,11 @@ begin
                                      result.Add('');
                                    end;
                             omXXM: begin
+                                     if ParseBaseIndexReg(OItem3.Values[il_Op3], sBaseReg, sIndexReg) then
+                                     begin
+
+                                     end;
+
                                      result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
                                      result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
@@ -5455,6 +5464,54 @@ begin
       aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLIndexReg[il_Index], aSLBaseReg[il_Base], aSuffix]));
 
       //aRList.Add(format(aPrefix + '[%s + %s + 16]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
+    end;
+  end;
+end;
+
+function TAsmTestGenerator.ParseBaseIndexReg(const aOp: string; var aBaseReg,
+  aIndexReg: string): boolean;
+var
+  iStartPos: integer;
+  iEndPos: integer;
+  iPos: integer;
+  sOp: string;
+  sBaseReg: string;
+  sIndexReg: string;
+begin
+  result := false;
+
+  iStartPos := Pos('[', aOp);
+  iEndPos   := Pos(']', aOp);
+
+  if (iStartPos > 0) and
+     (iEndPos > 0) and
+     (iStartPos < iEndPos) then
+  begin
+    sOp  := trim(copy(aOp, iStartPos + 1, iEndPos - iStartPos - 1));
+
+    with TStringList.Create do
+    try
+      CommaText := StringReplace(sOp, '+', ',', [rfReplaceAll]);
+
+      while Count < 2 do Add('');
+
+      sBaseReg := trim(Strings[0]);
+
+      if (FReg32Base.IndexOf(sBasereg) >= 0) or
+         (FReg64Base.IndexOf(sBasereg) >= 0) or
+         (FReg6432Base.IndexOf(sBasereg) >= 0) then
+       aBaseReg := sBaseReg;
+
+      sIndexReg := trim(Strings[1]);
+
+      if (FReg32Index.IndexOf(sIndexReg) >= 0) or
+         (FReg64Index.IndexOf(sIndexReg) >= 0) or
+         (FReg6432Index.IndexOf(sIndexReg) >= 0) then
+       aIndexReg := sIndex;
+
+      result := trim(aBasereg) <> '';
+    finally
+      Free;
     end;
   end;
 end;
