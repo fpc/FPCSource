@@ -3591,6 +3591,9 @@ var
   sRegCombi2: String;
   sRegCombi3: String;
   sRegCombi4: String;
+  sBaseReg  : String;
+  sIndexReg : String;
+
   sl_Prefix: String;
   UsePrefix: boolean;
   il_Operands: integer;
@@ -4902,6 +4905,11 @@ begin
                                      result.Add('');
                                    end;
                             omXXM: begin
+                                     if ParseBaseIndexReg(OItem3.Values[il_Op3], sBaseReg, sIndexReg) then
+                                     begin
+
+                                     end;
+
                                      result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
                                      result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
@@ -5501,9 +5509,6 @@ var
 begin
   result := false;
 
-  aBaseReg  := '';
-  aIndexReg := '';
-
   iStartPos := Pos('[', aOp);
   iEndPos   := Pos(']', aOp);
 
@@ -5531,7 +5536,7 @@ begin
       if (FReg32Index.IndexOf(sIndexReg) >= 0) or
          (FReg64Index.IndexOf(sIndexReg) >= 0) or
          (FReg6432Index.IndexOf(sIndexReg) >= 0) then
-       aIndexReg := sIndexReg;
+       aIndexReg := sIndex;
 
       result := trim(aBasereg) <> '';
     finally
