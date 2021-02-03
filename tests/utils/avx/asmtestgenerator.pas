@@ -93,6 +93,7 @@ type
     FSAE: boolean;
 
     procedure MemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
+    procedure MemRegBaseIndexCombiCDISP8N(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
     procedure VectorMemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
     function ParseBaseIndexReg(const aOp: string; var aBaseReg, aIndexReg: string): boolean;
 
@@ -3607,6 +3608,7 @@ var
   MaskRegNeeded:boolean;
   slRegCombi: TStringList;
   OpMode: TOpMode;
+  iOpNumMRef: integer;
 
   function PrepareOperandTyp(const aTyp: String): String;
   begin
@@ -3739,6 +3741,25 @@ var
     end;
   end;
 
+  function AsmCodeBlockCompare(aAsmCounter: integer): String;
+  var
+    sReg: string;
+  begin
+    result := '';
+
+    case Fx64 of
+      true: sReg := 'RAX';
+       else sReg := 'EAX';
+    end;
+
+    result := result + format('%20s%6s  ',             ['    push', sReg]) + #13#10 +
+                       format('%20s%6s,%s',            ['     mov', sReg, inttostr(aAsmCounter)]) + #13#10 +
+                       format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']) + #13#10 +
+                       format('%20s%6s',               ['     pop', sReg])        + #13#10 +
+                       format('%20s%6s, %s',           ['kortestb', 'K1', 'K2'])  + #13#10 +
+                       format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']) + #13#10 + #13#10;
+  end;
+
 begin
   result := TStringList.Create;
 
@@ -3845,8 +3866,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
-              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM8')) or
                     (AnsiSameText(sl_Operand, 'XMMRM8_M')) or
@@ -3860,8 +3881,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'byte ';
 
-              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM16')) or
                     (AnsiSameText(sl_Operand, 'XMMRM16_M')) or
@@ -3876,8 +3897,8 @@ begin
 
               if UsePrefix then sl_Prefix := 'word ';
 
-              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'YMMREG')) then
             begin
@@ -3930,8 +3951,8 @@ begin
               //if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
               // else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
-              if x64 then MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
-               else MemRegBaseIndexCombi(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
+              if x64 then MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values)
+               else MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'ZMMREG')) then
             begin
@@ -3998,10 +4019,10 @@ begin
 
 	      if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM16') or
                     AnsiSameText(sl_Operand, 'MEM16_M') then
@@ -4017,10 +4038,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'MEM32') or
                     AnsiSameText(sl_Operand, 'MEM32_M') or
@@ -4040,10 +4061,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM64')) or
                     (AnsiSameText(sl_Operand, 'MEM64_M')) or
@@ -4061,10 +4082,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM128')) or
                     (AnsiSameText(sl_Operand, 'MEM128_M')) or
@@ -4082,10 +4103,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM256')) or
                     (AnsiSameText(sl_Operand, 'MEM256_M')) or
@@ -4104,10 +4125,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
@@ -4126,10 +4147,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'REG8') then
             begin
@@ -4190,10 +4211,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'RM64') then
             begin
@@ -4208,10 +4229,10 @@ begin
               if x64 then
               begin
                 Item.Values.AddStrings(FReg64Base);
-                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'IMM8') then
             begin
@@ -4452,10 +4473,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '4B32') then
             begin
@@ -4466,10 +4487,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '8B32') then
             begin
@@ -4480,10 +4501,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '16B32') then
             begin
@@ -4494,10 +4515,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '2B64') then
             begin
@@ -4508,10 +4529,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to2}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to2}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '4B64') then
             begin
@@ -4522,10 +4543,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to4}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to4}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '8B64') then
             begin
@@ -4536,10 +4557,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '16B64') then
             begin
@@ -4550,10 +4571,10 @@ begin
 
               if x64 then
               begin
-                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                MemRegBaseIndexCombiCDISP8N(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
               end
-              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+              else MemRegBaseIndexCombiCDISP8N(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'KREG') or
                     AnsiSameText(sl_Operand, 'KREG_M') then
@@ -4736,6 +4757,16 @@ begin
           begin
             OpMode := omUnknown;
 
+            iOpNumMRef := -1;
+            if (OItem1.OpTyp in MEMTYPES) or
+               (OItem1.OpTyp in BMEMTYPES) then iOpNumMRef := 1
+             else if (OItem2.OpTyp in MEMTYPES) or
+                     (OItem2.OpTyp in BMEMTYPES) then iOpNumMRef := 2
+             else if (OItem3.OpTyp in MEMTYPES) or
+                     (OItem3.OpTyp in BMEMTYPES) then iOpNumMRef := 3
+             else if (OItem4.OpTyp in MEMTYPES) or
+                     (OItem4.OpTyp in BMEMTYPES) then iOpNumMRef := 4;
+
             case il_Operands of
                 3: if (OItem1.OpTyp = otKReg) and
                       (OItem2.OpTyp = otXMMReg) and
@@ -4878,15 +4909,32 @@ begin
 
                       if sRegCombi <> '' then
                       begin
+                        case iOpNumMRef of
+                            1: sMRef := OItem1.Values[il_Op1];
+                            2: sMRef := OItem2.Values[il_Op2];
+                            3: sMRef := OItem3.Values[il_Op3];
+                            4: sMRef := OItem1.Values[il_Op4];
+                          else sMRef := '';
+                        end;
+
+                        if ParseBaseIndexReg(OItem3.Values[il_Op3], sBaseReg, sIndexReg) then
+                        begin
+                          result.Add(format('%20s %s',               ['    pop', sBaseReg]));
+                          result.Add(format('%20s %s',               ['   push', sBaseReg]));
+
+                          if trim(sIndexReg) <> '' then
+                           result.Add(format('%20s%6s, %s',          ['   xor', sIndexReg, sIndexReg]));
+                        end;
+
                         //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
                         result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
 
                         inc(iAsmCounter);
                         case OpMode of
                             omKXM: begin
-                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s,%6s, %s + $2000', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
 
-
+                                     // TODO
                                      //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
                                      //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
                                      result.Add('');
@@ -4898,48 +4946,35 @@ begin
                                       else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
                                       else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
 
-                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     result.Add('');
+                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'XMM1', sMREF, OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter));
                                    end;
                             omXXM: begin
-                                     if ParseBaseIndexReg(OItem3.Values[il_Op3], sBaseReg, sIndexReg) then
-                                     begin
 
-                                     end;
+                                     result.Add(format('%20s%6s,%6s, %s + $2000', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
-                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-
-                                     case Fx64 of
-                                       true: sReg := 'RAX';
-                                        else sReg := 'EAX';
-                                     end;
-
-                                     result.Add(format('%20s%6s',               ['    push', sReg]));
-                                     result.Add(format('%20s%6s,%s',            ['     mov', sReg, str(iAsmCounter)]));
-                                     result.Add(format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']));
-                                     result.Add(format('%20s%6s',               ['     pop', sReg]));
-
-                                     result.Add(format('%20s%6s,%6s',           ['kortestb', 'K1', 'K2']));
-                                     result.Add(format('%20s%6s',               ['     jnc', '@@CHECKRESULT']));
-                                     result.Add('');
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter));
                                    end;
                           omXXB32,
                           omXXB64: begin
                                      sMREF := OItem3.Values[il_Op3];
+                                     if Pos('{1to4}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to4}', '{1to2}', [])
+                                      else if Pos('{1to8}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to8}', '{1to4}', [])
+                                      else if Pos('{1to16}', sMREF) > 0 then sMREF := StringReplace(sMREF, '{1to16}', '{1to8}', []);
 
-                                     result.Add(format('%20s%6s,%6s, %s + $00', [aInst, 'XMM1', 'XMM1', sMREF]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     result.Add('');
+                                     result.Add(format('%20s%6s,%6s, %s + $2000', [aInst, 'XMM1', 'XMM1', sMREF]));
+                                     result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter));
                                    end;
                             omXMI: begin
-                                     result.Add(format('%20s%6s,%6s + $00, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     result.Add('');
+                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], OItem3.Values[il_Op3]]));
+                                     result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter));
                                    end;
 
                             omYB32I,
@@ -5423,6 +5458,34 @@ begin
   end;
 end;
 
+procedure TAsmTestGenerator.MemRegBaseIndexCombiCDISP8N(const aPrefix,
+  aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
+var
+  iBase: integer;
+  iIndex: integer;
+  iOffset: integer;
+begin
+
+  for iBase := 0 to aSLBaseReg.Count - 1 do
+  begin
+    for iOffset := 0 to 63 do
+    begin
+      aRList.Add(format(aPrefix + '[%s +%2d]', [aSLBaseReg[iBase], iOffset]));
+
+      for iIndex := 0 to aSLIndexReg.Count - 1 do
+      begin
+        if aSLBaseReg[iBase] <> aSLIndexReg[iIndex] then
+        begin
+          aRList.Add(format(aPrefix + '[%s + %s + %2d]', [aSLBaseReg[iBase], aSLIndexReg[iIndex], iOffset]));
+          aRList.Add(format(aPrefix + '[%s + %s * 2 + %2d]', [aSLBaseReg[iBase], aSLIndexReg[iIndex], iOffset]));
+          aRList.Add(format(aPrefix + '[%s + %s * 4 + %2d]', [aSLBaseReg[iBase], aSLIndexReg[iIndex], iOffset]));
+          aRList.Add(format(aPrefix + '[%s + %s * 8 + %2d]', [aSLBaseReg[iBase], aSLIndexReg[iIndex], iOffset]));
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TAsmTestGenerator.VectorMemRegBaseIndexCombi(const aPrefix, aSuffix: String;
   aSLBaseReg, aSLIndexReg, aRList: TStringList);
 var
@@ -5480,6 +5543,9 @@ var
 begin
   result := false;
 
+  aBaseReg  := '';
+  aIndexReg := '';
+
   iStartPos := Pos('[', aOp);
   iEndPos   := Pos(']', aOp);
 
@@ -5507,7 +5573,7 @@ begin
       if (FReg32Index.IndexOf(sIndexReg) >= 0) or
          (FReg64Index.IndexOf(sIndexReg) >= 0) or
          (FReg6432Index.IndexOf(sIndexReg) >= 0) then
-       aIndexReg := sIndex;
+       aIndexReg := sIndexReg;
 
       result := trim(aBasereg) <> '';
     finally
