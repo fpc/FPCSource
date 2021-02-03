@@ -3694,12 +3694,12 @@ begin
                   slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
                   slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
                   slHeader.Add('var');
-                  slHeader.Add('  DataBlock: Array[0..$FFFF) of byte;');
+                  slHeader.Add('  DataBlock: Array[0..$FFFF] of byte;');
                   slheader.Add('  i: integer;');
 
 
                   slHeader.Add('begin');
-                  slHeader.Add('  for i := 0 to high(DataBlock) do
+                  slHeader.Add('  for i := 0 to high(DataBlock) do');
                   slHeader.Add('   DataBlock[i] := cDataBlockByte[i mod 256];');
 
                   slHeader.Add('  asm');
