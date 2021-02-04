@@ -3676,6 +3676,8 @@ begin
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
 
+                  slHeader.Add('uses sysutils;');
+
                   slHeader.Add('const');
                   slHeader.Add('  cDataBlockByte: Array[0..255] of byte = ( $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E, $0F,');
                   slHeader.Add('                                            $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F,');
@@ -3694,9 +3696,13 @@ begin
                   slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
                   slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
                   slHeader.Add('var');
-                  slHeader.Add('  DataBlock: Array[0..$FFFF] of byte;');
-                  slheader.Add('  i: integer;');
+                  slHeader.Add('  DataBlock: Array[0..$3FFF] of dword;');
+                  slHeader.Add('  i: integer;');
 
+                  slHeader.Add('procedure writelnK7(aVal: dword);');
+                  slHeader.Add('begin');
+                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(aVal));');
+                  slHeader.Add('end;');
 
                   slHeader.Add('begin');
                   slHeader.Add('  for i := 0 to high(DataBlock) do');
@@ -3726,15 +3732,19 @@ begin
                   for i := 1 to 10 do
                    slHeader.Add('NOP');
 
-                  slFooter.Add('        xor   eax, eax');
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+
                   slFooter.Add('  @@CHECKRESULT:   ');
+                  slFooter.Add('      kmovd  eax, k7');
+                  slFooter.Add('      call writelnK7');
+                  slFooter.Add('  @@END:   ');
 
 
                   if aX64 then slFooter.Add('        pop rax')
                    else slFooter.Add('        pop eax');
 
-                  for i := 1 to 10 do
-                   slFooter.Add('NOP');
 
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
