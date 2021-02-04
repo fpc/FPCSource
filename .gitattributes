@@ -5117,7 +5117,7 @@ packages/graph/src/inc/clip.inc svneol=native#text/plain
 packages/graph/src/inc/fills.inc svneol=native#text/plain
 packages/graph/src/inc/fontdata.inc svneol=native#text/plain
 packages/graph/src/inc/graph.inc svneol=native#text/plain
-packages/graph/src/inc/graph.tex -text
+packages/graph/src/inc/graph.tex svneol=native#text/plain
 packages/graph/src/inc/graphh.inc svneol=native#text/plain
 packages/graph/src/inc/gtext.inc svneol=native#text/plain
 packages/graph/src/inc/makefile.inc svneol=native#text/plain
@@ -8064,6 +8064,7 @@ packages/pasjpeg/examples/cderror.pas svneol=native#text/plain
 packages/pasjpeg/examples/cdjpeg.pas svneol=native#text/plain
 packages/pasjpeg/examples/cjpeg.pas svneol=native#text/plain
 packages/pasjpeg/examples/cjpeg.res svneol=native#text/plain
+packages/pasjpeg/examples/demo.lpi svneol=native#text/plain
 packages/pasjpeg/examples/demo.pas svneol=native#text/plain
 packages/pasjpeg/examples/demo.res svneol=native#text/plain
 packages/pasjpeg/examples/djpeg.pas svneol=native#text/plain
