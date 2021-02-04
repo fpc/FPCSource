@@ -2248,6 +2248,9 @@ implementation
       var
         labsym : tasmsymbol;
       begin
+        { end of the symbol }
+        labsym:=def_dwarf_lab(def);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol_end.Create(labsym));
         { create a derived reference type for pass-by-reference parameters }
         { (gdb doesn't support DW_AT_variable_parameter yet)               }
         labsym:=def_dwarf_ref_lab(def);
