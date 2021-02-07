@@ -938,6 +938,7 @@ implementation
          htype,elementdef,elementptrdef : tdef;
          newordtyp: tordtype;
          valid : boolean;
+         minvalue, maxvalue: Tconstexprint;
       begin
          result:=nil;
          typecheckpass(left);
@@ -1051,7 +1052,25 @@ implementation
                         and not is_64bit(right.resultdef)
 {$endif not cpu64bitaddr}
                         then
-                       newordtyp:=Torddef(right.resultdef).ordtype
+                        begin
+                          { in case of an integer type, we need a new type which covers declaration range and index range,
+                            see tests/webtbs/tw38413.pp
+
+                            This matters only if we sign extend, if the type exceeds the sint range, we can fall back only
+                            to the index type
+                          }
+                          if is_integer(right.resultdef) and ((torddef(right.resultdef).low<0) or (TConstExprInt(Tarraydef(left.resultdef).lowrange)<0)) then
+                            begin
+                              minvalue:=min(TConstExprInt(Tarraydef(left.resultdef).lowrange),torddef(right.resultdef).low);
+                              maxvalue:=max(TConstExprInt(Tarraydef(left.resultdef).highrange),torddef(right.resultdef).high);
+                              if maxvalue>torddef(sinttype).high then
+                                newordtyp:=Torddef(right.resultdef).ordtype
+                              else
+                                newordtyp:=range_to_basetype(minvalue,maxvalue);
+                            end
+                          else
+                            newordtyp:=Torddef(right.resultdef).ordtype;
+                        end
                      else
                        newordtyp:=torddef(sizesinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,

@@ -1555,7 +1555,7 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
-parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+parser_e_global_generic_references_static=03339_E_Generic template in interface section references symbol in implementation section
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
 parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
@@ -1622,6 +1622,8 @@ parser_e_location_regpair_only_data=03358_E_Only data registers are supported fo
 % AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported
 parser_e_location_regpair_only_consecutive=03359_E_Only consecutive registers are supported for explicit location register pairs
 % MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
+parser_e_constructurs_cannot_take_type_parameters=03360_E_Constructors cannot take type parameters
+% The use of type parameters in constructors is not allowed.
 %
 % \end{description}
 %
@@ -3556,7 +3558,7 @@ option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEP
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
-option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+option_illegal_fpu_eabihf=11052_E_You must use one of the VFP FPU types when using the EABIHF ABI target
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
@@ -3755,7 +3757,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2020 by Florian Klaempfl and others
+Copyright (c) 1993-2021 by Florian Klaempfl and others
 ]
 
 #
@@ -4348,6 +4350,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)
+**2Xu_Generate executable in UF2 format  (embedded targets only)
 **2Xv_Generate table for Virtual Entry calls
 **2XV_Use VLink as external linker       (default on Amiga, MorphOS)
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)

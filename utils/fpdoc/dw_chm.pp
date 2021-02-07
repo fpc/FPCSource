@@ -1,5 +1,8 @@
 unit dw_chm;
 
+{$mode objfpc}
+{$h+}
+
 interface
 
 uses Classes, DOM,
@@ -40,7 +43,7 @@ type
     FAutoIndex: Boolean;
     FOtherFiles: String;
     procedure ProcessOptions;
-    function ResolveLinkIDAbs(const Name: String; Level : Integer = 0): DOMString;
+    function ResolveLinkIDAbs(const Name: String): DOMString;
     function RetrieveOtherFiles(const DataName: String; out PathInChm: String;
               out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -50,10 +53,10 @@ type
             APasEl: TPasElement; Prefix:String);
     procedure GenerateTOC;
     procedure GenerateIndex;
+  protected
+    procedure DoWriteDocumentation; override;
   public
-    procedure WriteDoc; override;
     function CreateAllocator: TFileAllocator; override;
-    
     function  InterPretOption(const Cmd,Arg : String): boolean; override;
 
     class procedure Usage(List: TStrings); override;
@@ -63,7 +66,7 @@ type
 
 implementation
 
-uses SysUtils, HTMWrite, dw_basehtml;
+uses fpdocstrs, SysUtils, HTMWrite, dw_basehtml;
 
 { TCHmFileNameAllocator }
 
@@ -72,6 +75,7 @@ var
   n,s: String;
   i: Integer;
   excl: Boolean; //search
+  MElement: TPasElement;
 begin
   Result:='';
   excl := False;
@@ -120,7 +124,9 @@ begin
       excl := (ASubindex > 0);
     end;
     // cut off Package Name
-    AElement:= AElement.GetModule;
+    MElement:= AElement.GetModule;
+    if Assigned(MElement) then
+      AElement:= MElement;
     Result := Copy(Result, Length(AElement.Parent.Name) + 2, MaxInt);
     // to skip dots in unit name
     i := Length(AElement.Name);
@@ -163,7 +169,7 @@ end;
 
 { TCHMHTMLWriter }
 
-function TCHMHTMLWriter.ResolveLinkIDAbs(const Name: String; Level : Integer = 0): DOMString;
+function TCHMHTMLWriter.ResolveLinkIDAbs(const Name: String): DOMString;
 
 begin
   Result:=UTF8Decode(FixHTMLpath(Engine.ResolveLink(Module,Name, True)));
@@ -341,8 +347,10 @@ begin
        Continue;
     ObjUnitItem := ObjByUnitItem.Children.NewItem;
     ObjUnitItem.Text := AModule.Name;
+    ObjUnitItem.addLocal(FixHTMLpath(Allocator.GetFilename(AModule, ClassesSubindex)));
     RoutinesUnitItem := RoutinesByUnitItem.Children.NewItem;
     RoutinesUnitItem.Text := AModule.Name;
+    RoutinesUnitItem.addLocal(FixHTMLpath(Allocator.GetFilename(AModule, ProcsSubindex)));
     for j := 0 to AModule.InterfaceSection.Classes.Count-1 do
     begin
       Element := TPasClassType(AModule.InterfaceSection.Classes[j]);
@@ -621,7 +629,7 @@ begin
   DoLog('Generating Index Done');
 end;
 
-procedure TCHMHTMLWriter.WriteDoc;
+procedure TCHMHTMLWriter.DoWriteDocumentation;
 var
   i: Integer;
   PageDoc: TXMLDocument;
@@ -629,8 +637,6 @@ var
   IFileName,FileName: String;
   FilePath: String;
 begin
-  FAllocator:=CreateAllocator;
-  FAllocator.SubPageNames:= SubPageNames;
   AllocatePages;
   DoLog(SWritingPages, [PageCount]);
 

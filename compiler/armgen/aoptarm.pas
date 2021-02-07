@@ -531,6 +531,11 @@ Implementation
                               { Instruction will become mov r1,r1 }
                               DebugMsg('Peephole Optimization: Mov2None 2 done', next_hp);
 
+                              { Allocate r1 between the instructions; not doing
+                                so may cause problems when removing superfluous
+                                MOVs later (i38055) }
+                              AllocRegBetween(taicpu(p).oper[1]^.reg, p, next_hp, UsedRegs);
+
                               if (next_hp = hp1) then
                                 { Don't let hp1 become a dangling pointer }
                                 hp1 := nil;
@@ -902,8 +907,8 @@ Implementation
         { reg1 might not be modified inbetween }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
-          DebugMsg('Peephole SxtbAndImm2Sxtb done', p);
-          taicpu(hp1).opcode:=A_SXTB;
+          DebugMsg('Peephole SxtbAndImm2Uxtb done', p);
+          taicpu(hp1).opcode:=A_UXTB;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
           GetNextInstruction(p,hp2);
@@ -913,7 +918,7 @@ Implementation
           result:=true;
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-           RemoveSuperfluousMove(p, hp1, 'SxtbMov2Data') then
+           RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data') then
         Result:=true;
     end;
 
@@ -983,7 +988,7 @@ Implementation
         and reg3,reg2,#65535
         dealloc reg2
         to
-        sxth reg3,reg1
+        uxth reg3,reg1
       }
       else if MatchInstruction(p, A_SXTH, [C_None], [PF_None]) and
         (taicpu(p).ops=2) and
@@ -997,8 +1002,8 @@ Implementation
         { reg1 might not be modified inbetween }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
-          DebugMsg('Peephole SxthAndImm2Sxth done', p);
-          taicpu(hp1).opcode:=A_SXTH;
+          DebugMsg('Peephole SxthAndImm2Uxth done', p);
+          taicpu(hp1).opcode:=A_UXTH;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
           GetNextInstruction(p, hp1);
@@ -1008,7 +1013,7 @@ Implementation
           result:=true;
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-           RemoveSuperfluousMove(p, hp1, 'SxthMov2Data') then
+           RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
         Result:=true;
     end;
 

@@ -20,7 +20,7 @@ unit Linux;
 {$i osdefs.inc}
 
 {$packrecords c}
-{$ifdef FPC_USE_LIBC} 
+{$ifdef FPC_USE_LIBC}
  {$linklib rt} // for clock* functions
 {$endif}
 
@@ -40,7 +40,7 @@ type
   __s32 = Longint;
   __u64 = QWord;
   __s64 = Int64;
-  
+
 type
   TSysInfo = record
     uptime: clong;                     //* Seconds since boot */
@@ -483,8 +483,8 @@ Type
 function clock_getres(clk_id : clockid_t; res : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_getres'; {$ENDIF}
 function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_gettime'; {$ENDIF}
 function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_settime'; {$ENDIF}
-function setregid(rgid,egid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setregid'; {$ENDIF} 
-function setreuid(ruid,euid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setreuid'; {$ENDIF} 
+function setregid(rgid,egid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setregid'; {$ENDIF}
+function setreuid(ruid,euid : uid_t): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'setreuid'; {$ENDIF}
 
 Const
   STATX_TYPE = $00000001;
@@ -517,7 +517,7 @@ Type
   end;
   pstatx_timestamp = ^statx_timestamp;
 
-  statx = record
+  tstatx = record
     stx_mask : __u32;
     stx_blksize : __u32;
     stx_attributes : __u64;
@@ -540,9 +540,25 @@ Type
     stx_dev_minor : __u32;
     __spare2 : array[0..13] of __u64;
   end;
-  pstatx = ^statx;
+  pstatx = ^tstatx;
 
-  function Fpstatx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: statx):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'statx'; {$ENDIF}
+  function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'statx'; {$ENDIF}
+
+Type
+   kernel_time64_t = clonglong;
+
+   kernel_timespec = record
+     tv_sec  : kernel_time64_t;
+     tv_nsec : clonglong;
+   end;
+   pkernel_timespec = ^kernel_timespec;
+
+   tkernel_timespecs = array[0..1] of kernel_timespec;
+
+{$ifndef android}
+Function utimensat(dfd: cint; path:pchar;const times:tkernel_timespecs;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
+Function futimens(fd: cint; const times:tkernel_timespecs):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'futimens'; {$ENDIF}
+{$endif android}
 
 implementation
 
@@ -847,18 +863,60 @@ function setregid(rgid,egid : uid_t): cint;
 begin
   setregid:=do_syscall(syscall_nr_setregid,rgid,egid);
 end;
- 
+
 function setreuid(ruid,euid : uid_t): cint;
 begin
   setreuid:=do_syscall(syscall_nr_setreuid,ruid,euid);
 end;
 
 
-function Fpstatx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: statx):cint;
+function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint;
 begin
-  Fpstatx:=do_syscall(syscall_nr_statx,TSysParam(dfd),TSysParam(filename),TSysParam(flags),TSysParam(mask),TSysParam(@buf));
+  statx:=do_syscall(syscall_nr_statx,TSysParam(dfd),TSysParam(filename),TSysParam(flags),TSysParam(mask),TSysParam(@buf));
 end;
 
-{$endif}
+
+{$ifndef android}
+Function utimensat(dfd: cint; path:pchar;const times:tkernel_timespecs;flags:cint):cint;
+var
+  tsa: Array[0..1] of timespec;
+begin
+{$if sizeof(clong)<=4}
+  utimensat:=do_syscall(syscall_nr_utimensat_time64,dfd,TSysParam(path),TSysParam(@times),0);
+  if (utimensat>=0) or (fpgeterrno<>ESysENOSYS) then
+    exit;
+  { try 32 bit fall back }
+  tsa[0].tv_sec := times[0].tv_sec;
+  tsa[0].tv_nsec := times[0].tv_nsec;
+  tsa[1].tv_sec := times[1].tv_sec;
+  tsa[1].tv_nsec := times[1].tv_nsec;
+  utimensat:=do_syscall(syscall_nr_utimensat,dfd,TSysParam(path),TSysParam(@tsa),0);
+{$else sizeof(clong)<=4}
+  utimensat:=do_syscall(syscall_nr_utimensat,dfd,TSysParam(path),TSysParam(@times),0);
+{$endif sizeof(clong)<=4}
+end;
+
+
+Function futimens(fd: cint; const times:tkernel_timespecs):cint;
+var
+  tsa: Array[0..1] of timespec;
+begin
+{$if sizeof(clong)<=4}
+  futimens:=do_syscall(syscall_nr_utimensat_time64,fd,TSysParam(nil),TSysParam(@times),0);
+  if (futimens>=0) or (fpgeterrno<>ESysENOSYS) then
+    exit;
+  { try 32 bit fall back }
+  tsa[0].tv_sec := times[0].tv_sec;
+  tsa[0].tv_nsec := times[0].tv_nsec;
+  tsa[1].tv_sec := times[1].tv_sec;
+  tsa[1].tv_nsec := times[1].tv_nsec;
+  futimens:=do_syscall(syscall_nr_utimensat,fd,TSysParam(nil),TSysParam(@tsa),0);
+{$else sizeof(clong)<=4}
+  futimens:=do_syscall(syscall_nr_utimensat,fd,TSysParam(nil),TSysParam(@times),0);
+{$endif sizeof(clong)<=4}
+end;
+{$endif android}
+{$endif not FPC_USE_LIBC}
 
 end.
+

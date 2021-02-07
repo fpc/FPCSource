@@ -81,8 +81,7 @@ Var
   i        : longint;
   HPath    : TCmdStrListItem;
   s,s1,s2  : TCmdStr;
-  prtobj,
-  cprtobj  : string[80];
+  prtobj   : string[80];
   linklibc : boolean;
   found1,
   found2   : boolean;
@@ -96,9 +95,8 @@ begin
   prtobj:='';
 {$else}
   prtobj:='prt0';
-  cprtobj:='cprt0';
   if linklibc then
-    prtobj:=cprtobj;
+    prtobj:='cprt0';
 {$endif}
 
   { Open link.res file }
@@ -944,7 +942,6 @@ end;
 function TlinkerFreeRTOS.MakeExecutable:boolean;
 var
   StaticStr,
-  S,
   binstr,
   cmdstr,
   mapstr: Ansistring;
@@ -953,9 +950,12 @@ var
   DynLinkStr,
   StripStr,
   FixedExeFileName: string;
+{$ifdef XTENSA}
+  S: Ansistring;
   t: Text;
   hp: TCmdStrListItem;
   filepath: TCmdStr;
+{$endif XTENSA}
 begin
 {$ifdef XTENSA}
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }

@@ -59,6 +59,7 @@ Type
     function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
 
     function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
+    function OptPass1And(var p: tai): Boolean; override; { There's optimisation code that's general for all ARM platforms }
   protected
     function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
@@ -67,7 +68,6 @@ Type
     { Individual optimisation routines }
     function OptPass1DataCheckMov(var p: tai): Boolean;
     function OptPass1ADDSUB(var p: tai): Boolean;
-    function OptPass1And(var p: tai): Boolean; override; { There's optimisation code that's general for all ARM platforms }
     function OptPass1CMP(var p: tai): Boolean;
     function OptPass1LDR(var p: tai): Boolean;
     function OptPass1STM(var p: tai): Boolean;
@@ -540,7 +540,6 @@ Implementation
   function TCpuAsmOptimizer.OptPass1ADDSUB(var p: tai): Boolean;
     var
       hp1,hp2: tai;
-      oldreg: tregister;
     begin
       Result := OptPass1DataCheckMov(p);
 
@@ -621,7 +620,7 @@ Implementation
 
   function TCpuAsmOptimizer.OptPass1MUL(var p: tai): Boolean;
     var
-      hp1,hp2: tai;
+      hp1: tai;
       oldreg: tregister;
     begin
       Result := OptPass1DataCheckMov(p);
@@ -1099,7 +1098,7 @@ Implementation
 
   function TCpuAsmOptimizer.OptPass1MOV(var p: tai): Boolean;
     var
-      hp1, hpfar1, hp2, hp3: tai;
+      hp1, hpfar1, hp2: tai;
       i, i2: longint;
       tempop: tasmop;
       dealloc: tai_regalloc;

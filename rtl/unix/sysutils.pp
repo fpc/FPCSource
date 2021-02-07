@@ -55,6 +55,15 @@ uses
 {$DEFINE HAVECLOCKGETTIME}
 {$ENDIF}
 
+{$if defined(LINUX)}
+  {$if sizeof(clong)<8}
+    {$DEFINE USE_STATX}
+    {$DEFINE USE_UTIMENSAT}
+  {$endif sizeof(clong)<=4}
+
+  {$DEFINE USE_FUTIMES}
+{$endif}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -547,12 +556,26 @@ begin
     end;
 end;
 
+
 Function FileAge (Const FileName : RawByteString): Int64;
 Var
   Info : Stat;
   SystemFileName: RawByteString;
+{$ifdef USE_STATX}
+  Infox : TStatx;
+{$endif USE_STATX}
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+
+{$ifdef USE_STATX}
+  { first try statx }
+  if (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
+    begin
+      Result:=Infox.stx_mtime.tv_sec;
+      exit;
+    end;
+{$endif USE_STATX}
+
   If  (fpstat(pchar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
   else 
@@ -585,6 +608,36 @@ begin
         Result := Result or faDirectory;
     end;
 end;
+
+
+{$ifdef USE_STATX}
+Function LinuxToWinAttr (const FN : RawByteString; Const Info : TStatx) : Longint;
+Var
+  LinkInfo : Stat;
+  nm : RawByteString;
+begin
+  Result:=faArchive;
+  If fpS_ISDIR(Info.stx_mode) then
+    Result:=Result or faDirectory;
+  nm:=ExtractFileName(FN);
+  If (Length(nm)>=2) and
+     (nm[1]='.') and
+     (nm[2]<>'.')  then
+    Result:=Result or faHidden;
+  If (Info.stx_Mode and S_IWUSR)=0 Then
+     Result:=Result or faReadOnly;
+  If fpS_ISSOCK(Info.stx_mode) or fpS_ISBLK(Info.stx_mode) or fpS_ISCHR(Info.stx_mode) or fpS_ISFIFO(Info.stx_mode) Then
+     Result:=Result or faSysFile;
+  If fpS_ISLNK(Info.stx_mode) Then
+    begin
+      Result:=Result or faSymLink;
+      // Windows reports if the link points to a directory.
+      { as we are only interested in the st_mode field here, we do not need to use statx }
+      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+        Result := Result or faDirectory;
+    end;
+end;
+{$endif USE_STATX}
 
 
 function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
@@ -874,26 +927,54 @@ end;
 
 Function FindGetFileInfo(const s: RawByteString; var f: TAbstractSearchRec; var Name: RawByteString):boolean;
 Var
+{$ifdef USE_STATX}
+  stx : linux.tstatx;
+{$endif USE_STATX}
   st : baseunix.stat;
   WinAttr : longint;
 begin
+{$ifdef USE_STATX}
   if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+    FindGetFileInfo:=statx(AT_FDCWD,pointer(s),AT_SYMLINK_NOFOLLOW,STATX_ALL,stx)=0
   else
-    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  if not FindGetFileInfo then
-    exit;
-  WinAttr:=LinuxToWinAttr(s,st);
-  FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
-
+    FindGetFileInfo:=statx(AT_FDCWD,pointer(s),0,STATX_ALL,stx)=0;
   if FindGetFileInfo then
     begin
-      Name:=ExtractFileName(s);
-      f.Attr:=WinAttr;
-      f.Size:=st.st_Size;
-      f.Mode:=st.st_mode;
-      f.Time:=st.st_mtime;
-      FindGetFileInfo:=true;
+      WinAttr:=LinuxToWinAttr(s,stx);
+      FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
+
+      if FindGetFileInfo then
+        begin
+          Name:=ExtractFileName(s);
+          f.Attr:=WinAttr;
+          f.Size:=stx.stx_Size;
+          f.Mode:=stx.stx_mode;
+          f.Time:=stx.stx_mtime.tv_sec;
+          FindGetFileInfo:=true;
+        end;
+    end
+  { no statx? try stat }
+  else if fpgeterrno=ESysENOSYS then
+{$endif USE_STATX}
+    begin
+      if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
+        FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+      else
+        FindGetFileInfo:=(fpstat(pointer(s),st)=0);
+      if not FindGetFileInfo then
+        exit;
+      WinAttr:=LinuxToWinAttr(s,st);
+      FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
+
+      if FindGetFileInfo then
+        begin
+          Name:=ExtractFileName(s);
+          f.Attr:=WinAttr;
+          f.Size:=st.st_Size;
+          f.Mode:=st.st_mode;
+          f.Time:=st.st_mtime;
+          FindGetFileInfo:=true;
+        end;
     end;
 end;
 
@@ -996,22 +1077,44 @@ End;
 
 
 Function FileGetDate (Handle : Longint) : Int64;
-
-Var Info : Stat;
-
+Var
+  Info : Stat;
+{$ifdef USE_STATX}
+  Infox : TStatx;
+{$endif USE_STATX}
+  Char0 : char;
 begin
-  If (fpFStat(Handle,Info))<0 then
-    Result:=-1
-  else
-    Result:=Info.st_Mtime;
+  Result:=-1;
+{$ifdef USE_STATX}
+  Char0:=#0;
+  if statx(Handle,@Char0,AT_EMPTY_PATH,STATX_MTIME,Infox)=0 then
+    Result:=Infox.stx_Mtime.tv_sec
+  else if fpgeterrno=ESysENOSYS then
+{$endif USE_STATX}
+    begin
+      If fpFStat(Handle,Info)=0 then
+        Result:=Info.st_Mtime;
+    end;
 end;
 
 
 Function FileSetDate (Handle : Longint;Age : Int64) : Longint;
-
+{$ifdef USE_FUTIMES}
+var
+  times : tkernel_timespecs;
+{$endif USE_FUTIMES}
 begin
-  // Impossible under Linux from FileHandle !!
+  Result:=0;
+{$ifdef USE_FUTIMES}
+  times[0].tv_sec:=Age;
+  times[0].tv_nsec:=0;
+  times[1].tv_sec:=Age;
+  times[1].tv_nsec:=0;
+  if futimens(Handle,times) = -1 then
+    Result:=fpgeterrno;
+{$else USE_FUTIMES}
   FileSetDate:=-1;
+{$endif USE_FUTIMES}
 end;
 
 
@@ -1068,14 +1171,29 @@ end;
 Function FileSetDate (Const FileName : RawByteString; Age : Int64) : Longint;
 var
   SystemFileName: RawByteString;
+{$ifdef USE_UTIMENSAT}
+  times : tkernel_timespecs;
+{$endif USE_UTIMENSAT}
   t: TUTimBuf;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   Result:=0;
-  t.actime:= Age;
-  t.modtime:=Age;
-  if fputime(PChar(SystemFileName), @t) = -1 then
+{$ifdef USE_UTIMENSAT}
+  times[0].tv_sec:=Age;
+  times[0].tv_nsec:=0;
+  times[1].tv_sec:=Age;
+  times[1].tv_nsec:=0;
+  if utimensat(AT_FDCWD,PChar(SystemFileName),times,0) = -1 then
     Result:=fpgeterrno;
+  if fpgeterrno=ESysENOSYS then
+{$endif USE_UTIMENSAT}
+    begin
+      Result:=0;
+      t.actime:= Age;
+      t.modtime:=Age;
+      if fputime(PChar(SystemFileName), @t) = -1 then
+        Result:=fpgeterrno;
+    end
 end;
 
 {****************************************************************************

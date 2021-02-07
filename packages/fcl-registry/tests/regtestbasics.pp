@@ -1,4 +1,4 @@
-unit TestBasics;
+unit RegTestBasics;
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
@@ -21,7 +21,6 @@ type
     procedure TestSimpleWinRegistry;
     procedure TestDoubleWrite;
     procedure bug16395;
-    procedure TestAdv;
     procedure TestStringList;
     Procedure TestInt64;
     Procedure TestDeleteSubkey;
@@ -30,11 +29,7 @@ type
 implementation
 
 uses
-  registry
-{$ifdef windows}
-  , tregistry2
-{$endif windows}
-  ;
+  registry;
 
 { TTestBasics }
 
@@ -167,13 +162,6 @@ begin
   DeleteUserXmlFile;
 end;
 
-procedure TTestBasics.TestAdv;
-begin
-{$ifdef windows}
-  DoRegTest2;
-{$endif windows}
-end;
-
 Procedure TTestBasics.TestStringList;
 
 Var
@@ -278,7 +266,7 @@ begin
     AssertTrue(format('OpenKey(''%s'') failed.',[Base]),B);
 
     B := R.DeleteKey('One');
-    AssertFalse(format('DeleteKey(''%s'') should have failed, but it succeeded.',[OneFull]),B);
+    AssertTrue(format('DeleteKey(''%s'') should have succeeded, but it failed.',[OneFull]),B);
   finally
     R.Free;
     CleanUp(ExceptObject <> nil);

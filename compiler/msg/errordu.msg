@@ -6,7 +6,7 @@
 #   Based on errore.msg of SVN revision 45316
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2020 by the Free Pascal Development team
+#   Copyright (c) 1998-2021 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -3585,7 +3585,7 @@ option_invalid_iphoneos_deployment_target=11051_E_Ungültiger Wert für die Umge
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
-option_illegal_fpu_eabihf=11052_E_Sie müssen beim Ziel EABIHF ABI einen der FPU Typen VFPV2, VFPV3 oder VFPV3_D16 verwenden
+option_illegal_fpu_eabihf=11052_E_Sie müssen beim Ziel EABIHF ABI einen der VFP FPU-Typen verwenden
 % The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
 option_w_unsupported_debug_format=11053_W_Das ausgewählte Debugformat wird auf dem aktuellen Ziel nicht unterstützt. Die aktuelle Einstellung wird beibehalten
 % Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
@@ -3784,7 +3784,7 @@ package_u_ppl_filename=13029_U_PPL Dateiname $1
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2020 Florian Klämpfl und andere
+Copyright (c) 1993-2021 Florian Klämpfl und andere
 ]
 
 #

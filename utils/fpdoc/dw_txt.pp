@@ -28,7 +28,7 @@ Procedure CreateTxtDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 implementation
 
-uses SysUtils, Classes, dwLinear;
+uses fpdocstrs, SysUtils, Classes, dwLinear;
 
 Const
   MaxListLevel     = 10;
@@ -603,7 +603,7 @@ var
 begin
   Writer := TTxtWriter.Create(APackage, AEngine);
   try
-    Writer.WriteDoc;
+    Writer.DoWriteDocumentation;
   finally
     Writer.Free;
   end;

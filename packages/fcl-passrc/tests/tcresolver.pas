@@ -345,6 +345,7 @@ type
     Procedure TestTryStatement;
     Procedure TestTryExceptOnNonTypeFail;
     Procedure TestTryExceptOnNonClassFail;
+    Procedure TestTryStatementMissingOnFail;
     Procedure TestRaiseNonVarFail;
     Procedure TestRaiseNonClassFail;
     Procedure TestRaiseDescendant;
@@ -986,8 +987,8 @@ type
     Procedure TestLibrary_ExportFunc_IndexStringFail;
     Procedure TestLibrary_ExportVar; // ToDo
     Procedure TestLibrary_Initialization_Finalization;
-    Procedure TestLibrary_ExportFuncOverloadFail; // ToDo
-    // ToDo Procedure TestLibrary_UnitExports;
+    Procedure TestLibrary_ExportFuncOverloadFail;
+    Procedure TestLibrary_UnitExports;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1736,6 +1737,8 @@ begin
         end;
       ok:=true;
       end;
+    on E: Exception do
+      Fail('Expected EPasResolve but got '+E.ClassName);
   end;
   AssertEquals('Missing resolver error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
 end;
@@ -1756,6 +1759,8 @@ begin
         MsgNumber,Parser.LastMsgNumber);
       ok:=true;
       end;
+    on E: Exception do
+      Fail('Expected EParserError but got '+E.ClassName);
   end;
   AssertEquals('Missing parser error '+Msg+' ('+IntToStr(MsgNumber)+')',true,ok);
 end;
@@ -3354,8 +3359,11 @@ begin
   '  i2: TInt2;',
   'begin',
   '  i:=i2;',
-  '  if i=i2 then ;']);
+  '  if i=i2 then ;',
+  '  i:=ord(i);',
+  '']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestIntegerRangeHighLowerLowFail;
@@ -4225,7 +4233,9 @@ begin
   '  s:= {#s3_set}[3..4];',
   '  s:= {#s4_set}[Three];',
   '  if 3 in a then ;',
-  '  s:=c;']);
+  '  s:=c;',
+  '  Include(s,3);',
+  '']);
   ParseProgram;
   CheckParamsExpr_pkSet_Markers;
   CheckResolverUnexpectedHints;
@@ -5412,6 +5422,23 @@ begin
   Add('    on longint do ;');
   Add('  end;');
   CheckResolverException('class expected, but Longint found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestTryStatementMissingOnFail;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  'procedure Run;',
+  'begin',
+  '  try',
+  '  except',
+  '    on TObject do ;',
+  '    Run;',
+  '  end;',
+  'end;',
+  'begin',
+  '']);
+  CheckParserException('Expected "end" or "on"',nParserExpectToken2Error);
 end;
 
 procedure TTestResolver.TestRaiseNonVarFail;
@@ -18836,8 +18863,6 @@ end;
 
 procedure TTestResolver.TestLibrary_ExportFuncOverloadFail;
 begin
-  exit;
-
   StartLibrary(false);
   Add([
   'procedure Run(w: word); overload;',
@@ -18850,7 +18875,24 @@ begin
   '  Run,',
   '  afile.run;',
   'begin']);
-  CheckResolverException('The symbol cannot be exported from a library',123);
+  CheckResolverException(sCantDetermineWhichOverloadedFunctionToCall,
+    nCantDetermineWhichOverloadedFunctionToCall);
+end;
+
+procedure TTestResolver.TestLibrary_UnitExports;
+begin
+  StartUnit(false);
+  Add([
+  'interface' ,
+  'procedure Run;',
+  'implementation',
+  'procedure Run;',
+  'begin',
+  'end;',
+  'exports',
+  '  Run;',
+  '']);
+  ParseUnit;
 end;
 
 initialization

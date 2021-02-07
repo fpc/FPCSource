@@ -338,15 +338,15 @@ interface
         property DwarfUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property Header: TMZExeHeader read FHeader;
       protected
-        procedure Load_Symbol(const aname:string);override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
-        procedure MemPos_ExeSection(const aname:string);override;
-        procedure MemPos_EndExeSection;override;
         function writeData:boolean;override;
       public
         constructor create;override;
         destructor destroy;override;
+        procedure Load_Symbol(const aname:string);override;
+        procedure MemPos_EndExeSection;override;
+        procedure MemPos_ExeSection(const aname:string);override;
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
@@ -1520,7 +1520,6 @@ implementation
         RawRecord: TOmfRawRecord;
         i,idx: Integer;
         objsym: TObjSymbol;
-        ExternalNameElem: TOmfExternalNameElement;
         ExtDefRec: TOmfRecord_EXTDEF;
       begin
         ExtNames:=TFPHashObjectList.Create;
@@ -1532,7 +1531,7 @@ implementation
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
             if objsym.bind=AB_EXTERNAL then
               begin
-                ExternalNameElem:=TOmfExternalNameElement.Create(ExtNames,objsym.Name);
+                TOmfExternalNameElement.Create(ExtNames,objsym.Name);
                 objsym.symidx:=idx;
                 Inc(idx);
               end;
@@ -1567,7 +1566,6 @@ implementation
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
         nsections,ngroups: Integer;
-        objsym: TObjSymbol;
       begin
         { calc amount of sections we have and set their index, starting with 1 }
         nsections:=1;
@@ -3157,9 +3155,6 @@ implementation
         i: Integer;
         ExeSec: TMZExeSection;
         ObjSec: TOmfObjSection;
-        StartDataPos: LongWord;
-        buf: array [0..1023] of byte;
-        bytesread: LongWord;
       begin
         Header.LoadableImageSize:=0;
         ExeSec:=MZFlatContentSection;
@@ -3271,7 +3266,6 @@ implementation
         i: Integer;
         ExeSec: TMZExeSection;
         ObjSec: TOmfObjSection;
-        StartDataPos: LongWord;
         buf: array [0..1023] of byte;
         bytesread: LongWord;
       begin
@@ -4102,9 +4096,8 @@ cleanup:
 
     function TNewExeEntryTable.GetSize: QWord;
       var
-        CurBundleStart, i: Integer;
+        CurBundleStart: Integer;
         CurBundleSize: Byte;
-        cp: TNewExeEntryPoint;
       begin
         Result:=0;
         CurBundleStart:=1;
@@ -4417,7 +4410,7 @@ cleanup:
       var
         s: TSymStr;
         Separator: SizeInt;
-        SegName, SegClass: string;
+        {SegName,} SegClass: string;
         IsStack, IsBss: Boolean;
       begin
         { allow mixing initialized and uninitialized data in the same section
@@ -4429,12 +4422,12 @@ cleanup:
         Separator:=Pos('||',s);
         if Separator>0 then
           begin
-            SegName:=Copy(s,1,Separator-1);
+            //SegName:=Copy(s,1,Separator-1);
             SegClass:=Copy(s,Separator+2,Length(s)-Separator-1);
           end
         else
           begin
-            SegName:=s;
+            //SegName:=s;
             SegClass:='';
           end;
         { wlink recognizes the stack segment by the class name 'STACK' }

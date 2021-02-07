@@ -706,8 +706,10 @@ implementation
 
 
     function tblocknode.simplify(forinline : boolean): tnode;
+{$ifdef break_inlining}
       var
         a : array[0..3] of tstatementnode;
+{$endif break_inlining}
       begin
         result := nil;
         { Warning: never replace a blocknode with another node type,
@@ -1023,8 +1025,8 @@ implementation
                   if segment <> NR_NO then
                     Result := gas_regname(segment) + ':'
                   else
-                    Result := '';
 {$endif defined(x86)}
+                    Result := '';
 
                   if Assigned(symbol) then
                     begin

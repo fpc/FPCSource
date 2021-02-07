@@ -264,7 +264,6 @@ unit cgcpu;
       var
         i,j : longint;
         hp : PCGParaLocation;
-        ref: treference;
         tmpreg: TRegister;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
@@ -310,7 +309,7 @@ unit cgcpu;
 
     procedure tcgavr.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
-        tmpref, ref: treference;
+        tmpref: treference;
         location: pcgparalocation;
         sizeleft: tcgint;
         i: Integer;
@@ -327,7 +326,6 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  ref:=tmpref;
                   for i:=1 to sizeleft do
                     begin
                       tmpreg:=getintregister(list,OS_8);
@@ -417,7 +415,7 @@ unit cgcpu;
 
      procedure tcgavr.a_op_const_reg_reg_internal(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src,srchi,dst,dsthi: tregister);
        var
-         tmpSrc, tmpDst, countreg: TRegister;
+         countreg: TRegister;
          b, b2, i, j: byte;
          s1, s2, t1: integer;
          l1: TAsmLabel;
@@ -574,10 +572,7 @@ unit cgcpu;
          countreg,
          tmpreg: tregister;
          i : integer;
-         instr : taicpu;
-         paraloc1,paraloc2 : TCGPara;
          l1,l2 : tasmlabel;
-         pd : tprocdef;
          hovloc: tlocation;
 
       { NextRegDst* is sometimes called before the register usage and sometimes afterwards }
@@ -1093,7 +1088,6 @@ unit cgcpu;
     function tcgavr.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
       var
         tmpref : treference;
-        l : tasmlabel;
       begin
         Result:=ref;
 
@@ -1702,8 +1696,7 @@ unit cgcpu;
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;a : tcgint;reg : tregister;l : tasmlabel);
       var
-        swapped , test_msb: boolean;
-        tmpreg : tregister;
+        swapped : boolean;
         i : byte;
       begin
         if a=0 then
@@ -1856,7 +1849,7 @@ unit cgcpu;
     procedure tcgavr.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
       var
         l : TAsmLabel;
-        tmpflags : TResFlags;
+        //tmpflags : TResFlags;
         i: Integer;
         hreg: TRegister;
       begin
@@ -1889,8 +1882,8 @@ unit cgcpu;
 
 
     procedure tcgavr.a_adjust_sp(list : TAsmList; value : longint);
-      var
-        i : integer;
+      {var
+        i : integer; }
       begin
         case value of
           0:
@@ -2448,7 +2441,7 @@ unit cgcpu;
       var
         countreg,tmpreg,tmpreg2: tregister;
         srcref,dstref : treference;
-        copysize,countregsize : tcgsize;
+        countregsize : tcgsize;
         l : TAsmLabel;
         i : longint;
         SrcQuickRef, DestQuickRef : Boolean;
@@ -2464,7 +2457,6 @@ unit cgcpu;
             dstref.base:=NR_R26;
             dstref.addressmode:=AM_POSTINCREMENT;
 
-            copysize:=OS_8;
             if len<256 then
               countregsize:=OS_8
             else if len<65536 then

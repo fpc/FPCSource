@@ -158,7 +158,7 @@ Function FixHTMLpath(S : String) : STring;
 
 implementation
 
-uses xmlread, sysutils, sh_pas;
+uses fpdocstrs, xmlread, sysutils, sh_pas;
 
 Function FixHTMLpath(S : String) : STring;
 
@@ -428,6 +428,7 @@ begin
     else
       N:='?';
     DoLog(SErrUnknownLinkID, [s,n,a]);
+    LinkUnresolvedInc();
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
     PushOutputNode(CreateLink(CurOutputNode, s));
@@ -797,7 +798,10 @@ begin
        TREl:=CreateTR(TableEl);
        ParaEl:=CreatePara(CreateTD_vtop(TREl));
        l:=El['id'];
-       s:= ResolveLinkID(UTF8ENcode(l));
+       if Assigned(Engine) and Engine.FalbackSeeAlsoLinks then
+         s:= ResolveLinkIDUnStrict(UTF8ENcode(l))
+       else
+         s:= ResolveLinkID(UTF8ENcode(l));
        if Length(s)=0 then
          begin
          if assigned(module) then
@@ -806,10 +810,11 @@ begin
            s:='?';
          if l='' then l:='<empty>';
          if Assigned(AElement) then
-           N:=UTF8Decode(AElement.Name)
+           N:=UTF8Decode(AElement.PathName)
          else
            N:='?';
          DoLog(SErrUnknownLinkID, [s,N,l]);
+         LinkUnresolvedInc();
          NewEl := CreateEl(ParaEl,'b')
          end
        else
@@ -1007,7 +1012,7 @@ begin
           break;
         ThisPackage := ThisPackage.NextSibling;
         end;
-      if Length(s) = 0 then
+      if (Length(s) = 0) and Assigned(Module) then
         begin
         { Okay, then we have to try all imported units of the current module }
         UnitList := Module.InterfaceSection.UsesList;
@@ -1033,6 +1038,8 @@ begin
     end
   else if Element is TPasEnumValue then
     s := ResolveLinkID(Element.Parent.PathName)
+  else if Element is TPasAliasType then
+    s := ResolveLinkID(TPasAliasType(Element).DestType.PathName)
   else
     s := ResolveLinkID(Element.PathName);
 
@@ -1044,7 +1051,10 @@ begin
   else
     begin
     Result := nil;
-    AppendText(Parent, Element.Name); // unresolved items
+    if  Element is TPasAliasType then
+      AppendText(Parent, TPasAliasType(Element).DestType.Name)
+    else
+      AppendText(Parent, Element.Name); // unresolved items
     end;
 end;
 

@@ -30,7 +30,7 @@ Procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine)
 
 implementation
 
-uses SysUtils, Classes, dwLinear, dwriter;
+uses fpdocstrs, SysUtils, Classes, dwLinear, dwriter;
 
 
 Type
@@ -638,7 +638,7 @@ var
 begin
   Writer := TLaTeXWriter.Create(APackage, AEngine);
   try
-    Writer.WriteDoc;
+    Writer.DoWriteDocumentation;
   finally
     Writer.Free;
   end;

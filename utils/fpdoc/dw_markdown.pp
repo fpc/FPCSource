@@ -116,6 +116,8 @@ type
     procedure CreateClassMemberPageBody(AElement: TPasElement); virtual;
     procedure CreateInheritanceSubpage(aClass: TPasClassType; aTitle : string; AFilter: TMemberFilter); virtual;
     procedure CreateSortedSubpage(ACLass: TPasClassType; aTitle : string; AFilter: TMemberFilter ); virtual;
+    //  Here we write the documentation
+    Procedure DoWriteDocumentation; override;
   public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     destructor Destroy; override;
@@ -126,7 +128,6 @@ type
     // Start producing html complete package documentation
 
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
-    Procedure WriteDoc; override;
     Class Function FileNameExtension : String; override;
     class procedure Usage(List: TStrings); override;
     Class procedure SplitImport(var AFilename, ALinkPrefix: String); override;
@@ -142,7 +143,7 @@ type
 
 implementation
 
-uses SysUtils, fpdocclasstree;
+uses fpdocstrs, SysUtils, fpdocclasstree;
 
 
 Function FixHTMLpath(S : String) : STring;
@@ -300,16 +301,13 @@ begin
     end;
 end;
 
-
-
-procedure TMarkdownWriter.WriteDoc;
+procedure TMarkdownWriter.DoWriteDocumentation;
 
 begin
   Inherited;
   If MarkDownEngine=memkDocs then
     WriteMkdocsYaml;
 end;
-
 
 function TMarkdownWriter.GetFooterMarkDown: TStrings;
 begin
@@ -423,7 +421,7 @@ begin
           break;
         ThisPackage := ThisPackage.NextSibling;
         end;
-      if Length(s) = 0 then
+      if (Length(s) = 0) and Assigned(Module) then
         begin
         { Okay, then we have to try all imported units of the current module }
         UnitList := Module.InterfaceSection.UsesList;
@@ -650,6 +648,7 @@ procedure TMarkdownWriter.AppendSeeAlsoSection(AElement: TPasElement; DocNode: T
       else
         N:='?';
       DoLog(SErrUnknownLinkID, [s,N,aID]);
+      LinkUnresolvedInc();
       end ;
      if doBold then
        DescrBeginBold
@@ -1474,12 +1473,19 @@ begin
   if aEL.ExternalName<>'' then
     aLine:=aLine+' external name '''+ael.ExternalName+'''';
   if Assigned(aEL.AncestorType) then
+    if (aEL.AncestorType is TPasSpecializeType) then
     begin
-    aLine:=aLine+' ('+ael.AncestorType.Name;
-    if Assigned(ael.Interfaces) and (aEl.Interfaces.Count>0) then
-      For I:=0 to aEl.Interfaces.Count-1 do
-        aLine:=aLine+', '+TPasElement(aEl.Interfaces[i]).Name;
-    aLine:=aLine+')';
+      aLine:=aLine+'(specialize ';
+      aLine:=aLine+ TPasSpecializeType(aEL.AncestorType).DestType.Name;
+      aLine:=aLine+ '<,>)';
+    end
+      else
+    begin
+      aLine:=aLine+' ('+ael.AncestorType.Name;
+      if Assigned(ael.Interfaces) and (aEl.Interfaces.Count>0) then
+        For I:=0 to aEl.Interfaces.Count-1 do
+          aLine:=aLine+', '+TPasElement(aEl.Interfaces[i]).Name;
+      aLine:=aLine+')';
     end;
   if Assigned(aEl.GUIDExpr) then
     aLine:=aLine+' ['+aEl.GUIDExpr.GetDeclaration(True)+']';
@@ -1578,7 +1584,7 @@ procedure TMarkdownWriter.CreateClassMainPage(aClass : TPasClassType);
 var
   i: Integer;
   ThisInterface,
-  ThisClass: TPasClassType;
+  ThisClass: TPasType;
   ThisTreeNode: TPasElementNode;
   DocNode: TDocNode;
 
@@ -1628,12 +1634,12 @@ begin
     // Show class item
     if Assigned(ThisClass) Then
       AppendHyperlink(ThisClass);
-    if Assigned(ThisClass) and (ThisClass.Interfaces.count>0) then
+    if Assigned(ThisClass) and (AClass.Interfaces.count>0) then
       begin
       AppendText('(');
-      for i:=0 to ThisClass.interfaces.count-1 do
+      for i:=0 to AClass.interfaces.count-1 do
         begin
-        ThisInterface:=TPasClassType(ThisClass.Interfaces[i]);
+        ThisInterface:= TPasType(AClass.Interfaces[i]);
         if I>0 then
           AppendText(', ');
         AppendHyperlink( ThisInterface);

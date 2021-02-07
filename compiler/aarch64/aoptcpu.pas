@@ -568,7 +568,6 @@ Implementation
       ThisRegister: TRegister;
       OffsetVal, ValidOffset, MinOffset, MaxOffset: asizeint;
       TargetOpcode: TAsmOp;
-      Breakout: Boolean;
     begin
       Result := False;
       ThisRegister := taicpu(p).oper[0]^.reg;
@@ -621,8 +620,6 @@ Implementation
 
                 if (taicpu(hp1).opcode = taicpu(p).opcode) then
                   begin
-                    Breakout := False;
-
                     if (taicpu(hp1).oppostfix = PF_NONE) and
                       { Registers need to be the same size }
                       (getsubreg(ThisRegister) = getsubreg(taicpu(hp1).oper[0]^.reg)) and
@@ -754,8 +751,6 @@ Implementation
 
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
-    var
-      hp1: tai;
     begin
       result := false;
       if p.typ=ait_instruction then
@@ -817,8 +812,6 @@ Implementation
 
 
   function TCpuAsmOptimizer.PeepHoleOptPass2Cpu(var p: tai): boolean;
-    var
-      hp1: tai;
     begin
       result := false;
       if p.typ=ait_instruction then

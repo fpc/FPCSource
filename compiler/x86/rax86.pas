@@ -1617,8 +1617,6 @@ procedure Tx86Instruction.SetInstructionOpsize;
     end;
   end;
 
-var
-  isBCastMemRef: boolean;
 begin
   if opsize<>S_NO then
    exit;
