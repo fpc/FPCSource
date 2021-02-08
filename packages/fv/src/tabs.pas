@@ -52,14 +52,14 @@ type
     PTab = ^TTab;
     TTab = object(TGroup)
       TabDefs   : PTabDef;
-      ActiveDef : integer;
+      ActiveDef : SmallInt;
       DefCount  : word;
       constructor Init(var Bounds: TRect; ATabDef: PTabDef);
       constructor Load (var S: TStream);
-      function    AtTab(Index: integer): PTabDef; virtual;
-      procedure   SelectTab(Index: integer); virtual;
+      function    AtTab(Index: SmallInt): PTabDef; virtual;
+      procedure   SelectTab(Index: SmallInt); virtual;
       procedure   Store (var S: TStream);
-      function    TabCount: integer;
+      function    TabCount: SmallInt;
       function    Valid(Command: Word): Boolean; virtual;
       procedure   ChangeBounds(var Bounds: TRect); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -224,8 +224,8 @@ begin
   DoStoreTabDefs (TabDefs);
 end;
 
-function TTab.TabCount: integer;
-var i: integer;
+function TTab.TabCount: SmallInt;
+var i: SmallInt;
     P: PTabDef;
 begin
   I:=0; P:=TabDefs;
@@ -238,8 +238,8 @@ begin
 end;
 
 
-function TTab.AtTab(Index: integer): PTabDef;
-var i: integer;
+function TTab.AtTab(Index: SmallInt): PTabDef;
+var i: SmallInt;
     P: PTabDef;
 begin
   i:=0; P:=TabDefs;
@@ -252,7 +252,7 @@ begin
   AtTab:=P;
 end;
 
-procedure TTab.SelectTab(Index: integer);
+procedure TTab.SelectTab(Index: SmallInt);
 var P: PTabItem;
     V: PView;
 begin
@@ -305,7 +305,7 @@ begin
 end;
 var
     P: PTabItem;
-    I: integer;
+    I: SmallInt;
 begin
   D.X := Bounds.B.X - Bounds.A.X - Size.X;
   D.Y := Bounds.B.Y - Bounds.A.Y - Size.Y;
@@ -349,9 +349,9 @@ begin
 end;
 
 procedure TTab.HandleEvent(var Event: TEvent);
-var Index : integer;
-    I     : integer;
-    X     : integer;
+var Index : SmallInt;
+    I     : SmallInt;
+    X     : SmallInt;
     Len   : byte;
     P     : TPoint;
     V     : PView;
@@ -467,16 +467,16 @@ const
 
 
 var B     : TDrawBuffer;
-    i     : integer;
+    i     : SmallInt;
     C1,C2,C3,C : word;
-    HeaderLen  : integer;
-    X,X2       : integer;
+    HeaderLen  : SmallInt;
+    X,X2       : SmallInt;
     Name       : PString;
-    ActiveKPos : integer;
-    ActiveVPos : integer;
+    ActiveKPos : SmallInt;
+    ActiveVPos : SmallInt;
     FC   : char;
-procedure SWriteBuf(X,Y,W,H: integer; var Buf);
-var i: integer;
+procedure SWriteBuf(X,Y,W,H: SmallInt; var Buf);
+var i: SmallInt;
 begin
   if Y+H>Size.Y then H:=Size.Y-Y;
   if X+W>Size.X then W:=Size.X-X;

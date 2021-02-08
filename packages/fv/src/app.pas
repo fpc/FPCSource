@@ -347,7 +347,7 @@ CONST
 {                       INITIALIZED PUBLIC VARIABLES                        }
 {---------------------------------------------------------------------------}
 CONST
-   AppPalette: Integer = apColor;                     { Application colour }
+   AppPalette: SmallInt = apColor;                    { Application colour }
    Desktop: PDeskTop = Nil;                           { Desktop object }
    MenuBar: PMenuView = Nil;                          { Application menu }
    StatusLine: PStatusLine = Nil;                     { App status line }
@@ -401,8 +401,8 @@ END;
 {---------------------------------------------------------------------------}
 {  MostEqualDivisors -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB }
 {---------------------------------------------------------------------------}
-PROCEDURE MostEqualDivisors (N: Integer; Var X, Y: Integer; FavorY: Boolean);
-VAR I: Integer;
+PROCEDURE MostEqualDivisors (N: SmallInt; Var X, Y: SmallInt; FavorY: Boolean);
+VAR I: SmallInt;
 BEGIN
    I := ISqr(N);                                      { Int square of N }
    If ((N MOD I) <> 0) Then                           { Initial guess }
@@ -515,9 +515,9 @@ END;
 {  Tile -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TDeskTop.Tile (Var R: TRect);
-VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: Integer;
+VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: SmallInt;
 
-   FUNCTION DividerLoc (Lo, Hi, Num, Pos: Integer): Integer;
+   FUNCTION DividerLoc (Lo, Hi, Num, Pos: SmallInt): SmallInt;
    BEGIN
      DividerLoc := LongInt( LongInt(Hi - Lo) * Pos)
        DIV Num + Lo;                                  { Calc position }
@@ -528,8 +528,8 @@ VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: Integer;
      If Tileable(P) Then Inc(NumTileable);            { Count tileable views }
    END;
 
-   PROCEDURE CalcTileRect (Pos: Integer; Var NR: TRect);
-   VAR X, Y, D: Integer;
+   PROCEDURE CalcTileRect (Pos: SmallInt; Var NR: TRect);
+   VAR X, Y, D: SmallInt;
    BEGIN
      D := (NumCols - LeftOver) * NumRows;             { Calc d value }
      If (Pos<D) Then Begin
@@ -596,7 +596,7 @@ END;
 {  Cascade -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TDeskTop.Cascade (Var R: TRect);
-VAR CascadeNum: Integer; LastView: PView; Min, Max: TPoint;
+VAR CascadeNum: SmallInt; LastView: PView; Min, Max: TPoint;
 
    PROCEDURE DoCount (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
    BEGIN

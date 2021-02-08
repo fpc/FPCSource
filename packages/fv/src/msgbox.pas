@@ -204,7 +204,7 @@ END;
 
 FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: String;
   Params: Pointer; AOptions: Word): Word;
-VAR I, X, ButtonCount: Integer; S: String; Control: PView;
+VAR I, X, ButtonCount: SmallInt; S: String; Control: PView;
     ButtonList: Array[0..4] Of PView;
 BEGIN
    With Dlg^ Do Begin

@@ -107,7 +107,7 @@ TYPE
      Disabled: Boolean;                               { Menu item state }
      KeyCode: Word;                                   { Menu item keycode }
      HelpCtx: Word;                                   { Menu item help ctx }
-     Case Integer Of
+     Case SmallInt Of
        0: (Param: PString);
        1: (SubMenu: PMenu);
    END;
@@ -709,7 +709,7 @@ END;
 {  FindItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB          }
 {---------------------------------------------------------------------------}
 FUNCTION TMenuView.FindItem (Ch: Char): PMenuItem;
-VAR I: Integer; P: PMenuItem;
+VAR I: SmallInt; P: PMenuItem;
 BEGIN
    Ch := UpCase(Ch);                                  { Upper case of char }
    P := Menu^.Items;                                  { First menu item }
@@ -947,7 +947,7 @@ END;
 {  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBar.GetItemRectX (Item: PMenuItem; Var R: TRect);
-VAR I: Integer; P: PMenuItem;
+VAR I: SmallInt; P: PMenuItem;
 BEGIN
    I := 0;                                            { Preset to zero }
    R.Assign(0, 0, 0, 1);                     { Initial rect size }
@@ -972,7 +972,7 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TMenuBox.Init (Var Bounds: TRect; AMenu: PMenu;
   AParentMenu: PMenuView);
-VAR W, H, L: Integer; S: String; P: PMenuItem; R: TRect;
+VAR W, H, L: SmallInt; S: String; P: PMenuItem; R: TRect;
 BEGIN
    W := 0;                                            { Clear initial width }
    H := 2;                                            { Set initial height }
@@ -1008,7 +1008,7 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.Draw;
-VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Y: Integer;
+VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Y: SmallInt;
     S: String; P: PMenuItem; B: TDrawBuffer;
 Type
    FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
@@ -1085,7 +1085,7 @@ END;
 {  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.GetItemRectX (Item: PMenuItem; Var R: TRect);
-VAR X, Y: Integer; P: PMenuItem;
+VAR X, Y: SmallInt; P: PMenuItem;
 BEGIN
    Y := 1;                                   { Initial y position }
    P := Menu^.Items;                                  { Initial item }
@@ -1165,7 +1165,7 @@ END;
 CONSTRUCTOR TStatusLine.Load (Var S: TStream);
 
    FUNCTION DoLoadStatusItems: PStatusItem;
-   VAR Count: Integer; Cur, First: PStatusItem; Last: ^PStatusItem;
+   VAR Count: SmallInt; Cur, First: PStatusItem; Last: ^PStatusItem;
    BEGIN
      Cur := Nil;                                      { Preset nil }
      Last := @First;                                  { Start on first item }
@@ -1186,7 +1186,7 @@ CONSTRUCTOR TStatusLine.Load (Var S: TStream);
    END;
 
    FUNCTION DoLoadStatusDefs: PStatusDef;
-   VAR Count: Integer; Cur, First: PStatusDef; Last: ^PStatusDef;
+   VAR Count: SmallInt; Cur, First: PStatusDef; Last: ^PStatusDef;
    BEGIN
      Last := @First;                                  { Start on first }
      S.Read(Count, SizeOf(Count));                    { Read item count }
@@ -1290,7 +1290,7 @@ END;
 PROCEDURE TStatusLine.Store (Var S: TStream);
 
    PROCEDURE DoStoreStatusItems (Cur: PStatusItem);
-   VAR Count: Integer; T: PStatusItem;
+   VAR Count: SmallInt; T: PStatusItem;
    BEGIN
      Count := 0;                                      { Clear count }
      T := Cur;                                        { Start on current }
@@ -1308,7 +1308,7 @@ PROCEDURE TStatusLine.Store (Var S: TStream);
    END;
 
    PROCEDURE DoStoreStatusDefs (Cur: PStatusDef);
-   VAR Count: Integer; T: PStatusDef;
+   VAR Count: SmallInt; T: PStatusDef;
    BEGIN
      Count := 0;                                      { Clear count }
      T := Cur;                                        { Current status item }
@@ -1425,7 +1425,7 @@ END;
 {  DrawSelect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TStatusLine.DrawSelect (Selected: PStatusItem);
-VAR I, L: Integer; Color, CSelect, CNormal, CSelDisabled, CNormDisabled: Word;
+VAR I, L: SmallInt; Color, CSelect, CNormal, CSelDisabled, CNormDisabled: Word;
     HintBuf: String; B: TDrawBuffer; T: PStatusItem;
 BEGIN
    CNormal := GetColor($0301);                        { Normal colour }

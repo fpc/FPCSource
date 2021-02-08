@@ -822,7 +822,7 @@ CONST
 type
   TstatVar2 = record
     target : PView;
-    offset,y : integer;
+    offset,y : SmallInt;
   end;
 
 var
@@ -889,7 +889,7 @@ end;
 
 TYPE
    ViewPortType = RECORD
-     X1, Y1, X2, Y2: Integer;                         { Corners of viewport }
+     X1, Y1, X2, Y2: SmallInt;                        { Corners of viewport }
      Clip          : Boolean;                         { Clip status }
    END;
 
@@ -907,7 +907,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetViewPort -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB     }
 {---------------------------------------------------------------------------}
-PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip: Boolean);
+PROCEDURE SetViewPort (X1, Y1, X2, Y2: SmallInt; Clip: Boolean);
 BEGIN
      If (X1 < 0) Then X1 := 0;                        { X1 negative fix }
      If (X1 >ScreenWidth) Then
@@ -962,7 +962,7 @@ END;
 {  supported but it should work as per original TV code.                    }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TView.Load (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    Inherited Init;                                    { Call ancestor }
    S.Read(i, SizeOf(i)); Origin.X:=i;                 { Read origin x value }
@@ -1682,7 +1682,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Store (Var S: TStream);
 VAR SaveState: Word;
-    i: integer;
+    i: SmallInt;
 BEGIN
    SaveState := State;                                { Hold current state }
    State := State AND NOT (sfActive OR sfSelected OR
@@ -1867,7 +1867,7 @@ END;
 {  GetPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GetPeerViewPtr (Var S: TStream; Var P);
-VAR Index: Integer;
+VAR Index: SmallInt;
 BEGIN
    Index := 0;                                        { Zero index value }
    S.Read(Index, SizeOf(Index));                      { Read view index }
@@ -1882,7 +1882,7 @@ END;
 {  PutPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.PutPeerViewPtr (Var S: TStream; P: PView);
-VAR Index: Integer;
+VAR Index: SmallInt;
 BEGIN
    If (P = Nil) OR (OwnerGroup = Nil) Then Index := 0 { Return zero index }
      Else Index := OwnerGroup^.IndexOf(P);            { Return view index }
@@ -2738,7 +2738,7 @@ const
 var
   FrameMask : array[0..MaxViewWidth-1] of Byte;
   ColorMask : word;
-  i,j,k     : {Sw_  lo and hi are used !! }integer;
+  i,j,k     : {Sw_  lo and hi are used !! }SmallInt;
   CurrView  : PView;
   p         : Pchar;
 begin
@@ -3035,7 +3035,7 @@ END;
 {   scrollbar id set to zero.                                               }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScrollBar.Load (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    S.Read(i, SizeOf(i)); Value:=i;                    { Read current value }
@@ -3139,7 +3139,7 @@ END;
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.Store (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    TView.Store(S);                                    { TView.Store called }
    i:=Value;S.Write(i, SizeOf(i));                    { Write current value }
@@ -3354,7 +3354,7 @@ END;
 {   as the new graphical scroller views.                                    }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScroller.Load (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    GetPeerViewPtr(S, HScrollBar);                     { Load horz scrollbar }
@@ -3413,7 +3413,7 @@ END;
 {  The scroller is saved to the stream compatable with the old TV object.   }
 {---------------------------------------------------------------------------}
 PROCEDURE TScroller.Store (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    TView.Store(S);                                    { Call TView explicitly }
    PutPeerViewPtr(S, HScrollBar);                     { Store horz bar }
@@ -3813,7 +3813,7 @@ END;
 {   although a frame view is read for compatability it is disposed of.      }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TWindow.Load (Var S: TStream);
-VAR I: Integer;
+VAR I: SmallInt;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
    S.Read(Flags, SizeOf(Flags));                      { Read window flags }
@@ -3945,7 +3945,7 @@ END;
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.Store (Var S: TStream);
-VAR i: Integer;
+VAR i: SmallInt;
 BEGIN
    TGroup.Store(S);                                   { Call group store }
    S.Write(Flags, SizeOf(Flags));                     { Write window flags }

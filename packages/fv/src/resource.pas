@@ -326,7 +326,7 @@ end;
 procedure TConstant.SetValue (AValue: string);
 var
   N: Word;
-  ErrorCode: Integer;
+  ErrorCode: SmallInt;
 begin
   Val(AValue,N,ErrorCode);
   if ErrorCode = 0 then
@@ -529,7 +529,7 @@ var
   var
     i, j: Byte;
     N: Byte;
-    ErrorCode: Integer;
+    ErrorCode: SmallInt;
     S: string;
   begin
     with Constant^ do

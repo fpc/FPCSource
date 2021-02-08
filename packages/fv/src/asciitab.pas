@@ -171,7 +171,7 @@ var
   CurrentPos : TPoint;
   Handled : boolean;
 
-  procedure SetTo(xpos, ypos : sw_integer;press:integer);
+  procedure SetTo(xpos, ypos : sw_integer;press:SmallInt);
   var
     newchar : ptrint;
   begin

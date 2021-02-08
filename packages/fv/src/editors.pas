@@ -84,7 +84,7 @@ const
   CMemo      = #26#27;
 
 type
-  TEditorDialog = function (Dialog : Integer; Info : Pointer) : Word;
+  TEditorDialog = function (Dialog : SmallInt; Info : Pointer) : Word;
 
   PIndicator = ^TIndicator;
   TIndicator = object (TView)
@@ -156,7 +156,7 @@ type
     BlankLine          : Sw_Word; { First blank line after a paragraph. }
     Word_Wrap          : Boolean; { Added boolean to toggle wordwrap on/off. }
     Line_Number        : string[8]; { Holds line number to jump to. }
-    Right_Margin       : Sw_Integer; { Added integer to set right margin. }
+    Right_Margin       : Sw_Integer; { Added SmallInt to set right margin. }
     Tab_Settings       : String[Tab_Stop_Length]; { Added string to hold tab stops. }
 
     constructor Init (var Bounds : TRect; AHScrollBar, AVScrollBar : PScrollBar;
@@ -192,7 +192,7 @@ type
     function   Valid (Command : Word) : Boolean; virtual;
 
   private
-    KeyState       : Integer;
+    KeyState       : SmallInt;
     LockCount      : Byte;
     UpdateFlags    : Byte;
     Place_Marker   : Array [1..10] of Sw_Word; { Inserted array to hold place markers. }
@@ -287,7 +287,7 @@ type
   PEditWindow = ^TEditWindow;
   TEditWindow = object (TWindow)
     Editor : PFileEditor;
-    constructor Init (var Bounds : TRect; FileName : FNameStr; ANumber : Integer);
+    constructor Init (var Bounds : TRect; FileName : FNameStr; ANumber : SmallInt);
     constructor Load (var S : Objects.TStream);
     procedure   Close; virtual;
     function    GetTitle (MaxSize : Sw_Integer) : TTitleStr; virtual;
@@ -297,14 +297,14 @@ type
   end;
 
 
-function DefEditorDialog (Dialog : Integer; Info : Pointer) : Word;
+function DefEditorDialog (Dialog : SmallInt; Info : Pointer) : Word;
 function CreateFindDialog: PDialog;
 function CreateReplaceDialog: PDialog;
 function JumpLineDialog : PDialog;
 function ReformDocDialog : PDialog;
 function RightMarginDialog : PDialog;
 function TabStopDialog : Dialogs.PDialog;
-function StdEditorDialog(Dialog: Integer; Info: Pointer): Word;
+function StdEditorDialog(Dialog: SmallInt; Info: Pointer): Word;
 
 const
   WordChars    : set of Char = ['!'..#255];
@@ -605,7 +605,7 @@ CONST
                                  Dialogs
 ****************************************************************************}
 
-function DefEditorDialog (Dialog : Integer; Info : Pointer) : Word;
+function DefEditorDialog (Dialog : SmallInt; Info : Pointer) : Word;
 begin
   DefEditorDialog := cmCancel;
 end; { DefEditorDialog }
@@ -893,7 +893,7 @@ Begin
 end { TabStopDialog };
 
 
-function StdEditorDialog(Dialog: Integer; Info: Pointer): Word;
+function StdEditorDialog(Dialog: SmallInt; Info: Pointer): Word;
 var
   R: TRect;
   T: TPoint;
@@ -2338,7 +2338,7 @@ procedure TEditor.Jump_To_Line (Select_Mode : Byte);
 { This function brings up a dialog box that allows }
 { the user to select a line number to jump to.     }
 VAR
-  Code       : Integer;         { Used for Val conversion.      }
+  Code       : SmallInt;         { Used for Val conversion.      }
   Temp_Value : Longint;         { Holds converted dialog value. }
 begin
   if EditorDialog (edJumpToLine, @Line_Number) <> cmCancel then
@@ -3055,7 +3055,7 @@ procedure TEditor.Set_Right_Margin;
 { that allows the user to set Right_Margin. }
 { Values must be < MaxLineLength and > 9.   }
 VAR
-  Code        : Integer;          { Used for Val conversion.      }
+  Code        : SmallInt;          { Used for Val conversion.      }
   Margin_Data : TRightMarginRec;  { Holds dialog results.         }
   Temp_Value  : Sw_Integer;       { Holds converted dialog value. }
 begin
@@ -3344,7 +3344,7 @@ begin
                 Place_marker[Element] := 0
               else
                 begin
-                  if integer (Place_Marker[Element]) - integer (KillCount) > 0 then
+                  if SmallInt (Place_Marker[Element]) - SmallInt (KillCount) > 0 then
                     Place_Marker[Element] := Place_Marker[Element] - KillCount
                   else
                     Place_Marker[Element] := 0;
@@ -3356,7 +3356,7 @@ begin
     BlankLine := BlankLine + AddCount
   else
     begin
-      if integer (BlankLine) - Integer (KillCount) > 0 then
+      if SmallInt (BlankLine) - SmallInt (KillCount) > 0 then
         BlankLine := BlankLine - KillCount
       else
         BlankLine := 0;
@@ -3659,7 +3659,7 @@ end; { TFileEditor.UpdateCommands }
 
 function TFileEditor.Valid (Command : Word) : Boolean;
 VAR
-  D : Integer;
+  D : SmallInt;
 begin
   if Command = cmValid then
     Valid := IsValid
@@ -3688,7 +3688,7 @@ end; { TFileEditor.Valid }
 
 constructor TEditWindow.Init (var Bounds   : TRect;
                                   FileName : Objects.FNameStr;
-                                  ANumber  : Integer);
+                                  ANumber  : SmallInt);
 var
   HScrollBar : PScrollBar;
   VScrollBar : PScrollBar;

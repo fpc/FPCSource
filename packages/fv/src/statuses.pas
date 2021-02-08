@@ -197,7 +197,7 @@ type
         Event.Command field against Command before handling the event. }
       {#X HandleEvent }
     constructor Init (R : TRect; ACommand : Word; AText : String;
-                      AParamCount : Integer);
+                      AParamCount : SmallInt);
       { Init calls the inherited constructor then sets #Command# to ACommand.
 
         If an error occurs Init fails. }
@@ -471,7 +471,7 @@ Min = XXX  Max = XXX  Current = XXX }
   TPercentGauge = Object(TGauge)
     { A TPercentGauge displays a numerical percentage as returned by
       #Percent# followed by a '%' sign. }
-    function Percent : Integer; virtual;
+    function Percent : SmallInt; virtual;
       { Percent returns the whole number value of (Current / Max) * 100. }
       {#X TGauge.Current TGauge.Max }
     procedure Draw; virtual;
@@ -505,7 +505,7 @@ Min = XXX  Max = XXX  Current = XXX }
   TSpinnerGauge = Object(TGauge)
     { A TSpinnerGauge displays a series of characters in one spot on the
       screen giving the illusion of a spinning line. }
-    constructor Init (X, Y : Integer; ACommand : Word);
+    constructor Init (X, Y : SmallInt; ACommand : Word);
       { Init calls the inherited constructor with AMin set to 0 and AMax set
         to 4. }
     procedure Draw; virtual;
@@ -545,7 +545,7 @@ Min = XXX  Max = XXX  Current = XXX }
       memory.  It responds to a cmStatusUpdate event by calling MaxAvail and
       comparing the result to #Max#, then updating the view if necessary. }
     {#X THeapMemAvail }
-    constructor Init (X, Y : Integer);
+    constructor Init (X, Y : SmallInt);
       { Init creates the view with the following text:
 
         MaxAvail = xxxx
@@ -570,7 +570,7 @@ Min = XXX  Max = XXX  Current = XXX }
       MemAvail and comparing the result to #Max#, then updating the view if
       necessary. }
     {#X THeapMaxAvail }
-    constructor Init (X, Y : Integer);
+    constructor Init (X, Y : SmallInt);
       { Init creates the view with the following text:
 
         MemAvail = xxxx
@@ -922,7 +922,7 @@ end;
 {****************************************************************************}
 { THeapMaxAvail.Init                                                         }
 {****************************************************************************}
-constructor THeapMaxAvail.Init (X, Y : Integer);
+constructor THeapMaxAvail.Init (X, Y : SmallInt);
 var
   R : TRect;
 begin
@@ -953,7 +953,7 @@ end;
 {****************************************************************************}
 { THeapMemAvail.Init                                                         }
 {****************************************************************************}
-constructor THeapMemAvail.Init (X, Y : Integer);
+constructor THeapMemAvail.Init (X, Y : SmallInt);
 var
   R : TRect;
 begin
@@ -991,7 +991,7 @@ var
   C : Word;
   S : String;
   PercentDone : LongInt;
-  FillSize : Integer;
+  FillSize : SmallInt;
 begin
   C := GetColor(1);
   MoveChar(B,' ',C,Size.X);
@@ -1005,8 +1005,8 @@ end;
 {****************************************************************************}
 { TPercentGauge.Percent                                                      }
 {****************************************************************************}
-function TPercentGauge.Percent : Integer;
-  { Returns percent as a whole integer Current of Max }
+function TPercentGauge.Percent : SmallInt;
+  { Returns percent as a whole SmallInt Current of Max }
 begin
   Percent := Round((Current/Max) * 100);
 end;
@@ -1018,7 +1018,7 @@ end;
 {****************************************************************************}
 { TSpinnerGauge.Init                                                         }
 {****************************************************************************}
-constructor TSpinnerGauge.Init (X, Y : Integer; ACommand : Word);
+constructor TSpinnerGauge.Init (X, Y : SmallInt; ACommand : Word);
 var R : TRect;
 begin
   R.Assign(X,Y,X+1,Y+1);
@@ -1067,7 +1067,7 @@ end;
 { TStatus.Init                                                               }
 {****************************************************************************}
 constructor TStatus.Init (R : TRect; ACommand : Word; AText : String;
-                          AParamCount : Integer);
+                          AParamCount : SmallInt);
 begin
   if (not TParamText.Init(R,AText,AParamCount)) then
     Fail;
@@ -1295,7 +1295,7 @@ var
   R : TRect;
   P : PButton;
   Buttons : Byte;
-  X, Y, Gap : Integer;
+  X, Y, Gap : SmallInt;
   i : Word;
 begin
   Buttons := Byte(((AFlags and sdCancelButton) = sdCancelButton));
@@ -1354,7 +1354,7 @@ constructor TStatusMessageDlg.Init (ATitle : TTitleStr; AStatus : PStatus;
                                     AFlags : Word; AMessage : String);
 var
   P : PStaticText;
-  X, Y : Integer;
+  X, Y : SmallInt;
   R : TRect;
 begin
   if not TStatusDlg.Init(ATitle,AStatus,AFlags) then

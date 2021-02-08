@@ -103,7 +103,7 @@ CONST
    MaxBytes = 128*1024*1024;                          { Maximum data size }
 {$ENDIF}
    MaxWords = MaxBytes DIV SizeOf(Word);              { Max words }
-   MaxInts  = MaxBytes DIV SizeOf(Integer);           { Max integers }
+   MaxInts  = MaxBytes DIV SizeOf(SmallInt);          { Max integers }
    MaxLongs = MaxBytes DIV SizeOf(LongInt);           { Max longints }
    MaxPtrs  = MaxBytes DIV SizeOf(Pointer);           { Max pointers }
    MaxReals = MaxBytes DIV SizeOf(Real);              { Max reals }
@@ -122,7 +122,7 @@ TYPE
    CPUInt = Longint;                                  { CPUInt is 32 bit }
 {$ELSE}                                               { 16 BIT CODE }
    CPUWord = Word;                                    { CPUWord is 16 bit }
-   CPUInt = Integer;                                  { CPUInt is 16 bit }
+   CPUInt = SmallInt;                                 { CPUInt is 16 bit }
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -131,7 +131,7 @@ TYPE
 TYPE
 {$IFDEF BIT_16}                                       { 16 BIT DEFINITIONS }
    Sw_Word    = Word;                                 { Standard word }
-   Sw_Integer = Integer;                              { Standard integer }
+   Sw_Integer = SmallInt;                             { Standard SmallInt }
 {$ENDIF}
 {$IFDEF BIT_32_OR_MORE}                               { 32 BIT DEFINITIONS }
    Sw_Word    = Cardinal;                             { Long integer now }
@@ -148,8 +148,8 @@ TYPE
    TWordArray = ARRAY [0..MaxWords-1] Of Word;        { Word array }
    PWordArray = ^TWordArray;                          { Word array pointer }
 
-   TIntegerArray = ARRAY [0..MaxInts-1] Of Integer;   { Integer array }
-   PIntegerArray = ^TIntegerArray;                    { Integer array pointer }
+   TIntegerArray = ARRAY [0..MaxInts-1] Of SmallInt;  { SmallInt array }
+   PIntegerArray = ^TIntegerArray;                    { SmallInt array pointer }
 
    TLongIntArray = ARRAY [0..MaxLongs-1] Of LongInt;  { LongInt array }
    PLongIntArray = ^TLongIntArray;                    { LongInt array pointer }
@@ -200,16 +200,16 @@ Given two real numbers returns the maximum real of the two.
 FUNCTION MaximumOf (A, B: Real): Real;
 
 {-MinIntegerOf-------------------------------------------------------
-Given two integer values returns the lowest integer of the two.
+Given two SmallInt values returns the lowest SmallInt of the two.
 04Oct99 LdB
 ---------------------------------------------------------------------}
-FUNCTION MinIntegerOf (A, B: Integer): Integer;
+FUNCTION MinIntegerOf (A, B: SmallInt): SmallInt;
 
 {-MaxIntegerof-------------------------------------------------------
-Given two integer values returns the biggest integer of the two.
+Given two SmallInt values returns the biggest SmallInt of the two.
 04Oct99 LdB
 ---------------------------------------------------------------------}
-FUNCTION MaxIntegerOf (A, B: Integer): Integer;
+FUNCTION MaxIntegerOf (A, B: SmallInt): SmallInt;
 
 {-MinLongIntOf-------------------------------------------------------
 Given two long integers returns the minimum longint of the two.
@@ -320,7 +320,7 @@ END;
 {---------------------------------------------------------------------------}
 {  MinIntegerOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION MinIntegerOf (A, B: Integer): Integer;
+FUNCTION MinIntegerOf (A, B: SmallInt): SmallInt;
 BEGIN
    If (B < A) Then MinIntegerOf := B                  { B smaller take it }
      Else MinIntegerOf := A;                          { Else take A }
@@ -329,7 +329,7 @@ END;
 {---------------------------------------------------------------------------}
 {  MaxIntegerOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION MaxIntegerOf (A, B: Integer): Integer;
+FUNCTION MaxIntegerOf (A, B: SmallInt): SmallInt;
 BEGIN
    If (B > A) Then MaxIntegerOf := B                  { B bigger take it }
      Else MaxIntegerOf := A;                          { Else take A }

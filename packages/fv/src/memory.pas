@@ -278,7 +278,7 @@ CONST
    DisablePool: Boolean = False;                      { Disable safety pool }
    SafetyPool : Pointer = Nil;                        { Safety pool memory }
 {$IFDEF PROC_REAL}                                    { REAL MODE DOS CODE }
-   HeapResult: Integer = 0;                           { Heap result }
+   HeapResult: SmallInt = 0;                          { Heap result }
    BufHeapPtr: Word = 0;                              { Heap position }
    BufHeapEnd: Word = 0;                              { Heap end }
    CachePtr  : Pointer = Nil;                         { Cache list }
@@ -443,7 +443,7 @@ END;
 {---------------------------------------------------------------------------}
 {  HeapNotify -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 01Oct99 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION HeapNotify (Size: Word): Integer; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+FUNCTION HeapNotify (Size: Word): SmallInt; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
 {$IFDEF PROC_REAL}                                    { REAL MODE DOS CODE }
 ASSEMBLER;
 ASM

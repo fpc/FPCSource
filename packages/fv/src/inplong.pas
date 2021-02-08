@@ -3,13 +3,13 @@ Unit InpLong;
 (*--
 TInputLong is a derivitave of TInputline designed to accept LongInt
 numeric input.  Since both the upper and lower limit of acceptable numeric
-input can be set, TInputLong may be used for Integer, Word, or Byte input
+input can be set, TInputLong may be used for SmallInt, Word, or Byte input
 as well.  Option flag bits allow optional hex input and display.  A blank
 field may optionally be rejected or interpreted as zero.
 
 Methods
 
-constructor Init(var R : TRect; AMaxLen : Integer;
+constructor Init(var R : TRect; AMaxLen : SmallInt;
                 LowerLim, UpperLim : LongInt; Flgs : Word);
 
 Calls TInputline.Init and saves the desired limits and Flags.  Flags may
@@ -148,7 +148,7 @@ end;
 
 {-------------------TInputLong.GetData}
 PROCEDURE TInputLong.GetData(var Rec);
-var code : Integer;
+var code : SmallInt;
 begin
 Val(Data^, LongInt(Rec), code);
 end;
@@ -203,7 +203,7 @@ end;
 FUNCTION TInputLong.RangeCheck : Boolean;
 var
   L : LongInt;
-  code : Integer;
+  code : SmallInt;
 begin
 if (Data^ = '') and (ILOptions and ilBlankEqZero <> 0) then
   Data^ := '0';
@@ -217,7 +217,7 @@ var
   SU, SL : string[40];
   PMyLabel : PLabel;
   Labl : string;
-  I : Integer;
+  I : SmallInt;
 
   function FindIt(P : PView) : boolean;{$ifdef PPC_BP}far;{$endif}
   begin

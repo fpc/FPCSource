@@ -296,7 +296,7 @@ TYPE
             0: (InfoPtr: Pointer);                    { Message pointer }
             1: (InfoLong: Longint);                   { Message longint }
             2: (InfoWord: Word);                      { Message Sw_Word }
-            3: (InfoInt: Integer);                    { Message Sw_Integer }
+            3: (InfoInt: SmallInt);                   { Message Sw_Integer }
             4: (InfoByte: Byte);                      { Message byte }
             5: (InfoChar: Char));                     { Message character }
    END;
@@ -1462,7 +1462,7 @@ END;
 {---------------------------------------------------------------------------}
 procedure FormatStr (Var Result: String; CONST Format: String; Var Params);
 TYPE TLongArray = Array[0..0] Of PtrInt;
-VAR W, ResultLength : integer;
+VAR W, ResultLength : SmallInt;
     FormatIndex, Justify, Wth: Byte;
     Fill: Char; S: String;
 

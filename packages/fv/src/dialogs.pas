@@ -666,17 +666,17 @@ TYPE
 
   PEditListBox = ^TEditListBox;
   TEditListBox = Object(TListBox)
-    CurrentField : Integer;
+    CurrentField : SmallInt;
     constructor Init (Bounds : TRect; ANumCols: Word;
       AVScrollBar : PScrollBar);
     constructor Load (var S : TStream);
     function  FieldValidator : PValidator; virtual;
-    function  FieldWidth : Integer; virtual;
+    function  FieldWidth : SmallInt; virtual;
     procedure GetField (InputLine : PInputLine); virtual;
     function  GetPalette : PPalette; virtual;
     procedure HandleEvent (var Event : TEvent); virtual;
     procedure SetField (InputLine : PInputLine); virtual;
-    function  StartColumn : Integer; virtual;
+    function  StartColumn : SmallInt; virtual;
       PRIVATE
     procedure EditField (var Event : TEvent);
   end;  { of TEditListBox }
@@ -3757,7 +3757,7 @@ end;
 {****************************************************************************}
 { TEditListBox.FieldWidth                                                    }
 {****************************************************************************}
-function TEditListBox.FieldWidth : Integer;
+function TEditListBox.FieldWidth : SmallInt;
   { In a multiple field listbox FieldWidth should return the width }
   { appropriate for CurrentField.                                  }
 begin
@@ -3815,7 +3815,7 @@ end;
 {****************************************************************************}
 { TEditListBox.StartColumn                                                   }
 {****************************************************************************}
-function TEditListBox.StartColumn : Integer;
+function TEditListBox.StartColumn : SmallInt;
 begin
   StartColumn := Origin.X;
 end;
@@ -3833,7 +3833,7 @@ var
   Bounds: TRect;
   b: Byte;
   ButtonCount: Byte;
-  i, j, Gap, Line: Integer;
+  i, j, Gap, Line: SmallInt;
   Scrollbar: PScrollbar;
   HasFrame: Boolean;
   HasButtons: Boolean;
@@ -4100,7 +4100,7 @@ end;
 { TModalInputLine.SetState                                                   }
 {****************************************************************************}
 procedure TModalInputLine.SetState (AState : Word; Enable : Boolean);
-var Pos : Integer;
+var Pos : SmallInt;
 begin
   if (AState = sfSelected)
      then begin

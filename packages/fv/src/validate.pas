@@ -497,7 +497,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      END;
 
      PROCEDURE ToGroupEnd (Var I: Byte);
-     VAR BrkLevel, BrcLevel: Integer;
+     VAR BrkLevel, BrcLevel: SmallInt;
      BEGIN
        BrkLevel := 0;                                 { Zero bracket level }
        BrcLevel := 0;                                 { Zero bracket level }
@@ -711,7 +711,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
    END;
 
    FUNCTION SyntaxCheck: Boolean;
-   VAR I, BrkLevel, BrcLevel: Integer;
+   VAR I, BrkLevel, BrcLevel: SmallInt;
    Begin
      SyntaxCheck := False;                            { Preset false result }
      If (Pic^ <> '') AND (Pic^[Length(Pic^)] <> ';')  { Name is valid }
@@ -818,7 +818,7 @@ END;
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
 FUNCTION TFilterValidator.IsValid (Const S: String): Boolean;
-VAR I: Integer;
+VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
    While S[I] In ValidChars Do Inc(I);                { Check each char }
@@ -830,7 +830,7 @@ END;
 {  IsValidInput -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB      }
 {---------------------------------------------------------------------------}
 FUNCTION TFilterValidator.IsValidInput (Var S: String; SuppressFill: Boolean): Boolean;
-VAR I: Integer;
+VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
    While S[I] In ValidChars Do Inc(I);                { Check each char }

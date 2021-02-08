@@ -22,8 +22,8 @@ type  Pnode=^Tnode;
         constructor init(var bounds:Trect;
                          AHscrollbar,AVscrollbar:Pscrollbar);
         procedure adjust(node:pointer;expand:boolean);virtual;
-        function creategraph(level:integer;lines:longint;
-                             flags:word;levwidth,endwidth:integer;
+        function creategraph(level:SmallInt;lines:longint;
+                             flags:word;levwidth,endwidth:SmallInt;
                              const chars:string):string;
         procedure draw;virtual;
         procedure expandall(node:pointer);
@@ -31,7 +31,7 @@ type  Pnode=^Tnode;
         procedure focused(i:sw_integer);virtual;
         procedure foreach(action:codepointer);
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
-        function getgraph(level:integer;lines:longint;flags:word):string;
+        function getgraph(level:SmallInt;lines:longint;flags:word):string;
         function getnode(i:sw_integer):pointer;virtual;
         function getnumchildren(node:pointer):sw_integer;virtual;
         function getpalette:Ppalette;virtual;
@@ -132,8 +132,8 @@ begin
   abstract;
 end;
 
-function TOutlineViewer.CreateGraph(Level: Integer; Lines: LongInt;
-  Flags: Word; LevWidth, EndWidth: Integer;
+function TOutlineViewer.CreateGraph(Level: SmallInt; Lines: LongInt;
+  Flags: Word; LevWidth, EndWidth: SmallInt;
   const Chars: String): String;
 const
   FillerOrBar  = 0;
@@ -204,7 +204,7 @@ function Toutlineviewer.do_recurse(action:codepointer;callerframe:pointer;
 var position:sw_integer;
     r:pointer;
 
-  function recurse(cur:pointer;level:integer;lines:longint;lastchild:boolean):pointer;
+  function recurse(cur:pointer;level:SmallInt;lines:longint;lastchild:boolean):pointer;
 
   var i,childcount:sw_integer;
       child:pointer;
@@ -374,7 +374,7 @@ begin
   abstract;
 end;
 
-function Toutlineviewer.getgraph(level:integer;lines:longint;
+function Toutlineviewer.getgraph(level:SmallInt;lines:longint;
                                  flags:word):string;
 
 begin

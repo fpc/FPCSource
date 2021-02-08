@@ -925,7 +925,7 @@ begin
 end;
 
 function MatchesMaskList(What, MaskList: string): boolean;
-var P: integer;
+var P: SmallInt;
     Match: boolean;
 begin
   Match:=false;
