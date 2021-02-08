@@ -323,11 +323,6 @@ begin
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
-
-type WordRec = record
-                  One, Two: Byte;
-               end; { wordrec }
-
 var
    BufSize,
    BufCoord    : COORD;
@@ -338,8 +333,6 @@ var
    ColCounter  : Longint;
    smallforce  : boolean;
    x1,y1,x2,y2 : longint;
-   p1,p2,p3    : PCardinal;
-   j           : integer;
 begin
   if force then
    smallforce:=true
