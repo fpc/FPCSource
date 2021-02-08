@@ -273,6 +273,7 @@ begin
     T:=P.Targets.AddUnit('views.pas');
       with T.Dependencies do
         begin
+          AddInclude('views.inc');
           AddInclude('platform.inc');
           AddUnit('fvcommon');
           AddUnit('drivers');
