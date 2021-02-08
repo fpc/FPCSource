@@ -17,9 +17,6 @@ unit Video;
 interface
 
 {$i videoh.inc}
-const
-  useunicodefunctions : boolean = false;
-
 
 procedure VideoSetConsoleOutHandle (NewHandle: THandle);
 
