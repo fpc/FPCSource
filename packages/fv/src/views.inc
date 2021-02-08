@@ -25,7 +25,11 @@
 {                                                          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UViews;
+{$else FV_UNICODE}
 UNIT Views;
+{$endif FV_UNICODE}
 
 {$CODEPAGE cp437}
 
@@ -56,7 +60,7 @@ USES
      Os2Def, DosCalls, PmWin,
    {$ENDIF}
 
-   Objects, FVCommon, Drivers, fvconsts;              { GFV standard units }
+   Objects, FVCommon, {$ifdef FV_UNICODE}UDrivers{$else}Drivers{$endif}, fvconsts; { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }

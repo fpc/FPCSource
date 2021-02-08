@@ -279,6 +279,15 @@ begin
           AddUnit('drivers');
           AddUnit('fvconsts');
         end;
+    T:=P.Targets.AddUnit('uviews.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('views.inc');
+          AddInclude('platform.inc');
+          AddUnit('fvcommon');
+          AddUnit('udrivers');
+          AddUnit('fvconsts');
+        end;
     P.ExamplePath.Add('examples');
     P.ExamplePath.Add('src');
     P.Targets.AddExampleProgram('examples/testapp.pas');
