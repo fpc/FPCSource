@@ -5530,13 +5530,17 @@ implementation
              (gas_needsuffix[AsmOp] <> AttSufNONE) and
              (not(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples)) then
           begin
-            // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat');
+            // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat
 
-            inc(iCntOpcodeValError);
-            Str(gas_needsuffix[AsmOp],hs1);
-            Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
-            Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
-                     std_op2str[AsmOp],hs1,hs2);
+            if (AsmOp <> A_CVTSI2SD) and
+	       (AsmOp <> A_CVTSI2SS) then
+	    begin	    
+              inc(iCntOpcodeValError);
+              Str(gas_needsuffix[AsmOp],hs1);
+              Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
+              Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
+                       std_op2str[AsmOp],hs1,hs2);
+	    end;	       
           end;
         end;
       end;

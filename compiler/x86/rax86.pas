@@ -2075,7 +2075,8 @@ begin
                end;
 
                if asize<>0 then
-                ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
+                //ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
+                ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and OT_NON_SIZE) or asize;
              end;
            end;
        OPR_REFERENCE:
