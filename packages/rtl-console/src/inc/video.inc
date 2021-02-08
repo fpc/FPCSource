@@ -13,6 +13,11 @@
 
 { TEnhancedVideoCell }
 
+operator = (const a,b : TEnhancedVideoCell) res: Boolean;
+begin
+  res:=(a.Attribute=b.Attribute) and (a.ExtendedGraphemeCluster = b.ExtendedGraphemeCluster);
+end;
+
 function TEnhancedVideoCell.GetAttribute: Byte;
 begin
   GetAttribute := Byte(FAttributes);

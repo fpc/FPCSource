@@ -142,6 +142,8 @@ const {The following constants were variables in the past.
 
       FVMaxWidth = 240;
 
+operator = (const a,b : TEnhancedVideoCell) res: Boolean;
+
 Procedure LockScreenUpdate;
 { Increments the screen update lock count with one.}
 Procedure UnlockScreenUpdate;
