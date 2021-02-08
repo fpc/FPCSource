@@ -112,6 +112,7 @@ begin
     T:=P.Targets.AddUnit('drivers.pas');
       with T.Dependencies do
         begin
+          AddInclude('drivers.inc');
           AddInclude('platform.inc');
           AddUnit('sysmsg');
           AddUnit('fvcommon');
