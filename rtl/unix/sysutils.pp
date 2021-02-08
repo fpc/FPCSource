@@ -569,7 +569,7 @@ begin
 
 {$ifdef USE_STATX}
   { first try statx }
-  if (statx(0,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
+  if (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
     begin
       Result:=Infox.stx_mtime.tv_sec;
       exit;
@@ -1082,10 +1082,12 @@ Var
 {$ifdef USE_STATX}
   Infox : TStatx;
 {$endif USE_STATX}
+  Char0 : char;
 begin
   Result:=-1;
 {$ifdef USE_STATX}
-  if statx(Handle,nil,0,STATX_MTIME,Infox)=0 then
+  Char0:=#0;
+  if statx(Handle,@Char0,AT_EMPTY_PATH,STATX_MTIME,Infox)=0 then
     Result:=Infox.stx_Mtime.tv_sec
   else if fpgeterrno=ESysENOSYS then
 {$endif USE_STATX}
