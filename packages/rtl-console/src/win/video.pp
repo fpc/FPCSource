@@ -43,6 +43,8 @@ var ConsoleInfo : TConsoleScreenBufferInfo;
     NewConsoleHandleAllocated:  boolean;
     ConsoleOutHandle: THandle;
 
+    LineBuf: array of TCharInfo;
+
 procedure SysInitVideo;
 var
   SecAttr: TSecurityAttributes;
@@ -142,6 +144,7 @@ begin
     SetConsoleCursorInfo(ConsoleOutHandle, OrigConsoleCursorInfo);
     SetConsoleCP(OrigCP);
    end;
+  SetLength(LineBuf,0);
 end;
 
 
@@ -327,7 +330,6 @@ var
    BufSize,
    BufCoord    : COORD;
    WriteRegion : SMALL_RECT;
-   LineBuf     : Array[0..(1024*32) - 1] of TCharInfo;
    BufCounter  : Longint;
    LineCounter,
    ColCounter  : Longint;
@@ -357,6 +359,7 @@ begin
       x2:=-1;
       y1:=ScreenHeight+1;
       y2:=-1;
+      SetLength(LineBuf,ScreenHeight*ScreenWidth);
       for LineCounter := 1 to ScreenHeight do
         begin
            for ColCounter := 1 to ScreenWidth do
@@ -415,7 +418,7 @@ begin
       writeln('X2: ',x2);
       writeln('Y2: ',y2);
       }
-      WriteConsoleOutputW(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion)
+      WriteConsoleOutputW(ConsoleOutHandle, @LineBuf[0], BufSize, BufCoord, WriteRegion)
    end;
 end;
 
