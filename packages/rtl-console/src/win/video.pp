@@ -619,52 +619,7 @@ begin
   if force then
    smallforce:=true
   else
-   begin
-    {$ifdef cpui386}
-     asm
-        pushl   %esi
-        pushl   %edi
-        movl    VideoBuf,%esi
-        movl    OldVideoBuf,%edi
-        movl    VideoBufSize,%ecx
-        shrl    $2,%ecx
-        repe
-        cmpsl
-        setne   smallforce
-        popl    %edi
-        popl    %esi
-     end;
-   {$else}
-    {$ifdef cpux86_64}
-     asm
-        pushq   %rsi
-        pushq   %rdi
-        xorq    %rcx,%rcx  
-        movq    VideoBuf(%rip),%rsi
-        movq    OldVideoBuf(%rip),%rdi
-        movl    VideoBufSize(%rip),%ecx
-        shrq    $2,%rcx
-        repe
-        cmpsl
-        setne   smallforce
-        popq    %rdi
-        popq    %rsi
-     end;
-    {$else}
-      {$INFO No optimized version for this CPU, reverting to a pascal version}
-       j:=Videobufsize shr 2;
-       smallforce:=false;
-       p1:=pcardinal(VideoBuf);
-       p2:=pcardinal(OldVideoBuf);
-       p3:=@pcardinal(videobuf)[j];
-       while (p1<p3) and (p1^=p2^) do
-         begin
-           inc(p1); inc(p2);
-         end; 
-       smallforce:=p1<>p3;  
-    {$ENDIF}
-   {$endif}
-   end;
+   SmallForce:=CompareByte(EnhancedVideoBuf[0],OldEnhancedVideoBuf[0],Length(EnhancedVideoBuf)*SizeOf(TEnhancedVideoCell))<>0;
   if SmallForce then
    begin
       BufSize.X := ScreenWidth;
@@ -688,26 +643,26 @@ begin
         begin
            for ColCounter := 1 to ScreenWidth do
              begin
-               if (WordRec(VideoBuf^[BufCounter]).One<>WordRec(OldVideoBuf^[BufCounter]).One) or
-                 (WordRec(VideoBuf^[BufCounter]).Two<>WordRec(OldVideoBuf^[BufCounter]).Two) then
+               if EnhancedVideoBuf[BufCounter]<>OldEnhancedVideoBuf[BufCounter] then
                  begin
-                    if ColCounter<x1 then
-                      x1:=ColCounter;
-                    if ColCounter>x2 then
-                      x2:=ColCounter;
-                    if LineCounter<y1 then
-                      y1:=LineCounter;
-                    if LineCounter>y2 then
-                      y2:=LineCounter;
+                   OldEnhancedVideoBuf[BufCounter]:=EnhancedVideoBuf[BufCounter];
+                   if ColCounter<x1 then
+                     x1:=ColCounter;
+                   if ColCounter>x2 then
+                     x2:=ColCounter;
+                   if LineCounter<y1 then
+                     y1:=LineCounter;
+                   if LineCounter>y2 then
+                     y2:=LineCounter;
                  end;
-               if useunicodefunctions then
-                 LineBuf[BufCounter].UniCodeChar := Widechar(mapcp850[WordRec(VideoBuf^[BufCounter]).One].unicode)
+               if Length(EnhancedVideoBuf[BufCounter].ExtendedGraphemeCluster) = 1 then
+                 LineBuf[BufCounter].UniCodeChar := EnhancedVideoBuf[BufCounter].ExtendedGraphemeCluster[1]
                else
-                 LineBuf[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
+                 LineBuf[BufCounter].UniCodeChar := ' ';
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }
-               LineBuf[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
+               LineBuf[BufCounter].Attributes := EnhancedVideoBuf[BufCounter].Attribute;
 
                Inc(BufCounter);
              end; { for }
@@ -742,19 +697,14 @@ begin
       writeln('X2: ',x2);
       writeln('Y2: ',y2);
       }
-      if useunicodefunctions then
-        WriteConsoleOutputW(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion)
-      else
-        WriteConsoleOutput(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion);
-
-      move(VideoBuf^,OldVideoBuf^,VideoBufSize);
+      WriteConsoleOutputW(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion)
    end;
 end;
 
 Const
   SysVideoDriver : TVideoDriver = (
-    InitDriver : @SysInitVideo;
-    InitEnhancedDriver: nil;
+    InitDriver : nil;
+    InitEnhancedDriver: @SysInitVideo;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
