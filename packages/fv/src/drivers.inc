@@ -31,7 +31,11 @@
 {                                                          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UDrivers;
+{$else FV_UNICODE}
 UNIT Drivers;
+{$endif FV_UNICODE}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -1359,7 +1363,11 @@ begin
   else
     StoreScreenMode.Col:=0;
 
+{$ifdef FV_UNICODE}
+  Video.InitEnhancedVideo;
+{$else FV_UNICODE}
   Video.InitVideo;
+{$endif FV_UNICODE}
   if video.errorcode<>viook then
     exit;
   GetVideoMode(StartupScreenMode);

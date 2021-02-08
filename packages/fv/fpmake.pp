@@ -118,6 +118,15 @@ begin
           AddUnit('fvcommon');
           AddUnit('fvconsts');
         end;
+    T:=P.Targets.AddUnit('udrivers.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('drivers.inc');
+          AddInclude('platform.inc');
+          AddUnit('sysmsg');
+          AddUnit('fvcommon');
+          AddUnit('fvconsts');
+        end;
     T:=P.Targets.AddUnit('editors.pas');
       with T.Dependencies do
         begin
