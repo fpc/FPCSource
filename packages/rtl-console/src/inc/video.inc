@@ -317,7 +317,7 @@ var
   I: Integer;
 begin
   { todo: optimize this }
-  for I := 0 to Length(EnhancedVideoBuf) do
+  for I := 0 to Length(EnhancedVideoBuf)-1 do
     begin
       with EnhancedVideoBuf[I] do
         VideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster));
@@ -331,7 +331,7 @@ var
   I: Integer;
 begin
   { todo: optimize this }
-  for I := 0 to Length(EnhancedVideoBuf) do
+  for I := 0 to Length(EnhancedVideoBuf)-1 do
     begin
       with EnhancedVideoBuf[I] do
         begin
@@ -384,7 +384,7 @@ begin
   else if EnhancedVideoInitialized then
     begin
       { todo: optimize }
-      for I:=0 to Length(EnhancedVideoBuf) do
+      for I:=0 to Length(EnhancedVideoBuf)-1 do
         with EnhancedVideoBuf[I] do
           begin
             Attribute:=DefaultAttr;
@@ -399,7 +399,7 @@ begin
       else
         UpdateScreen(True);
       { todo: optimize }
-      for I:=0 to Length(EnhancedVideoBuf) do
+      for I:=0 to Length(EnhancedVideoBuf)-1 do
         with OldEnhancedVideoBuf[I] do
           begin
             Attribute:=DefaultAttr;
