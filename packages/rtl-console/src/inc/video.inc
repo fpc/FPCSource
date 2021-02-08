@@ -313,8 +313,13 @@ begin
 end;
 
 function LegacyChar2ExtendedGraphemeCluster(const Ch: Char): UnicodeString;
+var
+  tmpS: RawByteString;
 begin
-  Result := Ch;
+  SetLength(tmpS, 1);
+  tmpS[1]:=Ch;
+  System.SetCodePage(tmpS,CP_OEMCP,False);
+  Result:=tmpS;
 end;
 
 procedure Enhanced2Legacy;
