@@ -385,7 +385,11 @@ remain unchanged if Ord(C) is zero. The high bytes of the Sw_Words are
 set to Attr, or remain unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveChar (Var Dest; C: UnicodeString; Attr: Byte; Count: Sw_Word);
+{$else FV_UNICODE}
 PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
+{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        KEYBOARD SUPPORT ROUTINES                          }
@@ -1048,6 +1052,17 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveChar (Var Dest; C: UnicodeString; Attr: Byte; Count: Sw_Word);
+VAR I: Word; P: PEnhancedVideoCell;
+BEGIN
+   For I := 1 To Count Do Begin
+     P := @(PEnhancedVideoCell(@Dest)[I-1]);          { Pointer to TEnhancedVideoCell }
+     If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
+     If (C<>'') and (C<>#$0000) Then P^.ExtendedGraphemeCluster := C; { Copy character }
+   End;
+END;
+{$else FV_UNICODE}
 PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
 VAR I: Word; P: PWord;
 BEGIN
@@ -1057,6 +1072,7 @@ BEGIN
      If (Ord(C) <> 0) Then WordRec(P^).Lo := Byte(C); { Copy character }
    End;
 END;
+{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        KEYBOARD SUPPORT ROUTINES                          }
