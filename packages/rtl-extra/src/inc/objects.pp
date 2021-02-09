@@ -315,6 +315,7 @@ TYPE
       FUNCTION GetPos: Longint;                                      Virtual;
       FUNCTION GetSize: Longint;                                     Virtual;
       FUNCTION ReadStr: PString;
+      FUNCTION ReadUnicodeString: UnicodeString;
       PROCEDURE Open (OpenMode: Word);                               Virtual;
       PROCEDURE Close;                                               Virtual;
       PROCEDURE Reset;
@@ -323,6 +324,7 @@ TYPE
       PROCEDURE Put (P: PObject);
       PROCEDURE StrWrite (P: PChar);
       PROCEDURE WriteStr (P: PString);
+      PROCEDURE WriteUnicodeString (Const S: UnicodeString);
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
       PROCEDURE Read (Var Buf; Count: LongInt);                      Virtual;
@@ -1226,6 +1228,20 @@ BEGIN
 END;
 
 {--TStream------------------------------------------------------------------}
+{  ReadUnicodeString                                                        }
+{---------------------------------------------------------------------------}
+FUNCTION TStream.ReadUnicodeString: UnicodeString;
+VAR L: LongInt; S: UTF8String;
+BEGIN
+   Read(L, SizeOf(L));
+   If (L <= 0) Then ReadUnicodeString := '' Else Begin
+     SetLength(S, L);
+     Read(S[1], L);
+     ReadUnicodeString := S;
+   End;
+END;
+
+{--TStream------------------------------------------------------------------}
 {  GetPos -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB               }
 {---------------------------------------------------------------------------}
 FUNCTION TStream.GetPos: LongInt;
@@ -1339,6 +1355,19 @@ CONST Empty: String[1] = '';
 BEGIN
    If (P <> Nil) Then Write(P^, Length(P^) + 1)       { Write string }
      Else Write(Empty, 1);                            { Write empty string }
+END;
+
+{--TStream------------------------------------------------------------------}
+{  WriteUnicodeString                                                       }
+{---------------------------------------------------------------------------}
+PROCEDURE TStream.WriteUnicodeString (Const S: UnicodeString);
+VAR L: LongInt; SU: UTF8String;
+BEGIN
+   SU := S;
+   L := Length(SU);
+   Write(L, SizeOf(L));
+   if L > 0 then
+     Write(SU[1], L);
 END;
 
 {--TStream------------------------------------------------------------------}
