@@ -2485,31 +2485,29 @@ end;
 function IsDir(const S: String): Boolean;
 var
   SR: SearchRec;
-  Is: boolean;
 begin
-  Is:=false;
+  Result:=false;
 {$ifdef Unix}
-  Is:=(S=DirSeparator); { handle root }
+  Result:=(S=DirSeparator); { handle root }
 {$else}
   {$ifdef HASAMIGA}
-  Is := (Length(S) > 0) and (S[Length(S)] = DriveSeparator);
+  Result := (Length(S) > 0) and (S[Length(S)] = DriveSeparator);
   {$else}
-  Is:=(length(S)=3) and (Upcase(S[1]) in['A'..'Z']) and (S[2]=':') and (S[3]=DirSeparator);
+  Result:=(length(S)=3) and (Upcase(S[1]) in['A'..'Z']) and (S[2]=':') and (S[3]=DirSeparator);
   {$endif}
   { handle root dirs }
 {$endif}
-  if Is=false then
+  if Result=false then
   begin
     FindFirst(S, Directory, SR);
     if DosError = 0 then
-      Is := (SR.Attr and Directory) <> 0
+      Result := (SR.Attr and Directory) <> 0
     else
-      Is := False;
+      Result := False;
    {$ifdef fpc}
     FindClose(SR);
    {$endif}
   end;
-  IsDir:=Is;
 end;
 
 {****************************************************************************}
