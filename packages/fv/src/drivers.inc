@@ -355,7 +355,11 @@ Hi(Attr). Tilde characters (~) in the string toggle between the two
 attribute bytes passed in the Attr Sw_Word.
 25May96 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveCStr (Var Dest; Const Str: UnicodeString; Attrs: Word);
+{$else FV_UNICODE}
 PROCEDURE MoveCStr (Var Dest; Const Str: String; Attrs: Word);
+{$endif FV_UNICODE}
 
 {-MoveBuf------------------------------------------------------------
 Count bytes are moved from Source into the low bytes of corresponding
@@ -951,6 +955,28 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveCStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveCStr (Var Dest; Const Str: UnicodeString; Attrs: Word);
+VAR B: Byte; I, J: Sw_Word; P: PEnhancedVideoCell;
+BEGIN
+   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
+     handle wide (CJK) characters, etc. }
+   J := 0;                                            { Start position }
+   For I := 1 To Length(Str) Do Begin                 { For each character }
+     If (Str[I] <> '~') Then Begin                    { Not tilde character }
+       P := @(PEnhancedVideoCell(@Dest)[J]);          { Pointer to TEnhancedVideoCell }
+       If (Lo(Attrs) <> 0) Then
+         P^.Attribute := Lo(Attrs);                   { Copy attribute }
+       P^.ExtendedGraphemeCluster:=Str[I];            { Copy string char }
+       Inc(J);                                        { Next position }
+     End Else Begin
+       B := Hi(Attrs);                                { Hold attribute }
+       WordRec(Attrs).Hi := Lo(Attrs);                { Copy low to high }
+       WordRec(Attrs).Lo := B;                        { Complete exchange }
+     End;
+   End;
+END;
+{$else FV_UNICODE}
 PROCEDURE MoveCStr (Var Dest; Const Str: String; Attrs: Word);
 VAR B: Byte; I, J: Sw_Word; P: PWord;
 BEGIN
@@ -969,6 +995,7 @@ BEGIN
      End;
    End;
 END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  MoveBuf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
