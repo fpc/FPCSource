@@ -182,6 +182,7 @@ begin
     T:=P.Targets.AddUnit('menus.pas');
       with T.Dependencies do
         begin
+          AddInclude('menus.inc');
           AddInclude('platform.inc');
           AddUnit('drivers');
           AddUnit('views');
