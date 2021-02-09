@@ -872,27 +872,6 @@ var
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
 
-    function posidx(const substr,s : string;idx:sw_integer):sw_integer;
-      var
-        i,j : sw_integer;
-        e   : boolean;
-      begin
-        i:=idx;
-        j:=0;
-        e:=(length(SubStr)>0);
-        while e and (i<=Length(s)-Length(SubStr)) do
-         begin
-           if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
-            begin
-              j:=i;
-              e:=false;
-            end;
-           inc(i);
-         end;
-        PosIdx:=j;
-      end;
-
-
 {$ifdef UNIX}
 const
   MouseUsesVideoBuf = true;
