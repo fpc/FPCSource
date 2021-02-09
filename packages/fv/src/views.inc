@@ -60,7 +60,9 @@ USES
      Os2Def, DosCalls, PmWin,
    {$ENDIF}
 
-   Objects, FVCommon, {$ifdef FV_UNICODE}UDrivers{$else}Drivers{$endif}, fvconsts; { GFV standard units }
+   Objects, FVCommon, {$ifdef FV_UNICODE}UDrivers{$else}Drivers{$endif}, fvconsts, { GFV standard units }
+   Video;
+
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -285,14 +287,22 @@ TYPE
 {                            TDrawBuffer RECORD                             }
 {---------------------------------------------------------------------------}
 TYPE
+{$ifdef FV_UNICODE}
+   TDrawBuffer = Array [0..MaxViewWidth - 1] Of TEnhancedVideoCell; { Draw buffer record }
+{$else FV_UNICODE}
    TDrawBuffer = Array [0..MaxViewWidth - 1] Of Word; { Draw buffer record }
+{$endif FV_UNICODE}
    PDrawBuffer = ^TDrawBuffer;                        { Ptr to draw buffer }
 
 {---------------------------------------------------------------------------}
 {                           TVideoBuffer RECORD                             }
 {---------------------------------------------------------------------------}
 TYPE
+{$ifdef FV_UNICODE}
+   TVideoBuf = ARRAY [0..3999] of TEnhancedVideoCell; { Video buffer }
+{$else FV_UNICODE}
    TVideoBuf = ARRAY [0..3999] of Word;               { Video buffer }
+{$endif FV_UNICODE}
    PVideoBuf = ^TVideoBuf;                            { Pointer to buffer }
 
 {---------------------------------------------------------------------------}
@@ -412,9 +422,15 @@ TYPE
       PROCEDURE WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
       PROCEDURE MakeLocal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE MakeGlobal (Source: TPoint; Var Dest: TPoint);
+{$ifdef FV_UNICODE}
+      PROCEDURE WriteStr (X, Y: Sw_Integer; Str: UnicodeString; Color: Byte);
+      PROCEDURE WriteChar (X, Y: Sw_Integer; C: UnicodeString; Color: Byte;
+        Count: Sw_Integer);
+{$else FV_UNICODE}
       PROCEDURE WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
         Count: Sw_Integer);
+{$endif FV_UNICODE}
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
         MinSize, MaxSize: TPoint);
    private
@@ -786,9 +802,6 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-
-USES
-  Video;
 
 {***************************************************************************}
 {                       PRIVATE TYPE DEFINITIONS                            }
@@ -2735,16 +2748,28 @@ const
   InitFrame: array[0..17] of Byte =
     ($06, $0A, $0C, $05, $00, $05, $03, $0A, $09,
      $16, $1A, $1C, $15, $00, $15, $13, $1A, $19);
+{$ifdef FV_UNICODE}
+  FrameChars_Unicode: array[0..31] of WideChar =
+    #$0020#$0020#$0020#$2514#$0020#$2502#$250C#$251C+
+    #$0020#$2518#$2500#$2534#$2510#$2524#$252C#$253C+
+    #$0020#$0020#$0020#$255A#$0020#$2551#$2554#$255F+
+    #$0020#$255D#$2550#$2567#$2557#$2562#$2564#$256C;
+{$else FV_UNICODE}
   FrameChars_437: array[0..31] of Char =
     '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉÇ ¼ÍÏ»¶ÑÎ';
   FrameChars_850: array[0..31] of Char =
     '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉº ¼ÍÍ»ºÍÎ';
+{$endif FV_UNICODE}
 var
   FrameMask : array[0..MaxViewWidth-1] of Byte;
+{$ifndef FV_UNICODE}
   ColorMask : word;
+{$endif FV_UNICODE}
   i,j,k     : {Sw_  lo and hi are used !! }SmallInt;
   CurrView  : PView;
+{$ifndef FV_UNICODE}
   p         : Pchar;
+{$endif FV_UNICODE}
 begin
   FrameMask[0]:=InitFrame[n];
   FillChar(FrameMask[1],Size.X-2,InitFrame[n+1]);
@@ -2801,6 +2826,14 @@ begin
       end;
      CurrView:=CurrView^.Next;
    end;
+{$ifdef FV_UNICODE}
+  for i:=0 to Size.X-1 do
+    with TVideoBuf(FrameBuf)[i] do
+      begin
+        Attribute:=Color;
+        ExtendedGraphemeCluster:=FrameChars_Unicode[FrameMask[i]];
+      end;
+{$else FV_UNICODE}
   ColorMask:=Color shl 8;
   p:=framechars_437;
   {$ifdef unix}
@@ -2810,6 +2843,7 @@ begin
   {$endif}
   for i:=0 to Size.X-1 do
     TVideoBuf(FrameBuf)[i]:=ord(p[FrameMask[i]]) or ColorMask;
+{$endif FV_UNICODE}
 end;
 
 
@@ -4206,7 +4240,11 @@ end;
 procedure TView.do_writeViewRec1(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
 var
   G      : PGroup;
+{$ifdef FV_UNICODE}
+  c      : TEnhancedVideoCell;
+{$else FV_UNICODE}
   c      : Word;
+{$endif FV_UNICODE}
   BufPos,
   SrcPos,
   l,dx : Sw_integer;
@@ -4222,13 +4260,21 @@ begin
           SrcPos:=x1 - staticVar2.offset;
           l:=x2-x1;
           if (shadowCounter=0) then
+{$ifdef FV_UNICODE}
+           move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l*SizeOf(TEnhancedVideoCell))
+{$else FV_UNICODE}
            move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l shl 1)
+{$endif FV_UNICODE}
           else
            begin { paint with shadowAttr }
              while (l>0) do
               begin
                 c:=staticVar1^[SrcPos];
+{$ifdef FV_UNICODE}
+                c.Attribute:=shadowAttr;
+{$else FV_UNICODE}
                 WordRec(c).hi:=shadowAttr;
+{$endif FV_UNICODE}
                 PVideoBuf(G^.buffer)^[BufPos]:=c;
                 inc(BufPos);
                 inc(SrcPos);
@@ -4365,14 +4411,27 @@ begin
 end;
 
 
+{$ifdef FV_UNICODE}
+procedure TView.WriteChar(X,Y:Sw_Integer; C:UnicodeString; Color:Byte; Count:Sw_Integer);
+{$else FV_UNICODE}
 procedure TView.WriteChar(X,Y:Sw_Integer; C:Char; Color:Byte; Count:Sw_Integer);
+{$endif FV_UNICODE}
 var
   B : TDrawBuffer;
+{$ifdef FV_UNICODE}
+  myChar : TEnhancedVideoCell;
+{$else FV_UNICODE}
   myChar : word;
+{$endif FV_UNICODE}
   i : Sw_integer;
 begin
+{$ifdef FV_UNICODE}
+  myChar.Attribute:=MapColor(Color);
+  myChar.ExtendedGraphemeCluster:=C;
+{$else FV_UNICODE}
   myChar:=MapColor(Color);
   myChar:=(myChar shl 8) + ord(C);
+{$endif FV_UNICODE}
   if Count>0 then
    begin
      if Count>maxViewWidth then
@@ -4396,7 +4455,11 @@ begin
 end;
 
 
+{$ifdef FV_UNICODE}
+procedure TView.WriteStr(X, Y: Sw_Integer; Str: UnicodeString; Color: Byte);
+{$else FV_UNICODE}
 procedure TView.WriteStr(X, Y: Sw_Integer; Str: String; Color: Byte);
+{$endif FV_UNICODE}
 var
   l,i : Sw_word;
   B : TDrawBuffer;
@@ -4408,9 +4471,18 @@ begin
      if l>maxViewWidth then
       l:=maxViewWidth;
      MyColor:=MapColor(Color);
+{$ifdef FV_UNICODE}
+     for i:=0 to l-1 do
+       with B[i] do
+         begin
+           Attribute:=MyColor;
+           ExtendedGraphemeCluster:=Str[i+1];
+         end;
+{$else FV_UNICODE}
      MyColor:=MyColor shl 8;
      for i:=0 to l-1 do
        B[i]:=MyColor+ord(Str[i+1]);
+{$endif FV_UNICODE}
      do_writeView(x,x+l,y,b);
    end;
   DrawScreenBuf(false);
