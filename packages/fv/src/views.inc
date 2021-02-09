@@ -540,7 +540,11 @@ TYPE
 {                   TScrollBar OBJECT - SCROLL BAR OBJECT                   }
 {---------------------------------------------------------------------------}
 TYPE
+{$ifdef FV_UNICODE}
+   TScrollChars = Array [0..4] of WideChar;
+{$else FV_UNICODE}
    TScrollChars = Array [0..4] of Char;
+{$endif FV_UNICODE}
 
    TScrollBar = OBJECT (TView)
          Value : Sw_Integer;                             { Scrollbar value }
@@ -3071,10 +3075,17 @@ end;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TScrollBar.Init (Var Bounds: TRect);
 const
+{$ifdef FV_UNICODE}
+  VChars: array[boolean] of TScrollChars =
+     (('^','V', #$2592, #$25A0, #$2593),(#$25B2, #$25BC, #$2592, #$25A0, #$2593));
+  HChars: array[boolean] of TScrollChars =
+     (('<','>', #$2592, #$25A0, #$2593),(#$25C4, #$25BA, #$2592, #$25A0, #$2593));
+{$else FV_UNICODE}
   VChars: array[boolean] of TScrollChars =
      (('^','V', #177, #254, #178),(#30, #31, #177, #254, #178));
   HChars: array[boolean] of TScrollChars =
      (('<','>', #177, #254, #178),(#17, #16, #177, #254, #178));
+{$endif FV_UNICODE}
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    PgStep := 1;                                       { Page step size = 1 }
