@@ -200,6 +200,7 @@ begin
     T:=P.Targets.AddUnit('outline.pas');
       with T.Dependencies do
         begin
+          AddInclude('outline.inc');
           AddUnit('drivers');
           AddUnit('views');
         end;
