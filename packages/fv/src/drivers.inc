@@ -1039,6 +1039,19 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveBuf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
+VAR I: Word; P: PEnhancedVideoCell;
+BEGIN
+   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
+     handle wide (CJK) characters, etc. }
+   For I := 1 To Count Do Begin
+     P := @(PEnhancedVideoCell(@Dest)[I-1]);          { Pointer to TEnhancedVideoCell }
+     If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
+     P^.ExtendedGraphemeCluster := WideChar(TWordArray(Source)[I-1]); { Copy source data }
+   End;
+END;
+{$else FV_UNICODE}
 PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
 VAR I: Word; P: PWord;
 BEGIN
@@ -1048,6 +1061,7 @@ BEGIN
      WordRec(P^).Lo := TByteArray(Source)[I-1];       { Copy source data }
    End;
 END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  MoveChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
