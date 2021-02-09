@@ -267,7 +267,11 @@ CONST
 {                            TWindow Title string                           }
 {---------------------------------------------------------------------------}
 TYPE
+{$ifdef FV_UNICODE}
+   TTitleStr = UnicodeString;                         { Window title string }
+{$else FV_UNICODE}
    TTitleStr = String[80];                            { Window title string }
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {                            COMMAND SET RECORD                             }
