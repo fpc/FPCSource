@@ -727,7 +727,11 @@ CONST
 
 { Characters used for drawing selected and default items in  }
 { monochrome color sets                                      }
+{$ifdef FV_UNICODE}
+   SpecialChars: Array [0..5] Of WideChar = (#$00BB, #$00AB, #$2192, #$2190, ' ', ' ');
+{$else FV_UNICODE}
    SpecialChars: Array [0..5] Of Char = (#175, #174, #26, #27, ' ', ' ');
+{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        STREAM REGISTRATION RECORDS                        }
