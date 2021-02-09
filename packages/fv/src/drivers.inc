@@ -336,7 +336,11 @@ the screen. For example, given the string '~B~roccoli' as its
 parameter, CStrLen returns 8.
 25May96 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION CStrLen (Const S: UnicodeString): Sw_Integer;
+{$else FV_UNICODE}
 FUNCTION CStrLen (Const S: String): Sw_Integer;
+{$endif FV_UNICODE}
 
 {-MoveStr------------------------------------------------------------
 Moves a string into a buffer for use with a view's WriteBuf or WriteLine.
@@ -934,6 +938,18 @@ end;
 {---------------------------------------------------------------------------}
 {  CStrLen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB           }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION CStrLen (Const S: UnicodeString): Sw_Integer;
+VAR I, J: Sw_Integer;
+BEGIN
+   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
+     handle wide (CJK) characters, etc. }
+   J := 0;                                            { Set result to zero }
+   For I := 1 To Length(S) Do
+     If (S[I] <> '~') Then Inc(J);                    { Inc count if not ~ }
+   CStrLen := J;                                      { Return length }
+END;
+{$else FV_UNICODE}
 FUNCTION CStrLen (Const S: String): Sw_Integer;
 VAR I, J: Sw_Integer;
 BEGIN
@@ -942,6 +958,7 @@ BEGIN
      If (S[I] <> '~') Then Inc(J);                    { Inc count if not ~ }
    CStrLen := J;                                      { Return length }
 END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  MoveStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
