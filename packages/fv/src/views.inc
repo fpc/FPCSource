@@ -615,7 +615,11 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
+{$ifdef FV_UNICODE}
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): UnicodeString; Virtual;
+{$else FV_UNICODE}
       FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
+{$endif FV_UNICODE}
       PROCEDURE Draw; Virtual;
       PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetTopItem (Item: Sw_Integer);
@@ -3589,7 +3593,11 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB           }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): UnicodeString;
+{$else FV_UNICODE}
 FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
+{$endif FV_UNICODE}
 BEGIN                                                 { Abstract method }
    GetText := '';                                     { Return empty }
 END;
