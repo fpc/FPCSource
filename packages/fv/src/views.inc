@@ -2849,9 +2849,15 @@ end;
 
 procedure TFrame.Draw;
 const
+{$ifdef FV_UNICODE}
+  LargeC:array[boolean] of widechar=('^',#$2191);
+  RestoreC:array[boolean] of widechar=('|',#$2195);
+  ClickC:array[boolean] of widechar=('*',#$263C);
+{$else FV_UNICODE}
   LargeC:array[boolean] of char=('^',#24);
   RestoreC:array[boolean] of char=('|',#18);
   ClickC:array[boolean] of char=('*',#15);
+{$endif FV_UNICODE}
 var
   CFrame, CTitle: Word;
   F, I, L, Width: Sw_Integer;
@@ -2892,7 +2898,11 @@ begin
       I := 7
      else
       I := 3;
+{$ifdef FV_UNICODE}
+     B[Width - I].ExtendedGraphemeCluster := WideChar(PWindow(Owner)^.Number + $30);
+{$else FV_UNICODE}
      WordRec(B[Width - I]).Lo := PWindow(Owner)^.Number + $30;
+{$endif FV_UNICODE}
    end;
   if Owner <> nil then
    Title := PWindow(Owner)^.GetTitle(L)
@@ -2922,10 +2932,18 @@ begin
       MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
       Owner^.SizeLimits(Min, Max);
       if FrameMode and fmZoomClicked <> 0 then
+{$ifdef FV_UNICODE}
+        B[Width - 4].ExtendedGraphemeCluster := ClickC[LowAscii]
+{$else FV_UNICODE}
         WordRec(B[Width - 4]).Lo := ord(ClickC[LowAscii])
+{$endif FV_UNICODE}
       else
         if (Owner^.Size.X=Max.X) and (Owner^.Size.Y=Max.Y) then
+{$ifdef FV_UNICODE}
+          B[Width - 4].ExtendedGraphemeCluster := RestoreC[LowAscii];
+{$else FV_UNICODE}
           WordRec(B[Width - 4]).Lo := ord(RestoreC[LowAscii]);
+{$endif FV_UNICODE}
     end;
   end;
   WriteLine(0, 0, Size.X, 1, B);
