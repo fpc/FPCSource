@@ -3608,7 +3608,12 @@ END;
 PROCEDURE TListViewer.Draw;
 VAR  I, J, ColWidth, Item, Indent, CurCol: Sw_Integer;
      Color: Word; SCOff: Byte;
-     Text: String; B: TDrawBuffer;
+{$ifdef FV_UNICODE}
+     Text: UnicodeString;
+{$else FV_UNICODE}
+     Text: String;
+{$endif FV_UNICODE}
+     B: TDrawBuffer;
 BEGIN
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
    If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
@@ -3631,20 +3636,32 @@ BEGIN
          Color := GetColor(2);                        { Normal Color }
          SCOff := 4;                                  { Colour offset=4 }
        End;
-      MoveChar(B[CurCol], ' ', Color, ColWidth);     { Clear buffer }
+      MoveChar(B[CurCol], ' ', Color, ColWidth);      { Clear buffer }
        If (Item < Range) Then Begin                   { Within text range }
          Text := GetText(Item, ColWidth + Indent);    { Fetch text }
          Text := Copy(Text, Indent, ColWidth);        { Select right bit }
          MoveStr(B[CurCol+1], Text, Color);           { Transfer to buffer }
          If ShowMarkers Then Begin
+{$ifdef FV_UNICODE}
+           B[CurCol].ExtendedGraphemeCluster :=
+             SpecialChars[SCOff];                     { Set marker character }
+           B[CurCol+ColWidth-2].ExtendedGraphemeCluster :=
+             SpecialChars[SCOff+1];                   { Set marker character }
+{$else FV_UNICODE}
            WordRec(B[CurCol]).Lo := Byte(
-             SpecialChars[SCOff]);                        { Set marker character }
+             SpecialChars[SCOff]);                    { Set marker character }
            WordRec(B[CurCol+ColWidth-2]).Lo := Byte(
-             SpecialChars[SCOff+1]);                        { Set marker character }
+             SpecialChars[SCOff+1]);                  { Set marker character }
+{$endif FV_UNICODE}
          End;
        End;
+{$ifdef FV_UNICODE}
+       MoveChar(B[CurCol+ColWidth-1], #$2502,
+         GetColor(5), 1);                             { Put centre line marker }
+{$else FV_UNICODE}
        MoveChar(B[CurCol+ColWidth-1], #179,
          GetColor(5), 1);                             { Put centre line marker }
+{$endif FV_UNICODE}
      End;
      WriteLine(0, I, Size.X, 1, B);                 { Write line to screen }
    End;
