@@ -644,11 +644,15 @@ TYPE
 TYPE
    TWindow = OBJECT (TGroup)
          Flags   : Byte;                              { Window flags }
-         Number  : Sw_Integer;                           { Window number }
-         Palette : Sw_Integer;                           { Window palette }
+         Number  : Sw_Integer;                        { Window number }
+         Palette : Sw_Integer;                        { Window palette }
          ZoomRect: TRect;                             { Zoom rectangle }
          Frame   : PFrame;                            { Frame view object }
+{$ifdef FV_UNICODE}
+         Title   : UnicodeString;                     { Title string }
+{$else FV_UNICODE}
          Title   : PString;                           { Title string }
+{$endif FV_UNICODE}
       CONSTRUCTOR Init (Var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
@@ -3900,7 +3904,11 @@ BEGIN
    Options := Options OR (ofSelectable+ofTopSelect);  { Select options set }
    GrowMode := gfGrowAll + gfGrowRel;                 { Set growmodes }
    Flags := wfMove + wfGrow + wfClose + wfZoom;       { Set flags }
+{$ifdef FV_UNICODE}
+   Title := ATitle;                                   { Hold title }
+{$else FV_UNICODE}
    Title := NewStr(ATitle);                           { Hold title }
+{$endif FV_UNICODE}
    Number := ANumber;                                 { Hold number }
    Palette := wpBlueWindow;                           { Default palette }
    InitFrame;                                         { Initialize frame }
@@ -3926,7 +3934,11 @@ BEGIN
    S.Read(i, SizeOf(i)); ZoomRect.B.X:=i;                          { Read zoom area x2 }
    S.Read(i, SizeOf(i)); ZoomRect.B.Y:=i;                          { Read zoom area y2 }
    GetSubViewPtr(S, Frame);                           { Now read frame object }
+{$ifdef FV_UNICODE}
+   Title := S.ReadUnicodeString;                      { Read title }
+{$else FV_UNICODE}
    Title := S.ReadStr;                                { Read title }
+{$endif FV_UNICODE}
 END;
 
 {--TWindow------------------------------------------------------------------}
@@ -3935,7 +3947,9 @@ END;
 DESTRUCTOR TWindow.Done;
 BEGIN
    Inherited Done;                                    { Call ancestor }
+{$ifndef FV_UNICODE}
    If (Title <> Nil) Then DisposeStr(Title);          { Dispose title }
+{$endif FV_UNICODE}
 END;
 
 {--TWindow------------------------------------------------------------------}
@@ -3953,10 +3967,18 @@ END;
 {  Modified 31may2002 PM  (No number included anymore)                      }
 {---------------------------------------------------------------------------}
 FUNCTION TWindow.GetTitle (MaxSize: Sw_Integer): TTitleStr;
+{$ifdef FV_UNICODE}
+VAR S: UnicodeString;
+{$else FV_UNICODE}
 VAR S: String;
+{$endif FV_UNICODE}
 BEGIN
+{$ifdef FV_UNICODE}
+   S:=Title;
+{$else FV_UNICODE}
    If (Title <> Nil) Then S:=Title^
    Else S := '';
+{$endif FV_UNICODE}
    if Length(S)>MaxSize then
      GetTitle:=Copy(S,1,MaxSize)
    else
@@ -4058,7 +4080,11 @@ BEGIN
    i:=ZoomRect.B.X;S.Write(i, SizeOf(i));             { Write zoom area x2 }
    i:=ZoomRect.B.Y;S.Write(i, SizeOf(i));             { Write zoom area y2 }
    PutSubViewPtr(S, Frame);                           { Write any frame }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(Title);                       { Write title string }
+{$else FV_UNICODE}
    S.WriteStr(Title);                                 { Write title string }
+{$endif FV_UNICODE}
 END;
 
 {--TWindow------------------------------------------------------------------}
