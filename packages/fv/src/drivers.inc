@@ -346,7 +346,11 @@ in Dest. The high bytes of the Sw_Words are set to Attr, or remain
 unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveStr (Var Dest; Const Str: UnicodeString; Attr: Byte);
+{$else FV_UNICODE}
 PROCEDURE MoveStr (Var Dest; Const Str: String; Attr: Byte);
+{$endif FV_UNICODE}
 
 {-MoveCStr-----------------------------------------------------------
 The characters in Str are moved into the low bytes of corresponding
@@ -942,6 +946,19 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE MoveStr (Var Dest; Const Str: UnicodeString; Attr: Byte);
+VAR I: Word; P: PEnhancedVideoCell;
+BEGIN
+   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
+     handle wide (CJK) characters, etc. }
+   For I := 1 To Length(Str) Do Begin                 { For each character }
+     P := @(PEnhancedVideoCell(@Dest)[I-1]);          { Pointer to TEnhancedVideoCell }
+     If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
+     P^.ExtendedGraphemeCluster := Str[I];            { Copy string char }
+   End;
+END;
+{$else FV_UNICODE}
 PROCEDURE MoveStr (Var Dest; Const Str: String; Attr: Byte);
 VAR I: Word; P: PWord;
 BEGIN
@@ -951,6 +968,7 @@ BEGIN
      WordRec(P^).Lo := Byte(Str[I]);                  { Copy string char }
    End;
 END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  MoveCStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
