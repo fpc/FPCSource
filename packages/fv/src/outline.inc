@@ -1,4 +1,8 @@
+{$ifdef FV_UNICODE}
+unit uoutline;
+{$else FV_UNICODE}
 unit outline;
+{$endif FV_UNICODE}
 
 {$CODEPAGE cp437}
 
@@ -6,12 +10,20 @@ unit outline;
                                   interface
 {***************************************************************************}
 
+{$ifdef FV_UNICODE}
+uses  udrivers,objects,uviews;
+{$else FV_UNICODE}
 uses  drivers,objects,views;
+{$endif FV_UNICODE}
 
 type  Pnode=^Tnode;
       Tnode=record
         next:Pnode;
+{$ifdef FV_UNICODE}
+        text:UnicodeString;
+{$else FV_UNICODE}
         text:Pstring;
+{$endif FV_UNICODE}
         childlist:Pnode;
         expanded:boolean;
       end;
@@ -22,21 +34,35 @@ type  Pnode=^Tnode;
         constructor init(var bounds:Trect;
                          AHscrollbar,AVscrollbar:Pscrollbar);
         procedure adjust(node:pointer;expand:boolean);virtual;
+{$ifdef FV_UNICODE}
+        function creategraph(level:SmallInt;lines:longint;
+                             flags:word;levwidth,endwidth:SmallInt;
+                             const chars:UnicodeString):UnicodeString;
+{$else FV_UNICODE}
         function creategraph(level:SmallInt;lines:longint;
                              flags:word;levwidth,endwidth:SmallInt;
                              const chars:string):string;
+{$endif FV_UNICODE}
         procedure draw;virtual;
         procedure expandall(node:pointer);
         function firstthat(test:codepointer):pointer;
         procedure focused(i:sw_integer);virtual;
         procedure foreach(action:codepointer);
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
+{$ifdef FV_UNICODE}
+        function getgraph(level:SmallInt;lines:longint;flags:word):UnicodeString;
+{$else FV_UNICODE}
         function getgraph(level:SmallInt;lines:longint;flags:word):string;
+{$endif FV_UNICODE}
         function getnode(i:sw_integer):pointer;virtual;
         function getnumchildren(node:pointer):sw_integer;virtual;
         function getpalette:Ppalette;virtual;
         function getroot:pointer;virtual;
+{$ifdef FV_UNICODE}
+        function gettext(node:pointer):UnicodeString;virtual;
+{$else FV_UNICODE}
         function gettext(node:pointer):string;virtual;
+{$endif FV_UNICODE}
         procedure handleevent(var event:Tevent);virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
@@ -60,7 +86,11 @@ type  Pnode=^Tnode;
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
         function getnumchildren(node:pointer):sw_integer;virtual;
         function getroot:pointer;virtual;
+{$ifdef FV_UNICODE}
+        function gettext(node:pointer):UnicodeString;virtual;
+{$else FV_UNICODE}
         function gettext(node:pointer):string;virtual;
+{$endif FV_UNICODE}
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
         destructor done;virtual;
@@ -72,7 +102,11 @@ const ovExpanded = $1;
 
       Coutlineviewer=Cscroller+#8#8;
 
+{$ifdef FV_UNICODE}
+function newnode(const Atext:UnicodeString;Achildren,Anext:Pnode):Pnode;
+{$else FV_UNICODE}
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
+{$endif FV_UNICODE}
 procedure disposenode(node:Pnode);
 
 
@@ -85,14 +119,22 @@ type TMyFunc = function(_EBP: Pointer; Cur: Pointer;
                         Flags: Word): Boolean;
 
 
+{$ifdef FV_UNICODE}
+function newnode(const Atext:UnicodeString;Achildren,Anext:Pnode):Pnode;
+{$else FV_UNICODE}
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
+{$endif FV_UNICODE}
 
 begin
   newnode:=new(Pnode);
   with newnode^ do
     begin
       next:=Anext;
+{$ifdef FV_UNICODE}
+      text:=Atext;
+{$else FV_UNICODE}
       text:=newstr(Atext);
+{$endif FV_UNICODE}
       childlist:=Achildren;
       expanded:=true;
     end;
@@ -106,7 +148,9 @@ begin
   while node<>nil do
     begin
       disposenode(node^.childlist);
+{$ifndef FV_UNICODE}
       disposestr(node^.text);
+{$endif FV_UNICODE}
       next:=node^.next;
       dispose(node);
       node:=next;
@@ -132,9 +176,15 @@ begin
   abstract;
 end;
 
+{$ifdef FV_UNICODE}
+function TOutlineViewer.CreateGraph(Level: SmallInt; Lines: LongInt;
+  Flags: Word; LevWidth, EndWidth: SmallInt;
+  const Chars: UnicodeString): UnicodeString;
+{$else FV_UNICODE}
 function TOutlineViewer.CreateGraph(Level: SmallInt; Lines: LongInt;
   Flags: Word; LevWidth, EndWidth: SmallInt;
   const Chars: String): String;
+{$endif FV_UNICODE}
 const
   FillerOrBar  = 0;
   YorL         = 2;
@@ -143,7 +193,11 @@ const
 var
   Last, Children, Expanded: Boolean;
   I , J : Byte;
+{$ifdef FV_UNICODE}
+  Graph : UnicodeString;
+{$else FV_UNICODE}
   Graph : String;
+{$endif FV_UNICODE}
 
 begin
   { Load registers }
@@ -193,7 +247,7 @@ begin
     else
       Graph[J] := Chars[Retracted+1];
   end;
-  Graph[0] := Char(J);
+  SetLength(Graph, J);
 
   CreateGraph := Graph;
 end;
@@ -269,7 +323,11 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
                      lines:longint;flags:word):boolean;
 
   var c,i:byte;
+{$ifdef FV_UNICODE}
+      s,t:UnicodeString;
+{$else FV_UNICODE}
       s,t:string;
+{$endif FV_UNICODE}
 
   begin
     draw_item:=position>=delta.y+size.y;
@@ -293,13 +351,29 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
     {Fill drawbuffer with graph and text to draw.}
     for i:=0 to size.x-1 do
       begin
+{$ifdef FV_UNICODE}
+        b[i].Attribute:=c;
+{$else FV_UNICODE}
         wordrec(b[i]).hi:=c;
+{$endif FV_UNICODE}
         if i+delta.x<length(s) then
+{$ifdef FV_UNICODE}
+          b[i].ExtendedGraphemeCluster:=s[1+i+delta.x]
+{$else FV_UNICODE}
           wordrec(b[i]).lo:=byte(s[1+i+delta.x])
+{$endif FV_UNICODE}
         else if 1+i+delta.x-length(s)<=length(t) then
+{$ifdef FV_UNICODE}
+          b[i].ExtendedGraphemeCluster:=t[1+i+delta.x-length(s)]
+{$else FV_UNICODE}
           wordrec(b[i]).lo:=byte(t[1+i+delta.x-length(s)])
+{$endif FV_UNICODE}
         else
+{$ifdef FV_UNICODE}
+          b[i].ExtendedGraphemeCluster:=' ';
+{$else FV_UNICODE}
           wordrec(b[i]).lo:=byte(' ');
+{$endif FV_UNICODE}
       end;
 
     {Draw!}
@@ -374,12 +448,21 @@ begin
   abstract;
 end;
 
+{$ifdef FV_UNICODE}
+function Toutlineviewer.getgraph(level:SmallInt;lines:longint;
+                                 flags:word):UnicodeString;
+
+begin
+  getgraph:=creategraph(level,lines,flags,3,3,#$0020#$2502#$251C#$2514#$2500#$2500#$002B#$2500);
+end;
+{$else FV_UNICODE}
 function Toutlineviewer.getgraph(level:SmallInt;lines:longint;
                                  flags:word):string;
 
 begin
   getgraph:=creategraph(level,lines,flags,3,3,' ³ÃÀÄÄ+Ä');
 end;
+{$endif FV_UNICODE}
 
 function Toutlineviewer.getnode(i:sw_integer):pointer;
 
@@ -414,7 +497,11 @@ begin
   abstract;
 end;
 
+{$ifdef FV_UNICODE}
+function Toutlineviewer.gettext(node:pointer):UnicodeString;
+{$else FV_UNICODE}
 function Toutlineviewer.gettext(node:pointer):string;
+{$endif FV_UNICODE}
 
 begin
   abstract;
@@ -427,9 +514,17 @@ var mouse:Tpoint;
     new_focus:sw_integer;
     count:byte;
     handled,m,mouse_drag:boolean;
+{$ifdef FV_UNICODE}
+    graph:UnicodeString;
+{$else FV_UNICODE}
     graph:string;
+{$endif FV_UNICODE}
 
+{$ifdef FV_UNICODE}
+  function graph_of_focus(var graph:UnicodeString):pointer;
+{$else FV_UNICODE}
   function graph_of_focus(var graph:string):pointer;
+{$endif FV_UNICODE}
 
   var _level:sw_integer;
       _lines:longInt;
@@ -674,11 +769,19 @@ begin
   getroot:=root;
 end;
 
+{$ifdef FV_UNICODE}
+function Toutline.gettext(node:pointer):UnicodeString;
+{$else FV_UNICODE}
 function Toutline.gettext(node:pointer):string;
+{$endif FV_UNICODE}
 
 begin
   assert(node<>nil);
+{$ifdef FV_UNICODE}
+  gettext:=Pnode(node)^.text;
+{$else FV_UNICODE}
   gettext:=Pnode(node)^.text^;
+{$endif FV_UNICODE}
 end;
 
 function Toutline.haschildren(node:pointer):boolean;

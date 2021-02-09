@@ -204,6 +204,13 @@ begin
           AddUnit('drivers');
           AddUnit('views');
         end;
+    T:=P.Targets.AddUnit('uoutline.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('outline.inc');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+        end;
     T:=P.Targets.AddUnit('statuses.pas');
       with T.Dependencies do
         begin
