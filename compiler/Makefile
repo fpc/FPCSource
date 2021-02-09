@@ -4108,6 +4108,9 @@ ifdef CMP
 override DIFF:=$(CMP) -i218
 endif
 endif
+ifeq ($(OS_TARGET), darwin)
+CODESIGN?=$(strip $(wildcard $(addsuffix /codesign,$(SEARCHPATH))))
+endif
 ifneq ($(CYCLELEVEL),1)
 ifndef ALLOW_WARNINGS
 override LOCALOPT+=-Sew
@@ -4306,7 +4309,11 @@ ifdef OLDFPC
 ifneq ($(OS_TARGET),darwin)
 DIFFRESULT:=$(shell $(DIFF) $(OLDFPC) $(FPC))
 else
-DIFFRESULT:=$(shell cp $(OLDFPC) $(OLDFPC).tmp; cp $(FPC) $(FPC).tmp; strip -no_uuid $(OLDFPC).tmp; strip -no_uuid $(FPC).tmp; $(DIFF) $(OLDFPC).tmp $(FPC).tmp; rm $(OLDFPC).tmp $(FPC).tmp)
+ifneq ($(CODESIGN),)
+DIFFRESULT:=$(shell $(COPY) $(OLDFPC) $(OLDFPC).tmp; $(COPY) $(FPC) $(FPC).tmp; strip -no_uuid $(OLDFPC).tmp; strip -no_uuid $(FPC).tmp; $(CODESIGN) --remove-signature $(OLDFPC).tmp; codesign --remove-signature $(FPC).tmp; $(DIFF) $(OLDFPC).tmp $(FPC).tmp; $(RMPROG) $(OLDFPC).tmp $(FPC).tmp)
+else
+DIFFRESULT:=$(shell $(COPY) $(OLDFPC) $(OLDFPC).tmp; $(COPY) $(FPC) $(FPC).tmp; strip -no_uuid $(OLDFPC).tmp; strip -no_uuid $(FPC).tmp; $(DIFF) $(OLDFPC).tmp $(FPC).tmp; $(RMPROG) $(OLDFPC).tmp $(FPC).tmp)
+endif
 endif
 else
 DIFFRESULT=Not equal
@@ -4339,7 +4346,20 @@ $(TEMPNAME3) : $(TEMPNAME2)
 cycle:
 	$(MAKE) tempclean $(TEMPNAME3)
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next CYCLELEVEL=4
+ifneq ($(OS_TARGET), darwin)
 	$(DIFF) $(TEMPNAME3) $(EXENAME)
+else
+	$(COPY) $(TEMPNAME3) $(TEMPNAME3).tmp
+	$(COPY) $(EXENAME) $(EXENAME).tmp
+	strip -no_uuid $(TEMPNAME3).tmp
+	strip -no_uuid $(EXENAME).tmp
+ifneq ($(CODESIGN),)
+	$(CODESIGN) --remove-signature $(TEMPNAME3).tmp
+	$(CODESIGN) --remove-signature $(EXENAME).tmp
+endif
+	$(DIFF) $(TEMPNAME3).tmp $(EXENAME).tmp
+	rm $(TEMPNAME3).tmp $(EXENAME).tmp
+endif
 	$(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 	$(MAKE) wpocycle
 	$(MAKE) echotime
