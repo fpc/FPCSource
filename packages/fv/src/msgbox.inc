@@ -87,9 +87,9 @@ UNIT MsgBox;
 
 USES objects,                                 { Standard GFV units }
 {$ifdef FV_UNICODE}
-     udialogs;
+     ufvcommon,udialogs;
 {$else FV_UNICODE}
-     dialogs;
+     fvcommon,dialogs;
 {$endif FV_UNICODE}
 
 {***************************************************************************}

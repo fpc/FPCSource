@@ -254,6 +254,7 @@ begin
           AddUnit('drivers');
           AddUnit('views');
           AddUnit('app');
+          AddUnit('fvcommon');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('umsgbox.pas');
@@ -265,6 +266,7 @@ begin
           AddUnit('udrivers');
           AddUnit('uviews');
           AddUnit('uapp');
+          AddUnit('ufvcommon');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('outline.pas');
