@@ -160,6 +160,7 @@ begin
     T:=P.Targets.AddUnit('histlist.pas');
       with T.Dependencies do
         begin
+          AddInclude('histlist.inc');
           AddInclude('platform.inc');
           AddUnit('fvcommon');
         end;
