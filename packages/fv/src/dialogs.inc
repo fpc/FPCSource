@@ -367,7 +367,7 @@ TYPE
         AScrollBar: PScrollBar);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION DataSize: Sw_Word; Virtual;
-      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; Virtual;
       PROCEDURE NewList(AList: PCollection); Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
@@ -480,7 +480,7 @@ TYPE
         AHistoryId: Word);
       FUNCTION HistoryWidth: Sw_Integer;
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
    END;
    PHistoryViewer = ^THistoryViewer;
