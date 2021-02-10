@@ -2788,13 +2788,13 @@ END;
 {--TListBox-----------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TListBox.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
-VAR P: PString;
+FUNCTION TListBox.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String;
+VAR P: Sw_PString;
 BEGIN
    GetText := '';                                     { Preset return }
    If (List <> Nil) Then Begin                        { A list exists }
-     P := PString(List^.At(Item));                    { Get string ptr }
-     If (P <> Nil) Then GetText := P^;                { Return string }
+     P := Sw_PString(List^.At(Item));                 { Get string ptr }
+     If (P <> Sw_PString_Empty) Then GetText := P Sw_PString_DeRef;  { Return string }
    End;
 END;
 
