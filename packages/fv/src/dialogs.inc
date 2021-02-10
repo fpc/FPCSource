@@ -2642,7 +2642,7 @@ BEGIN
    Inherited Init(Bounds, AStrings);                  { Call ancestor }
    SelRange := ASelRange;                             { Hold select range }
    Flags := AFlags;                                   { Hold flags }
-   States := NewStr(AStates);                         { Hold string }
+   States := Sw_NewStr(AStates);                      { Hold string }
 END;
 
 {--TMultiCheckBoxes---------------------------------------------------------}
@@ -2653,7 +2653,11 @@ BEGIN
    Inherited Load(S);                                 { Call ancestor }
    S.Read(SelRange, SizeOf(SelRange));                { Read select range }
    S.Read(Flags, SizeOf(Flags));                      { Read flags }
+{$ifdef FV_UNICODE}
+   States := S.ReadUnicodeString;                     { Read strings }
+{$else FV_UNICODE}
    States := S.ReadStr;                               { Read strings }
+{$endif FV_UNICODE}
 END;
 
 {--TMultiCheckBoxes---------------------------------------------------------}
@@ -2661,7 +2665,9 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TMultiCheckBoxes.Done;
 BEGIN
+{$ifndef FV_UNICODE}
    If (States <> Nil) Then DisposeStr(States);        { Dispose strings }
+{$endif FV_UNICODE}
    Inherited Done;                                    { Call ancestor }
 END;
 
@@ -2735,7 +2741,11 @@ BEGIN
    TCluster.Store(S);                                 { TCluster store called }
    S.Write(SelRange, SizeOf(SelRange));               { Write select range }
    S.Write(Flags, SizeOf(Flags));                     { Write select flags }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(States);                      { Write strings }
+{$else FV_UNICODE}
    S.WriteStr(States);                                { Write strings }
+{$endif FV_UNICODE}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
