@@ -1732,7 +1732,7 @@ BEGIN
          End Else ExtendBlock := False;               { No extended block }
          Case Event.KeyCode Of
            kbLeft: If (CurPos > 0) Then Dec(CurPos);  { Move cursor left }
-           kbRight: If Data <> Sw_PString_Empty AND   { Move right cursor }
+           kbRight: If (Data <> Sw_PString_Empty) AND   { Move right cursor }
            (CurPos < Length(Data Sw_PString_DeRef)) Then Begin        { Check not at end }
              Inc(CurPos);                             { Move cursor }
              CheckValid(True);                        { Check if valid }
@@ -1750,7 +1750,7 @@ BEGIN
              If (FirstPos > 0) Then Dec(FirstPos);    { Move first position }
              CheckValid(True);                        { Check if valid }
            End;
-           kbDel: If Data <> Sw_PString_DeRef Then Begin  { Delete character }
+           kbDel: If Data <> Sw_PString_Empty Then Begin  { Delete character }
              If (SelStart = SelEnd) Then              { Select all on }
                If (CurPos < Length(Data Sw_PString_DeRef)) Then Begin { Cursor not at end }
                  SelStart := CurPos;                  { Set select start }
