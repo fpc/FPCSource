@@ -60,7 +60,7 @@ USES
      Os2Def, DosCalls, PmWin,
    {$ENDIF}
 
-   Objects, FVCommon, {$ifdef FV_UNICODE}UDrivers{$else}Drivers{$endif}, fvconsts, { GFV standard units }
+   Objects, {$ifdef FV_UNICODE}UFVCommon,UDrivers{$else}FVCommon,Drivers{$endif}, fvconsts, { GFV standard units }
    Video;
 
 

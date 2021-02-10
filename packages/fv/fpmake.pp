@@ -370,7 +370,7 @@ begin
         begin
           AddInclude('views.inc');
           AddInclude('platform.inc');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
           AddUnit('udrivers');
           AddUnit('fvconsts');
         end;
