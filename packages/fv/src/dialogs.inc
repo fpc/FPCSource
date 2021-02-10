@@ -1732,27 +1732,27 @@ BEGIN
          End Else ExtendBlock := False;               { No extended block }
          Case Event.KeyCode Of
            kbLeft: If (CurPos > 0) Then Dec(CurPos);  { Move cursor left }
-           kbRight: If (Data <> Nil) AND              { Move right cursor }
-           (CurPos < Length(Data^)) Then Begin        { Check not at end }
+           kbRight: If Data <> Sw_PString_Empty AND   { Move right cursor }
+           (CurPos < Length(Data Sw_PString_DeRef)) Then Begin        { Check not at end }
              Inc(CurPos);                             { Move cursor }
              CheckValid(True);                        { Check if valid }
            End;
            kbHome: CurPos := 0;                       { Move to line start }
            kbEnd: Begin                               { Move to line end }
-             If (Data = Nil) Then CurPos := 0         { Invalid data ptr }
-               Else CurPos := Length(Data^);          { Set cursor position }
+             If Data = Sw_PString_Empty Then CurPos := 0  { Invalid data ptr }
+               Else CurPos := Length(Data Sw_PString_DeRef);  { Set cursor position }
              CheckValid(True);                        { Check if valid }
            End;
-           kbBack: If (Data <> Nil) AND (CurPos > 0)  { Not at line start }
+           kbBack: If (Data <> Sw_PString_Empty) AND (CurPos > 0)  { Not at line start }
            Then Begin
-             Delete(Data^, CurPos, 1);                { Backspace over char }
+             Delete(Data Sw_PString_DeRef, CurPos, 1);  { Backspace over char }
              Dec(CurPos);                             { Move cursor back one }
              If (FirstPos > 0) Then Dec(FirstPos);    { Move first position }
              CheckValid(True);                        { Check if valid }
            End;
-           kbDel: If (Data <> Nil) Then Begin         { Delete character }
+           kbDel: If Data <> Sw_PString_DeRef Then Begin  { Delete character }
              If (SelStart = SelEnd) Then              { Select all on }
-               If (CurPos < Length(Data^)) Then Begin { Cursor not at end }
+               If (CurPos < Length(Data Sw_PString_DeRef)) Then Begin { Cursor not at end }
                  SelStart := CurPos;                  { Set select start }
                  SelEnd := CurPos + 1;                { Set select end }
                End;
@@ -1762,24 +1762,24 @@ BEGIN
            kbIns: SetState(sfCursorIns, State AND
              sfCursorIns = 0);                        { Flip insert state }
            Else Case Event.CharCode Of
-             ' '..#255: If (Data <> Nil) Then Begin   { Character key }
+             ' '..#255: If Data <> Sw_PString_Empty Then Begin   { Character key }
                If (State AND sfCursorIns <> 0) Then
-                 Delete(Data^, CurPos + 1, 1) Else    { Overwrite character }
+                 Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
                  DeleteSelect;                        { Deselect selected }
                If CheckValid(True) Then Begin         { Check data valid }
-                 If (Length(Data^) < MaxLen) Then     { Must not exceed maxlen }
+                 If (Length(Data Sw_PString_DeRef) < MaxLen) Then     { Must not exceed maxlen }
                  Begin
                    If (FirstPos > CurPos) Then
                      FirstPos := CurPos;              { Advance first position }
                    Inc(CurPos);                       { Increment cursor }
-                   Insert(Event.CharCode, Data^,
+                   Insert(Event.CharCode, Data Sw_PString_DeRef,
                      CurPos);                         { Insert the character }
                  End;
                  CheckValid(False);                   { Check data valid }
                End;
              End;
-             ^Y: If (Data <> Nil) Then Begin          { Clear all data }
-                Data^ := '';                          { Set empty string }
+             ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
+                Data Sw_PString_DeRef := '';          { Set empty string }
                 CurPos := 0;                          { Cursor to start }
              End;
              Else Exit;                               { Unused key }
@@ -1792,7 +1792,7 @@ BEGIN
          End;
          If (FirstPos > CurPos) Then
            FirstPos := CurPos;                        { Advance first pos }
-         If (Data <> Nil) Then OldData := Copy(Data^,
+         If (Data <> Sw_PString_Empty) Then OldData := Copy(Data Sw_PString_DeRef,
            FirstPos+1, CurPos-FirstPos)               { Text area string }
            Else OldData := '';                        { Empty string }
          Delta := 1;                          { Safety = 1 char }
@@ -1800,7 +1800,7 @@ BEGIN
          - TextWidth(LeftArr) - TextWidth(RightArr))  { Check text fits }
          Do Begin
            Inc(FirstPos);                             { Advance first pos }
-           OldData := Copy(Data^, FirstPos+1,
+           OldData := Copy(Data Sw_PString_DeRef, FirstPos+1,
              CurPos-FirstPos)                         { Text area string }
          End;
          DrawView;                                    { Redraw the view }
