@@ -134,11 +134,11 @@ TYPE
          Status : Word;                               { Validator status }
          Options: Word;                               { Validator options }
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION Valid(CONST S: FVString): Boolean;
-      FUNCTION IsValid (CONST S: FVString): Boolean; Virtual;
-      FUNCTION IsValidInput (Var S: FVString;
+      FUNCTION Valid(CONST S: Sw_String): Boolean;
+      FUNCTION IsValid (CONST S: Sw_String): Boolean; Virtual;
+      FUNCTION IsValidInput (Var S: Sw_String;
         SuppressFill: Boolean): Boolean; Virtual;
-      FUNCTION Transfer (Var S: FVString; Buffer: Pointer;
+      FUNCTION Transfer (Var S: Sw_String; Buffer: Pointer;
         Flag: TVTransfer): Word; Virtual;
       PROCEDURE Error; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -151,13 +151,13 @@ TYPE
 TYPE
    TPXPictureValidator = OBJECT (TValidator)
          Pic: PString;                                { Picture filename }
-      CONSTRUCTOR Init (Const APic: FVString; AutoFill: Boolean);
+      CONSTRUCTOR Init (Const APic: Sw_String; AutoFill: Boolean);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
-      FUNCTION IsValid (Const S: FVString): Boolean; Virtual;
-      FUNCTION IsValidInput (Var S: FVString;
+      FUNCTION IsValid (Const S: Sw_String): Boolean; Virtual;
+      FUNCTION IsValidInput (Var S: Sw_String;
         SuppressFill: Boolean): Boolean; Virtual;
-      FUNCTION Picture (Var Input: FVString;
+      FUNCTION Picture (Var Input: Sw_String;
         AutoFill: Boolean): TPicResult; Virtual;
       PROCEDURE Error; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -174,8 +174,8 @@ TYPE
          ValidChars: CharSet;                         { Valid char set }
       CONSTRUCTOR Init (AValidChars: CharSet);
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION IsValid (CONST S: FVString): Boolean; Virtual;
-      FUNCTION IsValidInput (Var S: FVString;
+      FUNCTION IsValid (CONST S: Sw_String): Boolean; Virtual;
+      FUNCTION IsValidInput (Var S: Sw_String;
         SuppressFill: Boolean): Boolean; Virtual;
       PROCEDURE Error; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -191,8 +191,8 @@ TYPE
          Max: LongInt;                                { Max valid value }
       CONSTRUCTOR Init(AMin, AMax: LongInt);
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION IsValid (Const S: FVString): Boolean; Virtual;
-      FUNCTION Transfer (Var S: FVString; Buffer: Pointer;
+      FUNCTION IsValid (Const S: Sw_String): Boolean; Virtual;
+      FUNCTION Transfer (Var S: Sw_String; Buffer: Pointer;
         Flag: TVTransfer): Word; Virtual;
       PROCEDURE Error; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -204,8 +204,8 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TLookupValidator = OBJECT (TValidator)
-      FUNCTION IsValid (Const S: FVString): Boolean;                   Virtual;
-      FUNCTION Lookup (Const S: FVString): Boolean;                    Virtual;
+      FUNCTION IsValid (Const S: Sw_String): Boolean;                   Virtual;
+      FUNCTION Lookup (Const S: Sw_String): Boolean;                    Virtual;
    END;
    PLookupValidator = ^TLookupValidator;
 
@@ -218,7 +218,7 @@ TYPE
       CONSTRUCTOR Init (AStrings: PStringCollection);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done;                                               Virtual;
-      FUNCTION Lookup (Const S: FVString): Boolean;                    Virtual;
+      FUNCTION Lookup (Const S: Sw_String): Boolean;                    Virtual;
       PROCEDURE Error;                                               Virtual;
       PROCEDURE NewStringList (AStrings: PStringCollection);
       PROCEDURE Store (Var S: TStream);
