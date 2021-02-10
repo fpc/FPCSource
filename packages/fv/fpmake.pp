@@ -56,7 +56,7 @@ begin
         begin
           AddInclude('app.inc');
           AddInclude('platform.inc');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
           AddUnit('udrivers');
           AddUnit('uviews');
           AddUnit('umenus');

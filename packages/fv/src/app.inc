@@ -69,7 +69,11 @@ USES
    {$ENDIF}
    Dos,
    Video,
+{$ifdef FV_UNICODE}
+   UFVCommon, {Memory,}                                { GFV standard units }
+{$else FV_UNICODE}
    FVCommon, {Memory,}                                { GFV standard units }
+{$endif FV_UNICODE}
    Objects,
 {$ifdef FV_UNICODE}
    UDrivers, UViews, UMenus, UHistList, UDialogs, Umsgbox,
