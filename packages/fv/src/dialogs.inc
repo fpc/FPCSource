@@ -25,7 +25,11 @@
 {                                                          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UDialogs;
+{$else FV_UNICODE}
 UNIT Dialogs;
+{$endif FV_UNICODE}
 
 {$CODEPAGE cp437}
 

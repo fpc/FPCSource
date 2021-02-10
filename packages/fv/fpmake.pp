@@ -51,6 +51,21 @@ begin
           AddUnit('fvconsts');
         end;
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('uapp.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('app.inc');
+          AddInclude('platform.inc');
+          AddUnit('fvcommon');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('umenus');
+          AddUnit('uhistlist');
+          AddUnit('udialogs');
+          AddUnit('umsgbox');
+          AddUnit('fvconsts');
+        end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('asciitab.pas');
       with T.Dependencies do
         begin
@@ -109,6 +124,20 @@ begin
           AddUnit('validate');
           AddUnit('app');
           AddUnit('histlist');
+        end;
+    T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('udialogs.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('dialogs.inc');
+          AddInclude('platform.inc');
+          AddUnit('fvcommon');
+          AddUnit('fvconsts');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('uvalidate');
+          AddUnit('uapp');
+          AddUnit('uhistlist');
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('drivers.pas');
@@ -218,6 +247,17 @@ begin
           AddUnit('app');
         end;
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('umsgbox.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('msgbox.inc');
+          AddInclude('platform.inc');
+          AddUnit('udialogs');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('uapp');
+        end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('outline.pas');
       with T.Dependencies do
         begin
@@ -299,6 +339,15 @@ begin
           AddUnit('fvcommon');
           AddUnit('fvconsts');
           AddUnit('msgbox');
+        end;
+    T:=P.Targets.AddUnit('uvalidate.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('validate.inc');
+          AddInclude('platform.inc');
+          AddUnit('fvcommon');
+          AddUnit('fvconsts');
+          AddUnit('umsgbox');
         end;
     T:=P.Targets.AddUnit('views.pas');
       with T.Dependencies do

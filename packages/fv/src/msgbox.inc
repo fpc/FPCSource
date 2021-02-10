@@ -44,7 +44,11 @@
 {  1.60     30 Sep 99   Complete recheck preformed         }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UMsgBox;
+{$else FV_UNICODE}
 UNIT MsgBox;
+{$endif FV_UNICODE}
 
 {2.0 compatibility}
 {$ifdef VER2_0}

@@ -42,7 +42,11 @@
 {  1.41     03 Nov 99   FPC windows code added             }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UValidate;
+{$else FV_UNICODE}
 UNIT Validate;
+{$endif FV_UNICODE}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE

@@ -25,7 +25,11 @@
 {                                                          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UApp;
+{$else FV_UNICODE}
 UNIT App;
+{$endif FV_UNICODE}
 
 {2.0 compatibility}
 {$ifdef VER2_0}
