@@ -525,7 +525,11 @@ END;
 {  InitBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TDesktop.InitBackground;
-CONST Ch: Char = #176;
+{$ifdef FV_UNICODE}
+CONST Ch = #$2591;
+{$else FV_UNICODE}
+CONST Ch = #176;
+{$endif FV_UNICODE}
 VAR R: TRect;
 BEGIN
    GetExtent(R);                                      { Get desktop extents }
