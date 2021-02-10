@@ -148,6 +148,7 @@ TYPE
 {$IFDEF FV_UNICODE}
 TYPE
    Sw_String = UnicodeString;
+   Sw_Char = WideChar;
    Sw_PString = UnicodeString;
    Sw_ExtendedGraphemeCluster = UnicodeString;
 CONST
@@ -155,6 +156,7 @@ CONST
 {$ELSE FV_UNICODE}
 TYPE
    Sw_String = ShortString;
+   Sw_Char = Char;
    Sw_PString = PShortString;
    Sw_ExtendedGraphemeCluster = Char;
 CONST

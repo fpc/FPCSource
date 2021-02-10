@@ -1449,7 +1449,7 @@ BEGIN
     Else
       Color := GetColor(2);      { Focused colour }
   MoveChar(B, ' ',      Color, Size.X);
-  MoveStr(B[1], Copy(Data^, FirstPos + 1, Size.X - 2), Color);
+  MoveStr(B[1], Copy(Data Sw_PString_DeRef, FirstPos + 1, Size.X - 2), Color);
   if CanScroll(1) then
     MoveChar(B[Size.X - 1], RightArr, GetColor(4), 1);
   if (State and sfFocused <> 0) and
@@ -1493,8 +1493,8 @@ BEGIN
    CurPos := 0;                                       { Cursor to start }
    FirstPos := 0;                                     { First pos to start }
    SelStart := 0;                                     { Selected at start }
-   If Enable AND (Data <> Nil) Then
-     SelEnd := Length(Data^) Else SelEnd := 0;        { Selected which end }
+   If Enable AND (Data <> Sw_PString_Empty) Then
+     SelEnd := Length(Data Sw_PString_DeRef) Else SelEnd := 0;  { Selected which end }
    DrawView;                                          { Now redraw the view }
 END;
 
@@ -1524,11 +1524,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.GetData (Var Rec);
 BEGIN
-   If (Data <> Nil) Then Begin                        { Data ptr valid }
-     If (Validator = Nil) OR (Validator^.Transfer(Data^,
+   If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
+     If (Validator = Nil) OR (Validator^.Transfer(Data Sw_PString_DeRef,
      @Rec, vtGetData) = 0) Then Begin                 { No validator/data }
        FillChar(Rec, DataSize, #0);                   { Clear the data area }
-       Move(Data^, Rec, Length(Data^) + 1);           { Transfer our data }
+       Move(Data Sw_PString_DeRef, Rec, SizeOf(Sw_Char)*(Length(Data Sw_PString_DeRef) + 1));           { Transfer our data }
      End;
    End Else FillChar(Rec, DataSize, #0);              { Clear the data area }
 END;
@@ -1538,10 +1538,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.SetData (Var Rec);
 BEGIN
-   If (Data <> Nil) Then Begin                        { Data ptr valid }
+   If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
      If (Validator = Nil) OR (Validator^.Transfer(
-       Data^, @Rec, vtSetData) = 0) Then              { No validator/data }
-       Move(Rec, Data^[0], DataSize);                 { Set our data }
+       Data Sw_PString_DeRef, @Rec, vtSetData) = 0) Then              { No validator/data }
+       Move(Rec, Data Sw_PString_DeRef[0], DataSize);                 { Set our data }
    End;
    SelectAll(True);                                   { Now select all }
 END;
