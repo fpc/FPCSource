@@ -155,7 +155,7 @@ begin
           AddInclude('drivers.inc');
           AddInclude('platform.inc');
           AddUnit('sysmsg');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
           AddUnit('fvconsts');
         end;
     T:=P.Targets.AddUnit('editors.pas');

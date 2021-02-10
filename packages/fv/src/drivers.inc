@@ -108,7 +108,12 @@ USES
 
    video,
    SysMsg,
-   FVCommon, Objects;                                 { GFV standard units }
+{$ifdef FV_UNICODE}
+   UFVCommon,
+{$else FV_UNICODE}
+   FVCommon,
+{$endif FV_UNICODE}
+   Objects;                                 { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -253,17 +258,6 @@ CONST
 {                          PUBLIC TYPE DEFINITIONS                          }
 {***************************************************************************}
 
-{---------------------------------------------------------------------------}
-{                          FV STRING TYPE DEFINITION                        }
-{---------------------------------------------------------------------------}
-
-TYPE
-{$ifdef FV_UNICODE}
-   FVString = UnicodeString;
-{$else FV_UNICODE}
-   FVString = string;
-{$endif FV_UNICODE}
-
 { ******************************* REMARK ****************************** }
 {    The TEvent definition is completely compatable with all existing   }
 {  code but adds two new fields ID and Data into the message record     }
@@ -347,7 +341,7 @@ the screen. For example, given the string '~B~roccoli' as its
 parameter, CStrLen returns 8.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION CStrLen (Const S: FVString): Sw_Integer;
+FUNCTION CStrLen (Const S: Sw_String): Sw_Integer;
 
 {-MoveStr------------------------------------------------------------
 Moves a string into a buffer for use with a view's WriteBuf or WriteLine.
@@ -357,7 +351,7 @@ in Dest. The high bytes of the Sw_Words are set to Attr, or remain
 unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
-PROCEDURE MoveStr (Var Dest; Const Str: FVString; Attr: Byte);
+PROCEDURE MoveStr (Var Dest; Const Str: Sw_String; Attr: Byte);
 
 {-MoveCStr-----------------------------------------------------------
 The characters in Str are moved into the low bytes of corresponding
@@ -366,7 +360,7 @@ Hi(Attr). Tilde characters (~) in the string toggle between the two
 attribute bytes passed in the Attr Sw_Word.
 25May96 LdB
 ---------------------------------------------------------------------}
-PROCEDURE MoveCStr (Var Dest; Const Str: FVString; Attrs: Word);
+PROCEDURE MoveCStr (Var Dest; Const Str: Sw_String; Attrs: Word);
 
 {-MoveBuf------------------------------------------------------------
 Count bytes are moved from Source into the low bytes of corresponding

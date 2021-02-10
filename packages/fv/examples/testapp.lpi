@@ -1,59 +1,191 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
-    <Version Value="5"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
-      <TargetFileExt Value=".exe"/>
-      <ActiveEditorIndexAtStart Value="0"/>
     </General>
-    <LazDoc Paths=""/>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
-    <Units Count="1">
+    <Units Count="7">
       <Unit0>
         <Filename Value="testapp.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testapp"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="0"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="22"/>
+        <CursorPos Y="37"/>
+        <UsageCount Value="21"/>
+        <LoadedDesigner Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="..\src\fvcommon.pas"/>
+        <UnitName Value="FVCommon"/>
+        <EditorIndex Value="2"/>
+        <CursorPos X="11"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\src\udrivers.pas"/>
+        <UnitName Value="UDrivers"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="10" Y="2"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\src\drivers.inc"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="336"/>
+        <CursorPos X="51" Y="363"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\src\uvalidate.pas"/>
+        <UnitName Value="UValidate"/>
+        <CursorPos X="8" Y="2"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\src\validate.inc"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="65"/>
+        <CursorPos X="35" Y="77"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\src\fvcommon.inc"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="129"/>
+        <CursorPos X="19" Y="149"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit6>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="21" HistoryIndex="20">
+      <Position1>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="339" Column="19" TopLine="312"/>
+      </Position1>
+      <Position2>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="341" Column="18" TopLine="314"/>
+      </Position2>
+      <Position3>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="343" Column="19" TopLine="316"/>
+      </Position3>
+      <Position4>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="261" Column="19" TopLine="245"/>
+      </Position4>
+      <Position5>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="262" TopLine="245"/>
+      </Position5>
+      <Position6>
+        <Filename Value="..\src\drivers.inc"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="262" Column="28" TopLine="235"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="351" TopLine="332"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="361" TopLine="334"/>
+      </Position9>
+      <Position10>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="370" TopLine="343"/>
+      </Position10>
+      <Position11>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="388" Column="47" TopLine="361"/>
+      </Position11>
+      <Position12>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="945" Column="41" TopLine="929"/>
+      </Position12>
+      <Position13>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="970" Column="54" TopLine="957"/>
+      </Position13>
+      <Position14>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="997" Column="55" TopLine="988"/>
+      </Position14>
+      <Position15>
+        <Filename Value="..\src\uvalidate.pas"/>
+        <Caret Line="2" Column="8"/>
+      </Position15>
+      <Position16>
+        <Filename Value="..\src\validate.inc"/>
+        <Caret Line="126" Column="26" TopLine="115"/>
+      </Position16>
+      <Position17>
+        <Filename Value="..\src\validate.inc"/>
+      </Position17>
+      <Position18>
+        <Filename Value="..\src\validate.inc"/>
+        <Caret Line="67" Column="24" TopLine="49"/>
+      </Position18>
+      <Position19>
+        <Filename Value="..\src\validate.inc"/>
+        <Caret Line="77" Column="35" TopLine="65"/>
+      </Position19>
+      <Position20>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="1086" Column="51" TopLine="1075"/>
+      </Position20>
+      <Position21>
+        <Filename Value="..\src\drivers.inc"/>
+        <Caret Line="110" TopLine="83"/>
+      </Position21>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
       <IncludeFiles Value="..\src"/>
-      <OtherUnitFiles Value="..\"/>
+      <OtherUnitFiles Value=".."/>
     </SearchPaths>
-    <CodeGeneration>
-      <Generate Value="Faster"/>
-    </CodeGeneration>
-    <Other>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">
