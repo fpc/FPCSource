@@ -121,11 +121,7 @@ FUNCTION HistoryCount (Id: Byte): Word;
 Returns the Index'th string in the history list with ID number Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): UnicodeString;
-{$else FV_UNICODE}
-FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): String;
-{$endif FV_UNICODE}
+FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): Sw_String;
 
 {-ClearHistory-------------------------------------------------------
 Removes all strings from all history lists.
@@ -137,11 +133,7 @@ PROCEDURE ClearHistory;
 Adds the string Str to the history list indicated by Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-PROCEDURE HistoryAdd (Id: Byte; Const Str: UnicodeString);
-{$else FV_UNICODE}
-PROCEDURE HistoryAdd (Id: Byte; Const Str: String);
-{$endif FV_UNICODE}
+PROCEDURE HistoryAdd (Id: Byte; Const Str: Sw_String);
 
 function HistoryRemove(Id: Byte; Index: Sw_Integer): boolean;
 
@@ -479,11 +471,7 @@ END;
 {---------------------------------------------------------------------------}
 {  HistoryStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): UnicodeString;
-{$else FV_UNICODE}
-FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): String;
-{$endif FV_UNICODE}
+FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): Sw_String;
 VAR I: Sw_Integer;
 {$ifdef FV_UNICODE}
     TmpP: Pointer;
@@ -521,11 +509,7 @@ END;
 {---------------------------------------------------------------------------}
 {  HistoryAdd -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-PROCEDURE HistoryAdd (Id: Byte; Const Str: UnicodeString);
-{$else FV_UNICODE}
-PROCEDURE HistoryAdd (Id: Byte; Const Str: String);
-{$endif FV_UNICODE}
+PROCEDURE HistoryAdd (Id: Byte; Const Str: Sw_String);
 {$ifdef FV_UNICODE}
 VAR StrU8: UTF8String; TmpP: PByte; TmpLen: SizeUInt;
 {$endif FV_UNICODE}
