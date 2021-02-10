@@ -207,8 +207,8 @@ CONST
 {---------------------------------------------------------------------------}
 TYPE
    TBackGround = OBJECT (TView)
-         Pattern: Char;                               { Background pattern }
-      CONSTRUCTOR Init (Var Bounds: TRect; APattern: Char);
+         Pattern: Sw_ExtendedGraphemeCluster;          { Background pattern }
+      CONSTRUCTOR Init (Var Bounds: TRect; const APattern: Sw_ExtendedGraphemeCluster);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE Draw; Virtual;

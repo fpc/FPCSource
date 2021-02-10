@@ -149,9 +149,11 @@ TYPE
 {$IFDEF FV_UNICODE}
    Sw_String = UnicodeString;
    Sw_PString = UnicodeString;
+   Sw_ExtendedGraphemeCluster = UnicodeString;
 {$ELSE FV_UNICODE}
    Sw_String = ShortString;
    Sw_PString = PShortString;
+   Sw_ExtendedGraphemeCluster = Char;
 {$ENDIF FV_UNICODE}
 
 {---------------------------------------------------------------------------}
