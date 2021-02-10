@@ -3621,8 +3621,10 @@ begin
     while (StartSItem <> nil) do begin
       S := StartSItem;
       StartSItem := StartSItem^.Next;
+{$ifndef FV_UNICODE}
       if (S^.Value <> nil) then
          DisposeStr(S^.Value);
+{$endif FV_UNICODE}
       Dispose(S);
       end;
     Fail;
@@ -3679,7 +3681,7 @@ end;
 {****************************************************************************}
 { TCommandIcon.Init                                                          }
 {****************************************************************************}
-constructor TCommandIcon.Init (var Bounds : TRect; AText : String;
+constructor TCommandIcon.Init (var Bounds : TRect; AText : Sw_String;
                                ACommand : Word);
 begin
   if not TStaticText.Init(Bounds,AText) then
@@ -3753,8 +3755,10 @@ begin
      while (StartSItem <> nil) do begin
        S := StartSItem;
        StartSItem := StartSItem^.Next;
+{$ifndef FV_UNICODE}
        if (S^.Value <> nil) then
           DisposeStr(S^.Value);
+{$endif FV_UNICODE}
        Dispose(S);
        end;
      Fail;
@@ -3925,14 +3929,14 @@ end;
 {****************************************************************************}
 procedure TEditListBox.SetField (InputLine : PInputLine);
   { Override this method for field types other than PStrings. }
-var Item : PString;
+var Item : Sw_PString;
 begin
-  Item := NewStr(InputLine^.Data^);
-  if Item <> nil
+  Item := Sw_NewStr(InputLine^.Data Sw_PString_DeRef);
+  if Item <> Sw_PString_Empty
      then begin
             List^.AtFree(Focused);
-            List^.Insert(Item);
-            SetFocusedItem(Item);
+            List^.Insert(Pointer(Item));
+            SetFocusedItem(Pointer(Item));
           end;
 end;
 
@@ -3951,7 +3955,7 @@ end;
 { TListDlg.Init                                                              }
 {****************************************************************************}
 constructor TListDlg.Init (ATitle : TTitleStr; Items:
-  String; AButtons: Word; AListBox: PListBox; AEditCommand, ANewCommand :
+  Sw_String; AButtons: Word; AListBox: PListBox; AEditCommand, ANewCommand :
   Word);
 var
   Bounds: TRect;
@@ -4251,11 +4255,11 @@ end;
 {---------------------------------------------------------------------------}
 {  NewSItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION NewSItem (Const Str: String; ANext: PSItem): PSItem;
+FUNCTION NewSItem (Const Str: Sw_String; ANext: PSItem): PSItem;
 VAR Item: PSItem;
 BEGIN
    New(Item);                                         { Allocate item }
-   Item^.Value := NewStr(Str);                        { Hold item string }
+   Item^.Value := Sw_NewStr(Str);                     { Hold item string }
    Item^.Next := ANext;                               { Chain the ptr }
    NewSItem := Item;                                  { Return item }
 END;
@@ -4263,7 +4267,7 @@ END;
 {****************************************************************************}
 { NewCommandSItem                                                            }
 {****************************************************************************}
-function NewCommandSItem (Str : String; ACommand : Word;
+function NewCommandSItem (Str : Sw_String; ACommand : Word;
                           ANext : PCommandSItem) : PCommandSItem;
 var Temp : PCommandSItem;
 begin
