@@ -145,15 +145,20 @@ TYPE
 {---------------------------------------------------------------------------}
 {               SHORT/ANSI/UNICODE SWITCHED STRING TYPE                     }
 {---------------------------------------------------------------------------}
-TYPE
 {$IFDEF FV_UNICODE}
+TYPE
    Sw_String = UnicodeString;
    Sw_PString = UnicodeString;
    Sw_ExtendedGraphemeCluster = UnicodeString;
+CONST
+   Sw_PString_Empty = '';
 {$ELSE FV_UNICODE}
+TYPE
    Sw_String = ShortString;
    Sw_PString = PShortString;
    Sw_ExtendedGraphemeCluster = Char;
+CONST
+   Sw_PString_Empty = Nil;
 {$ENDIF FV_UNICODE}
 
 {---------------------------------------------------------------------------}

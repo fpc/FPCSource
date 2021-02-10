@@ -177,6 +177,14 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF FPC}
   {$mode objfpc}
 
+  {$MACRO ON}
+
+  {$IFDEF FV_UNICODE}
+    {$DEFINE Sw_PString_DeRef:=}
+  {$ELSE FV_UNICODE}
+    {$DEFINE Sw_PString_DeRef:=^}
+  {$ENDIF FV_UNICODE}
+
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$IFNDEF CPU16}

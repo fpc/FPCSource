@@ -1410,11 +1410,11 @@ FUNCTION TInputLine.Valid (Command: Word): Boolean;
    FUNCTION AppendError (AValidator: PValidator): Boolean;
    BEGIN
      AppendError := False;                            { Preset false }
-     If (Data <> Nil) Then
+     If Data <> Sw_PString_Empty Then
        With AValidator^ Do
          If (Options AND voOnAppend <> 0) AND         { Check options }
-         (CurPos <> Length(Data^)) AND                { Exceeds max length }
-         NOT IsValidInput(Data^, True) Then Begin     { Check data valid }
+         (CurPos <> Length(Data Sw_PString_DeRef)) AND  { Exceeds max length }
+         NOT IsValidInput(Data Sw_PString_DeRef, True) Then Begin  { Check data valid }
            Error;                                     { Call error }
            AppendError := True;                       { Return true }
          End;
@@ -1422,13 +1422,13 @@ FUNCTION TInputLine.Valid (Command: Word): Boolean;
 
 BEGIN
    Valid := Inherited Valid(Command);                 { Call ancestor }
-   If (Validator <> Nil) AND (Data <> Nil) AND        { Validator present }
+   If (Validator <> Nil) AND (Data <> Sw_PString_Empty) AND  { Validator present }
    (State AND sfDisabled = 0) Then                    { Not disabled }
      If (Command = cmValid) Then                      { Valid command }
        Valid := Validator^.Status = vsOk              { Validator result }
        Else If (Command <> cmCancel) Then             { Not cancel command }
          If AppendError(Validator) OR                 { Append any error }
-         NOT Validator^.Valid(Data^) Then Begin       { Check validator }
+         NOT Validator^.Valid(Data Sw_PString_DeRef) Then Begin  { Check validator }
            Select;                                    { Reselect view }
            Valid := False;                            { Return false }
          End;
