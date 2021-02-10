@@ -25,7 +25,11 @@
 {                                                          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UMenus;
+{$else FV_UNICODE}
 UNIT Menus;
+{$endif FV_UNICODE}
 
 {$CODEPAGE cp437}
 
@@ -71,7 +75,11 @@ USES
      {$ENDIF}
    {$ENDIF}
 
+{$ifdef FV_UNICODE}
+   objects, udrivers, uviews, fvconsts;               { GFV standard units }
+{$else FV_UNICODE}
    objects, drivers, views, fvconsts;                 { GFV standard units }
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -88,7 +96,11 @@ CONST
 {                            RECORD DEFINITIONS                             }
 {***************************************************************************}
 TYPE
+{$ifdef FV_UNICODE}
+   TMenuStr = UnicodeString;                          { Menu string }
+{$else FV_UNICODE}
    TMenuStr = String[31];                             { Menu string }
+{$endif FV_UNICODE}
 
    PMenu = ^TMenu;                                    { Pointer to menu }
 
@@ -102,14 +114,23 @@ TYPE
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    RECORD
      Next: PMenuItem;                                 { Next menu item }
+{$ifdef FV_UNICODE}
+     Name: UnicodeString;                             { Menu item name }
+{$else FV_UNICODE}
      Name: PString;                                   { Menu item name }
+{$endif FV_UNICODE}
      Command: Word;                                   { Menu item command }
      Disabled: Boolean;                               { Menu item state }
      KeyCode: Word;                                   { Menu item keycode }
      HelpCtx: Word;                                   { Menu item help ctx }
+{$ifdef FV_UNICODE}
+     Param: UnicodeString;
+     SubMenu: PMenu;
+{$else FV_UNICODE}
      Case SmallInt Of
        0: (Param: PString);
        1: (SubMenu: PMenu);
+{$endif FV_UNICODE}
    END;
 
 {---------------------------------------------------------------------------}
@@ -135,7 +156,11 @@ TYPE
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    RECORD
      Next: PStatusItem;                               { Next status item }
+{$ifdef FV_UNICODE}
+     Text: UnicodeString;                             { Text of status item }
+{$else FV_UNICODE}
      Text: PString;                                   { Text of status item }
+{$endif FV_UNICODE}
      KeyCode: Word;                                   { Keycode of item }
      Command: Word;                                   { Command of item }
    END;
@@ -233,7 +258,11 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
+{$ifdef FV_UNICODE}
+      FUNCTION Hint (AHelpCtx: Word): UnicodeString; Virtual;
+{$else FV_UNICODE}
       FUNCTION Hint (AHelpCtx: Word): String; Virtual;
+{$endif FV_UNICODE}
       PROCEDURE Draw; Virtual;
       PROCEDURE Update; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -315,8 +344,13 @@ with the given parameter values (using NewStr to allocate the Text).
 An error in creating will return a nil pointer.
 15May98 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION NewStatusKey (AText: UnicodeString; AKeyCode: Word; ACommand: Word;
+  ANext: PStatusItem): PStatusItem;
+{$else FV_UNICODE}
 FUNCTION NewStatusKey (AText: String; AKeyCode: Word; ACommand: Word;
   ANext: PStatusItem): PStatusItem;
+{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           OBJECT REGISTER ROUTINES                        }
@@ -406,7 +440,11 @@ USES
   Video;
 
 CONST
+{$ifdef FV_UNICODE}
+  SubMenuChar : array[boolean] of WideChar = ('>',#$25BA);
+{$else FV_UNICODE}
   SubMenuChar : array[boolean] of char = ('>',#16);
+{$endif FV_UNICODE}
   { SubMenuChar is the character displayed at right of submenu }
 
 {***************************************************************************}
@@ -444,19 +482,31 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
        If (Item <> Nil) Then Begin                    { Check item valid }
          Last := @Item^.Next;                         { Complete chain }
          With Item^ Do Begin
+{$ifdef FV_UNICODE}
+           Name := S.ReadUnicodeString;               { Read menu name }
+{$else FV_UNICODE}
            Name := S.ReadStr;                         { Read menu name }
+{$endif FV_UNICODE}
            S.Read(Command, SizeOf(Command));          { Menu item command }
            S.Read(Disabled, SizeOf(Disabled));        { Menu item state }
            S.Read(KeyCode, SizeOf(KeyCode));          { Menu item keycode }
            S.Read(HelpCtx, SizeOf(HelpCtx));          { Menu item help ctx }
+{$ifdef FV_UNICODE}
+           If (Name <> '') Then
+{$else FV_UNICODE}
            If (Name <> Nil) Then
+{$endif FV_UNICODE}
              If Command = 0 Then
 {$ifdef PPC_FPC}
                SubMenu := DoLoadMenu()                  { Load submenu }
 {$else not PPC_FPC}
                SubMenu := DoLoadMenu                  { Load submenu }
 {$endif not PPC_FPC}
+{$ifdef FV_UNICODE}
+                 Else Param := S.ReadUnicodeString;   { Read param string }
+{$else FV_UNICODE}
                  Else Param := S.ReadStr;             { Read param string }
+{$endif FV_UNICODE}
          End;
        End;
        S.Read(Tok, SizeOf(Tok));                      { Read token }
@@ -516,7 +566,11 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
      If (Current <> Nil) Then                         { Current view valid }
        Repeat
          If FindNext Then NextItem Else PrevItem;     { Find next/prev item }
+{$ifdef FV_UNICODE}
+       Until (Current^.Name <> '');                   { Until we have name }
+{$else FV_UNICODE}
        Until (Current^.Name <> Nil);                  { Until we have name }
+{$endif FV_UNICODE}
    END;
 
    FUNCTION MouseInOwner: Boolean;
@@ -571,7 +625,11 @@ BEGIN
            If MouseInOwner Then                       { Mouse in owner }
              Current := Menu^.Default                 { Set as current }
            Else If (Current <> Nil) AND
+{$ifdef FV_UNICODE}
+           (Current^.Name <> '') Then
+{$else FV_UNICODE}
            (Current^.Name <> Nil) Then
+{$endif FV_UNICODE}
              Action := DoSelect                       { Set select action }
            Else If MouseActive OR MouseInView(E.Where)
            Then Action := DoReturn                    { Set return action }
@@ -646,7 +704,11 @@ BEGIN
      If (Action = DoSelect) OR ((Action = DoNothing)
      AND AutoSelect) Then                             { Item is selecting }
        If (Current <> Nil) Then With Current^ Do      { Current item valid }
+{$ifdef FV_UNICODE}
+         If (Name <> '') Then                         { Item has a name }
+{$else FV_UNICODE}
          If (Name <> Nil) Then                        { Item has a name }
+{$endif FV_UNICODE}
            If (Command = 0) Then Begin                { Has no command }
              If (E.What AND (evMouseDown+evMouseMove) <> 0)
                Then PutEvent(E);                      { Put event on queue }
@@ -687,7 +749,12 @@ BEGIN
    C := @Self;                                        { Start at self }
    While (C <> Nil) AND ((C^.Current = Nil) OR
    (C^.Current^.HelpCtx = hcNoContext) OR             { Has no context }
-   (C^.Current^.Name = Nil)) Do C := C^.ParentMenu;   { Parent menu context }
+{$ifdef FV_UNICODE}
+   (C^.Current^.Name = '')) Do
+{$else FV_UNICODE}
+   (C^.Current^.Name = Nil)) Do
+{$endif FV_UNICODE}
+     C := C^.ParentMenu;   { Parent menu context }
    If (C<>Nil) Then GetHelpCtx := C^.Current^.HelpCtx { Current context }
      Else GetHelpCtx := hcNoContext;                  { No help context }
 END;
@@ -714,10 +781,14 @@ BEGIN
    Ch := UpCase(Ch);                                  { Upper case of char }
    P := Menu^.Items;                                  { First menu item }
    While (P <> Nil) Do Begin                          { While item valid }
+{$ifdef FV_UNICODE}
+     If (P^.Name <> '') AND (NOT P^.Disabled)        { Valid enabled cmd }
+{$else FV_UNICODE}
      If (P^.Name <> Nil) AND (NOT P^.Disabled)        { Valid enabled cmd }
+{$endif FV_UNICODE}
      Then Begin
-       I := Pos('~', P^.Name^);                       { Scan for highlight }
-       If (I <> 0) AND (Ch = UpCase(P^.Name^[I+1]))   { Hotkey char found }
+       I := Pos('~', P^.Name{$ifndef FV_UNICODE}^{$endif});  { Scan for highlight }
+       If (I <> 0) AND (Ch = UpCase(P^.Name{$ifndef FV_UNICODE}^{$endif}[I+1]))   { Hotkey char found }
        Then Begin
          FindItem := P;                               { Return item }
          Exit;                                        { Now exit }
@@ -737,7 +808,7 @@ FUNCTION TMenuView.HotKey (KeyCode: Word): PMenuItem;
    VAR T: PMenuItem;
    BEGIN
      While (P <> Nil) Do Begin                        { While item valid }
-       If (P^.Name <> Nil) Then                       { If valid name }
+       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then  { If valid name }
          If (P^.Command = 0) Then Begin               { Valid command }
            T := FindHotKey(P^.SubMenu^.Items);        { Search for hot key }
            If (T <> Nil) Then Begin
@@ -782,14 +853,22 @@ PROCEDURE TMenuView.Store (Var S: TStream);
      While (Item <> Nil) Do Begin
        With Item^ Do Begin
          S.Write(Tok, SizeOf(Tok));                      { Write tok value }
+{$ifdef FV_UNICODE}
+         S.WriteUnicodeString(Name);                  { Write item name }
+{$else FV_UNICODE}
          S.WriteStr(Name);                            { Write item name }
+{$endif FV_UNICODE}
          S.Write(Command, SizeOf(Command));           { Menu item command }
          S.Write(Disabled, SizeOf(Disabled));         { Menu item state }
          S.Write(KeyCode, SizeOf(KeyCode));           { Menu item keycode }
          S.Write(HelpCtx, SizeOf(HelpCtx));           { Menu item help ctx }
-         If (Name <> Nil) Then
+         If Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif} Then
            If Command = 0 Then DoStoreMenu(SubMenu)
+{$ifdef FV_UNICODE}
+           Else S.WriteUnicodeString(Param);          { Write parameter }
+{$else FV_UNICODE}
            Else S.WriteStr(Param);                    { Write parameter }
+{$endif FV_UNICODE}
        End;
        Item := Item^.Next;                            { Next item }
      End;
@@ -813,7 +892,7 @@ VAR CallDraw: Boolean; P: PMenuItem;
    BEGIN
      P := AMenu^.Items;                                { Start on first item }
      While (P <> Nil) Do Begin
-       If (P^.Name <> Nil) Then                       { Valid name }
+       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then  { Valid name }
        If (P^.Command = 0) Then UpdateMenu(P^.SubMenu){ Update menu }
        Else Begin
          CommandState := CommandEnabled(P^.Command);  { Menu item state }
@@ -923,7 +1002,7 @@ BEGIN
      I := 0;                                          { Set start position }
      P := Menu^.Items;                                { First item }
      While (P <> Nil) Do Begin
-       If (P^.Name <> Nil) Then Begin                 { Name valid }
+       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Name valid }
          If P^.Disabled Then Begin
            If (P = Current) Then Color := CSelDisabled{ Select disabled }
              Else Color := CNormDisabled              { Normal disabled }
@@ -931,9 +1010,9 @@ BEGIN
            If (P = Current) Then Color := CSelect     { Select colour }
              Else Color := CNormal;                   { Normal colour }
          End;
-         J := CStrLen(P^.Name^);                      { Length of string }
+         J := CStrLen(P^.Name{$ifndef FV_UNICODE}^{$endif});  { Length of string }
          MoveChar(B[I], ' ', Byte(Color), 1);
-         MoveCStr(B[I+1], P^.Name^, Color);           { Name to buffer }
+         MoveCStr(B[I+1], P^.Name{$ifndef FV_UNICODE}^{$endif}, Color);  { Name to buffer }
          MoveChar(B[I+1+J], ' ', Byte(Color), 1);
          Inc(I, J+2);                                 { Advance position }
        End;
@@ -954,9 +1033,9 @@ BEGIN
    P := Menu^.Items;                                  { First item }
    While (P <> Nil) Do Begin                          { While valid item }
      R.A.X := I;                            { Move area along }
-     If (P^.Name <> Nil) Then Begin                   { Valid name }
-       R.B.X := R.A.X+CTextWidth(' ' + P^.Name^ + ' ');{ Add text width  }
-       I := I + CStrLen(P^.Name^) + 2;                { Add item length }
+     If P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif} Then Begin  { Valid name }
+       R.B.X := R.A.X+CTextWidth(' ' + P^.Name{$ifndef FV_UNICODE}^{$endif} + ' ');{ Add text width  }
+       I := I + CStrLen(P^.Name{$ifndef FV_UNICODE}^{$endif}) + 2;  { Add item length }
      End Else R.B.X := R.A.X;
      If (P = Item) Then break;                        { Requested item found }
      P := P^.Next;                                    { Next item }
@@ -972,18 +1051,31 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TMenuBox.Init (Var Bounds: TRect; AMenu: PMenu;
   AParentMenu: PMenuView);
-VAR W, H, L: SmallInt; S: String; P: PMenuItem; R: TRect;
+VAR W, H, L: SmallInt; P: PMenuItem; R: TRect;
+{$ifdef FV_UNICODE}
+    S: UnicodeString;
+{$else FV_UNICODE}
+    S: String;
+{$endif FV_UNICODE}
 BEGIN
    W := 0;                                            { Clear initial width }
    H := 2;                                            { Set initial height }
    If (AMenu <> Nil) Then Begin                       { Valid menu }
      P := AMenu^.Items;                               { Start on first item }
      While (P <> Nil) Do Begin                        { If item valid }
+{$ifdef FV_UNICODE}
+       If (P^.Name <> '') Then Begin                  { Check for name }
+         S := ' ' + P^.Name + ' ';                    { Transfer string }
+         If (P^.Command <> 0) AND (P^.Param <> '')
+           Then S := S + ' - ' + P^.Param;            { Add any parameter }
+       End;
+{$else FV_UNICODE}
        If (P^.Name <> Nil) Then Begin                 { Check for name }
          S := ' ' + P^.Name^ + ' ';                   { Transfer string }
          If (P^.Command <> 0) AND (P^.Param <> Nil)
            Then S := S + ' - ' + P^.Param^;           { Add any parameter }
        End;
+{$endif FV_UNICODE}
        L := CTextWidth(S);                             { Width of string }
        If (L > W) Then W := L;                        { Hold maximum }
        Inc(H);                                        { Inc count of items }
@@ -1009,13 +1101,26 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.Draw;
 VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Y: SmallInt;
-    S: String; P: PMenuItem; B: TDrawBuffer;
+    P: PMenuItem; B: TDrawBuffer;
+{$ifdef FV_UNICODE}
+    S: UnicodeString;
+{$else FV_UNICODE}
+    S: String;
+{$endif FV_UNICODE}
 Type
    FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
+{$ifdef FV_UNICODE}
+   FrameLineChars = Array[0..2] of WideChar;
+{$else FV_UNICODE}
    FrameLineChars = Array[0..2] of char;
+{$endif FV_UNICODE}
 Const
    FrameLines : Array[FrameLineType] of FrameLineChars =
+{$ifdef FV_UNICODE}
+     (#$250C#$2500#$2510,#$2502#$0020#$2502,#$251C#$2500#$2524,#$2514#$2500#$2518);
+{$else FV_UNICODE}
      ('ÚÄ¿','³ ³','ÃÄ´','ÀÄÙ');
+{$endif FV_UNICODE}
   Procedure CreateBorder(LineType : FrameLineType);
   Begin
     MoveChar(B, ' ', CNormal, 1);
@@ -1039,7 +1144,11 @@ BEGIN
      P := Menu^.Items;                                { Start on first }
      While (P <> Nil) Do Begin                        { Valid menu item }
        Color := CNormal;                              { Normal colour }
+{$ifdef FV_UNICODE}
+       If (P^.Name <> '') Then Begin                  { Item has text }
+{$else FV_UNICODE}
        If (P^.Name <> Nil) Then Begin                 { Item has text }
+{$endif FV_UNICODE}
          If P^.Disabled Then
            begin
              if (P = Current) then
@@ -1051,16 +1160,28 @@ BEGIN
            If (P = Current) Then Color := CSelect;    { Select colour }
          CreateBorder(NormalLine);
          Index:=2;
+{$ifdef FV_UNICODE}
+         S := ' ' + P^.Name + ' ';                    { Menu string }
+{$else FV_UNICODE}
          S := ' ' + P^.Name^ + ' ';                   { Menu string }
+{$endif FV_UNICODE}
          MoveCStr(B[Index], S, Color);                { Transfer string }
         if P^.Command = 0 then
           MoveChar(B[Size.X - 4],SubMenuChar[LowAscii],
             Byte(Color), 1) else
+{$ifdef FV_UNICODE}
+         If (P^.Command <> 0) AND(P^.Param <> '') Then
+         Begin
+            MoveCStr(B[Size.X - 3 - Length(P^.Param)], P^.Param, Color);  { Add param chars }
+            S := S + ' - ' + P^.Param;                { Add to string }
+         End;
+{$else FV_UNICODE}
          If (P^.Command <> 0) AND(P^.Param <> Nil) Then
          Begin
             MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color);  { Add param chars }
             S := S + ' - ' + P^.Param^;                { Add to string }
          End;
+{$endif FV_UNICODE}
          If (OldItem = Nil) OR (OldItem = P) OR
             (Current = P) Then
            Begin                     { We need to fix draw }
@@ -1175,7 +1296,11 @@ CONSTRUCTOR TStatusLine.Load (Var S: TStream);
        Last^ := Cur;                                  { First chain part }
        If (Cur <> Nil) Then Begin                     { Check pointer valid }
          Last := @Cur^.Next;                          { Chain complete }
+{$ifdef FV_UNICODE}
+         Cur^.Text := S.ReadUnicodeString;            { Read item text }
+{$else FV_UNICODE}
          Cur^.Text := S.ReadStr;                      { Read item text }
+{$endif FV_UNICODE}
          S.Read(Cur^.KeyCode, SizeOf(Cur^.KeyCode));  { Keycode of item }
          S.Read(Cur^.Command, SizeOf(Cur^.Command));  { Command of item }
        End;
@@ -1223,7 +1348,9 @@ VAR T: PStatusDef;
      While (Item <> Nil) Do Begin                     { Item to dispose }
        T := Item;                                     { Hold pointer }
        Item := Item^.Next;                            { Move down chain }
+{$ifndef FV_UNICODE}
        DisposeStr(T^.Text);                           { Dispose string }
+{$endif FV_UNICODE}
        Dispose(T);                                    { Dispose item }
      End;
    END;
@@ -1255,7 +1382,11 @@ END;
 {--TStatusLine--------------------------------------------------------------}
 {  Hint -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION TStatusLine.Hint (AHelpCtx: Word): UnicodeString;
+{$else FV_UNICODE}
 FUNCTION TStatusLine.Hint (AHelpCtx: Word): String;
+{$endif FV_UNICODE}
 BEGIN
    Hint := '';                                        { Return nothing }
 END;
@@ -1300,7 +1431,11 @@ PROCEDURE TStatusLine.Store (Var S: TStream);
      End;
      S.Write(Count, SizeOf(Count));                   { Write item count }
      While (Cur <> Nil) Do Begin
+{$ifdef FV_UNICODE}
+       S.WriteUnicodeString(Cur^.Text);               { Store item text }
+{$else FV_UNICODE}
        S.WriteStr(Cur^.Text);                         { Store item text }
+{$endif FV_UNICODE}
        S.Write(Cur^.KeyCode, SizeOf(Cur^.KeyCode));   { Keycode of item }
        S.Write(Cur^.Command, SizeOf(Cur^.Command));   { Command of item }
        Cur := Cur^.Next;                              { Move to next item }
@@ -1347,9 +1482,9 @@ VAR Mouse: TPoint; T, Tt: PStatusItem;
      X := 0;                                          { Zero x position }
      T := Items;                                      { Start at first item }
      While (T <> Nil) Do Begin                        { While item valid }
-       If (T^.Text <> Nil) Then Begin                 { Check valid text }
+       If (T^.Text <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Check valid text }
          Xi := X;                                     { Hold initial x value }
-         X := Xi + CTextWidth(' ' + T^.Text^ + ' ');   { Add text width }
+         X := Xi + CTextWidth(' ' + T^.Text{$ifndef FV_UNICODE}^{$endif} + ' ');   { Add text width }
          If (Mouse.X >= Xi) AND (Mouse.X < X)
          Then Begin
            ItemMouseIsIn := T;                        { Selected item }
@@ -1426,7 +1561,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TStatusLine.DrawSelect (Selected: PStatusItem);
 VAR I, L: SmallInt; Color, CSelect, CNormal, CSelDisabled, CNormDisabled: Word;
-    HintBuf: String; B: TDrawBuffer; T: PStatusItem;
+    B: TDrawBuffer; T: PStatusItem;
+{$ifdef FV_UNICODE}
+    HintBuf: UnicodeString;
+{$else FV_UNICODE}
+    HintBuf: String;
+{$endif FV_UNICODE}
 BEGIN
    CNormal := GetColor($0301);                        { Normal colour }
    CSelect := GetColor($0604);                        { Select colour }
@@ -1437,26 +1577,42 @@ BEGIN
    I := 0;                                            { Clear the count }
    L := 0;
    While (T <> Nil) Do Begin                          { While valid item }
+{$ifdef FV_UNICODE}
+     If (T^.Text <> '') Then Begin                    { While valid text }
+{$else FV_UNICODE}
      If (T^.Text <> Nil) Then Begin                   { While valid text }
+{$endif FV_UNICODE}
+{$ifdef FV_UNICODE}
+       L := CStrLen(' '+T^.Text+' ');                 { Text length }
+{$else FV_UNICODE}
        L := CStrLen(' '+T^.Text^+' ');                { Text length }
+{$endif FV_UNICODE}
        If CommandEnabled(T^.Command) Then Begin       { Command enabled }
          If T = Selected Then Color := CSelect        { Selected colour }
            Else Color := CNormal                      { Normal colour }
        End Else
          If T = Selected Then Color := CSelDisabled   { Selected disabled }
            Else Color := CNormDisabled;               { Disabled colour }
+{$ifdef FV_UNICODE}
+       MoveCStr(B[I], ' '+T^.Text+' ', Color);        { Move text to buf }
+{$else FV_UNICODE}
        MoveCStr(B[I], ' '+T^.Text^+' ', Color);       { Move text to buf }
+{$endif FV_UNICODE}
        Inc(I, L);                                     { Advance position }
      End;
      T := T^.Next;                                    { Next item }
    End;
    HintBuf := Hint(HelpCtx);                          { Get hint string }
    If (HintBuf <> '') Then Begin                      { Hint present }
+{$ifdef FV_UNICODE}
+     MoveChar(B[I], #$2502, Byte(CNormal), 1);        { '|' char to buffer }
+{$else FV_UNICODE}
      {$IFNDEF OS_WINDOWS}
      MoveChar(B[I], #179, Byte(CNormal), 1);          { '|' char to buffer }
      {$ELSE}
      MoveChar(B[I], #124, Byte(CNormal), 1);          { '|' char to buffer }
      {$ENDIF}
+{$endif FV_UNICODE}
      Inc(I, 2);                                       { Move along }
      MoveStr(B[I], HintBuf, Byte(CNormal));           { Move hint to buffer }
      I := I + Length(HintBuf);                        { Hint length }
@@ -1496,10 +1652,15 @@ BEGIN
    If (Menu <> Nil) Then Begin                        { Valid menu item }
      P := Menu^.Items;                                { First item in list }
      While (P <> Nil) Do Begin                        { Item is valid }
-       If (P^.Name <> Nil) Then Begin                 { Valid name pointer }
+       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Valid name pointer }
+{$ifndef FV_UNICODE}
          DisposeStr(P^.Name);                         { Dispose of name }
+{$endif FV_UNICODE}
          If (P^.Command <> 0) Then
-           DisposeStr(P^.Param) Else                  { Dispose parameter }
+{$ifndef FV_UNICODE}
+           DisposeStr(P^.Param)                       { Dispose parameter }
+{$endif FV_UNICODE}
+         Else
            DisposeMenu(P^.SubMenu);                   { Dispose submenu }
        End;
        Q := P;                                        { Hold pointer }
@@ -1540,7 +1701,11 @@ BEGIN
      FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
+{$ifdef FV_UNICODE}
+       P^.Name := Name;                               { Hold item name }
+{$else FV_UNICODE}
        P^.Name := NewStr(Name);                       { Hold item name }
+{$endif FV_UNICODE}
        P^.Command := Command;                         { Hold item command }
        R.Assign(1, 1, 10, 10);                        { Random assignment }
        T := New(PView, Init(R));                      { Create a view }
@@ -1550,7 +1715,11 @@ BEGIN
        End Else P^.Disabled := True;
        P^.KeyCode := KeyCode;                         { Hold item keycode }
        P^.HelpCtx := AHelpCtx;                        { Hold help context }
+{$ifdef FV_UNICODE}
+       P^.Param := Param;                             { Hold parameter }
+{$else FV_UNICODE}
        P^.Param := NewStr(Param);                     { Hold parameter }
+{$endif FV_UNICODE}
      End;
      NewItem := P;                                    { Return item }
    End Else NewItem := Next;                          { Move forward }
@@ -1568,7 +1737,11 @@ BEGIN
      FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
+{$ifdef FV_UNICODE}
+       P^.Name := Name;                               { Hold submenu name }
+{$else FV_UNICODE}
        P^.Name := NewStr(Name);                       { Hold submenu name }
+{$endif FV_UNICODE}
        P^.HelpCtx := AHelpCtx;                        { Set help context }
        P^.SubMenu := SubMenu;                         { Hold next submenu }
      End;
@@ -1600,13 +1773,22 @@ END;
 {---------------------------------------------------------------------------}
 {  NewStatusKey -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB      }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION NewStatusKey (AText: UnicodeString; AKeyCode: Word; ACommand: Word;
+  ANext: PStatusItem): PStatusItem;
+{$else FV_UNICODE}
 FUNCTION NewStatusKey (AText: String; AKeyCode: Word; ACommand: Word;
   ANext: PStatusItem): PStatusItem;
+{$endif FV_UNICODE}
 VAR T: PStatusItem;
 BEGIN
    New(T);                                            { Allocate memory }
    If (T <> Nil) Then Begin                           { Check valid pointer }
+{$ifdef FV_UNICODE}
+     T^.Text := AText;                                { Hold text string }
+{$else FV_UNICODE}
      T^.Text := NewStr(AText);                        { Hold text string }
+{$endif FV_UNICODE}
      T^.KeyCode := AKeyCode;                          { Hold keycode }
      T^.Command := ACommand;                          { Hold command }
      T^.Next := ANext;                                { Pointer to next }

@@ -188,6 +188,15 @@ begin
           AddUnit('views');
           AddUnit('fvconsts');
         end;
+    T:=P.Targets.AddUnit('umenus.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('menus.inc');
+          AddInclude('platform.inc');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('fvconsts');
+        end;
     T:=P.Targets.AddUnit('msgbox.pas');
       with T.Dependencies do
         begin
