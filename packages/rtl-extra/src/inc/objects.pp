@@ -506,6 +506,19 @@ TYPE
    PRawByteStringCollection = ^TRawByteStringCollection;
 
 {---------------------------------------------------------------------------}
+{    TUnicodeStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
+{---------------------------------------------------------------------------}
+TYPE
+   TUnicodeStringCollection = OBJECT (TSortedCollection)
+      FUNCTION GetItem (Var S: TStream): Pointer;                    Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer;            Virtual;
+      PROCEDURE FreeItem (Item: Pointer);                            Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
+      PROCEDURE AtInsert (Index: Sw_Integer; const Item: UnicodeString);
+   END;
+   PUnicodeStringCollection = ^TUnicodeStringCollection;
+
+{---------------------------------------------------------------------------}
 {             TStrCollection OBJECT - STRING COLLECTION OBJECT              }
 {---------------------------------------------------------------------------}
 TYPE
@@ -2626,6 +2639,70 @@ VAR TmpRef: Pointer;
 BEGIN
    TmpRef:=Nil;
    RawByteString(TmpRef) := Item;
+   TCollection.AtInsert(Index, Pointer(Item));
+END;
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                  TUnicodeStringCollection OBJECT METHODS                  }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  GetItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TUnicodeStringCollection.GetItem (Var S: TStream): Pointer;
+BEGIN
+   GetItem := nil;
+   UnicodeString(GetItem) := S.ReadUnicodeString;            { Get new item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TUnicodeStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
+VAR I, J: Sw_Integer; P1, P2: UnicodeString;
+BEGIN
+   P1 := UnicodeString(Key1);                         { String 1 pointer }
+   P2 := UnicodeString(Key2);                         { String 2 pointer }
+   If (Length(P1)<Length(P2)) Then J := Length(P1)
+     Else J := Length(P2);                            { Shortest length }
+   I := 1;                                            { First character }
+   While (I<J) AND (P1[I]=P2[I]) Do Inc(I);           { Scan till fail }
+   If (I=J) Then Begin                                { Possible match }
+   { * REMARK * - Bug fix   21 August 1997 }
+     If (P1[I]<P2[I]) Then Compare := -1 Else         { String1 < String2 }
+       If (P1[I]>P2[I]) Then Compare := 1 Else        { String1 > String2 }
+       If (Length(P1)>Length(P2)) Then Compare := 1   { String1 > String2 }
+         Else If (Length(P1)<Length(P2)) Then         { String1 < String2 }
+           Compare := -1 Else Compare := 0;           { String1 = String2 }
+   { * REMARK END * - Leon de Boer }
+   End Else If (P1[I]<P2[I]) Then Compare := -1       { String1 < String2 }
+     Else Compare := 1;                               { String1 > String2 }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  FreeItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.FreeItem (Item: Pointer);
+BEGIN
+   UnicodeString(Item):='';                                  { Dispose item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  PutItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.PutItem (Var S: TStream; Item: Pointer);
+BEGIN
+   S.WriteUnicodeString(UnicodeString(Item));                { Write string }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  AtInsert                                                                 }
+{---------------------------------------------------------------------------}
+PROCEDURE TUnicodeStringCollection.AtInsert (Index: Sw_Integer; const Item: UnicodeString);
+VAR TmpRef: Pointer;
+BEGIN
+   TmpRef:=Nil;
+   UnicodeString(TmpRef) := Item;
    TCollection.AtInsert(Index, Pointer(Item));
 END;
 
