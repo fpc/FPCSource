@@ -437,7 +437,7 @@ END;
 {--TBackGround--------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TBackGround.Init (Var Bounds: TRect; APattern: Char);
+CONSTRUCTOR TBackGround.Init (Var Bounds: TRect; const APattern: Sw_ExtendedGraphemeCluster);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    GrowMode := gfGrowHiX + gfGrowHiY;                 { Set grow modes }
@@ -450,7 +450,11 @@ END;
 CONSTRUCTOR TBackGround.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
+{$ifdef FV_UNICODE}
+   Pattern := S.ReadUnicodeString;                    { Read pattern data }
+{$else FV_UNICODE}
    S.Read(Pattern, SizeOf(Pattern));                  { Read pattern data }
+{$endif FV_UNICODE}
 END;
 
 {--TBackGround--------------------------------------------------------------}
@@ -478,7 +482,11 @@ END;
 PROCEDURE TBackGround.Store (Var S: TStream);
 BEGIN
    TView.Store(S);                                    { TView store called }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(Pattern);                     { Write pattern data }
+{$else FV_UNICODE}
    S.Write(Pattern, SizeOf(Pattern));                 { Write pattern data }
+{$endif FV_UNICODE}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
