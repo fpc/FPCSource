@@ -485,7 +485,7 @@ VAR Str: Sw_String; Rslt: TPicResult;
 BEGIN
    Str := S;                                          { Transfer string }
    Rslt := Picture(Str, False);                       { Check for picture }
-   IsValid := (Pic = nil) OR (Rslt = prComplete) OR
+   IsValid := (Pic = Sw_PString_Empty) OR (Rslt = prComplete) OR
      (Rslt = prEmpty);                                { Return result }
 END;
 
@@ -495,7 +495,7 @@ END;
 FUNCTION TPXPictureValidator.IsValidInput (Var S: Sw_String;
   SuppressFill: Boolean): Boolean;
 BEGIN
-   IsValidInput := (Pic = Nil) OR (Picture(S,
+   IsValidInput := (Pic = Sw_PString_Empty) OR (Picture(S,
     (Options AND voFill <> 0)  AND NOT SuppressFill)
      <> prError);                                     { Return input result }
 END;
@@ -523,7 +523,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
        BrcLevel := 0;                                 { Zero bracket level }
        Repeat
          If (I <> TermCh) Then Begin                  { Not end }
-           Case Pic^[I] Of
+           Case Pic Sw_PString_DeRef[I] Of
              '[': Inc(BrkLevel);                      { Inc bracket level }
              ']': Dec(BrkLevel);                      { Dec bracket level }
              '{': Inc(BrcLevel);                      { Inc bracket level }
@@ -531,7 +531,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
              ';': Inc(I);                             { Next character }
              '*': Begin
                  Inc(I);                              { Next character }
-                 While Pic^[I] in ['0'..'9'] Do Inc(I);   { Search for text }
+                 While Pic Sw_PString_DeRef[I] in ['0'..'9'] Do Inc(I);   { Search for text }
                  ToGroupEnd(I);                       { Move to group end }
                  Continue;                            { Now continue }
                End;
@@ -546,8 +546,8 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      BEGIN
        Repeat
          ToGroupEnd(I);                               { Find group end }
-       Until (I = TermCh) OR (Pic^[I] = ',');         { Terminator found }
-       If (Pic^[I] = ',') Then Inc(I);                { Comma so continue }
+       Until (I = TermCh) OR (Pic Sw_PString_DeRef[I] = ',');         { Terminator found }
+       If (Pic Sw_PString_DeRef[I] = ',') Then Inc(I);                { Comma so continue }
        SkipToComma := (I < TermCh);                   { Return result }
      END;
 
@@ -565,8 +565,8 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
        Itr := 0;                                      { Zero iteration }
        Iteration := prError;                          { Preset error result }
        Inc(I);                                        { Skip '*' character }
-       While Pic^[I] in ['0'..'9'] Do Begin           { Entry is a number }
-         Itr := Itr * 10 + Byte(Pic^[I]) - Byte('0'); { Convert to number }
+       While Pic Sw_PString_DeRef[I] in ['0'..'9'] Do Begin           { Entry is a number }
+         Itr := Itr * 10 + Byte(Pic Sw_PString_DeRef[I]) - Byte('0'); { Convert to number }
          Inc(I);                                      { Next character }
        End;
        If (I <= TermCh) Then Begin                    { Not end of name }
@@ -615,9 +615,9 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
        J := I;                                        { Hold count }
        If IsIncomplete(Rslt) Then Begin               { Check if complete }
          While True Do
-           Case Pic^[J] Of
+           Case Pic Sw_PString_DeRef[J] Of
              '[': ToGroupEnd(J);                      { Find name end }
-             '*': If not(Pic^[J + 1] in ['0'..'9'])
+             '*': If not(Pic Sw_PString_DeRef[J + 1] in ['0'..'9'])
                Then Begin
                  Inc(J);                              { Next name }
                  ToGroupEnd(J);                       { Find name end }
@@ -634,14 +634,14 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      BEGIN
        Scan := prError;                               { Preset return error }
        Rslt := prEmpty;                               { Preset empty result }
-       While (I <> TermCh) AND (Pic^[I] <> ',')       { For each entry }
+       While (I <> TermCh) AND (Pic Sw_PString_DeRef[I] <> ',')       { For each entry }
        Do Begin
          If (J > Length(Input)) Then Begin            { Move beyond length }
            Scan := CheckComplete(Rslt);               { Return result }
            Exit;                                      { Now exit }
          End;
          Ch := Input[J];                              { Fetch character }
-         Case Pic^[I] of
+         Case Pic Sw_PString_DeRef[I] of
            '#': If NOT (Ch in ['0'..'9']) Then Exit   { Check is a number }
                Else Consume(Ch);                      { Transfer number }
            '?': If (NOT IsLetter(Ch)) Then Exit       { Check is a letter }
@@ -675,11 +675,11 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
              If (Rslt = prError) Then                 { Check for error }
                Rslt := prAmbiguous;                   { Return ambiguous }
            End;
-           Else If Pic^[I] = ';' Then Inc(I);         { Move fwd for follow }
-           If (UpCase(Pic^[I]) <> UpCase(Ch)) Then    { Characters differ }
-             If (Ch = ' ') Then Ch := Pic^[I]         { Ignore space }
+           Else If Pic Sw_PString_DeRef[I] = ';' Then Inc(I);         { Move fwd for follow }
+           If (UpCase(Pic Sw_PString_DeRef[I]) <> UpCase(Ch)) Then    { Characters differ }
+             If (Ch = ' ') Then Ch := Pic Sw_PString_DeRef[I]         { Ignore space }
              Else Exit;
-           Consume(Pic^[I]);                          { Consume character }
+           Consume(Pic Sw_PString_DeRef[I]);                          { Consume character }
          End; { Case }
          If (Rslt = prAmbiguous) Then                 { If ambiguous result }
            Rslt := prIncompNoFill                     { Set incomplete fill }
@@ -734,15 +734,15 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
    VAR I, BrkLevel, BrcLevel: SmallInt;
    Begin
      SyntaxCheck := False;                            { Preset false result }
-     If (Pic^ <> '') AND (Pic^[Length(Pic^)] <> ';')  { Name is valid }
-     AND ((Pic^[Length(Pic^)] = '*') AND
-     (Pic^[Length(Pic^) - 1] <> ';') = False)         { Not wildcard list }
+     If (Pic Sw_PString_DeRef <> '') AND (Pic Sw_PString_DeRef[Length(Pic Sw_PString_DeRef)] <> ';')  { Name is valid }
+     AND ((Pic Sw_PString_DeRef[Length(Pic Sw_PString_DeRef)] = '*') AND
+     (Pic Sw_PString_DeRef[Length(Pic Sw_PString_DeRef) - 1] <> ';') = False)         { Not wildcard list }
      Then Begin
        I := 1;                                        { Set count to 1 }
        BrkLevel := 0;                                 { Zero bracket level }
        BrcLevel := 0;                                 { Zero bracket level }
-       While (I <= Length(Pic^)) Do Begin             { For each character }
-         Case Pic^[I] Of
+       While (I <= Length(Pic Sw_PString_DeRef)) Do Begin             { For each character }
+         Case Pic Sw_PString_DeRef[I] Of
            '[': Inc(BrkLevel);                        { Inc bracket level }
            ']': Dec(BrkLevel);                        { Dec bracket level }
            '{': Inc(BrcLevel);                        { Inc bracket level }
@@ -763,24 +763,24 @@ BEGIN
      If (Input <> '') Then Begin                      { We have an input }
        J := 1;                                        { Set J count to 1 }
        I := 1;                                        { Set I count to 1 }
-       Rslt := Process(Length(Pic^) + 1);             { Set end of name }
+       Rslt := Process(Length(Pic Sw_PString_DeRef) + 1);             { Set end of name }
        If (Rslt <> prError) AND (Rslt <> prSyntax) AND
         (J <= Length(Input)) Then Rslt := prError;    { Check for any error }
        If (Rslt = prIncomplete) AND AutoFill          { Check autofill flags }
        Then Begin
          Reprocess := False;                          { Set reprocess false }
-         while (I <= Length(Pic^)) AND (NOT           { Not at end of name }
-         IsSpecial(Pic^[I], '#?&!@*{}[],'#0))         { No special chars }
+         while (I <= Length(Pic Sw_PString_DeRef)) AND (NOT           { Not at end of name }
+         IsSpecial(Pic Sw_PString_DeRef[I], '#?&!@*{}[],'#0))         { No special chars }
          DO Begin
-           If Pic^[I] = ';' Then Inc(I);              { Check for next mark }
-           Input := Input + Pic^[I];                  { Move to that name }
+           If Pic Sw_PString_DeRef[I] = ';' Then Inc(I);              { Check for next mark }
+           Input := Input + Pic Sw_PString_DeRef[I];                  { Move to that name }
            Inc(I);                                    { Inc count }
            Reprocess := True;                         { Set reprocess flag }
          End;
          J := 1;                                      { Set J count to 1 }
          I := 1;                                      { Set I count to 1 }
          If Reprocess Then                            { Check for reprocess }
-           Rslt := Process(Length(Pic^) + 1);         { Move to next name }
+           Rslt := Process(Length(Pic Sw_PString_DeRef) + 1);         { Move to next name }
        End;
        If (Rslt = prAmbiguous) Then                   { Result ambiguous }
          Picture := prComplete Else                   { Return completed }
@@ -798,7 +798,7 @@ PROCEDURE TPXPictureValidator.Error;
 CONST PXErrMsg = 'Input does not conform to picture:';
 VAR S: Sw_String;
 BEGIN
-   If (Pic <> Nil) Then S := Pic^ Else S := 'No name';{ Transfer filename }
+   If Pic <> Sw_PString_Empty Then S := Pic Sw_PString_DeRef Else S := 'No name';{ Transfer filename }
    MessageBox(PxErrMsg + #13' %s', @S,  mfError OR
      mfOKButton);                                     { Message box }
 END;
