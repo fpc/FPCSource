@@ -207,7 +207,7 @@ begin
         begin
           AddInclude('histlist.inc');
           AddInclude('platform.inc');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
         end;
     T:=P.Targets.AddUnit('inplong.pas');
       with T.Dependencies do

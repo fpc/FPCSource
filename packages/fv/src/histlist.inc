@@ -79,7 +79,13 @@ UNIT HistList;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES FVCommon, Objects;                                 { Standard GFV units }
+USES
+{$ifdef FV_UNICODE}
+  UFVCommon,
+{$else FV_UNICODE}
+  FVCommon,
+{$endif FV_UNICODE}
+  Objects;                                 { Standard GFV units }
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
