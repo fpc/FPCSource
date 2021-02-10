@@ -171,7 +171,7 @@ CONST
 TYPE
    PSItem = ^TSItem;
    TSItem = RECORD
-     Value: PString;                                  { Item string }
+     Value: Sw_PString;                               { Item string }
      Next: PSItem;                                    { Next item }
    END;
 
@@ -189,7 +189,7 @@ TYPE
          FirstPos: Sw_Integer;                           { First position }
          SelStart: Sw_Integer;                           { Selected start }
          SelEnd: Sw_Integer;                             { Selected end }
-         Data: PString;                               { Input line data }
+         Data: Sw_PString;                               { Input line data }
          Validator: PValidator;                       { Validator of view }
       CONSTRUCTOR Init (Var Bounds: TRect; AMaxLen: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
@@ -219,7 +219,7 @@ TYPE
          AmDefault: Boolean;                          { If default button }
          Flags    : Byte;                             { Button flags }
          Command  : Word;                             { Button command }
-         Title    : PString;                          { Button title }
+         Title    : Sw_PString;                       { Button title }
       CONSTRUCTOR Init (Var Bounds: TRect; ATitle: TTitleStr; ACommand: Word;
         AFlags: Word);
       CONSTRUCTOR Load (Var S: TStream);
@@ -334,7 +334,7 @@ TYPE
    TMultiCheckBoxes = OBJECT (TCluster)
          SelRange: Byte;                              { Select item range }
          Flags   : Word;                              { Select flags }
-         States  : PString;                           { Strings }
+         States  : Sw_PString;                        { Strings }
       CONSTRUCTOR Init (Var Bounds: TRect; AStrings: PSItem;
         ASelRange: Byte; AFlags: Word; Const AStates: String);
       CONSTRUCTOR Load (Var S: TStream);
@@ -413,14 +413,14 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TStaticText = OBJECT (TView)
-         Text: PString;                               { Text string ptr }
-      CONSTRUCTOR Init (Var Bounds: TRect; Const AText: String);
+         Text: Sw_PString;                            { Text string ptr }
+      CONSTRUCTOR Init (Var Bounds: TRect; Const AText: Sw_String);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE Draw;                                      Virtual;
       PROCEDURE Store (Var S: TStream);
-      PROCEDURE GetText (Var S: String); Virtual;
+      PROCEDURE GetText (Var S: Sw_String); Virtual;
    END;
    PStaticText = ^TStaticText;
 
@@ -435,14 +435,14 @@ TYPE
    TParamText = OBJECT (TStaticText)
          ParamCount: Sw_Integer;                         { Parameter count }
          ParamList : Pointer;                         { Parameter list }
-      CONSTRUCTOR Init (Var Bounds: TRect; Const AText: String;
+      CONSTRUCTOR Init (Var Bounds: TRect; Const AText: Sw_String;
         AParamCount: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION DataSize: Sw_Word; Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
-      PROCEDURE GetText (Var S: String); Virtual;
+      PROCEDURE GetText (Var S: Sw_String); Virtual;
    END;
    PParamText = ^TParamText;
 
@@ -453,7 +453,7 @@ TYPE
    TLabel = OBJECT (TStaticText)
          Light: Boolean;
          Link: PView;                                 { Linked view }
-      CONSTRUCTOR Init (Var Bounds: TRect; CONST AText: String; ALink: PView);
+      CONSTRUCTOR Init (Var Bounds: TRect; CONST AText: Sw_String; ALink: PView);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE Draw; Virtual;
@@ -502,7 +502,7 @@ TYPE
   THistoryWindow = OBJECT (TWindow)
          Viewer: PListViewer;                         { List viewer object }
       CONSTRUCTOR Init (Var Bounds: TRect; HistoryId: Word);
-      FUNCTION GetSelection: String; Virtual;
+      FUNCTION GetSelection: Sw_String; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE InitViewer (HistoryId: Word); Virtual;
    END;
@@ -525,7 +525,7 @@ TYPE
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION InitHistoryWindow (Var Bounds: TRect): PHistoryWindow; Virtual;
       PROCEDURE Draw; Virtual;
-      PROCEDURE RecordHistory (CONST S: String); Virtual;
+      PROCEDURE RecordHistory (CONST S: Sw_String); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
    END;
@@ -544,7 +544,7 @@ TYPE
   end;  { of TBrowseInputLine }
 
   TBrowseInputLineRec = record
-    Text: string;
+    Text: Sw_String;
     History: Sw_Word;
   end;  { of TBrowseInputLineRec }
   {#Z+}
@@ -566,7 +566,7 @@ TYPE
   TCommandIcon = Object(TStaticText)
     { A TCommandIcon sends an evCommand message to its owner with
       Event.Command set to #Command# when it is clicked with a mouse. }
-    constructor Init (var Bounds : TRect; AText : String; ACommand : Word);
+    constructor Init (var Bounds : TRect; AText : Sw_String; ACommand : Word);
       { Creates an instance of a TCommandIcon and sets #Command# to
         ACommand.  AText is the text which is displayed as the icon.  If an
         error occurs Init fails. }
@@ -589,7 +589,7 @@ TYPE
       clusters with #NewCommandSItem# rather than the standarad #NewSItem#.
       It is used to associate a command with an individual cluster item. }
     {#X TCommandCheckBoxes TCommandRadioButtons }
-    Value : String;
+    Value : Sw_String;
       { Value is the text displayed for the cluster item. }
       {#X Command Next }
     Command : Word;
@@ -777,7 +777,7 @@ TYPE
         A pointer to the new button is returned for checking validity of the
         initialization. }
       {#X NewInputLine NewLabel }
-    function NewLabel (X, Y : Sw_Integer; AText : String;
+    function NewLabel (X, Y : Sw_Integer; AText : Sw_String;
                        ALink : PView) : PLabel;
       { NewLabel creates and inserts into the dialog a new TLabel and
         associates it with ALink. }
@@ -809,7 +809,7 @@ TYPE
     EditCommand: Word;
     ListBox: PListBox;
     ldOptions: Word;
-    constructor Init (ATitle: TTitleStr; Items: string; AButtons: Word;
+    constructor Init (ATitle: TTitleStr; Items: Sw_String; AButtons: Word;
       AListBox: PListBox; AEditCommand, ANewCommand: Word);
     constructor Load(var S: TStream);
     procedure HandleEvent(var Event: TEvent); virtual;
@@ -832,13 +832,13 @@ singly-linked lists of strings, to end a chain the next TSItem
 should be nil.
 28Apr98 LdB
 ---------------------------------------------------------------------}
-FUNCTION NewSItem (Const Str: String; ANext: PSItem): PSItem;
+FUNCTION NewSItem (Const Str: Sw_String; ANext: PSItem): PSItem;
 
 { NewCommandSItem allocates and returns a pointer to a new #TCommandSItem#
  record.  The Value and Next fields of the record are set to NewStr(Str)
  and ANext, respectively.  The NewSItem function and the TSItem record type
  allow easy construction of singly-linked lists of command strings. }
-function NewCommandSItem (Str : String; ACommand : Word;
+function NewCommandSItem (Str : Sw_String; ACommand : Word;
                           ANext : PCommandSItem) : PCommandSItem;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
