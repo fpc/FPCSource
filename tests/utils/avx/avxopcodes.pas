@@ -3712,12 +3712,14 @@ begin
 
                   slHeader.Add('procedure writelnK7(aVal: dword);');
                   slHeader.Add('begin');
-                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(aVal));');
+                  slHeader.Add('  write(''K7: '' + ' + 'inttostr(aVal));');
                   slHeader.Add('end;');
 
                   slHeader.Add('begin');
                   slHeader.Add('  for i := 0 to high(DataBlock) do');
                   slHeader.Add('   DataBlock[i] := cDataBlockByte[i mod 256];');
+
+                  slHeader.Add('  write(Paramstr(0) + '': '');');
 
                   slHeader.Add('  asm');
 
@@ -3758,6 +3760,7 @@ begin
 
 
                   slFooter.Add('  end;');
+                  slFooter.Add('  writeln(ParamStr(0));');
                   slFooter.Add('end.');
 
                 end;
