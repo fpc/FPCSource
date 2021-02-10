@@ -1205,9 +1205,13 @@ end;
 {****************************************************************************}
 procedure TDialog.ChangeTitle (ANewTitle : TTitleStr);
 begin
+{$ifdef FV_UNICODE}
+  Title := ANewTitle;
+{$else FV_UNICODE}
   if (Title <> nil) then
     DisposeStr(Title);
   Title := NewStr(ANewTitle);
+{$endif FV_UNICODE}
   Frame^.DrawView;
 end;
 
