@@ -271,7 +271,7 @@ TYPE
       PROCEDURE Press (Item: Sw_Integer); Virtual;
       PROCEDURE MovedTo (Item: Sw_Integer); Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
-      PROCEDURE DrawMultiBox (Const Icon, Marker: String);
+      PROCEDURE DrawMultiBox (Const Icon, Marker: Sw_String);
       PROCEDURE DrawBox (Const Icon: String; Marker: Char);
       PROCEDURE SetButtonState (AMask: Longint; Enable: Boolean);
       PROCEDURE GetData (Var Rec); Virtual;
@@ -2274,7 +2274,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  DrawMultiBox -> Platforms DOS/DPMI/WIN/NT - Updated 05Jun98 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: String);
+PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: Sw_String);
 VAR I, J, Cur, Col: Sw_Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
 BEGIN
    CNorm := GetColor($0301);                          { Normal colour }
@@ -2298,15 +2298,26 @@ BEGIN
            MoveChar(B[Col], ' ', Byte(Color),
              Size.X-Col);                         { Set this colour }
            MoveStr(B[Col], Icon, Byte(Color));        { Transfer icon string }
+{$ifdef FV_UNICODE}
+           B[Col+2].ExtendedGraphemeCluster := Marker[
+             MultiMark(Cur) + 1];                     { Transfer marker }
+{$else FV_UNICODE}
            WordRec(B[Col+2]).Lo := Byte(Marker[
              MultiMark(Cur) + 1]);                    { Transfer marker }
+{$endif FV_UNICODE}
            MoveCStr(B[Col+5], PString(Strings.At(
              Cur))^, Color);                          { Transfer item string }
            If ShowMarkers AND (State AND sfFocused <> 0)
            AND (Cur = Sel) Then Begin                 { Current is selected }
+{$ifdef FV_UNICODE}
+             B[Col].ExtendedGraphemeCluster := SpecialChars[0];
+             B[Column(Cur+Size.Y)-1].ExtendedGraphemeCluster
+                := SpecialChars[1];             { Set special character }
+{$else FV_UNICODE}
              WordRec(B[Col]).Lo := Byte(SpecialChars[0]);
-              WordRec(B[Column(Cur+Size.Y)-1]).Lo
+             WordRec(B[Column(Cur+Size.Y)-1]).Lo
                 := Byte(SpecialChars[1]);             { Set special character }
+{$endif FV_UNICODE}
            End;
          End;
        End;
