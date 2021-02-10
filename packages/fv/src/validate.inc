@@ -150,7 +150,7 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TPXPictureValidator = OBJECT (TValidator)
-         Pic: PString;                                { Picture filename }
+         Pic: Sw_PString;                             { Picture filename }
       CONSTRUCTOR Init (Const APic: Sw_String; AutoFill: Boolean);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
