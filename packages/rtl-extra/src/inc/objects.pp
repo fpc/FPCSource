@@ -501,6 +501,7 @@ TYPE
       FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer;            Virtual;
       PROCEDURE FreeItem (Item: Pointer);                            Virtual;
       PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
+      PROCEDURE AtInsert (Index: Sw_Integer; const Item: RawByteString);
    END;
    PRawByteStringCollection = ^TRawByteStringCollection;
 
@@ -2615,6 +2616,17 @@ END;
 PROCEDURE TRawByteStringCollection.PutItem (Var S: TStream; Item: Pointer);
 BEGIN
    S.WriteRawByteString(RawByteString(Item));                { Write string }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  AtInsert                                                                 }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.AtInsert (Index: Sw_Integer; const Item: RawByteString);
+VAR TmpRef: Pointer;
+BEGIN
+   TmpRef:=Nil;
+   RawByteString(TmpRef) := Item;
+   TCollection.AtInsert(Index, Pointer(Item));
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
