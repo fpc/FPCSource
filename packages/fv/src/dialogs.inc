@@ -1607,15 +1607,15 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
      if Mouse.X < 1 then Mouse.X := 1;
      Pos := Mouse.X + FirstPos - 1;
      if Pos < 0 then Pos := 0;
-     if Pos > Length(Data^) then Pos := Length(Data^);
+     if Pos > Length(Data Sw_PString_DeRef) then Pos := Length(Data Sw_PString_DeRef);
      MousePos := Pos;
    END;
 
    PROCEDURE DeleteSelect;
    BEGIN
      If (SelStart <> SelEnd) Then Begin               { An area selected }
-       If (Data <> Nil) Then
-         Delete(Data^, SelStart+1, SelEnd-SelStart);  { Delete the text }
+       If Data <> Sw_PString_Empty Then
+         Delete(Data Sw_PString_DeRef, SelStart+1, SelEnd-SelStart);  { Delete the text }
        CurPos := SelStart;                            { Set cursor position }
      End;
    END;
@@ -1634,20 +1634,20 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
    PROCEDURE SaveState;
    BEGIN
      If (Validator <> Nil) Then Begin                 { Check for validator }
-       If (Data <> Nil) Then OldData := Data^;        { Hold data }
+       If Data <> Sw_PString_Empty Then OldData := Data Sw_PString_DeRef;        { Hold data }
        OldCurPos := CurPos;                           { Hold cursor position }
        OldFirstPos := FirstPos;                       { Hold first position }
        OldSelStart := SelStart;                       { Hold select start }
        OldSelEnd := SelEnd;                           { Hold select end }
-       If (Data = Nil) Then WasAppending := True      { Invalid data ptr }
-         Else WasAppending := Length(Data^) = CurPos; { Hold appending state }
+       If Data = Sw_PString_Empty Then WasAppending := True      { Invalid data ptr }
+         Else WasAppending := Length(Data Sw_PString_DeRef) = CurPos; { Hold appending state }
      End;
    END;
 
    PROCEDURE RestoreState;
    BEGIN
      If (Validator <> Nil) Then Begin                 { Validator valid }
-       If (Data <> Nil) Then Data^ := OldData;        { Restore data }
+       If Data <> Sw_PString_Empty Then Data Sw_PString_DeRef := OldData;        { Restore data }
        CurPos := OldCurPos;                           { Restore cursor pos }
        FirstPos := OldFirstPos;                       { Restore first pos }
        SelStart := OldSelStart;                       { Restore select start }
@@ -1656,29 +1656,29 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
    END;
 
    FUNCTION CheckValid (NoAutoFill: Boolean): Boolean;
-   VAR OldLen: Sw_Integer; NewData: String;
+   VAR OldLen: Sw_Integer; NewData: Sw_String;
    BEGIN
      If (Validator <> Nil) Then Begin                 { Validator valid }
        CheckValid := False;                           { Preset false return }
-       If (Data <> Nil) Then OldLen := Length(Data^); { Hold old length }
+       If Data <> Sw_PString_Empty Then OldLen := Length(Data Sw_PString_DeRef); { Hold old length }
        If (Validator^.Options AND voOnAppend = 0) OR
        (WasAppending AND (CurPos = OldLen)) Then Begin
-         If (Data <> Nil) Then NewData := Data^       { Hold current data }
+         If Data <> Sw_PString_Empty Then NewData := Data Sw_PString_DeRef       { Hold current data }
            Else NewData := '';                        { Set empty string }
          If NOT Validator^.IsValidInput(NewData,
          NoAutoFill) Then RestoreState Else Begin
            If (Length(NewData) > MaxLen) Then         { Exceeds maximum }
              SetLength(NewData, MaxLen);              { Set string length }
-           If (Data <> Nil) Then Data^ := NewData;    { Set data value }
-           If (Data <> Nil) AND (CurPos >= OldLen)    { Cursor beyond end }
-           AND (Length(Data^) > OldLen) Then          { Cursor beyond string }
-             CurPos := Length(Data^);                 { Set cursor position }
+           If Data <> Sw_PString_Empty Then Data Sw_PString_DeRef := NewData;    { Set data value }
+           If (Data <> Sw_PString_Empty) AND (CurPos >= OldLen)    { Cursor beyond end }
+           AND (Length(Data Sw_PString_DeRef) > OldLen) Then          { Cursor beyond string }
+             CurPos := Length(Data Sw_PString_DeRef);                 { Set cursor position }
            CheckValid := True;                        { Return true result }
          End;
        End Else Begin
          CheckValid := True;                          { Preset true return }
-         If (CurPos = OldLen) AND (Data <> Nil) Then  { Lengths match }
-           If NOT Validator^.IsValidInput(Data^,
+         If (CurPos = OldLen) AND (Data <> Sw_PString_Empty) Then  { Lengths match }
+           If NOT Validator^.IsValidInput(Data Sw_PString_DeRef,
            False) Then Begin                          { Check validator }
              Validator^.Error;                        { Call error }
              CheckValid := False;                     { Return false result }
