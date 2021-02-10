@@ -2695,7 +2695,7 @@ PROCEDURE TMultiCheckBoxes.Draw;
 CONST Button = ' [ ] ';
 BEGIN
    Inherited Draw;
-   DrawMultiBox(Button, States^);                     { Draw the items }
+   DrawMultiBox(Button, States Sw_PString_DeRef);          { Draw the items }
 END;
 
 {--TMultiCheckBoxes---------------------------------------------------------}
