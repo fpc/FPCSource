@@ -253,7 +253,11 @@ TYPE
          Sel       : Sw_Integer;                         { Selected item }
          Value     : LongInt;                         { Bit value }
          EnableMask: LongInt;                         { Mask enable bits }
+{$ifdef FV_UNICODE}
+         Strings   : TUnicodeStringCollection;        { String collection }
+{$else FV_UNICODE}
          Strings   : TStringCollection;               { String collection }
+{$endif FV_UNICODE}
       CONSTRUCTOR Init (Var Bounds: TRect; AStrings: PSItem);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
