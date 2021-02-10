@@ -352,7 +352,7 @@ begin
         begin
           AddInclude('validate.inc');
           AddInclude('platform.inc');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
           AddUnit('fvconsts');
           AddUnit('umsgbox');
         end;

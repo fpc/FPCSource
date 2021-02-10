@@ -77,7 +77,13 @@ UNIT Validate;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES FVCommon, Objects, fvconsts;                      { GFV standard units }
+USES
+{$ifdef FV_UNICODE}
+  UFVCommon,
+{$else FV_UNICODE}
+  FVCommon,
+{$endif FV_UNICODE}
+  Objects, fvconsts;                      { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
