@@ -371,13 +371,8 @@ TYPE
       FUNCTION GetColor (Color: Word): Word;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION GetState (AState: Word): Boolean;
-{$ifdef FV_UNICODE}
-      FUNCTION TextWidth (const Txt: UnicodeString): Sw_Integer;
-      FUNCTION CTextWidth (const Txt: UnicodeString): Sw_Integer;
-{$else FV_UNICODE}
-      FUNCTION TextWidth (const Txt: String): Sw_Integer;
-      FUNCTION CTextWidth (const Txt: String): Sw_Integer;
-{$endif FV_UNICODE}
+      FUNCTION TextWidth (const Txt: Sw_String): Sw_Integer;
+      FUNCTION CTextWidth (const Txt: Sw_String): Sw_Integer;
       FUNCTION MouseInView (Point: TPoint): Boolean;
       FUNCTION CommandEnabled (Command: Word): Boolean;
       FUNCTION OverLapsArea (X1, Y1, X2, Y2: Sw_Integer): Boolean;
@@ -431,12 +426,11 @@ TYPE
       PROCEDURE WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
       PROCEDURE MakeLocal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE MakeGlobal (Source: TPoint; Var Dest: TPoint);
+      PROCEDURE WriteStr (X, Y: Sw_Integer; Str: Sw_String; Color: Byte);
 {$ifdef FV_UNICODE}
-      PROCEDURE WriteStr (X, Y: Sw_Integer; Str: UnicodeString; Color: Byte);
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: UnicodeString; Color: Byte;
         Count: Sw_Integer);
 {$else FV_UNICODE}
-      PROCEDURE WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
         Count: Sw_Integer);
 {$endif FV_UNICODE}
@@ -620,11 +614,7 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
-{$ifdef FV_UNICODE}
-      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): UnicodeString; Virtual;
-{$else FV_UNICODE}
-      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
-{$endif FV_UNICODE}
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetTopItem (Item: Sw_Integer);
@@ -3603,11 +3593,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB           }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): UnicodeString;
-{$else FV_UNICODE}
-FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
-{$endif FV_UNICODE}
+FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String;
 BEGIN                                                 { Abstract method }
    GetText := '';                                     { Return empty }
 END;
@@ -3618,11 +3604,7 @@ END;
 PROCEDURE TListViewer.Draw;
 VAR  I, J, ColWidth, Item, Indent, CurCol: Sw_Integer;
      Color: Word; SCOff: Byte;
-{$ifdef FV_UNICODE}
-     Text: UnicodeString;
-{$else FV_UNICODE}
-     Text: String;
-{$endif FV_UNICODE}
+     Text: Sw_String;
      B: TDrawBuffer;
 BEGIN
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
@@ -3967,11 +3949,7 @@ END;
 {  Modified 31may2002 PM  (No number included anymore)                      }
 {---------------------------------------------------------------------------}
 FUNCTION TWindow.GetTitle (MaxSize: Sw_Integer): TTitleStr;
-{$ifdef FV_UNICODE}
-VAR S: UnicodeString;
-{$else FV_UNICODE}
-VAR S: String;
-{$endif FV_UNICODE}
+VAR S: Sw_String;
 BEGIN
 {$ifdef FV_UNICODE}
    S:=Title;
@@ -4545,11 +4523,7 @@ begin
 end;
 
 
-{$ifdef FV_UNICODE}
-procedure TView.WriteStr(X, Y: Sw_Integer; Str: UnicodeString; Color: Byte);
-{$else FV_UNICODE}
-procedure TView.WriteStr(X, Y: Sw_Integer; Str: String; Color: Byte);
-{$endif FV_UNICODE}
+procedure TView.WriteStr(X, Y: Sw_Integer; Str: Sw_String; Color: Byte);
 var
   l,i : Sw_word;
   B : TDrawBuffer;
