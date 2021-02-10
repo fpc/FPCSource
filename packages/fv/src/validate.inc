@@ -300,7 +300,11 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$ifdef FV_UNICODE}
+USES UMsgBox;                                         { GFV standard unit }
+{$else FV_UNICODE}
 USES MsgBox;                                          { GFV standard unit }
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                              PRIVATE ROUTINES                             }

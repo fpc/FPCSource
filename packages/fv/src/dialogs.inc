@@ -64,10 +64,15 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
-     OS2Def, DosCalls, PMWIN,                       { Standard units }
+     OS2Def, DosCalls, PMWIN,                         { Standard units }
    {$ENDIF}
 
-   FVCommon, FVConsts, Objects, Drivers, Views, Validate;         { Standard GFV units }
+   FVCommon, FVConsts, Objects,                       { Standard GFV units }
+{$ifdef FV_UNICODE}
+   UDrivers, UViews, UValidate;
+{$else FV_UNICODE}
+   Drivers, Views, Validate;
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -1040,7 +1045,11 @@ resourcestring  slCancel='Cancel';
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$ifdef FV_UNICODE}
+USES UApp,UHistList;                             { Standard GFV unit }
+{$else FV_UNICODE}
 USES App,HistList;                               { Standard GFV unit }
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                         PRIVATE DEFINED CONSTANTS                         }

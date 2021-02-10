@@ -85,7 +85,12 @@ UNIT MsgBox;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES objects, dialogs;                                 { Standard GFV units }
+USES objects,                                 { Standard GFV units }
+{$ifdef FV_UNICODE}
+     udialogs;
+{$else FV_UNICODE}
+     dialogs;
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -172,7 +177,11 @@ FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: String;
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$ifdef FV_UNICODE}
+USES UDrivers, UViews, UApp{, Resource};                 { Standard GFV units }
+{$else FV_UNICODE}
 USES Drivers, Views, App{, Resource};                    { Standard GFV units }
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }

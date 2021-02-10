@@ -70,8 +70,13 @@ USES
    Dos,
    Video,
    FVCommon, {Memory,}                                { GFV standard units }
-   Objects, Drivers, Views, Menus, HistList, Dialogs,
-   msgbox, fvconsts;
+   Objects,
+{$ifdef FV_UNICODE}
+   UDrivers, UViews, UMenus, UHistList, UDialogs, Umsgbox,
+{$else FV_UNICODE}
+   Drivers, Views, Menus, HistList, Dialogs, msgbox,
+{$endif FV_UNICODE}
+   fvconsts;
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
