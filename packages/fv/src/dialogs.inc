@@ -1916,7 +1916,7 @@ END;
 PROCEDURE TButton.Draw;
 VAR I, J, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
-    C : char;
+    C : Sw_ExtendedGraphemeCluster;
 BEGIN
    If (State AND sfDisabled <> 0) Then                { Button disabled }
      Bc := GetColor($0404) Else Begin                 { Disabled colour }
@@ -1926,7 +1926,7 @@ BEGIN
            Bc := GetColor($0703) Else                 { Set selected colour }
              If AmDefault Then Bc := GetColor($0602); { Set is default colour }
      End;
-   if title=nil then
+   if title=Sw_PString_Empty then
     begin
       MoveChar(Db[0],' ',GetColor(8),1);
       {No title, draw an empty button.}
@@ -1937,7 +1937,7 @@ BEGIN
     {We have a title.}
     begin
      If (Flags AND bfLeftJust = 0) Then Begin         { Not left set title }
-       I := CTextWidth(Title^);                        { Fetch title width }
+       I := CTextWidth(Title Sw_PString_DeRef);                        { Fetch title width }
        I := (Size.X - I) DIV 2;                    { Centre in button }
      End
      Else
@@ -1951,8 +1951,8 @@ BEGIN
        pos:=0;
      For j:=0 to I-1 do
        MoveChar(Db[pos+j],' ',Bc,1);
-     MoveCStr(Db[I+pos], Title^, Bc);                        { Move title to buffer }
-     For j:=pos+CStrLen(Title^)+I to size.X-2 do
+     MoveCStr(Db[I+pos], Title Sw_PString_DeRef, Bc);                        { Move title to buffer }
+     For j:=pos+CStrLen(Title Sw_PString_DeRef)+I to size.X-2 do
        MoveChar(Db[j],' ',Bc,1);
     end;
     If not DownFlag then
@@ -1963,13 +1963,21 @@ BEGIN
       Bc:=GetColor(8);
       if not DownFlag then
         begin
+{$ifdef FV_UNICODE}
+          c:=#$2584;
+{$else FV_UNICODE}
           c:='Ü';
+{$endif FV_UNICODE}
           MoveChar(Db,c,Bc,1);
           WriteLine(Size.X-1, 0, 1, 1, Db);
         end;
       MoveChar(Db,' ',Bc,1);
       if DownFlag then c:=' '
+{$ifdef FV_UNICODE}
+      else c:=#$2580;
+{$else FV_UNICODE}
       else c:='ß';
+{$endif FV_UNICODE}
       MoveChar(Db[1],c,Bc,Size.X-1);
       WriteLine(0, 1, Size.X, 1, Db);
     End;
