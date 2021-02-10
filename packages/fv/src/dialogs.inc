@@ -1380,9 +1380,15 @@ FUNCTION TInputLine.DataSize: Sw_Word;
 VAR DSize: Sw_Word;
 BEGIN
    DSize := 0;                                        { Preset zero datasize }
+{$ifdef FV_UNICODE}
+   If (Validator <> Nil) AND (Data <> '') Then
+     DSize := Validator^.Transfer(Data, Nil,
+       vtDataSize);                                   { Add validator size }
+{$else FV_UNICODE}
    If (Validator <> Nil) AND (Data <> Nil) Then
      DSize := Validator^.Transfer(Data^, Nil,
        vtDataSize);                                   { Add validator size }
+{$endif FV_UNICODE}
    If (DSize <> 0) Then DataSize := DSize             { Use validtor size }
      Else DataSize := MaxLen + 1;                     { No validator use size }
 END;
