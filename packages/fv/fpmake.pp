@@ -178,6 +178,12 @@ begin
           AddInclude('fvcommon.inc');
           AddInclude('platform.inc');
         end;
+    T:=P.Targets.AddUnit('ufvcommon.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('fvcommon.inc');
+          AddInclude('platform.inc');
+        end;
     T:=P.Targets.AddUnit('fvconsts.pas');
     T:=P.Targets.AddUnit('gadgets.pas');
       with T.Dependencies do

@@ -5037,6 +5037,7 @@ packages/fv/src/timeddlg.pas svneol=native#text/plain
 packages/fv/src/uapp.pas svneol=native#text/plain
 packages/fv/src/udialogs.pas svneol=native#text/plain
 packages/fv/src/udrivers.pas svneol=native#text/plain
+packages/fv/src/ufvcommon.pas svneol=native#text/plain
 packages/fv/src/uhistlist.pas svneol=native#text/plain
 packages/fv/src/umenus.pas svneol=native#text/plain
 packages/fv/src/umsgbox.pas svneol=native#text/plain
