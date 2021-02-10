@@ -3269,7 +3269,7 @@ END;
 {--THistoryViewer-----------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION THistoryViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
+FUNCTION THistoryViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String;
 BEGIN
    GetText := HistoryStr(HistoryId, Item);            { Return history string }
 END;
@@ -3310,7 +3310,7 @@ END;
 {--THistoryWindow-----------------------------------------------------------}
 {  GetSelection -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION THistoryWindow.GetSelection: String;
+FUNCTION THistoryWindow.GetSelection: Sw_String;
 BEGIN
    If (Viewer = Nil) Then GetSelection := '' Else     { Return empty string }
      GetSelection := Viewer^.GetText(Viewer^.Focused,
@@ -3399,7 +3399,7 @@ END;
 {--THistory-----------------------------------------------------------------}
 {  RecordHistory -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB     }
 {---------------------------------------------------------------------------}
-PROCEDURE THistory.RecordHistory (CONST S: String);
+PROCEDURE THistory.RecordHistory (CONST S: Sw_String);
 BEGIN
    HistoryAdd(HistoryId, S);                          { Add to history }
 END;
@@ -3430,7 +3430,7 @@ BEGIN
        ClearEvent(Event);                             { Event was handled }
        Exit;                                          { Now exit }
       End;
-     RecordHistory(Link^.Data^);                      { Record current data }
+     RecordHistory(Link^.Data Sw_PString_DeRef);      { Record current data }
      Link^.GetBounds(R);                              { Get view bounds }
      Dec(R.A.X);                                      { One char in from us }
      Inc(R.B.X);                                      { One char short of us }
@@ -3446,7 +3446,7 @@ BEGIN
          Rslt := HistoryWindow^.GetSelection;         { Get history selection }
          If Length(Rslt) > Link^.MaxLen Then
             SetLength(Rslt, Link^.MaxLen);            { Hold new length }
-         Link^.Data^ := Rslt;                         { Hold new selection }
+         Link^.Data Sw_PString_DeRef := Rslt;         { Hold new selection }
          Link^.SelectAll(True);                       { Select all string }
          Link^.DrawView;                              { Redraw link view }
        End;
@@ -3457,7 +3457,7 @@ BEGIN
      If ((Event.Command = cmReleasedFocus) AND
      (Event.InfoPtr = Link)) OR
      (Event.Command = cmRecordHistory) Then           { Record command }
-       RecordHistory(Link^.Data^);                    { Record the history }
+       RecordHistory(Link^.Data Sw_PString_DeRef);    { Record the history }
 END;
 
 {****************************************************************************}
@@ -3553,10 +3553,14 @@ var
   LocalRec: TBrowseInputLineRec absolute Rec;
 begin
   if (Validator = nil) or
-    (Validator^.Transfer(Data^,@LocalRec.Text, vtGetData) = 0) then
+    (Validator^.Transfer(Data Sw_PString_DeRef,@LocalRec.Text, vtGetData) = 0) then
   begin
+{$ifdef FV_UNICODE}
+    LocalRec.Text := Data;
+{$else FV_UNICODE}
     FillChar(LocalRec.Text, DataSize, #0);
     Move(Data^, LocalRec.Text, Length(Data^) + 1);
+{$endif FV_UNICODE}
   end;
   LocalRec.History := History;
 end;
@@ -3569,8 +3573,12 @@ var
   LocalRec: TBrowseInputLineRec absolute Rec;
 begin
   if (Validator = nil) or
-    (Validator^.Transfer(Data^, @LocalRec.Text, vtSetData) = 0) then
+    (Validator^.Transfer(Data Sw_PString_DeRef, @LocalRec.Text, vtSetData) = 0) then
+{$ifdef FV_UNICODE}
+    Data := LocalRec.Text;
+{$else FV_UNICODE}
     Move(LocalRec.Text, Data^[0], MaxLen + 1);
+{$endif FV_UNICODE}
   History := LocalRec.History;
   SelectAll(True);
 end;
