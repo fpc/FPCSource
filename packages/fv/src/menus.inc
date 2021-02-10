@@ -76,9 +76,9 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   objects, udrivers, uviews, fvconsts;               { GFV standard units }
+   objects, udrivers, uviews, UFVCommon, fvconsts;               { GFV standard units }
 {$else FV_UNICODE}
-   objects, drivers, views, fvconsts;                 { GFV standard units }
+   objects, drivers, views, fvcommon, fvconsts;                 { GFV standard units }
 {$endif FV_UNICODE}
 
 {***************************************************************************}
@@ -258,11 +258,7 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
-{$ifdef FV_UNICODE}
-      FUNCTION Hint (AHelpCtx: Word): UnicodeString; Virtual;
-{$else FV_UNICODE}
-      FUNCTION Hint (AHelpCtx: Word): String; Virtual;
-{$endif FV_UNICODE}
+      FUNCTION Hint (AHelpCtx: Word): Sw_String; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE Update; Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -344,13 +340,8 @@ with the given parameter values (using NewStr to allocate the Text).
 An error in creating will return a nil pointer.
 15May98 LdB
 ---------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION NewStatusKey (AText: UnicodeString; AKeyCode: Word; ACommand: Word;
+FUNCTION NewStatusKey (AText: Sw_String; AKeyCode: Word; ACommand: Word;
   ANext: PStatusItem): PStatusItem;
-{$else FV_UNICODE}
-FUNCTION NewStatusKey (AText: String; AKeyCode: Word; ACommand: Word;
-  ANext: PStatusItem): PStatusItem;
-{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           OBJECT REGISTER ROUTINES                        }
@@ -1052,11 +1043,7 @@ END;
 CONSTRUCTOR TMenuBox.Init (Var Bounds: TRect; AMenu: PMenu;
   AParentMenu: PMenuView);
 VAR W, H, L: SmallInt; P: PMenuItem; R: TRect;
-{$ifdef FV_UNICODE}
-    S: UnicodeString;
-{$else FV_UNICODE}
-    S: String;
-{$endif FV_UNICODE}
+    S: Sw_String;
 BEGIN
    W := 0;                                            { Clear initial width }
    H := 2;                                            { Set initial height }
@@ -1102,11 +1089,7 @@ END;
 PROCEDURE TMenuBox.Draw;
 VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Y: SmallInt;
     P: PMenuItem; B: TDrawBuffer;
-{$ifdef FV_UNICODE}
-    S: UnicodeString;
-{$else FV_UNICODE}
-    S: String;
-{$endif FV_UNICODE}
+    S: SW_String;
 Type
    FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
 {$ifdef FV_UNICODE}
@@ -1382,11 +1365,7 @@ END;
 {--TStatusLine--------------------------------------------------------------}
 {  Hint -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION TStatusLine.Hint (AHelpCtx: Word): UnicodeString;
-{$else FV_UNICODE}
-FUNCTION TStatusLine.Hint (AHelpCtx: Word): String;
-{$endif FV_UNICODE}
+FUNCTION TStatusLine.Hint (AHelpCtx: Word): Sw_String;
 BEGIN
    Hint := '';                                        { Return nothing }
 END;
@@ -1562,11 +1541,7 @@ END;
 PROCEDURE TStatusLine.DrawSelect (Selected: PStatusItem);
 VAR I, L: SmallInt; Color, CSelect, CNormal, CSelDisabled, CNormDisabled: Word;
     B: TDrawBuffer; T: PStatusItem;
-{$ifdef FV_UNICODE}
-    HintBuf: UnicodeString;
-{$else FV_UNICODE}
-    HintBuf: String;
-{$endif FV_UNICODE}
+    HintBuf: Sw_String;
 BEGIN
    CNormal := GetColor($0301);                        { Normal colour }
    CSelect := GetColor($0604);                        { Select colour }
@@ -1773,13 +1748,8 @@ END;
 {---------------------------------------------------------------------------}
 {  NewStatusKey -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB      }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION NewStatusKey (AText: UnicodeString; AKeyCode: Word; ACommand: Word;
+FUNCTION NewStatusKey (AText: Sw_String; AKeyCode: Word; ACommand: Word;
   ANext: PStatusItem): PStatusItem;
-{$else FV_UNICODE}
-FUNCTION NewStatusKey (AText: String; AKeyCode: Word; ACommand: Word;
-  ANext: PStatusItem): PStatusItem;
-{$endif FV_UNICODE}
 VAR T: PStatusItem;
 BEGIN
    New(T);                                            { Allocate memory }

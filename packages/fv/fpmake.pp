@@ -232,6 +232,7 @@ begin
           AddInclude('platform.inc');
           AddUnit('drivers');
           AddUnit('views');
+          AddUnit('fvcommon');
           AddUnit('fvconsts');
         end;
     T:=P.Targets.AddUnit('umenus.pas');
@@ -241,6 +242,7 @@ begin
           AddInclude('platform.inc');
           AddUnit('udrivers');
           AddUnit('uviews');
+          AddUnit('ufvcommon');
           AddUnit('fvconsts');
         end;
     T:=P.Targets.AddUnit('msgbox.pas');
