@@ -709,8 +709,13 @@ END;
 DESTRUCTOR TProgram.Done;
 BEGIN
    { Do not free the Buffer of Video Unit }
+{$ifdef FV_UNICODE}
+   If Buffer = UViews.PVideoBuf(EnhancedVideoBuf) then
+     Buffer:=nil;
+{$else FV_UNICODE}
    If Buffer = Views.PVideoBuf(VideoBuf) then
      Buffer:=nil;
+{$endif FV_UNICODE}
    If (Desktop <> Nil) Then Dispose(Desktop, Done);   { Destroy desktop }
    If (MenuBar <> Nil) Then Dispose(MenuBar, Done);   { Destroy menu bar }
    If (StatusLine <> Nil) Then
@@ -827,7 +832,11 @@ BEGIN
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
+{$ifdef FV_UNICODE}
+  UDrivers.DetectVideo;
+{$else FV_UNICODE}
   Drivers.DetectVideo;
+{$endif FV_UNICODE}
 { ScreenMode.Row may be 0 if there's no console on startup }
   if ScreenMode.Row = 0 then
    begin
@@ -847,7 +856,11 @@ BEGIN
    end;
   ShadowSize.Y := 1;
   ShowMarkers := False;
+{$ifdef FV_UNICODE}
+  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+{$else FV_UNICODE}
   Buffer := Views.PVideoBuf(VideoBuf);
+{$endif FV_UNICODE}
 END;
 
 
@@ -913,7 +926,11 @@ begin
 {  DoneMemory;}
 {  InitMemory;}
   InitScreen;
+{$ifdef FV_UNICODE}
+  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+{$else FV_UNICODE}
   Buffer := Views.PVideoBuf(VideoBuf);
+{$endif FV_UNICODE}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
   ShowMouse;
@@ -939,7 +956,11 @@ begin
   InitScreen;
   ScreenWidth:=Video.ScreenWidth;
   ScreenHeight:=Video.ScreenHeight;
+{$ifdef FV_UNICODE}
+  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+{$else FV_UNICODE}
   Buffer := Views.PVideoBuf(VideoBuf);
+{$endif FV_UNICODE}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
   ShowMouse;
@@ -973,7 +994,11 @@ BEGIN
                ReDraw;
            End;
          If (Event.What = evNothing) Then Begin       { No mouse event }
+{$ifdef FV_UNICODE}
+           UDrivers.GetMouseEvent(Event);              { Load mouse event }
+{$else FV_UNICODE}
            Drivers.GetMouseEvent(Event);              { Load mouse event }
+{$endif FV_UNICODE}
            If (Event.What = evNothing) Then
              begin
 {$IFNDEF HASAMIGA}
@@ -981,7 +1006,11 @@ BEGIN
                  we skip this here, and let the IDE to handle it
                  directly on Amiga-like systems. The FV itself cannot
                  handle the System Events anyway. (KB) }
+{$ifdef FV_UNICODE}
+               UDrivers.GetSystemEvent(Event);         { Load system event }
+{$else FV_UNICODE}
                Drivers.GetSystemEvent(Event);         { Load system event }
+{$endif FV_UNICODE}
                If (Event.What = evNothing) Then
 {$ENDIF}
                  Idle;     { Idle if no event }
@@ -1030,14 +1059,23 @@ BEGIN
        halt(1);
      end;}
    initkeyboard;
+{$ifdef FV_UNICODE}
+   if not UDrivers.InitVideo then                              { Start video up }
+{$else FV_UNICODE}
    if not Drivers.InitVideo then                              { Start video up }
+{$endif FV_UNICODE}
      begin
        donekeyboard;
        writeln(sVideoFailed);
        halt(1);
      end;
+{$ifdef FV_UNICODE}
+   UDrivers.InitEvents;                                        { Start event drive }
+   UDrivers.InitSysError;                                      { Start system error }
+{$else FV_UNICODE}
    Drivers.InitEvents;                                        { Start event drive }
    Drivers.InitSysError;                                      { Start system error }
+{$endif FV_UNICODE}
    InitHistory;                                               { Start history up }
    Inherited Init;                                            { Call ancestor }
    InitMsgBox;
@@ -1053,9 +1091,15 @@ DESTRUCTOR TApplication.Done;
 BEGIN
    Inherited Done;                                    { Call ancestor }
    DoneHistory;                                       { Close history }
+{$ifdef FV_UNICODE}
+   UDrivers.DoneSysError;                                      { Close system error }
+   UDrivers.DoneEvents;                                        { Close event drive }
+   Udrivers.donevideo;
+{$else FV_UNICODE}
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
    drivers.donevideo;
+{$endif FV_UNICODE}
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
 {   DoneResource;}
@@ -1093,8 +1137,13 @@ var s:string;
 BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
+{$ifdef FV_UNICODE}
+  udrivers.donevideo;
+  udrivers.donekeyboard;
+{$else FV_UNICODE}
   drivers.donevideo;
   drivers.donekeyboard;
+{$endif FV_UNICODE}
 {  DoneDosMem;}
   WriteShellMsg;
 {$ifdef Unix}
@@ -1108,8 +1157,13 @@ BEGIN                                                 { Compatability only }
   SwapVectors;
 {$endif}
 {  InitDosMem;}
+{$ifdef FV_UNICODE}
+  udrivers.initkeyboard;
+  udrivers.initvideo;
+{$else FV_UNICODE}
   drivers.initkeyboard;
   drivers.initvideo;
+{$endif FV_UNICODE}
   Video.SetCursorType(crHidden);
   InitScreen;
   InitEvents;
