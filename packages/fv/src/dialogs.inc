@@ -1324,10 +1324,14 @@ BEGIN
    State := State OR sfCursorVis;                     { Cursor visible }
    Options := Options OR (ofSelectable + ofFirstClick
      + ofVersion20);                                  { Set options }
+{$ifdef FV_UNICODE}
+   Data := '';                                        { Data = empty string }
+{$else FV_UNICODE}
    If (MaxAvail > AMaxLen + 1) Then Begin             { Check enough memory }
      GetMem(Data, AMaxLen + 1);                       { Allocate memory }
      Data^ := '';                                     { Data = empty string }
    End;
+{$endif FV_UNICODE}
    MaxLen := AMaxLen;                                 { Hold maximum length }
 END;
 
