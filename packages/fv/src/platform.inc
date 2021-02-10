@@ -181,8 +181,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
   {$IFDEF FV_UNICODE}
     {$DEFINE Sw_PString_DeRef:=}
+    {$DEFINE Sw_NewStr:=}
   {$ELSE FV_UNICODE}
     {$DEFINE Sw_PString_DeRef:=^}
+    {$DEFINE Sw_NewStr:=NewStr}
   {$ENDIF FV_UNICODE}
 
   {$UNDEF PROC_Real}

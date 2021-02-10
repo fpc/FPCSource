@@ -1817,12 +1817,12 @@ END;
 {  CanScroll -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB         }
 {---------------------------------------------------------------------------}
 FUNCTION TInputLine.CanScroll (Delta: Sw_Integer): Boolean;
-VAR S: String;
+VAR S: Sw_String;
 BEGIN
    If (Delta < 0) Then CanScroll := FirstPos > 0      { Check scroll left }
      Else If (Delta > 0) Then Begin
-       If (Data = Nil) Then S := '' Else              { Data ptr invalid }
-         S := Copy(Data^, FirstPos+1, Length(Data^)
+       If Data = Sw_PString_Empty Then S := '' Else   { Data ptr invalid }
+         S := Copy(Data Sw_PString_DeRef, FirstPos+1, Length(Data Sw_PString_DeRef)
           - FirstPos);                                { Fetch max string }
        CanScroll := (TextWidth(S)) > (Size.X -
          TextWidth(LeftArr) - TextWidth(RightArr));   { Check scroll right }
@@ -1848,7 +1848,7 @@ BEGIN
    Flags := AFlags;                                   { Hold flags }
    If (AFlags AND bfDefault <> 0) Then AmDefault := True
      Else AmDefault := False;                         { Check if default }
-   Title := NewStr(ATitle);                           { Hold title string }
+   Title := Sw_NewStr(ATitle);                           { Hold title string }
    Command := ACommand;                               { Hold button command }
    TabMask := TabMask OR (tmLeft + tmRight +
      tmTab + tmShiftTab + tmUp + tmDown);             { Set tab masks }
@@ -1860,7 +1860,11 @@ END;
 CONSTRUCTOR TButton.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
+{$ifdef FV_UNICODE}
+   Title := S.ReadUnicodeString;                      { Read title }
+{$else FV_UNICODE}
    Title := S.ReadStr;                                { Read title }
+{$endif FV_UNICODE}
    S.Read(Command, SizeOf(Command));                  { Read command }
    S.Read(Flags, SizeOf(Flags));                      { Read flags }
    S.Read(AmDefault, SizeOf(AmDefault));              { Read if default }
@@ -1874,7 +1878,9 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TButton.Done;
 BEGIN
+{$ifndef FV_UNICODE}
    If (Title <> Nil) Then DisposeStr(Title);          { Dispose title }
+{$endif FV_UNICODE}
    Inherited Done;                                    { Call ancestor }
 END;
 
