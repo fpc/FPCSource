@@ -148,8 +148,10 @@ TYPE
 TYPE
 {$IFDEF FV_UNICODE}
    Sw_String = UnicodeString;
+   Sw_PString = UnicodeString;
 {$ELSE FV_UNICODE}
    Sw_String = ShortString;
+   Sw_PString = PShortString;
 {$ENDIF FV_UNICODE}
 
 {---------------------------------------------------------------------------}
