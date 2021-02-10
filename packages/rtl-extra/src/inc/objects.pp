@@ -315,6 +315,7 @@ TYPE
       FUNCTION GetPos: Longint;                                      Virtual;
       FUNCTION GetSize: Longint;                                     Virtual;
       FUNCTION ReadStr: PString;
+      FUNCTION ReadRawByteString: RawByteString;
       FUNCTION ReadUnicodeString: UnicodeString;
       PROCEDURE Open (OpenMode: Word);                               Virtual;
       PROCEDURE Close;                                               Virtual;
@@ -324,6 +325,7 @@ TYPE
       PROCEDURE Put (P: PObject);
       PROCEDURE StrWrite (P: PChar);
       PROCEDURE WriteStr (P: PString);
+      PROCEDURE WriteRawByteString (Const S: RawByteString);
       PROCEDURE WriteUnicodeString (Const S: UnicodeString);
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
@@ -489,6 +491,18 @@ TYPE
       PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
    END;
    PStringCollection = ^TStringCollection;
+
+{---------------------------------------------------------------------------}
+{    TRawByteStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
+{---------------------------------------------------------------------------}
+TYPE
+   TRawByteStringCollection = OBJECT (TSortedCollection)
+      FUNCTION GetItem (Var S: TStream): Pointer;                    Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer;            Virtual;
+      PROCEDURE FreeItem (Item: Pointer);                            Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer);             Virtual;
+   END;
+   PRawByteStringCollection = ^TRawByteStringCollection;
 
 {---------------------------------------------------------------------------}
 {             TStrCollection OBJECT - STRING COLLECTION OBJECT              }
@@ -1228,6 +1242,21 @@ BEGIN
 END;
 
 {--TStream------------------------------------------------------------------}
+{  ReadRawByteString                                                        }
+{---------------------------------------------------------------------------}
+FUNCTION TStream.ReadRawByteString: RawByteString;
+VAR CP: TSystemCodePage; L: LongInt;
+BEGIN
+  Read(CP, SizeOf(CP));
+  Read(L, SizeOf(L));
+   If (L <= 0) Then ReadRawByteString := '' Else Begin
+     SetLength(ReadRawByteString, L);
+     SetCodePage(ReadRawByteString, CP, False);
+     Read(ReadRawByteString[1], L);
+   End;
+END;
+
+{--TStream------------------------------------------------------------------}
 {  ReadUnicodeString                                                        }
 {---------------------------------------------------------------------------}
 FUNCTION TStream.ReadUnicodeString: UnicodeString;
@@ -1355,6 +1384,20 @@ CONST Empty: String[1] = '';
 BEGIN
    If (P <> Nil) Then Write(P^, Length(P^) + 1)       { Write string }
      Else Write(Empty, 1);                            { Write empty string }
+END;
+
+{--TStream------------------------------------------------------------------}
+{  WriteRawByteString                                                       }
+{---------------------------------------------------------------------------}
+PROCEDURE TStream.WriteRawByteString (Const S: RawByteString);
+VAR CP: TSystemCodePage; L: LongInt;
+BEGIN
+   CP := StringCodePage(S);
+   L := Length(S);
+   Write(CP, SizeOf(CP));
+   Write(L, SizeOf(L));
+   if L > 0 then
+     Write((@S[1])^, L);
 END;
 
 {--TStream------------------------------------------------------------------}
@@ -2519,6 +2562,59 @@ END;
 PROCEDURE TStringCollection.PutItem (Var S: TStream; Item: Pointer);
 BEGIN
    S.WriteStr(Item);                                  { Write string }
+END;
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                  TRawByteStringCollection OBJECT METHODS                  }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  GetItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TRawByteStringCollection.GetItem (Var S: TStream): Pointer;
+BEGIN
+   GetItem := nil;
+   RawByteString(GetItem) := S.ReadRawByteString;            { Get new item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
+{---------------------------------------------------------------------------}
+FUNCTION TRawByteStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
+VAR I, J: Sw_Integer; P1, P2: RawByteString;
+BEGIN
+   P1 := RawByteString(Key1);                         { String 1 pointer }
+   P2 := RawByteString(Key2);                         { String 2 pointer }
+   If (Length(P1)<Length(P2)) Then J := Length(P1)
+     Else J := Length(P2);                            { Shortest length }
+   I := 1;                                            { First character }
+   While (I<J) AND (P1[I]=P2[I]) Do Inc(I);           { Scan till fail }
+   If (I=J) Then Begin                                { Possible match }
+   { * REMARK * - Bug fix   21 August 1997 }
+     If (P1[I]<P2[I]) Then Compare := -1 Else         { String1 < String2 }
+       If (P1[I]>P2[I]) Then Compare := 1 Else        { String1 > String2 }
+       If (Length(P1)>Length(P2)) Then Compare := 1   { String1 > String2 }
+         Else If (Length(P1)<Length(P2)) Then         { String1 < String2 }
+           Compare := -1 Else Compare := 0;           { String1 = String2 }
+   { * REMARK END * - Leon de Boer }
+   End Else If (P1[I]<P2[I]) Then Compare := -1       { String1 < String2 }
+     Else Compare := 1;                               { String1 > String2 }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  FreeItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.FreeItem (Item: Pointer);
+BEGIN
+   RawByteString(Item):='';                                  { Dispose item }
+END;
+
+{--TRawByteStringCollection-------------------------------------------------}
+{  PutItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
+{---------------------------------------------------------------------------}
+PROCEDURE TRawByteStringCollection.PutItem (Var S: TStream; Item: Pointer);
+BEGIN
+   S.WriteRawByteString(RawByteString(Item));                { Write string }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
