@@ -3205,9 +3205,9 @@ BEGIN
      evMouseDown: FocusLink;                          { Focus link view }
      evKeyDown:
        Begin
-         if assigned(text) then
+         if text<>Sw_PString_Empty then
            begin
-             C := HotKey(Text^);                            { Check for hotkey }
+             C := HotKey(Text Sw_PString_DeRef);            { Check for hotkey }
              If (GetAltCode(C) = Event.KeyCode) OR          { Alt plus char }
                ((C <> #0) AND (Owner^.Phase = phPostProcess)  { Post process phase }
                 AND (UpCase(Event.CharCode) = C)) Then         { Upper case match }
