@@ -5031,6 +5031,7 @@ packages/fv/src/tabs.pas svneol=native#text/plain
 packages/fv/src/time.pas svneol=native#text/plain
 packages/fv/src/timeddlg.pas svneol=native#text/plain
 packages/fv/src/udrivers.pas svneol=native#text/plain
+packages/fv/src/uhistlist.pas svneol=native#text/plain
 packages/fv/src/umenus.pas svneol=native#text/plain
 packages/fv/src/unixsmsg.inc svneol=native#text/plain
 packages/fv/src/uoutline.pas svneol=native#text/plain

@@ -44,7 +44,11 @@
 {  1.51     03 Nov 99   FPC windows support added          }
 {**********************************************************}
 
+{$ifdef FV_UNICODE}
+UNIT UHistList;
+{$else FV_UNICODE}
 UNIT HistList;
+{$endif FV_UNICODE}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -111,7 +115,11 @@ FUNCTION HistoryCount (Id: Byte): Word;
 Returns the Index'th string in the history list with ID number Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): UnicodeString;
+{$else FV_UNICODE}
 FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): String;
+{$endif FV_UNICODE}
 
 {-ClearHistory-------------------------------------------------------
 Removes all strings from all history lists.
@@ -123,7 +131,11 @@ PROCEDURE ClearHistory;
 Adds the string Str to the history list indicated by Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE HistoryAdd (Id: Byte; Const Str: UnicodeString);
+{$else FV_UNICODE}
 PROCEDURE HistoryAdd (Id: Byte; Const Str: String);
+{$endif FV_UNICODE}
 
 function HistoryRemove(Id: Byte; Index: Sw_Integer): boolean;
 
@@ -172,7 +184,12 @@ CONST
 
    Zero  1 byte, start marker
    Id    1 byte, History id
+$ifdef FV_UNICODE
+   <utf8string>    uleb128 length+utf8 string data
+$else FV_UNICODE
    <shortstring>   1 byte length+string data, Contents
+$endif FV_UNICODE
+
 }
 
 {***************************************************************************}
@@ -183,7 +200,11 @@ CONST
 {---------------------------------------------------------------------------}
 VAR
    CurId: Byte;                                       { Current history id }
+{$ifdef FV_UNICODE}
+   CurString: Pointer;                                { Current string }
+{$else FV_UNICODE}
    CurString: PString;                                { Current string }
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                          PRIVATE UNIT ROUTINES                            }
@@ -198,9 +219,90 @@ BEGIN
    CurString := HistoryBlock;                         { Set current string }
 END;
 
+{$ifdef FV_UNICODE}
+{---------------------------------------------------------------------------}
+{  DecodeSizeUInt                                                           }
+{---------------------------------------------------------------------------}
+FUNCTION DecodeSizeUInt(var P: PByte): SizeUInt;
+VAR Shift: Byte;
+BEGIN
+  Shift := 0;
+  Result := 0;
+  repeat
+    Result := Result or ((P^ and 127) shl Shift);
+    Inc(Shift, 7);
+    Inc(P);
+  until ((P-1)^ and 128) = 0;
+END;
+
+{ stored string length (including size bytes) }
+FUNCTION StoredStringSize(P: PByte): SizeUInt;
+VAR Len: SizeUInt; OrigP: PByte;
+BEGIN
+  OrigP := P;
+  Len := DecodeSizeUInt(P);
+  Result := Len + (P - OrigP);
+END;
+
+{---------------------------------------------------------------------------}
+{  EncodeSizeUInt                                                           }
+{---------------------------------------------------------------------------}
+PROCEDURE EncodeSizeUInt(var P: PByte; V: SizeUInt);
+BEGIN
+  repeat
+    P^ := V and 127;
+    V := V shr 7;
+    if V <> 0 then
+      P^ := P^ or 128;
+    Inc(P);
+  until V = 0;
+END;
+
+{---------------------------------------------------------------------------}
+{  EncodedSizeLengthInBytes                                                 }
+{---------------------------------------------------------------------------}
+FUNCTION EncodedSizeLengthInBytes(V: SizeUInt): Integer;
+BEGIN
+  if V < (1 shl 7) then
+    Result := 1
+  else if V < (1 shl (2*7)) then
+    Result := 2
+  else if V < (1 shl (3*7)) then
+    Result := 3
+  else if V < (1 shl (4*7)) then
+    Result := 4
+  else if V < (1 shl (5*7)) then
+    Result := 5
+  else if V < (1 shl (6*7)) then
+    Result := 6
+  else if V < (1 shl (7*7)) then
+    Result := 7
+  else if V < (1 shl (8*7)) then
+    Result := 8
+  else if V < (1 shl (9*7)) then
+    Result := 9
+  else
+    Result := 10;
+END;
+{$endif FV_UNICODE}
+
 {---------------------------------------------------------------------------}
 {  DeleteString -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE DeleteString;
+VAR Len: SizeUInt; P, P2: Pointer;
+BEGIN
+   P := CurString;                                    { Current string }
+   P2 := CurString;                                   { Current string }
+   Len := DecodeSizeUInt(P2);                         { Length of string }
+   Dec(P, 2);                                         { Correct position }
+   Inc(P2, Len);                                      { Next hist record }
+   { Shuffle history }
+   Move(P2^, P^, Pointer(HistoryBlock) + HistoryUsed - Pointer(P2) );
+   Dec(HistoryUsed, P2-P);                            { Adjust history used }
+END;
+{$else FV_UNICODE}
 PROCEDURE DeleteString;
 VAR Len: Sw_Integer; P, P2: PChar;
 BEGIN
@@ -213,19 +315,28 @@ BEGIN
    Move(P2^, P^, Pointer(HistoryBlock) + HistoryUsed - Pointer(P2) );
    Dec(HistoryUsed, Len);                             { Adjust history used }
 END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  AdvanceStringPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB  }
 {---------------------------------------------------------------------------}
 PROCEDURE AdvanceStringPtr;
 VAR P: PChar;
+{$ifdef FV_UNICODE}
+    Len: SizeUInt;
+{$endif FV_UNICODE}
 BEGIN
    While (CurString <> Nil) Do Begin
      If (Pointer(CurString) >= Pointer(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
      End;
+{$ifdef FV_UNICODE}
+     Len := DecodeSizeUInt(CurString);
+     Inc(CurString, Len);                             { Move to next string }
+{$else FV_UNICODE}
      Inc(PChar(CurString), PByte(CurString)^+1);      { Move to next string }
+{$endif FV_UNICODE}
      If (Pointer(CurString) >= Pointer(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
@@ -242,6 +353,41 @@ END;
 {---------------------------------------------------------------------------}
 {  InsertString -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE InsertString (Id: Byte; Const Str: UnicodeString);
+VAR P, P1, P2: PByte; StrU8: UTF8String;
+    Len: SizeUInt;
+BEGIN
+  StrU8 := Str;
+  while (HistoryUsed+Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8))+2>HistorySize) do
+   begin
+       P:=HistoryBlock;
+       while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
+         begin
+           if Pointer(P)+StoredStringSize(P+2)+4+Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8)) >
+              Pointer(HistoryBlock)+HistorySize then
+             begin
+               Dec(HistoryUsed,Length(PShortString(P+2)^)+3);
+               FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
+               break;
+             end;
+           Inc(P, 2);
+           Len:=DecodeSizeUInt(P);
+           Inc(P,Len);
+         end;
+   end;
+   P1 := HistoryBlock+1;                            { First history record }
+   P2 := P1+Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8))+2;  { History record after }
+   Move(P1^, P2^, HistoryUsed - 1);                 { Shuffle history data }
+   P1^:=0;                                          { Set marker byte }
+   Inc(P1);
+   P1^:=Id;                                         { Set history id }
+   Inc(P1);
+   EncodeSizeUInt(P1, Length(StrU8));
+   Move(StrU8[1], P1^, Length(StrU8));              { Set history string }
+   Inc(HistoryUsed, Length(StrU8)+EncodedSizeLengthInBytes(Length(StrU8))+2);  { Inc history used }
+END;
+{$else FV_UNICODE}
 PROCEDURE InsertString (Id: Byte; Const Str: String);
 VAR P, P1, P2: PChar;
 BEGIN
@@ -270,6 +416,7 @@ BEGIN
    Move(Str[0], P1^, Length(Str)+1);  { Set history string }
    Inc(HistoryUsed, Length(Str)+3);                 { Inc history used }
 END;
+{$endif FV_UNICODE}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -326,14 +473,30 @@ END;
 {---------------------------------------------------------------------------}
 {  HistoryStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): UnicodeString;
+{$else FV_UNICODE}
 FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): String;
+{$endif FV_UNICODE}
 VAR I: Sw_Integer;
+{$ifdef FV_UNICODE}
+    TmpP: Pointer;
+    StrU8: UTF8String;
+{$endif FV_UNICODE}
 BEGIN
    StartId(Id);                                       { Set to first record }
    If (HistoryBlock <> Nil) Then Begin                { History initalized }
      For I := 0 To Index Do AdvanceStringPtr;         { Find indexed string }
-     If (CurString <> Nil) Then
-       HistoryStr := CurString^ Else                  { Return string }
+     If (CurString <> Nil) Then Begin
+{$ifdef FV_UNICODE}
+       TmpP := CurString;
+       SetLength(StrU8, DecodeSizeUInt(TmpP));
+       Move(TmpP^, StrU8[1], Length(StrU8));
+       HistoryStr := StrU8;
+{$else FV_UNICODE}
+       HistoryStr := CurString^                       { Return string }
+{$endif FV_UNICODE}
+     End Else
        HistoryStr := '';                              { Index not found }
    End Else HistoryStr := '';                         { History uninitialized }
 END;
@@ -352,14 +515,31 @@ END;
 {---------------------------------------------------------------------------}
 {  HistoryAdd -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE HistoryAdd (Id: Byte; Const Str: UnicodeString);
+{$else FV_UNICODE}
 PROCEDURE HistoryAdd (Id: Byte; Const Str: String);
+{$endif FV_UNICODE}
+{$ifdef FV_UNICODE}
+VAR StrU8: UTF8String; TmpP: PByte; TmpLen: SizeUInt;
+{$endif FV_UNICODE}
 BEGIN
    If (Str = '') Then Exit;                           { Empty string exit }
    If (HistoryBlock = Nil) Then Exit;                 { History uninitialized }
+{$ifdef FV_UNICODE}
+   StrU8:=Str;
+{$endif FV_UNICODE}
    StartId(Id);                                       { Set current data }
    AdvanceStringPtr;                                  { Find the string }
    While (CurString <> nil) Do Begin
+{$ifdef FV_UNICODE}
+     TmpP := CurString;
+     TmpLen := DecodeSizeUInt(TmpP);
+     If (TmpLen=Length(StrU8)) and (CompareByte(TmpP^, StrU8[1], TmpLen)=0) then
+       DeleteString;                                  { Delete duplicates }
+{$else FV_UNICODE}
      If (Str = CurString^) Then DeleteString;         { Delete duplicates }
+{$endif FV_UNICODE}
      AdvanceStringPtr;                                { Find next string }
    End;
    InsertString(Id, Str);                             { Add new history item }

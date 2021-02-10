@@ -164,6 +164,13 @@ begin
           AddInclude('platform.inc');
           AddUnit('fvcommon');
         end;
+    T:=P.Targets.AddUnit('uhistlist.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('histlist.inc');
+          AddInclude('platform.inc');
+          AddUnit('fvcommon');
+        end;
     T:=P.Targets.AddUnit('inplong.pas');
       with T.Dependencies do
         begin
