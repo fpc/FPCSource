@@ -16191,6 +16191,7 @@ tests/test/units/nullable/tnull.pp svneol=native#text/plain
 tests/test/units/objects/testobj.pp svneol=native#text/plain
 tests/test/units/objects/testobj1.pp svneol=native#text/plain
 tests/test/units/objects/testobj2.pp svneol=native#text/plain
+tests/test/units/objects/testobj3.pp svneol=native#text/plain
 tests/test/units/rtl-generics/tw35877.pp svneol=native#text/plain
 tests/test/units/sharemem/libtest.pp svneol=native#text/plain
 tests/test/units/sharemem/test1.pp svneol=native#text/plain
