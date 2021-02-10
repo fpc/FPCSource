@@ -39,6 +39,7 @@ begin
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do
         begin
+          AddInclude('app.inc');
           AddInclude('platform.inc');
           AddUnit('fvcommon');
           AddUnit('drivers');
@@ -99,6 +100,7 @@ begin
     T:=P.Targets.AddUnit('dialogs.pas');
       with T.Dependencies do
         begin
+          AddInclude('dialogs.inc');
           AddInclude('platform.inc');
           AddUnit('fvcommon');
           AddUnit('fvconsts');
@@ -208,6 +210,7 @@ begin
     T:=P.Targets.AddUnit('msgbox.pas');
       with T.Dependencies do
         begin
+          AddInclude('msgbox.inc');
           AddInclude('platform.inc');
           AddUnit('dialogs');
           AddUnit('drivers');
@@ -291,6 +294,7 @@ begin
     T:=P.Targets.AddUnit('validate.pas');
       with T.Dependencies do
         begin
+          AddInclude('validate.inc');
           AddInclude('platform.inc');
           AddUnit('fvcommon');
           AddUnit('fvconsts');
