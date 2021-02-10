@@ -1527,10 +1527,19 @@ BEGIN
    If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
      If (Validator = Nil) OR (Validator^.Transfer(Data Sw_PString_DeRef,
      @Rec, vtGetData) = 0) Then Begin                 { No validator/data }
+{$ifdef FV_UNICODE}
+       Sw_String(Rec):=Data;
+{$else FV_UNICODE}
        FillChar(Rec, DataSize, #0);                   { Clear the data area }
-       Move(Data Sw_PString_DeRef, Rec, SizeOf(Sw_Char)*(Length(Data Sw_PString_DeRef) + 1));           { Transfer our data }
+       Move(Data^, Rec, Length(Data^) + 1);           { Transfer our data }
+{$endif FV_UNICODE}
      End;
-   End Else FillChar(Rec, DataSize, #0);              { Clear the data area }
+   End Else
+{$ifdef FV_UNICODE}
+     Sw_String(Rec):='';
+{$else FV_UNICODE}
+     FillChar(Rec, DataSize, #0);              { Clear the data area }
+{$endif FV_UNICODE}
 END;
 
 {--TInputLine---------------------------------------------------------------}
@@ -1541,7 +1550,11 @@ BEGIN
    If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
      If (Validator = Nil) OR (Validator^.Transfer(
        Data Sw_PString_DeRef, @Rec, vtSetData) = 0) Then              { No validator/data }
-       Move(Rec, Data Sw_PString_DeRef[0], DataSize);                 { Set our data }
+{$ifdef FV_UNICODE}
+       Data := Sw_String(Rec);
+{$else FV_UNICODE}
+       Move(Rec, Data^[0], DataSize);                 { Set our data }
+{$endif FV_UNICODE}
    End;
    SelectAll(True);                                   { Now select all }
 END;
