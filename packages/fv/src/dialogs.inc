@@ -2933,10 +2933,10 @@ end;
 {--TStaticText--------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TStaticText.Init (Var Bounds: TRect; Const AText: String);
+CONSTRUCTOR TStaticText.Init (Var Bounds: TRect; Const AText: Sw_String);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
-   Text := NewStr(AText);                             { Create string ptr }
+   Text := Sw_NewStr(AText);                          { Create string ptr }
 END;
 
 {--TStaticText--------------------------------------------------------------}
@@ -2945,7 +2945,11 @@ END;
 CONSTRUCTOR TStaticText.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
+{$ifdef FV_UNICODE}
+   Text := S.ReadUnicodeString;                       { Read text string }
+{$else FV_UNICODE}
    Text := S.ReadStr;                                 { Read text string }
+{$endif FV_UNICODE}
 END;
 
 {--TStaticText--------------------------------------------------------------}
@@ -2953,7 +2957,9 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TStaticText.Done;
 BEGIN
+{$ifndef FV_UNICODE}
    If (Text <> Nil) Then DisposeStr(Text);            { Dispose string }
+{$endif FV_UNICODE}
    Inherited Done;                                    { Call ancestor }
 END;
 
@@ -2970,7 +2976,7 @@ END;
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TStaticText.Draw;
-VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S: String;
+VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S: Sw_String;
   B : TDrawBuffer;
   Color : Byte;
 BEGIN
@@ -3025,16 +3031,24 @@ END;
 PROCEDURE TStaticText.Store (Var S: TStream);
 BEGIN
    TView.Store(S);                                    { Call TView store }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(Text);                        { Write text string }
+{$else FV_UNICODE}
    S.WriteStr(Text);                                  { Write text string }
+{$endif FV_UNICODE}
 END;
 
 {--TStaticText--------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TStaticText.GetText (Var S: String);
+PROCEDURE TStaticText.GetText (Var S: Sw_String);
 BEGIN
+{$ifdef FV_UNICODE}
+   S := Text;                                         { Copy text string }
+{$else FV_UNICODE}
    If (Text <> Nil) Then S := Text^                   { Copy text string }
      Else S := '';                                    { Return empty string }
+{$endif FV_UNICODE}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -3044,7 +3058,7 @@ END;
 {--TParamText---------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TParamText.Init (Var Bounds: TRect; Const AText: String;
+CONSTRUCTOR TParamText.Init (Var Bounds: TRect; Const AText: Sw_String;
   AParamCount: Sw_Integer);
 BEGIN
    Inherited Init(Bounds, AText);                     { Call ancestor }
@@ -3112,7 +3126,7 @@ END;
 {--TLabel-------------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TLabel.Init (Var Bounds: TRect; CONST AText: String; ALink: PView);
+CONSTRUCTOR TLabel.Init (Var Bounds: TRect; CONST AText: Sw_String; ALink: PView);
 BEGIN
    Inherited Init(Bounds, AText);                     { Call ancestor }
    Link := ALink;                                     { Hold link }
@@ -3152,9 +3166,13 @@ BEGIN
      SCOff := 4;                                      { Set offset }
    End;
    MoveChar(B[0], ' ', Byte(Color), Size.X);          { Clear the buffer }
-   If (Text <> Nil) Then MoveCStr(B[1], Text^, Color);{ Transfer label text }
-   If ShowMarkers Then WordRec(B[0]).Lo := Byte(
-     SpecialChars[SCOff]);                            { Show marker if req }
+   If (Text <> Sw_PString_Empty) Then MoveCStr(B[1], Text Sw_PString_DeRef, Color);{ Transfer label text }
+   If ShowMarkers Then
+{$ifdef FV_UNICODE}
+     B[0].ExtendedGraphemeCluster := SpecialChars[SCOff];  { Show marker if req }
+{$else FV_UNICODE}
+     WordRec(B[0]).Lo := Byte(SpecialChars[SCOff]);   { Show marker if req }
+{$endif FV_UNICODE}
    WriteLine(0, 0, Size.X, 1, B);                     { Write the text }
 END;
 
