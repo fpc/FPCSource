@@ -2025,7 +2025,11 @@ END;
 PROCEDURE TButton.Store (Var S: TStream);
 BEGIN
    TView.Store(S);                                    { Implict TView.Store }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(Title);                       { Store title string }
+{$else FV_UNICODE}
    S.WriteStr(Title);                                 { Store title string }
+{$endif FV_UNICODE}
    S.Write(Command, SizeOf(Command));                 { Store command }
    S.Write(Flags, SizeOf(Flags));                     { Store flags }
    S.Write(AmDefault, SizeOf(AmDefault));             { Store default flag }
@@ -2072,7 +2076,7 @@ BEGIN
        ClearEvent(Event);                             { Event was handled }
      End;
      evKeyDown: Begin
-       If (Title <> Nil) Then C := HotKey(Title^)     { Key title hotkey }
+       If Title <> Sw_PString_Empty Then C := HotKey(Title Sw_PString_DeRef)     { Key title hotkey }
          Else C := #0;                                { Invalid title }
        If (Event.KeyCode = GetAltCode(C)) OR          { Alt char }
        (Owner^.Phase = phPostProcess) AND (C <> #0)
