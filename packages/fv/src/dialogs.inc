@@ -3113,10 +3113,10 @@ END;
 {--TParamText---------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TParamText.GetText (Var S: String);
+PROCEDURE TParamText.GetText (Var S: Sw_String);
 BEGIN
-   If (Text = Nil) Then S := '' Else                  { Return empty string }
-     FormatStr(S, Text^, ParamList^);                 { Return text string }
+   If (Text = Sw_PString_Empty) Then S := '' Else     { Return empty string }
+     FormatStr(S, Text Sw_PString_DeRef, ParamList^);  { Return text string }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
