@@ -1298,7 +1298,7 @@ end;
 {****************************************************************************}
 { TDialog.NewLabel                                                           }
 {****************************************************************************}
-function TDialog.NewLabel (X, Y : Sw_Integer; AText : String;
+function TDialog.NewLabel (X, Y : Sw_Integer; AText : Sw_String;
                               ALink : PView) : PLabel;
 var
   P : PLabel;
