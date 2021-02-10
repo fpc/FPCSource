@@ -122,7 +122,11 @@ CONST
                                                       { Standard OK, Cancel dialog }
 
 var
+{$ifdef FV_UNICODE}
+  MsgBoxTitles: array[0..3] of UnicodeString;
+{$else FV_UNICODE}
   MsgBoxTitles: array[0..3] of string[40];
+{$endif FV_UNICODE}
 
 
 {***************************************************************************}
@@ -141,7 +145,7 @@ Before the dialog is displayed the Msg and Params are passed to FormatStr.
 The resulting string is displayed as a TStaticText view in the dialog.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-FUNCTION MessageBox (Const Msg: String; Params: Pointer;
+FUNCTION MessageBox (Const Msg: Sw_String; Params: Pointer;
   AOptions: Word): Word;
 
 {-MessageBoxRect-----------------------------------------------------
@@ -149,29 +153,29 @@ MessageBoxRec allows the specification of a TRect for the message box
 to occupy.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-FUNCTION MessageBoxRect (Var R: TRect; Const Msg: String; Params: Pointer;
+FUNCTION MessageBoxRect (Var R: TRect; Const Msg: Sw_String; Params: Pointer;
   AOptions: Word): Word;
 
 {-MessageBoxRectDlg--------------------------------------------------
 MessageBoxRecDlg allows the specification of a TRect for the message box
 to occupy plus the dialog window (to allow different dialog window types).
 ---------------------------------------------------------------------}
-FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: String;
+FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: Sw_String;
   Params: Pointer; AOptions: Word): Word;
 
 {-InputBox-----------------------------------------------------------
 InputBox displays a simple dialog that allows user to type in a string
 30Sep99 LdB
 ---------------------------------------------------------------------}
-FUNCTION InputBox (Const Title, ALabel: String; Var S: String;
+FUNCTION InputBox (Const Title, ALabel: Sw_String; Var S: Sw_String;
   Limit: Byte): Word;
 
 {-InputBoxRect-------------------------------------------------------
 InputBoxRect is like InputBox but allows the specification of a rectangle.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: String;
-  Var S: String; Limit: Byte): Word;
+FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: Sw_String;
+  Var S: Sw_String; Limit: Byte): Word;
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
