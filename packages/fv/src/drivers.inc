@@ -581,7 +581,7 @@ specifiers and a list of parameters in Params, FormatStr produces a
 formatted output string in Result.
 18Feb99 LdB
 ---------------------------------------------------------------------}
-PROCEDURE FormatStr (Var Result: String; CONST Format: String; Var Params);
+PROCEDURE FormatStr (Var Result: Sw_String; CONST Format: Sw_String; Var Params);
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                 >> NEW QUEUED EVENT HANDLER ROUTINES <<                   }
@@ -1553,17 +1553,17 @@ END;
 {---------------------------------------------------------------------------}
 {  FormatStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 13Jul99 LdB         }
 {---------------------------------------------------------------------------}
-procedure FormatStr (Var Result: String; CONST Format: String; Var Params);
+procedure FormatStr (Var Result: Sw_String; CONST Format: Sw_String; Var Params);
 TYPE TLongArray = Array[0..0] Of PtrInt;
 VAR W, ResultLength : SmallInt;
     FormatIndex, Justify, Wth: Byte;
-    Fill: Char; S: String;
+    Fill: Char; S: Sw_String;
 
-   FUNCTION LongToStr (L: Longint; Radix: Byte): String;
+   FUNCTION LongToStr (L: Longint; Radix: Byte): Sw_String;
    CONST HexChars: Array[0..15] Of Char =
     ('0', '1', '2', '3', '4', '5', '6', '7',
      '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
-   VAR I: LongInt; S: String; Sign: String[1];
+   VAR I: LongInt; S: Sw_String; Sign: String[1];
    begin
      LongToStr := '';                                 { Preset empty return }
      If (L < 0) Then begin                            { If L is negative }
@@ -1582,11 +1582,16 @@ VAR W, ResultLength : SmallInt;
    procedure HandleParameter (I : LongInt);
    begin
      While (FormatIndex <= Length(Format)) Do begin   { While length valid }
+{$ifndef FV_UNICODE}
        if ResultLength>=High(Result) then
          exit;
+{$endif FV_UNICODE}
        While (FormatIndex <= Length(Format)) and
              (Format[FormatIndex] <> '%')          { Param char not found }
         Do begin
+{$ifdef FV_UNICODE}
+         SetLength(Result,ResultLength+1);
+{$endif FV_UNICODE}
          Result[ResultLength+1] := Format[FormatIndex]; { Transfer character }
          Inc(ResultLength);                           { One character added }
          Inc(FormatIndex);                            { Next param char }
@@ -1620,7 +1625,12 @@ VAR W, ResultLength : SmallInt;
            '%': begin                               { Literal % }
              S := '%';
              Inc(FormatIndex);
+{$ifdef FV_UNICODE}
+             SetLength(Result,ResultLength+Length(S));
+             Move(S[1], Result[ResultLength+1], 2);
+{$else FV_UNICODE}
              Move(S[1], Result[ResultLength+1], 1);
+{$endif FV_UNICODE}
              Inc(ResultLength,Length(S));
              Continue;
            end;
@@ -1646,10 +1656,16 @@ VAR W, ResultLength : SmallInt;
              end;
            end;
            W:=Length(S);
+{$ifdef FV_UNICODE}
+           SetLength(Result,ResultLength+W);
+           Move(S[1], Result[ResultLength+1],
+             2*W);                                    { Move data to result }
+{$else FV_UNICODE}
            if W+ResultLength+1>High(Result) then
              W:=High(Result)-ResultLength;
            Move(S[1], Result[ResultLength+1],
              W);                                      { Move data to result }
+{$endif FV_UNICODE}
            Inc(ResultLength,W);                       { Adj result length }
            Inc(I);
          end;
@@ -1661,7 +1677,9 @@ begin
    ResultLength := 0;                                 { Zero result length }
    FormatIndex := 1;                                  { Format index to 1 }
    HandleParameter(0);                                { Handle parameter }
+{$ifndef FV_UNICODE}
    Result[0] := Chr(ResultLength);                    { Set string length }
+{$endif FV_UNICODE}
 end;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}

@@ -195,7 +195,11 @@ const
   Commands: array[0..3] of word =
     (cmYes, cmNo, cmOK, cmCancel);
 var
+{$ifdef FV_UNICODE}
+  ButtonName: array[0..3] of Sw_String;
+{$else FV_UNICODE}
   ButtonName: array[0..3] of string[40];
+{$endif FV_UNICODE}
 
 resourcestring  sConfirm='Confirm';
                 sError='Error';
@@ -206,7 +210,7 @@ resourcestring  sConfirm='Confirm';
 {---------------------------------------------------------------------------}
 {  MessageBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION MessageBox(Const Msg: String; Params: Pointer; AOptions: Word): Word;
+FUNCTION MessageBox(Const Msg: Sw_String; Params: Pointer; AOptions: Word): Word;
 VAR R: TRect;
 BEGIN
    R.Assign(0, 0, 40, 9);                             { Assign area }
@@ -219,9 +223,9 @@ BEGIN
      AOptions);                                       { Create message box }
 END;
 
-FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: String;
+FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: Sw_String;
   Params: Pointer; AOptions: Word): Word;
-VAR I, X, ButtonCount: SmallInt; S: String; Control: PView;
+VAR I, X, ButtonCount: SmallInt; S: Sw_String; Control: PView;
     ButtonList: Array[0..4] Of PView;
 BEGIN
    With Dlg^ Do Begin
@@ -258,7 +262,7 @@ end;
 {---------------------------------------------------------------------------}
 {  MessageBoxRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB    }
 {---------------------------------------------------------------------------}
-FUNCTION MessageBoxRect(Var R: TRect; Const Msg: String; Params: Pointer;
+FUNCTION MessageBoxRect(Var R: TRect; Const Msg: Sw_String; Params: Pointer;
   AOptions: Word): Word;
 var
   Dialog: PDialog;
@@ -274,7 +278,7 @@ END;
 {---------------------------------------------------------------------------}
 {  InputBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION InputBox(Const Title, ALabel: String; Var S: String;
+FUNCTION InputBox(Const Title, ALabel: Sw_String; Var S: Sw_String;
   Limit: Byte): Word;
 VAR R: TRect;
 BEGIN
@@ -288,8 +292,8 @@ END;
 {---------------------------------------------------------------------------}
 {  InputBoxRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION InputBoxRect(Var Bounds: TRect; Const Title, ALabel: String;
-  Var S: String; Limit: Byte): Word;
+FUNCTION InputBoxRect(Var Bounds: TRect; Const Title, ALabel: Sw_String;
+  Var S: Sw_String; Limit: Byte): Word;
 VAR C: Word; R: TRect; Control: PView; Dialog: PDialog;
 BEGIN
    Dialog := New(PDialog, Init(Bounds, Title));       { Create dialog }
