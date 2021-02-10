@@ -1349,9 +1349,13 @@ BEGIN
    S.Read(W, sizeof(w)); SelStart:=w;                 { Read selected start }
    S.Read(W, sizeof(w)); SelEnd:=w;                   { Read selected end }
    S.Read(B, SizeOf(B));                              { Read string length }
+{$ifdef FV_UNICODE}
+   Data:=S.ReadUnicodeString;
+{$else FV_UNICODE}
    GetMem(Data, B + 1);                        { Allocate memory }
    S.Read(Data^[1], B);                             { Read string data }
    SetLength(Data^, B);                             { Xfer string length }
+{$endif FV_UNICODE}
    If (Options AND ofVersion >= ofVersion20) Then     { Version 2 or above }
      Validator := PValidator(S.Get);                  { Get any validator }
    Options := Options OR ofVersion20;                 { Set version 2 flag }
@@ -1362,7 +1366,9 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TInputLine.Done;
 BEGIN
+{$ifndef FV_UNICODE}
    If (Data <> Nil) Then FreeMem(Data, MaxLen + 1);    { Release any memory }
+{$endif FV_UNICODE}
    SetValidator(Nil);                                  { Clear any validator }
    Inherited Done;                                     { Call ancestor }
 END;
@@ -1546,7 +1552,11 @@ BEGIN
    w:=FirstPos;S.Write(w, SizeOf(w));                 { Read first position }
    w:=SelStart;S.Write(w, SizeOf(w));                 { Read selected start }
    w:=SelEnd;S.Write(w, SizeOf(w));                   { Read selected end }
+{$ifdef FV_UNICODE}
+   S.WriteUnicodeString(Data);                        { Write the data }
+{$else FV_UNICODE}
    S.WriteStr(Data);                                  { Write the data }
+{$endif FV_UNICODE}
    S.Put(Validator);                                  { Write any validator }
 END;
 
