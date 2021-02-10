@@ -67,7 +67,12 @@ USES
      OS2Def, DosCalls, PMWIN,                         { Standard units }
    {$ENDIF}
 
-   FVCommon, FVConsts, Objects,                       { Standard GFV units }
+{$ifdef FV_UNICODE}
+   UFVCommon,
+{$else FV_UNICODE}
+   FVCommon,
+{$endif FV_UNICODE}
+   FVConsts, Objects,                       { Standard GFV units }
 {$ifdef FV_UNICODE}
    UDrivers, UViews, UValidate;
 {$else FV_UNICODE}

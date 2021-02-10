@@ -131,7 +131,7 @@ begin
         begin
           AddInclude('dialogs.inc');
           AddInclude('platform.inc');
-          AddUnit('fvcommon');
+          AddUnit('ufvcommon');
           AddUnit('fvconsts');
           AddUnit('udrivers');
           AddUnit('uviews');
