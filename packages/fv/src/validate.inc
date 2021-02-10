@@ -387,7 +387,7 @@ END;
 {--TValidator---------------------------------------------------------------}
 {  Valid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB             }
 {---------------------------------------------------------------------------}
-FUNCTION TValidator.Valid (Const S: String): Boolean;
+FUNCTION TValidator.Valid (Const S: Sw_String): Boolean;
 BEGIN
    Valid := False;                                    { Preset false result }
    If Not IsValid(S) Then Error                       { Check for error }
@@ -397,7 +397,7 @@ END;
 {--TValidator---------------------------------------------------------------}
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TValidator.IsValid (Const S: String): Boolean;
+FUNCTION TValidator.IsValid (Const S: Sw_String): Boolean;
 BEGIN
    IsValid := True;                                   { Default return valid }
 END;
@@ -405,7 +405,7 @@ END;
 {--TValidator---------------------------------------------------------------}
 {  IsValidInput -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION TValidator.IsValidInput (Var S: String; SuppressFill: Boolean): Boolean;
+FUNCTION TValidator.IsValidInput (Var S: Sw_String; SuppressFill: Boolean): Boolean;
 BEGIN
    IsValidInput := True;                              { Default return true }
 END;
@@ -413,7 +413,7 @@ END;
 {--TValidator---------------------------------------------------------------}
 {  Transfer -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TValidator.Transfer (Var S: String; Buffer: Pointer;
+FUNCTION TValidator.Transfer (Var S: Sw_String; Buffer: Pointer;
   Flag: TVTransfer): Word;
 BEGIN
    Transfer := 0;                                     { Default return zero }
@@ -441,11 +441,11 @@ END;
 {--TPXPictureValidator------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TPXPictureValidator.Init (Const APic: String; AutoFill: Boolean);
-VAR S: String;
+CONSTRUCTOR TPXPictureValidator.Init (Const APic: Sw_String; AutoFill: Boolean);
+VAR S: Sw_String;
 BEGIN
    Inherited Init;                                    { Call ancestor }
-   Pic := NewStr(APic);                               { Hold filename }
+   Pic := Sw_NewStr(APic);                            { Hold filename }
    Options := voOnAppend;                             { Preset option mask }
    If AutoFill Then Options := Options OR voFill;     { Check/set fill mask }
    S := '';                                           { Create empty string }
@@ -459,7 +459,11 @@ END;
 CONSTRUCTOR TPXPictureValidator.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
+{$ifdef FV_UNICODE}
+   Pic := S.ReadUnicodeString;                        { Read filename }
+{$else FV_UNICODE}
    Pic := S.ReadStr;                                  { Read filename }
+{$endif FV_UNICODE}
 END;
 
 {--TPXPictureValidator------------------------------------------------------}
@@ -467,15 +471,17 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TPXPictureValidator.Done;
 BEGIN
+{$ifndef FV_UNICODE}
    If (Pic <> Nil) Then DisposeStr(Pic);              { Dispose of filename }
+{$endif FV_UNICODE}
    Inherited Done;                                    { Call ancestor }
 END;
 
 {--TPXPictureValidator------------------------------------------------------}
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TPXPictureValidator.IsValid (Const S: String): Boolean;
-VAR Str: String; Rslt: TPicResult;
+FUNCTION TPXPictureValidator.IsValid (Const S: Sw_String): Boolean;
+VAR Str: Sw_String; Rslt: TPicResult;
 BEGIN
    Str := S;                                          { Transfer string }
    Rslt := Picture(Str, False);                       { Check for picture }
@@ -486,7 +492,7 @@ END;
 {--TPXPictureValidator------------------------------------------------------}
 {  IsValidInput -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION TPXPictureValidator.IsValidInput (Var S: String;
+FUNCTION TPXPictureValidator.IsValidInput (Var S: Sw_String;
   SuppressFill: Boolean): Boolean;
 BEGIN
    IsValidInput := (Pic = Nil) OR (Picture(S,
@@ -497,7 +503,7 @@ END;
 {--TPXPictureValidator------------------------------------------------------}
 {  Picture -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TPXPictureValidator.Picture (Var Input: String; AutoFill: Boolean): TPicResult;
+FUNCTION TPXPictureValidator.Picture (Var Input: Sw_String; AutoFill: Boolean): TPicResult;
 VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
 
    FUNCTION Process (TermCh: Byte): TPicResult;
@@ -790,7 +796,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TPXPictureValidator.Error;
 CONST PXErrMsg = 'Input does not conform to picture:';
-VAR S: String;
+VAR S: Sw_String;
 BEGIN
    If (Pic <> Nil) Then S := Pic^ Else S := 'No name';{ Transfer filename }
    MessageBox(PxErrMsg + #13' %s', @S,  mfError OR
@@ -803,7 +809,11 @@ END;
 PROCEDURE TPXPictureValidator.Store (Var S: TStream);
 BEGIN
   TValidator.Store(S);                                { TValidator.store call }
+{$ifdef FV_UNICODE}
+  S.WriteUnicodeString(Pic);                          { Write filename }
+{$else FV_UNICODE}
   S.WriteStr(Pic);                                    { Write filename }
+{$endif FV_UNICODE}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -831,7 +841,7 @@ END;
 {--TFilterValidator---------------------------------------------------------}
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TFilterValidator.IsValid (Const S: String): Boolean;
+FUNCTION TFilterValidator.IsValid (Const S: Sw_String): Boolean;
 VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
@@ -843,7 +853,7 @@ END;
 {--TFilterValidator---------------------------------------------------------}
 {  IsValidInput -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION TFilterValidator.IsValidInput (Var S: String; SuppressFill: Boolean): Boolean;
+FUNCTION TFilterValidator.IsValidInput (Var S: Sw_String; SuppressFill: Boolean): Boolean;
 VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
@@ -899,7 +909,7 @@ END;
 {--TRangeValidator----------------------------------------------------------}
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TRangeValidator.IsValid (Const S: String): Boolean;
+FUNCTION TRangeValidator.IsValid (Const S: Sw_String): Boolean;
 VAR Value: LongInt; Code: Sw_Integer;
 BEGIN
    IsValid := False;                                  { Preset false result }
@@ -913,7 +923,7 @@ END;
 {--TRangeValidator----------------------------------------------------------}
 {  Transfer -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TRangeValidator.Transfer (Var S: String; Buffer: Pointer; Flag: TVTransfer): Word;
+FUNCTION TRangeValidator.Transfer (Var S: Sw_String; Buffer: Pointer; Flag: TVTransfer): Word;
 VAR Value: LongInt; Code: Sw_Integer;
 BEGIN
    If (Options AND voTransfer <> 0) Then Begin        { Tranfer mask set }
@@ -958,7 +968,7 @@ END;
 {--TLookUpValidator---------------------------------------------------------}
 {  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TLookUpValidator.IsValid (Const S: String): Boolean;
+FUNCTION TLookUpValidator.IsValid (Const S: Sw_String): Boolean;
 BEGIN
    IsValid := LookUp(S);                              { Check for string }
 END;
@@ -966,7 +976,7 @@ END;
 {--TLookUpValidator---------------------------------------------------------}
 {  LookUp -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION TLookupValidator.Lookup (Const S: String): Boolean;
+FUNCTION TLookupValidator.Lookup (Const S: Sw_String): Boolean;
 BEGIN
    Lookup := True;                                    { Default return true }
 END;
@@ -1005,7 +1015,7 @@ END;
 {--TStringLookUpValidator---------------------------------------------------}
 {  Lookup -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION TStringLookUpValidator.Lookup (Const S: String): Boolean;
+FUNCTION TStringLookUpValidator.Lookup (Const S: Sw_String): Boolean;
 {$IFDEF PPC_VIRTUAL} VAR Index: LongInt; {$ELSE} VAR Index: sw_Integer; {$ENDIF}
 BEGIN
    Lookup := False;                                   { Preset false return }
