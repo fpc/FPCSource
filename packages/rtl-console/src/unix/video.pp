@@ -503,19 +503,9 @@ end;
 
 
 procedure UpdateTTY(Force:boolean);
-type
-  tchattr=packed record
-{$ifdef ENDIAN_LITTLE}
-    ch : char;
-    attr : byte;
-{$else}
-    attr : byte;
-    ch : char;
-{$endif}
-  end;
 var
   outbuf   : array[0..1023+255] of char;
-  chattr   : tchattr;
+  chattr   : tenhancedvideocell;
   skipped  : boolean;
   outptr,
   spaces,
@@ -524,7 +514,7 @@ var
   LastX,LastY,
   SpaceAttr,
   LastAttr : longint;
-  p,pold   : pvideocell;
+  p,pold   : penhancedvideocell;
   LastLineWidth : Longint;
 
   function transform_cp437_to_iso01(const st:string):string;
@@ -653,10 +643,10 @@ var
     transform_cp437_to_UTF8 := Utf8Encode(s);  
   end;
   
-  function transform(const hstr:string):string;
+  function transform(const hstr:UnicodeString):Utf8String;
 
   begin
-    case convert of
+{    case convert of
       cv_linuxlowascii_to_vga:
         transform:=transform_linuxlowascii_to_vga(hstr);
       cv_cp437_to_iso01:
@@ -665,12 +655,12 @@ var
         transform:=transform_cp850_to_iso01(hstr);
       cv_cp437_to_UTF8:
       	transform:=transform_cp437_to_UTF8(hstr);
-      else
-        transform:=hstr;
-    end;
+      else}
+        transform:=Utf8Encode(hstr);
+{    end;}
   end;
 
-  procedure outdata(hstr:string);
+  procedure outdata(hstr:rawbytestring);
 
   begin
    If Length(HStr)>0 Then
@@ -744,8 +734,8 @@ begin
   OutPtr:=0;
   Eol:=0;
   skipped:=true;
-  p:=PVideoCell(VideoBuf);
-  pold:=PVideoCell(OldVideoBuf);
+  p:=PEnhancedVideoCell(@EnhancedVideoBuf[0]);
+  pold:=PEnhancedVideoCell(@OldEnhancedVideoBuf[0]);
 { init Attr, X,Y and set autowrap off }
   SendEscapeSeq(#27'[0;40;37m'#27'[?7l'{#27'[H'} );
 //  1.0.x: SendEscapeSeq(#27'[m'{#27'[H'});
@@ -776,19 +766,19 @@ begin
               LastY:=y;
               skipped:=false;
             end;
-           chattr:=tchattr(p^);
+           chattr:=p^;
 {           if chattr.ch in [#0,#255] then
             chattr.ch:=' ';}
-           if chattr.ch=' ' then
+           if chattr.ExtendedGraphemeCluster=' ' then
             begin
               if Spaces=0 then
-               SpaceAttr:=chattr.Attr;
-              if (chattr.attr and $f0)=(spaceattr and $f0) then
-               chattr.Attr:=SpaceAttr
+               SpaceAttr:=chattr.Attribute;
+              if (chattr.Attribute and $f0)=(spaceattr and $f0) then
+               chattr.Attribute:=SpaceAttr
               else
                begin
                  OutSpaces;
-                 SpaceAttr:=chattr.Attr;
+                 SpaceAttr:=chattr.Attribute;
                end;
               inc(Spaces);
             end
@@ -801,13 +791,13 @@ begin
                   Chattr.Attr:= $ff xor Chattr.Attr;
                   ChAttr.ch:=chr(ord(chattr.ch)+ord('A')-1);
                 end;}
-              if LastAttr<>chattr.Attr then
-               OutClr(chattr.Attr);
-              OutData(transform(chattr.ch));
+              if LastAttr<>chattr.Attribute then
+               OutClr(chattr.Attribute);
+              OutData(transform(chattr.ExtendedGraphemeCluster));
               LastX:=x+1;
               LastY:=y;
             end;
-           p^:=tvideocell(chattr);
+           p^:=chattr;
          end;
         inc(p);
         inc(pold);
@@ -826,19 +816,19 @@ begin
     OutData(XY2Ansi(ScreenWidth,ScreenHeight,LastX,LastY));
     OutData(#8);
     {Output last char}
-    chattr:=tchattr(p[1]);
-    if LastAttr<>chattr.Attr then
-     OutClr(chattr.Attr);
-    OutData(transform(chattr.ch));
+    chattr:=p[1];
+    if LastAttr<>chattr.Attribute then
+     OutClr(chattr.Attribute);
+    OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
 //    OutData(XY2Ansi(ScreenWidth-1,ScreenHeight,LastX,LastY));
 //   OutData(GetTermString(Insert_character));
     OutData(#8+#27+'[1@');
 
-    chattr:=tchattr(p^);
-    if LastAttr<>chattr.Attr then
-     OutClr(chattr.Attr);
-    OutData(transform(chattr.ch));
+    chattr:=p^;
+    if LastAttr<>chattr.Attribute then
+     OutClr(chattr.Attribute);
+    OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
    end;
   OutData(XY2Ansi(CursorX+1,CursorY+1,LastX,LastY));
@@ -1267,6 +1257,8 @@ end;
 
 
 procedure SysUpdateScreen(Force: Boolean);
+var
+  I: Integer;
 begin
 {$ifdef linux}
   if console=ttylinux then
@@ -1274,7 +1266,8 @@ begin
   else
 {$endif}
     updateTTY(force);
-  move(VideoBuf^,OldVideoBuf^,VideoBufSize);
+  for I := Low(EnhancedVideoBuf) to High(EnhancedVideoBuf) do
+    OldEnhancedVideoBuf[I] := EnhancedVideoBuf[I];
 end;
 
 
@@ -1352,8 +1345,8 @@ end;
 
 Const
   SysVideoDriver : TVideoDriver = (
-    InitDriver : @SysInitVideo;
-    InitEnhancedDriver: nil;
+    InitDriver : nil;
+    InitEnhancedDriver: @SysInitVideo;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
