@@ -5265,7 +5265,7 @@ implementation
 {$endif}
         if (typ=procdef) and
            (newtyp=procvardef) and
-           (owner.symtabletype=ObjectSymtable) then
+           (owner.symtabletype in [ObjectSymtable,recordsymtable]) then
           include(tprocvardef(result).procoptions,po_methodpointer);
       end;
 
@@ -6032,7 +6032,7 @@ implementation
       begin
         { don't check assigned(_class), that's also the case for nested
           procedures inside methods }
-        result:=(owner.symtabletype=ObjectSymtable)and not no_self_node;
+        result:=(owner.symtabletype in [recordsymtable,ObjectSymtable]) and not no_self_node;
       end;
 
 
