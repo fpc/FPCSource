@@ -3675,6 +3675,7 @@ begin
 
                   slHeader.Add('Program $$$OPCODE$$$;');
                   slHeader.Add('{$asmmode intel}');
+                  slHeader.Add('{$mode objfpc}{$H+}');
 
                   slHeader.Add('uses sysutils;');
 
@@ -3716,7 +3717,8 @@ begin
 
                   slHeader.Add('  write(Paramstr(0) + '': '');');
 
-                  slHeader.Add('  asm');
+                  slHeader.Add('  try');
+                  slHeader.Add('    asm');
 
                   slHeader.Add('      vpxord   zmm0,  zmm0,  zmm0');
                   slHeader.Add('      vpxord   xmm1,  xmm1,  xmm1');
@@ -3758,6 +3760,17 @@ begin
                    else slFooter.Add('        pop eax');
 
 
+                  slFooter.Add('    end;');
+                  slFooter.Add('  except');
+                  slFooter.Add('    on E: EInvalidOp do');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(''Error - Invalid Op: '' + E.Message);');
+                  slFooter.Add('      end;');
+
+                  slFooter.Add('    on E: Exception do');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(''Fehler: '' + E.Message);');
+                  slFooter.Add('      end;');
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
 
