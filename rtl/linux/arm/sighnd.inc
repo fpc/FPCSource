@@ -23,7 +23,7 @@ end;
 {$ifndef CPUTHUMB}
 Procedure SignalToHandleErrorAddrFrame_ARM(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
 asm
-{$if FPC_VERSION >= 30200}
+{$if FPC_FULLVERSION >= 30200}
 .code 32
 {$endif}
   // the address is of the faulting instruction, and sigreturn will
@@ -40,7 +40,7 @@ asm
 end;
 {$endif not CPUTHUMB}
 
-{$if FPC_VERSION >= 30200}
+{$if FPC_FULLVERSION >= 30200}
 Procedure SignalToHandleErrorAddrFrame_Thumb(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
 asm
 .thumb_func
@@ -57,6 +57,9 @@ asm
   mov lr, r0
   pop {r0,r1,r2,pc}
 .text
+{$ifndef CPUTHUMB}
+.code 32
+{$endif CPUTHUMB}
 end;
 {$endif}
 
@@ -98,7 +101,7 @@ begin
       ucontext^.uc_mcontext.arm_r0:=res;
       ucontext^.uc_mcontext.arm_r1:=uContext^.uc_mcontext.arm_pc;
       ucontext^.uc_mcontext.arm_r2:=uContext^.uc_mcontext.arm_fp;
-{$if FPC_VERSION >= 30200}
+{$if FPC_FULLVERSION >= 30200}
 {$ifndef CPUTHUMB}
       if (ucontext^.uc_mcontext.arm_cpsr and (1 shl 5))=0 then
         begin

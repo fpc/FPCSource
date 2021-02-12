@@ -24,10 +24,12 @@ procedure _start;
 implementation
 
 procedure PASCALMAIN; external 'PASCALMAIN';
+//procedure main; external 'main';
 
 procedure _start;
 begin
   PASCALMAIN;
+//  main;
 end;
 
 exports

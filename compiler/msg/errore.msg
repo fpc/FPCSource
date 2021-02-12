@@ -2079,6 +2079,9 @@ type_e_generic_const_type_not_allowed=04128_E_Type not allowed for generic const
 type_e_cant_read_write_type_in_iso_mode=04129_E_Can't read or write variables of this type in iso mode
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
+type_w_array_size_does_not_match_size_of_constant_string=04130_W_The length of the constant string (length is $1) must be equal to the number of array elements ($2 elements)
+% ISO Pascal requires that string constants have the same length as the array to which them they are assigned.
+%
 % \end{description}
 #
 # Symtable
@@ -2579,7 +2582,7 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 #
 # Assembler reader
 #
-# 07144 is the last used one
+# 07145 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2921,6 +2924,8 @@ asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be ge
 asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (expected: {$1} found: {$2})
 asmr_e_invalid_arrangement=07143_E_Invalid arrangement specifier "$1"
 asmr_e_a64_invalid_regset=07144_E_Registers in a register set must be consecutive.
+asmr_e_unknown_field=07145_E_Unknown field identifier
+% The internal assembler read cannot find the passed field identifier.
 #
 # Assembler/binary writers
 #

@@ -2213,7 +2213,7 @@ type
          else
            begin
              main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
-             main_procinfo.procdef.aliasnames.concat('PASCALMAIN');
+             //main_procinfo.procdef.aliasnames.concat('PASCALMAIN');
            end;
          main_procinfo.parse_body;
          { save file pos for debuginfo }
