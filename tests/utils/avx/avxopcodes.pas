@@ -3701,8 +3701,14 @@ begin
 
                   slHeader.Add('procedure writelnK7(aVal: dword);');
                   slHeader.Add('begin');
-                  slHeader.Add('  write(''K7: '' + ' + 'inttostr(aVal));');
+                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(aVal));');
                   slHeader.Add('end;');
+
+                  slHeader.Add('procedure writelnOK;');
+                  slHeader.Add('begin');
+                  slHeader.Add('  writeln('' OK '');');
+                  slHeader.Add('end;');
+
 
                   slHeader.Add('begin');
                   slHeader.Add('  for i := 0 to high(DataBlock) do');
@@ -3738,6 +3744,10 @@ begin
                   for i := 1 to 10 do
                    slFooter.Add('NOP');
 
+                  slFooter.Add('      call writelnOK');
+                  slFooter.Add('      jmp  @@END');
+
+
                   slFooter.Add('  @@CHECKRESULT:   ');
                   slFooter.Add('      kmovd  eax, k7');
                   slFooter.Add('      call writelnK7');
@@ -3749,7 +3759,6 @@ begin
 
 
                   slFooter.Add('  end;');
-                  slFooter.Add('  writeln(ParamStr(0));');
                   slFooter.Add('end.');
 
                 end;
