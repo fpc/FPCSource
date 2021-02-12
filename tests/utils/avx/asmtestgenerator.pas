@@ -3741,7 +3741,7 @@ var
     end;
   end;
 
-  function AsmCodeBlockCompare(aAsmCounter: integer): String;
+  function AsmCodeBlockCompare(aAsmCounter: integer; aIsKortestQ: boolean = false): String;
   var
     sReg: string;
   begin
@@ -3752,12 +3752,21 @@ var
        else sReg := 'EAX';
     end;
 
-    result := result + format('%20s%6s  ',             ['    push', sReg]) + #13#10 +
-                       format('%20s%6s,%s',            ['     mov', sReg, inttostr(aAsmCounter)]) + #13#10 +
-                       format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']) + #13#10 +
-                       format('%20s%6s',               ['     pop', sReg])        + #13#10 +
-                       format('%20s%6s, %s',           ['kortestb', 'K1', 'K2'])  + #13#10 +
-                       format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']) + #13#10 + #13#10;
+    with TStringList.Create do
+    try
+      Add(format('%20s%6s  ',             ['    push', sReg]));
+      Add(format('%20s%6s,%s',            ['     mov', sReg, inttostr(aAsmCounter)]));
+      Add(format('%20s%6s,%s',            ['   kmovd', 'K7', 'EAX']));
+      Add(format('%20s%6s',               ['     pop', sReg]));
+      if aIsKortestQ then Add(format('%20s%6s, %s',           ['kortestq', 'K1', 'K2']))
+       else Add(format('%20s%6s, %s',           ['kortestb', 'K1', 'K2']));
+
+      Add(format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']));
+
+      result := Text;
+    finally
+      Free;
+    end;
   end;
 
 begin
@@ -4583,13 +4592,7 @@ begin
               Item.OpTyp    := otKREG;
               Item.OpActive := true;
 
-              sSuffix := '';
-              if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
-
-              if UsePrefix then sl_Prefix := '';
-
-              for i := 0 to FRegKREG.Count - 1 do
-               Item.Values.Add(FRegKREG[i] + sSuffix);
+              Item.Values.Add('K1');
             end
             else if trim(sl_Operand) = '' then
             begin
@@ -4931,13 +4934,12 @@ begin
 
                         inc(iAsmCounter);
                         case OpMode of
-                            omKXM: begin
-                                     result.Add(format('%20s%6s,%6s, %s + $2000', [aInst, OItem1.Values[il_Op1], 'XMM1', OItem3.Values[il_Op3] ]));
+                            omKXM,
+                            omKYM,
+                            omKZM: begin
+                                     result.Add(format('%20s%6s,%6s, %s + $2000', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
 
-                                     // TODO
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['vpcmpeqb', 'K2', OItem1.Values[il_Op1], 'XMM1']));
-                                     //result.Add(format('%20s%6s,%6s, %s',       ['kandq', 'K1', 'K1', 'K2']));
-                                     result.Add('');
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter, true));
                                    end;
                           omXB32I,
                           omXB64I: begin
