@@ -210,7 +210,7 @@ implementation
                   //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_srq_real called!: left was cfpuregister!')));
                   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                   location.loc := LOC_FPUREGISTER;
-                  cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+                  cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
                 end;
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
             end;
@@ -296,7 +296,7 @@ implementation
                   begin
                     hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+                    cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
                   end;
@@ -306,7 +306,7 @@ implementation
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                     href:=left.location.reference;
                     tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,OS_NO,href,location.register);
+                    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,href,location.register);
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
                   end;

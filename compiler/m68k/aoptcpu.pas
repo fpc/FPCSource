@@ -154,26 +154,30 @@ unit aoptcpu;
               opstr:=opname(p);
               case taicpu(p).oper[0]^.typ of
                 top_reg:
-                  begin
-                    {  move %reg0, %tmpreg; move %tmpreg, <ea> -> move %reg0, <ea> }
-                    taicpu(p).loadOper(1,taicpu(next).oper[1]^);
-                    asml.remove(next);
-                    next.free;
-                    result:=true;
-                    { also remove leftover move %reg0, %reg0, which can occur as the result
-                      of the previous optimization, if %reg0 and %tmpreg was different types
-                      (addr vs. data), so these moves were left in by the cg }
-                    if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
-                      begin
-                        DebugMsg('Optimizer: '+opstr+' + '+opstr+' removed',p);
-			GetNextInstruction(p,next);
-                        asml.remove(p);
-                        p.free;
-			p:=next;
-                      end
-                    else
-                      DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #1',p)
-                  end;
+                  { do not optimize away FPU to INT to FPU reg moves. These are used for 
+                    to-single-rounding on FPUs which have no FSMOVE/FDMOVE. (KB) }
+                  if not ((taicpu(p).opcode = A_FMOVE) and
+                    (getregtype(taicpu(p).oper[0]^.reg) <> getregtype(taicpu(p).oper[1]^.reg))) then
+                    begin
+                      {  move %reg0, %tmpreg; move %tmpreg, <ea> -> move %reg0, <ea> }
+                      taicpu(p).loadOper(1,taicpu(next).oper[1]^);
+                      asml.remove(next);
+                      next.free;
+                      result:=true;
+                      { also remove leftover move %reg0, %reg0, which can occur as the result
+                        of the previous optimization, if %reg0 and %tmpreg was different types
+                        (addr vs. data), so these moves were left in by the cg }
+                      if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+                        begin
+                          DebugMsg('Optimizer: '+opstr+' + '+opstr+' removed',p);
+                          GetNextInstruction(p,next);
+                          asml.remove(p);
+                          p.free;
+                          p:=next;
+                        end
+                      else
+                        DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #1',p)
+                    end;
                 top_const:
                   begin
                     // DebugMsg('Optimizer: '+opstr+' + '+opstr+' to '+opstr+' #2',p);
@@ -271,10 +275,10 @@ unit aoptcpu;
                    (taicpu(p).oper[0]^.ref^.offset = 0) then
                   begin
                     DebugMsg('Optimizer: LEA 0(Ax),Ax removed',p);
-		    GetNextInstruction(p,next);
+                    GetNextInstruction(p,next);
                     asml.remove(p);
                     p.free;
-		    p:=next;
+                    p:=next;
                     result:=true;
                   end;
               { Address register sub/add can be replaced with ADDQ/SUBQ or LEA if the value is in the
