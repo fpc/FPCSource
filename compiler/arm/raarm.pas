@@ -43,13 +43,21 @@ unit raarm;
   implementation
 
     uses
+      globals,
+      cpuinfo,
       aasmcpu;
 
     function TARMInstruction.ConcatInstruction(p:TAsmList) : tai;
       begin
         result:=inherited ConcatInstruction(p);
         (result as taicpu).oppostfix:=oppostfix;
-        (result as taicpu).wideformat:=wideformat;
+        if wideformat then
+          include((result as taicpu).flags,cf_wideformat)
+        else
+          exclude((result as taicpu).flags,cf_wideformat);
+        { GNU As assumes implicit S postfix for some instructions in thumb mode }
+        if (current_settings.instructionset=is_thumb) and (((result as taicpu).oppostfix=PF_None) and ((opcode=A_MOV) and ((result as taicpu).oper[1]^.typ=top_const)) or (opcode=A_MVN)) then
+          (result as taicpu).oppostfix:=PF_S
       end;
 
 

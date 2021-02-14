@@ -44,6 +44,7 @@ unit cgcpu;
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
        protected
          procedure a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation); override;
+         procedure init_mmregister_allocator;
        public
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
@@ -297,19 +298,8 @@ unit cgcpu;
         if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
-        { The register allocator currently cannot deal with multiple
-          non-overlapping subregs per register, so we can only use
-          half the single precision registers for now (as sub registers of the
-          double precision ones). }
-        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
-              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
-               RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
-               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[])
-        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
-              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15],first_mm_imreg,[]);
+
+        init_mmregister_allocator;
       end;
 
 
@@ -589,6 +579,33 @@ unit cgcpu;
       end;
 
 
+    procedure tbasecgarm.init_mmregister_allocator;
+      begin
+        { The register allocator currently cannot deal with multiple
+          non-overlapping subregs per register, so we can only use
+          half the single precision registers for now (as sub registers of the
+          double precision ones). }
+        if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) and
+          (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
+              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+               RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
+               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+              ],first_mm_imreg,[])
+        else if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFS,
+              [RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
+               RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31,
+               RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15
+              ],first_mm_imreg,[])
+        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
+              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+              ],first_mm_imreg,[]);
+      end;
+
+
     procedure tbasecgarm.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
@@ -729,9 +746,9 @@ unit cgcpu;
         (A_NONE,A_MOV,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
          A_ASR,A_LSL,A_LSR,A_SUB,A_EOR,A_NONE,A_ROR);
 
-      op_reg_postfix: array[TOpCG] of TOpPostfix =
-        (PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
-         PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None);
+      op_reg_postfix_thumb: array[TOpCG] of TOpPostfix =
+        (PF_None,PF_None,PF_None,PF_S,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_S,
+         PF_None,PF_S,PF_S,PF_None,PF_S,PF_None,PF_S);
 
     procedure tcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
       size: tcgsize; a: tcgint; src, dst: tregister);
@@ -3716,6 +3733,15 @@ unit cgcpu;
                    if r in regs then
                      inc(registerarea,4);
                  list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,regs));
+                 { we need to run the loop twice to get cfi right }
+                 registerarea:=0;
+                 for r:=RS_R0 to RS_R15 do
+                   if r in regs then
+                     begin
+                       inc(registerarea,4);
+                       current_asmdata.asmcfi.cfa_offset(list,newreg(R_INTREGISTER,r,R_SUBWHOLE),-registerarea);
+                     end;
+                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea);
                end;
 
             stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
@@ -3755,18 +3781,14 @@ unit cgcpu;
                     a_load_const_reg(list,OS_ADDR,-localsize,NR_R4);
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R4));
                     include(regs,RS_R4);
-
-                    //!!!! if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                    //!!!!   a_reg_alloc(list,NR_R12);
-                    //!!!! a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                    //!!!! list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                    //!!!! a_reg_dealloc(list,NR_R12);
                   end;
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea+localsize);
               end;
 
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               begin
                 list.concat(taicpu.op_reg_reg_const(A_ADD,current_procinfo.framepointer,NR_STACK_POINTER_REG,0));
+                current_asmdata.asmcfi.cfa_def_cfa_register(list,current_procinfo.framepointer);
               end;
           end;
       end;
@@ -3908,7 +3930,7 @@ unit cgcpu;
                      a_internal_load_ref_reg(list,OS_S8,OS_S8,usedtmpref,tmpreg);
                    list.concat(taicpu.op_reg_const(A_LSL,tmpreg,8));
 
-                   list.concat(taicpu.op_reg_reg(A_ORR,reg,tmpreg));
+                   list.concat(setoppostfix(taicpu.op_reg_reg(A_ORR,reg,tmpreg),PF_S));
                  end;
                OS_32,OS_S32:
                  begin
@@ -3938,7 +3960,7 @@ unit cgcpu;
                        inc(usedtmpref.offset,dir*2);
                        a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,tmpreg);
                        list.concat(taicpu.op_reg_const(A_LSL,tmpreg,16));
-                       list.concat(taicpu.op_reg_reg(A_ORR,reg,tmpreg));
+                       list.concat(setoppostfix(taicpu.op_reg_reg(A_ORR,reg,tmpreg),PF_S));
                      end
                    else
                      begin
@@ -3948,15 +3970,15 @@ unit cgcpu;
                        inc(usedtmpref.offset,dir);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                        list.concat(taicpu.op_reg_const(A_LSL,tmpreg,8));
-                       list.concat(taicpu.op_reg_reg(A_ORR,reg,tmpreg));
+                       list.concat(setoppostfix(taicpu.op_reg_reg(A_ORR,reg,tmpreg),PF_S));
                        inc(usedtmpref.offset,dir);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                        list.concat(taicpu.op_reg_const(A_LSL,tmpreg,16));
-                       list.concat(taicpu.op_reg_reg(A_ORR,reg,tmpreg));
+                       list.concat(setoppostfix(taicpu.op_reg_reg(A_ORR,reg,tmpreg),PF_S));
                        inc(usedtmpref.offset,dir);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                        list.concat(taicpu.op_reg_const(A_LSL,tmpreg,24));
-                       list.concat(taicpu.op_reg_reg(A_ORR,reg,tmpreg));
+                       list.concat(setoppostfix(taicpu.op_reg_reg(A_ORR,reg,tmpreg),PF_S));
                      end;
                  end
                else
@@ -3979,7 +4001,7 @@ unit cgcpu;
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090908);
           if is_thumb_imm(a) then
-            list.concat(taicpu.op_reg_const(A_MOV,reg,a))
+            list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,a),PF_S))
           else
             begin
               reference_reset(hr,4,[]);
@@ -4140,7 +4162,7 @@ unit cgcpu;
           OP_NEG:
             list.concat(taicpu.op_reg_reg(A_NEG,dst,src));
           OP_NOT:
-            list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
+            list.concat(setoppostfix(taicpu.op_reg_reg(A_MVN,dst,src),PF_S));
           OP_DIV,OP_IDIV:
             internalerror(200308284);
           OP_ROL:
@@ -4151,13 +4173,13 @@ unit cgcpu;
               tmpreg:=getintregister(list,OS_32);
               a_load_const_reg(list,OS_32,32,tmpreg);
               list.concat(taicpu.op_reg_reg(A_SUB,tmpreg,src));
-              list.concat(taicpu.op_reg_reg(A_ROR,dst,src));
+              list.concat(setoppostfix(taicpu.op_reg_reg(A_ROR,dst,src),PF_S));
             end;
           else
             begin
               a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(setoppostfix(
-                taicpu.op_reg_reg(op_reg_opcg2asmop[op],dst,src),op_reg_postfix[op]));
+                taicpu.op_reg_reg(op_reg_opcg2asmop[op],dst,src),op_reg_postfix_thumb[op]));
             end;
         end;
         maybeadjustresult(list,op,size,dst);
@@ -4193,7 +4215,7 @@ unit cgcpu;
              // if cgsetflags or setflags then
              a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(setoppostfix(
-              taicpu.op_reg_const(op_reg_opcg2asmop[op],dst,a),op_reg_postfix[op]));
+              taicpu.op_reg_const(op_reg_opcg2asmop[op],dst,a),op_reg_postfix_thumb[op]));
 
             if (cgsetflags {!!! or setflags }) and (size in [OS_8,OS_16,OS_32]) then
               begin
@@ -4252,7 +4274,7 @@ unit cgcpu;
             { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
               Just using mov x, #0 might allow some easier optimizations down the line. }
             else if (op = OP_AND) and (dword(a)=0) then
-              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
+              list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,dst,0),PF_S))
             { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
             else if (op = OP_AND) and (not(dword(a))=0) then
               // do nothing
@@ -4308,10 +4330,10 @@ unit cgcpu;
         ai:=setcondition(taicpu.op_sym(A_B,l1),flags_to_cond(f));
         ai.is_jmp:=true;
         list.concat(ai);
-        list.concat(taicpu.op_reg_const(A_MOV,reg,0));
+        list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,0),PF_S));
         list.concat(taicpu.op_sym(A_B,l2));
         cg.a_label(list,l1);
-        list.concat(taicpu.op_reg_const(A_MOV,reg,1));
+        list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,1),PF_S));
         a_reg_dealloc(list,NR_DEFAULTFLAGS);
         cg.a_label(list,l2);
       end;
@@ -4334,24 +4356,7 @@ unit cgcpu;
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
 
-        if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) and
-          (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
-              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
-               RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
-               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[])
-        else if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFS,
-              [RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
-               RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31,
-               RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15
-              ],first_mm_imreg,[])
-        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
-          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
-              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
-               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[]);
+        init_mmregister_allocator;
       end;
 
 
@@ -4896,15 +4901,18 @@ unit cgcpu;
           begin
             firstfloatreg:=RS_NO;
             lastfloatreg:=RS_NO;
-            { save floating point registers? }
-            for r:=RS_F0 to RS_F7 do
-              if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
-                begin
-                  if firstfloatreg=RS_NO then
-                    firstfloatreg:=r;
-                  lastfloatreg:=r;
-                  inc(stackmisalignment,12);
-                end;
+            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+              begin
+                { save floating point registers? }
+                for r:=RS_F0 to RS_F7 do
+                  if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+                    begin
+                      if firstfloatreg=RS_NO then
+                        firstfloatreg:=r;
+                      lastfloatreg:=r;
+                      inc(stackmisalignment,12);
+                    end;
+              end;
 
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -4964,22 +4972,25 @@ unit cgcpu;
                   end;
               end;
 
-            if firstfloatreg<>RS_NO then
+            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
               begin
-                reference_reset(ref,4,[]);
-                if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                if firstfloatreg<>RS_NO then
                   begin
-                    a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
-                    ref.base:=NR_R12;
-                  end
-                else
-                  begin
-                    ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                    reference_reset(ref,4,[]);
+                    if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                      begin
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                        ref.base:=NR_R12;
+                      end
+                    else
+                      begin
+                        ref.base:=current_procinfo.framepointer;
+                        ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                      end;
+                    list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+                      lastfloatreg-firstfloatreg+1,ref));
                   end;
-                list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
-                  lastfloatreg-firstfloatreg+1,ref));
               end;
           end;
       end;
@@ -4998,38 +5009,41 @@ unit cgcpu;
         if not(nostackframe) then
           begin
             stackmisalignment:=0;
-            { restore floating point register }
-            firstfloatreg:=RS_NO;
-            lastfloatreg:=RS_NO;
-            { save floating point registers? }
-            for r:=RS_F0 to RS_F7 do
-              if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
-                begin
-                  if firstfloatreg=RS_NO then
-                    firstfloatreg:=r;
-                  lastfloatreg:=r;
-                  { floating point register space is already included in
-                    localsize below by calc_stackframe_size
-                   inc(stackmisalignment,12);
-                  }
-                end;
-
-            if firstfloatreg<>RS_NO then
+            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
               begin
-                reference_reset(ref,4,[]);
-                if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                { restore floating point register }
+                firstfloatreg:=RS_NO;
+                lastfloatreg:=RS_NO;
+                { save floating point registers? }
+                for r:=RS_F0 to RS_F7 do
+                  if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+                    begin
+                      if firstfloatreg=RS_NO then
+                        firstfloatreg:=r;
+                      lastfloatreg:=r;
+                      { floating point register space is already included in
+                        localsize below by calc_stackframe_size
+                       inc(stackmisalignment,12);
+                      }
+                    end;
+
+                if firstfloatreg<>RS_NO then
                   begin
-                    a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
-                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
-                    ref.base:=NR_R12;
-                  end
-                else
-                  begin
-                    ref.base:=current_procinfo.framepointer;
-                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                    reference_reset(ref,4,[]);
+                    if tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023 then
+                      begin
+                        a_load_const_reg(list,OS_ADDR,-tcpuprocinfo(current_procinfo).floatregstart,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,current_procinfo.framepointer,NR_R12));
+                        ref.base:=NR_R12;
+                      end
+                    else
+                      begin
+                        ref.base:=current_procinfo.framepointer;
+                        ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
+                      end;
+                    list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+                      lastfloatreg-firstfloatreg+1,ref));
                   end;
-                list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
-                  lastfloatreg-firstfloatreg+1,ref));
               end;
 
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
@@ -5346,11 +5360,11 @@ unit cgcpu;
         case op of
           OP_NEG:
             begin
-              list.concat(taicpu.op_reg_const(A_MOV,regdst.reglo,0));
-              list.concat(taicpu.op_reg_const(A_MOV,regdst.reghi,0));
+              list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,regdst.reglo,0),PF_S));
+              list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,regdst.reghi,0),PF_S));
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg_reg(A_SUB,regdst.reglo,regsrc.reglo));
-              list.concat(taicpu.op_reg_reg(A_SBC,regdst.reghi,regsrc.reghi));
+              list.concat(setoppostfix(taicpu.op_reg_reg(A_SBC,regdst.reghi,regsrc.reghi),PF_S));
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           OP_NOT:
@@ -5367,13 +5381,13 @@ unit cgcpu;
             begin
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg_reg(A_ADD,regdst.reglo,regsrc.reglo));
-              list.concat(taicpu.op_reg_reg(A_ADC,regdst.reghi,regsrc.reghi));
+              list.concat(setoppostfix(taicpu.op_reg_reg(A_ADC,regdst.reghi,regsrc.reghi),PF_S));
             end;
           OP_SUB:
             begin
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg_reg(A_SUB,regdst.reglo,regsrc.reglo));
-              list.concat(taicpu.op_reg_reg(A_SBC,regdst.reghi,regsrc.reghi));
+              list.concat(setoppostfix(taicpu.op_reg_reg(A_SBC,regdst.reghi,regsrc.reghi),PF_S));
             end;
           else
             internalerror(2003083105);
@@ -5408,7 +5422,7 @@ unit cgcpu;
 
                tmpreg:=cg.getintregister(list,OS_32);
                cg.a_load_const_reg(list,OS_32,aint(hi(value)),tmpreg);
-               list.concat(taicpu.op_reg_reg(A_ADC,reg.reghi,tmpreg));
+               list.concat(setoppostfix(taicpu.op_reg_reg(A_ADC,reg.reghi,tmpreg),PF_S));
             end;
           OP_SUB:
             begin
@@ -5427,7 +5441,7 @@ unit cgcpu;
 
               tmpreg:=cg.getintregister(list,OS_32);
               cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
-              list.concat(taicpu.op_reg_reg(A_SBC,reg.reghi,tmpreg));
+              list.concat(setoppostfix(taicpu.op_reg_reg(A_SBC,reg.reghi,tmpreg),PF_S));
             end;
           else
             internalerror(2003083106);
