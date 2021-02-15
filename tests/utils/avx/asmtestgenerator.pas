@@ -39,6 +39,7 @@ type
   TOpMode = (omUnknown,
              omKXM, omKYM, omKZM,
              omKXB32, omKXB64, omKYB32, omKYB64, omKZB32, omKZB64,
+             omKMI, omKB32I, omKB64I,
              omXXM, omXXB32, omXXB64, omXMI, omXB32I, omXB64I,
              omYYM, omYYB32, omYYB64, omYMI, omYB32I, omYB64I,
              omZZM, omZZB32, omZZB64, omZMI, omZB32I, omZB64I);
@@ -4810,6 +4811,15 @@ begin
                             (OItem2.OpTyp = otZMMReg) and
                             (OItem3.OpTyp = otB64) then OpMode := omKZB64
 
+                    else if (OItem1.OpTyp = otKReg) and
+                            (OItem2.OpTyp in MEMTYPES) and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omKMI
+                    else if (OItem1.OpTyp = otKReg) and
+                            (OItem2.OpTyp = otB32) and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omKB32I
+                    else if (OItem1.OpTyp = otKReg) and
+                            (OItem2.OpTyp = otB64) and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omKB64I
 
                     else if (OItem1.OpTyp = otXMMReg) and
                             (OItem2.OpTyp = otXMMReg) and
@@ -4950,7 +4960,7 @@ begin
                           else sMRef := '';
                         end;
 
-                        if ParseBaseIndexReg(OItem3.Values[il_Op3], sBaseReg, sIndexReg) then
+                        if ParseBaseIndexReg(sMRef, sBaseReg, sIndexReg) then
                         begin
                           result.Add(format('%20s %s',               ['    pop', sBaseReg]));
                           result.Add(format('%20s %s',               ['   push', sBaseReg]));
@@ -4988,7 +4998,20 @@ begin
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
                                    end;
+                            omKMI: begin
+                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
 
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
+                                   end;
+                            omKB32I,
+                            omKB64I:
+                                   begin
+                                     result.Add(format('%20s%6s,%6s + $2000, %s', [aInst, 'K2', OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
+
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
+                                   end;
                           omXB32I,
                           omXB64I: begin
                                      sMREF := OItem2.Values[il_Op2];
