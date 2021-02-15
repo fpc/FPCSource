@@ -3700,9 +3700,14 @@ begin
                   slHeader.Add('  DataBlock: Array[0..$3FFF] of dword;');
                   slHeader.Add('  i: integer;');
 
-                  slHeader.Add('procedure writelnK7(aVal: dword);');
+                  slHeader.Add('procedure writelnK7;');
+                  slHeader.Add('var');
+                  slHeader.Add('  iK7: dword;');
                   slHeader.Add('begin');
-                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(aVal));');
+                  slHeader.Add('  asm');
+                  slHeader.Add('    kmovd  iK7, k7');
+                  slHeader.Add('  end;');
+                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(iK7));');
                   slHeader.Add('end;');
 
                   slHeader.Add('procedure writelnOK;');
