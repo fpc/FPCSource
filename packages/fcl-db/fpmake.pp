@@ -37,7 +37,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.2rc1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox', ParadoxOSes);

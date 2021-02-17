@@ -30,7 +30,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.2rc1';
 
     P.Options.Add('-Sm');
     Str(P.PackageVersion.Major, VS);

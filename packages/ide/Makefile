@@ -330,7 +330,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=ide
-override PACKAGE_VERSION=3.2.1
+override PACKAGE_VERSION=3.2.2rc1
 ifdef INSTALL_UNITDIR
 FPMAKE_INSTALL_OPT+=--unitinstalldir=$(INSTALL_UNITDIR)
 endif
