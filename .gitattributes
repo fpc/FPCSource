@@ -3678,6 +3678,7 @@ packages/fcl-pdf/Makefile svneol=native#text/plain
 packages/fcl-pdf/Makefile.fpc svneol=native#text/plain
 packages/fcl-pdf/examples/diamond.png -text svneol=unset#image/png
 packages/fcl-pdf/examples/metautf16.pp svneol=native#text/plain
+packages/fcl-pdf/examples/monospacetext.pp svneol=native#text/plain
 packages/fcl-pdf/examples/poppy.jpg -text
 packages/fcl-pdf/examples/testfppdf.lpi svneol=native#text/plain
 packages/fcl-pdf/examples/testfppdf.lpr svneol=native#text/plain
