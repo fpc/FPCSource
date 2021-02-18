@@ -1232,11 +1232,13 @@ begin
       VL := InternalStrToInt64(Source, Len);
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
+{$IF FPC_FULLVERSION >=30301}      
     ftLongWord:
       begin
       VO := InternalStrToDWord(Source, Len);
       Move(VO, Dest^, SizeOf(LongWord));
       end;
+{$ENDIF}      
     ftFloat:
       begin
       VF := InternalStrToFloat(Source, Len);
