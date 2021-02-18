@@ -1597,6 +1597,7 @@ implementation
       var
         st : string;
         ss : ansistring;
+        i : longint;
       begin
         ss:='';
         { Don't write info for default parameter values, the N_Func breaks
@@ -1609,10 +1610,15 @@ implementation
           conststring:
             begin
               if sym.value.len<200 then
-                if target_dbg.id=dbg_stabs then
-                  st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
-                else
-                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))+''''
+                begin
+                  setlength(ss,sym.value.len);
+                  for i:=0 to sym.value.len-1 do
+                    ss[i+1]:=pchar(sym.value.valueptr)[i];
+                  if target_dbg.id=dbg_stabs then
+                    st:='s'''+backspace_quote(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
+                  else
+                    st:='s'''+stabx_quote_const(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']))+'''';
+                end
               else
                 st:='<constant string too long>';
             end;
