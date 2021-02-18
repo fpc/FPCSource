@@ -333,6 +333,12 @@ procedure GiveUpTimeSlice;
 {                          BUFFER MOVE ROUTINES                             }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+
+{-StrWidth-----------------------------------------------------------
+Returns the number of display columns needed to display the string S.
+---------------------------------------------------------------------}
+FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
+
 {-CStrLen------------------------------------------------------------
 Returns the length of string S, where S is a control string using tilde
 characters ('~') to designate shortcut characters. The tildes are
@@ -931,6 +937,20 @@ end;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           BUFFER MOVE ROUTINES                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{$ifdef FV_UNICODE}
+FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
+BEGIN
+   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
+     handle wide (CJK) characters, etc. }
+   StrWidth := Length(S);
+END;
+{$else FV_UNICODE}
+FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
+BEGIN
+   StrWidth := Length(S);
+END;
+{$endif FV_UNICODE}
 
 {---------------------------------------------------------------------------}
 {  CStrLen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB           }
