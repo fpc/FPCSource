@@ -29,6 +29,7 @@ begin
     P.IncludePath.Add('src');
     P.Dependencies.add('rtl-console');
     P.Dependencies.add('rtl-extra');
+    P.Dependencies.add('rtl-unicode');
     P.Dependencies.add('morphunits',[morphos]);
     P.Dependencies.add('arosunits',[aros]);
     if Defaults.CPU=m68k then
