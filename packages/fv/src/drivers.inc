@@ -984,15 +984,16 @@ END;
 {---------------------------------------------------------------------------}
 {$ifdef FV_UNICODE}
 PROCEDURE MoveStr (Var Dest; Const Str: UnicodeString; Attr: Byte);
-VAR I: Word; P: PEnhancedVideoCell;
+VAR EGC: Sw_String; P: PEnhancedVideoCell;
 BEGIN
-   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
-     handle wide (CJK) characters, etc. }
-   For I := 1 To Length(Str) Do Begin                 { For each character }
-     P := @(PEnhancedVideoCell(@Dest)[I-1]);          { Pointer to TEnhancedVideoCell }
-     If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
-     P^.ExtendedGraphemeCluster := Str[I];            { Copy string char }
-   End;
+   { todo: handle wide (CJK, emoji) characters as double width }
+   P := PEnhancedVideoCell(@Dest);                      { Pointer to TEnhancedVideoCell }
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Str) do
+     begin
+       If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
+       P^.ExtendedGraphemeCluster := EGC;               { Copy string char }
+       Inc(P);
+     end;
 END;
 {$else FV_UNICODE}
 PROCEDURE MoveStr (Var Dest; Const Str: String; Attr: Byte);
@@ -1011,24 +1012,26 @@ END;
 {---------------------------------------------------------------------------}
 {$ifdef FV_UNICODE}
 PROCEDURE MoveCStr (Var Dest; Const Str: UnicodeString; Attrs: Word);
-VAR B: Byte; I, J: Sw_Word; P: PEnhancedVideoCell;
+VAR EGC: Sw_String; B: Byte; P: PEnhancedVideoCell;
 BEGIN
-   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
-     handle wide (CJK) characters, etc. }
-   J := 0;                                            { Start position }
-   For I := 1 To Length(Str) Do Begin                 { For each character }
-     If (Str[I] <> '~') Then Begin                    { Not tilde character }
-       P := @(PEnhancedVideoCell(@Dest)[J]);          { Pointer to TEnhancedVideoCell }
-       If (Lo(Attrs) <> 0) Then
-         P^.Attribute := Lo(Attrs);                   { Copy attribute }
-       P^.ExtendedGraphemeCluster:=Str[I];            { Copy string char }
-       Inc(J);                                        { Next position }
-     End Else Begin
-       B := Hi(Attrs);                                { Hold attribute }
-       WordRec(Attrs).Hi := Lo(Attrs);                { Copy low to high }
-       WordRec(Attrs).Lo := B;                        { Complete exchange }
-     End;
-   End;
+   { todo: handle wide (CJK, emoji) characters as double width }
+   P := PEnhancedVideoCell(@Dest);                      { Pointer to TEnhancedVideoCell }
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Str) do
+     begin
+       if EGC <> '~' then
+         begin
+           If (Lo(Attrs) <> 0) Then
+             P^.Attribute := Lo(Attrs);                   { Copy attribute }
+           P^.ExtendedGraphemeCluster:=EGC;               { Copy string char }
+           Inc(P);                                        { Next position }
+         end
+       else
+         begin
+           B := Hi(Attrs);                                { Hold attribute }
+           WordRec(Attrs).Hi := Lo(Attrs);                { Copy low to high }
+           WordRec(Attrs).Lo := B;                        { Complete exchange }
+         end;
+     end;
 END;
 {$else FV_UNICODE}
 PROCEDURE MoveCStr (Var Dest; Const Str: String; Attrs: Word);
