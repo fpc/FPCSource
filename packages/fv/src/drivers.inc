@@ -110,6 +110,7 @@ USES
    SysMsg,
 {$ifdef FV_UNICODE}
    UFVCommon,
+   GraphemeBreakProperty,
 {$else FV_UNICODE}
    FVCommon,
 {$endif FV_UNICODE}
@@ -940,10 +941,12 @@ end;
 
 {$ifdef FV_UNICODE}
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
+VAR EGC: Sw_String;
 BEGIN
-   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
-     handle wide (CJK) characters, etc. }
-   StrWidth := Length(S);
+   { todo: handle wide (CJK, emoji) characters as double width }
+   Result := 0;
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
+     Inc(Result);
 END;
 {$else FV_UNICODE}
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
@@ -957,14 +960,13 @@ END;
 {---------------------------------------------------------------------------}
 {$ifdef FV_UNICODE}
 FUNCTION CStrLen (Const S: UnicodeString): Sw_Integer;
-VAR I, J: Sw_Integer;
+VAR EGC: Sw_String;
 BEGIN
-   { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
-     handle wide (CJK) characters, etc. }
-   J := 0;                                            { Set result to zero }
-   For I := 1 To Length(S) Do
-     If (S[I] <> '~') Then Inc(J);                    { Inc count if not ~ }
-   CStrLen := J;                                      { Return length }
+   { todo: handle wide (CJK, emoji) characters as double width }
+   Result := 0;
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
+     if EGC <> '~' then
+       Inc(Result);
 END;
 {$else FV_UNICODE}
 FUNCTION CStrLen (Const S: String): Sw_Integer;

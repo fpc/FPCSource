@@ -39,7 +39,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);../../rtl-console/src/inc"/>
-      <OtherUnitFiles Value="../src;../../rtl-console/src/unix;../../rtl-extra/src/inc"/>
+      <OtherUnitFiles Value="../src;../../rtl-console/src/unix;../../rtl-extra/src/inc;../../rtl-unicode/src/inc"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>
