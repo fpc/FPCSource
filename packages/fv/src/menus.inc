@@ -1590,7 +1590,7 @@ BEGIN
 {$endif FV_UNICODE}
      Inc(I, 2);                                       { Move along }
      MoveStr(B[I], HintBuf, Byte(CNormal));           { Move hint to buffer }
-     I := I + Length(HintBuf);                        { Hint length }
+     I := I + StrWidth(HintBuf);                      { Hint length }
    End;
    WriteLine(0, 0, Size.X, 1, B);                          { Write the buffer }
 END;

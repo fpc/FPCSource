@@ -514,8 +514,8 @@ var
   LastX,LastY,
   SpaceAttr,
   LastAttr : longint;
-  p,pold   : penhancedvideocell;
   LastLineWidth : Longint;
+  p,pold   : penhancedvideocell;
 
   function transform_cp437_to_iso01(const st:string):string;
 
@@ -667,7 +667,9 @@ var
    Begin
     while (eol>0) do
      begin
-       hstr:=#13#10+hstr;
+       outbuf[outptr]:=#13;
+       outbuf[outptr+1]:=#10;
+       inc(outptr,2);
        dec(eol);
      end;
 {    if (convert=cv_vga_to_acs) and (ACSIn<>'') and (ACSOut<>'') then
@@ -797,7 +799,7 @@ begin
               LastX:=x+1;
               LastY:=y;
             end;
-           p^:=chattr;
+           //p^:=chattr;
          end;
         inc(p);
         inc(pold);
@@ -811,7 +813,7 @@ begin
    end;
   eol:=0;
  {if am in capabilities? Then}
-  if (Console=ttyFreeBSD) and (Plongint(p)^<>plongint(pold)^) Then
+  if (Console=ttyFreeBSD) and (p^<>pold^) Then
    begin
     OutData(XY2Ansi(ScreenWidth,ScreenHeight,LastX,LastY));
     OutData(#8);

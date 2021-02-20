@@ -3,7 +3,7 @@ program testuapp;
 {$codepage UTF8}
 
 uses
-  Objects, UDrivers, UViews, UMenus, UApp;
+  Objects, UDrivers, UViews, UMenus, UApp, SysUtils;
 
 const
   cmOrderNew    = 200;
@@ -40,7 +40,7 @@ begin
   R.A.Y := R.B.Y - 1;
   new(StatusLine, Init(R,
       NewStatusDef(0, $EFFF,
-          NewStatusKey('~F1~ 打开', kbF1, cmHelp,
+          NewStatusKey({'~F1~ 打开'}'F1 По п' + 'ъ́' + 'тя', kbF1, cmHelp,
           NewStatusKey('~F3~ Отваряне', kbF3, cmOpen,
           NewStatusKey('~F4~ Νέος',  kbF4, cmNew,
           NewStatusKey('~Alt+F3~ Zavřít', kbAltF3, cmClose,

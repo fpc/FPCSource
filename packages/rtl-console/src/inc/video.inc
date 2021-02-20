@@ -80,7 +80,7 @@ end;
 class operator TEnhancedVideoCell.Copy(constref aSrc: TEnhancedVideoCell; var aDst: TEnhancedVideoCell);
 begin
   aDst.ExtendedGraphemeCluster := aSrc.ExtendedGraphemeCluster;
-  aDst.FAttributes := aSrc.FAttributes;
+  aDst.Attribute := aSrc.Attribute;
 end;
 
 Const

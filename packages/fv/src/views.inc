@@ -60,7 +60,7 @@ USES
      Os2Def, DosCalls, PmWin,
    {$ENDIF}
 
-   Objects, {$ifdef FV_UNICODE}UFVCommon,UDrivers{$else}FVCommon,Drivers{$endif}, fvconsts, { GFV standard units }
+   Objects, {$ifdef FV_UNICODE}UFVCommon,UDrivers,GraphemeBreakProperty{$else}FVCommon,Drivers{$endif}, fvconsts, { GFV standard units }
    Video;
 
 
@@ -4525,23 +4525,30 @@ end;
 
 procedure TView.WriteStr(X, Y: Sw_Integer; Str: Sw_String; Color: Byte);
 var
+{$ifdef FV_UNICODE}
+  EGC: Sw_String;
+{$endif FV_UNICODE}
   l,i : Sw_word;
   B : TDrawBuffer;
   myColor : word;
 begin
-  l:=length(Str);
+  l:=StrWidth(Str);
   if l>0 then
    begin
      if l>maxViewWidth then
       l:=maxViewWidth;
      MyColor:=MapColor(Color);
 {$ifdef FV_UNICODE}
-     for i:=0 to l-1 do
-       with B[i] do
-         begin
-           Attribute:=MyColor;
-           ExtendedGraphemeCluster:=Str[i+1];
-         end;
+     i:=0;
+     for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Str) do
+       begin
+         with B[i] do
+           begin
+             Attribute:=MyColor;
+             ExtendedGraphemeCluster:=EGC;
+           end;
+         Inc(i, StrWidth(EGC));
+       end;
 {$else FV_UNICODE}
      MyColor:=MyColor shl 8;
      for i:=0 to l-1 do
