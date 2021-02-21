@@ -176,6 +176,8 @@ function GetCursorType: Word;
 { Return the cursor type: Hidden, UnderLine or Block }
 procedure SetCursorType(NewType: Word);
 { Set the cursor to the given type }
+function ExtendedGraphemeClusterDisplayWidth(const EGC: UnicodeString): Integer;
+{ Returns the number of display columns needed for the given extended grapheme cluster }
 function StringDisplayWidth(const S: UnicodeString): Integer;
 { Returns the number of display columns needed for the given string }
 
