@@ -152,11 +152,7 @@ TYPE
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    RECORD
      Next: PStatusItem;                               { Next status item }
-{$ifdef FV_UNICODE}
-     Text: UnicodeString;                             { Text of status item }
-{$else FV_UNICODE}
-     Text: PString;                                   { Text of status item }
-{$endif FV_UNICODE}
+     Text: Sw_PString;                                { Text of status item }
      KeyCode: Word;                                   { Keycode of item }
      Command: Word;                                   { Command of item }
    END;
