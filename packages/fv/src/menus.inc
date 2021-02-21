@@ -1552,27 +1552,15 @@ BEGIN
    I := 0;                                            { Clear the count }
    L := 0;
    While (T <> Nil) Do Begin                          { While valid item }
-{$ifdef FV_UNICODE}
-     If (T^.Text <> '') Then Begin                    { While valid text }
-{$else FV_UNICODE}
-     If (T^.Text <> Nil) Then Begin                   { While valid text }
-{$endif FV_UNICODE}
-{$ifdef FV_UNICODE}
-       L := CStrLen(' '+T^.Text+' ');                 { Text length }
-{$else FV_UNICODE}
-       L := CStrLen(' '+T^.Text^+' ');                { Text length }
-{$endif FV_UNICODE}
+     If (T^.Text <> Sw_PString_Empty) Then Begin      { While valid text }
+       L := CStrLen(' '+T^.Text Sw_PString_Deref+' ');  { Text length }
        If CommandEnabled(T^.Command) Then Begin       { Command enabled }
          If T = Selected Then Color := CSelect        { Selected colour }
            Else Color := CNormal                      { Normal colour }
        End Else
          If T = Selected Then Color := CSelDisabled   { Selected disabled }
            Else Color := CNormDisabled;               { Disabled colour }
-{$ifdef FV_UNICODE}
-       MoveCStr(B[I], ' '+T^.Text+' ', Color);        { Move text to buf }
-{$else FV_UNICODE}
-       MoveCStr(B[I], ' '+T^.Text^+' ', Color);       { Move text to buf }
-{$endif FV_UNICODE}
+       MoveCStr(B[I], ' '+T^.Text Sw_PString_Deref+' ', Color);  { Move text to buf }
        Inc(I, L);                                     { Advance position }
      End;
      T := T^.Next;                                    { Next item }
