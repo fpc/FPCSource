@@ -449,6 +449,30 @@ begin
     GetCapabilities:=0;
 end;
 
+function StringDisplayWidth(const S: UnicodeString): Integer;
+var
+  EGC: UnicodeString;
+  FirstCodePoint: UCS4Char;
+begin
+  Result:=0;
+  for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
+    if Length(EGC) > 0 then
+      begin
+        FirstCodePoint:=UCS4Char(EGC[1]);
+        if (FirstCodePoint>=$D800) and (FirstCodePoint<=$DBFF) and (Length(EGC)>=2) and
+           (Ord(EGC[2])>=$DC00) and (Ord(EGC[2])<=$DFFF) then
+          begin
+            FirstCodePoint := ((FirstCodePoint-$D800) shl 10) or (Ord(EGC[2])-$DC00);
+          end;
+        { todo: handle emoji + modifiers }
+        case GetEastAsianWidth(FirstCodePoint) of
+          eawW, eawF:
+            Inc(Result, 2);
+          else
+            Inc(Result);
+        end;
+      end;
+end;
 
 { ---------------------------------------------------------------------
     General functions

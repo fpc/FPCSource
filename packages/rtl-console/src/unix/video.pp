@@ -58,7 +58,7 @@ var internal_codepage,external_codepage:Tencoding;
                                 implementation
 {*****************************************************************************}
 
-uses  baseunix,termio,strings,unixkvmbase
+uses  baseunix,termio,strings,unixkvmbase,graphemebreakproperty,eastasianwidth
      {$ifdef linux},linuxvcs{$endif};
 
 {$i video.inc}

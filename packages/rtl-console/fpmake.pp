@@ -46,6 +46,7 @@ begin
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
     P.Dependencies.Add('rtl-extra'); // linux,android gpm.
+    P.Dependencies.Add('rtl-unicode');
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
     if Defaults.CPU=m68k then

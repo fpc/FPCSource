@@ -176,6 +176,8 @@ function GetCursorType: Word;
 { Return the cursor type: Hidden, UnderLine or Block }
 procedure SetCursorType(NewType: Word);
 { Set the cursor to the given type }
+function StringDisplayWidth(const S: UnicodeString): Integer;
+{ Returns the number of display columns needed for the given string }
 
 procedure GetVideoMode(var Mode: TVideoMode);
 { Return dimensions of the current video mode }
