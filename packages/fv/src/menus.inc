@@ -1615,7 +1615,7 @@ BEGIN
    If (Menu <> Nil) Then Begin                        { Valid menu item }
      P := Menu^.Items;                                { First item in list }
      While (P <> Nil) Do Begin                        { Item is valid }
-       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Valid name pointer }
+       If (P^.Name <> Sw_PString_Empty) Then Begin  { Valid name pointer }
 {$ifndef FV_UNICODE}
          DisposeStr(P^.Name);                         { Dispose of name }
 {$endif FV_UNICODE}
