@@ -516,6 +516,7 @@ var
   LastAttr : longint;
   LastLineWidth : Longint;
   p,pold   : penhancedvideocell;
+  LastCharWasDoubleWidth: Boolean;
 
   function transform_cp437_to_iso01(const st:string):string;
 
@@ -744,6 +745,7 @@ begin
   LastAttr:=7;
   LastX:=-1;
   LastY:=-1;
+  LastCharWasDoubleWidth:=False;
   for y:=1 to ScreenHeight do
    begin
      SpaceAttr:=0;
@@ -753,7 +755,9 @@ begin
       LastLineWidth:=ScreenWidth-2;
      for x:=1 to LastLineWidth do
       begin
-        if (not force) and (p^=pold^) then
+        if LastCharWasDoubleWidth then
+         LastCharWasDoubleWidth:=false
+        else if (not force) and (p^=pold^) then
          begin
            if (Spaces>0) then
             OutSpaces;
@@ -796,7 +800,16 @@ begin
               if LastAttr<>chattr.Attribute then
                OutClr(chattr.Attribute);
               OutData(transform(chattr.ExtendedGraphemeCluster));
-              LastX:=x+1;
+              if ExtendedGraphemeClusterDisplayWidth(chattr.ExtendedGraphemeCluster)=2 then
+               begin
+                LastX:=x+2;
+                LastCharWasDoubleWidth:=True;
+               end
+              else
+               begin
+                 LastX:=x+1;
+                 LastCharWasDoubleWidth:=False;
+               end;
               LastY:=y;
             end;
            //p^:=chattr;
