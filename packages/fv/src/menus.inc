@@ -474,11 +474,7 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
            S.Read(Disabled, SizeOf(Disabled));        { Menu item state }
            S.Read(KeyCode, SizeOf(KeyCode));          { Menu item keycode }
            S.Read(HelpCtx, SizeOf(HelpCtx));          { Menu item help ctx }
-{$ifdef FV_UNICODE}
-           If (Name <> '') Then
-{$else FV_UNICODE}
-           If (Name <> Nil) Then
-{$endif FV_UNICODE}
+           If (Name <> Sw_PString_Empty) Then
              If Command = 0 Then
 {$ifdef PPC_FPC}
                SubMenu := DoLoadMenu()                  { Load submenu }
