@@ -1608,11 +1608,7 @@ BEGIN
      FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
-{$ifdef FV_UNICODE}
-       P^.Name := Name;                               { Hold item name }
-{$else FV_UNICODE}
-       P^.Name := NewStr(Name);                       { Hold item name }
-{$endif FV_UNICODE}
+       P^.Name := Sw_NewStr(Name);                    { Hold item name }
        P^.Command := Command;                         { Hold item command }
        R.Assign(1, 1, 10, 10);                        { Random assignment }
        T := New(PView, Init(R));                      { Create a view }
@@ -1622,11 +1618,7 @@ BEGIN
        End Else P^.Disabled := True;
        P^.KeyCode := KeyCode;                         { Hold item keycode }
        P^.HelpCtx := AHelpCtx;                        { Hold help context }
-{$ifdef FV_UNICODE}
-       P^.Param := Param;                             { Hold parameter }
-{$else FV_UNICODE}
-       P^.Param := NewStr(Param);                     { Hold parameter }
-{$endif FV_UNICODE}
+       P^.Param := Sw_NewStr(Param);                  { Hold parameter }
      End;
      NewItem := P;                                    { Return item }
    End Else NewItem := Next;                          { Move forward }
@@ -1644,11 +1636,7 @@ BEGIN
      FillChar(P^,sizeof(TMenuItem),0);
      If (P <> Nil) Then Begin                         { Check valid pointer }
        P^.Next := Next;                               { Hold next item }
-{$ifdef FV_UNICODE}
-       P^.Name := Name;                               { Hold submenu name }
-{$else FV_UNICODE}
-       P^.Name := NewStr(Name);                       { Hold submenu name }
-{$endif FV_UNICODE}
+       P^.Name := Sw_NewStr(Name);                    { Hold submenu name }
        P^.HelpCtx := AHelpCtx;                        { Set help context }
        P^.SubMenu := SubMenu;                         { Hold next submenu }
      End;
@@ -1686,11 +1674,7 @@ VAR T: PStatusItem;
 BEGIN
    New(T);                                            { Allocate memory }
    If (T <> Nil) Then Begin                           { Check valid pointer }
-{$ifdef FV_UNICODE}
-     T^.Text := AText;                                { Hold text string }
-{$else FV_UNICODE}
-     T^.Text := NewStr(AText);                        { Hold text string }
-{$endif FV_UNICODE}
+     T^.Text := Sw_NewStr(AText);                     { Hold text string }
      T^.KeyCode := AKeyCode;                          { Hold keycode }
      T^.Command := ACommand;                          { Hold command }
      T^.Next := ANext;                                { Pointer to next }
