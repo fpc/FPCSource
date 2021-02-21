@@ -716,11 +716,7 @@ BEGIN
    C := @Self;                                        { Start at self }
    While (C <> Nil) AND ((C^.Current = Nil) OR
    (C^.Current^.HelpCtx = hcNoContext) OR             { Has no context }
-{$ifdef FV_UNICODE}
-   (C^.Current^.Name = '')) Do
-{$else FV_UNICODE}
-   (C^.Current^.Name = Nil)) Do
-{$endif FV_UNICODE}
+   (C^.Current^.Name = Sw_PString_Empty)) Do
      C := C^.ParentMenu;   { Parent menu context }
    If (C<>Nil) Then GetHelpCtx := C^.Current^.HelpCtx { Current context }
      Else GetHelpCtx := hcNoContext;                  { No help context }
