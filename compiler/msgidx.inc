@@ -592,6 +592,7 @@ const
   type_e_forward_interface_type_does_not_match=04127;
   type_e_generic_const_type_not_allowed=04128;
   type_e_cant_read_write_type_in_iso_mode=04129;
+  type_w_array_size_does_not_match_size_of_constant_string=04130;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -857,7 +858,8 @@ const
   asmr_e_mismatch_broadcasting_elements=07142;
   asmr_e_invalid_arrangement=07143;
   asmr_e_a64_invalid_regset=07144;
-  asmr_e_not_supported_combination_attsuffix_memrefsize_type=07145;
+  asmr_e_unknown_field=07145;
+  asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -1084,6 +1086,7 @@ const
   option_features_only_for_system_unit=11060;
   option_debug_info_requires_external_linker=11061;
   option_valgrind_heaptrc_mismatch=11062;
+  option_unsupported_fpu=11063;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1137,9 +1140,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 87070;
+  MsgTxtSize = 87309;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,107,361,130,99,63,146,36,223,68,
-    63,20,30,1,1,1,1,1,1,1
+    28,107,361,131,99,63,147,36,223,68,
+    64,20,30,1,1,1,1,1,1,1
   );

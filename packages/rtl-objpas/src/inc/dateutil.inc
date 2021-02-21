@@ -44,6 +44,19 @@ const
   DaySaturday  = 6;
   DaySunday    = 7;
 
+  MonthJanuary   = 1;
+  MonthFebruary  = 2;
+  MonthMarch     = 3;
+  MonthApril     = 4;
+  MonthMay       = 5;
+  MonthJune      = 6;
+  MonthJuly      = 7;
+  MonthAugust    = 8;
+  MonthSeptember = 9;
+  MonthOctober   = 10;
+  MonthNovember  = 11;
+  MonthDecember  = 12;
+
   // Fraction of a day
   OneHour        = TDateTime(1)/HoursPerDay;
   OneMinute      = TDateTime(1)/MinsPerDay;
@@ -2379,6 +2392,8 @@ begin
 end;
 
 function scandatetime(const pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime;
+const
+  EPS = 1E-15;
 
 var len ,ind  : integer;
     yy,mm,dd  : integer;
@@ -2558,44 +2573,59 @@ begin
                        end;
                      end;
                'A' : begin
-                            i:=findimatch(AMPMformatting,@ptrn[pind]);
-                            case i of
-                              0: begin
-                                   i:=findimatch(['AM','PM'],@s[ind]);
-                                   case i of
-                                     0: ;
-                                     1: timeval:=timeval+12*hrfactor;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[0]));
-                                   inc(ind,2);
-                                 end;
-                              1: begin
-                                    case upcase(s[ind]) of
-                                     'A' : ;
-                                     'P' : timeval:=timeval+12*hrfactor;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[1]));
-                                   inc(ind);
-                                 end;
-                               2: begin
-                                    i:=findimatch([fmt.timeamstring,fmt.timepmstring],@s[ind]);
-                                    case i of
-                                     0: inc(ind,length(fmt.timeamstring));
-                                     1: begin
-                                          timeval:=timeval+12*hrfactor;
-                                          inc(ind,length(fmt.timepmstring));
-                                        end;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[2]));
-                                 end;
-                            else  // no AM/PM match. Assume 'a' is simply a char
-                                matchchar(ptrn[pind]);
+                        i:=findimatch(AMPMformatting,@ptrn[pind]);
+                        case i of
+                            0: begin
+                                 if timeval >= 13*hrfactor - EPS then
+                                   raiseexception(SAMPMError);
+                                 i:=findimatch(['AM','PM'],@s[ind]);
+                                 case i of
+                                   0: if timeval >= 12*hrfactor then
+                                        timeval := timeval - 12*hrfactor;
+                                   1: if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                        timeval:=timeval+12*hrfactor;
+                                 else
+                                   arraymatcherror
+                                   end;
+                                 inc(pind,length(AMPMformatting[0]));
+                                 inc(ind,2);
+                               end;
+                            1: begin
+                                 if timeval >= 13*hrfactor - EPS then
+                                   raiseexception(SAMPMError);
+                                  case upcase(s[ind]) of
+                                   'A' : if timeval >= 12*hrfactor then
+                                           timeval := timeval - 12*hrfactor;
+                                   'P' : if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                           timeval := timeval + 12*hrfactor;
+                                 else
+                                   arraymatcherror
+                                   end;
+                                 inc(pind,length(AMPMformatting[1]));
+                                 inc(ind);
+                               end;
+                             2: begin
+                                  if timeval >= 13*hrfactor - EPS then
+                                    raiseexception(SAMPMError);
+                                  i:=findimatch([fmt.timeamstring,fmt.timepmstring],@s[ind]);
+                                  case i of
+                                   0: begin
+                                        if timeval >= 12*hrfactor then
+                                          timeval := timeval - 12*hrfactor;
+                                        inc(ind,length(fmt.timeamstring));
+                                      end;
+                                   1: begin
+                                        if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                          timeval:=timeval + 12*hrfactor;
+                                        inc(ind,length(fmt.timepmstring));
+                                      end;
+                                 else
+                                   arraymatcherror
+                                  end;
+                                 inc(pind,length(AMPMformatting[2]));
+                               end;
+                           else  // no AM/PM match. Assume 'a' is simply a char
+                               matchchar(ptrn[pind]);
                              end;
                          end;
                '/' : matchchar(fmt.dateSeparator);
