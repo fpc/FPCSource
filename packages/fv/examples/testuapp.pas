@@ -40,7 +40,7 @@ begin
   R.A.Y := R.B.Y - 1;
   new(StatusLine, Init(R,
       NewStatusDef(0, $EFFF,
-          NewStatusKey({'~F1~ 打开'}'F1 По п' + 'ъ́' + 'тя', kbF1, cmHelp,
+          NewStatusKey({'~F1~ 打开'}'~F1~ По пъ́тя', kbF1, cmHelp,
           NewStatusKey('~F3~ Отваряне', kbF3, cmOpen,
           NewStatusKey('~F4~ Νέος',  kbF4, cmNew,
           NewStatusKey('~Alt+F3~ Zavřít', kbAltF3, cmClose,
