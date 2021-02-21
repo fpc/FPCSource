@@ -941,7 +941,6 @@ end;
 
 {$ifdef FV_UNICODE}
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
-VAR EGC: Sw_String;
 BEGIN
    Result := Video.StringDisplayWidth(S);
 END;
