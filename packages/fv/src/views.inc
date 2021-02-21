@@ -1210,39 +1210,17 @@ END;
 {--TView--------------------------------------------------------------------}
 {  TextWidth -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Nov99 LdB         }
 {---------------------------------------------------------------------------}
-{$ifdef FV_UNICODE}
-FUNCTION TView.TextWidth (const Txt: UnicodeString): Sw_Integer;
+
+FUNCTION TView.TextWidth (const Txt: Sw_String): Sw_Integer;
 BEGIN
-   TextWidth := Length(Txt);             { Calc text length }
+   TextWidth := StrWidth(Txt);
 END;
 
-FUNCTION TView.CTextWidth (const Txt: UnicodeString): Sw_Integer;
+FUNCTION TView.CTextWidth (const Txt: Sw_String): Sw_Integer;
 VAR I: Sw_Integer; S: UnicodeString;
 BEGIN
-   S := Txt;                                          { Transfer text }
-   Repeat
-     I := Pos('~', S);                                { Check for tilde }
-      If (I <> 0) Then System.Delete(S, I, 1);        { Remove the tilde }
-   Until (I = 0);                                     { Remove all tildes }
-   CTextWidth := Length(S);             { Calc text length }
+   CTextWidth := CStrLen(Txt);
 END;
-{$else FV_UNICODE}
-FUNCTION TView.TextWidth (const Txt: String): Sw_Integer;
-BEGIN
-   TextWidth := Length(Txt);             { Calc text length }
-END;
-
-FUNCTION TView.CTextWidth (const Txt: String): Sw_Integer;
-VAR I: Sw_Integer; S: String;
-BEGIN
-   S := Txt;                                          { Transfer text }
-   Repeat
-     I := Pos('~', S);                                { Check for tilde }
-      If (I <> 0) Then System.Delete(S, I, 1);        { Remove the tilde }
-   Until (I = 0);                                     { Remove all tildes }
-   CTextWidth := Length(S);             { Calc text length }
-END;
-{$endif FV_UNICODE}
 
 {--TView--------------------------------------------------------------------}
 {  MouseInView -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
