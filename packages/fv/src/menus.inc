@@ -1461,9 +1461,9 @@ VAR Mouse: TPoint; T, Tt: PStatusItem;
      X := 0;                                          { Zero x position }
      T := Items;                                      { Start at first item }
      While (T <> Nil) Do Begin                        { While item valid }
-       If (T^.Text <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Check valid text }
+       If (T^.Text <> Sw_PString_Empty) Then Begin  { Check valid text }
          Xi := X;                                     { Hold initial x value }
-         X := Xi + CTextWidth(' ' + T^.Text{$ifndef FV_UNICODE}^{$endif} + ' ');   { Add text width }
+         X := Xi + CTextWidth(' ' + T^.Text Sw_PString_Deref + ' ');   { Add text width }
          If (Mouse.X >= Xi) AND (Mouse.X < X)
          Then Begin
            ItemMouseIsIn := T;                        { Selected item }
