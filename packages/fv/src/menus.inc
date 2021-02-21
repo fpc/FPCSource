@@ -545,11 +545,7 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
      If (Current <> Nil) Then                         { Current view valid }
        Repeat
          If FindNext Then NextItem Else PrevItem;     { Find next/prev item }
-{$ifdef FV_UNICODE}
-       Until (Current^.Name <> '');                   { Until we have name }
-{$else FV_UNICODE}
-       Until (Current^.Name <> Nil);                  { Until we have name }
-{$endif FV_UNICODE}
+       Until (Current^.Name <> Sw_PString_Empty);     { Until we have name }
    END;
 
    FUNCTION MouseInOwner: Boolean;
@@ -604,11 +600,7 @@ BEGIN
            If MouseInOwner Then                       { Mouse in owner }
              Current := Menu^.Default                 { Set as current }
            Else If (Current <> Nil) AND
-{$ifdef FV_UNICODE}
-           (Current^.Name <> '') Then
-{$else FV_UNICODE}
-           (Current^.Name <> Nil) Then
-{$endif FV_UNICODE}
+           (Current^.Name <> Sw_PString_Empty) Then
              Action := DoSelect                       { Set select action }
            Else If MouseActive OR MouseInView(E.Where)
            Then Action := DoReturn                    { Set return action }
@@ -683,11 +675,7 @@ BEGIN
      If (Action = DoSelect) OR ((Action = DoNothing)
      AND AutoSelect) Then                             { Item is selecting }
        If (Current <> Nil) Then With Current^ Do      { Current item valid }
-{$ifdef FV_UNICODE}
-         If (Name <> '') Then                         { Item has a name }
-{$else FV_UNICODE}
-         If (Name <> Nil) Then                        { Item has a name }
-{$endif FV_UNICODE}
+         If (Name <> Sw_PString_Empty) Then           { Item has a name }
            If (Command = 0) Then Begin                { Has no command }
              If (E.What AND (evMouseDown+evMouseMove) <> 0)
                Then PutEvent(E);                      { Put event on queue }
