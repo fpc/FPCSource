@@ -4328,11 +4328,19 @@ begin
           SrcPos:=x1 - staticVar2.offset;
           l:=x2-x1;
           if (shadowCounter=0) then
+           begin
 {$ifdef FV_UNICODE}
-           move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l*SizeOf(TEnhancedVideoCell))
+             while (l>0) do
+              begin
+                PVideoBuf(G^.buffer)^[BufPos]:=staticVar1^[SrcPos];
+                inc(BufPos);
+                inc(SrcPos);
+                dec(l);
+              end;
 {$else FV_UNICODE}
-           move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l shl 1)
+             move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l shl 1)
 {$endif FV_UNICODE}
+           end
           else
            begin { paint with shadowAttr }
              while (l>0) do
