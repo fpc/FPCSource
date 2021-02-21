@@ -1087,11 +1087,7 @@ BEGIN
      P := Menu^.Items;                                { Start on first }
      While (P <> Nil) Do Begin                        { Valid menu item }
        Color := CNormal;                              { Normal colour }
-{$ifdef FV_UNICODE}
-       If (P^.Name <> '') Then Begin                  { Item has text }
-{$else FV_UNICODE}
-       If (P^.Name <> Nil) Then Begin                 { Item has text }
-{$endif FV_UNICODE}
+       If (P^.Name <> Sw_PString_Empty) Then Begin    { Item has text }
          If P^.Disabled Then
            begin
              if (P = Current) then
@@ -1103,28 +1099,16 @@ BEGIN
            If (P = Current) Then Color := CSelect;    { Select colour }
          CreateBorder(NormalLine);
          Index:=2;
-{$ifdef FV_UNICODE}
-         S := ' ' + P^.Name + ' ';                    { Menu string }
-{$else FV_UNICODE}
-         S := ' ' + P^.Name^ + ' ';                   { Menu string }
-{$endif FV_UNICODE}
+         S := ' ' + P^.Name Sw_PString_Deref + ' ';   { Menu string }
          MoveCStr(B[Index], S, Color);                { Transfer string }
         if P^.Command = 0 then
           MoveChar(B[Size.X - 4],SubMenuChar[LowAscii],
             Byte(Color), 1) else
-{$ifdef FV_UNICODE}
-         If (P^.Command <> 0) AND(P^.Param <> '') Then
+         If (P^.Command <> 0) AND(P^.Param <> Sw_PString_Empty) Then
          Begin
-            MoveCStr(B[Size.X - 3 - Length(P^.Param)], P^.Param, Color);  { Add param chars }
-            S := S + ' - ' + P^.Param;                { Add to string }
+            MoveCStr(B[Size.X - 3 - Length(P^.Param Sw_PString_Deref)], P^.Param Sw_PString_Deref, Color);  { Add param chars }
+            S := S + ' - ' + P^.Param Sw_PString_Deref;  { Add to string }
          End;
-{$else FV_UNICODE}
-         If (P^.Command <> 0) AND(P^.Param <> Nil) Then
-         Begin
-            MoveCStr(B[Size.X - 3 - Length(P^.Param^)], P^.Param^, Color);  { Add param chars }
-            S := S + ' - ' + P^.Param^;                { Add to string }
-         End;
-{$endif FV_UNICODE}
          If (OldItem = Nil) OR (OldItem = P) OR
             (Current = P) Then
            Begin                     { We need to fix draw }
