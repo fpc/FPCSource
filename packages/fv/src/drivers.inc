@@ -943,10 +943,7 @@ end;
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
 VAR EGC: Sw_String;
 BEGIN
-   { todo: handle wide (CJK, emoji) characters as double width }
-   Result := 0;
-   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
-     Inc(Result);
+   Result := Video.StringDisplayWidth(S);
 END;
 {$else FV_UNICODE}
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
