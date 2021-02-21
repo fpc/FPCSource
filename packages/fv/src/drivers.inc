@@ -988,7 +988,7 @@ BEGIN
      begin
        If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
        P^.ExtendedGraphemeCluster := EGC;               { Copy string char }
-       Inc(P);
+       Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
      end;
 END;
 {$else FV_UNICODE}
@@ -1019,7 +1019,7 @@ BEGIN
            If (Lo(Attrs) <> 0) Then
              P^.Attribute := Lo(Attrs);                   { Copy attribute }
            P^.ExtendedGraphemeCluster:=EGC;               { Copy string char }
-           Inc(P);                                        { Next position }
+           Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));  { Next position }
          end
        else
          begin
