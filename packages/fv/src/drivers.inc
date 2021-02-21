@@ -963,7 +963,7 @@ BEGIN
    Result := 0;
    for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
      if EGC <> '~' then
-       Inc(Result);
+       Inc(Result, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
 END;
 {$else FV_UNICODE}
 FUNCTION CStrLen (Const S: String): Sw_Integer;
