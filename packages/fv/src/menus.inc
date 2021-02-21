@@ -114,11 +114,7 @@ TYPE
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    RECORD
      Next: PMenuItem;                                 { Next menu item }
-{$ifdef FV_UNICODE}
-     Name: UnicodeString;                             { Menu item name }
-{$else FV_UNICODE}
-     Name: PString;                                   { Menu item name }
-{$endif FV_UNICODE}
+     Name: SW_PString;                                { Menu item name }
      Command: Word;                                   { Menu item command }
      Disabled: Boolean;                               { Menu item state }
      KeyCode: Word;                                   { Menu item keycode }
