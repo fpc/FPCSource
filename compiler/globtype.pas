@@ -529,7 +529,8 @@ interface
          m_array2dynarray,      { regular arrays can be implicitly converted to dynamic arrays }
          m_prefixed_attributes, { enable attributes that are defined before the type they belong to }
          m_underscoreisseparator,{ _ can be used as separator to group digits in numbers }
-         m_implicit_function_specialization    { attempt to specialize generic function by inferring types from parameters }
+         m_implicit_function_specialization,    { attempt to specialize generic function by inferring types from parameters }
+         m_function_references  { enable Delphi-style function references }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -723,7 +724,8 @@ interface
          'ARRAYTODYNARRAY',
          'PREFIXEDATTRIBUTES',
          'UNDERSCOREISSEPARATOR',
-         'IMPLICITFUNCTIONSPECIALIZATION'
+         'IMPLICITFUNCTIONSPECIALIZATION',
+         'FUNCTIONREFERENCES'
          );
 
 
