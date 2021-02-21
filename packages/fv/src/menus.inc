@@ -1106,7 +1106,7 @@ BEGIN
             Byte(Color), 1) else
          If (P^.Command <> 0) AND(P^.Param <> Sw_PString_Empty) Then
          Begin
-            MoveCStr(B[Size.X - 3 - Length(P^.Param Sw_PString_Deref)], P^.Param Sw_PString_Deref, Color);  { Add param chars }
+            MoveCStr(B[Size.X - 3 - CTextWidth(P^.Param Sw_PString_Deref)], P^.Param Sw_PString_Deref, Color);  { Add param chars }
             S := S + ' - ' + P^.Param Sw_PString_Deref;  { Add to string }
          End;
          If (OldItem = Nil) OR (OldItem = P) OR
