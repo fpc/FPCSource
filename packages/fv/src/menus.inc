@@ -744,14 +744,10 @@ BEGIN
    Ch := UpCase(Ch);                                  { Upper case of char }
    P := Menu^.Items;                                  { First menu item }
    While (P <> Nil) Do Begin                          { While item valid }
-{$ifdef FV_UNICODE}
-     If (P^.Name <> '') AND (NOT P^.Disabled)        { Valid enabled cmd }
-{$else FV_UNICODE}
-     If (P^.Name <> Nil) AND (NOT P^.Disabled)        { Valid enabled cmd }
-{$endif FV_UNICODE}
+     If (P^.Name <> Sw_PString_Empty) AND (NOT P^.Disabled)  { Valid enabled cmd }
      Then Begin
-       I := Pos('~', P^.Name{$ifndef FV_UNICODE}^{$endif});  { Scan for highlight }
-       If (I <> 0) AND (Ch = UpCase(P^.Name{$ifndef FV_UNICODE}^{$endif}[I+1]))   { Hotkey char found }
+       I := Pos('~', P^.Name Sw_PString_Deref);  { Scan for highlight }
+       If (I <> 0) AND (Ch = UpCase(P^.Name Sw_PString_Deref[I+1]))   { Hotkey char found }
        Then Begin
          FindItem := P;                               { Return item }
          Exit;                                        { Now exit }
@@ -771,7 +767,7 @@ FUNCTION TMenuView.HotKey (KeyCode: Word): PMenuItem;
    VAR T: PMenuItem;
    BEGIN
      While (P <> Nil) Do Begin                        { While item valid }
-       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then  { If valid name }
+       If (P^.Name <> Sw_PString_Empty) Then  { If valid name }
          If (P^.Command = 0) Then Begin               { Valid command }
            T := FindHotKey(P^.SubMenu^.Items);        { Search for hot key }
            If (T <> Nil) Then Begin
@@ -825,7 +821,7 @@ PROCEDURE TMenuView.Store (Var S: TStream);
          S.Write(Disabled, SizeOf(Disabled));         { Menu item state }
          S.Write(KeyCode, SizeOf(KeyCode));           { Menu item keycode }
          S.Write(HelpCtx, SizeOf(HelpCtx));           { Menu item help ctx }
-         If Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif} Then
+         If Name <> Sw_PString_Empty Then
            If Command = 0 Then DoStoreMenu(SubMenu)
 {$ifdef FV_UNICODE}
            Else S.WriteUnicodeString(Param);          { Write parameter }
@@ -855,7 +851,7 @@ VAR CallDraw: Boolean; P: PMenuItem;
    BEGIN
      P := AMenu^.Items;                                { Start on first item }
      While (P <> Nil) Do Begin
-       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then  { Valid name }
+       If (P^.Name <> Sw_PString_Empty) Then  { Valid name }
        If (P^.Command = 0) Then UpdateMenu(P^.SubMenu){ Update menu }
        Else Begin
          CommandState := CommandEnabled(P^.Command);  { Menu item state }
@@ -965,7 +961,7 @@ BEGIN
      I := 0;                                          { Set start position }
      P := Menu^.Items;                                { First item }
      While (P <> Nil) Do Begin
-       If (P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif}) Then Begin  { Name valid }
+       If (P^.Name <> Sw_PString_Empty) Then Begin  { Name valid }
          If P^.Disabled Then Begin
            If (P = Current) Then Color := CSelDisabled{ Select disabled }
              Else Color := CNormDisabled              { Normal disabled }
@@ -973,9 +969,9 @@ BEGIN
            If (P = Current) Then Color := CSelect     { Select colour }
              Else Color := CNormal;                   { Normal colour }
          End;
-         J := CStrLen(P^.Name{$ifndef FV_UNICODE}^{$endif});  { Length of string }
+         J := CStrLen(P^.Name Sw_PString_Deref);  { Length of string }
          MoveChar(B[I], ' ', Byte(Color), 1);
-         MoveCStr(B[I+1], P^.Name{$ifndef FV_UNICODE}^{$endif}, Color);  { Name to buffer }
+         MoveCStr(B[I+1], P^.Name Sw_PString_Deref, Color);  { Name to buffer }
          MoveChar(B[I+1+J], ' ', Byte(Color), 1);
          Inc(I, J+2);                                 { Advance position }
        End;
@@ -996,9 +992,9 @@ BEGIN
    P := Menu^.Items;                                  { First item }
    While (P <> Nil) Do Begin                          { While valid item }
      R.A.X := I;                            { Move area along }
-     If P^.Name <> {$ifdef FV_UNICODE}''{$else}Nil{$endif} Then Begin  { Valid name }
-       R.B.X := R.A.X+CTextWidth(' ' + P^.Name{$ifndef FV_UNICODE}^{$endif} + ' ');{ Add text width  }
-       I := I + CStrLen(P^.Name{$ifndef FV_UNICODE}^{$endif}) + 2;  { Add item length }
+     If P^.Name <> Sw_PString_Empty Then Begin  { Valid name }
+       R.B.X := R.A.X+CTextWidth(' ' + P^.Name Sw_PString_Deref + ' ');{ Add text width  }
+       I := I + CStrLen(P^.Name Sw_PString_Deref) + 2;  { Add item length }
      End Else R.B.X := R.A.X;
      If (P = Item) Then break;                        { Requested item found }
      P := P^.Next;                                    { Next item }
@@ -1022,19 +1018,11 @@ BEGIN
    If (AMenu <> Nil) Then Begin                       { Valid menu }
      P := AMenu^.Items;                               { Start on first item }
      While (P <> Nil) Do Begin                        { If item valid }
-{$ifdef FV_UNICODE}
-       If (P^.Name <> '') Then Begin                  { Check for name }
-         S := ' ' + P^.Name + ' ';                    { Transfer string }
-         If (P^.Command <> 0) AND (P^.Param <> '')
-           Then S := S + ' - ' + P^.Param;            { Add any parameter }
+       If (P^.Name <> Sw_PString_Empty) Then Begin    { Check for name }
+         S := ' ' + P^.Name Sw_PString_Deref + ' ';   { Transfer string }
+         If (P^.Command <> 0) AND (P^.Param <> Sw_PString_Empty)
+           Then S := S + ' - ' + P^.Param Sw_PString_Deref;  { Add any parameter }
        End;
-{$else FV_UNICODE}
-       If (P^.Name <> Nil) Then Begin                 { Check for name }
-         S := ' ' + P^.Name^ + ' ';                   { Transfer string }
-         If (P^.Command <> 0) AND (P^.Param <> Nil)
-           Then S := S + ' - ' + P^.Param^;           { Add any parameter }
-       End;
-{$endif FV_UNICODE}
        L := CTextWidth(S);                             { Width of string }
        If (L > W) Then W := L;                        { Hold maximum }
        Inc(H);                                        { Inc count of items }
