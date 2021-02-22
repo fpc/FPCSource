@@ -145,8 +145,8 @@ begin
     //Lb^.Newlist(List);                               { Give list to listbox }
     //R.Assign(30, 2, 40, 4);                          { Assign area }
 
-    //P^.Insert(New(PButton, Init(R, '~O~k', 100, bfGrabFocus)));{ Create okay button }
-    //R.Assign(30, 15, 40, 17);                        { Assign area }
+    P^.Insert(New(PButton, Init(R, '好的', 100, bfGrabFocus)));{ Create okay button }
+    R.Assign(30, 15, 40, 17);                        { Assign area }
 
     Desktop^.Insert(P);                              { Insert dialog }
     P3:=P;
