@@ -111,13 +111,13 @@ begin
       NewSITem('Item 2', Nil)))));                   { Insert check box }
     R.Assign(5, 2, 20, 3);                           { Assign area }
 
-    //B := New(PScrollBar, Init(R));                   { Insert scroll bar }
-    //If (B <> Nil) Then Begin                         { Scrollbar valid }
-    //  B^.SetRange(0, 100);                           { Set scrollbar range }
-    //  B^.SetValue(50);                               { Set position }
-    //  P^.Insert(B);                                  { Insert scrollbar }
-    //End;
-    //R.Assign(5, 10, 20, 11);                         { Assign area }
+    B := New(PScrollBar, Init(R));                   { Insert scroll bar }
+    If (B <> Nil) Then Begin                         { Scrollbar valid }
+      B^.SetRange(0, 100);                           { Set scrollbar range }
+      B^.SetValue(50);                               { Set position }
+      P^.Insert(B);                                  { Insert scrollbar }
+    End;
+    R.Assign(5, 10, 20, 11);                         { Assign area }
 
     //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
     //R.Assign(5, 13, 20, 14);                         { Assign area }
