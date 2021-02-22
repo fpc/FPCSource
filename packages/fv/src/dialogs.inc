@@ -2287,7 +2287,7 @@ BEGIN
        Cur := J*Size.Y + I;                           { Current line }
        If (Cur < Strings.Count) Then Begin
          Col := Column(Cur);                          { Calc column }
-         If (Col + CStrLen(PString(Strings.At(Cur))^)+
+         If (Col + CStrLen(Sw_PString(Strings.At(Cur)) Sw_PString_Deref)+
          5 < Sizeof(TDrawBuffer) DIV SizeOf(Word))
          AND (Col < Size.X) Then Begin            { Text fits in column }
            If NOT ButtonState(Cur) Then
@@ -2305,8 +2305,8 @@ BEGIN
            WordRec(B[Col+2]).Lo := Byte(Marker[
              MultiMark(Cur) + 1]);                    { Transfer marker }
 {$endif FV_UNICODE}
-           MoveCStr(B[Col+5], PString(Strings.At(
-             Cur))^, Color);                          { Transfer item string }
+           MoveCStr(B[Col+5], Sw_PString(Strings.At(
+             Cur)) Sw_PString_Deref, Color);                          { Transfer item string }
            If ShowMarkers AND (State AND sfFocused <> 0)
            AND (Cur = Sel) Then Begin                 { Current is selected }
 {$ifdef FV_UNICODE}

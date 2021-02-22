@@ -106,10 +106,10 @@ begin
   P := New(PDialog, Init(R, '테스트 대화 상자'));         { Create dialog }
   If (P <> Nil) Then Begin                           { Dialog valid }
     R.Assign(5, 5, 20, 7);                          { Allocate area }
-    //P^.Insert(New(PCheckBoxes, Init(R,
-    //  NewSItem('Test',
-    //  NewSITem('Item 2', Nil)))));                   { Insert check box }
-    //R.Assign(5, 2, 20, 3);                           { Assign area }
+    P^.Insert(New(PCheckBoxes, Init(R,
+      NewSItem('Test',
+      NewSITem('Item 2', Nil)))));                   { Insert check box }
+    R.Assign(5, 2, 20, 3);                           { Assign area }
 
     //B := New(PScrollBar, Init(R));                   { Insert scroll bar }
     //If (B <> Nil) Then Begin                         { Scrollbar valid }
