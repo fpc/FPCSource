@@ -459,7 +459,7 @@ begin
       if (FirstCodePoint>=$D800) and (FirstCodePoint<=$DBFF) and (Length(EGC)>=2) and
          (Ord(EGC[2])>=$DC00) and (Ord(EGC[2])<=$DFFF) then
         begin
-          FirstCodePoint := ((FirstCodePoint-$D800) shl 10) or (Ord(EGC[2])-$DC00);
+          FirstCodePoint := $10000+((FirstCodePoint-$D800) shl 10) or (Ord(EGC[2])-$DC00);
         end;
       { todo: handle emoji + modifiers }
       case GetEastAsianWidth(FirstCodePoint) of
