@@ -745,7 +745,6 @@ begin
   LastAttr:=7;
   LastX:=-1;
   LastY:=-1;
-  LastCharWasDoubleWidth:=False;
   for y:=1 to ScreenHeight do
    begin
      SpaceAttr:=0;
@@ -753,6 +752,7 @@ begin
      LastLineWidth:=ScreenWidth;
      If (y=ScreenHeight) And (Console=ttyFreeBSD) {And :am: is on} Then
       LastLineWidth:=ScreenWidth-2;
+     LastCharWasDoubleWidth:=False;
      for x:=1 to LastLineWidth do
       begin
         if LastCharWasDoubleWidth then
