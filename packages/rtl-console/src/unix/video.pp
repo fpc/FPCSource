@@ -757,7 +757,8 @@ begin
       begin
         if LastCharWasDoubleWidth then
          LastCharWasDoubleWidth:=false
-        else if (not force) and (p^=pold^) then
+        else if (not force) and (p^=pold^) and
+          ((ExtendedGraphemeClusterDisplayWidth(p^.ExtendedGraphemeCluster) <= 1) or (x=LastLineWidth) or (p[1]=pold[1])) then
          begin
            if (Spaces>0) then
             OutSpaces;
