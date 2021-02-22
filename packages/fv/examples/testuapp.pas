@@ -132,11 +132,11 @@ begin
     Lb := New(PListBox, Init(R, 1, B));              { Create listbox }
     P^.Insert(Lb);                                   { Insert listbox }
     List := New(PUnicodeStringCollection, Init(10, 5));        { Create string list }
-    List^.AtInsert(0, 'Zebra');              { Insert text }
-    List^.AtInsert(1, 'Apple');              { Insert text }
+    List^.AtInsert(0, 'Зебра');              { Insert text }
+    List^.AtInsert(1, '林檎');               { Insert text }
     List^.AtInsert(2, 'Third');              { Insert text }
     List^.AtInsert(3, 'Peach');              { Insert text }
-    List^.AtInsert(4, 'Rabbit');             { Insert text }
+    List^.AtInsert(4, 'За́ек');               { Insert text }
     List^.AtInsert(5, 'Item six');           { Insert text }
     List^.AtInsert(6, 'Jaguar');             { Insert text }
     List^.AtInsert(7, 'Melon');              { Insert text }
