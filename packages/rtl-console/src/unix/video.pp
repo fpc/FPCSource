@@ -517,6 +517,7 @@ var
   LastLineWidth : Longint;
   p,pold   : penhancedvideocell;
   LastCharWasDoubleWidth: Boolean;
+  CurCharWidth: Integer;
 
   function transform_cp437_to_iso01(const st:string):string;
 
@@ -757,64 +758,70 @@ begin
       begin
         if LastCharWasDoubleWidth then
          LastCharWasDoubleWidth:=false
-        else if (not force) and (p^=pold^) and
-          ((ExtendedGraphemeClusterDisplayWidth(p^.ExtendedGraphemeCluster) <= 1) or (x=LastLineWidth) or (p[1]=pold[1])) then
-         begin
-           if (Spaces>0) then
-            OutSpaces;
-           skipped:=true;
-         end
         else
-         begin
-           if skipped then
-            begin
-              OutData(XY2Ansi(x,y,LastX,LastY));
-              LastX:=x;
-              LastY:=y;
-              skipped:=false;
-            end;
-           chattr:=p^;
-{           if chattr.ch in [#0,#255] then
-            chattr.ch:=' ';}
-           if chattr.ExtendedGraphemeCluster=' ' then
-            begin
-              if Spaces=0 then
-               SpaceAttr:=chattr.Attribute;
-              if (chattr.Attribute and $f0)=(spaceattr and $f0) then
-               chattr.Attribute:=SpaceAttr
-              else
-               begin
-                 OutSpaces;
-                 SpaceAttr:=chattr.Attribute;
-               end;
-              inc(Spaces);
-            end
-           else
-            begin
-              if (Spaces>0) then
-               OutSpaces;
-{              if ord(chattr.ch)<32 then
+          begin
+            CurCharWidth := ExtendedGraphemeClusterDisplayWidth(p^.ExtendedGraphemeCluster);
+            if (not force) and (p^=pold^) and
+              ((CurCharWidth <= 1) or (x=LastLineWidth) or (p[1]=pold[1])) then
+             begin
+               if (Spaces>0) then
+                OutSpaces;
+               skipped:=true;
+               if CurCharWidth = 2 then
+                 LastCharWasDoubleWidth:=true;
+             end
+            else
+             begin
+               if skipped then
                 begin
-                  Chattr.Attr:= $ff xor Chattr.Attr;
-                  ChAttr.ch:=chr(ord(chattr.ch)+ord('A')-1);
-                end;}
-              if LastAttr<>chattr.Attribute then
-               OutClr(chattr.Attribute);
-              OutData(transform(chattr.ExtendedGraphemeCluster));
-              if ExtendedGraphemeClusterDisplayWidth(chattr.ExtendedGraphemeCluster)=2 then
-               begin
-                LastX:=x+2;
-                LastCharWasDoubleWidth:=True;
-               end
-              else
-               begin
-                 LastX:=x+1;
-                 LastCharWasDoubleWidth:=False;
-               end;
-              LastY:=y;
-            end;
-           //p^:=chattr;
-         end;
+                  OutData(XY2Ansi(x,y,LastX,LastY));
+                  LastX:=x;
+                  LastY:=y;
+                  skipped:=false;
+                end;
+               chattr:=p^;
+    {           if chattr.ch in [#0,#255] then
+                chattr.ch:=' ';}
+               if chattr.ExtendedGraphemeCluster=' ' then
+                begin
+                  if Spaces=0 then
+                   SpaceAttr:=chattr.Attribute;
+                  if (chattr.Attribute and $f0)=(spaceattr and $f0) then
+                   chattr.Attribute:=SpaceAttr
+                  else
+                   begin
+                     OutSpaces;
+                     SpaceAttr:=chattr.Attribute;
+                   end;
+                  inc(Spaces);
+                end
+               else
+                begin
+                  if (Spaces>0) then
+                   OutSpaces;
+    {              if ord(chattr.ch)<32 then
+                    begin
+                      Chattr.Attr:= $ff xor Chattr.Attr;
+                      ChAttr.ch:=chr(ord(chattr.ch)+ord('A')-1);
+                    end;}
+                  if LastAttr<>chattr.Attribute then
+                   OutClr(chattr.Attribute);
+                  OutData(transform(chattr.ExtendedGraphemeCluster));
+                  if CurCharWidth=2 then
+                   begin
+                    LastX:=x+2;
+                    LastCharWasDoubleWidth:=True;
+                   end
+                  else
+                   begin
+                     LastX:=x+1;
+                     LastCharWasDoubleWidth:=False;
+                   end;
+                  LastY:=y;
+                end;
+               //p^:=chattr;
+             end;
+          end;
         inc(p);
         inc(pold);
       end;
