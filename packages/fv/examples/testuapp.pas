@@ -98,7 +98,7 @@ end;
 
 procedure TMyUnicodeApp.Window3;
 VAR R: TRect; P: PGroup; B: PScrollBar;
-    List: PStrCollection; Lb: PListBox;
+    List: PUnicodeStringCollection; Lb: PListBox;
 begin
   { Create a basic dialog box. In it are buttons,  }
   { list boxes, scrollbars, inputlines, checkboxes }
@@ -123,27 +123,27 @@ begin
     //R.Assign(5, 13, 20, 14);                         { Assign area }
 
     //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
-    //R.Assign(40, 8, 41, 14);                         { Assign area }
+    R.Assign(40, 8, 41, 14);                         { Assign area }
 
-    //B := New(PScrollBar, Init(R));                   { Create scrollbar }
-    //P^.Insert(B);                                    { Insert scrollbar }
-    //R.Assign(25, 8, 40, 14);                         { Assign area }
+    B := New(PScrollBar, Init(R));                   { Create scrollbar }
+    P^.Insert(B);                                    { Insert scrollbar }
+    R.Assign(25, 8, 40, 14);                         { Assign area }
 
-    //Lb := New(PListBox, Init(R, 1, B));              { Create listbox }
-    //P^.Insert(Lb);                                   { Insert listbox }
-    //List := New(PStrCollection, Init(10, 5));        { Create string list }
-    //List^.AtInsert(0, NewStr('Zebra'));              { Insert text }
-    //List^.AtInsert(1, NewStr('Apple'));              { Insert text }
-    //List^.AtInsert(2, NewStr('Third'));              { Insert text }
-    //List^.AtInsert(3, NewStr('Peach'));              { Insert text }
-    //List^.AtInsert(4, NewStr('Rabbit'));             { Insert text }
-    //List^.AtInsert(5, NewStr('Item six'));           { Insert text }
-    //List^.AtInsert(6, NewStr('Jaguar'));             { Insert text }
-    //List^.AtInsert(7, NewStr('Melon'));              { Insert text }
-    //List^.AtInsert(8, NewStr('Ninth'));              { Insert text }
-    //List^.AtInsert(9, NewStr('Last item'));          { Insert text }
-    //Lb^.Newlist(List);                               { Give list to listbox }
-    //R.Assign(30, 2, 40, 4);                          { Assign area }
+    Lb := New(PListBox, Init(R, 1, B));              { Create listbox }
+    P^.Insert(Lb);                                   { Insert listbox }
+    List := New(PUnicodeStringCollection, Init(10, 5));        { Create string list }
+    List^.AtInsert(0, 'Zebra');              { Insert text }
+    List^.AtInsert(1, 'Apple');              { Insert text }
+    List^.AtInsert(2, 'Third');              { Insert text }
+    List^.AtInsert(3, 'Peach');              { Insert text }
+    List^.AtInsert(4, 'Rabbit');             { Insert text }
+    List^.AtInsert(5, 'Item six');           { Insert text }
+    List^.AtInsert(6, 'Jaguar');             { Insert text }
+    List^.AtInsert(7, 'Melon');              { Insert text }
+    List^.AtInsert(8, 'Ninth');              { Insert text }
+    List^.AtInsert(9, 'Last item');          { Insert text }
+    Lb^.Newlist(List);                               { Give list to listbox }
+    R.Assign(30, 2, 40, 4);                          { Assign area }
 
     P^.Insert(New(PButton, Init(R, '好的', 100, bfGrabFocus)));{ Create okay button }
     R.Assign(30, 15, 40, 17);                        { Assign area }
