@@ -1765,6 +1765,32 @@ BEGIN
            End;
            kbIns: SetState(sfCursorIns, State AND
              sfCursorIns = 0);                        { Flip insert state }
+{$ifdef FV_UNICODE}
+           Else Case Event.UnicodeChar Of
+             ' '..#$FFFF:   { Character key }
+               Begin
+                 If (State AND sfCursorIns <> 0) Then
+                   Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
+                   DeleteSelect;                        { Deselect selected }
+                 If CheckValid(True) Then Begin         { Check data valid }
+                   If (Length(Data Sw_PString_DeRef) < MaxLen) Then     { Must not exceed maxlen }
+                   Begin
+                     If (FirstPos > CurPos) Then
+                       FirstPos := CurPos;              { Advance first position }
+                     Inc(CurPos);                       { Increment cursor }
+                     Insert(Event.UnicodeChar, Data Sw_PString_DeRef,
+                       CurPos);                         { Insert the character }
+                   End;
+                   CheckValid(False);                   { Check data valid }
+                 End;
+               End;
+             ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
+                Data Sw_PString_DeRef := '';          { Set empty string }
+                CurPos := 0;                          { Cursor to start }
+             End;
+             Else Exit;                               { Unused key }
+           End
+{$else FV_UNICODE}
            Else Case Event.CharCode Of
              ' '..#255: If Data <> Sw_PString_Empty Then Begin   { Character key }
                If (State AND sfCursorIns <> 0) Then
@@ -1788,6 +1814,7 @@ BEGIN
              End;
              Else Exit;                               { Unused key }
            End
+{$endif FV_UNICODE}
          End;
          If ExtendBlock Then AdjustSelectBlock        { Extended block }
          Else Begin
