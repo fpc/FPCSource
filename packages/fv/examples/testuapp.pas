@@ -119,10 +119,10 @@ begin
     End;
     R.Assign(5, 10, 20, 11);                         { Assign area }
 
-    //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
-    //R.Assign(5, 13, 20, 14);                         { Assign area }
+    P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
+    R.Assign(5, 13, 20, 14);                         { Assign area }
 
-    //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
+    P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
     R.Assign(40, 8, 41, 14);                         { Assign area }
 
     B := New(PScrollBar, Init(R));                   { Create scrollbar }
