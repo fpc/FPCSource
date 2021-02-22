@@ -3,7 +3,7 @@ program testuapp;
 {$codepage UTF8}
 
 uses
-  Objects, UDrivers, UViews, UMenus, UApp, UMsgBox, SysUtils;
+  Objects, UDrivers, UViews, UMenus, UDialogs, UApp, UMsgBox, SysUtils;
 
 const
   cmOrderNew    = 200;
@@ -15,6 +15,7 @@ const
   cmClipShow    = 210;
   cmAbout       = 220;
   cmFindOrderWindow = 1002;
+  cmWindow3     = 1003;
   cmOptionsVideo = 1502;
   cmOptionsSave  = 1503;
   cmOptionsLoad  = 1504;
@@ -24,9 +25,11 @@ type
   { TMyUnicodeApp }
 
   TMyUnicodeApp = object(TApplication)
+    P3 : PGroup;
     procedure HandleEvent(var Event : TEvent);virtual;
     procedure InitMenuBar; virtual;
     procedure InitStatusLine; virtual;
+    procedure Window3;
     procedure ShowAboutBox;
   end;
 
@@ -41,6 +44,8 @@ begin
   if Event.What = evCommand then
   begin
     case Event.Command of
+      cmWindow3:
+        Window3;
       cmAbout:
         ShowAboutBox;
       else
@@ -61,7 +66,8 @@ begin
                       NewItem('~O~pen', '💩', kbF3, cmOpen, hcOpen,
                       NewLine(
                       NewItem('E~x~it', 'ъ́ъ́ъ́打', kbAltX, cmQuit, hcNoContext, nil))))),
-                 NewSubMenu('~E~dit', hcNoContext, NewMenu({GetEditMenuItems(nil)}nil),
+                 NewSubMenu('~E~dit', hcNoContext, NewMenu(
+                 NewItem('Window ~3~','',kbNoKey,cmWindow3,hcNoContext,nil)),
                  NewSubMenu('~O~rders', hcNoContext, {NewMenu(GetOrdersMenuItems(nil))}nil,
                  NewSubMenu('O~p~tions', hcNoContext, {NewMenu(GetOptionsMenuItems(nil))}nil,
                  NewSubMenu('~W~indow', hcNoContext, {NewMenu(GetWindowMenuItems(nil))}nil,
@@ -88,6 +94,63 @@ begin
           NewStatusKey('~F6~ Next', kbF6, cmOrderNext,
           NewStatusKey('~Shift+F6~ Pref', kbShiftF6, cmOrderPrev,
           nil)),nil))));
+end;
+
+procedure TMyUnicodeApp.Window3;
+VAR R: TRect; P: PGroup; B: PScrollBar;
+    List: PStrCollection; Lb: PListBox;
+begin
+  { Create a basic dialog box. In it are buttons,  }
+  { list boxes, scrollbars, inputlines, checkboxes }
+  R.Assign(32, 2, 77, 18);                           { Assign screen area }
+  P := New(PDialog, Init(R, 'TEST DIALOG'));         { Create dialog }
+  If (P <> Nil) Then Begin                           { Dialog valid }
+    R.Assign(5, 5, 20, 7);                          { Allocate area }
+    //P^.Insert(New(PCheckBoxes, Init(R,
+    //  NewSItem('Test',
+    //  NewSITem('Item 2', Nil)))));                   { Insert check box }
+    //R.Assign(5, 2, 20, 3);                           { Assign area }
+
+    //B := New(PScrollBar, Init(R));                   { Insert scroll bar }
+    //If (B <> Nil) Then Begin                         { Scrollbar valid }
+    //  B^.SetRange(0, 100);                           { Set scrollbar range }
+    //  B^.SetValue(50);                               { Set position }
+    //  P^.Insert(B);                                  { Insert scrollbar }
+    //End;
+    //R.Assign(5, 10, 20, 11);                         { Assign area }
+
+    //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
+    //R.Assign(5, 13, 20, 14);                         { Assign area }
+
+    //P^.Insert(New(PInputLine, Init(R, 60)));         { Create input line }
+    //R.Assign(40, 8, 41, 14);                         { Assign area }
+
+    //B := New(PScrollBar, Init(R));                   { Create scrollbar }
+    //P^.Insert(B);                                    { Insert scrollbar }
+    //R.Assign(25, 8, 40, 14);                         { Assign area }
+
+    //Lb := New(PListBox, Init(R, 1, B));              { Create listbox }
+    //P^.Insert(Lb);                                   { Insert listbox }
+    //List := New(PStrCollection, Init(10, 5));        { Create string list }
+    //List^.AtInsert(0, NewStr('Zebra'));              { Insert text }
+    //List^.AtInsert(1, NewStr('Apple'));              { Insert text }
+    //List^.AtInsert(2, NewStr('Third'));              { Insert text }
+    //List^.AtInsert(3, NewStr('Peach'));              { Insert text }
+    //List^.AtInsert(4, NewStr('Rabbit'));             { Insert text }
+    //List^.AtInsert(5, NewStr('Item six'));           { Insert text }
+    //List^.AtInsert(6, NewStr('Jaguar'));             { Insert text }
+    //List^.AtInsert(7, NewStr('Melon'));              { Insert text }
+    //List^.AtInsert(8, NewStr('Ninth'));              { Insert text }
+    //List^.AtInsert(9, NewStr('Last item'));          { Insert text }
+    //Lb^.Newlist(List);                               { Give list to listbox }
+    //R.Assign(30, 2, 40, 4);                          { Assign area }
+
+    //P^.Insert(New(PButton, Init(R, '~O~k', 100, bfGrabFocus)));{ Create okay button }
+    //R.Assign(30, 15, 40, 17);                        { Assign area }
+
+    Desktop^.Insert(P);                              { Insert dialog }
+    P3:=P;
+  End;
 end;
 
 procedure TMyUnicodeApp.ShowAboutBox;
