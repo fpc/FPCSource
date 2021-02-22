@@ -103,7 +103,7 @@ begin
   { Create a basic dialog box. In it are buttons,  }
   { list boxes, scrollbars, inputlines, checkboxes }
   R.Assign(32, 2, 77, 18);                           { Assign screen area }
-  P := New(PDialog, Init(R, 'TEST DIALOG'));         { Create dialog }
+  P := New(PDialog, Init(R, '테스트 대화 상자'));         { Create dialog }
   If (P <> Nil) Then Begin                           { Dialog valid }
     R.Assign(5, 5, 20, 7);                          { Allocate area }
     //P^.Insert(New(PCheckBoxes, Init(R,

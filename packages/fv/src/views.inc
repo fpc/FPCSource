@@ -2900,14 +2900,14 @@ begin
    Title := '';
   if Title <> '' then
    begin
-     L := Length(Title);
+     L := StrWidth(Title);
      if L > Width - 10 then
       L := Width - 10;
      if L < 0 then
       L := 0;
      I := (Width - L) shr 1;
      MoveChar(B[I - 1], ' ', CTitle, 1);
-     MoveBuf(B[I], Title[1], CTitle, L);
+     MoveBuf(B[I], Title[1], CTitle, L, Length(Title));
      MoveChar(B[I + L], ' ', CTitle, 1);
    end;
   if State and sfActive <> 0 then

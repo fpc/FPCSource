@@ -375,7 +375,8 @@ Sw_Words in Dest. The high bytes of the Sw_Words in Dest are set to Attr,
 or remain unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
-PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word); deprecated;
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; DestWidth, SourceCount: SizeInt);
 
 {-MoveChar------------------------------------------------------------
 Moves characters into a buffer for use with a view's WriteBuf or
@@ -1054,7 +1055,7 @@ END;
 {  MoveBuf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
 {---------------------------------------------------------------------------}
 {$ifdef FV_UNICODE}
-PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word); deprecated;
 VAR I: Word; P: PEnhancedVideoCell;
 BEGIN
    { todo: split string into extended grapheme clusters properly, handle non-BMP characters,
@@ -1065,8 +1066,32 @@ BEGIN
      P^.ExtendedGraphemeCluster := WideChar(TWordArray(Source)[I-1]); { Copy source data }
    End;
 END;
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; DestWidth, SourceCount: SizeInt);
+VAR
+  S, EGC: UnicodeString;
+  P: PEnhancedVideoCell;
+BEGIN
+  SetLength(S, SourceCount);
+  Move(Source, S[1], SourceCount * SizeOf(WideChar));
+  P := PEnhancedVideoCell(@Dest);                      { Pointer to TEnhancedVideoCell }
+  for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
+    begin
+      if DestWidth <= 0 then
+        exit;
+      Dec(DestWidth, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
+      if DestWidth < 0 then
+        begin
+          If (Attr <> 0) Then P^.Attribute := Attr;
+          P^.ExtendedGraphemeCluster := ' ';
+          exit;
+        end;
+      If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
+      P^.ExtendedGraphemeCluster := EGC;               { Copy string char }
+      Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
+    end;
+END;
 {$else FV_UNICODE}
-PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word); deprecated;
 VAR I: Word; P: PWord;
 BEGIN
    For I := 1 To Count Do Begin
@@ -1074,6 +1099,10 @@ BEGIN
      If (Attr <> 0) Then WordRec(P^).Hi := Attr;      { Copy attribute }
      WordRec(P^).Lo := TByteArray(Source)[I-1];       { Copy source data }
    End;
+END;
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; DestWidth, SourceCount: SizeInt);
+BEGIN
+  MoveBuf(Dest, Source, Attr, DestWidth);
 END;
 {$endif FV_UNICODE}
 
