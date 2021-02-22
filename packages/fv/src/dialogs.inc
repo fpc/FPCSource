@@ -74,7 +74,7 @@ USES
 {$endif FV_UNICODE}
    FVConsts, Objects,                       { Standard GFV units }
 {$ifdef FV_UNICODE}
-   UDrivers, UViews, UValidate;
+   UDrivers, UViews, UValidate, GraphemeBreakProperty;
 {$else FV_UNICODE}
    Drivers, Views, Validate;
 {$endif FV_UNICODE}
@@ -2975,6 +2975,122 @@ END;
 {--TStaticText--------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB    }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE TStaticText.Draw;
+VAR Just: Byte; I, J, P, Y, CurLineWidth, NextLineWidth, LastWordBoundaryLen,
+  LastWordBoundaryWidth, LastTruncatedBoundaryLen, LastTruncatedBoundaryWidth: Sw_Integer;
+  S, EGC, CurLine, NextLine: Sw_String;
+  B : TDrawBuffer;
+  Color : Byte;
+  AtStartOfLine: Boolean;
+
+  procedure BeginNewLine;
+  begin
+    MoveChar(B, ' ', Color, Size.X);
+    CurLine := NextLine;
+    CurLineWidth := NextLineWidth;
+    LastWordBoundaryLen := 0;
+    LastWordBoundaryWidth := 0;
+    Just := 0;                                         { Default left justify }
+    AtStartOfLine := True;
+  end;
+
+  procedure FinishLine;
+  begin
+    if CurLine <> '' then
+      begin
+        Case Just Of
+          0: J := 0;                           { Left justify }
+          1: J := (Size.X - CurLineWidth) DIV 2;      { Centre justify }
+          2: J := Size.X - CurLineWidth;              { Right justify }
+        End;
+        MoveStr(B[J], CurLine, Color);
+      end;
+
+    WriteLine(0, Y, Size.X, 1, B);
+    Inc(Y);                                          { Next line }
+  end;
+
+BEGIN
+   GetText(S);                                        { Fetch text to write }
+   Color := GetColor(1);
+   if (Size.X <= 0) or (Size.Y <= 0) then
+     exit;
+   P := 1;                                            { X start position }
+   Y := 0;                                            { Y start position }
+   LastWordBoundaryLen := 0;
+   LastWordBoundaryWidth := 0;
+   LastTruncatedBoundaryLen := 0;
+   LastTruncatedBoundaryWidth := 0;
+   NextLine := '';
+   NextLineWidth := 0;
+   BeginNewLine;
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
+     begin
+       if AtStartOfLine and ((EGC = #2) or (EGC = #3)) then
+       begin
+         AtStartOfLine := False;
+         if EGC = #2 then
+           Just := 2                                  { Set right justify }
+         else if EGC = #3 then
+           Just := 1;                                 { Set centre justify }
+       end
+       else
+       begin
+         AtStartOfLine := False;
+         if (EGC <> #13) and (EGC <> #10) then
+         begin
+           if EGC = ' ' then
+           begin
+             LastWordBoundaryLen := Length(CurLine);
+             LastWordBoundaryWidth := CurLineWidth;
+           end;
+           CurLine := CurLine + EGC;
+           Inc(CurLineWidth, StrWidth(EGC));
+           if CurLineWidth <= Size.X then
+           begin
+             LastTruncatedBoundaryLen := Length(CurLine);
+             LastTruncatedBoundaryWidth := CurLineWidth;
+           end;
+         end;
+         if (CurLineWidth >= Size.X) or (EGC = #13) then
+         begin
+           if CurLineWidth >= Size.X then
+           begin
+             if LastWordBoundaryLen > 0 then
+             begin
+               NextLine := Copy(CurLine, LastWordBoundaryLen + 1, Length(CurLine) - LastWordBoundaryLen);
+               NextLineWidth := CurLineWidth - LastWordBoundaryWidth;
+               Delete(CurLine, LastWordBoundaryLen + 1, Length(CurLine) - LastWordBoundaryLen);
+               CurLineWidth := LastWordBoundaryWidth;
+             end
+             else
+             begin
+               NextLine := Copy(CurLine, LastTruncatedBoundaryLen + 1, Length(CurLine) - LastTruncatedBoundaryLen);
+               NextLineWidth := CurLineWidth - LastTruncatedBoundaryWidth;
+               Delete(CurLine, LastTruncatedBoundaryLen + 1, Length(CurLine) - LastTruncatedBoundaryLen);
+               CurLineWidth := LastTruncatedBoundaryWidth;
+             end;
+           end
+           else
+           begin
+             NextLine := '';
+             NextLineWidth := 0;
+           end;
+           LastWordBoundaryLen := 0;
+           LastWordBoundaryWidth := 0;
+           LastTruncatedBoundaryLen := 0;
+           LastTruncatedBoundaryWidth := 0;
+           FinishLine;
+           if Y >= Size.Y then
+             exit;
+           BeginNewLine;
+         end;
+       end;
+     end;
+   FinishLine;
+END;
+{$else FV_UNICODE}
 PROCEDURE TStaticText.Draw;
 VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S: Sw_String;
   B : TDrawBuffer;
@@ -3024,6 +3140,7 @@ BEGIN
     Inc(Y);                                          { Next line }
   End;
 END;
+{$endif FV_UNICODE}
 
 {--TStaticText--------------------------------------------------------------}
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB             }
