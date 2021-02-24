@@ -208,6 +208,7 @@ TYPE
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PRIVATE
       FUNCTION CanScroll (Delta: Sw_Integer): Boolean;
+      FUNCTION ScreenCurPos: Sw_Integer;
    END;
    PInputLine = ^TInputLine;
 
@@ -1470,7 +1471,7 @@ BEGIN
         R := Size.X - 2;
       if L < R then
         MoveChar(B[L + 1], #0, GetColor(3), R - L);
-      SetCursor(CurPos - FirstPos + 1, 0);
+      SetCursor(ScreenCurPos - FirstPos + 1, 0);
     end;
   WriteLine(0, 0, Size.X, Size.Y, B);
 end;
@@ -1484,7 +1485,7 @@ BEGIN
   If (State AND sfFocused <> 0) Then
    Begin           { Focused window }
      Cursor.Y:=0;
-     Cursor.X:=CurPos-FirstPos+1;
+     Cursor.X:=ScreenCurPos-FirstPos+1;
      ResetCursor;
   end;
 END;
@@ -1859,6 +1860,31 @@ BEGIN
          TextWidth(LeftArr) - TextWidth(RightArr));   { Check scroll right }
      End Else CanScroll := False;                     { Zero so no scroll }
 END;
+
+{$ifdef FV_UNICODE}
+FUNCTION TInputLine.ScreenCurPos: Sw_Integer;
+VAR EGC: Sw_String; StrPos, ScrPos: Sw_Integer;
+BEGIN
+   StrPos := 0;
+   ScrPos := 0;
+   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Data) do
+     begin
+       if (StrPos + Length(EGC)) > CurPos then
+         begin
+           Result := ScrPos;
+           exit;
+         end;
+       Inc(StrPos, Length(EGC));
+       Inc(ScrPos, StrWidth(EGC));
+     end;
+   Result := CurPos - Length(Data) + ScrPos;
+END;
+{$else FV_UNICODE}
+FUNCTION TInputLine.ScreenCurPos: Sw_Integer;
+BEGIN
+   Result := CurPos;
+END;
+{$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           TButton OBJECT METHODS                          }
