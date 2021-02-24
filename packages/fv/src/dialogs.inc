@@ -1442,6 +1442,62 @@ END;
 {--TInputLine---------------------------------------------------------------}
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB              }
 {---------------------------------------------------------------------------}
+{$ifdef FV_UNICODE}
+PROCEDURE TInputLine.Draw;
+VAR Color: Byte; L, R, SkipToFirstPosLeft, ScrPos: Sw_Integer;
+  B : TDrawBuffer;
+  EGC: Sw_String;
+BEGIN
+  if Options and ofSelectable = 0 then
+    Color := GetColor(5)
+  else
+    If (State AND sfFocused = 0) Then
+      Color := GetColor(1)       { Not focused colour }
+    Else
+      Color := GetColor(2);      { Focused colour }
+  MoveChar(B, ' ',      Color, Size.X);
+  if CanScroll(1) then
+    MoveChar(B[Size.X - 1], RightArr, GetColor(4), 1);
+  if (State and sfFocused <> 0) and
+     (Options and ofSelectable <> 0) then
+    begin
+      if CanScroll(-1) then
+        MoveChar(B[0], LeftArr, GetColor(4), 1);
+      { Highlighted part }
+      L := SelStart - FirstPos;
+      R := SelEnd - FirstPos;
+      if L < 0 then
+        L := 0;
+      if R > Size.X - 2 then
+        R := Size.X - 2;
+      SetCursor(ScreenCurPos - FirstPos + 1, 0);
+    end;
+  SkipToFirstPosLeft := FirstPos;
+  ScrPos := 1;
+  for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Data) do
+    begin
+      if SkipToFirstPosLeft > 0 then
+        Dec(SkipToFirstPosLeft, Length(EGC))
+      else
+        begin
+          with B[ScrPos] do
+            begin
+              ExtendedGraphemeCluster := EGC;
+              if (L <= 0) and (R > 0) then
+                Attribute:=GetColor(3)
+              else
+                Attribute:=Color;
+            end;
+          Inc(ScrPos, StrWidth(EGC));
+          Dec(L, Length(EGC));
+          Dec(R, Length(EGC));
+          if ScrPos > (Size.X - 2) then
+            break;
+        end;
+    end;
+  WriteLine(0, 0, Size.X, Size.Y, B);
+end;
+{$else FV_UNICODE}
 PROCEDURE TInputLine.Draw;
 VAR Color: Byte; L, R: Sw_Integer;
   B : TDrawBuffer;
@@ -1475,6 +1531,7 @@ BEGIN
     end;
   WriteLine(0, 0, Size.X, Size.Y, B);
 end;
+{$endif FV_UNICODE}
 
 
 {--TInputLine---------------------------------------------------------------}
