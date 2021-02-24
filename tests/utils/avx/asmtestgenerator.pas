@@ -40,6 +40,7 @@ type
              omKXM, omKYM, omKZM,
              omKXB32, omKXB64, omKYB32, omKYB64, omKZB32, omKZB64,
              omKMI, omKB32I, omKB64I,
+             omMXI, omMYI, omMZI,
              omXXM, omXXB32, omXXB64, omXMI, omXB32I, omXB64I,
              omYYM, omYYB32, omYYB64, omYMI, omYB32I, omYB64I,
              omZZM, omZZB32, omZZB64, omZMI, omZB32I, omZB64I);
@@ -4811,15 +4812,25 @@ begin
                             (OItem2.OpTyp = otZMMReg) and
                             (OItem3.OpTyp = otB64) then OpMode := omKZB64
 
-                    else if (OItem1.OpTyp = otKReg) and
+                    else if (OItem1.OpTyp = otKReg)    and
                             (OItem2.OpTyp in MEMTYPES) and
                             (OItem3.OpTyp = otIMM8) then OpMode := omKMI
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otB32) and
+                    else if (OItem1.OpTyp = otKReg)    and
+                            (OItem2.OpTyp = otB32)     and
                             (OItem3.OpTyp = otIMM8) then OpMode := omKB32I
-                    else if (OItem1.OpTyp = otKReg) and
-                            (OItem2.OpTyp = otB64) and
+                    else if (OItem1.OpTyp = otKReg)    and
+                            (OItem2.OpTyp = otB64)     and
                             (OItem3.OpTyp = otIMM8) then OpMode := omKB64I
+
+                    else if (OItem1.OpTyp in MEMTYPES) and
+                            (OItem2.OpTyp = otXMMReg)  and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omMXI
+                    else if (OItem1.OpTyp in MEMTYPES) and
+                            (OItem2.OpTyp = otYMMReg)  and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omMYI
+                    else if (OItem1.OpTyp in MEMTYPES) and
+                            (OItem2.OpTyp = otZMMReg)  and
+                            (OItem3.OpTyp = otIMM8) then OpMode := omMZI
 
                     else if (OItem1.OpTyp = otXMMReg) and
                             (OItem2.OpTyp = otXMMReg) and
@@ -4842,7 +4853,7 @@ begin
 
                     else if (OItem1.OpTyp = otYMMReg) and
                             (OItem2.OpTyp = otYMMReg) and
-                            (OItem3.OpTyp in MEMTYPES) then OpMode  := omYYM
+                            (OItem3.OpTyp in MEMTYPES) then OpMode := omYYM
                     else if (OItem1.OpTyp = otYMMReg) and
                             (OItem2.OpTyp = otYMMReg) and
                             (OItem3.OpTyp = otB32) then OpMode := omYYB32
@@ -4969,6 +4980,13 @@ begin
                            result.Add(format('%20s%6s, %s',          ['   xor', sIndexReg, sIndexReg]));
                         end;
 
+                        if OpMode in [omMXI, omMYI, omMZI] then
+                        begin
+                          result.Add(format('%-20s %6s', ['push', '']));
+                          result.Add(format('%-20s %6s', ['pop', '']));
+
+                        end;
+
                         //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
                         result.Add(format('%-20s %6s', [sInstruction, sRegCombi]));
 
@@ -5011,6 +5029,16 @@ begin
                                      result.Add(format('%20s%6s,%6s, %s', ['kxorq', 'K2', OItem1.Values[il_Op1], 'K2']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmXORTestNZ));
+                                   end;
+
+                            omMXI: begin
+                                     result.Add(format('%20s%6s + $2000, %6s, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
+                                     result.Add(format('%20s%6s, %s',              ['vmovdqu', 'xmm0', OItem1.Values[il_Op1]]));
+                                     result.Add(format('%20s%6s, $s + $2000',      ['vmovdqu', 'xmm1', OItem1.Values[il_Op1]]));
+
+                                     result.Add(format('%20s%6s, %6s, %s',         ['vpcmpeqw', 'K2', 'XMM0', 'XMM1']));
+
+                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
                           omXB32I,
                           omXB64I: begin
