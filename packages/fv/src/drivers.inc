@@ -335,6 +335,14 @@ procedure GiveUpTimeSlice;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
 
+{$ifdef FV_UNICODE}
+{-EgcWidth-----------------------------------------------------------
+Returns the number of display columns needed to display the extended
+grapheme cluster EGC.
+---------------------------------------------------------------------}
+FUNCTION EgcWidth(Const EGC: Sw_String): Sw_Integer;
+{$endif FV_UNICODE}
+
 {-StrWidth-----------------------------------------------------------
 Returns the number of display columns needed to display the string S.
 ---------------------------------------------------------------------}
@@ -939,6 +947,13 @@ end;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           BUFFER MOVE ROUTINES                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{$ifdef FV_UNICODE}
+FUNCTION EgcWidth(Const EGC: Sw_String): Sw_Integer;
+BEGIN
+   Result := Video.ExtendedGraphemeClusterDisplayWidth(EGC);
+END;
+{$endif FV_UNICODE}
 
 {$ifdef FV_UNICODE}
 FUNCTION StrWidth(Const S: Sw_String): Sw_Integer;
