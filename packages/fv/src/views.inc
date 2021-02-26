@@ -4533,7 +4533,7 @@ begin
              Attribute:=MyColor;
              ExtendedGraphemeCluster:=EGC;
            end;
-         Inc(i, StrWidth(EGC));
+         Inc(i, EgcWidth(EGC));
        end;
 {$else FV_UNICODE}
      MyColor:=MyColor shl 8;

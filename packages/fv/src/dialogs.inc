@@ -1480,7 +1480,7 @@ BEGIN
         Dec(SkipToFirstPosLeft, Length(EGC))
       else
         begin
-          EGC_StrWidth := StrWidth(EGC);
+          EGC_StrWidth := EgcWidth(EGC);
           if (ScrPos + EGC_StrWidth - 1) > (Size.X - 2) then
             break;
           with B[ScrPos] do
@@ -1678,7 +1678,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
            Dec(Skip, Length(EGC))
          else
            begin
-             Dec(Mouse.X, StrWidth(EGC));
+             Dec(Mouse.X, EgcWidth(EGC));
              if Mouse.X <= 0 then
                break;
              Inc(Pos, Length(EGC));
@@ -1961,7 +1961,7 @@ BEGIN
            exit;
          end;
        Inc(StrPos, Length(EGC));
-       Inc(ScrPos, StrWidth(EGC));
+       Inc(ScrPos, EgcWidth(EGC));
      end;
    Result := CurPos - Length(Data) + ScrPos;
 END;
@@ -3185,7 +3185,7 @@ BEGIN
              LastWordBoundaryWidth := CurLineWidth;
            end;
            CurLine := CurLine + EGC;
-           Inc(CurLineWidth, StrWidth(EGC));
+           Inc(CurLineWidth, EgcWidth(EGC));
            if CurLineWidth <= Size.X then
            begin
              LastTruncatedBoundaryLen := Length(CurLine);
