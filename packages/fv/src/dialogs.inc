@@ -1661,6 +1661,33 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
         MouseDelta := 0;
    END;
 
+{$ifdef FV_UNICODE}
+   FUNCTION MousePos: Sw_Integer;
+   VAR Skip, Pos: Sw_Integer;
+       Mouse : TPoint;
+       EGC: Sw_String;
+   BEGIN
+     MakeLocal(Event.Where, Mouse);
+     if Mouse.X < 1 then Mouse.X := 1;
+     Skip := FirstPos;
+     Pos := FirstPos;
+     for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Data) do
+       begin
+         if Skip > 0 then
+           Dec(Skip, Length(EGC))
+         else
+           begin
+             Dec(Mouse.X, StrWidth(EGC));
+             if Mouse.X <= 0 then
+               break;
+             Inc(Pos, Length(EGC));
+           end;
+       end;
+     if Pos < 0 then Pos := 0;
+     if Pos > Length(Data) then Pos := Length(Data);
+     MousePos := Pos;
+   END;
+{$else FV_UNICODE}
    FUNCTION MousePos: Sw_Integer;
    VAR Pos: Sw_Integer;
        Mouse : TPoint;
@@ -1672,6 +1699,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
      if Pos > Length(Data Sw_PString_DeRef) then Pos := Length(Data Sw_PString_DeRef);
      MousePos := Pos;
    END;
+{$endif FV_UNICODE}
 
    PROCEDURE DeleteSelect;
    BEGIN
