@@ -1163,7 +1163,7 @@ function sum(const data : array of Single) : float;inline;
 
 function sum(const data : PSingle;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1190,7 +1190,7 @@ function sum(const data : array of Double) : float; inline;
 
 function sum(const data : PDouble;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1217,7 +1217,7 @@ function sum(const data : array of Extended) : float; inline;
 
 function sum(const data : PExtended;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1227,7 +1227,7 @@ function sum(const data : PExtended;Const N : longint) : float;
 
 function sumInt(const data : PInt64;Const N : longint) : Int64;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumInt:=0;
      for i:=0 to N-1 do
@@ -1252,7 +1252,7 @@ function mean(const data: array of Int64):Float;
 
 function sumInt(const data : PInteger; Const N : longint) : Int64;
 var
-   i : longint;
+   i : SizeInt;
   begin
      sumInt:=0;
      for i:=0 to N-1 do
@@ -1283,7 +1283,7 @@ function mean(const data: array of Integer):Float;
 
  function sumofsquares(const data : PSingle; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1299,7 +1299,7 @@ end;
 procedure sumsandsquares(const data : PSingle; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1321,7 +1321,7 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
 
  function sumofsquares(const data : PDouble; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1337,7 +1337,7 @@ end;
 procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1359,7 +1359,7 @@ procedure sumsandsquares(const data : PDouble; Const N : Integer;
 
  function sumofsquares(const data : PExtended; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1375,7 +1375,7 @@ end;
 procedure sumsandsquares(const data : PExtended; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1415,7 +1415,7 @@ end;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 procedure MeanAndTotalVariance
   (const data: PSingle; N: LongInt; var mu, variance: float);
-var i: LongInt;
+var i: SizeInt;
 begin
   mu := Mean( data, N );
   variance := 0;
@@ -1515,7 +1515,7 @@ procedure momentskewkurtosis(
   out kurtosis: float
 );
 var
-  i: integer;
+  i: SizeInt;
   value : psingle;
   deviation, deviation2: single;
   reciprocalN: float;
@@ -1566,7 +1566,7 @@ function norm(const data : PSingle; Const N : Integer) : float;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 procedure MeanAndTotalVariance
   (const data: PDouble; N: LongInt; var mu, variance: float);
-var i: LongInt;
+var i: SizeInt;
 begin
   mu := Mean( data, N );
   variance := 0;
@@ -1670,7 +1670,7 @@ procedure momentskewkurtosis(
   out kurtosis: float
 );
 var
-  i: integer;
+  i: SizeInt;
   value : pdouble;
   deviation, deviation2: double;
   reciprocalN: float;
@@ -1721,7 +1721,7 @@ function norm(const data : PDouble; Const N : Integer) : float;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 procedure MeanAndTotalVariance
   (const data: PExtended; N: LongInt; var mu, variance: float);
-var i: LongInt;
+var i: SizeInt;
 begin
   mu := Mean( data, N );
   variance := 0;
@@ -1814,7 +1814,7 @@ end;
 
 procedure momentskewkurtosis(
   const data: pExtended;
-  Const N: integer;
+  Const N: Integer;
   out m1: float;
   out m2: float;
   out m3: float;
@@ -1874,7 +1874,7 @@ function norm(const data : PExtended; Const N : Integer) : float;
 
 function MinIntValue(const Data: array of Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[Low(Data)];
   For I := Succ(Low(Data)) To High(Data) Do
@@ -1883,7 +1883,7 @@ end;
 
 function MaxIntValue(const Data: array of Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[Low(Data)];
   For I := Succ(Low(Data)) To High(Data) Do
@@ -1897,7 +1897,7 @@ end;
 
 function MinValue(const Data: PInteger; Const N : Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[0];
   For I := 1 To N-1 do
@@ -1911,7 +1911,7 @@ end;
 
 function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1928,7 +1928,7 @@ end;
 
 function minvalue(const data : PSingle; Const N : Integer) : Single;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1945,7 +1945,7 @@ end;
 
 function maxvalue(const data : PSingle; Const N : Integer) : Single;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1963,7 +1963,7 @@ end;
 
 function minvalue(const data : PDouble; Const N : Integer) : Double;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1980,7 +1980,7 @@ end;
 
 function maxvalue(const data : PDouble; Const N : Integer) : Double;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1998,7 +1998,7 @@ end;
 
 function minvalue(const data : PExtended; Const N : Integer) : Extended;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -2015,7 +2015,7 @@ end;
 
 function maxvalue(const data : PExtended; Const N : Integer) : Extended;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
