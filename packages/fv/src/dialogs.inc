@@ -1444,7 +1444,7 @@ END;
 {---------------------------------------------------------------------------}
 {$ifdef FV_UNICODE}
 PROCEDURE TInputLine.Draw;
-VAR Color: Byte; L, R, SkipToFirstPosLeft, ScrPos: Sw_Integer;
+VAR Color: Byte; L, R, SkipToFirstPosLeft, ScrPos, EGC_StrWidth: Sw_Integer;
   B : TDrawBuffer;
   EGC: Sw_String;
 BEGIN
@@ -1480,6 +1480,9 @@ BEGIN
         Dec(SkipToFirstPosLeft, Length(EGC))
       else
         begin
+          EGC_StrWidth := StrWidth(EGC);
+          if (ScrPos + EGC_StrWidth - 1) > (Size.X - 2) then
+            break;
           with B[ScrPos] do
             begin
               ExtendedGraphemeCluster := EGC;
@@ -1488,11 +1491,9 @@ BEGIN
               else
                 Attribute:=Color;
             end;
-          Inc(ScrPos, StrWidth(EGC));
+          Inc(ScrPos, EGC_StrWidth);
           Dec(L, Length(EGC));
           Dec(R, Length(EGC));
-          if ScrPos > (Size.X - 2) then
-            break;
         end;
     end;
   WriteLine(0, 0, Size.X, Size.Y, B);
