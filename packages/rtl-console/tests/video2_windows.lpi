@@ -52,7 +52,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);../src/inc"/>
-      <OtherUnitFiles Value="../src/win"/>
+      <OtherUnitFiles Value="../src/win;../../rtl-unicode/src/inc"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
