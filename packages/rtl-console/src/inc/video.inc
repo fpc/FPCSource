@@ -165,41 +165,6 @@ begin
   SetLength(OldEnhancedVideoBuf,0);
 end;
 
-(*
-Procedure AssignVideoBuf (OldCols, OldRows : Word);
-
-Var NewVideoBuf,NewOldVideoBuf : PVideoBuf;
-    I,C,R,NewVideoBufSize : longint;
-    s:word;
-
-begin
-  S:=sizeOf(TVideoCell);
-  NewVideoBufSize:=ScreenWidth*ScreenHeight*s;
-  GetMem(NewVideoBuf,NewVideoBufSize);
-  GetMem(NewOldVideoBuf,NewVideoBufSize);
-  // Move contents of old videobuffers to new if there are any.
-  if (VideoBuf<>Nil) then
-    begin
-    If (ScreenWidth<OldCols) then
-      C:=ScreenWidth
-    else
-      C:=OldCols;
-    If (ScreenHeight<OldRows) then
-      R:=ScreenHeight
-    else
-      R:=OldRows;
-    For I:=0 to R-1 do
-      begin
-      Move(VideoBuf^[I*OldCols],NewVideoBuf^[I*ScreenWidth],S*C);
-      Move(OldVideoBuf^[I*OldCols],NewOldVideoBuf^[I*ScreenWidth],S*C);
-      end;
-    end;
-  FreeVideoBuf;
-  VideoBufSize:=NewVideoBufSize;
-  VideoBuf:=NewVideoBuf;
-  OldVideoBuf:=NewOldVideoBuf;
-end;
-*)
 Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
