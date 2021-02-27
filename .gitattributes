@@ -5040,6 +5040,7 @@ packages/fv/src/sysmsg.pas svneol=native#text/plain
 packages/fv/src/tabs.pas svneol=native#text/plain
 packages/fv/src/time.pas svneol=native#text/plain
 packages/fv/src/timeddlg.inc svneol=native#text/plain
+packages/fv/src/timeddlg.pas svneol=native#text/plain
 packages/fv/src/uapp.pas svneol=native#text/plain
 packages/fv/src/udialogs.pas svneol=native#text/plain
 packages/fv/src/udrivers.pas svneol=native#text/plain

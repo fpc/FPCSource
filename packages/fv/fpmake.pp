@@ -330,6 +330,7 @@ begin
     T:=P.Targets.AddUnit('timeddlg.pas');
       with T.Dependencies do
         begin
+          AddInclude('timeddlg.inc');
           AddInclude('platform.inc');
           AddUnit('dialogs');
           AddUnit('fvconsts');
