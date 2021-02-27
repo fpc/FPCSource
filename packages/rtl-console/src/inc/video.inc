@@ -313,6 +313,19 @@ begin
 end;
 
 function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString): Char;
+
+  function GenConvert: Char;
+    var
+      tmpS: RawByteString;
+    begin
+      tmpS:=UTF8Encode(EGC);
+      System.SetCodePage(tmpS,CP_OEMCP,True);
+      if Length(tmpS)=1 then
+        Result:=tmpS[1]
+      else
+        Result:='?';
+    end;
+
 var
   Ch: Char;
 begin
@@ -330,11 +343,11 @@ begin
         $2302:
           Result:=#127;
         else
-          Result:='?';
+          Result:=GenConvert;
       end
     end
   else
-    Result:='?';
+    Result:=GenConvert;
 end;
 
 function LegacyChar2ExtendedGraphemeCluster(const Ch: Char): UnicodeString;
