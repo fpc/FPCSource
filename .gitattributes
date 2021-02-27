@@ -5023,6 +5023,7 @@ packages/fv/src/go32smsg.inc svneol=native#text/plain
 packages/fv/src/histlist.inc svneol=native#text/plain
 packages/fv/src/histlist.pas svneol=native#text/plain
 packages/fv/src/inplong.inc svneol=native#text/plain
+packages/fv/src/inplong.pas svneol=native#text/plain
 packages/fv/src/memory.pas svneol=native#text/plain
 packages/fv/src/menus.inc svneol=native#text/plain
 packages/fv/src/menus.pas svneol=native#text/plain

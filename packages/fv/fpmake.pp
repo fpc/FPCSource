@@ -213,6 +213,7 @@ begin
     T:=P.Targets.AddUnit('inplong.pas');
       with T.Dependencies do
         begin
+          AddInclude('inplong.inc');
           AddInclude('platform.inc');
           AddUnit('drivers');
           AddUnit('views');
