@@ -18,7 +18,11 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
+{$ifdef FV_UNICODE}
+UNIT utimeddlg;
+{$else FV_UNICODE}
 UNIT timeddlg;
+{$endif FV_UNICODE}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -49,7 +53,13 @@ UNIT timeddlg;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES objects, dialogs, fvconsts, drivers, views; { Standard GFV unit }
+USES objects,
+  fvconsts,
+{$ifdef FV_UNICODE}
+  ufvcommon, udialogs, udrivers, uviews; { Standard GFV unit }
+{$else FV_UNICODE}
+  fvcommon, dialogs, drivers, views; { Standard GFV unit }
+{$endif FV_UNICODE}
 
 type
   TTimedDialog = object (TDialog)
@@ -68,7 +78,7 @@ type
 (* Must be always included in TTimeDialog! *)
   TTimedDialogText = object (TStaticText)
     constructor Init (var Bounds: TRect);
-    procedure   GetText (var S: string); virtual;
+    procedure   GetText (var S: Sw_String); virtual;
   end;
   PTimedDialogText = ^TTimedDialogText;
 
@@ -97,14 +107,14 @@ const
 
 procedure RegisterTimedDialog;
 
-FUNCTION TimedMessageBox (Const Msg: String; Params: Pointer;
+FUNCTION TimedMessageBox (Const Msg: Sw_String; Params: Pointer;
   AOptions: Word; ASecs: Word): Word;
 
 {-TimedMessageBoxRect------------------------------------------------
 TimedMessageBoxRect allows the specification of a TRect for the message box
 to occupy.
 ---------------------------------------------------------------------}
-FUNCTION TimedMessageBoxRect (Var R: TRect; Const Msg: String; Params: Pointer;
+FUNCTION TimedMessageBoxRect (Var R: TRect; Const Msg: Sw_String; Params: Pointer;
   AOptions: Word; ASecs: Word): Word;
 
 
@@ -114,7 +124,11 @@ FUNCTION TimedMessageBoxRect (Var R: TRect; Const Msg: String; Params: Pointer;
 
 USES
   dos,
+{$ifdef FV_UNICODE}
+  uapp, {resource,} umsgbox;   { Standard GFV units }
+{$else FV_UNICODE}
   app, {resource,} msgbox;   { Standard GFV units }
+{$endif FV_UNICODE}
 
 
 {***************************************************************************}
@@ -127,7 +141,7 @@ begin
 end;
 
 
-procedure TTimedDialogText.GetText (var S: string);
+procedure TTimedDialogText.GetText (var S: Sw_String);
 begin
   if Owner <> nil
 (* and (TypeOf (Owner^) = TypeOf (TTimedDialog)) *)
@@ -203,7 +217,7 @@ end;
 
 
 
-function TimedMessageBox (const Msg: string; Params: pointer;
+function TimedMessageBox (const Msg: Sw_String; Params: pointer;
   AOptions: word; ASecs: word): word;
 var
   R: TRect;
@@ -220,7 +234,7 @@ begin
 end;
 
 
-function TimedMessageBoxRect (var R: TRect; const Msg: string; Params: pointer;
+function TimedMessageBoxRect (var R: TRect; const Msg: Sw_String; Params: pointer;
   AOptions: word; ASecs: word): word;
 var
   Dlg: PTimedDialog;

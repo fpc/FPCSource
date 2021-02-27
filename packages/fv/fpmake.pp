@@ -339,6 +339,18 @@ begin
           AddUnit('app');
           AddUnit('msgbox');
         end;
+    T:=P.Targets.AddUnit('utimeddlg.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('timeddlg.inc');
+          AddInclude('platform.inc');
+          AddUnit('udialogs');
+          AddUnit('fvconsts');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('uapp');
+          AddUnit('umsgbox');
+        end;
     T:=P.Targets.AddUnit('time.pas');
       with T.Dependencies do
         begin
