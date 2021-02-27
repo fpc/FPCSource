@@ -165,6 +165,25 @@ begin
   SetLength(OldEnhancedVideoBuf,0);
 end;
 
+procedure EnhancedVideoBufResize(var Buf: TEnhancedVideoBuf; OldCols, OldRows : Word);
+var
+  NewVideoBufSize : SizeUInt;
+  NewBuf: TEnhancedVideoBuf;
+  Y, X: Integer;
+begin
+  NewVideoBufSize:=ScreenWidth*ScreenHeight;
+  if OldCols<>ScreenWidth then
+    begin
+      SetLength(NewBuf,NewVideoBufSize);
+      for Y := 0 to min(OldRows,ScreenHeight)-1 do
+        for X := 0 to min(OldCols,ScreenWidth)-1 do
+          NewBuf[Y*ScreenWidth+X]:=Buf[Y*OldCols+X];
+      Buf:=NewBuf;
+    end
+  else
+    SetLength(Buf,NewVideoBufSize);
+end;
+
 Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
@@ -203,10 +222,8 @@ begin
     end;
   if EnhancedVideoInitialized or Assigned(CurrentVideoDriver.InitEnhancedDriver) then
     begin
-      NewVideoBufSize:=ScreenWidth*ScreenHeight;
-      { todo: move contents of old to new buf, so the rows match, when the width changes }
-      SetLength(EnhancedVideoBuf,NewVideoBufSize);
-      SetLength(OldEnhancedVideoBuf,NewVideoBufSize);
+      EnhancedVideoBufResize(EnhancedVideoBuf,OldCols,OldRows);
+      EnhancedVideoBufResize(OldEnhancedVideoBuf,OldCols,OldRows);
     end;
 end;
 
