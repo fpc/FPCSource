@@ -5001,6 +5001,7 @@ packages/fv/examples/testapp.lpi svneol=native#text/plain
 packages/fv/examples/testapp.pas svneol=native#text/plain
 packages/fv/examples/testuapp.lpi svneol=native#text/plain
 packages/fv/examples/testuapp.pas svneol=native#text/plain
+packages/fv/examples/testuapp_windows.lpi svneol=native#text/plain
 packages/fv/fpmake.pp svneol=native#text/plain
 packages/fv/src/amismsg.inc svneol=native#text/plain
 packages/fv/src/app.inc svneol=native#text/plain
