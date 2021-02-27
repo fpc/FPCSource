@@ -22,7 +22,7 @@ interface
 implementation
 
 uses
-  Libc;
+  Libc,graphemebreakproperty,eastasianwidth;
 
 {$i video.inc}
 

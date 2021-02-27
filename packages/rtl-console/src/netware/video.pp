@@ -23,7 +23,7 @@ interface
 implementation
 
 uses
-  dos;
+  dos,graphemebreakproperty,eastasianwidth;
 
 {$i video.inc}
 {$i nwsys.inc}

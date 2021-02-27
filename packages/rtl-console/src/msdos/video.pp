@@ -27,7 +27,8 @@ implementation
 
 uses
   mouse,
-  dos;
+  dos,
+  graphemebreakproperty,eastasianwidth;
 
 {$i video.inc}
 
