@@ -11,6 +11,14 @@
 
  **********************************************************************}
 
+const
+  convert_lowascii_to_Unicode:array[#0..#31] of WideChar=(
+    #8199,#9786,#9787,#9829,#9830,#9827,#9824,#8226,
+    #9688,#9675,#9689,#9794,#9792,#9834,#9835,#9788,
+    #9658,#9668,#8597,#8252,#0182,#0167,#9644,#8616,
+    #8593,#8595,#8594,#8592,#8735,#8596,#9650,#9660
+  );
+
 { TEnhancedVideoCell }
 
 operator = (const a,b : TEnhancedVideoCell) res: Boolean;
@@ -305,77 +313,25 @@ begin
 end;
 
 function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString): Char;
+var
+  Ch: Char;
 begin
   if (Length(EGC) = 1) then
-    case Ord(EGC[1]) of
-      0,32..126:
-        Result:=Chr(Ord(EGC[1]));
-      $263A:
-        Result:=#1;
-      $263B:
-        Result:=#2;
-      $2665:
-        Result:=#3;
-      $2666:
-        Result:=#4;
-      $2663:
-        Result:=#5;
-      $2660:
-        Result:=#6;
-      $2022:
-        Result:=#7;
-      $25D8:
-        Result:=#8;
-      $25CB:
-        Result:=#9;
-      $25D9:
-        Result:=#10;
-      $2642:
-        Result:=#11;
-      $2640:
-        Result:=#12;
-      $266A:
-        Result:=#13;
-      $266B:
-        Result:=#14;
-      $263C:
-        Result:=#15;
-      $25BA:
-        Result:=#16;
-      $25C4:
-        Result:=#17;
-      $2195:
-        Result:=#18;
-      $203C:
-        Result:=#19;
-      $00B6:
-        Result:=#20;
-      $00A7:
-        Result:=#21;
-      $25AC:
-        Result:=#22;
-      $21A8:
-        Result:=#23;
-      $2191:
-        Result:=#24;
-      $2193:
-        Result:=#25;
-      $2192:
-        Result:=#26;
-      $2190:
-        Result:=#27;
-      $221F:
-        Result:=#28;
-      $2194:
-        Result:=#29;
-      $25B2:
-        Result:=#30;
-      $25BC:
-        Result:=#31;
-      $2302:
-        Result:=#127;
-      else
-        Result:='?';
+    begin
+      for Ch:=Low(convert_lowascii_to_Unicode) to High(convert_lowascii_to_Unicode) do
+        if convert_lowascii_to_Unicode[Ch]=EGC[1] then
+          begin
+            Result:=Ch;
+            exit;
+          end;
+      case Ord(EGC[1]) of
+        32..126:
+          Result:=Chr(Ord(EGC[1]));
+        $2302:
+          Result:=#127;
+        else
+          Result:='?';
+      end
     end
   else
     Result:='?';
@@ -385,10 +341,17 @@ function LegacyChar2ExtendedGraphemeCluster(const Ch: Char): UnicodeString;
 var
   tmpS: RawByteString;
 begin
-  SetLength(tmpS, 1);
-  tmpS[1]:=Ch;
-  System.SetCodePage(tmpS,CP_OEMCP,False);
-  Result:=tmpS;
+  if Ch<=#31 then
+    Result:=convert_lowascii_to_Unicode[Ch]
+  else if Ch=#127 then
+    Result:=#$2302
+  else
+    begin
+      SetLength(tmpS, 1);
+      tmpS[1]:=Ch;
+      System.SetCodePage(tmpS,CP_OEMCP,False);
+      Result:=tmpS;
+    end;
 end;
 
 procedure Enhanced2Legacy;
