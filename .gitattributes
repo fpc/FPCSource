@@ -14475,6 +14475,7 @@ tests/test/talign1.pp svneol=native#text/plain
 tests/test/talign2.pp svneol=native#text/plain
 tests/test/taligned1.pp svneol=native#text/pascal
 tests/test/tand1.pp svneol=native#text/plain
+tests/test/tandorandnot1.pp svneol=native#text/pascal
 tests/test/targ1a.pp svneol=native#text/plain
 tests/test/targ1b.pp svneol=native#text/plain
 tests/test/tarray1.pp svneol=native#text/plain
