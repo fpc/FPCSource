@@ -334,6 +334,7 @@ begin
     T:=P.Targets.AddUnit('tabs.pas');
       with T.Dependencies do
         begin
+          AddInclude('tabs.inc');
           AddInclude('platform.inc');
           AddUnit('drivers');
           AddUnit('views');

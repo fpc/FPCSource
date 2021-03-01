@@ -5039,6 +5039,7 @@ packages/fv/src/str.inc svneol=native#text/plain
 packages/fv/src/strtxt.inc svneol=native#text/plain
 packages/fv/src/sysmsg.pas svneol=native#text/plain
 packages/fv/src/tabs.inc svneol=native#text/plain
+packages/fv/src/tabs.pas svneol=native#text/plain
 packages/fv/src/time.pas svneol=native#text/plain
 packages/fv/src/timeddlg.inc svneol=native#text/plain
 packages/fv/src/timeddlg.pas svneol=native#text/plain
