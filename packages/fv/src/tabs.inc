@@ -18,7 +18,11 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
+{$ifdef FV_UNICODE}
+unit utabs;
+{$else FV_UNICODE}
 unit tabs;
+{$endif FV_UNICODE}
 
 {$I platform.inc}    (* Multi-platform support defines *)
 {$CODEPAGE cp437}
@@ -27,8 +31,15 @@ interface
 
 uses
   objects,
+{$ifdef FV_UNICODE}
+  UFvCommon,
+  udrivers,
+  uviews,
+{$else FV_UNICODE}
+  FvCommon,
   drivers,
   views,
+{$endif FV_UNICODE}
   fvconsts;
 
 
@@ -43,7 +54,7 @@ type
     PTabDef = ^TTabDef;
     TTabDef = record
       Next     : PTabDef;
-      Name     : PString;
+      Name     : Sw_PString;
       Items    : PTabItem;
       DefItem  : PView;
       ShortCut : char;
@@ -78,7 +89,7 @@ type
 
 function  NewTabItem(AView: PView; ANext: PTabItem): PTabItem;
 procedure DisposeTabItem(P: PTabItem);
-function  NewTabDef(AName: string; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
+function  NewTabDef(AName: Sw_String; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
 procedure DisposeTabDef(P: PTabDef);
 
 procedure RegisterTab;
@@ -99,8 +110,11 @@ const
 implementation
 
 uses
-  FvCommon,
+{$ifdef FV_UNICODE}
+  Udialogs;
+{$else FV_UNICODE}
   dialogs;
+{$endif FV_UNICODE}
 
 constructor TTab.Init(var Bounds: TRect; ATabDef: PTabDef);
 begin
@@ -159,7 +173,11 @@ constructor TTab.Load (var S: TStream);
        if (Cur <> nil) then                           { Check pointer valid }
         begin
          Last := @Cur^.Next;                          { Chain complete }
+{$ifdef FV_UNICODE}
+         Cur^.Name := S.ReadUnicodeString;            { Read name }
+{$else FV_UNICODE}
          Cur^.Name := S.ReadStr;                      { Read name }
+{$endif FV_UNICODE}
          S.Read (Cur^.ShortCut, SizeOf (Cur^.ShortCut));
          S.Read (ActItem, SizeOf (ActItem));
          Cur^.Items := DoLoadTabItems (Cur^.DefItem, ActItem); { Set pointer }
@@ -209,7 +227,11 @@ procedure TTab.Store (var S: TStream);
      begin
       with Cur^ do
        begin
+{$ifdef FV_UNICODE}
+        S.WriteUnicodeString(Cur^.Name);              { Write name }
+{$else FV_UNICODE}
         S.WriteStr (Cur^.Name);                       { Write name }
+{$endif FV_UNICODE}
         S.Write (Cur^.ShortCut, SizeOf (Cur^.ShortCut));
         DoStoreTabItems (Items, DefItem);             { Store the items }
        end;
@@ -367,7 +389,7 @@ begin
             Index:=-1; X:=1;
             for i:=0 to DefCount-1 do
                 begin
-                  Len:=CStrLen(AtTab(i)^.Name^);
+                  Len:=CStrLen(AtTab(i)^.Name Sw_PString_Deref);
                   if (P.X>=X) and (P.X<=X+Len+1) then Index:=i;
                   X:=X+Len+3;
                 end;
@@ -471,7 +493,7 @@ var B     : TDrawBuffer;
     C1,C2,C3,C : word;
     HeaderLen  : SmallInt;
     X,X2       : SmallInt;
-    Name       : PString;
+    Name       : Sw_PString;
     ActiveKPos : SmallInt;
     ActiveVPos : SmallInt;
     FC   : char;
@@ -505,7 +527,7 @@ begin
   { Calculate the size of the headers }
   HeaderLen:=0;
   for i:=0 to DefCount-1 do
-    HeaderLen:=HeaderLen+CStrLen(AtTab(i)^.Name^)+3;
+    HeaderLen:=HeaderLen+CStrLen(AtTab(i)^.Name Sw_PString_Deref)+3;
   Dec(HeaderLen);
   if HeaderLen>Size.X-2 then HeaderLen:=Size.X-2;
 
@@ -516,7 +538,7 @@ begin
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-        Name:=AtTab(i)^.Name; X2:=CStrLen(Name^);
+        Name:=AtTab(i)^.Name; X2:=CStrLen(Name Sw_PString_Deref);
         if i=ActiveDef
            then begin
                   ActiveKPos:=X-1;
@@ -524,7 +546,7 @@ begin
                   if GetState(sfFocused) then C:=C3 else C:=C2;
                 end
            else C:=C2;
-        MoveCStr(B[X],' '+Name^+' ',C);
+        MoveCStr(B[X],' '+Name Sw_PString_Deref+' ',C);
         X:=X+X2+3;
         MoveChar(B[X-1],'³',C1,1);
       end;
@@ -543,7 +565,7 @@ begin
 {$else not AVOIDTHREELINES}
         FC:='Â';
 {$endif not AVOIDTHREELINES}
-        X2:=CStrLen(AtTab(i)^.Name^)+2;
+        X2:=CStrLen(AtTab(i)^.Name Sw_PString_Deref)+2;
         MoveChar(B[X+X2],FC,C1,1);
         if i=DefCount-1 then X2:=X2+1;
         if X2>0 then
@@ -752,12 +774,12 @@ begin
   end;
 end;
 
-function NewTabDef(AName: string; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
+function NewTabDef(AName: Sw_String; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
 var P: PTabDef;
     x: byte;
 begin
   New(P);
-  P^.Next:=ANext; P^.Name:=NewStr(AName); P^.Items:=AItems;
+  P^.Next:=ANext; P^.Name:=Sw_NewStr(AName); P^.Items:=AItems;
   x:=pos('~',AName);
   if (x<>0) and (x<length(AName)) then P^.ShortCut:=Upcase(AName[x+1])
                                   else P^.ShortCut:=#0;
@@ -768,7 +790,9 @@ end;
 procedure DisposeTabDef(P: PTabDef);
 var PI,X: PTabItem;
 begin
+{$ifndef FV_UNICODE}
   DisposeStr(P^.Name);
+{$endif FV_UNICODE}
   PI:=P^.Items;
   while PI<>nil do
     begin

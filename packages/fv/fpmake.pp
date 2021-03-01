@@ -342,6 +342,17 @@ begin
           AddUnit('fvcommon');
           AddUnit('dialogs');
         end;
+    T:=P.Targets.AddUnit('utabs.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('tabs.inc');
+          AddInclude('platform.inc');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('fvconsts');
+          AddUnit('ufvcommon');
+          AddUnit('udialogs');
+        end;
     T:=P.Targets.AddUnit('timeddlg.pas');
       with T.Dependencies do
         begin

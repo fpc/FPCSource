@@ -3,7 +3,7 @@ program testuapp;
 {$codepage UTF8}
 
 uses
-  Objects, UDrivers, UViews, UMenus, UDialogs, UApp, UMsgBox, UInpLong, SysUtils;
+  Objects, UDrivers, UViews, UMenus, UDialogs, UApp, UMsgBox, UInpLong, UTabs, SysUtils;
 
 const
   cmOrderNew    = 200;
