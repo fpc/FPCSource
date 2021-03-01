@@ -169,14 +169,22 @@ procedure EnhancedVideoBufResize(var Buf: TEnhancedVideoBuf; OldCols, OldRows : 
 var
   NewVideoBufSize : SizeUInt;
   NewBuf: TEnhancedVideoBuf;
-  Y, X: Integer;
+  Y, X, YS, XS: Integer;
 begin
   NewVideoBufSize:=ScreenWidth*ScreenHeight;
   if OldCols<>ScreenWidth then
     begin
       SetLength(NewBuf,NewVideoBufSize);
-      for Y := 0 to min(OldRows,ScreenHeight)-1 do
-        for X := 0 to min(OldCols,ScreenWidth)-1 do
+      if OldRows<ScreenHeight then
+        YS := OldRows
+      else
+        YS := ScreenHeight;
+      if OldCols<ScreenWidth then
+        XS := OldCols
+      else
+        XS := ScreenWidth;
+      for Y := 0 to YS-1 do
+        for X := 0 to XS-1 do
           NewBuf[Y*ScreenWidth+X]:=Buf[Y*OldCols+X];
       Buf:=NewBuf;
     end
