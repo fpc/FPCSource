@@ -87,7 +87,7 @@ type
   alloc_func = function(opaque: pointer; items: uInt; size: uInt): pointer; cdecl;
   TAllocfunc = alloc_func;
 
-  free_func = procedure(opaque: pointer; items: uInt; size: uInt); cdecl;
+  free_func = procedure(opaque: pointer; address: pointer); cdecl;
   TFreeFunc = free_func;
 
   internal_statep = ^internal_state;
