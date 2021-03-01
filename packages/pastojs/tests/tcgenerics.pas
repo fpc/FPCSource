@@ -170,8 +170,8 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.TPoint$G1.x = $mod.p.x + 10;',
-    '$mod.p.Fly();',
-    '$mod.p.Fly();',
+    '$mod.TPoint$G1.Fly();',
+    '$mod.TPoint$G1.Fly();',
     '']));
 end;
 
@@ -255,6 +255,11 @@ begin
     '    this.$initSpec = function () {',
     '      this.x = $impl.TBird.$new();',
     '      this.a = rtl.arraySetLength(null, $impl.TBird, 2);',
+    '    };',
+    '    this.a$a$clone = function (a) {',
+    '      var r = [];',
+    '      for (var i = 0; i < 2; i++) r.push($impl.TBird.$clone(a[i]));',
+    '      return r;',
     '    };',
     '    this.$eq = function (b) {',
     '      return true;',
@@ -752,7 +757,7 @@ begin
     '    $mod.TPoint$G1.x = this.x + 5;',
     '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 6;',
     '    this.Fly();',
-    '    $mod.TPoint$G1.Fly();',
+    '    this.Fly();',
     '    this.Run();',
     '    $mod.TPoint$G1.Run();',
     '  };',
@@ -1168,6 +1173,11 @@ begin
     '    this.$initSpec = function () {',
     '      this.x = $impl.TBird.$new();',
     '      this.a = rtl.arraySetLength(null, $impl.TBird, 2);',
+    '    };',
+    '    this.a$a$clone = function (a) {',
+    '      var r = [];',
+    '      for (var i = 0; i < 2; i++) r.push($impl.TBird.$clone(a[i]));',
+    '      return r;',
     '    };',
     '  }, "TAnt<UnitA.TBird>");',
     '  $mod.$implcode = function () {',
