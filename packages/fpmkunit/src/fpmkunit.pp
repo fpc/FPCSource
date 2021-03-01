@@ -6811,7 +6811,9 @@ begin
   FreeAndNil(L);
 
   // libc-linker path
-  if APackage.NeedLibC then
+  // Do not add it if -Xd option is used
+  if APackage.NeedLibC and
+     ((not Defaults.HaveOptions) or (Defaults.Options.IndexOf('-Xd')=-1)) then
     begin
       if FCachedlibcPath='' then
         begin
