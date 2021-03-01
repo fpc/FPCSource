@@ -219,6 +219,19 @@ begin
           AddUnit('views');
           AddUnit('dialogs');
           AddUnit('msgbox');
+          AddUnit('fvcommon');
+          AddUnit('fvconsts');
+        end;
+    T:=P.Targets.AddUnit('uinplong.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('inplong.inc');
+          AddInclude('platform.inc');
+          AddUnit('udrivers');
+          AddUnit('uviews');
+          AddUnit('udialogs');
+          AddUnit('umsgbox');
+          AddUnit('ufvcommon');
           AddUnit('fvconsts');
         end;
     T:=P.Targets.AddUnit('memory.pas');

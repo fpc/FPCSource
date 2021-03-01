@@ -1,4 +1,8 @@
+{$ifdef FV_UNICODE}
+Unit UInpLong;
+{$else FV_UNICODE}
 Unit InpLong;
+{$endif FV_UNICODE}
 
 (*--
 TInputLong is a derivitave of TInputline designed to accept LongInt
@@ -76,7 +80,13 @@ Valid returns False.
 {$endif}
 
 Interface
-uses objects, drivers, views, dialogs, msgbox, fvconsts;
+uses objects,
+{$ifdef FV_UNICODE}
+  udrivers, uviews, udialogs, umsgbox, ufvcommon,
+{$else FV_UNICODE}
+  drivers, views, dialogs, msgbox, fvcommon,
+{$endif FV_UNICODE}
+  fvconsts;
 
 {flags for TInputLong constructor}
 const
@@ -119,7 +129,7 @@ ULim := UpperLim;
 LLim := LowerLim;
 if Flgs and ilDisplayHex <> 0 then Flgs := Flgs or ilHex;
 ILOptions := Flgs;
-if ILOptions and ilBlankEqZero <> 0 then Data^ := '0';
+if ILOptions and ilBlankEqZero <> 0 then Data Sw_PString_Deref := '0';
 end;
 
 {-------------------TInputLong.Load}
@@ -150,28 +160,32 @@ end;
 PROCEDURE TInputLong.GetData(var Rec);
 var code : SmallInt;
 begin
-Val(Data^, LongInt(Rec), code);
+Val(Data Sw_PString_Deref, LongInt(Rec), code);
 end;
 
-FUNCTION Hex2(B : Byte) : String;
+FUNCTION Hex2(B : Byte) : Sw_String;
 Const
   HexArray : array[0..15] of char = '0123456789ABCDEF';
 begin
-Hex2[0] := #2;
+SetLength(Hex2, 2);
 Hex2[1] := HexArray[B shr 4];
 Hex2[2] := HexArray[B and $F];
 end;
 
-FUNCTION Hex4(W : Word) : String;
+FUNCTION Hex4(W : Word) : Sw_String;
 begin Hex4 := Hex2(Hi(W))+Hex2(Lo(W)); end;
 
-FUNCTION Hex8(L : LongInt) : String;
+FUNCTION Hex8(L : LongInt) : Sw_String;
 begin Hex8 := Hex4(LongRec(L).Hi)+Hex4(LongRec(L).Lo); end;
 
-function FormHexStr(L : LongInt) : String;
+function FormHexStr(L : LongInt) : Sw_String;
 var
   Minus : boolean;
+{$ifdef FV_UNICODE}
+  S : Sw_String;
+{$else FV_UNICODE}
   S : string[20];
+{$endif FV_UNICODE}
 begin
 Minus := L < 0;
 if Minus then L := -L;
@@ -186,7 +200,7 @@ end;
 PROCEDURE TInputLong.SetData(var Rec);
 var
   L : LongInt;
-  S : string;
+  S : Sw_String;
 begin
 L := LongInt(Rec);
 if L > ULim then L := ULim
@@ -195,8 +209,8 @@ if ILOptions and ilDisplayHex <> 0 then
   S := FormHexStr(L)
 else
   Str(L : -1, S);
-if Length(S) > MaxLen then S[0] := chr(MaxLen);
-Data^ := S;
+if Length(S) > MaxLen then SetLength(S, MaxLen);
+Data Sw_PString_Deref := S;
 end;
 
 {-------------------TInputLong.RangeCheck}
@@ -205,18 +219,22 @@ var
   L : LongInt;
   code : SmallInt;
 begin
-if (Data^ = '') and (ILOptions and ilBlankEqZero <> 0) then
-  Data^ := '0';
-Val(Data^, L, code);
+if (Data Sw_PString_Deref = '') and (ILOptions and ilBlankEqZero <> 0) then
+  Data Sw_PString_Deref := '0';
+Val(Data Sw_PString_Deref, L, code);
 RangeCheck := (Code = 0) and (L >= LLim) and (L <= ULim);
 end;
 
 {-------------------TInputLong.Error}
 PROCEDURE TInputLong.Error;
 var
+{$ifdef FV_UNICODE}
+  SU, SL : Sw_String;
+{$else FV_UNICODE}
   SU, SL : string[40];
+{$endif FV_UNICODE}
   PMyLabel : PLabel;
-  Labl : string;
+  Labl : Sw_String;
   I : SmallInt;
 
   function FindIt(P : PView) : boolean;{$ifdef PPC_BP}far;{$endif}
@@ -274,7 +292,7 @@ if (Event.What = evKeyDown) then
       '-'       : if (LLim >= 0) or (CurPos <> 0) then
                         ClearEvent(Event);
       '$'       : if ILOptions and ilHex = 0 then ClearEvent(Event);
-      'A'..'F'  : if Pos('$', Data^) = 0 then ClearEvent(Event);
+      'A'..'F'  : if Pos('$', Data Sw_PString_Deref) = 0 then ClearEvent(Event);
 
       else ClearEvent(Event);
       end;
