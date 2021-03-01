@@ -380,6 +380,7 @@ type
     Procedure TestEnum_ForIn;
     Procedure TestEnum_ScopedNumber;
     Procedure TestEnum_InFunction;
+    Procedure TestEnum_Name_Anonymous_Unit;
     Procedure TestSet_Enum;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
@@ -522,6 +523,7 @@ type
     Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar_Assign;
     Procedure TestClass_CallClassMethod;
+    Procedure TestClass_CallClassMethodStatic; // ToDo
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
     Procedure TestClass_Property_Indexed;
@@ -5949,6 +5951,34 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestEnum_Name_Anonymous_Unit;
+begin
+  StartUnit(true);
+  Add([
+  'interface',
+  'var color: (red, green);',
+  'implementation',
+  'initialization',
+  '  color:=green;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestEnum_Name_Anonymous_Unit',
+    LinesToStr([
+    'this.color$a = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.color = 0;',
+    '']),
+    LinesToStr([ // this.$init
+    '$mod.color = $mod.color$a.green;',
+    '']),
+    LinesToStr([ // implementation
+    '']) );
+end;
+
 procedure TTestModule.TestSet_Enum;
 begin
   StartProgram(false);
@@ -9455,7 +9485,7 @@ begin
   '  arr2[6,3]:=i;',
   '  i:=arr2[5,2];',
   '  arr2:=arr2;',// clone multi dim static array
-  //'  arr3:=arr3;',// clone anonymous multi dim static array
+  '  arr3:=arr3;',// clone anonymous multi dim static array
   '']);
   ConvertProgram;
   CheckSource('TestArray_StaticMultiDim',
@@ -9467,6 +9497,11 @@ begin
     '};',
     'this.Arr = rtl.arraySetLength(null, 0, 3);',
     'this.Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
+    'this.Arr3$a$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
+    '  return r;',
+    '};',
     'this.Arr3 = [[11, 12, 13], [21, 22, 23]];',
     'this.i = 0;'
     ]),
@@ -9483,6 +9518,7 @@ begin
     '$mod.Arr2[1][2] = $mod.i;',
     '$mod.i = $mod.Arr2[0][1];',
     '$mod.Arr2 = $mod.TArrayArrayInt$clone($mod.Arr2);',
+    '$mod.Arr3 = $mod.Arr3$a$clone($mod.Arr3);',
     '']));
 end;
 
@@ -9504,6 +9540,7 @@ begin
   'begin',
   '  arr2[5]:=arr;',
   '  arr2:=arr2;',// clone multi dim static array
+  '  arr3:=arr3;',// clone multi dim anonymous static array
   'end;',
   'begin',
   '']);
@@ -9517,6 +9554,11 @@ begin
     '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
     '  return r;',
     '};',
+    'var Arr3$a$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
+    '  return r;',
+    '};',
     'this.DoIt = function () {',
     '  var Arr = rtl.arraySetLength(null, 0, 3);',
     '  var Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
@@ -9524,6 +9566,7 @@ begin
     '  var i = 0;',
     '  Arr2[0] = Arr.slice(0);',
     '  Arr2 = TArrayArrayInt$1$clone(Arr2);',
+    '  Arr3 = Arr3$a$clone(Arr3);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
@@ -11157,26 +11200,28 @@ end;
 procedure TTestModule.TestRecord_Assign;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TEnum = (red,green);');
-  Add('  TEnums = set of TEnum;');
-  Add('  TSmallRec = record');
-  Add('    N: longint;');
-  Add('  end;');
-  Add('  TBigRec = record');
-  Add('    Int: longint;');
-  Add('    D: double;');
-  Add('    Arr: array of longint;');
-  Add('    Arr2: array[1..2] of longint;');
-  Add('    Small: TSmallRec;');
-  Add('    Enums: TEnums;');
-  Add('  end;');
-  Add('var');
-  Add('  r, s: TBigRec;');
-  Add('begin');
-  Add('  r:=s;');
-  Add('  r:=default(TBigRec);');
-  Add('  r:=default(s);');
+  Add([
+  'type',
+  '  TEnum = (red,green);',
+  '  TEnums = set of TEnum;',
+  '  TSmallRec = record',
+  '    N: longint;',
+  '  end;',
+  '  TBigRec = record',
+  '    Int: longint;',
+  '    D: double;',
+  '    Arr: array of longint;',
+  '    Arr2: array[1..2] of longint;',
+  '    Small: TSmallRec;',
+  '    Enums: TEnums;',
+  '  end;',
+  'var',
+  '  r, s: TBigRec;',
+  'begin',
+  '  r:=s;',
+  '  r:=default(TBigRec);',
+  '  r:=default(s);',
+  '']);
   ConvertProgram;
   CheckSource('TestRecord_Assign',
     LinesToStr([ // statements
@@ -12091,9 +12136,9 @@ begin
     '$mod.TRec.SetInt($mod.TRec.GetInt() + 2);',
     '$mod.TRec.SetInt($mod.TRec.Fx);',
     '$mod.TRec.Fy = $mod.r.Fx + 1;',
-    'if ($mod.r.GetInt() === 2) ;',
-    '$mod.r.SetInt($mod.r.GetInt() + 2);',
-    '$mod.r.SetInt($mod.r.Fx);',
+    'if ($mod.TRec.GetInt() === 2) ;',
+    '$mod.TRec.SetInt($mod.TRec.GetInt() + 2);',
+    '$mod.TRec.SetInt($mod.r.Fx);',
     '']));
 end;
 
@@ -12557,8 +12602,8 @@ begin
     '  $mod.TPoint.Fly();',
     '})();',
     '$mod.TPoint.x = $mod.r.x + 10;',
-    '$mod.r.Fly();',
-    '$mod.r.Fly();',
+    '$mod.TPoint.Fly();',
+    '$mod.TPoint.Fly();',
     '']));
 end;
 
@@ -13471,6 +13516,63 @@ begin
     '$mod.TObject.Sub=null;',
     '$mod.Obj.Sub.$class.GetIt(9).$class.GetIt(10);',
     '$mod.Obj.Sub.$class.GetIt(11).Sub.$class.GetIt(12);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_CallClassMethodStatic;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  public',
+  '    class function Fly: tobject; static;',
+  '  end;',
+  'class function tobject.Fly: tobject;',
+  'begin',
+  '  Result.Fly;',
+  '  Result.Fly();',
+  '  Fly;',
+  '  Fly();',
+  '  Fly.Fly;',
+  '  Fly.Fly();',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj.Fly;',
+  '  obj.Fly();',
+  '  with obj do begin',
+  '    Fly;',
+  '    Fly();',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_CallClassMethodStatic',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Fly = function () {',
+    '    var Result = null;',
+    '    $mod.TObject.Fly();',
+    '    $mod.TObject.Fly();',
+    '    $mod.TObject.Fly();',
+    '    $mod.TObject.Fly();',
+    '    $mod.TObject.Fly();',
+    '    $mod.TObject.Fly();',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Obj = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.TObject.Fly();',
+    '$mod.TObject.Fly();',
+    'var $with = $mod.Obj;',
+    '$with.Fly();',
+    '$with.Fly();',
     '']));
 end;
 
@@ -22610,21 +22712,21 @@ begin
     'this.c = null;',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.b.SetSpeed($mod.b.GetSpeed() + 12);',
+    '$mod.TObject.SetSpeed($mod.TObject.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
     'var $with = $mod.b;',
     '$with.SetSpeed($with.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 33);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 34);',
-    '$mod.c.SetSpeed($mod.c.GetSpeed() + 12);',
+    '$mod.TObject.SetSpeed($mod.TObject.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
     'var $with1 = $mod.c;',
     '$with1.SetSpeed($with1.GetSpeed() + 32);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 33);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 34);',
-    '$mod.TBird.SetSpeed($mod.TBird.GetSpeed() + 12);',
+    '$mod.TObject.SetSpeed($mod.TObject.GetSpeed() + 12);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 13);',
     '$mod.TObjHelper.SetLeft($mod.TObjHelper.GetLeft() + 14);',
     'var $with2 = $mod.TBird;',
@@ -24410,7 +24512,7 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.THelper.Fly.call({',
-    '  p: $mod.o.GetField(),',
+    '  p: $mod.TObject.GetField(),',
     '  get: function () {',
     '      return this.p;',
     '    },',
@@ -24428,7 +24530,7 @@ begin
     '      this.p = v;',
     '    }',
     '}, 12);',
-    'var $with1 = $mod.o.GetField();',
+    'var $with1 = $mod.TObject.GetField();',
     '$mod.THelper.Fly.call({',
     '  get: function () {',
     '      return $with1;',
@@ -29490,6 +29592,9 @@ begin
   CheckSource('TestRTTI_Class_Field',
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
+    '  $mod.$rtti.$DynArray("TObject.ArrB$a", {',
+    '    eltype: rtl.byte',
+    '  });',
     '  this.$init = function () {',
     '    this.FPropA = "";',
     '    this.VarLI = 0;',
@@ -29521,9 +29626,6 @@ begin
     '  $r.addField("VarShI", rtl.shortint);',
     '  $r.addField("VarBy", rtl.byte);',
     '  $r.addField("VarExt", rtl.longint);',
-    '  $mod.$rtti.$DynArray("TObject.ArrB$a", {',
-    '    eltype: rtl.byte',
-    '  });',
     '  $r.addField("ArrA", $mod.$rtti["TObject.ArrB$a"]);',
     '  $r.addField("ArrB", $mod.$rtti["TObject.ArrB$a"]);',
     '});',
@@ -30558,6 +30660,9 @@ begin
   CheckSource('TestRTTI_Record',
     LinesToStr([ // statements
     'rtl.recNewT(this, "TFloatRec", function () {',
+    '  $mod.$rtti.$DynArray("TFloatRec.d$a", {',
+    '    eltype: rtl.char',
+    '  });',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
     '    r.c = [];',
@@ -30572,9 +30677,6 @@ begin
     '    this.d = rtl.arrayRef(s.d);',
     '    return this;',
     '  };',
-    '  $mod.$rtti.$DynArray("TFloatRec.d$a", {',
-    '    eltype: rtl.char',
-    '  });',
     '  var $r = $mod.$rtti.$Record("TFloatRec", {});',
     '  $r.addField("c", $mod.$rtti["TFloatRec.d$a"]);',
     '  $r.addField("d", $mod.$rtti["TFloatRec.d$a"]);',

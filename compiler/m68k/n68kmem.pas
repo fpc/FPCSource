@@ -35,7 +35,6 @@ interface
        t68kvecnode = class(tcgvecnode)
           procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
           procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint); override;
-          function valid_index_size(size: tcgsize): boolean; override;
           //procedure pass_generate_code;override;
        end;
 
@@ -55,14 +54,6 @@ implementation
                              T68KVECNODE
 *****************************************************************************}
 
-     function t68kvecnode.valid_index_size(size: tcgsize): boolean;
-       begin
-         if (CPUM68K_HAS_INDEXWORD in cpu_capabilities[current_settings.cputype]) then
-           result:=tcgsize2signed[size] in [OS_S16,OS_S32]
-         else
-           result:=inherited;
-       end;
-
     { this routine must, like any other routine, not change the contents }
     { of base/index registers of references, as these may be regvars.    }
     { The register allocator can coalesce one LOC_REGISTER being moved   }
@@ -75,8 +66,11 @@ implementation
       var
         hreg: tregister;
         scaled: boolean;
+        regcgsize: tcgsize;
       begin
         scaled:=false;
+        regcgsize:=def_cgsize(regsize);
+
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: called')));
         if l<>1 then
           begin
@@ -86,8 +80,10 @@ implementation
                ((CPUM68K_HAS_INDEXSCALE8 in cpu_capabilities[current_settings.cputype]) and (l in [2,4,8]))) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
-                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_S32);
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,def_cgsize(regsize),l,maybe_const_reg,hreg);
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,hreg);
+                regcgsize:=OS_ADDR;
                 maybe_const_reg:=hreg;
               end
             else
@@ -104,7 +100,7 @@ implementation
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: copytoa')));
                 hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,def_cgsize(regsize),OS_ADDR,maybe_const_reg,hreg);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end;
             location.reference.base:=maybe_const_reg;
@@ -118,13 +114,13 @@ implementation
                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
                 reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
               end;
-            if def_cgsize(regsize) in [OS_8,OS_16] then
+            if regcgsize in [OS_8,OS_16] then
               begin
                 { index registers are always sign extended on m68k, so we have to zero extend by hand,
                   if the index variable is unsigned, and its width is less than the whole register }
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: index zero extend')));
                 hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,def_cgsize(regsize),OS_ADDR,maybe_const_reg,hreg);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,regcgsize,OS_ADDR,maybe_const_reg,hreg);
                 maybe_const_reg:=hreg;
               end;
             { insert new index register }

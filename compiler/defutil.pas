@@ -149,6 +149,9 @@ interface
     {# Returns true, if p points to an array of const }
     function is_array_of_const(p : tdef) : boolean;
 
+    {# Returns true if p is an arraydef that describes a constant string }
+    function is_conststring_array(p : tdef) : boolean;
+
     {# Returns true, if p points any kind of special array
 
        That is if the array is an open array, a variant
@@ -796,8 +799,7 @@ implementation
            range is also -1 ! (PFV) }
          result:=(p.typ=arraydef) and
                  (tarraydef(p).rangedef=sizesinttype) and
-                 (tarraydef(p).lowrange=0) and
-                 (tarraydef(p).highrange=-1) and
+                 (ado_OpenArray in tarraydef(p).arrayoptions) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
       end;
 
@@ -820,6 +822,12 @@ implementation
       begin
          result:=(p.typ=arraydef) and
                  (ado_IsArrayOfConst in tarraydef(p).arrayoptions);
+      end;
+
+    function is_conststring_array(p: tdef): boolean;
+      begin
+        result:=(p.typ=arraydef) and
+                (ado_IsConstString in tarraydef(p).arrayoptions);
       end;
 
     { true, if p points to a special array, bitpacked arrays aren't special in this regard though }
