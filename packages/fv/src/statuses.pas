@@ -168,7 +168,11 @@ Highlighted TextÄÄÄÄÄÄÄÄÄÄÄÙ }
 {#Z-}
   {#X tvStatus TStatusDlg TStatusMessageDlg }
 
-  SpinChars : String[4] = '³/Ä\';
+{$ifdef FV_UNICODE}
+  SpinChars : UnicodeString = #$2502'/'#$2500'\';
+{$else FV_UNICODE}
+  SpinChars : String[4] = #179'/'#196'\';
+{$endif FV_UNICODE}
     { SpinChars are the characters used by a #TSpinnerGauge# when it is drawn.
       Only one character is displayed at a time.  The string is cycled
       through then started over again until the view is disposed. }
