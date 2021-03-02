@@ -120,7 +120,7 @@ const
 
 Implementation
 
-{-----------------TInputLong.Init}
+{-----------------TInputLong.Init}
 constructor TInputLong.Init(var R : TRect; AMaxLen : Sw_Integer;
         LowerLim, UpperLim : LongInt; Flgs : Word);
 begin

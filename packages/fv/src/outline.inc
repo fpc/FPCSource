@@ -460,7 +460,7 @@ function Toutlineviewer.getgraph(level:SmallInt;lines:longint;
                                  flags:word):string;
 
 begin
-  getgraph:=creategraph(level,lines,flags,3,3,' ³ÃÀÄÄ+Ä');
+  getgraph:=creategraph(level,lines,flags,3,3,#32#179#195#192#196#196#43#196);
 end;
 {$endif FV_UNICODE}
 

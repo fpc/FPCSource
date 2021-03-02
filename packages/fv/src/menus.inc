@@ -1062,7 +1062,7 @@ Const
 {$ifdef FV_UNICODE}
      (#$250C#$2500#$2510,#$2502#$0020#$2502,#$251C#$2500#$2524,#$2514#$2500#$2518);
 {$else FV_UNICODE}
-     ('ÚÄ¿','³ ³','ÃÄ´','ÀÄÙ');
+     (#218#196#191,#179#32#179,#195#196#180,#192#196#217);
 {$endif FV_UNICODE}
   Procedure CreateBorder(LineType : FrameLineType);
   Begin

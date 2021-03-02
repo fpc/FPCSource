@@ -2109,7 +2109,7 @@ BEGIN
 {$ifdef FV_UNICODE}
           c:=#$2584;
 {$else FV_UNICODE}
-          c:='Ü';
+          c:=#220;
 {$endif FV_UNICODE}
           MoveChar(Db,c,Bc,1);
           WriteLine(Size.X-1, 0, 1, 1, Db);
@@ -2119,7 +2119,7 @@ BEGIN
 {$ifdef FV_UNICODE}
       else c:=#$2580;
 {$else FV_UNICODE}
-      else c:='ß';
+      else c:=#223;
 {$endif FV_UNICODE}
       MoveChar(Db[1],c,Bc,Size.X-1);
       WriteLine(0, 1, Size.X, 1, Db);
