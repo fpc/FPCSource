@@ -2746,9 +2746,9 @@ const
     #$0020#$255D#$2550#$2567#$2557#$2562#$2564#$256C;
 {$else FV_UNICODE}
   FrameChars_437: array[0..31] of Char =
-    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉÇ ¼ÍÏ»¶ÑÎ';
+    '   '#192' '#179#218#195' '#217#196#193#191#180#194#197'   '#200' '#186#201#199' '#188#205#207#187#182#209#206;
   FrameChars_850: array[0..31] of Char =
-    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉº ¼ÍÍ»ºÍÎ';
+    '   '#192' '#179#218#195' '#217#196#193#191#180#194#197'   '#200' '#186#201#186' '#188#205#205#187#186#205#206;
 {$endif FV_UNICODE}
 var
   FrameMask : array[0..MaxViewWidth-1] of Byte;
@@ -2914,7 +2914,11 @@ begin
   begin
     if PWindow(Owner)^.Flags and wfClose <> 0 then
       if FrameMode and fmCloseClicked = 0 then
-        MoveCStr(B[2], '[~þ~]', CFrame)
+{$ifdef FV_UNICODE}
+        MoveCStr(B[2], '[~'#$25A0'~]', CFrame)
+{$else FV_UNICODE}
+        MoveCStr(B[2], '[~'#254'~]', CFrame)
+{$endif FV_UNICODE}
       else
         MoveCStr(B[2], '[~'+ClickC[LowAscii]+'~]', CFrame);
     if PWindow(Owner)^.Flags and wfZoom <> 0 then
@@ -2945,7 +2949,11 @@ begin
   FrameLine(B, Size.Y - 1, F + 6, Byte(CFrame));
   if State and sfActive <> 0 then
     if PWindow(Owner)^.Flags and wfGrow <> 0 then
-      MoveCStr(B[Width - 2], '~ÄÙ~', CFrame);
+{$ifdef FV_UNICODE}
+      MoveCStr(B[Width - 2], '~'#$2500#$2518'~', CFrame);
+{$else FV_UNICODE}
+      MoveCStr(B[Width - 2], '~'#196#217'~', CFrame);
+{$endif FV_UNICODE}
   WriteLine(0, Size.Y - 1, Size.X, 1, B);
 end;
 
