@@ -1832,12 +1832,21 @@ begin
 end;
 
 procedure TDirListBox.NewDirectory(var ADir: DirStr);
+{$ifdef FV_UNICODE}
 const
-  PathDir       = 'ÀÄÂ';
-  FirstDir     =   'ÀÂÄ';
-  MiddleDir   =   ' ÃÄ';
-  LastDir       =   ' ÀÄ';
+  PathDir       = #$2514#$2500#$252C;
+  FirstDir     =   #$2514#$252C#$2500;
+  MiddleDir   =   ' '#$251C#$2500;
+  LastDir       =   ' '#$2514#$2500;
   IndentSize    = '  ';
+{$else FV_UNICODE}
+const
+  PathDir       = #192#196#194;
+  FirstDir     =   #192#194#196;
+  MiddleDir   =   ' '#195#196;
+  LastDir       =   ' '#192#196;
+  IndentSize    = '  ';
+{$endif FV_UNICODE}
 var
   AList: PCollection;
   NewDir, Dirct: DirStr;
@@ -1943,16 +1952,29 @@ begin
     end;
   FindClose(SR);
     P := PDirEntry(AList^.At(AList^.Count-1))^.DisplayText;
-    I := Pos('À',P^);
+{$ifdef FV_UNICODE}
+    I := Pos(#$2514,P^);
     if I = 0 then
     begin
-      I := Pos('Ã',P^);
-      if I <> 0 then P^[I] := 'À';
+      I := Pos(#$251C,P^);
+      if I <> 0 then P^[I] := #$2514;
     end else
     begin
-      P^[I+1] := 'Ä';
-      P^[I+2] := 'Ä';
+      P^[I+1] := #$2500;
+      P^[I+2] := #$2500;
     end;
+{$else FV_UNICODE}
+    I := Pos(#192,P^);
+    if I = 0 then
+    begin
+      I := Pos(#195,P^);
+      if I <> 0 then P^[I] := #192;
+    end else
+    begin
+      P^[I+1] := #196;
+      P^[I+2] := #196;
+    end;
+{$endif FV_UNICODE}
   end;
   NewList(AList);
   FocusItem(NewCur);
