@@ -4831,12 +4831,26 @@ begin
                        sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
                        if sLogMsg <> '' then
                        begin
-                         if (sLogMsg <> 'XX') and
+
+                         if (sLogMsg <> 'KX') and
+                            (sLogMsg <> 'KY') and
+                            (sLogMsg <> 'KZ') and
+                            (sLogMsg <> 'RM') and
+                            (sLogMsg <> 'RX') and
+                            (sLogMsg <> 'XK') and
+                            (sLogMsg <> 'XR') and
+                            (sLogMsg <> 'XX') and
                             (sLogMsg <> 'XY') and
+                            (sLogMsg <> 'XZ') and
+                            (sLogMsg <> 'YK') and
+                            (sLogMsg <> 'YR') and
                             (sLogMsg <> 'YX') and
                             (sLogMsg <> 'YY') and
                             (sLogMsg <> 'YZ') and
+                            (sLogMsg <> 'ZK') and
+                            (sLogMsg <> 'ZR') and
                             (sLogMsg <> 'ZX') and
+                            (sLogMsg <> 'ZY') and
                             (sLogMsg <> 'ZZ') then
 
                          writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
@@ -5234,6 +5248,14 @@ begin
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
 
+                            omYB32,
+                            omYB64: begin
+                                      sMREF := OItem2.Values[il_Op2];
+                                      result.Add(format('%20s%6s,%6s + $2000', [aInst, 'YMM1', sMREF]));
+                                      result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+
+                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
+                                    end;
                             omYB32I,
                             omYB64I:
                                    begin
@@ -5308,6 +5330,15 @@ begin
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
+
+                            omZB32,
+                            omZB64: begin
+                                      sMREF := OItem2.Values[il_Op2];
+                                      result.Add(format('%20s%6s,%6s + $2000', [aInst, 'ZMM1', sMREF]));
+                                      result.Add(format('%20s%6s,%6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+
+                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
+                                    end;
                             omZB32I,
                             omZB64I:
                                     begin
@@ -5401,7 +5432,11 @@ begin
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
-
+                              else begin
+                                     sLogMsg := '';
+                                     sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
+                                     writeln('offen - : ' + sLogMsg + ' (' + aInst + ')');
+                                   end;
                         end;
 
                         sRegCombi := '';
