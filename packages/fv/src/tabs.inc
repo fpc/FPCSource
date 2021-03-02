@@ -478,13 +478,13 @@ end;
 procedure TTab.Draw;
 const
 {$ifdef AVOIDTHREELINES}
-  UDL='¿';
-  LUR='Ä';
-  URD='Ú';
+  UDL={$ifdef FV_UNICODE}#$2510{$else}#191{$endif};
+  LUR={$ifdef FV_UNICODE}#$2500{$else}#196{$endif};
+  URD={$ifdef FV_UNICODE}#$250C{$else}#218{$endif};
 {$else not AVOIDTHREELINES}
-  UDL='´';
-  LUR='Á';
-  URD='Ã';
+  UDL={$ifdef FV_UNICODE}#$2524{$else}#180{$endif};
+  LUR={$ifdef FV_UNICODE}#$2534{$else}#193{$endif};
+  URD={$ifdef FV_UNICODE}#$251C{$else}#195{$endif};
 {$endif not AVOIDTHREELINES}
 
 
@@ -533,8 +533,8 @@ begin
 
   { --- 1. sor --- }
   ClearBuf;
-  MoveChar(B[0],'³',C1,1);
-  MoveChar(B[HeaderLen+1],'³',C1,1);
+  MoveChar(B[0],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1);
+  MoveChar(B[HeaderLen+1],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
@@ -548,65 +548,65 @@ begin
            else C:=C2;
         MoveCStr(B[X],' '+Name Sw_PString_Deref+' ',C);
         X:=X+X2+3;
-        MoveChar(B[X-1],'³',C1,1);
+        MoveChar(B[X-1],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1);
       end;
   SWriteBuf(0,1,Size.X,1,B);
 
   { --- 0. sor --- }
-  ClearBuf; MoveChar(B[0],'Ú',C1,1);
+  ClearBuf; MoveChar(B[0],{$ifdef FV_UNICODE}#$250C{$else}#218{$endif},C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
 {$ifdef AVOIDTHREELINES}
         if I<ActiveDef then
-          FC:='Ú'
+          FC:={$ifdef FV_UNICODE}#$250C{$else}#218{$endif}
         else
-          FC:='¿';
+          FC:={$ifdef FV_UNICODE}#$2510{$else}#191{$endif};
 {$else not AVOIDTHREELINES}
-        FC:='Â';
+        FC:={$ifdef FV_UNICODE}#$252C{$else}#194{$endif};
 {$endif not AVOIDTHREELINES}
         X2:=CStrLen(AtTab(i)^.Name Sw_PString_Deref)+2;
         MoveChar(B[X+X2],FC,C1,1);
         if i=DefCount-1 then X2:=X2+1;
         if X2>0 then
-        MoveChar(B[X],'Ä',C1,X2);
+        MoveChar(B[X],{$ifdef FV_UNICODE}#$2500{$else}#196{$endif},C1,X2);
         X:=X+X2+1;
       end;
-  MoveChar(B[HeaderLen+1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ú',C1,1);
-  MoveChar(B[ActiveVPos],'¿',C1,1);
+  MoveChar(B[HeaderLen+1],{$ifdef FV_UNICODE}#$2510{$else}#191{$endif},C1,1);
+  MoveChar(B[ActiveKPos],{$ifdef FV_UNICODE}#$250C{$else}#218{$endif},C1,1);
+  MoveChar(B[ActiveVPos],{$ifdef FV_UNICODE}#$2510{$else}#191{$endif},C1,1);
   SWriteBuf(0,0,Size.X,1,B);
 
   { --- 2. sor --- }
-  MoveChar(B[1],'Ä',C1,Max(HeaderLen,0));
-  MoveChar(B[HeaderLen+2],'Ä',C1,Max(Size.X-HeaderLen-3,0));
+  MoveChar(B[1],{$ifdef FV_UNICODE}#$2500{$else}#196{$endif},C1,Max(HeaderLen,0));
+  MoveChar(B[HeaderLen+2],{$ifdef FV_UNICODE}#$2500{$else}#196{$endif},C1,Max(Size.X-HeaderLen-3,0));
   MoveChar(B[HeaderLen+1],LUR,C1,1);
-  MoveChar(B[ActiveKPos],'Ù',C1,1);
+  MoveChar(B[ActiveKPos],{$ifdef FV_UNICODE}#$2518{$else}#217{$endif},C1,1);
   if ActiveDef=0 then
-    MoveChar(B[0],'³',C1,1)
+    MoveChar(B[0],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1)
   else
     MoveChar(B[0],URD,C1,1);
   MoveChar(B[ActiveKPos+1],' ',C1,Max(ActiveVPos-ActiveKPos-1,0));
-  MoveChar(B[ActiveVPos],'À',C1,1);
+  MoveChar(B[ActiveVPos],{$ifdef FV_UNICODE}#$2514{$else}#192{$endif},C1,1);
   if HeaderLen+1<Size.X-1 then
-    MoveChar(B[Size.X-1],'¿',C1,1)
+    MoveChar(B[Size.X-1],{$ifdef FV_UNICODE}#$2510{$else}#191{$endif},C1,1)
   else if (ActiveDef=DefCount-1) then
-    MoveChar(B[Size.X-1],'³',C1,1)
+    MoveChar(B[Size.X-1],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1)
   else
     MoveChar(B[Size.X-1],UDL,C1,1);
   SWriteBuf(0,2,Size.X,1,B);
 
   { --- marad‚k sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1);
-  MoveChar(B[Size.X-1],'³',C1,1);
+  ClearBuf; MoveChar(B[0],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1);
+  MoveChar(B[Size.X-1],{$ifdef FV_UNICODE}#$2502{$else}#179{$endif},C1,1);
   {SWriteBuf(0,3,Size.X,Size.Y-4,B);}
   for i:=3 to Size.Y-1 do
     SWriteBuf(0,i,Size.X,1,B);
 
   { --- Size.X . sor --- }
-  MoveChar(B[0],'À',C1,1);
-  MoveChar(B[1],'Ä',C1,Max(Size.X-2,0));
-  MoveChar(B[Size.X-1],'Ù',C1,1);
+  MoveChar(B[0],{$ifdef FV_UNICODE}#$2514{$else}#192{$endif},C1,1);
+  MoveChar(B[1],{$ifdef FV_UNICODE}#$2500{$else}#196{$endif},C1,Max(Size.X-2,0));
+  MoveChar(B[Size.X-1],{$ifdef FV_UNICODE}#$2518{$else}#217{$endif},C1,1);
   SWriteBuf(0,Size.Y-1,Size.X,1,B);
 
   { - End of TGroup.Draw - }
