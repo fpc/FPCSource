@@ -44,11 +44,17 @@ type
 
              omKXM, omKYM, omKZM,
              omKXB32, omKXB64, omKYB32, omKYB64, omKZB32, omKZB64,
+             omKXB32I, omKXB64I, omKXMI, omKYB32I, omKYB64I, omKYMI, omKZB32I, omKZB64I, omKZMI,
+
              omKMI, omKB32I, omKB64I,
              omMXI, omMYI, omMZI,
              omXXM, omXXB32, omXXB64, omXMI, omXB32I, omXB64I,
+             omXXMI, omXXB32I, omXXB64I,
+
              omYYM, omYYB32, omYYB64, omYMI, omYB32I, omYB64I,
-             omZZM, omZZB32, omZZB64, omZMI, omZB32I, omZB64I);
+             omYYMI, omYYB32I, omYYB64I,
+             omZZM, omZZB32, omZZB64, omZMI, omZB32I, omZB64I,
+             omZZMI, omZZB32I, omZZB64I);
 
   TOperandListItem = class(TObject)
   private
@@ -4789,7 +4795,7 @@ begin
 
 
             // TODO delete
-            if il_Operands = 2 then
+            if il_Operands = 4 then
 
             case il_Operands of
                 2: begin
@@ -4994,6 +5000,102 @@ begin
                        writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
                       end;
                     end;
+                 4: if (OItem1.OpTyp = otKReg)       and
+                       (OItem2.OpTyp = otXMMReg)     and
+                       (OItem3.OpTyp = otB32)        and
+                       (OItem4.OpTyp = otIMM8) then OpMode := omKXB32I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otXMMReg)     and
+                             (OItem3.OpTyp = otB64)        and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKXB64I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otXMMReg)     and
+                             (OItem3.OpTyp in MEMTYPES)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKXMI
+
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otYMMReg)     and
+                             (OItem3.OpTyp = otB32)        and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKYB32I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otYMMReg)     and
+                             (OItem3.OpTyp = otB64)        and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKYB64I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otYMMReg)     and
+                             (OItem3.OpTyp in MEMTYPES)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKYMI
+
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otZMMReg)     and
+                             (OItem3.OpTyp = otB32)        and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKZB32I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otZMMReg)     and
+                             (OItem3.OpTyp = otB64)        and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKZB64I
+                     else if (OItem1.OpTyp = otKReg)       and
+                             (OItem2.OpTyp = otZMMReg)     and
+                             (OItem3.OpTyp in MEMTYPES)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omKZMI
+
+                     else if (OItem1.OpTyp = otXMMReg) and
+                             (OItem2.OpTyp = otXMMReg) and
+                             (OItem3.OpTyp = otB32)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omXXB32I
+                     else if (OItem1.OpTyp = otXMMReg) and
+                             (OItem2.OpTyp = otXMMReg) and
+                             (OItem3.OpTyp = otB64)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omXXB64I
+                     else if (OItem1.OpTyp = otYMMReg) and
+                             (OItem2.OpTyp = otYMMReg) and
+                             (OItem3.OpTyp = otB32)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omYYB32I
+                     else if (OItem1.OpTyp = otYMMReg) and
+                             (OItem2.OpTyp = otYMMReg) and
+                             (OItem3.OpTyp = otB64)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omYYB64I
+                     else if (OItem1.OpTyp = otZMMReg) and
+                             (OItem2.OpTyp = otZMMReg) and
+                             (OItem3.OpTyp = otB32)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omZZB32I
+                     else if (OItem1.OpTyp = otZMMReg) and
+                             (OItem2.OpTyp = otZMMReg) and
+                             (OItem3.OpTyp = otB64)    and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omZZB64I
+
+
+                     else if (OItem1.OpTyp = otXMMReg) and
+                             (OItem2.OpTyp = otXMMReg) and
+                             (OItem3.OpTyp in MEMTYPES) and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omXXMI
+                     else if (OItem1.OpTyp = otYMMReg) and
+                             (OItem2.OpTyp = otYMMReg) and
+                             (OItem3.OpTyp in MEMTYPES) and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omYYMI
+                     else if (OItem1.OpTyp = otZMMReg) and
+                             (OItem2.OpTyp = otZMMReg) and
+                             (OItem3.OpTyp in MEMTYPES) and
+                             (OItem4.OpTyp = otIMM8) then OpMode := omZZMI
+                     else
+                     begin
+                       sLogMsg := '';
+                       sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp) + MapOperand(OItem4.Optyp);
+                       if sLogMsg <> '' then
+                       begin
+
+                         if (sLogMsg <> 'KXXI') and
+                            (sLogMsg <> 'KYYI') and
+                            (sLogMsg <> 'KZZI') and
+                            (sLogMsg <> 'XXRI') and
+                            (sLogMsg <> 'XXXI') and
+                            (sLogMsg <> 'YYYI') and
+                            (sLogMsg <> 'ZZZI') then
+
+                         writeln('offen : ' + sLogMsg + ' (' + aInst + ')');
+                       end;
+                     end;
+
               else;
             end;
 
@@ -5432,10 +5534,17 @@ begin
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
+
+                            omKXB32I, omKXB64I, omKXMI, omKYB32I, omKYB64I, omKYMI, omKZB32I, omKZB64I, omKZMI:;
+                            omXXMI, omXXB32I, omXXB64I:;
+                            omYYMI, omYYB32I, omYYB64I:;
+                            omZZMI, omZZB32I, omZZB64I:;
+
+
                               else begin
                                      sLogMsg := '';
                                      sLogMsg := MapOperand(OItem1.Optyp) + MapOperand(OItem2.Optyp) + MapOperand(OItem3.Optyp);
-                                     writeln('offen - : ' + sLogMsg + ' (' + aInst + ')');
+                                     //writeln('offen - : ' + sLogMsg + ' (' + aInst + ')');
                                    end;
                         end;
 
