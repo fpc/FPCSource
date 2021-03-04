@@ -4795,7 +4795,7 @@ begin
 
 
             // TODO delete
-            if il_Operands = 4 then
+            //if il_Operands = 4 then
 
             case il_Operands of
                 2: begin
@@ -5571,8 +5571,8 @@ begin
                                    begin
                                      sMREF := OItem3.Values[il_Op3];
 
-                                     result.Add(format('%20s %6s, %6, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %6, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
+                                     result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
@@ -5580,8 +5580,8 @@ begin
                                    begin
                                      sMREF := OItem3.Values[il_Op3];
 
-                                     result.Add(format('%20s %6s, %6, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %6, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'XMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
+                                     result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
@@ -5591,8 +5591,8 @@ begin
                                    begin
                                      sMREF := OItem3.Values[il_Op3];
 
-                                     result.Add(format('%20s %6s, %6, %6s + $2000, %s', [aInst, 'YMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                     result.Add(format('%20s %6s, %6s, %6, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+                                     result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'YMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
+                                     result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
@@ -5609,8 +5609,8 @@ begin
                             //      begin
                             //        sMREF := OItem3.Values[il_Op3];
                             //
-                            //        result.Add(format('%20s %6s, %6, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                            //        result.Add(format('%20s %6s, %6s, %6, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                            //        result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
+                            //        result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
                             //
                             //        result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                             //      end;
@@ -5621,8 +5621,8 @@ begin
                                   begin
                                     sMREF := OItem3.Values[il_Op3];
 
-                                    result.Add(format('%20s %6s, %6, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
-                                    result.Add(format('%20s %6s, %6s, %6, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                                    result.Add(format('%20s %6s, %6s, %6s + $2000, %s', [aInst, 'ZMM1', OItem2.Values[il_Op2], sMREF, OItem4.Values[il_Op4]]));
+                                    result.Add(format('%20s %6s, %6s, %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
 
                                     result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                   end;
