@@ -5277,8 +5277,8 @@ begin
 
                             omMZ: begin
                                     result.Add(format('%20s %6s + $2000, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2]]));
-                                    result.Add(format('%20s %6s, %s',         ['vmovdqu', 'zmm0', OItem1.Values[il_Op1]]));
-                                    result.Add(format('%20s %6s, %s + $2000', ['vmovdqu', 'zmm1', OItem1.Values[il_Op1]]));
+                                    result.Add(format('%20s %6s, %s',         ['vmovdqu8', 'zmm0', OItem1.Values[il_Op1]]));
+                                    result.Add(format('%20s %6s, %s + $2000', ['vmovdqu8', 'zmm1', OItem1.Values[il_Op1]]));
 
                                     result.Add(format('%20s %6s, %6s, %s',    ['vpcmpeqq', 'K2', 'ZMM0', 'ZMM1']));
 
@@ -5287,8 +5287,8 @@ begin
 
                             omMZI: begin
                                      result.Add(format('%20s %6s + $2000, %6s, %s', [aInst, OItem1.Values[il_Op1], OItem2.Values[il_Op2], OItem3.Values[il_Op3] ]));
-                                     result.Add(format('%20s %6s, %s',              ['vmovdqu', 'zmm0', OItem1.Values[il_Op1]]));
-                                     result.Add(format('%20s %6s, %s + $2000',      ['vmovdqu', 'zmm1', OItem1.Values[il_Op1]]));
+                                     result.Add(format('%20s %6s, %s',              ['vmovdqu8', 'zmm0', OItem1.Values[il_Op1]]));
+                                     result.Add(format('%20s %6s, %s + $2000',      ['vmovdqu8', 'zmm1', OItem1.Values[il_Op1]]));
 
                                      result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqq', 'K2', 'ZMM0', 'ZMM1']));
 
@@ -5320,7 +5320,7 @@ begin
 
                              omXM: begin
                                      result.Add(format('%20s %6s, %s + $2000', [aInst, 'XMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
+                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqw', 'K2', OItem1.Values[il_Op1], 'XMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
@@ -5380,7 +5380,7 @@ begin
                                    end;
                              omYM: begin
                                      result.Add(format('%20s %6s, %s + $2000', [aInst, 'YMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
+                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqd', 'K2', OItem1.Values[il_Op1], 'YMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
@@ -5468,7 +5468,7 @@ begin
                                      end;
                              omZM: begin
                                      result.Add(format('%20s %6s, %s + $2000', [aInst, 'ZMM1', OItem2.Values[il_Op2] ]));
-                                     result.Add(format('%20s %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
+                                     result.Add(format('%20s %6s, %6s, %s',         ['vpcmpeqq', 'K2', OItem1.Values[il_Op1], 'ZMM1']));
 
                                      result.Add(AsmCodeBlockCompare(iAsmCounter, cmKORTESTNC));
                                    end;
