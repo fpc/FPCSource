@@ -13856,6 +13856,7 @@ tests/test/cg/obj/wince/arm/tcext4.o -text
 tests/test/cg/obj/wince/arm/tcext5.o -text
 tests/test/cg/ptest.pp svneol=native#text/plain
 tests/test/cg/taddbool.pp svneol=native#text/plain
+tests/test/cg/taddbyte.pp svneol=native#text/pascal
 tests/test/cg/taddcard.pp svneol=native#text/plain
 tests/test/cg/taddcurr.pp svneol=native#text/plain
 tests/test/cg/taddint.pp svneol=native#text/plain
