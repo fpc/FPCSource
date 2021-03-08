@@ -636,7 +636,7 @@ var
     transform_cp437_to_UTF8 := Utf8Encode(s);  
   end;
   
-  function transform(const hstr:UnicodeString):Utf8String;
+  function transform(const hstr:UnicodeString):RawByteString;
 
   begin
 {    case convert of
