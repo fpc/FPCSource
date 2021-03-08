@@ -3076,6 +3076,55 @@ unit aoptx86;
             Result:=true;
             exit;
           end;
+
+{$ifdef x86_64}
+        { Convert:
+            movq x(ref),%reg64
+            shrq y,%reg64
+          To:
+            movq x+4(ref),%reg32
+            shrq y-32,%reg32 (Remove if y = 32)
+        }
+        if (taicpu(p).opsize = S_Q) and
+          (taicpu(p).oper[0]^.typ = top_ref) and { Second operand will be a register }
+          (taicpu(p).oper[0]^.ref^.offset <= $7FFFFFFB) and
+          MatchInstruction(hp1, A_SHR, [taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp1), top_const, top_reg) and
+          (taicpu(hp1).oper[0]^.val >= 32) and
+          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
+          begin
+            RegName1 := debug_regname(taicpu(hp1).oper[1]^.reg);
+            PreMessage := 'movq ' + debug_operstr(taicpu(p).oper[0]^) + ',' + RegName1 + '; ' +
+              'shrq $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + RegName1 + ' -> movl ';
+
+            { Convert to 32-bit }
+            setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+            taicpu(p).opsize := S_L;
+
+            Inc(taicpu(p).oper[0]^.ref^.offset, 4);
+
+            PreMessage := PreMessage + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg);
+            if (taicpu(hp1).oper[0]^.val = 32) then
+              begin
+                DebugMsg(SPeepholeOptimization + PreMessage + ' (MovShr2Mov)', p);
+                RemoveInstruction(hp1);
+              end
+            else
+              begin
+                { This will potentially open up more arithmetic operations since
+                  the peephole optimizer now has a big hint that only the lower
+                  32 bits are currently in use (and opcodes are smaller in size) }
+                setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                taicpu(hp1).opsize := S_L;
+
+                Dec(taicpu(hp1).oper[0]^.val, 32);
+                DebugMsg(SPeepholeOptimization + PreMessage +
+                  '; shrl $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' (MovShr2MovShr)', p);
+              end;
+            Result := True;
+            Exit;
+          end;
+{$endif x86_64}
       end;
 
 
@@ -7076,19 +7125,26 @@ unit aoptx86;
             movl/q %reg1,%reg2
           To:
             leal/q $-x(%reg1),%reg2
-            subl/q $x,%reg1
+            subl/q $x,%reg1 (can be removed if %reg1 or the flags are not used afterwards)
 
           Breaks the dependency chain and potentially permits the removal of
           a CMP instruction if one follows.
         }
         Result := False;
-        if not (cs_opt_size in current_settings.optimizerswitches) and
-          (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
+        if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
           MatchOpType(taicpu(p),top_const,top_reg) and
           GetNextInstruction(p, hp1) and
           MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
           (taicpu(hp1).oper[1]^.typ = top_reg) and
-          MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) then
+          MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
+          (
+            { Don't do SubMov2LeaSub under -Os, but do allow SubMov2Lea }
+            not (cs_opt_size in current_settings.optimizerswitches) or
+            (
+              not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) and
+              RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
+            )
+          ) then
           begin
             { Change the MOV instruction to a LEA instruction, and update the
               first operand }
@@ -7100,12 +7156,26 @@ unit aoptx86;
             taicpu(hp1).opcode := A_LEA;
             taicpu(hp1).loadref(0, NewRef);
 
-            { Move what is now the LEA instruction to before the SUB instruction }
-            Asml.Remove(hp1);
-            Asml.InsertBefore(hp1, p);
-            AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, p, UsedRegs);
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            if RegUsedAfterInstruction(NewRef.base, hp1, TmpUsedRegs) or
+              RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+              begin
+                { Move what is now the LEA instruction to before the SUB instruction }
+                Asml.Remove(hp1);
+                Asml.InsertBefore(hp1, p);
+                AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, p, UsedRegs);
 
-            DebugMsg(SPeepholeOptimization + 'SubMov2LeaSub', p);
+                DebugMsg(SPeepholeOptimization + 'SubMov2LeaSub', p);
+                p := hp1;
+              end
+            else
+              begin
+                { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
+                RemoveCurrentP(p, hp1);
+                DebugMsg(SPeepholeOptimization + 'SubMov2Lea', p);
+              end;
+
             Result := True;
           end;
       end;
