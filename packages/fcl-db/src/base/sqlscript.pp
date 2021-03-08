@@ -284,6 +284,7 @@ begin
   FUseDollarString:=AValue;
   RecalcSeps;
 end;
+
 function TCustomSQLScript.GetLine: Integer;
 begin
   Result:=FLine - 1;
@@ -507,6 +508,7 @@ begin
   FIsSkipping:=False;
   FSkipStackIndex:=0;
   Faborted:=False;
+  FLine:=1;
   DefaultDirectives;
   Repeat
     NextStatement();
