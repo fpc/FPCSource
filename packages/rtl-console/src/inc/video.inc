@@ -525,8 +525,9 @@ function GetActiveCodePage: TSystemCodePage;
 begin
   if EnhancedVideoInitialized then
     Result := CurrentLegacy2EnhancedTranslationCodePage
+  else if VideoInitialized and Assigned(CurrentVideoDriver.GetActiveCodePage) then
+    Result := CurrentVideoDriver.GetActiveCodePage()
   else
-    {todo: get this from the driver}
     Result := DefaultSystemCodePage;
 end;
 
@@ -541,19 +542,35 @@ begin
      (CodePage=CP_UTF32LE) or (CodePage=CP_UTF32BE) then
     exit;
   if EnhancedVideoInitialized then
-    CurrentLegacy2EnhancedTranslationCodePage := CodePage;
+    CurrentLegacy2EnhancedTranslationCodePage := CodePage
+  else if VideoInitialized and Assigned(CurrentVideoDriver.ActivateCodePage) then
+    CurrentVideoDriver.ActivateCodePage(CodePage);
 end;
 
 function GetSupportedCodePageCount: Integer;
 begin
-  { todo... }
-  Result := 0;
+  if EnhancedVideoInitialized then
+    begin
+      { todo... }
+      Result := 0;
+    end
+  else if VideoInitialized and Assigned(CurrentVideoDriver.GetSupportedCodePageCount) then
+    Result := CurrentVideoDriver.GetSupportedCodePageCount()
+  else
+    Result := 1;
 end;
 
 function GetSupportedCodePage(Index: Integer): TSystemCodePage;
 begin
-  { todo... }
-  Result := 0;
+  if EnhancedVideoInitialized then
+    begin
+      { todo... }
+      Result := 0;
+    end
+  else if VideoInitialized and Assigned(CurrentVideoDriver.GetSupportedCodePage) then
+    Result := CurrentVideoDriver.GetSupportedCodePage(Index)
+  else
+    Result := DefaultSystemCodePage;
 end;
 
 { ---------------------------------------------------------------------
