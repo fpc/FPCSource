@@ -8850,7 +8850,6 @@ packages/rtl-console/src/os2/crt.pp svneol=native#text/plain
 packages/rtl-console/src/os2commn/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/os2commn/mouse.pp svneol=native#text/plain
 packages/rtl-console/src/os2commn/video.pp svneol=native#text/plain
-packages/rtl-console/src/unix/convert.inc svneol=native#text/plain
 packages/rtl-console/src/unix/crt.pp svneol=native#text/plain
 packages/rtl-console/src/unix/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/unix/mouse.pp svneol=native#text/plain

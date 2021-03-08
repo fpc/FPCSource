@@ -40,18 +40,11 @@ const
 var external_codepage:TSystemCodePage;
 
 {$i video.inc}
-{$i convert.inc}
 
 type  Tconsole_type=(ttyNetwork
                      {$ifdef linux},ttyLinux{$endif}
                      ,ttyFreeBSD
                      ,ttyNetBSD);
-
-      Tconversion=(cv_none,
-                   cv_cp437_to_iso01,
-                   cv_cp850_to_iso01,
-                   cv_linuxlowascii_to_vga,
-                   cv_cp437_to_UTF8);
 
       Ttermcode=(
         enter_alt_charset_mode,
@@ -194,8 +187,6 @@ const    terminal_names:array[0..11] of string[7]=(
                         @term_codes_vt220,
                         @term_codes_xterm,
                         @term_codes_beos);
-
-const convert:Tconversion=cv_none;
 
 var
   LastCursorType : byte;
@@ -510,147 +501,11 @@ var
   LastCharWasDoubleWidth: Boolean;
   CurCharWidth: Integer;
 
-  function transform_cp437_to_iso01(const st:string):string;
-
-  var i:byte;
-      c:char;
-      converted:word;
-
-  begin
-    transform_cp437_to_iso01:='';
-    for i:=1 to length(st) do
-      begin
-        c:=st[i];
-        case c of
-          #0..#31:
-            converted:=convert_lowascii_to_iso01[c];
-          #128..#255:
-            converted:=convert_cp437_to_iso01[c];
-          else
-            converted:=byte(c);
-        end;
-        if converted and $ff00=$f800 then
-          begin
-            if not in_ACS then
-              begin
-                transform_cp437_to_iso01:=transform_cp437_to_iso01+ACSIn;
-                in_ACS:=true;
-              end;
-            c:=char(converted and $ff);
-          end
-        else
-          if in_ACS then
-            begin
-              transform_cp437_to_iso01:=transform_cp437_to_iso01+ACSOut+
-                                        Attr2Ansi(LastAttr,0);
-              in_ACS:=false;
-            end;
-        transform_cp437_to_iso01:=transform_cp437_to_iso01+c;
-      end;
-  end;
-
-  function transform_cp850_to_iso01(const st:string):string;
-
-  var i:byte;
-      c:char;
-      converted:word;
-
-  begin
-    transform_cp850_to_iso01:='';
-    for i:=1 to length(st) do
-      begin
-        c:=st[i];
-        case c of
-          #0..#31:
-            converted:=convert_lowascii_to_iso01[c];
-          #128..#255:
-            converted:=convert_cp850_to_iso01[c];
-          else
-            converted:=byte(c);
-        end;
-        if converted and $ff00=$f800 then
-          begin
-            if not in_ACS then
-              begin
-                transform_cp850_to_iso01:=transform_cp850_to_iso01+ACSIn;
-                in_ACS:=true;
-              end;
-          end
-        else
-          if in_ACS then
-            begin
-              transform_cp850_to_iso01:=transform_cp850_to_iso01+ACSOut+
-                                        Attr2Ansi(LastAttr,0);
-              in_ACS:=false;
-            end;
-        c:=char(converted and $ff);
-        transform_cp850_to_iso01:=transform_cp850_to_iso01+c;
-      end;
-  end;
-
-  function transform_linuxlowascii_to_vga(const st:string):string;
-
-  var i:byte;
-      c:char;
-      converted:word;
-
-  begin
-    transform_linuxlowascii_to_vga:='';
-    for i:=1 to length(st) do
-      begin
-        c:=st[i];
-        case c of
-          #0..#31:
-            converted:=convert_linuxlowascii_to_vga[c];
-          else
-            converted:=byte(c);
-        end;
-        c:=char(converted and $ff);
-        transform_linuxlowascii_to_vga:=transform_linuxlowascii_to_vga+c;
-      end;
-  end;
-
-  function transform_cp437_to_UTF8(const st:string): string;
-  var i:byte;
-      c : char;
-      converted : WideChar;
-      s : WideString;
-  begin
-    s := '';
-    for i:=1 to length(st) do
-      begin
-        c:=st[i];
-        case c of
-          #0..#31:
-            converted:=convert_lowascii_to_UTF8[c];
-          #127..#255:
-            converted:=convert_cp437_to_UTF8[c];
-          else
-          begin
-            converted := #0;
-            converted := c;
-          end;
-        end;
-        s := s + converted;
-      end;
-    transform_cp437_to_UTF8 := Utf8Encode(s);  
-  end;
-  
   function transform(const hstr:UnicodeString):RawByteString;
-
   begin
-{    case convert of
-      cv_linuxlowascii_to_vga:
-        transform:=transform_linuxlowascii_to_vga(hstr);
-      cv_cp437_to_iso01:
-        transform:=transform_cp437_to_iso01(hstr);
-      cv_cp850_to_iso01:
-        transform:=transform_cp850_to_iso01(hstr);
-      cv_cp437_to_UTF8:
-        transform:=transform_cp437_to_UTF8(hstr);
-      else}
-        transform:=Utf8Encode(hstr);
-{    end;}
+    result:=Utf8Encode(hstr);
+    if external_codepage<>CP_UTF8 then
+      SetCodePage(result,external_codepage,True);
   end;
 
   procedure outdata(hstr:rawbytestring);
@@ -977,24 +832,15 @@ begin
         external_codepage:=850;
     end;
   {A non-vcsa Linux console can display most control characters, but not all.}
-  if {$ifdef linux}(console<>ttyLinux) and{$endif}
-     (cur_term_strings=@term_codes_linux) then
-    convert:=cv_linuxlowascii_to_vga;
   case external_codepage of
     CP_ISO01:            {West Europe}
-      begin
-        CurrentLegacy2EnhancedTranslationCodePage:=850;
-        convert:=cv_cp850_to_iso01;
-      end;
+      CurrentLegacy2EnhancedTranslationCodePage:=850;
     CP_ISO02:            {East Europe}
       CurrentLegacy2EnhancedTranslationCodePage:=852;
     CP_ISO05:            {Cyrillic}
       CurrentLegacy2EnhancedTranslationCodePage:=866;
     CP_UTF8:
-      begin
-        CurrentLegacy2EnhancedTranslationCodePage:=437;
-        convert:=cv_cp437_to_UTF8;
-      end;
+      CurrentLegacy2EnhancedTranslationCodePage:=437;
     else
       if is_vga_code_page(external_codepage) then
         CurrentLegacy2EnhancedTranslationCodePage:=external_codepage
