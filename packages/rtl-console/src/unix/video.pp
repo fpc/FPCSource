@@ -24,6 +24,14 @@ unit video;
 
 {$i videoh.inc}
 
+{*****************************************************************************}
+                                implementation
+{*****************************************************************************}
+
+uses  baseunix,termio,strings,unixkvmbase,graphemebreakproperty,eastasianwidth
+     ,charset
+     {$ifdef linux},linuxvcs{$endif};
+
 type  Tencoding=(cp437,         {Codepage 437}
                  cp850,         {Codepage 850}
                  cp852,         {Codepage 852}
@@ -52,15 +60,6 @@ const  {Contains all code pages that can be considered a normal vga font.
                       iso09,iso10,iso13,iso14,iso15];
 
 var internal_codepage,external_codepage:Tencoding;
-
-
-{*****************************************************************************}
-                                implementation
-{*****************************************************************************}
-
-uses  baseunix,termio,strings,unixkvmbase,graphemebreakproperty,eastasianwidth
-     ,charset
-     {$ifdef linux},linuxvcs{$endif};
 
 {$i video.inc}
 {$i convert.inc}

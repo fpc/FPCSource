@@ -2826,11 +2826,8 @@ begin
 {$else FV_UNICODE}
   ColorMask:=Color shl 8;
   p:=framechars_437;
-  {$ifdef unix}
-  {Codepage variables are currently Unix only.}
-  if internal_codepage<>cp437 then
+  if GetActiveCodePage<>437 then
     p:=framechars_850;
-  {$endif}
   for i:=0 to Size.X-1 do
     TVideoBuf(FrameBuf)[i]:=ord(p[FrameMask[i]]) or ColorMask;
 {$endif FV_UNICODE}
