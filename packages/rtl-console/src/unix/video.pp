@@ -32,34 +32,12 @@ uses  baseunix,termio,strings,unixkvmbase,graphemebreakproperty,eastasianwidth
      ,charset
      {$ifdef linux},linuxvcs{$endif};
 
-type  Tencoding=(cp437,         {Codepage 437}
-                 cp850,         {Codepage 850}
-                 cp852,         {Codepage 852}
-                 cp866,         {Codepage 866}
-                 koi8r,         {KOI8-R codepage}
-                 iso01,         {ISO 8859-1}
-                 iso02,         {ISO 8859-2}
-                 iso03,         {ISO 8859-3}
-                 iso04,         {ISO 8859-4}
-                 iso05,         {ISO 8859-5}
-                 iso06,         {ISO 8859-6}
-                 iso07,         {ISO 8859-7}
-                 iso08,         {ISO 8859-8}
-                 iso09,         {ISO 8859-9}
-                 iso10,         {ISO 8859-10}
-                 iso13,         {ISO 8859-13}
-                 iso14,         {ISO 8859-14}
-                 iso15,         {ISO 8859-15}
-                 utf8);         {UTF-8}
+const
+  CP_ISO01 = 28591;  {ISO 8859-1}
+  CP_ISO02 = 28592;  {ISO 8859-2}
+  CP_ISO05 = 28595;  {ISO 8859-5}
 
-const  {Contains all code pages that can be considered a normal vga font.
-        Note: KOI8-R has line drawing characters in wrong place. Support
-              can perhaps be added, for now we'll let it rest.}
-       vga_codepages=[cp437,cp850,cp852,cp866];
-       iso_codepages=[iso01,iso02,iso03,iso04,iso05,iso06,iso07,iso08,
-                      iso09,iso10,iso13,iso14,iso15];
-
-var internal_codepage,external_codepage:Tencoding;
+var internal_codepage,external_codepage:TSystemCodePage;
 
 {$i video.inc}
 {$i convert.inc}
@@ -248,6 +226,19 @@ const
 
   TerminalSupportsHighIntensityColors: boolean = false;
   TerminalSupportsBold: boolean = true;
+
+{Contains all code pages that can be considered a normal vga font.
+    Note: KOI8-R has line drawing characters in wrong place. Support
+          can perhaps be added, for now we'll let it rest.}
+function is_vga_code_page(CP: TSystemCodePage): Boolean;
+begin
+  case CP of
+    437,850,852,866:
+      result:=true;
+    else
+      result:=false;
+  end;
+end;
 
 function convert_vga_to_acs(ch:char):word;
 
@@ -976,41 +967,41 @@ procedure decide_codepages;
 var s:string;
 
 begin
-  if external_codepage in vga_codepages then
+  if is_vga_code_page(external_codepage) then
     begin
       {Possible override...}
       s:=upcase(fpgetenv('CONSOLEFONT_CP'));
       if s='CP437' then
-        external_codepage:=cp437
+        external_codepage:=437
       else if s='CP850' then
-        external_codepage:=cp850;
+        external_codepage:=850;
     end;
   {A non-vcsa Linux console can display most control characters, but not all.}
   if {$ifdef linux}(console<>ttyLinux) and{$endif}
      (cur_term_strings=@term_codes_linux) then
     convert:=cv_linuxlowascii_to_vga;
   case external_codepage of
-    iso01:               {West Europe}
+    CP_ISO01:            {West Europe}
       begin
-        internal_codepage:=cp850;
+        internal_codepage:=850;
         convert:=cv_cp850_to_iso01;
       end;
-    iso02:               {East Europe}
-      internal_codepage:=cp852;
-    iso05:               {Cyrillic}
-      internal_codepage:=cp866;
-    utf8:
+    CP_ISO02:            {East Europe}
+      internal_codepage:=852;
+    CP_ISO05:            {Cyrillic}
+      internal_codepage:=866;
+    CP_UTF8:
       begin
-        internal_codepage:=cp437;
+        internal_codepage:=437;
         convert:=cv_cp437_to_UTF8;
       end;
     else
-      if internal_codepage in vga_codepages then
+      if is_vga_code_page(internal_codepage) then
         internal_codepage:=external_codepage
       else
         {We don't know how to convert to the external codepage. Use codepage
          437 in the hope that the actual font has similarity to codepage 437.}
-        internal_codepage:=cp437;
+        internal_codepage:=437;
   end;
 end;
 
@@ -1075,11 +1066,11 @@ begin
 {$endif linux}
      Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
      cur_term_strings:=@term_codes_vt100; {Default: vt100}
-     external_codepage:=iso01;            {Default: ISO-8859-1}
+     external_codepage:=CP_ISO01;         {Default: ISO-8859-1}
      if UTF8Enabled then
-       external_codepage:=utf8;
+       external_codepage:=CP_UTF8;
    {$ifdef linux}
-     if (vcs_device>=0) and (external_codepage<>utf8) then
+     if (vcs_device>=0) and (external_codepage<>CP_UTF8) then
        begin
          str(vcs_device,s);
          fname:='/dev/vcsa'+s;
@@ -1088,7 +1079,7 @@ begin
          if ttyfd<>-1 then
            begin
              console:=ttylinux;
-             external_codepage:=cp437;  {VCSA defaults to codepage 437.}
+             external_codepage:=437;  {VCSA defaults to codepage 437.}
            end
          else
            if try_grab_vcsa then
@@ -1097,7 +1088,7 @@ begin
                if ttyfd<>-1 then
                  begin
                    console:=ttylinux;
-                   external_codepage:=cp437;  {VCSA defaults to codepage 437.}
+                   external_codepage:=437;  {VCSA defaults to codepage 437.}
                  end;
              end;
        end;
@@ -1143,16 +1134,16 @@ begin
 {$endif}
         if cur_term_strings=@term_codes_linux then
           begin
-            if external_codepage<>utf8 then
+            if external_codepage<>CP_UTF8 then
               begin
                 {Enable the VGA character set (codepage 437,850,....)}
                 fpwrite(stdoutputhandle,font_vga,sizeof(font_vga));
-                external_codepage:=cp437;  {Now default to codepage 437.}
+                external_codepage:=437;  {Now default to codepage 437.}
               end;
           end
         else
           begin
-            if external_codepage<>utf8 then
+            if external_codepage<>CP_UTF8 then
               begin
                 {No VGA font  :(  }
                 fpwrite(stdoutputhandle,font_lat1,sizeof(font_lat1));
@@ -1245,7 +1236,7 @@ begin
 
          { if we're in utf8 mode, we didn't change the font, so
            no need to restore anything }
-         if external_codepage<>utf8 then
+         if external_codepage<>CP_UTF8 then
          begin
            {Enable the character set set through setfont}
            fpwrite(stdoutputhandle,font_custom,3);
