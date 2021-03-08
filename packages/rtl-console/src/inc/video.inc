@@ -115,6 +115,7 @@ end;
 Var
   CurrentVideoDriver : TVideoDriver;
   NextVideoMode      : TVideoMode;
+  CurrentLegacy2EnhancedTranslationCodePage: TSystemCodePage;
 
 Const
   VideoInitialized : Boolean = False;
@@ -241,7 +242,10 @@ begin
   if not VideoInitialized then
     begin
       if Assigned(CurrentVideoDriver.InitEnhancedDriver) then
-        CurrentVideoDriver.InitEnhancedDriver
+        begin
+          CurrentLegacy2EnhancedTranslationCodePage := 437;
+          CurrentVideoDriver.InitEnhancedDriver;
+        end
       else if Assigned(CurrentVideoDriver.InitDriver) then
         CurrentVideoDriver.InitDriver;
       if errorcode=viook then
@@ -352,7 +356,7 @@ begin
     begin
       SetLength(tmpS, 1);
       tmpS[1]:=Ch;
-      System.SetCodePage(tmpS,CP_OEMCP,False);
+      System.SetCodePage(tmpS,CurrentLegacy2EnhancedTranslationCodePage,False);
       Result:=tmpS;
     end;
 end;
@@ -515,6 +519,33 @@ begin
   Result:=0;
   for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(S) do
     Inc(Result, ExtendedGraphemeClusterDisplayWidth(EGC));
+end;
+
+function GetActiveCodePage: TSystemCodePage;
+begin
+  if EnhancedVideoInitialized then
+    Result := CurrentLegacy2EnhancedTranslationCodePage
+  else
+    {todo: get this from the driver}
+    Result := DefaultSystemCodePage;
+end;
+
+procedure ActivateCodePage(CodePage: TSystemCodePage);
+begin
+  if EnhancedVideoInitialized then
+    CurrentLegacy2EnhancedTranslationCodePage := CodePage;
+end;
+
+function GetSupportedCodePageCount: Integer;
+begin
+  { todo... }
+  Result := 0;
+end;
+
+function GetSupportedCodePage(Index: Integer): TSystemCodePage;
+begin
+  { todo... }
+  Result := 0;
 end;
 
 { ---------------------------------------------------------------------

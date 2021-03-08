@@ -180,6 +180,14 @@ function ExtendedGraphemeClusterDisplayWidth(const EGC: UnicodeString): Integer;
 { Returns the number of display columns needed for the given extended grapheme cluster }
 function StringDisplayWidth(const S: UnicodeString): Integer;
 { Returns the number of display columns needed for the given string }
+function GetActiveCodePage: TSystemCodePage;
+{ Returns the current active legacy code page }
+procedure ActivateCodePage(CodePage: TSystemCodePage);
+{ Activates a specified legacy code page (if supported) }
+function GetSupportedCodePageCount: Integer;
+{ Get the number of code pages supported by this driver }
+function GetSupportedCodePage(Index: Integer): TSystemCodePage;
+{ Get the supported code page with index Index. Index is zero based. }
 
 procedure GetVideoMode(var Mode: TVideoMode);
 { Return dimensions of the current video mode }
