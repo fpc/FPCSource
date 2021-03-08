@@ -55,7 +55,7 @@ var
 implementation
 
 uses
-   exec, agraphics, graphemebreakproperty, eastasianwidth;
+   exec, agraphics, graphemebreakproperty, eastasianwidth, charset;
 
 procedure SysUpdateScreen(Force: Boolean); forward;
 

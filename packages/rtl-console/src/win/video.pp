@@ -23,7 +23,7 @@ procedure VideoSetConsoleOutHandle (NewHandle: THandle);
 implementation
 
 uses
-  windows,dos,graphemebreakproperty,eastasianwidth;
+  windows,dos,graphemebreakproperty,eastasianwidth,charset;
 
 {$i video.inc}
 

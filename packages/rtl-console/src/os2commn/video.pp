@@ -22,7 +22,7 @@ interface
 implementation
 
 uses
-  DosCalls, VioCalls, Mouse, graphemebreakproperty, eastasianwidth;
+  DosCalls, VioCalls, Mouse, graphemebreakproperty, eastasianwidth, charset;
 
 {$i video.inc}
 

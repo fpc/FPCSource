@@ -31,7 +31,7 @@ var
 implementation
 
 uses
-  WinProcs, graphemebreakproperty, eastasianwidth;
+  WinProcs, graphemebreakproperty, eastasianwidth, charset;
 
 {$I video.inc}
 

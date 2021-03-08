@@ -531,15 +531,21 @@ begin
     Result := DefaultSystemCodePage;
 end;
 
-procedure ActivateCodePage(CodePage: TSystemCodePage);
+{ disallowed codepages (variable length), code points larger than an 8-bit byte, etc. }
+function IsDisallowedCodePage(CodePage: TSystemCodePage): Boolean;
 const
   CP_UTF32LE=12000;
   CP_UTF32BE=12001;
 begin
-  { disallowed codepages (variable length), code points larger than an 8-bit byte, etc. }
-  if (CodePage=CP_UTF8) or (CodePage=CP_UTF7) or
-     (CodePage=CP_UTF16) or (CodePage=CP_UTF16BE) or
-     (CodePage=CP_UTF32LE) or (CodePage=CP_UTF32BE) then
+  Result:=(CodePage=CP_ACP) or (CodePage=CP_OEMCP) or (CodePage=CP_NONE) or
+          (CodePage=CP_UTF8) or (CodePage=CP_UTF7) or
+          (CodePage=CP_UTF16) or (CodePage=CP_UTF16BE) or
+          (CodePage=CP_UTF32LE) or (CodePage=CP_UTF32BE);
+end;
+
+procedure ActivateCodePage(CodePage: TSystemCodePage);
+begin
+  if IsDisallowedCodePage(CodePage) then
     exit;
   if EnhancedVideoInitialized then
     CurrentLegacy2EnhancedTranslationCodePage := CodePage
@@ -547,12 +553,30 @@ begin
     CurrentVideoDriver.ActivateCodePage(CodePage);
 end;
 
+var
+  SupportedCodePagesCount: Integer = -1;
+  SupportedCodePages: array of TSystemCodePage;
+
+procedure InitSupportedCodePages;
+var
+  CP: TSystemCodePage;
+begin
+  SetLength(SupportedCodePages, 0);
+  for CP:=Low(TSystemCodePage) to High(TSystemCodePage) do
+    if (not IsDisallowedCodePage(CP)) and MappingAvailable(CP) then
+      begin
+        SetLength(SupportedCodePages,Length(SupportedCodePages)+1);
+        SupportedCodePages[High(SupportedCodePages)]:=CP;
+      end;
+end;
+
 function GetSupportedCodePageCount: Integer;
 begin
   if EnhancedVideoInitialized then
     begin
-      { todo... }
-      Result := 0;
+      if SupportedCodePagesCount = -1 then
+        InitSupportedCodePages;
+      Result := SupportedCodePagesCount;
     end
   else if VideoInitialized and Assigned(CurrentVideoDriver.GetSupportedCodePageCount) then
     Result := CurrentVideoDriver.GetSupportedCodePageCount()
@@ -564,8 +588,9 @@ function GetSupportedCodePage(Index: Integer): TSystemCodePage;
 begin
   if EnhancedVideoInitialized then
     begin
-      { todo... }
-      Result := 0;
+      if SupportedCodePagesCount = -1 then
+        InitSupportedCodePages;
+      Result := SupportedCodePages[Index];
     end
   else if VideoInitialized and Assigned(CurrentVideoDriver.GetSupportedCodePage) then
     Result := CurrentVideoDriver.GetSupportedCodePage(Index)

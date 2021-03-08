@@ -28,7 +28,7 @@ implementation
 uses
   mouse,
   go32,
-  graphemebreakproperty,eastasianwidth;
+  graphemebreakproperty,eastasianwidth,charset;
 
 {$i video.inc}
 
