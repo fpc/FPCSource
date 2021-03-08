@@ -37,7 +37,7 @@ const
   CP_ISO02 = 28592;  {ISO 8859-2}
   CP_ISO05 = 28595;  {ISO 8859-5}
 
-var internal_codepage,external_codepage:TSystemCodePage;
+var external_codepage:TSystemCodePage;
 
 {$i video.inc}
 {$i convert.inc}
@@ -983,25 +983,25 @@ begin
   case external_codepage of
     CP_ISO01:            {West Europe}
       begin
-        internal_codepage:=850;
+        CurrentLegacy2EnhancedTranslationCodePage:=850;
         convert:=cv_cp850_to_iso01;
       end;
     CP_ISO02:            {East Europe}
-      internal_codepage:=852;
+      CurrentLegacy2EnhancedTranslationCodePage:=852;
     CP_ISO05:            {Cyrillic}
-      internal_codepage:=866;
+      CurrentLegacy2EnhancedTranslationCodePage:=866;
     CP_UTF8:
       begin
-        internal_codepage:=437;
+        CurrentLegacy2EnhancedTranslationCodePage:=437;
         convert:=cv_cp437_to_UTF8;
       end;
     else
       if is_vga_code_page(external_codepage) then
-        internal_codepage:=external_codepage
+        CurrentLegacy2EnhancedTranslationCodePage:=external_codepage
       else
         {We don't know how to convert to the external codepage. Use codepage
          437 in the hope that the actual font has similarity to codepage 437.}
-        internal_codepage:=437;
+        CurrentLegacy2EnhancedTranslationCodePage:=437;
   end;
 end;
 
