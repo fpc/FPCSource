@@ -306,14 +306,14 @@ begin
     end;
 end;
 
-function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString): Char;
+function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString; CodePage: TSystemCodePage): Char;
 
   function GenConvert: Char;
     var
       tmpS: RawByteString;
     begin
       tmpS:=UTF8Encode(EGC);
-      System.SetCodePage(tmpS,CP_OEMCP,True);
+      System.SetCodePage(tmpS,CodePage,True);
       if Length(tmpS)=1 then
         Result:=tmpS[1]
       else
@@ -364,14 +364,16 @@ end;
 procedure Enhanced2Legacy;
 var
   I: Integer;
+  CodePage: TSystemCodePage;
 begin
+  CodePage:=GetActiveCodePage();
   { todo: optimize this }
   for I := 0 to Length(EnhancedVideoBuf)-1 do
     begin
       with EnhancedVideoBuf[I] do
-        VideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster));
+        VideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster,CodePage));
       with OldEnhancedVideoBuf[I] do
-        OldVideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster));
+        OldVideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster,CodePage));
     end;
 end;
 
