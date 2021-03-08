@@ -157,8 +157,8 @@ const term_codes_ansi:Ttermcodes=
       term_codes_beos:Ttermcodes=
         (nil,//#$0E,                                              {enter_alt_charset_mode}
          nil,//#$0F,                                              {exit_alt_charset_mode}
-         #$1B#$5B#$48#$1B#$5B#$4A,		                    {clear_screen}
-         #$1B#$5B#$48,                                      {cursor_home}
+         #$1B#$5B#$48#$1B#$5B#$4A,                                {clear_screen}
+         #$1B#$5B#$48,                                            {cursor_home}
          #$1B'[?25h',// nil,//#$1B#$5B#$3F#$31#$32#$6C#$1B#$5B#$3F#$32#$35#$68,  {cursor_normal}
          nil,//#$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, underline}
          nil,//#$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor visible, block}
@@ -647,7 +647,7 @@ var
       cv_cp850_to_iso01:
         transform:=transform_cp850_to_iso01(hstr);
       cv_cp437_to_UTF8:
-      	transform:=transform_cp437_to_UTF8(hstr);
+        transform:=transform_cp437_to_UTF8(hstr);
       else}
         transform:=Utf8Encode(hstr);
 {    end;}
