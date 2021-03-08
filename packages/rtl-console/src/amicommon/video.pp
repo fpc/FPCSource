@@ -849,7 +849,7 @@ end;
 const
   SysVideoDriver : TVideoDriver = (
     InitDriver : @SysInitVideo;
-    InitEnhancedDriver: nil;
+    InitEnhancedDriver : Nil;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
@@ -859,7 +859,11 @@ const
     SetCursorPos : @SysSetCursorPos;
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
-    GetCapabilities : @SysGetCapabilities
+    GetCapabilities : @SysGetCapabilities;
+    GetActiveCodePage : Nil;
+    ActivateCodePage : Nil;
+    GetSupportedCodePageCount : Nil;
+    GetSupportedCodePage : Nil;
   );
 {$ifdef Amiga68k}
 function CreateRastport: PRastPort;

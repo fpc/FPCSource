@@ -435,8 +435,11 @@ Const
     SetCursorPos : @SysSetCursorPos;
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
-    GetCapabilities : @SysGetCapabilities
-
+    GetCapabilities : @SysGetCapabilities;
+    GetActiveCodePage : Nil;
+    ActivateCodePage : Nil;
+    GetSupportedCodePageCount : Nil;
+    GetSupportedCodePage : Nil;
   );
 
 procedure TargetEntry;

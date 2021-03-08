@@ -1380,6 +1380,10 @@ Const
     GetCursorType : @SysGetCursorType;
     SetCursorType : @SysSetCursorType;
     GetCapabilities : @SysGetCapabilities;
+    GetActiveCodePage : Nil;
+    ActivateCodePage : Nil;
+    GetSupportedCodePageCount : Nil;
+    GetSupportedCodePage : Nil;
   );
 
 initialization

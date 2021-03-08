@@ -255,18 +255,22 @@ end;
 
 const
   SysVideoDriver: TVideoDriver = (
-    InitDriver: @SysInitVideo;
-    InitEnhancedDriver: nil;
-    DoneDriver: @SysDoneVideo;
-    UpdateScreen: @SysUpdateScreen;
-    ClearScreen: nil;
-    SetVideoMode: @SysSetVideoMode;
-    GetVideoModeCount: nil;
-    GetVideoModeData: nil;
-    SetCursorPos: @SysSetCursorPos;
-    GetCursorType: @SysGetCursorType;
-    SetCursorType: @SysSetCursorType;
-    GetCapabilities: @SysGetCapabilities;
+    InitDriver                : @SysInitVideo;
+    InitEnhancedDriver        : nil;
+    DoneDriver                : @SysDoneVideo;
+    UpdateScreen              : @SysUpdateScreen;
+    ClearScreen               : nil;
+    SetVideoMode              : @SysSetVideoMode;
+    GetVideoModeCount         : nil;
+    GetVideoModeData          : nil;
+    SetCursorPos              : @SysSetCursorPos;
+    GetCursorType             : @SysGetCursorType;
+    SetCursorType             : @SysSetCursorType;
+    GetCapabilities           : @SysGetCapabilities;
+    GetActiveCodePage         : nil;
+    ActivateCodePage          : nil;
+    GetSupportedCodePageCount : nil;
+    GetSupportedCodePage      : nil;
   );
 
 begin

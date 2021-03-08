@@ -53,18 +53,22 @@ type
   TEnhancedVideoBuf = array of TEnhancedVideoCell;
 
   TVideoDriver = Record
-    InitDriver        : Procedure;
-    InitEnhancedDriver: Procedure;
-    DoneDriver        : Procedure;
-    UpdateScreen      : Procedure(Force : Boolean);
-    ClearScreen       : Procedure;
-    SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
-    GetVideoModeCount : Function : Word;
-    GetVideoModeData  : Function(Index : Word; Var Data : TVideoMode) : Boolean;
-    SetCursorPos      : procedure (NewCursorX, NewCursorY: Word);
-    GetCursorType     : function : Word;
-    SetCursorType     : procedure (NewType: Word);
-    GetCapabilities   : Function : Word;
+    InitDriver               : Procedure;
+    InitEnhancedDriver       : Procedure;
+    DoneDriver               : Procedure;
+    UpdateScreen             : Procedure(Force : Boolean);
+    ClearScreen              : Procedure;
+    SetVideoMode             : Function (Const Mode : TVideoMode) : Boolean;
+    GetVideoModeCount        : Function : Word;
+    GetVideoModeData         : Function(Index : Word; Var Data : TVideoMode) : Boolean;
+    SetCursorPos             : procedure (NewCursorX, NewCursorY: Word);
+    GetCursorType            : function : Word;
+    SetCursorType            : procedure (NewType: Word);
+    GetCapabilities          : Function : Word;
+    GetActiveCodePage        : function : TSystemCodePage;
+    ActivateCodePage         : procedure(CodePage: TSystemCodePage);
+    GetSupportedCodePageCount: function : Integer;
+    GetSupportedCodePage     : function(Index: Integer): TSystemCodePage;
   end;
 
 const
