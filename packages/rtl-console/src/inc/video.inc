@@ -531,7 +531,15 @@ begin
 end;
 
 procedure ActivateCodePage(CodePage: TSystemCodePage);
+const
+  CP_UTF32LE=12000;
+  CP_UTF32BE=12001;
 begin
+  { disallowed codepages (variable length), code points larger than an 8-bit byte, etc. }
+  if (CodePage=CP_UTF8) or (CodePage=CP_UTF7) or
+     (CodePage=CP_UTF16) or (CodePage=CP_UTF16BE) or
+     (CodePage=CP_UTF32LE) or (CodePage=CP_UTF32BE) then
+    exit;
   if EnhancedVideoInitialized then
     CurrentLegacy2EnhancedTranslationCodePage := CodePage;
 end;
