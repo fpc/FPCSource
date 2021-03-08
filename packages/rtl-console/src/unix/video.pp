@@ -996,7 +996,7 @@ begin
         convert:=cv_cp437_to_UTF8;
       end;
     else
-      if is_vga_code_page(internal_codepage) then
+      if is_vga_code_page(external_codepage) then
         internal_codepage:=external_codepage
       else
         {We don't know how to convert to the external codepage. Use codepage
