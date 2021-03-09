@@ -3776,14 +3776,29 @@ var
       Add(format('%20s%6s',               ['     pop', sReg]));
 
       case aComparemode of
-        cmKORTESTNC: begin
-                       Add(format('%20s%6s, %s',           ['ktestb', 'K2', 'K1']));
-                       Add(format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']));
-                     end;
-        cmXORTestNZ: begin
-                       Add(format('%20s%6s, %s',           ['kortestq', 'K2', 'K2']));
-                       Add(format('%20s  %6s',             ['     jnz', '@@CHECKRESULT']));
-                     end;
+        //cmKORTESTNC: begin
+        //               Add(format('%20s%6s, %s',           ['ktestb', 'K2', 'K1']));
+        //               Add(format('%20s  %6s',             ['     jnc', '@@CHECKRESULT']));
+        //             end;
+        //cmXORTestNZ: begin
+        //               Add(format('%20s%6s, %s',           ['kortestq', 'K2', 'K2']));
+        //               Add(format('%20s  %6s',             ['     jnz', '@@CHECKRESULT']));
+        //             end;
+         cmKORTESTNC: begin
+                        Add(format('%20s%6s, %s',           ['ktestb', 'K2', 'K1']));
+                        Add(format('%20s%6s, %s',           [' kmovq', 'R10', 'K6']));
+                        Add(format('%20s%6s, @@%d[RIP]',    ['cmovc', 'R10', aAsmCounter]));
+                        Add(format('%20s  %6s',             ['  jmp', 'R10']));
+                        Add(format('        @@%d%s',               [aAsmCounter, ':']));
+                      end;
+         cmXORTestNZ: begin
+                        Add(format('%20s%6s, %s',           ['kortestq', 'K2', 'K2']));
+                        Add(format('%20s%6s, %s',           [' kmovq', 'R10', 'K6']));
+                        Add(format('%20s%6s, @@%d[RIP]',    ['cmovz', 'R10', aAsmCounter]));
+                        Add(format('%20s  %6s',             ['  jmp', 'R10']));
+                        Add(format('        @@%d%s',         [aAsmCounter, ':']));
+                      end;
+
       end;
 
       result := Text;
