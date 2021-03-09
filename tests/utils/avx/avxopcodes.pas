@@ -3734,11 +3734,17 @@ begin
 
                   if aX64 then
                   begin
+                    slHeader.Add('      lea       rax, @@CHECKRESULT');
+                    slHeader.Add('      kmovq      k6, rax');
+
                     slHeader.Add('      lea       rax, DataBlock');
                     slHeader.Add('      push      rax');
                   end
                   else
                   begin
+                    slHeader.Add('      lea       eax, @@CHECKRESULT');
+                    slHeader.Add('      kmovd      k6, eax');
+
                     slHeader.Add('      lea       eax, DataBlock');
                     slHeader.Add('      push      eax');
                   end;
