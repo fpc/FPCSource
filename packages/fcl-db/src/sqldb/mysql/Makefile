@@ -626,7 +626,7 @@ ifeq ($(FULL_TARGET),wasm32-embedded)
 override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
 endif
 ifeq ($(FULL_TARGET),wasm32-wasi)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn
+override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
@@ -941,7 +941,7 @@ ifeq ($(FULL_TARGET),wasm32-embedded)
 override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
 endif
 ifeq ($(FULL_TARGET),wasm32-wasi)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn
+override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
 override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql51conn mysql55conn mysql56conn mysql57conn mysql80conn
@@ -1544,7 +1544,15 @@ else
 ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 FPCMAKE_CROSSGCCOPT=-mabi=32
 else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv64),)
+FPCMAKE_CROSSGCCOPT=-mabi=lp64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv32),)
+FPCMAKE_CROSSGCCOPT=-mabi=ilp32
+else
 FPCMAKE_CROSSGCCOPT=-m32
+endif
+endif
 endif
 endif
 endif
@@ -3510,7 +3518,7 @@ ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
 ifneq ($(findstring $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel),)
+ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64),)
 override FPCOPT+=-Cg
 endif
 endif
