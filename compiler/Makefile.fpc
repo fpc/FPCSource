@@ -40,7 +40,7 @@ ALLTARGETS=$(CYCLETARGETS)
 # All OS targets that do not support native compiler
 NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos symbian watcom wii win16 zxspectrum
 # All CPU targets that do not support native compiler
-NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80
+NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80 wasm32
 
 # Don't compile a native compiler & utilities for targets
 # which do not support it
