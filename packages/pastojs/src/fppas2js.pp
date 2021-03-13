@@ -2159,6 +2159,7 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateRTTIMemberProperty(Members: TFPList; Index: integer;
       AContext: TConvertContext): TJSElement; virtual;
+    Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext); virtual; // needed by precompiled files from 2.0.0
     Function CreateRTTIMembers(El: TPasMembersType; Src: TJSSourceElements;
       FuncContext: TFunctionContext; MembersSrc: TJSSourceElements;
       MembersFuncContext: TFunctionContext; RTTIExpr: TJSElement;
@@ -8182,7 +8183,7 @@ Var
   HasImplUsesClause, ok, NeedRTLCheckVersion: Boolean;
   Prg: TPasProgram;
   Lib: TPasLibrary;
-  AssignSt: TJSSimpleAssignStatement;
+  ImplFuncAssignSt: TJSSimpleAssignStatement;
   IntfSecCtx: TInterfaceSectionContext;
   ModScope: TPas2JSModuleScope;
 begin
@@ -8289,10 +8290,10 @@ begin
 
       ImplFunc:=CreateImplementationSection(El,IntfSecCtx);
       // add $mod.$implcode = ImplFunc;
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-      AssignSt.LHS:=CreateMemberExpression([ModVarName,GetBIName(pbivnImplCode)]);
-      AssignSt.Expr:=ImplFunc;
-      AddToSourceElements(Src,AssignSt);
+      ImplFuncAssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      ImplFuncAssignSt.LHS:=CreateMemberExpression([ModVarName,GetBIName(pbivnImplCode)]);
+      ImplFuncAssignSt.Expr:=ImplFunc;
+      AddToSourceElements(Src,ImplFuncAssignSt);
 
       // append initialization section
       CreateInitSection(El,Src,IntfSecCtx);
@@ -8304,7 +8305,7 @@ begin
         // remove unneeded $impl from interface
         RemoveFromSourceElements(Src,ImplVarSt);
         // remove unneeded $mod.$implcode = function(){}
-        RemoveFromSourceElements(Src,AssignSt);
+        RemoveFromSourceElements(Src,ImplFuncAssignSt);
         HasImplUsesClause:=(El.ImplementationSection<>nil)
                        and (length(El.ImplementationSection.UsesClause)>0);
         end
@@ -19963,6 +19964,23 @@ var
     ObjLit.Expr:=JS;
   end;
 
+  function VarTypeInfoAlreadyCreated(VarType: TPasType): boolean;
+  var
+    i: Integer;
+    PrevMember: TPasElement;
+  begin
+    i:=Index-1;
+    while (i>=0) do
+      begin
+      PrevMember:=TPasElement(Members[i]);
+      if (PrevMember is TPasVariable) and (TPasVariable(PrevMember).VarType=VarType)
+          and IsElementUsed(PrevMember) then
+        exit(true);
+      dec(i);
+      end;
+    Result:=false;
+  end;
+
 var
   JSTypeInfo: TJSElement;
   aName: String;
@@ -19975,7 +19993,10 @@ begin
   V:=TPasVariable(Members[Index]);
   VarType:=V.VarType;
   if (VarType<>nil) and (VarType.Name='') then
-    RaiseNotSupported(VarType,AContext,20210223022919);
+    begin
+    if not VarTypeInfoAlreadyCreated(VarType) then
+      CreateRTTIAnonymous(VarType,AContext); // only needed by precompiled files from 2.0.0
+    end;
 
   JSTypeInfo:=CreateTypeInfoRef(VarType,AContext,V);
   OptionsEl:=nil;
@@ -20291,6 +20312,37 @@ begin
     if Result=nil then
       Call.Free;
   end;
+end;
+
+procedure TPasToJSConverter.CreateRTTIAnonymous(El: TPasType;
+  AContext: TConvertContext);
+// if El has any anonymous types, create the RTTI
+var
+  C: TClass;
+  JS: TJSElement;
+  GlobalCtx: TFunctionContext;
+  Src: TJSSourceElements;
+begin
+  if El.Name<>'' then
+    RaiseNotSupported(El,AContext,20170905162324,'inconsistency');
+
+  GlobalCtx:=AContext.GetGlobalFunc;
+  if GlobalCtx=nil then
+    RaiseNotSupported(El,AContext,20181229130835);
+  if not (GlobalCtx.JSElement is TJSSourceElements) then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.CreateRTTIAnonymous GlobalCtx=',GetObjName(GlobalCtx),' JSElement=',GetObjName(GlobalCtx.JSElement));
+    {$ENDIF}
+    RaiseNotSupported(El,AContext,20181229130926);
+    end;
+  Src:=TJSSourceElements(GlobalCtx.JSElement);
+  C:=El.ClassType;
+  if C=TPasArrayType then
+    begin
+    JS:=ConvertArrayType(TPasArrayType(El),AContext);
+    AddToSourceElements(Src,JS);
+    end;
 end;
 
 function TPasToJSConverter.CreateRTTIMembers(El: TPasMembersType;
@@ -27026,8 +27078,8 @@ begin
   for i:=0 to ElRefList.Count-1 do
     begin
     El:=TPasElement(ElRefList[i]);
-    if ElNeedsGlobalAlias(El) then
-      CreateGlobalElPath(El,SectionContext);
+    // Note: they are all needed by precompiled code, do not check ElNeedsGlobalAlias
+    CreateGlobalElPath(El,SectionContext);
     end;
 end;
 

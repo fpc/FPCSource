@@ -382,7 +382,7 @@ SYSINIT_UNITS=si_prc si_dll si_c
 endif
 ifeq ($(ARCH),riscv64)
 override LOADERS=
-SYSINIT_UNITS=si_prc si_dll si_c
+SYSINIT_UNITS=si_prc si_dll si_c si_g
 endif
 ifeq ($(ARCH),mipsel)
 override FPCOPT+=-Ur
@@ -3177,7 +3177,15 @@ else
 ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 FPCMAKE_CROSSGCCOPT=-mabi=32
 else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv64),)
+FPCMAKE_CROSSGCCOPT=-mabi=lp64
+else
+ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv32),)
+FPCMAKE_CROSSGCCOPT=-mabi=ilp32
+else
 FPCMAKE_CROSSGCCOPT=-m32
+endif
+endif
 endif
 endif
 endif
@@ -3788,7 +3796,7 @@ ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
 ifneq ($(findstring $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel),)
+ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64),)
 override FPCOPT+=-Cg
 endif
 endif
