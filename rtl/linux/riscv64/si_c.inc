@@ -16,11 +16,7 @@
  ******************************************************************************}
 
 var
-  dlexitproc : pointer;
-
-var
   BSS_START: record end; external name '__bss_start';
-  STACK_PTR: record end; external name '__stkptr';
 
   { as we do not call these procedures directly, calling conventions do not matter and
     even if we did, we use c calling conventions anyways }
@@ -53,7 +49,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     .option push
     .option norelax
 .L1:
-    auipc gp, %pcrel_hi(BSS_START+0x7f8)
+    auipc gp, %pcrel_hi(BSS_START+0x800)
     addi  gp, gp, %pcrel_lo(.L1)
     .option pop
 
@@ -89,7 +85,7 @@ procedure _FPC_proc_haltproc(e:longint); cdecl; public name '_haltproc';
      .option push
      .option norelax
    .L1:
-     auipc gp, %pcrel_hi(BSS_START+0x7f8)
+     auipc gp, %pcrel_hi(BSS_START+0x800)
      addi  gp, gp, %pcrel_lo(.L1)
      .option pop
      jalr x0, x1

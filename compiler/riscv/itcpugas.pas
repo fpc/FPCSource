@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit contains the RiscV64 GAS instruction tables
+    This unit contains the RiscV GAS instruction tables
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ unit itcpugas;
 
     const
       gas_op2str: array[tasmop] of string[14] = ('<none>',
-        'nop',
+        'nop','call',
         'lui','auipc','jal','jalr',
         'b','lb','lh','lw','lbu','lhu',
         'sb','sh','sw',
@@ -42,24 +42,31 @@ unit itcpugas;
         'fence','fence.i',
         'ecall','ebreak',
         'csrrw','csrrs','csrrc','csrrwi','csrrsi','csrrci',
+{$ifdef RISCV64}
         { 64-bit }
         'addiw','slliw','srliw','sraiw',
         'addw','sllw','srlw','subw','sraw',
         'ld','sd','lwu',
+{$endif RISCV64}
 
         { m-extension }
         'mul','mulh','mulhsu','mulhu',
         'div','divu','rem','remu',
+{$ifdef RISCV64}
         { 64-bit }
         'mulw',
         'divw','divuw','remw','remuw',
+{$endif RISCV64}
 
         { a-extension }
         'lr.w','sc.w','amoswap.w','amoadd.w','amoxor.w','amoand.w',
         'amoor.w','amomin.w','amomax.w','amominu.w','amomaxu.w',
+
+{$ifdef RISCV64}
         { 64-bit }
         'lr.d','sc.d','amoswap.d','amoadd.d','amoxor.d','amoand.d',
         'amoor.d','amomin.d','amomax.d','amominu.d','amomaxu.d',
+{$endif RISCV64}
 
         { f-extension }
         'flw','fsw',
@@ -72,9 +79,12 @@ unit itcpugas;
         'fmv.s.x',
         'frcsr','frrm','frflags','fscsr','fsrm',
         'fsflags','fsrmi','fsflagsi',
+
+{$ifdef RISCV64}
         { 64-bit }
         'fcvt.l.s','fcvt.lu.s',
         'fcvt.s.l','fcvt.s.lu',
+{$endif RISCV64}
 
         { d-extension }
         'fld','fsd',
@@ -85,9 +95,12 @@ unit itcpugas;
         'feq.d','flt.d','fle.d','fclass.d',
         'fcvt.d.s','fcvt.s.d',
         'fcvt.w.d','fcvt.wu.d','fcvt.d.w','fcvt.d.wu',
+
+{$ifdef RISCV64}
         { 64-bit }
         'fcvt.l.d','fcvt.lu.d','fmv.x.d',
         'fcvt.d.l','fcvt.d.lu','fmv.d.x',
+{$endif RISCV64}
 
         { Machine mode }
         'mret','hret','sret','uret',
