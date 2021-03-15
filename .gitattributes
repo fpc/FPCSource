@@ -12005,6 +12005,7 @@ rtl/riscv64/setjump.inc svneol=native#text/plain
 rtl/riscv64/setjumph.inc svneol=native#text/plain
 rtl/riscv64/strings.inc svneol=native#text/plain
 rtl/riscv64/stringss.inc svneol=native#text/plain
+rtl/sinclairql/Makefile svneol=native#text/plain
 rtl/sinclairql/Makefile.fpc svneol=native#text/plain
 rtl/sinclairql/buildrtl.pp svneol=native#text/plain
 rtl/sinclairql/qdos.inc svneol=native#text/plain
