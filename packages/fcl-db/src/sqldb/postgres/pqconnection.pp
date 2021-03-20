@@ -845,7 +845,7 @@ const TypeStrings : array[TFieldType] of string =
       'time',      // ftTime
       'timestamp', // ftDateTime
       'Unknown',   // ftBytes
-      'Unknown',   // ftVarBytes
+      'bytea',     // ftVarBytes
       'Unknown',   // ftAutoInc
       'bytea',     // ftBlob 
       'text',      // ftMemo
@@ -924,15 +924,15 @@ begin
             end
           else
             begin
-            if AParams[i].DataType = ftUnknown then
+            if P.DataType = ftUnknown then
               begin
-              if AParams[i].IsNull then
+              if P.IsNull then
                 s:=s+' unknown ,'
               else
-                DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+                DatabaseErrorFmt(SUnknownParamFieldType,[P.Name],self)
               end
             else
-              DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+              DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[P.DataType]],self);
             end;
           end;
         s[length(s)] := ')';
@@ -1041,7 +1041,7 @@ begin
               end;
             ftFmtBCD:
               s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
-            ftBlob, ftGraphic:
+            ftBlob, ftGraphic, ftVarBytes:
               begin
               Handled:=true;
               bd:= AParams[i].AsBlob;
@@ -1064,7 +1064,7 @@ begin
             StrMove(PAnsiChar(ar[i]), PAnsiChar(s), L+1);
             lengths[i]:=L;
             end;
-          if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency]) then
+          if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency,ftVarBytes]) then
             Formats[i]:=1
           else
             Formats[i]:=0;  
@@ -1338,7 +1338,7 @@ begin
           end;
           pchar(Buffer + li)^ := #0;
           end;
-        ftBlob, ftMemo :
+        ftBlob, ftMemo, ftVarBytes :
           CreateBlob := True;
         ftDate :
           begin
