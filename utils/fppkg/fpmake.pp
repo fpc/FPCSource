@@ -19,7 +19,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fppkg');
-    P.ShortName:='fppkg';
+    P.ShortName:='fpkg';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

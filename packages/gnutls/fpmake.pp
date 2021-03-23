@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('gnutls');
     P.Dependencies.Add('fcl-net');
-    P.ShortName:='gnutls';
+    P.ShortName:='gtls';
     P.Description := 'Interface units for GNU TLS libraries supporting SSL-encrypted network communication.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;

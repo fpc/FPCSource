@@ -23,7 +23,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('odata');
-    P.ShortName:='odata';
+    P.ShortName:='odat';
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

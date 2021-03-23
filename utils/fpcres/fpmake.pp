@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcres');
-    P.ShortName:='fpres';
+    P.ShortName:='fprs';
     P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

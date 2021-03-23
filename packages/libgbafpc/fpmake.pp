@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libgbafpc');
+    P.ShortName := 'lgba';
     P.OSes:=[gba];
     P.CPUs:=[arm];
 {$ifdef ALLPACKAGES}

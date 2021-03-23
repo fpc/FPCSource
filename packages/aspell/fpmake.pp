@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('aspell');
+    P.ShortName := 'asp';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
@@ -44,7 +45,7 @@ begin
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('example.pas');
-    
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

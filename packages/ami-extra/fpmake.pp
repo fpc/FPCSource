@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('ami-extra');
-
+    P.ShortName := 'ami';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';

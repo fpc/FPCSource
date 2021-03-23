@@ -14,6 +14,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('winceunits');
+    P.ShortName := 'wice';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
