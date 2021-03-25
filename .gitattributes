@@ -15470,6 +15470,7 @@ tests/test/units/strings/tstrings1.pp svneol=native#text/plain
 tests/test/units/strutils/taddchar.pp svneol=native#text/plain
 tests/test/units/strutils/taddcharr.pp svneol=native#text/plain
 tests/test/units/strutils/tbintohex.pp svneol=native#text/plain
+tests/test/units/strutils/tboyer.pp svneol=native#text/pascal
 tests/test/units/strutils/tdec2numb.pp svneol=native#text/plain
 tests/test/units/strutils/thex2dec.pp svneol=native#text/plain
 tests/test/units/strutils/thextobin.pp svneol=native#text/plain
