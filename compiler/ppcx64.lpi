@@ -1,7 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -20,25 +20,32 @@
     <PublishOptions>
       <Version Value="2"/>
       <DestinationDirectory Value="$(TestDir)\publishedproject\"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
+        <CommandLineParams Value="-n -Furtl\units\x86_64-win64 -viwn -FEtestoutput .\fpctests\tw38591.pp"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <WorkingDirectory Value="c:\fpc\3.2.x"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-n -Furtl\units\x86_64-win64 -viwn -FEtestoutput .\fpctests\tw38591.pp"/>
+            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+            <WorkingDirectory Value="c:\fpc\3.2.x"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="2">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
         <Filename Value="x86\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -71,7 +78,6 @@
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
       <CustomOptions Value="-dx86_64"/>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
 </CONFIG>
