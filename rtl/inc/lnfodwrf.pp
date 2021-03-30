@@ -1284,6 +1284,23 @@ begin
     end;
 end;
 
+const
+{ 64 bit and 32 bit CPUs tend to have more memory }
+{$if defined(CPU64)}
+  LineInfoCacheLength = 2039;
+{$elseif defined(CPU32)}
+  LineInfoCacheLength = 251;
+{$else}
+  LineInfoCacheLength = 1;
+{$endif CPU64}
+
+var
+  LineInfoCache : array[0..LineInfoCacheLength-1] of
+                    record
+                      addr : codeptruint;
+                      func, source : string;
+                      line : longint;
+                    end;
 
 function GetLineInfo(addr : codeptruint; var func, source : string; var line : longint) : boolean;
 var
@@ -1292,11 +1309,23 @@ var
   segment : Word = 0;
 
   found, found_aranges : Boolean;
+  CacheIndex: CodePtrUInt;
 
 begin
   func := '';
   source := '';
   GetLineInfo:=false;
+
+  CacheIndex:=addr mod LineInfoCacheLength;
+
+  if LineInfoCache[CacheIndex].addr=addr then
+    begin
+      func:=LineInfoCache[CacheIndex].func;
+      source:=LineInfoCache[CacheIndex].source;
+      line:=LineInfoCache[CacheIndex].line;
+      GetLineInfo:=true;
+      exit;
+    end;
 
   if not OpenDwarf(codepointer(addr)) then
     exit;
@@ -1362,6 +1391,11 @@ begin
 
   if not AllowReuseOfLineInfoData then
     CloseDwarf;
+
+  LineInfoCache[CacheIndex].addr:=addr;
+  LineInfoCache[CacheIndex].func:=func;
+  LineInfoCache[CacheIndex].source:=source;
+  LineInfoCache[CacheIndex].line:=line;
 
   GetLineInfo:=true;
 end;
