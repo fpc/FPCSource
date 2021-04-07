@@ -1562,7 +1562,7 @@ implementation
         end;
 
 
-        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist;doregister:boolean):tdef;
           var
             is_func:boolean;
             pd:tabstractprocdef;
@@ -1580,7 +1580,7 @@ implementation
 
             is_func:=(token=_FUNCTION);
             consume(token);
-            pd:=cprocvardef.create(normal_function_level,true);
+            pd:=cprocvardef.create(normal_function_level,doregister);
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then
@@ -1955,7 +1955,7 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                def:=procvar_dec(genericdef,genericlist);
+                def:=procvar_dec(genericdef,genericlist,true);
 {$ifdef jvm}
                 jvm_create_procvar_class(name,def);
 {$endif}
@@ -1983,7 +1983,7 @@ implementation
                         begin
                           consume(_REFERENCE);
                           consume(_TO);
-                          def:=procvar_dec(genericdef,genericlist);
+                          def:=procvar_dec(genericdef,genericlist,true);
                           { could be errordef in case of a syntax error }
                           if assigned(def) and
                              (def.typ=procvardef) then
