@@ -1609,8 +1609,11 @@ implementation
             if is_func then
               begin
                 consume(_COLON);
+                pd.proctypeoption:=potype_function;
                 pd.returndef:=result_type([stoAllowSpecialization]);
-              end;
+              end
+            else
+              pd.proctypeoption:=potype_procedure;
             if try_to_consume(_OF) then
               begin
                 consume(_OBJECT);
