@@ -729,7 +729,7 @@ interface
        end;
 
        tprocvardef = class(tabstractprocdef)
-          constructor create(level:byte);virtual;
+          constructor create(level:byte;doregister:boolean);virtual;
           { returns a procvardef that represents the address of a proc(var)def }
           class function getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp): tprocvardef; virtual;
           { same as above, but in case the def must never be freed after the
@@ -5787,7 +5787,7 @@ implementation
           end
         else
           begin
-            result:=cprocvardef.create(nestinglevel);
+            result:=cprocvardef.create(nestinglevel,true);
           end;
         tabstractprocdef(result).returndef:=returndef;
         tabstractprocdef(result).returndefderef:=returndefderef;
@@ -7243,9 +7243,9 @@ implementation
                                  TPROCVARDEF
 ***************************************************************************}
 
-    constructor tprocvardef.create(level:byte);
+    constructor tprocvardef.create(level:byte;doregister:boolean);
       begin
-         inherited create(procvardef,level,true);
+         inherited create(procvardef,level,doregister);
       end;
 
 
@@ -7307,7 +7307,7 @@ implementation
         i : tcallercallee;
         j : longint;
       begin
-        result:=cprocvardef.create(parast.symtablelevel);
+        result:=cprocvardef.create(parast.symtablelevel,true);
         tprocvardef(result).returndef:=returndef;
         tprocvardef(result).returndefderef:=returndefderef;
         tprocvardef(result).parast:=parast.getcopy;

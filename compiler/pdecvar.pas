@@ -647,7 +647,7 @@ implementation
                             procsym :
                               begin
                                  { Create a temporary procvardef to handle parameters }
-                                 storedprocdef:=cprocvardef.create(normal_function_level);
+                                 storedprocdef:=cprocvardef.create(normal_function_level,true);
                                  include(storedprocdef.procoptions,po_methodpointer);
                                  { Return type must be boolean }
                                  storedprocdef.returndef:=pasbool1type;

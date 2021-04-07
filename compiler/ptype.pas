@@ -1580,7 +1580,7 @@ implementation
 
             is_func:=(token=_FUNCTION);
             consume(token);
-            pd:=cprocvardef.create(normal_function_level);
+            pd:=cprocvardef.create(normal_function_level,true);
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then

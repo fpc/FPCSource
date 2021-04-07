@@ -109,7 +109,7 @@ type
   { tcpuprocvardef }
 
   tcpuprocvardef = class(ti86procvardef)
-    constructor create(level:byte);override;
+    constructor create(level:byte;doregister:boolean);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
@@ -440,9 +440,9 @@ implementation
                              tcpuprocvardef
 ****************************************************************************}
 
-  constructor tcpuprocvardef.create(level: byte);
+  constructor tcpuprocvardef.create(level: byte;doregister:boolean);
     begin
-      inherited create(level);
+      inherited create(level,doregister);
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
     end;

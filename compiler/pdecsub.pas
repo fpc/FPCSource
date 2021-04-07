@@ -336,7 +336,7 @@ implementation
           if parseprocvar<>pv_none then
            begin
              { inline procvar definitions are always nested procvars }
-             pv:=cprocvardef.create(normal_function_level+1);
+             pv:=cprocvardef.create(normal_function_level+1,true);
              if token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
