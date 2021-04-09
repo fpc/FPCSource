@@ -11113,6 +11113,7 @@ rtl/inc/objcbase.pp svneol=native#text/plain
 rtl/inc/objcnf.inc svneol=native#text/plain
 rtl/inc/objpas.inc svneol=native#text/plain
 rtl/inc/objpash.inc svneol=native#text/plain
+rtl/inc/osheap.inc svneol=native#text/plain
 rtl/inc/pagemem.pp svneol=native#text/plain
 rtl/inc/psabieh.inc svneol=native#text/plain
 rtl/inc/psabiehh.inc svneol=native#text/plain
