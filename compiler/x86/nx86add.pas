@@ -96,7 +96,11 @@ unit nx86add;
         overflowcheck: boolean;
         comparison: boolean;
       begin
-        overflowcheck:=needoverflowcheck;
+        overflowcheck:=(cs_check_overflow in current_settings.localswitches) and
+          (left.resultdef.typ<>pointerdef) and
+          (right.resultdef.typ<>pointerdef) and
+          not(nf_internal in flags);
+
         comparison:=
           (op=A_CMP) or (op=A_TEST) or (op=A_BT) or is_boolean(resultdef);
 
