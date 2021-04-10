@@ -180,4 +180,8 @@ const
 {$endif}
     function  FpTime       (tloc:ptime_t): time_t; cdecl; external clib name 'time';
 
+{$if defined(linux)}
+    function  FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint; cdecl; external clib name 'sched_getaffinity';
+{$endif}
+    Function FpPathconf(path : pchar;name : cint) : clong; cdecl; external clib name 'pathconf';
 
