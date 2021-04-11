@@ -477,7 +477,18 @@ implementation
         hp : tnode;
       begin
         result:=false;
-        if (p1.resultdef.typ<>procvardef) or
+        if not (p1.resultdef.typ in [procvardef,objectdef]) or
+           (
+             (p1.resultdef.typ=objectdef) and
+             (
+               not is_invokable(p1.resultdef) or
+               (nf_load_procvar in p1.flags) or
+               not (
+                 is_funcref(p1.resultdef) or
+                 invokable_has_argless_invoke(tobjectdef(p1.resultdef))
+               )
+             )
+           ) or
            (tponly and
             not(m_tp_procvar in current_settings.modeswitches)) then
           exit;

@@ -334,6 +334,8 @@ implementation
 
 
   class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
+    var
+      hp : tnode;
     begin
       if ((tsym(p).typ = localvarsym) or
           { check staticvarsym for record management opeators and for objects
@@ -358,7 +360,10 @@ implementation
           ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
         begin
-          addstatement(tstatementnode(arg^),initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner),false));
+          hp:=cloadnode.create(tsym(p),tsym(p).owner);
+          { ensure that a function reference is not converted to a call }
+          include(hp.flags,nf_load_procvar);
+          addstatement(tstatementnode(arg^),initialize_data_node(hp,false));
         end;
     end;
 
@@ -431,6 +436,8 @@ implementation
       hp:=cloadnode.create(sym,sym.owner);
       if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
         include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
+      { ensure that a function reference interface is not converted to a call }
+      include(hp.flags,nf_load_procvar);
       addstatement(stat,finalize_data_node(hp));
     end;
 

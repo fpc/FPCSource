@@ -2528,7 +2528,15 @@ implementation
           convert on the procvar value. This is used to access the
           fields of a methodpointer }
         if not(nf_load_procvar in flags) and
-           not(resultdef.typ in [procvardef,recorddef,setdef]) then
+           not(resultdef.typ in [procvardef,recorddef,setdef]) and
+           not is_invokable(resultdef) and
+           { in case of interface assignments of invokables they'll be converted
+             to voidpointertype using an internal conversions; we must not call
+             the invokable in that case }
+           not (
+             (nf_internal in flags) and
+             is_invokable(left.resultdef)
+           ) then
           maybe_call_procvar(left,true);
 
         if target_specific_general_typeconv then

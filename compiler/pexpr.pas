@@ -984,6 +984,9 @@ implementation
                    end
                  else
                    p1:=load_self_node;
+                 { don't try to call the invokable again }
+                 if is_invokable(tdef(st.defowner)) then
+                   include(p1.flags,nf_load_procvar);
                  { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
@@ -2790,6 +2793,7 @@ implementation
                 begin
                   if not searchsym_in_class(tobjectdef(p1.resultdef),tobjectdef(p1.resultdef),method_name_funcref_invoke_find,srsym,srsymtable,[]) then
                     internalerror(2021040202);
+                  include(p1.flags,nf_load_procvar);
                   do_proc_call(srsym,srsymtable,tabstractrecorddef(p1.resultdef),false,again,p1,[],nil);
                 end
               else if assigned(p1.resultdef) and

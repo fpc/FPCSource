@@ -674,7 +674,8 @@ implementation
 
         { tp procvar support, when we don't expect a procvar
           then we need to call the procvar }
-        if (left.resultdef.typ<>procvardef) then
+        if (left.resultdef.typ<>procvardef) and
+            not is_invokable(left.resultdef) then
           maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
@@ -808,6 +809,7 @@ implementation
               when trying to assign the result of a procedure, so give
               a better error message, see also #19122 }
             if (left.resultdef.typ<>procvardef) and
+                not is_invokable(left.resultdef) and
               (right.nodetype=calln) and is_void(right.resultdef) then
               CGMessage(type_e_procedures_return_no_value)
             else if nf_internal in flags then

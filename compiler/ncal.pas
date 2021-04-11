@@ -2157,7 +2157,10 @@ implementation
             else
               begin
                 loadp:=p;
-                refp:=ctemprefnode.create(ptemp)
+                refp:=ctemprefnode.create(ptemp);
+                { ensure that an invokable isn't called again }
+                if is_invokable(hdef) then
+                  include(ttemprefnode(refp).flags,nf_load_procvar);
               end;
             add_init_statement(ptemp);
             add_init_statement(cassignmentnode.create(
@@ -3628,6 +3631,7 @@ implementation
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
         calltype: tdispcalltype;
+        invokesym : tsym;
       begin
          result:=nil;
          candidates:=nil;
@@ -3664,7 +3668,18 @@ implementation
                 if codegenerror then
                   exit;
 
-                procdefinition:=tabstractprocdef(right.resultdef);
+                if is_invokable(right.resultdef) then
+                  begin
+                    procdefinition:=get_invoke_procdef(tobjectdef(right.resultdef));
+                    if assigned(methodpointer) then
+                      internalerror(2021041004);
+                    methodpointer:=right;
+                    { don't convert again when this is used as the self parameter }
+                    include(right.flags,nf_load_procvar);
+                    right:=nil;
+                  end
+                else
+                  procdefinition:=tabstractprocdef(right.resultdef);
 
                 { Compare parameters from right to left }
                 paraidx:=procdefinition.Paras.count-1;
