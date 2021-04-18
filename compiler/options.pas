@@ -600,7 +600,8 @@ const
       WriteLn(xmloutput,'    <controllertypes>');
       for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
         if embedded_controllers[controllertype].ControllerTypeStr<>'' then
-          WriteLn(xmloutput,'      <controllertype name="',embedded_controllers[controllertype].ControllerTypeStr,'"/>');
+          WriteLn(xmloutput,'      <controllertype name="',embedded_controllers[controllertype].ControllerTypeStr,
+            '" controllerunit="',embedded_controllers[controllertype].controllerunitstr, '"/>');
       WriteLn(xmloutput,'    </controllertypes>');
      end;
 {$POP}
@@ -3591,7 +3592,7 @@ begin
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
     system_m68k_sinclairql:
-      target_unsup_features:=[f_threading,f_dynlibs,f_commandargs,f_exitcode];
+      target_unsup_features:=[f_threading,f_dynlibs];
     system_z80_zxspectrum:
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     system_z80_msxdos:
@@ -4449,10 +4450,10 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if ((cs_asm_leave in init_settings.globalswitches) and
-     (af_outputbinary in target_asm.flags)) or
-     { if -s is passed, we shouldn't call the internal assembler }
-     (cs_asm_extern in init_settings.globalswitches) then
+  if (af_outputbinary in target_asm.flags) and
+     ((cs_asm_leave in init_settings.globalswitches) or
+      { if -s is passed, we shouldn't call the internal assembler }
+      (cs_asm_extern in init_settings.globalswitches)) then
    begin
      Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
@@ -4662,6 +4663,20 @@ begin
   if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     def_system_macro('CPUTHUMB2');
 {$endif arm}
+
+{$ifdef aarch64}
+  case target_info.system of
+    system_aarch64_darwin:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv84a;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv84a;
+      end;
+    else
+      ;
+  end;
+{$endif aarch64}
 
 {$if defined(riscv32) or defined(riscv64)}
   { RISC-V defaults }

@@ -26,19 +26,30 @@ var
   binend: byte; external name '_etext';
   bssstart: byte; external name '_sbss';
   bssend: byte; external name '_ebss';
+  stackpointer_on_entry: pointer; public name '__stackpointer_on_entry';
 
 procedure PascalMain; external name 'PASCALMAIN';
-procedure PascalStart; forward;
+procedure PascalStart(a7_on_entry: pointer); noreturn; forward;
 
 { this function must be the first in this unit which contains code }
-{$OPTIMIZATION OFF}
-function _FPC_proc_start: longint; cdecl; assembler; nostackframe; public name '_start';
+procedure _FPC_proc_start; cdecl; assembler; nostackframe; noreturn; public name '_start';
 asm
     bra   @start
     dc.l  $0
     dc.w  $4afb
-    dc.w  3
-    dc.l  $46504300   { Job name, just FPC for now }
+    dc.w  8
+    dc.l  $4650435f   { Job name buffer. FPC_PROG by default, can be overridden }
+    dc.l  $50524f47   { the startup code will inject the main program name here }
+    dc.l  $00000000   { user codes is free to use the SetQLJobName() function   }
+    dc.l  $00000000   { max. length: 48 characters }
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
+    dc.l  $00000000
 
 @start:
     { relocation code }
@@ -68,30 +79,56 @@ asm
     move.l (a1)+,d7
     beq @noreloc
 
+{.$DEFINE PACKEDRELOCS}
+{$IFNDEF PACKEDRELOCS}
 @relocloop:
     { we read the offsets and relocate them }
     move.l (a1)+,d1
     add.l d0,(a0,d1)
     subq.l #1,d7
     bne @relocloop
+{$ELSE PACKEDRELOCS}
+    moveq #0,d2
+@relocloop:
+    { we read the offsets and relocate them }
+    moveq #0,d1
+    move.b (a1)+,d1
+    bne @addoffs
+    { if byte = 0, we have a long offset following }
+    move.b (a1)+,d1
+    lsl.w #8,d1
+    move.b (a1)+,d1
+    swap d1
+    move.b (a1)+,d1
+    lsl.w #8,d1
+    move.b (a1)+,d1
+    subq.l #4,d7
+@addoffs:
+    add.l d1,d2
+    add.l d0,(a0,d2)
+    subq.l #1,d7
+    bpl @relocloop
+{$ENDIF PACKEDRELOCS}
 
 @noreloc:
-    jsr PascalStart
+    move.l a7,a0
+
+    bra PascalStart
 end;
 
-procedure _FPC_proc_halt(_ExitCode: longint); public name '_haltproc';
+procedure _FPC_proc_halt(_ExitCode: longint); noreturn; public name '_haltproc';
 begin
   mt_frjob(-1, _ExitCode);
 end;
 
-procedure PascalStart;
+procedure PascalStart(a7_on_entry: pointer); noreturn;
 begin
   { initialize .bss }
   FillChar(bssstart,PtrUInt(@bssend)-PtrUInt(@bssstart),#0);
 
-  PascalMain;
+  stackpointer_on_entry:=a7_on_entry;
 
-  Halt; { this should never be reached }
+  PascalMain;
 end;
 
 

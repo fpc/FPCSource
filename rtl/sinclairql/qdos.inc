@@ -24,12 +24,12 @@ const
 
 procedure mt_frjob(jobID: Tjobid; exitCode: longint); assembler; nostackframe; public name '_mt_frjob';
 asm
-  movem.l d2-d3,-(sp)
+  movem.l d2-d3/a2-a3,-(sp)
   move.l  exitCode,d3
   move.l  jobID,d1
   moveq   #_MT_FRJOB,d0
   trap    #1
-  movem.l (sp)+,d2-d3
+  movem.l (sp)+,d2-d3/a2-a3
 end;
 
 function mt_inf(sys_vars: ppchar; ver_ascii: plongint): Tjobid; assembler; nostackframe; public name '_mt_inf';
@@ -98,6 +98,7 @@ end;
 const
   _IO_OPEN = $01;
   _IO_CLOSE = $02;
+  _IO_DELET = $04;
 
 function io_open_qlstr(name_qlstr: pointer; mode: longint): Tchanid; assembler; nostackframe; public name '_io_open_qlstr';
 asm
@@ -136,6 +137,32 @@ asm
   trap #2
 end;
 
+function io_delet_qlstr(name_qlstr: pointer): longint; assembler; nostackframe; public name '_io_delet_qlstr';
+asm
+  movem.l d2-d3,-(sp)
+  move.l name_qlstr,a0
+  moveq.l #-1,d1
+  moveq.l #_IO_DELET,d0
+  trap #2
+  tst.l d0
+@quit:
+  movem.l (sp)+,d2-d3
+end;
+
+function io_delet(name: pchar): Tchanid; public name '_io_delet';
+var
+  len: longint;
+  name_qlstr: array[0..63] of char;
+begin
+  len:=length(name);
+  if len > length(name_qlstr)-2 then
+    len:=length(name_qlstr)-2;
+
+  PWord(@name_qlstr)[0]:=len;
+  Move(name^,name_qlstr[2],len);
+
+  result:=io_delet_qlstr(@name_qlstr);
+end;
 
 const
   _IO_FBYTE = $01;
@@ -148,6 +175,7 @@ const
   _FS_POSAB = $42;
   _FS_POSRE = $43;
   _FS_HEADR = $47;
+  _FS_RENAME = $4A;
   _FS_TRUNCATE = $4B;
 
 function io_fbyte(chan: Tchanid; timeout: Ttimeout): longint; assembler; nostackframe; public name '_io_fbyte';
@@ -260,44 +288,38 @@ asm
   move.l (sp)+,d3
 end;
 
-
-function fs_posab(chan: Tchanid; new_pos: dword):longint; assembler; nostackframe; public name '_fs_posab';
+function fs_posab(chan: Tchanid; var new_pos: longint): longint; assembler; nostackframe; public name '_fs_posab';
 asm
-  move.l d3,-(sp)
-  moveq #_FS_POSAB,d0
-  move.l new_pos,d1
-  moveq #-1,d3
+  movem.l d3/a0,-(sp) { a0 = new_pos }
+  move.l (a0),d1
   move.l chan,a0
+  moveq #-1,d3
+  moveq #_FS_POSAB,d0
   trap #3
-  tst.l d0
-  bne.s  @quit
-  move.l d1,d0
-@quit:
-  move.l (sp)+,d3
+  movem.l (sp)+,d3/a0
+  move.l d1,(a0)
 end;
 
-function fs_posre(chan: Tchanid; new_pos: dword): longint; assembler; nostackframe; public name '_fs_posre';
+function fs_posre(chan: Tchanid; var new_pos: longint): longint; assembler; nostackframe; public name '_fs_posre';
 asm
-  move.l d3,-(sp)
-  moveq #_FS_POSRE,d0
-  move.l new_pos,d1
-  moveq #-1,d3
+  movem.l d3/a0,-(sp) { a0 = new_pos }
+  move.l (a0),d1
   move.l chan,a0
+  moveq #-1,d3
+  moveq #_FS_POSRE,d0
   trap #3
-  tst.l d0
-  bne.s  @quit
-  move.l d1,d0
-@quit:
-  move.l (sp)+,d3
+  movem.l (sp)+,d3/a0
+  move.l d1,(a0)
 end;
 
 function fs_headr(chan: Tchanid; buf: pointer; buf_size: word): longint; assembler; nostackframe; public name '_fs_headr';
 asm
   movem.l d2-d3,-(sp)
-  moveq #_FS_HEADR,d0
+  move.l buf,a1
+  move.l chan,a0
   move.l buf_size,d2
   moveq #-1,d3
-  move.l chan,a0
+  moveq #_FS_HEADR,d0
   trap #3
   tst.l d0
   bne.s  @quit
@@ -306,12 +328,38 @@ asm
   movem.l (sp)+,d2-d3
 end;
 
+function fs_rename_qlstr(chan: Tchanid; new_name_as_qlstr: pointer): longint; assembler; nostackframe; public name '_fs_rename_qlstr';
+asm
+  move.l d3,-(sp)
+  move.l new_name_as_qlstr,a1
+  move.l chan,a0
+  moveq #-1,d3
+  moveq #_FS_RENAME,d0
+  trap #3
+  move.l (sp)+,d3
+end;
+
+function fs_rename(chan: Tchanid; new_name: pchar): longint; public name '_fs_rename';
+var
+  len: longint;
+  new_name_qlstr: array[0..63] of char;
+begin
+  len:=length(new_name);
+  if len > length(new_name_qlstr)-2 then
+    len:=length(new_name_qlstr)-2;
+
+  PWord(@new_name_qlstr)[0]:=len;
+  Move(new_name^,new_name_qlstr[2],len);
+
+  fs_rename:=fs_rename_qlstr(chan,@new_name_qlstr);
+end;
+
 function fs_truncate(chan: Tchanid): longint; assembler; nostackframe; public name '_fs_truncate';
 asm
   move.l d3,-(sp)
-  moveq #_FS_TRUNCATE,d0
-  moveq #-1,d3
   move.l chan, a0
+  moveq #-1,d3
+  moveq #_FS_TRUNCATE,d0
   trap #3
   move.l (sp)+,d3
 end;
@@ -344,4 +392,16 @@ asm
   move.l a0,d0
 @quit:
   movem.l (sp)+,d2-d3/a2-a3
+end;
+
+const
+  _MT_RCLCK = $13;
+
+function mt_rclck: longint; assembler; nostackframe; public name '_mt_rclck';
+asm
+  move.l d2,-(sp)
+  moveq #_MT_RCLCK,d0
+  trap #1
+  move.l d1,d0
+  move.l (sp)+,d2
 end;

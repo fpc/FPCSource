@@ -2890,7 +2890,9 @@ var
       GccExecutable: string;
   begin
     result := '';
-   GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
+    GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
+    if not(FileExists(GccExecutable)) then
+      GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gnu-gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
     if FileExists(GccExecutable) then
       begin
 {$ifdef HAS_UNIT_PROCESS}
@@ -2948,12 +2950,12 @@ begin
          ((CPU=riscv64) and (SourceCPU=riscv32)) or
          ((CPU=sparc64) and (SourceCPU=sparc))
          ) or (SourceOS=openbsd) then
-        UseBinutilsPrefix:=true; 
+        UseBinutilsPrefix:=true;
     end;
-  if not UseBinutilsPrefix then
-    CrossPrefix:=''
-  else if Sysutils.GetEnvironmentVariable('BINUTILSPREFIX')<>'' then
+  if Sysutils.GetEnvironmentVariable('BINUTILSPREFIX')<>'' then
     CrossPrefix:=Sysutils.GetEnvironmentVariable('BINUTILSPREFIX')
+  else if not UseBinutilsPrefix then
+    CrossPrefix:=''
   else
     CrossPrefix:=CPUToString(CPU)+'-'+OSToString(OS)+'-';
   if OS in [freebsd, openbsd, dragonfly] then
@@ -6196,6 +6198,19 @@ Var
   FileStat: stat;
 {$endif UNIX}
 begin
+  { First delete file on Darwin OS to avoid codesign issues }
+  if (Defaults.SourceOS=Darwin) then
+    begin
+      D:=IncludeTrailingPathDelimiter(Dest);
+      If DirectoryExists(D) then
+        begin
+          D:=D+ExtractFileName(Src);
+          if FileExists(D) then
+            SysDeleteFile(D);
+       end
+     else if FileExists(Dest) then
+       SysDeleteFile(Dest);
+    end;
   Log(vlInfo,SInfoCopyingFile,[Src,Dest]);
   FIn:=TFileStream.Create(Src,fmopenRead or fmShareDenyNone);
   Try
@@ -7212,9 +7227,9 @@ begin
         ReadBarrier;
 {$ifdef NO_THREADING}
       Args.Add('-Fl'+FCachedlibcPath);
-{$ELSE}      
+{$ELSE}
       Args.Add('-Fl'+volatile(FCachedlibcPath));
-{$ENDIF}      
+{$ENDIF}
     end;
 
   // Custom options which are added by dependencies
@@ -8674,7 +8689,7 @@ begin
       // that a package finished it's task.
       NotifyThreadWaiting := RTLEventCreate;
       SetLength(Threads,Defaults.ThreadsAmount);
-      try 
+      try
         // Create all worker-threads
         try
           for Thr:=0 to Defaults.ThreadsAmount-1 do

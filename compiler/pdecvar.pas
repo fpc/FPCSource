@@ -861,9 +861,24 @@ implementation
          if assigned(current_module) and current_module.in_interface then
            begin
              if readprocdef.proctypeoption=potype_propgetter then
-               readprocdef.register_def;
+               readprocdef.register_def
+             else
+               readprocdef.free;
              if writeprocdef.proctypeoption=potype_propsetter then
-               writeprocdef.register_def;
+               writeprocdef.register_def
+             else
+               writeprocdef.free;
+           end
+         else
+           begin
+             if readprocdef.proctypeoption=potype_propgetter then
+               readprocdef.maybe_put_in_symtable_stack
+             else
+               readprocdef.free;
+             if writeprocdef.proctypeoption=potype_propsetter then
+               writeprocdef.maybe_put_in_symtable_stack
+             else
+               writeprocdef.free;
            end;
 
          result:=p;

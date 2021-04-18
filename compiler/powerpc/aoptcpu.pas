@@ -28,10 +28,10 @@ Interface
 
 {$i fpcdefs.inc}
 
-uses cpubase, aoptobj, aoptcpub, aopt, aasmtai,aasmdata, aasmcpu;
+uses cpubase, cgbase, aoptobj, aoptcpub, aopt, aasmtai,aasmdata, aasmcpu, aoptppc;
 
 Type
-  TCpuAsmOptimizer = class(TAsmOptimizer)
+  TCpuAsmOptimizer = class(TPPCAsmOptimizer)
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
 
@@ -44,7 +44,7 @@ Type
 Implementation
 
   uses
-    cutils, verbose, cgbase, cgcpu, cgobj;
+    cutils, verbose, cgcpu, cgobj;
 
   function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
     var

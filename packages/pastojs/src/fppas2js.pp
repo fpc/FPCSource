@@ -9750,7 +9750,7 @@ begin
       B:=ConvertExpression(SubBin.right,AContext);
       if aResolver<>nil then
         begin
-        aResolver.ComputeElement(El.right,RightResolved,Flags);
+        aResolver.ComputeElement(SubBin.right,RightResolved,Flags);
         Result:=ConvertBinaryExpressionRes(SubBin,AContext,LeftResolved,RightResolved,A,B);
         if (Result<>nil) then
           begin
@@ -9763,7 +9763,7 @@ begin
       if Result=nil then
         begin
         // +
-        R:=TJSBinary(CreateElement(TJSAdditiveExpressionPlus,El));
+        R:=TJSBinary(CreateElement(TJSAdditiveExpressionPlus,SubBin));
         R.A:=A; A:=nil;
         R.B:=B; B:=nil;
         Result:=R;
@@ -16773,6 +16773,7 @@ begin
   if (not (AContext.PasElement is TPasMembersType)) // rtti of members is added separate
       and HasTypeInfo(El,AContext) then
     begin
+    // writeln('TPasToJSConverter.ConvertArrayType ',GetObjPath(El),' ',GetObjPath(AContext.PasElement));
     Call:=nil;
     try
       Call:=CreateRTTIAnonymousArray(El,AContext);
@@ -20562,15 +20563,13 @@ begin
     NewEl:=nil;
     P:=TPasElement(Members[i]);
     C:=P.ClassType;
-    writeln('AAA1 TPasToJSConverter.CreateRTTIMembers ',GetObjPath(P));
+    //writeln('TPasToJSConverter.CreateRTTIMembers ',GetObjPath(P));
     if C.InheritsFrom(TPasType) and HasTypeInfo(TPasType(P),MembersFuncContext) then
       begin
-        writeln('AAA2 TPasToJSConverter.CreateRTTIMembers ',GetObjPath(P));
       // published subtype
       if aResolver.IsAnonymousElType(TPasType(P)) then
         begin
         // published anonymous eltype
-          writeln('AAA3 TPasToJSConverter.CreateRTTIMembers ',GetObjPath(P));
         if C.InheritsFrom(TPasArrayType) then
           NewEl:=CreateRTTIAnonymousArray(TPasArrayType(P),MembersFuncContext);
         end;
@@ -20585,6 +20584,8 @@ begin
       mtRecord:
         // a published record publishes all non private members
         if P.Visibility in [visPrivate,visStrictPrivate] then
+          continue
+        else if P.ClassType=TPasConst then
           continue;
       end;
       if not IsElementUsed(P) then continue;

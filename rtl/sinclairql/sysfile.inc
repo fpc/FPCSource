@@ -25,14 +25,48 @@ begin
   Error2InOutRes(io_close(handle));
 end;
 
-
+{ delete a file, given its name }
 procedure do_erase(p : pchar; pchangeable: boolean);
 begin
+  Error2InOutRes(io_delet(p));
 end;
 
 
 procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+var
+  chanId: longint;
+  res: longint;
 begin
+  { To rename a QL file, it must exist and be opened. For WIN/FLP this
+    means open mode 0 (Q_OPEN) but for RAM this can be any of Q_OPEN, 
+    Q_OPEN_NEW or Q_OPEN_OVER. }
+
+  { Does the file exist? }
+  chanId := io_open(p1, Q_OPEN_IN);
+  if chanId < 0 then
+    begin
+      InOutRes:=2;    { File not found. }
+      exit;
+    end;
+
+  { Close and reopen in correct mode. }
+  io_close(chanId);
+
+  chanId := io_open(p1, Q_OPEN);
+  if chanId < 0 then
+    begin
+      Error2InOutRes(chanId);
+      exit;
+    end;
+
+  { Now, finally, we can rename. }
+  res := fs_rename(chanId,p2);
+
+  { Close the file. Never errors out. }
+  io_close(chanId);
+
+  if res < 0 then
+    Error2InOutRes(res);
 end;
 
 
@@ -55,6 +89,8 @@ var
 begin
   do_read := 0;
   res := io_fline(h, -1, addr, len);
+  if res = ERR_EF then
+    res := 0;
   if res < 0 then
     Error2InOutRes(res)
   else
@@ -65,13 +101,17 @@ end;
 function do_filepos(handle: longint): longint;
 var
   res: longint;
+  pos: longint;
 begin
   do_filepos := 0;
-  res := fs_posre(handle, 0);
-  if res < 0 then
+  pos := 0;
+  res := fs_posre(handle, pos);
+  if res = ERR_EF then
+    res := 0;
+  if (res < 0) then
     Error2InOutRes(res)
   else
-    do_filepos := res;
+    do_filepos := pos;
 end;
 
 
@@ -80,15 +120,33 @@ var
   res: longint;
 begin
   res := fs_posab(handle, pos);
-  if res < 0 then
+  if res = ERR_EF then
+    res := 0;
+  if (res < 0) then
     Error2InOutRes(res);
 end;
 
 
+{ The maximum length of a QL file is 2^31 - 64 bytes ($7FFFFFC0)
+  so the maximum offset is that, minus 1. ($7fffffBF) }
+
+const
+  MAX_QL_FILE_LENGTH = $7FFFFFBF;
+
 function do_seekend(handle: longint): longint;
+var
+  res: longint;
+  pos: longint;
 begin
-  do_seek(handle, -1);
-  do_seekend := do_filepos(handle);
+  do_seekend:=-1;
+  pos:=MAX_QL_FILE_LENGTH;
+  res:=fs_posab(handle, pos);
+  if res = ERR_EF then
+    res := 0;
+  if res < 0 then
+    Error2InOutRes(res)
+  else
+    do_seekend := pos;
 end;
 
 
@@ -168,9 +226,7 @@ begin
   end;
 
   { rewrite (create a new file) }
-  { FIX ME: this will just create a new file, actual overwriting
-    seems to be a more complex endeavor... }
-  if (flags and $1000)<>0 then openMode:=Q_OPEN_NEW;
+  if (flags and $1000)<>0 then openMode:=Q_OPEN_OVER;
 
   res:=io_open(p,openMode);
 

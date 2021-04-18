@@ -65,7 +65,14 @@ unit agcpugas;
     const
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
-        'armv8'
+        'armv8',
+        'armv8-a',
+        'armv8.1-a',
+        'armv8.2-a',
+        'armv8.3-a',
+        'armv8.4-a',
+        'armv8.5-a',
+        'armv8.6-a'
       );
 
   implementation
@@ -767,7 +774,7 @@ unit agcpugas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_aarch64_linux,system_aarch64_android];
+            supported_targets : [system_aarch64_freebsd,system_aarch64_linux,system_aarch64_android];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             labelmaxlen : -1;
@@ -782,7 +789,7 @@ unit agcpugas;
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_aarch64_ios,system_aarch64_darwin];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : 'L';
             labelmaxlen : -1;
             comment : '# ';
@@ -796,7 +803,7 @@ unit agcpugas;
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_aarch64_win64];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : '.L';
             labelmaxlen : -1;
             comment : '// ';

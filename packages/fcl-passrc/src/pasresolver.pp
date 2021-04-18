@@ -10628,6 +10628,7 @@ begin
     end;
   eopAdd:
     begin
+    // handle multi add
     Left:=El.left;
     while (Left.ClassType=TBinaryExpr) do
       begin
@@ -12994,6 +12995,7 @@ begin
     exit;
     end;
 
+  Flags:=Flags-[rcNoImplicitProc,rcNoImplicitProcType];
   if Bin.OpCode=eopAdd then
     begin
     // handle multi-adds without stack
@@ -13005,10 +13007,10 @@ begin
       Left:=SubBin.left;
       end;
     // Left is now left-most of multi add
-    ComputeElement(Left,LeftResolved,Flags-[rcNoImplicitProc],StartEl);
+    ComputeElement(Left,LeftResolved,Flags,StartEl);
     repeat
       SubBin:=TBinaryExpr(Left.Parent);
-      ComputeElement(Bin.right,RightResolved,Flags-[rcNoImplicitProc],StartEl);
+      ComputeElement(SubBin.right,RightResolved,Flags,StartEl);
 
       // ToDo: check operator overloading
       ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
@@ -13018,8 +13020,8 @@ begin
     end
   else
     begin
-    ComputeElement(Bin.left,LeftResolved,Flags-[rcNoImplicitProc],StartEl);
-    ComputeElement(Bin.right,RightResolved,Flags-[rcNoImplicitProc],StartEl);
+    ComputeElement(Bin.left,LeftResolved,Flags,StartEl);
+    ComputeElement(Bin.right,RightResolved,Flags,StartEl);
 
     // ToDo: check operator overloading
     ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
@@ -17947,7 +17949,7 @@ begin
 
   if GenEl.Body<>nil then
     begin
-    // implementation proc
+    // implementation or anonymous proc
     if SpecializedItem<>nil then
       SpecializedItem.Step:=prssImplementationBuilding;
     GenBody:=GenEl.Body;
@@ -18435,11 +18437,21 @@ begin
 end;
 
 procedure TPasResolver.SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
+var
+  GenProc: TPasAnonymousProcedure;
+  NewClass: TPTreeElement;
 begin
   SpecializeExpr(GenEl,SpecEl);
-  if GenEl.Proc=nil then
+  GenProc:=GenEl.Proc;
+  if GenProc=nil then
     RaiseNotYetImplemented(20190808221018,GenEl);
-  RaiseNotYetImplemented(20190808221040,GenEl);
+  if not (GenProc is TPasAnonymousProcedure) then
+    RaiseNotYetImplemented(20210331224052,GenEl);
+  if GenProc.Parent<>GenEl then
+    RaiseNotYetImplemented(20210331223856,GenEl);
+  NewClass:=TPTreeElement(GenProc.ClassType);
+  SpecEl.Proc:=TPasAnonymousProcedure(NewClass.Create(GenProc.Name,SpecEl));
+  SpecializeElement(GenProc,SpecEl.Proc);
 end;
 
 procedure TPasResolver.SpecializeResString(GenEl, SpecEl: TPasResString);

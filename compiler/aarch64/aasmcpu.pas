@@ -882,10 +882,27 @@ implementation
                   else
                     result:=sr_complex;
                 end;
+              A_LDADD,
+              A_LDADDA,
+              A_LDADDAL,
+              A_LDADDL,
+
+              A_SWP,
+              A_SWPA,
+              A_SWPAL,
+              A_SWPL,
+
+              A_CAS,
+              A_CASA,
+              A_CASAL,
+              A_CASL,
+
+              A_STADD,
               A_LDAR,
               A_LDAXR,
               A_LDXR,
               A_LDXP,
+
               A_STLR,
               A_STLXR,
               A_STLXP,
@@ -1044,6 +1061,13 @@ implementation
                  { check for pre/post indexed in spilling_get_operation_type_ref }
                  result:=operand_read;
              end;
+           A_MOVK:
+             begin
+               if opnr=0 then
+                 result:=operand_readwrite
+               else
+                 result:=operand_read;
+             end;
 {$ifdef EXTDEBUG}
            { play save to avoid hard to find bugs, better fail at compile time }
            A_ADD,
@@ -1078,7 +1102,6 @@ implementation
            A_LSR,
            A_LSRV,
            A_MOV,
-           A_MOVK,
            A_MOVN,
            A_MOVZ,
            A_MSUB,

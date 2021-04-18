@@ -267,6 +267,8 @@ type
 {$endif cpui8086}
 
 function OpenDwarf(addr : codepointer) : boolean;
+var
+  oldprocessaddress: TExeProcessAddress;
 begin
   // False by default
   OpenDwarf:=false;
@@ -308,9 +310,11 @@ begin
     exit;
   if ReadDebugLink(e,dbgfn) then
     begin
+      oldprocessaddress:=e.processaddress;
       CloseExeFile(e);
       if not OpenExeFile(e,dbgfn) then
         exit;
+      e.processaddress:=oldprocessaddress;
     end;
 
   // Find debug data section
@@ -892,7 +896,10 @@ begin
       end;
 
       { when we have found the address we need to return the previous
-        line because that contains the call instruction }
+        line because that contains the call instruction
+        Note that there may not be any call instruction, because this may
+        be the actual instruction that crashed, and it may be on the first
+        line of the function }
       if (state.segment > segment) or
          ((state.segment = segment) and
           (state.address >= addr)) then
@@ -914,10 +921,17 @@ begin
     opcode := ReadNext();
   end;
 
-  if (found) then begin
-    line := prev_line;
-    source := GetFullFilename(file_names, include_directories, prev_file);
-  end;
+  if (found) then
+    begin
+      { can happen if the crash happens on the first instruction with line info }
+      if prev_line = 0 then
+        begin
+          prev_line := state.line;
+          prev_file := state.file_id;
+        end;
+      line := prev_line;
+      source := GetFullFilename(file_names, include_directories, prev_file);
+    end;
 end;
 
 
@@ -1284,6 +1298,23 @@ begin
     end;
 end;
 
+const
+{ 64 bit and 32 bit CPUs tend to have more memory }
+{$if defined(CPU64)}
+  LineInfoCacheLength = 2039;
+{$elseif defined(CPU32)}
+  LineInfoCacheLength = 251;
+{$else}
+  LineInfoCacheLength = 1;
+{$endif CPU64}
+
+var
+  LineInfoCache : array[0..LineInfoCacheLength-1] of
+                    record
+                      addr : codeptruint;
+                      func, source : string;
+                      line : longint;
+                    end;
 
 function GetLineInfo(addr : codeptruint; var func, source : string; var line : longint) : boolean;
 var
@@ -1292,11 +1323,23 @@ var
   segment : Word = 0;
 
   found, found_aranges : Boolean;
+  CacheIndex: CodePtrUInt;
 
 begin
   func := '';
   source := '';
   GetLineInfo:=false;
+
+  CacheIndex:=addr mod LineInfoCacheLength;
+
+  if LineInfoCache[CacheIndex].addr=addr then
+    begin
+      func:=LineInfoCache[CacheIndex].func;
+      source:=LineInfoCache[CacheIndex].source;
+      line:=LineInfoCache[CacheIndex].line;
+      GetLineInfo:=true;
+      exit;
+    end;
 
   if not OpenDwarf(codepointer(addr)) then
     exit;
@@ -1362,6 +1405,11 @@ begin
 
   if not AllowReuseOfLineInfoData then
     CloseDwarf;
+
+  LineInfoCache[CacheIndex].addr:=addr;
+  LineInfoCache[CacheIndex].func:=func;
+  LineInfoCache[CacheIndex].source:=source;
+  LineInfoCache[CacheIndex].line:=line;
 
   GetLineInfo:=true;
 end;

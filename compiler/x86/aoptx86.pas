@@ -2380,6 +2380,7 @@ unit aoptx86;
 
                                  mov mem, %reg"
                             }
+                            AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
                             taicpu(p).loadreg(1, taicpu(hp1).oper[1]^.reg);
                             DebugMsg(SPeepholeOptimization + 'MovMov2Mov 3 done',p);
                             RemoveInstruction(hp1);
@@ -6132,7 +6133,7 @@ unit aoptx86;
                   DebugMsg(SPeepholeOptimization+'JccMovJmpMov2MovSetcc',p);
                   { remove last label }
                   RemoveInstruction(hp5);
-                  { remove second albel }
+                  { remove second label }
                   RemoveInstruction(hp3);
                   { if align is present remove it }
                   if GetNextInstruction(hp2,hp3) and (hp3.typ=ait_align) then
