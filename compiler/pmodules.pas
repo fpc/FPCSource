@@ -614,10 +614,14 @@ implementation
         i: longint;
         def: tdef;
         sym: tsym;
+        tmpidx: Integer;
       begin
         for i:=current_module.localsymtable.deflist.count-1 downto 0 do
           begin
             def:=tdef(current_module.localsymtable.deflist[i]);
+            { since commit 48986 deflist might have NIL entries }
+            if not assigned(def) then
+              continue;
             { this also frees def, as the defs are owned by the symtable }
             if not def.is_registered and
                not(df_not_registered_no_free in def.defoptions) then
@@ -630,6 +634,10 @@ implementation
                    tprocdef(def).procsym.is_registered then
                  tprocsym(tprocdef(def).procsym).ProcdefList.Remove(def);
                 current_module.localsymtable.deletedef(def);
+                { this prevents a dangling pointer and use after free }
+                tmpidx:=current_module.deflist.IndexOfItem(def,FromEnd);
+                if tmpidx<>-1 then
+                  current_module.deflist[tmpidx]:=nil;
               end;
           end;
         { from high to low so we hopefully have moves of less data }

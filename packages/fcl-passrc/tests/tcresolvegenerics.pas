@@ -157,6 +157,7 @@ type
     procedure TestGenProc_TypeParamCntOverloadNoParams;
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     procedure TestGenProc_ParamSpecWithT;
+    procedure TestGenProc_ParamSpecWithTNestedType;
     // ToDo: NestedResultAssign
 
     // generic function infer types
@@ -2550,6 +2551,32 @@ begin
   'begin',
   '  Ant.Func<TObject>(Bird);',
   '  Ant.Func<TBird<TObject>>(BirdOfBird);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_ParamSpecWithTNestedType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '  type',
+  '    TEvent = procedure(aSender: T);',
+  '  end;',
+  'procedure Fly<T>(Event: TBird<T>.TEvent; Sender: T);',
+  'begin',
+  '  Event(Sender);',
+  'end;',
+  'procedure Run(aSender: TObject);',
+  'begin',
+  'end;',
+  'var',
+  '  Bird: TBird<TObject>;',
+  'begin',
+  '  Fly<TObject>(@Run,Bird);',
   '']);
   ParseProgram;
 end;

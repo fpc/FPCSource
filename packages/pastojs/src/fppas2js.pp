@@ -2082,8 +2082,8 @@ type
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
-    Procedure AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
-    Procedure AddDelaySpecializeInit(El: TPasGenericType; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
+    function CreateDelaySpecializeInit(El: TPasGenericType; AContext: TConvertContext): TJSElement; virtual;
     // enum and sets
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
     // record
@@ -2314,6 +2314,7 @@ type
       pfVarargs = 2;
       pfExternal = 4;
       pfSafeCall = 8;
+      pfAsync = $10;
       // PropertyFlag
       pfGetFunction = 1; // getter is a function
       pfSetProcedure = 2; // setter is a function
@@ -4488,6 +4489,9 @@ begin
       AddElevatedLocal(El);
       end;
     end
+  else if ParentC=TPasImplExceptOn then
+    // except on var
+    RaiseVarModifierNotSupported(LocalVarModifiersAllowed)
   else if ParentC=TImplementationSection then
     // implementation var
     RaiseVarModifierNotSupported(ImplementationVarModifiersAllowed)
@@ -4499,7 +4503,7 @@ begin
   else
     begin
     {$IFDEF VerbosePas2JS}
-    writeln('TPas2JSResolver.FinishVariable ',GetObjName(El),' Parent=',GetObjName(El.Parent));
+    writeln('TPas2JSResolver.FinishVariable ',GetObjPath(El));
     {$ENDIF}
     RaiseNotYetImplemented(20170324151259,El);
     end;
@@ -8199,7 +8203,7 @@ Var
   ModuleName, ModVarName: String;
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
-  HasImplUsesClause, ok, NeedRTLCheckVersion: Boolean;
+  HasImplCode, ok, NeedRTLCheckVersion: Boolean;
   Prg: TPasProgram;
   Lib: TPasLibrary;
   ImplFuncAssignSt: TJSSimpleAssignStatement;
@@ -8280,7 +8284,7 @@ begin
       Prg:=TPasProgram(El);
       if Assigned(Prg.ProgramSection) then
         AddToSourceElements(Src,ConvertDeclarations(Prg.ProgramSection,IntfContext));
-      AddDelayedInits(Prg,Src,IntfContext);
+      HasImplCode:=AddDelayedInits(Prg,Src,IntfContext);
       CreateInitSection(Prg,Src,IntfContext);
       end
     else if El is TPasLibrary then
@@ -8288,7 +8292,7 @@ begin
       Lib:=TPasLibrary(El);
       if Assigned(Lib.LibrarySection) then
         AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
-      AddDelayedInits(Lib,Src,IntfContext);
+      HasImplCode:=AddDelayedInits(Lib,Src,IntfContext);
       CreateInitSection(Lib,Src,IntfContext);
       // ToDo: append exports
       end
@@ -8317,7 +8321,9 @@ begin
       // append initialization section
       CreateInitSection(El,Src,IntfSecCtx);
 
-      if TJSSourceElements(ImplFunc.AFunction.Body.A).Statements.Count=0 then
+      if TJSSourceElements(ImplFunc.AFunction.Body.A).Statements.Count>0 then
+        HasImplCode:=true
+      else
         begin
         // empty implementation
 
@@ -8325,18 +8331,14 @@ begin
         RemoveFromSourceElements(Src,ImplVarSt);
         // remove unneeded $mod.$implcode = function(){}
         RemoveFromSourceElements(Src,ImplFuncAssignSt);
-        HasImplUsesClause:=(El.ImplementationSection<>nil)
+        // keep impl uses section
+        HasImplCode:=(El.ImplementationSection<>nil)
                        and (length(El.ImplementationSection.UsesClause)>0);
-        end
-      else
-        begin
-        HasImplUsesClause:=true;
         end;
 
-      if HasImplUsesClause then
+      if HasImplCode then
         // add implementation uses list: [<implementation uses1>,<uses2>, ...]
         ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
-
       end; // end unit
 
     if (ModScope<>nil) and (coStoreImplJS in Options) then
@@ -16564,14 +16566,20 @@ begin
       if ResultTypeInfo<>nil then
         InnerCall.AddArg(ResultTypeInfo);
       end;
-    // add param flags
+    // add procedure flags
     Flags:=0;
     if ptmVarargs in El.Modifiers then
       inc(Flags,pfVarargs);
+    if ptmAsync in El.Modifiers then
+      inc(Flags,pfAsync);
     if El.CallingConvention=ccSafeCall then
       inc(Flags,pfSafeCall);
     if Flags>0 then
+      begin
+      if not (El is TPasFunctionType) then
+        InnerCall.AddArg(CreateLiteralNull(El));
       InnerCall.AddArg(CreateLiteralNumber(El,Flags));
+      end;
 
     if El.IsOfObject then
       begin
@@ -17846,13 +17854,18 @@ begin
   IntfSec.AddImplHeaderStatement(JS);
 end;
 
-procedure TPasToJSConverter.AddDelayedInits(El: TPasModule;
-  Src: TJSSourceElements; AContext: TConvertContext);
+function TPasToJSConverter.AddDelayedInits(El: TPasModule;
+  Src: TJSSourceElements; AContext: TConvertContext): boolean;
 var
   aResolver: TPas2JSResolver;
   Hub: TPas2JSResolverHub;
   i: Integer;
+  JS: TJSElement;
+  AssignSt: TJSSimpleAssignStatement;
+  FunDecl: TJSFunctionDeclarationStatement;
+  ImplSrc: TJSSourceElements;
 begin
+  Result:=false;
   aResolver:=AContext.Resolver;
   if aResolver=nil then exit;
   if El=nil then ;
@@ -17860,12 +17873,29 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.AddDelayedInits Hub.JSDelaySpecializeCount=',Hub.JSDelaySpecializeCount);
   {$ENDIF}
+  ImplSrc:=nil;
   for i:=0 to Hub.JSDelaySpecializeCount-1 do
-    AddDelaySpecializeInit(Hub.JSDelaySpecializes[i],Src,AContext);
+    begin
+    JS:=CreateDelaySpecializeInit(Hub.JSDelaySpecializes[i],AContext);
+    if JS=nil then continue;
+    if ImplSrc=nil then
+      begin
+      // create  "$mod.$implcode = function(){ }"
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AddToSourceElements(Src,AssignSt);
+      AssignSt.LHS:=CreateMemberExpression([GetBIName(pbivnModule),GetBIName(pbivnImplCode)]);
+      // create function(){}
+      FunDecl:=CreateFunctionSt(El,true,true);
+      AssignSt.Expr:=FunDecl;
+      ImplSrc:=TJSSourceElements(FunDecl.AFunction.Body.A);
+      end;
+    AddToSourceElements(ImplSrc,JS);
+    Result:=true;
+    end;
 end;
 
-procedure TPasToJSConverter.AddDelaySpecializeInit(El: TPasGenericType;
-  Src: TJSSourceElements; AContext: TConvertContext);
+function TPasToJSConverter.CreateDelaySpecializeInit(El: TPasGenericType;
+  AContext: TConvertContext): TJSElement;
 var
   C: TClass;
   Path: String;
@@ -17876,6 +17906,7 @@ var
   ElTypeHi, ElTypeLo: TPasType;
   aResolver: TPas2JSResolver;
 begin
+  Result:=nil;
   if not IsElementUsed(El) then exit;
   if not AContext.Resolver.IsFullySpecialized(El) then
     RaiseNotSupported(El,AContext,20201202145045,'not fully specialized, probably a bug in the analyzer');
@@ -17889,7 +17920,7 @@ begin
     Path:=CreateReferencePath(El,AContext,rpkPathAndName)+'.'+GetBIName(pbifnClassInitSpecialize);
     Call:=CreateCallExpression(El);
     Call.Expr:=CreatePrimitiveDotExpr(Path,El);
-    AddToSourceElements(Src,Call);
+    Result:=Call;
     end
   else if (C=TPasProcedureType) or (C=TPasFunctionType) then
     begin
@@ -17901,7 +17932,7 @@ begin
     DotExpr.Name:=TJSString(GetBIName(pbivnRTTIProc_InitSpec));
     Call:=CreateCallExpression(El);
     Call.Expr:=DotExpr;
-    AddToSourceElements(Src,Call);
+    Result:=Call;
     end
   else if (C=TPasArrayType) then
     begin
@@ -17928,7 +17959,7 @@ begin
     AssignSt.LHS:=CreateDotNameExpr(El,CreateTypeInfoRef(El,AContext,El),
                                    TJSString(GetBIName(pbivnRTTIArray_ElType)));
     AssignSt.Expr:=CreateTypeInfoRef(ElTypeHi,AContext,El);
-    AddToSourceElements(Src,AssignSt);
+    Result:=AssignSt;
     end
   else
     RaiseNotSupported(El,AContext,20200831115251);
@@ -19801,9 +19832,8 @@ var
 begin
   Result:=nil;
   if Args.Count=0 then
-    Result:=CreateLiteralNull(Parent)
+    Result:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Parent))
   else
-    begin
     try
       Params:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Parent));
       for i:=0 to Args.Count-1 do
@@ -19813,7 +19843,6 @@ begin
       if Result=nil then
         Params.Free;
     end;
-  end;
 end;
 
 procedure TPasToJSConverter.AddRTTIArgument(Arg: TPasArgument;
@@ -20119,6 +20148,7 @@ var
   OptionsEl: TJSObjectLiteral;
   ResultTypeInfo: TJSElement;
   Call: TJSCallExpression;
+  Flags: Integer;
 
   procedure AddOption(const aName: String; JS: TJSElement);
   var
@@ -20128,8 +20158,6 @@ var
     if OptionsEl=nil then
       begin
       OptionsEl:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Proc));
-      if ResultTypeInfo=nil then
-        Call.AddArg(CreateLiteralNull(Proc));
       Call.AddArg(OptionsEl);
       end;
     ObjLit:=OptionsEl.Elements.AddElement;
@@ -20140,7 +20168,7 @@ var
 var
   FunName: String;
   C: TClass;
-  MethodKind, Flags: Integer;
+  MethodKind: Integer;
   ResultEl: TPasResultElement;
   ProcScope, OverriddenProcScope: TPasProcedureScope;
   OverriddenClass: TPasClassType;
@@ -20198,6 +20226,19 @@ begin
     // param params as []
     Call.AddArg(CreateRTTIArgList(Proc,Proc.ProcType.Args,AContext));
 
+    // optional params:
+    ResultTypeInfo:=nil;
+    Flags:=0;
+    if Proc.IsStatic then
+      inc(Flags,pfStatic);
+    if ptmVarargs in Proc.ProcType.Modifiers then
+      inc(Flags,pfVarargs);
+    if ptmAsync in Proc.ProcType.Modifiers then
+      inc(Flags,pfAsync);
+    if Proc.IsExternal then
+      inc(Flags,pfExternal);
+    Attr:=aResolver.GetAttributeCalls(Members,Index);
+
     // param resulttype as typeinfo reference
     if C.InheritsFrom(TPasFunction) then
       begin
@@ -20206,18 +20247,14 @@ begin
       if ResultTypeInfo<>nil then
         Call.AddArg(ResultTypeInfo);
       end;
+    if (ResultTypeInfo=nil) and ((Flags>0) or (length(Attr)>0)) then
+      Call.AddArg(CreateLiteralNull(Proc));
+
+    // flags if needed
+    if (Flags>0) or (length(Attr)>0) then
+      Call.AddArg(CreateLiteralNumber(Proc,Flags));
 
     // param options if needed as {}
-    Flags:=0;
-    if Proc.IsStatic then
-      inc(Flags,pfStatic);
-    if ptmVarargs in Proc.ProcType.Modifiers then
-      inc(Flags,pfVarargs);
-    if Proc.IsExternal then
-      inc(Flags,pfExternal);
-    if Flags>0 then
-      AddOption(GetBIName(pbivnRTTIProcFlags),CreateLiteralNumber(Proc,Flags));
-    Attr:=aResolver.GetAttributeCalls(Members,Index);
     if length(Attr)>0 then
       AddOption(GetBIName(pbivnRTTIMemberAttributes),
                 CreateRTTIAttributes(Attr,Proc,AContext));
