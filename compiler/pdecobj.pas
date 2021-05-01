@@ -906,6 +906,7 @@ implementation
 
       var
         oldparse_only: boolean;
+        flags : tparse_proc_flags;
       begin
         case token of
           _PROCEDURE,
@@ -917,7 +918,12 @@ implementation
 
               oldparse_only:=parse_only;
               parse_only:=true;
-              result:=parse_proc_dec(is_classdef,astruct,hadgeneric);
+              flags:=[];
+              if is_classdef then
+                include(flags,ppf_classmethod);
+              if hadgeneric then
+                include(flags,ppf_generic);
+              result:=parse_proc_dec(flags,astruct);
 
               { this is for error recovery as well as forward }
               { interface mappings, i.e. mapping to a method  }

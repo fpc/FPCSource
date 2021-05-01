@@ -55,6 +55,12 @@ interface
       );
       tpdflags=set of tpdflag;
 
+      tparse_proc_flag=(
+        ppf_classmethod,
+        ppf_generic
+      );
+      tparse_proc_flags=set of tparse_proc_flag;
+
     function  check_proc_directive(isprocvar:boolean):boolean;
 
     function  proc_get_importname(pd:tprocdef):string;
@@ -66,7 +72,7 @@ interface
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
-    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
+    function  parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
     procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
 
     { parse a record method declaration (not a (class) constructor/destructor) }
@@ -1599,7 +1605,7 @@ implementation
          end;
       end;
 
-    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
+    function parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
         old_block_type : tblock_type;
@@ -1622,11 +1628,11 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,isgeneric,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_function,ppf_generic in flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,isclassmethod,astruct)
+                    parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1642,11 +1648,11 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,isgeneric,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_procedure,ppf_generic in flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,isclassmethod,astruct)
+                    parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1657,27 +1663,27 @@ implementation
           _CONSTRUCTOR :
             begin
               consume(_CONSTRUCTOR);
-              if isclassmethod then
+              if ppf_classmethod in flags then
                 recover:=not parse_proc_head(astruct,potype_class_constructor,false,nil,nil,pd)
               else
                 recover:=not parse_proc_head(astruct,potype_constructor,false,nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,isclassmethod,astruct);
+                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
             end;
 
           _DESTRUCTOR :
             begin
               consume(_DESTRUCTOR);
-              if isclassmethod then
+              if ppf_classmethod in flags then
                 recover:=not parse_proc_head(astruct,potype_class_destructor,false,nil,nil,pd)
               else
                 recover:=not parse_proc_head(astruct,potype_destructor,false,nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,isclassmethod,astruct);
+                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
             end;
         else
           if (token=_OPERATOR) or
-             (isclassmethod and (idtoken=_OPERATOR)) then
+             ((ppf_classmethod in flags) and (idtoken=_OPERATOR)) then
             begin
               { we need to set the block type to bt_body, so that operator names
                 like ">", "=>" or "<>" are parsed correctly instead of e.g.
@@ -1688,7 +1694,7 @@ implementation
               parse_proc_head(astruct,potype_operator,false,nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
-                parse_proc_dec_finish(pd,isclassmethod,astruct)
+                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
               else
                 begin
                   { recover }
@@ -1723,10 +1729,16 @@ implementation
     function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
       var
         oldparse_only: boolean;
+        flags : tparse_proc_flags;
       begin
         oldparse_only:=parse_only;
         parse_only:=true;
-        result:=parse_proc_dec(is_classdef,astruct,hadgeneric);
+        flags:=[];
+        if is_classdef then
+          include(flags,ppf_classmethod);
+        if hadgeneric then
+          include(flags,ppf_generic);
+        result:=parse_proc_dec(flags,astruct);
 
         { this is for error recovery as well as forward }
         { interface mappings, i.e. mapping to a method  }

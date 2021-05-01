@@ -233,6 +233,7 @@ implementation
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
+       flags : tread_proc_flags;
      begin
       if ((status.verbosity and v_debug)<>0) then
         begin
@@ -256,7 +257,10 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),lineno,fileno);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef,usefwpd,false);
+      flags:=[];
+      if is_classdef then
+        include(flags,rpf_classmethod);
+      read_proc(flags,usefwpd);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;

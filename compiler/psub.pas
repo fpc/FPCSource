@@ -91,6 +91,12 @@ interface
 {$endif DEBUG_NODE_XML}
       end;
 
+      tread_proc_flag = (
+        rpf_classmethod,
+        rpf_generic
+      );
+      tread_proc_flags = set of tread_proc_flag;
+
 
     procedure printnode_reset;
 
@@ -107,7 +113,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
+    procedure read_proc(flags:tread_proc_flags; usefwpd: tprocdef);
 
     { parses only the body of a non nested routine; needs a correctly setup pd }
     procedure read_proc_body(pd:tprocdef);
@@ -2692,11 +2698,20 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
+    procedure read_proc(flags:tread_proc_flags; usefwpd: tprocdef);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
       }
+
+        function convert_flags_to_ppf:tparse_proc_flags;inline;
+          begin
+            result:=[];
+            if rpf_classmethod in flags then
+              include(result,ppf_classmethod);
+            if rpf_generic in flags then
+              include(result,ppf_generic);
+          end;
 
       var
         old_current_procinfo : tprocinfo;
@@ -2726,7 +2741,7 @@ implementation
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
-           pd:=parse_proc_dec(isclassmethod,old_current_structdef,isgeneric)
+           pd:=parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
          else
            pd:=usefwpd;
 
@@ -3029,6 +3044,7 @@ implementation
 
       var
         is_classdef:boolean;
+        flags : tread_proc_flags;
       begin
         is_classdef:=false;
         hadgeneric:=false;
@@ -3090,7 +3106,12 @@ implementation
                       Message(parser_e_procedure_or_function_expected);
                       hadgeneric:=false;
                     end;
-                  read_proc(is_classdef,nil,hadgeneric);
+                  flags:=[];
+                  if is_classdef then
+                    include(flags,rpf_classmethod);
+                  if hadgeneric then
+                    include(flags,rpf_generic);
+                  read_proc(flags,nil);
                   is_classdef:=false;
                   hadgeneric:=false;
                 end;
@@ -3137,7 +3158,7 @@ implementation
                         handle_unexpected_had_generic;
                         if is_classdef then
                           begin
-                            read_proc(is_classdef,nil,false);
+                            read_proc([rpf_classmethod],nil);
                             is_classdef:=false;
                           end
                         else
@@ -3194,6 +3215,8 @@ implementation
               end;
           end;
 
+      var
+        flags : tread_proc_flags;
       begin
          hadgeneric:=false;
          repeat
@@ -3227,7 +3250,10 @@ implementation
                      message(parser_e_procedure_or_function_expected);
                      hadgeneric:=false;
                    end;
-                 read_proc(false,nil,hadgeneric);
+                 flags:=[];
+                 if hadgeneric then
+                   include(flags,rpf_generic);
+                 read_proc(flags,nil);
                  hadgeneric:=false;
                end;
              else
