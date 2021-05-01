@@ -185,6 +185,8 @@ constructor TJSONScanner.Create(const aSource: RawByteString; AOptions: TJSONOpt
 begin
   FSource:=aSource;
   FCurPos:=PAnsiChar(FSource);
+  if FCurPos<>Nil then
+    FCurRow:=1;
   FOptions:=AOptions;
 end;
 
