@@ -113,7 +113,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(flags:tread_proc_flags; usefwpd: tprocdef);
+    function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
 
     { parses only the body of a non nested routine; needs a correctly setup pd }
     procedure read_proc_body(pd:tprocdef);
@@ -2698,7 +2698,7 @@ implementation
       end;
 
 
-    procedure read_proc(flags:tread_proc_flags; usefwpd: tprocdef);
+    function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2719,7 +2719,7 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         pdflags    : tpdflags;
-        pd,firstpd : tprocdef;
+        firstpd : tprocdef;
 {$ifdef genericdef_for_nested}
         def : tprocdef;
         srsym : tsym;
@@ -2741,18 +2741,18 @@ implementation
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
-           pd:=parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
+           result:=parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
          else
-           pd:=usefwpd;
+           result:=usefwpd;
 
          { set the default function options }
          if parse_only then
           begin
-            pd.forwarddef:=true;
+            result.forwarddef:=true;
             { set also the interface flag, for better error message when the
               implementation doesn't match this header }
-            pd.interfacedef:=true;
-            include(pd.procoptions,po_global);
+            result.interfacedef:=true;
+            include(result.procoptions,po_global);
             pdflags:=[pd_interface];
           end
          else
@@ -2762,83 +2762,83 @@ implementation
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
                create_smartlink_library then
-              include(pd.procoptions,po_global);
-            pd.forwarddef:=false;
+              include(result.procoptions,po_global);
+            result.forwarddef:=false;
           end;
 
          if not assigned(usefwpd) then
            begin
              { parse the directives that may follow }
-             parse_proc_directives(pd,pdflags);
+             parse_proc_directives(result,pdflags);
 
              { hint directives, these can be separated by semicolons here,
                that needs to be handled here with a loop (PFV) }
-             while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
+             while try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
               Consume(_SEMICOLON);
 
              { Set calling convention }
              if parse_only then
-               handle_calling_convention(pd,hcc_default_actions_intf)
+               handle_calling_convention(result,hcc_default_actions_intf)
              else
-               handle_calling_convention(pd,hcc_default_actions_impl)
+               handle_calling_convention(result,hcc_default_actions_impl)
            end;
 
          { search for forward declarations }
-         if not proc_add_definition(pd) then
+         if not proc_add_definition(result) then
            begin
              { One may not implement a method of a type declared in a different unit }
-             if assigned(pd.struct) and
-                (pd.struct.symtable.moduleid<>current_module.moduleid) and
-                not pd.is_specialization then
+             if assigned(result.struct) and
+                (result.struct.symtable.moduleid<>current_module.moduleid) and
+                not result.is_specialization then
               begin
-                MessagePos1(pd.fileinfo,parser_e_method_for_type_in_other_unit,pd.struct.typesymbolprettyname);
+                MessagePos1(result.fileinfo,parser_e_method_for_type_in_other_unit,result.struct.typesymbolprettyname);
               end
              { A method must be forward defined (in the object declaration) }
-             else if assigned(pd.struct) and
+             else if assigned(result.struct) and
                 (not assigned(old_current_structdef)) then
               begin
-                MessagePos1(pd.fileinfo,parser_e_header_dont_match_any_member,pd.fullprocname(false));
-                tprocsym(pd.procsym).write_parameter_lists(pd);
+                MessagePos1(result.fileinfo,parser_e_header_dont_match_any_member,result.fullprocname(false));
+                tprocsym(result.procsym).write_parameter_lists(result);
               end
              else
               begin
                 { Give a better error if there is a forward def in the interface and only
                   a single implementation }
-                firstpd:=tprocdef(tprocsym(pd.procsym).ProcdefList[0]);
-                if (not pd.forwarddef) and
-                   (not pd.interfacedef) and
-                   (tprocsym(pd.procsym).ProcdefList.Count>1) and
+                firstpd:=tprocdef(tprocsym(result.procsym).ProcdefList[0]);
+                if (not result.forwarddef) and
+                   (not result.interfacedef) and
+                   (tprocsym(result.procsym).ProcdefList.Count>1) and
                    firstpd.forwarddef and
                    firstpd.interfacedef and
-                   not(tprocsym(pd.procsym).ProcdefList.Count>2) and
+                   not(tprocsym(result.procsym).ProcdefList.Count>2) and
                    { don't give an error if it may be an overload }
                    not(m_fpc in current_settings.modeswitches) and
-                   (not(po_overload in pd.procoptions) or
+                   (not(po_overload in result.procoptions) or
                     not(po_overload in firstpd.procoptions)) then
                  begin
-                   MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
-                   tprocsym(pd.procsym).write_parameter_lists(pd);
+                   MessagePos1(result.fileinfo,parser_e_header_dont_match_forward,result.fullprocname(false));
+                   tprocsym(result.procsym).write_parameter_lists(result);
                  end
                 else
                   begin
-                    if pd.is_generic and not assigned(pd.struct) then
-                      tprocsym(pd.procsym).owner.includeoption(sto_has_generic);
+                    if result.is_generic and not assigned(result.struct) then
+                      tprocsym(result.procsym).owner.includeoption(sto_has_generic);
                   end;
               end;
            end;
 
          { Set mangled name }
-         proc_set_mangledname(pd);
+         proc_set_mangledname(result);
 
          { inherit generic flags from parent routine }
          if assigned(old_current_procinfo) and
              (old_current_procinfo.procdef.defoptions*[df_specialization,df_generic]<>[]) then
            begin
              if df_generic in old_current_procinfo.procdef.defoptions then
-               include(pd.defoptions,df_generic);
+               include(result.defoptions,df_generic);
              if df_specialization in old_current_procinfo.procdef.defoptions then
                begin
-                 include(pd.defoptions,df_specialization);
+                 include(result.defoptions,df_specialization);
                  { the procdefs encountered here are nested procdefs of which
                    their complete definition also resides inside the current token
                    stream, thus access to their genericdef is not required }
@@ -2846,7 +2846,7 @@ implementation
                  { find the corresponding routine in the generic routine }
                  if not assigned(old_current_procinfo.procdef.genericdef) then
                    internalerror(2016121701);
-                 srsym:=tsym(tprocdef(old_current_procinfo.procdef.genericdef).getsymtable(gs_local).find(pd.procsym.name));
+                 srsym:=tsym(tprocdef(old_current_procinfo.procdef.genericdef).getsymtable(gs_local).find(result.procsym.name));
                  if not assigned(srsym) or (srsym.typ<>procsym) then
                    internalerror(2016121702);
                  { in practice the generic procdef should be at the same index
@@ -2857,14 +2857,14 @@ implementation
                  for i:=0 to tprocsym(srsym).procdeflist.count-1 do
                    begin
                      def:=tprocdef(tprocsym(srsym).procdeflist[i]);
-                     if (compare_paras(def.paras,pd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
-                         (compare_defs(def.returndef,pd.returndef,nothingn)=te_exact) then
+                     if (compare_paras(def.paras,result.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
+                         (compare_defs(def.returndef,result.returndef,nothingn)=te_exact) then
                        begin
-                         pd.genericdef:=def;
+                         result.genericdef:=def;
                          break;
                        end;
                    end;
-                 if not assigned(pd.genericdef) then
+                 if not assigned(result.genericdef) then
                    internalerror(2016121703);
                  {$endif}
                end;
@@ -2873,14 +2873,14 @@ implementation
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
            begin
-             read_proc_body(old_current_procinfo,pd);
+             read_proc_body(old_current_procinfo,result);
            end
          else
            begin
              { Handle imports }
-             if (po_external in pd.procoptions) then
+             if (po_external in result.procoptions) then
                begin
-                 import_external_proc(pd);
+                 import_external_proc(result);
 {$ifdef cpuhighleveltarget}
                  { it's hard to factor this out in a virtual method, because the
                    generic version (the one inside this ifdef) doesn't fit in
@@ -2889,17 +2889,17 @@ implementation
                    Maybe we need another class for this kind of code that could
                    either be symcreat- or hlcgobj-based
                  }
-                 if (not pd.forwarddef) and
-                    (pd.hasforward) and
-                    (proc_get_importname(pd)<>'') then
+                 if (not result.forwarddef) and
+                    (result.hasforward) and
+                    (proc_get_importname(result)<>'') then
                    begin
                      { we cannot handle the callee-side of variadic functions (and
                        even if we could, e.g. LLVM cannot call through to something
                        else in that case) }
-                     if is_c_variadic(pd) then
-                       Message1(parser_e_callthrough_varargs,pd.fullprocname(false));
-                     call_through_new_name(pd,proc_get_importname(pd));
-                     include(pd.implprocoptions,pio_thunk);
+                     if is_c_variadic(result) then
+                       Message1(parser_e_callthrough_varargs,result.fullprocname(false));
+                     call_through_new_name(result,proc_get_importname(result));
+                     include(result.implprocoptions,pio_thunk);
                    end
                  else
 {$endif cpuhighleveltarget}
@@ -2907,8 +2907,8 @@ implementation
                      create_hlcodegen;
                      hlcg.handle_external_proc(
                        current_asmdata.asmlists[al_procedures],
-                       pd,
-                       proc_get_importname(pd));
+                       result,
+                       proc_get_importname(result));
                      destroy_hlcodegen;
                    end
                end;
@@ -2917,20 +2917,20 @@ implementation
          { always register public functions that are only declared in the
            implementation section as they might be called using an external
            declaration from another unit }
-         if (po_global in pd.procoptions) and
-             not pd.interfacedef and
-             ([df_generic,df_specialization]*pd.defoptions=[]) then
+         if (po_global in result.procoptions) and
+             not result.interfacedef and
+             ([df_generic,df_specialization]*result.defoptions=[]) then
            begin
-             pd.register_def;
-             pd.procsym.register_sym;
+             result.register_def;
+             result.procsym.register_sym;
            end;
 
          { make sure that references to forward-declared functions are not }
          { treated as references to external symbols, needed for darwin.   }
 
          { make sure we don't change the binding of real external symbols }
-         if (([po_external,po_weakexternal]*pd.procoptions)=[]) and (pocall_internproc<>pd.proccalloption) then
-           current_asmdata.DefineProcAsmSymbol(pd,pd.mangledname,pd.needsglobalasmsym);
+         if (([po_external,po_weakexternal]*result.procoptions)=[]) and (pocall_internproc<>result.proccalloption) then
+           current_asmdata.DefineProcAsmSymbol(result,result.mangledname,result.needsglobalasmsym);
 
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
