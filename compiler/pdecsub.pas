@@ -71,7 +71,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
+    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
     function  parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
     procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
 
@@ -530,7 +530,7 @@ implementation
       end;
 
 
-    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
+    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
       var
         hs       : string;
         orgsp,sp,orgspnongen,spnongen : TIDString;
@@ -663,7 +663,7 @@ implementation
                     (idtoken=_SPECIALIZE) then
                   hadspecialize:=true;
                 consume(_ID);
-                if (isgeneric or (m_delphi in current_settings.modeswitches)) and
+                if ((ppf_generic in flags) or (m_delphi in current_settings.modeswitches)) and
                     (token in [_LT,_LSHARPBRACKET]) then
                   begin
                     consume(token);
@@ -1628,7 +1628,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,ppf_generic in flags,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_function,flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1648,7 +1648,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,ppf_generic in flags,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_procedure,flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1664,9 +1664,9 @@ implementation
             begin
               consume(_CONSTRUCTOR);
               if ppf_classmethod in flags then
-                recover:=not parse_proc_head(astruct,potype_class_constructor,false,nil,nil,pd)
+                recover:=not parse_proc_head(astruct,potype_class_constructor,[],nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_constructor,false,nil,nil,pd);
+                recover:=not parse_proc_head(astruct,potype_constructor,[],nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
             end;
@@ -1675,9 +1675,9 @@ implementation
             begin
               consume(_DESTRUCTOR);
               if ppf_classmethod in flags then
-                recover:=not parse_proc_head(astruct,potype_class_destructor,false,nil,nil,pd)
+                recover:=not parse_proc_head(astruct,potype_class_destructor,[],nil,nil,pd)
               else
-                recover:=not parse_proc_head(astruct,potype_destructor,false,nil,nil,pd);
+                recover:=not parse_proc_head(astruct,potype_destructor,[],nil,nil,pd);
               if not recover then
                 parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
             end;
@@ -1691,7 +1691,7 @@ implementation
               old_block_type:=block_type;
               block_type:=bt_body;
               consume(_OPERATOR);
-              parse_proc_head(astruct,potype_operator,false,nil,nil,pd);
+              parse_proc_head(astruct,potype_operator,[],nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
                 parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
