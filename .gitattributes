@@ -8814,6 +8814,7 @@ packages/pxlib/src/pxlib.pp svneol=native#text/plain
 packages/qlunits/Makefile svneol=native#text/plain
 packages/qlunits/Makefile.fpc svneol=native#text/plain
 packages/qlunits/README.txt svneol=native#text/plain
+packages/qlunits/examples/mtinf.pas svneol=native#text/plain
 packages/qlunits/examples/qlcube.pas svneol=native#text/plain
 packages/qlunits/fpmake.pp svneol=native#text/plain
 packages/qlunits/src/qdos.pas svneol=native#text/plain
