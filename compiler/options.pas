@@ -1704,8 +1704,11 @@ begin
                        begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_use_heaptrc)
-                         else
+                         else begin
+                           if cs_gdb_valgrind in init_settings.globalswitches then
+                             Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
                            include(init_settings.globalswitches,cs_use_heaptrc);
+                         end;
                        end;
                      'l' :
                        begin
@@ -1746,8 +1749,11 @@ begin
                        begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_gdb_valgrind)
-                         else
+                         else begin
+                           if cs_use_heaptrc in init_settings.globalswitches then
+                             Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
                            include(init_settings.globalswitches,cs_gdb_valgrind);
+                         end;
                        end;
                      'w' :
                        begin
