@@ -1613,6 +1613,7 @@ uses
         hintsprocessed : boolean;
         pd : tprocdef;
         pdflags : tpdflags;
+        ppflags : tparse_proc_flags;
       begin
         if not assigned(context) then
           internalerror(2015052203);
@@ -1924,7 +1925,10 @@ uses
                           pd.procsym:=psym
                         else
                           pd.procsym:=srsym;
-                        parse_proc_dec_finish(pd,po_classmethod in tprocdef(genericdef).procoptions,tprocdef(genericdef).struct);
+                        ppflags:=[];
+                        if po_classmethod in tprocdef(genericdef).procoptions then
+                          include(ppflags,ppf_classmethod);
+                        parse_proc_dec_finish(pd,ppflags,tprocdef(genericdef).struct);
                       end;
                     result:=pd;
                   end

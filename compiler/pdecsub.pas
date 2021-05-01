@@ -73,7 +73,7 @@ interface
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
     function  parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
-    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
+    procedure parse_proc_dec_finish(pd:tprocdef;flags:tparse_proc_flags;astruct:tabstractrecorddef);
 
     { parse a record method declaration (not a (class) constructor/destructor) }
     function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
@@ -1324,7 +1324,7 @@ implementation
       end;
 
 
-    procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean;astruct:tabstractrecorddef);
+    procedure parse_proc_dec_finish(pd:tprocdef;flags:tparse_proc_flags;astruct:tabstractrecorddef);
       var
         locationstr: string;
         i: integer;
@@ -1407,7 +1407,7 @@ implementation
           potype_procedure:
             begin
               pd.returndef:=voidtype;
-              if isclassmethod then
+              if ppf_classmethod in flags then
                 include(pd.procoptions,po_classmethod);
             end;
           potype_function:
@@ -1451,13 +1451,13 @@ implementation
                     consume_all_until(_SEMICOLON);
                   end;
                end;
-              if isclassmethod then
+              if ppf_classmethod in flags then
                include(pd.procoptions,po_classmethod);
             end;
           potype_constructor,
           potype_class_constructor:
             begin
-              if not isclassmethod and
+              if not (ppf_classmethod in flags) and
                  assigned(pd) and
                  assigned(pd.struct) then
                 begin
@@ -1494,7 +1494,7 @@ implementation
               pd.procsym.owner.includeoption(sto_has_operator);
               if pd.parast.symtablelevel>normal_function_level then
                 Message(parser_e_no_local_operator);
-              if isclassmethod then
+              if ppf_classmethod in flags then
                 begin
                   include(pd.procoptions,po_classmethod);
                   { any class operator is also static }
@@ -1632,7 +1632,7 @@ implementation
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
+                    parse_proc_dec_finish(pd,flags,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1652,7 +1652,7 @@ implementation
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
-                    parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
+                    parse_proc_dec_finish(pd,flags,astruct)
                   else
                     finish_intf_mapping;
                 end
@@ -1668,7 +1668,7 @@ implementation
               else
                 recover:=not parse_proc_head(astruct,potype_constructor,[],nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
+                parse_proc_dec_finish(pd,flags,astruct);
             end;
 
           _DESTRUCTOR :
@@ -1679,7 +1679,7 @@ implementation
               else
                 recover:=not parse_proc_head(astruct,potype_destructor,[],nil,nil,pd);
               if not recover then
-                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct);
+                parse_proc_dec_finish(pd,flags,astruct);
             end;
         else
           if (token=_OPERATOR) or
@@ -1694,7 +1694,7 @@ implementation
               parse_proc_head(astruct,potype_operator,[],nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
-                parse_proc_dec_finish(pd,ppf_classmethod in flags,astruct)
+                parse_proc_dec_finish(pd,flags,astruct)
               else
                 begin
                   { recover }
