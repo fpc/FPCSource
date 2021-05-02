@@ -80,7 +80,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,ptype,pgenutil,procinfo,cpuinfo
+       pbase,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
        ;
 
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
@@ -3583,6 +3583,7 @@ implementation
          again,
          updatefpos,
          nodechanged  : boolean;
+         oldprocvardef: tprocvardef;
       begin
         { can't keep a copy of p1 and compare pointers afterwards, because
           p1 may be freed and reallocated in the same place!  }
@@ -4186,6 +4187,30 @@ implementation
                  consume(_RKLAMMER);
                  p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
                end;
+
+             _PROCEDURE,
+             _FUNCTION:
+               begin
+                 if (block_type=bt_body) and
+                     (m_anonymous_functions in current_settings.modeswitches) then
+                   begin
+                     oldprocvardef:=getprocvardef;
+                     getprocvardef:=nil;
+                     pd:=read_proc([rpf_anonymous],nil);
+                     getprocvardef:=oldprocvardef;
+                     { assume that we try to get the address except if certain
+                       tokens follow that indicate a call }
+                     do_proc_call(pd.procsym,pd.owner,nil,not (token in [_POINT,_CARET,_LECKKLAMMER]),
+                                  again,p1,[],nil);
+                   end
+                 else
+                   begin
+                     Message(parser_e_illegal_expression);
+                     p1:=cerrornode.create;
+                     { recover }
+                     consume(token);
+                   end;
+               end
 
              else
                begin

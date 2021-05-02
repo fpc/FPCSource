@@ -93,7 +93,8 @@ interface
 
       tread_proc_flag = (
         rpf_classmethod,
-        rpf_generic
+        rpf_generic,
+        rpf_anonymous
       );
       tread_proc_flags = set of tread_proc_flag;
 
@@ -2610,6 +2611,12 @@ implementation
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
         isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
+        { an anonymous function is always considered as nested }
+        if po_anonymous in pd.procoptions then
+          begin
+            current_procinfo.force_nested;
+            isnestedproc:=true;
+          end;
 
         { Insert mangledname }
         pd.aliasnames.insert(pd.mangledname);
@@ -2667,6 +2674,7 @@ implementation
           into the parse_body routine is not done because of having better file position
           information available }
         if not current_procinfo.procdef.is_specialization and
+            not (po_anonymous in current_procinfo.procdef.procoptions) and
             (
               not assigned(current_procinfo.procdef.struct) or
               not (df_specialization in current_procinfo.procdef.struct.defoptions)
@@ -2711,6 +2719,8 @@ implementation
               include(result,ppf_classmethod);
             if rpf_generic in flags then
               include(result,ppf_generic);
+            if rpf_anonymous in flags then
+              include(result,ppf_anonymous);
           end;
 
       var
@@ -2771,10 +2781,11 @@ implementation
              { parse the directives that may follow }
              parse_proc_directives(result,pdflags);
 
-             { hint directives, these can be separated by semicolons here,
-               that needs to be handled here with a loop (PFV) }
-             while try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
-              Consume(_SEMICOLON);
+             if not (rpf_anonymous in flags) then
+               { hint directives, these can be separated by semicolons here,
+                 that needs to be handled here with a loop (PFV) }
+               while try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
+                Consume(_SEMICOLON);
 
              { Set calling convention }
              if parse_only then

@@ -57,7 +57,8 @@ interface
 
       tparse_proc_flag=(
         ppf_classmethod,
-        ppf_generic
+        ppf_generic,
+        ppf_anonymous
       );
       tparse_proc_flags=set of tparse_proc_flag;
 
@@ -871,7 +872,24 @@ implementation
 
         if not assigned(genericdef) then
           begin
-            consume_proc_name;
+            if ppf_anonymous in flags then
+              begin
+                checkstack:=symtablestack.stack;
+                while checkstack^.symtable.symtabletype in [withsymtable] do
+                  checkstack:=checkstack^.next;
+                if not (checkstack^.symtable.symtabletype in [localsymtable,staticsymtable]) then
+                  internalerror(2021050101);
+                { generate a unique name for the anonymous function; don't use
+                  something like file position however as this might be inside
+                  an include file that's included multiple times }
+                str(checkstack^.symtable.symlist.count,orgsp);
+                orgsp:='_$Anonymous$'+orgsp;
+                sp:=upper(orgsp);
+                spnongen:=sp;
+                orgspnongen:=orgsp;
+              end
+            else
+              consume_proc_name;
 
             { examine interface map: function/procedure iname.functionname=locfuncname }
             if assigned(astruct) and
@@ -1129,6 +1147,8 @@ implementation
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
+        if ppf_anonymous in flags then
+          include(pd.procoptions,po_anonymous);
 
         if assigned(genericparams) then
           begin
@@ -1587,7 +1607,8 @@ implementation
                 message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
               end;
-            consume(_SEMICOLON);
+            if not (ppf_anonymous in flags) then
+              consume(_SEMICOLON);
           end;
 
         if locationstr<>'' then
@@ -1706,7 +1727,8 @@ implementation
                 message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
               end;
-            consume(_SEMICOLON);
+            if not (ppf_anonymous in flags) then
+              consume(_SEMICOLON);
           end;
 
         { we've parsed the final semicolon, so stop recording tokens }
