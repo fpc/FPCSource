@@ -16368,6 +16368,7 @@ tests/test/units/system/tstring.pp svneol=native#text/plain
 tests/test/units/system/ttrig.pas svneol=native#text/plain
 tests/test/units/system/ttrig.pp svneol=native#text/plain
 tests/test/units/system/ttrunc.pp svneol=native#text/plain
+tests/test/units/system/ttxtflsh.pp svneol=native#text/plain
 tests/test/units/system/tval.inc svneol=native#text/plain
 tests/test/units/system/tval.pp svneol=native#text/plain
 tests/test/units/system/tval1.pp svneol=native#text/plain
