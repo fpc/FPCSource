@@ -1456,6 +1456,12 @@ type
       hfsq,f,s,z,R,w,t1,t2,dk: double;
       k,hx,i,j: longint;
       lx: longword;
+{$push}
+{ if we have to check manually fpu exceptions, then force the exit statements here to
+  throw one }
+{$CHECKFPUEXCEPTIONS+}
+{ turn off fastmath as it converts (d-d)/zero into 0 and thus not raising an exception }
+{$OPTIMIZATION NOFASTMATH}
     begin
       hx := float64high(d);
       lx := float64low(d);
@@ -1472,6 +1478,7 @@ type
       end;
       if (hx >= $7ff00000) then
         exit(d+d);
+{$pop}
       inc(k, (hx shr 20)-1023);
       hx := hx and $000fffff;
       i := (hx + $95f64) and $100000;
