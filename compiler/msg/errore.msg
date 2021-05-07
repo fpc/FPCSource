@@ -3908,10 +3908,23 @@ F*0*_Only options valid for the default or selected platform are listed.
 6*2Amot_Standard Motorola assembler
 6*2Avasm_Use vasm to assemble
 A*2Aas_Assemble using GNU AS
+A*2Aas-darwin_Assemble using GNU AS for Darwin targets
+A*2Aclang_Assemble using clang
+A*2Aelf_Assemble using internal ELF writer
+a*2Aas_Assemble using GNU AS
+a*2Aclang_Assemble using clang for darwin/ios targets
+a*2Aas-clang_Assemble using clang for other targets 
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+s*2Aas_Assemble using GNU AS
+v*2Aas_Assemble using GNU AS
+W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as)
+W*2Allvm-mc_Assemble using llvm-mc
+W*2Awabt_Assemble using wasa
+x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
 Z*2Az80asm_Assemble using z80asm
+Z*2Avasm_Assemble using Vasm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -4183,6 +4196,7 @@ A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
 a*2Tdarwin_Darwin/Mac OS X
+a*2Tfreebsd_FreeBSD
 a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64

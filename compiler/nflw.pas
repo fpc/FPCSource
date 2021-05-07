@@ -111,6 +111,7 @@ interface
           loopiteration : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
+          destructor destroy;override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function makewhileloop : tnode;
@@ -1774,6 +1775,13 @@ implementation
          include(loopflags,lnf_testatbegin);
       end;
 
+    destructor tfornode.destroy;
+      begin
+         if assigned(loopiteration) then
+           loopiteration.destroy;
+         inherited destroy;
+      end;
+
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
@@ -2734,10 +2742,10 @@ implementation
          begin
            result:=right;
            right:=nil;
-         end;
+         end
        { if the finally block contains no code, we can kill
          it and just return the try part }
-       if has_no_code(right) and not(assigned(third)) and not(implicitframe) then
+       else if has_no_code(right) and not(assigned(third)) and not(implicitframe) then
          begin
            result:=left;
            left:=nil;

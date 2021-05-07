@@ -44,6 +44,10 @@ Interface
         function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;override;
         function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;override;
         function LookForPostindexedPattern(var p : tai) : boolean;
+      public
+        { With these routines, there's optimisation code that's general for all ARM platforms }
+        function OptPass1LDR(var p: tai): Boolean; override;
+        function OptPass1STR(var p: tai): Boolean; override;
       private
         function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
         function OptPass1Shift(var p: tai): boolean;
@@ -199,9 +203,9 @@ Implementation
         not(RegModifiedBetween(taicpu(hp1).oper[2]^.reg,p,hp1)) then
         begin
           if taicpu(p).opcode = A_LDR then
-            DebugMsg('Peephole LdrAdd/Sub2Ldr Postindex done', p)
+            DebugMsg(SPeepholeOptimization + 'LdrAdd/Sub2Ldr Postindex done', p)
           else
-            DebugMsg('Peephole StrAdd/Sub2Str Postindex done', p);
+            DebugMsg(SPeepholeOptimization + 'StrAdd/Sub2Str Postindex done', p);
 
           taicpu(p).oper[1]^.ref^.addressmode:=AM_POSTINDEXED;
           if taicpu(hp1).opcode=A_ADD then
@@ -244,7 +248,7 @@ Implementation
           dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
           if assigned(dealloc) then
             begin
-              DebugMsg('Peephole '+optimizer+' removed superfluous vmov', movp);
+              DebugMsg(SPeepholeOptimization + optimizer+' removed superfluous vmov', movp);
               result:=true;
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
@@ -288,6 +292,24 @@ Implementation
               movp.free;
             end;
         end;
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1LDR(var p: tai): Boolean;
+    begin
+      Result := False;
+      if inherited OptPass1LDR(p) or
+        LookForPostindexedPattern(p) then
+        Exit(True);
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1STR(var p: tai): Boolean;
+    begin
+      Result := False;
+      if inherited OptPass1STR(p) or
+        LookForPostindexedPattern(p) then
+        Exit(True);
     end;
 
 
@@ -395,7 +417,7 @@ Implementation
                 RemoveInstruction(hp1);
                 RemoveCurrentp(p);
 
-                DebugMsg('Peephole FoldShiftProcess done', hp2);
+                DebugMsg(SPeepholeOptimization + 'FoldShiftProcess done', hp2);
                 Result:=true;
                 break;
               end;
@@ -488,7 +510,7 @@ Implementation
           hp3.free;
           hp4.free;
           p:=hp2;
-          DebugMsg('Peephole Bl2B done', p);
+          DebugMsg(SPeepholeOptimization + 'Bl2B done', p);
           Result:=true;
         end;
     end;
@@ -503,7 +525,7 @@ Implementation
        (taicpu(p).oppostfix=PF_None) then
        begin
          RemoveCurrentP(p);
-         DebugMsg('Peephole Mov2None done', p);
+         DebugMsg(SPeepholeOptimization + 'Mov2None done', p);
          Result:=true;
        end
 
@@ -669,9 +691,9 @@ Implementation
                                 }
                                 taicpu(p).opcode := TargetOpcode;
                                 if TargetOpcode = A_STP then
-                                  DebugMsg('Peephole Optimization: StrStr2Stp', p)
+                                  DebugMsg(SPeepholeOptimization + 'StrStr2Stp', p)
                                 else
-                                  DebugMsg('Peephole Optimization: LdrLdr2Ldp', p);
+                                  DebugMsg(SPeepholeOptimization + 'LdrLdr2Ldp', p);
                                 taicpu(p).ops := 3;
                                 taicpu(p).loadref(2, taicpu(p).oper[1]^.ref^);
                                 taicpu(p).loadreg(1, taicpu(hp1).oper[0]^.reg);
@@ -695,9 +717,9 @@ Implementation
                                 }
                                 taicpu(p).opcode := TargetOpcode;
                                 if TargetOpcode = A_STP then
-                                  DebugMsg('Peephole Optimization: StrStr2Stp (reverse)', p)
+                                  DebugMsg(SPeepholeOptimization + 'StrStr2Stp (reverse)', p)
                                 else
-                                  DebugMsg('Peephole Optimization: LdrLdr2Ldp (reverse)', p);
+                                  DebugMsg(SPeepholeOptimization + 'LdrLdr2Ldp (reverse)', p);
                                 taicpu(p).ops := 3;
                                 taicpu(p).loadref(2, taicpu(hp1).oper[1]^.ref^);
                                 taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
@@ -752,7 +774,7 @@ Implementation
           p.free;
           hp1.free;
           p:=hp2;
-          DebugMsg('Peephole CMPB.E/NE2CBNZ/CBZ done', p);
+          DebugMsg(SPeepholeOptimization + 'CMPB.E/NE2CBNZ/CBZ done', p);
           Result:=true;
         end;
     end;
@@ -764,9 +786,10 @@ Implementation
       if p.typ=ait_instruction then
         begin
           case taicpu(p).opcode of
-            A_LDR,
+            A_LDR:
+              Result:=OptPass1LDR(p);
             A_STR:
-              Result:=LookForPostindexedPattern(p);
+              Result:=OptPass1STR(p);
             A_MOV:
               Result:=OptPass1Mov(p);
             A_STP:
