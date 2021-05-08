@@ -64,6 +64,7 @@ compiler/aoptobj.pas svneol=native#text/plain
 compiler/aoptutils.pas svneol=native#text/pascal
 compiler/arm/aasmcpu.pas svneol=native#text/plain
 compiler/arm/agarmgas.pas svneol=native#text/plain
+compiler/arm/agarmvasm.pas svneol=native#text/pascal
 compiler/arm/aoptcpu.pas svneol=native#text/plain
 compiler/arm/aoptcpub.pas svneol=native#text/plain
 compiler/arm/aoptcpud.pas svneol=native#text/plain
