@@ -26,7 +26,7 @@ begin
     P.Email := '';
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Dependencies.Add('fcl-res');
 
     P.OSes:=[darwin, iphonesim,ios];

@@ -4,7 +4,7 @@
 
 [package]
 name=obcjrtl
-version=3.2.1
+version=3.2.2
 
 [target]
 units=objcrtl objcrtl10 objcrtl20 objcrtliphoneos objcrtlmacosx objcrtlutils

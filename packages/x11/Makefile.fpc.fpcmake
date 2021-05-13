@@ -4,7 +4,7 @@
 
 [package]
 name=x11
-version=3.2.1
+version=3.2.2
 
 [target]
 units=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama xv xvlib cursorfont xrandr xf86dga xf86vmode xft fontconfig

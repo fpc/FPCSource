@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
     P.Author := 'Mostly Sebastian Guenther';
     P.License := 'LGPL with modification, ';

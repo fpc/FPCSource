@@ -30,7 +30,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
     T:=P.Targets.AddProgram('json2pas.pp');
     end;

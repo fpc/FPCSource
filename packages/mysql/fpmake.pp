@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];

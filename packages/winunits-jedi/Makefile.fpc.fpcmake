@@ -4,7 +4,7 @@
 
 [package]
 name=winunits-jedi
-version=3.2.1
+version=3.2.2
 
 [require]
 packages_win32=winunits-base fcl-registry fcl-base

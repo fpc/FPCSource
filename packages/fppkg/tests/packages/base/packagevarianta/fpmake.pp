@@ -14,7 +14,7 @@ begin
   with Installer do
     begin
     P:=AddPackage('packagevarianta');
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
     P.Author := 'Joost van der Sluis';
     P.License := 'GPL';

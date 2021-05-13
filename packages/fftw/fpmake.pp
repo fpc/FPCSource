@@ -16,9 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Author := 'Library: Matteo Frigo and Steven G. Johnson, header: Daniel Mantione';
     P.License := 'Library: GPL or commercial, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

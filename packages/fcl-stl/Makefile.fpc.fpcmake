@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-stl
-version=3.2.1
+version=3.2.2
 
 [target]
 units=garrayutils gdeque gmap gpriorityqueue gqueue gset gstack gutil gvector ghashset ghashmap

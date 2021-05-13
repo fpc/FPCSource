@@ -4,7 +4,7 @@
 
 [package]
 name=pas2fpm
-version=3.2.1
+version=3.2.2
 
 [require]
 packages=fcl-passrc fcl-base

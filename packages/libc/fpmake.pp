@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
     P.Author := 'Peter Vreman and Michael van Canneyt (?)';
     P.License := 'LGPL with modification, ';

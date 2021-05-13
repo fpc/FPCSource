@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Dependencies.Add('zlib');
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+[win32,os2,emx];

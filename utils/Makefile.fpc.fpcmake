@@ -4,7 +4,7 @@
 
 [package]
 name=utils
-version=3.2.1
+version=3.2.2
 
 [target]
 dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg pas2ut pas2fpm pas2jni

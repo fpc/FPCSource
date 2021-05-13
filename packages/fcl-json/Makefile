@@ -330,7 +330,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-json
-override PACKAGE_VERSION=3.2.1
+override PACKAGE_VERSION=3.2.2
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)

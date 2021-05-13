@@ -10,7 +10,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('plugindependency');
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
 
     P.Author := 'Joost van der Sluis';
     P.License := 'GPL';

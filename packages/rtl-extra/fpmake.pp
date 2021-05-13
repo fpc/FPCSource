@@ -42,7 +42,7 @@ begin
     P:=AddPackage('rtl-extra');
     P.ShortName:='rtle';
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

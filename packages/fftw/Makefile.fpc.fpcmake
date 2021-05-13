@@ -4,7 +4,7 @@
 
 [package]
 name=fftw
-version=3.2.1
+version=3.2.2
 
 [target]
 units=fftw_s

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('tplylib');

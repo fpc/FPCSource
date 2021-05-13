@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.2';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
     D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,ios,freebsd,haiku,beos,aix]);
