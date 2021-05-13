@@ -28,7 +28,7 @@ uses
   Classes, SysUtils;
 
 const 
-  CHMPackageVersion = '3.2.1'; // to be put in readme
+  CHMPackageVersion = '3.2.2'; // to be put in readme
   
 type
   {$PACKRECORDS C}
