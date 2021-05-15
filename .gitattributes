@@ -12039,6 +12039,7 @@ rtl/qnx/qnx.inc svneol=native#text/plain
 rtl/qnx/rtldefs.inc svneol=native#text/plain
 rtl/qnx/signal.inc svneol=native#text/plain
 rtl/qnx/system.pp svneol=native#text/plain
+rtl/riscv/riscv.inc svneol=native#text/plain
 rtl/riscv32/cpuh.inc svneol=native#text/plain
 rtl/riscv32/int64p.inc svneol=native#text/plain
 rtl/riscv32/makefile.cpu svneol=native#text/plain
