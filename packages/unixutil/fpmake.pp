@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.OSes:=[Linux];
     P.CPUs:=[i386];
     P.Dependencies.add('libc');

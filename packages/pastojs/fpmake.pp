@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

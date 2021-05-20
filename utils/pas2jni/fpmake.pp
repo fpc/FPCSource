@@ -29,7 +29,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-json');

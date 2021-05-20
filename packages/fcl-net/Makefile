@@ -330,7 +330,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-net
-override PACKAGE_VERSION=3.2.1
+override PACKAGE_VERSION=3.2.3
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)

@@ -330,7 +330,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=testsuite
-override PACKAGE_VERSION=3.2.1
+override PACKAGE_VERSION=3.2.3
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_PROGRAMS+=testsuite
 endif

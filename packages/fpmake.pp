@@ -42,7 +42,7 @@ begin
       // Create fpc-all package
       PBuild:=AddPackage('fpc-all');
       PBuild.ShortName := 'fpca';
-      PBuild.Version:='3.2.1';
+      PBuild.Version:='3.2.3';
       { The source files fpmake_proc.inc and fpmake_add.inc
         need to be added explicitly to be integrated in source zip }
       PBuild.Sources.AddSrc('fpmake_proc.inc');

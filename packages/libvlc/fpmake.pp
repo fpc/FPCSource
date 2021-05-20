@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.OSes := [win32, win64, linux, freebsd];
     P.Dependencies.Add('fcl-base');
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'michael@freepascal.org';

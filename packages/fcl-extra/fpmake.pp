@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-res');
     P.OSes:=[Win32,Win64]+AllUnixOSes;

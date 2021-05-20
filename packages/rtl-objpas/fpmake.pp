@@ -42,7 +42,7 @@ begin
     P:=AddPackage('rtl-objpas');
     P.ShortName:='rtlo';
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

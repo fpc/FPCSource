@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
     P.Author := ' Dmitry "skalogryz" Boyarintsev; Kronos group';
     P.License := 'Library: modified BSD, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

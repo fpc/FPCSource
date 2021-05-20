@@ -28,7 +28,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.1';
+    P.Version:='3.2.3';
 
     P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix,aros,amiga,morphos];
 
