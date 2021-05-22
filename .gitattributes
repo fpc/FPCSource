@@ -8833,6 +8833,7 @@ packages/qlunits/src/qlutil.pas svneol=native#text/plain
 packages/qlunits/src/sms.pas svneol=native#text/plain
 packages/qlunits/src/sms_sysvars.inc svneol=native#text/plain
 packages/qlunits/src/smsfuncs.inc svneol=native#text/plain
+packages/qlunits/tests/tsysvars.pas svneol=native#text/plain
 packages/regexpr/Makefile svneol=native#text/plain
 packages/regexpr/Makefile.fpc svneol=native#text/plain
 packages/regexpr/Makefile.fpc.fpcmake svneol=native#text/plain
