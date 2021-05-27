@@ -2468,42 +2468,46 @@ implementation
         eq: tequaltype;
         po_comp: tprocoptions;
         pa_comp: tcompare_paras_options;
+        captured : tfplist;
       begin
          proc_to_procvar_equal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer and local procedure pointer:
              a) anything but procvars can be assigned to blocks
-             b) if one is a procedure of object, the other also has to be one
+             b) depending on their captured symbols anonymous functions can be
+                assigned to global, method or nested procvars
+             c) if one is a procedure of object, the other also has to be one
                 ("object static procedure" is equal to procedure as well)
                 (except for block)
-             c) if one is a pure address, the other also has to be one
+             d) if one is a pure address, the other also has to be one
                 except if def1 is a global proc and def2 is a nested procdef
                 (global procedures can be converted into nested procvars)
-             d) if def1 is a nested procedure, then def2 has to be a nested
+             e) if def1 is a nested procedure, then def2 has to be a nested
                 procvar and def1 has to have the po_delphi_nested_cc option
                 or does not use parentfp
-             e) if def1 is a procvar, def1 and def2 both have to be nested or
+             f) if def1 is a procvar, def1 and def2 both have to be nested or
                 non-nested (we don't allow assignments from non-nested to
                 nested procvars to make sure that we can still implement
                 nested procvars using trampolines -- e.g., this would be
                 necessary for LLVM or CIL as long as they do not have support
                 for Delphi-style frame pointer parameter passing) }
-         if is_block(def2) then                                     { a) }
+         if is_block(def2) or                                                           { a) }
+            (po_anonymous in def1.procoptions) then                                     { b) }
            { can't explicitly check against procvars here, because
              def1 may already be a procvar due to a proc_to_procvar;
              this is checked in the type conversion node itself -> ok }
          else if
-            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { b) }
+            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { c) }
              (def2.is_methodpointer and not (po_staticmethod in def2.procoptions))) or
-            ((def1.is_addressonly<>def2.is_addressonly) and         { c) }
+            ((def1.is_addressonly<>def2.is_addressonly) and         { d) }
              (is_nested_pd(def1) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procdef) and                                 { d) }
+            ((def1.typ=procdef) and                                 { e) }
              is_nested_pd(def1) and
              (not(po_delphi_nested_cc in def1.procoptions) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procvardef) and                              { e) }
+            ((def1.typ=procvardef) and                              { f) }
              (is_nested_pd(def1)<>is_nested_pd(def2))) then
            exit;
          pa_comp:=[cpo_ignoreframepointer];
@@ -2539,6 +2543,53 @@ implementation
                 { in case of non-block to block, we need a type conversion }
                 if (po_is_block in def1.procoptions) <> (po_is_block in def2.procoptions) then
                   eq:=te_convert_l1;
+                { for anonymous functions check whether their captured symbols are
+                  compatible with the target }
+                if po_anonymous in def1.procoptions then
+                  begin
+                    if def1.typ<>procdef then
+                      internalerror(2021052602);
+                    captured:=tprocdef(def1).capturedsyms;
+                    { if no symbol was captured an anonymous function is
+                      compatible to all three types of function pointers, but we
+                      might need to generate its code differently (e.g. get rid
+                      of parentfp parameter for global functions); the order for
+                      this is:
+                        - procedure variable
+                        - method variable
+                        - nested procvar }
+                    if not assigned(captured) or (captured.count=0) then
+                      begin
+                        if po_methodpointer in def2.procoptions then
+                          eq:=te_convert_l2
+                        else if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l3
+                        else
+                          eq:=te_convert_l1
+                      end
+                    { if only a Self was captured then the function is not
+                      compatible to normal function pointers; the order for this
+                      is:
+                        - method variable
+                        - nested function }
+                    else if (captured.count=1) and (vo_is_self in tabstractvarsym(pcapturedsyminfo(captured[0])^.sym).varoptions) then
+                      begin
+                        if po_methodpointer in def2.procoptions then
+                          eq:=te_convert_l1
+                        else if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l2
+                        else
+                          eq:=te_incompatible;
+                      end
+                    { otherwise it's compatible to nested function pointers only }
+                    else
+                      begin
+                        if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l1
+                        else
+                          eq:=te_incompatible;
+                      end;
+                  end;
               end;
             proc_to_procvar_equal:=eq;
           end;
