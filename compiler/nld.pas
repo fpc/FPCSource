@@ -385,6 +385,8 @@ implementation
                      internalerror(200309289);
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
                    current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
+                   { reference this as a captured symbol }
+                   current_procinfo.add_captured_sym(symtableentry,fileinfo);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);

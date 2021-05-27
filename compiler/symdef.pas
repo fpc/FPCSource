@@ -769,6 +769,13 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
+       tcapturedsyminfo = record
+         sym : tsym;
+         { the location where the symbol was first encountered }
+         fileinfo : tfileposinfo;
+       end;
+       pcapturedsyminfo = ^tcapturedsyminfo;
+
        timplprocdefinfo = record
           resultname : pshortstring;
           parentfpstruct: tsym;
@@ -782,6 +789,7 @@ interface
           interfacedef : boolean;
           hasforward  : boolean;
           is_implemented : boolean;
+          capturedsyms : tfplist;
        end;
        pimplprocdefinfo = ^timplprocdefinfo;
 
@@ -829,6 +837,7 @@ interface
          procedure SetHasInliningInfo(AValue: boolean);
          function Getis_implemented: boolean;
          procedure Setis_implemented(AValue: boolean);
+         function Getcapturedsyms:tfplist;
          function getparentfpsym: tsym;
        public
           messageinf : tmessageinf;
@@ -915,6 +924,8 @@ interface
           function get_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
           function get_safecall_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
 
+          procedure add_captured_sym(sym:tsym;const filepos:tfileposinfo);
+
           { returns whether the mangled name or any of its aliases is equal to
             s }
           function  has_alias_name(const s: TSymStr):boolean;
@@ -959,6 +970,8 @@ interface
           property parentfpsym: tsym read getparentfpsym;
           { true if the implementation part for this procdef has been handled }
           property is_implemented: boolean read Getis_implemented write Setis_implemented;
+          { valid if the procdef captures any symbols from outer scopes }
+          property capturedsyms:tfplist read Getcapturedsyms;
        end;
        tprocdefclass = class of tprocdef;
 
@@ -6075,6 +6088,15 @@ implementation
       end;
 
 
+    function tprocdef.Getcapturedsyms:tfplist;
+      begin
+        if not assigned(implprocdefinfo) then
+          result:=nil
+        else
+          result:=implprocdefinfo^.capturedsyms;
+      end;
+
+
     function tprocdef.store_localst: boolean;
       begin
         result:=has_inlininginfo or (df_generic in defoptions);
@@ -6483,10 +6505,19 @@ implementation
 
 
     procedure tprocdef.freeimplprocdefinfo;
+      var
+        i : longint;
       begin
         if assigned(implprocdefinfo) then
           begin
             stringdispose(implprocdefinfo^.resultname);
+            if assigned(implprocdefinfo^.capturedsyms) then
+              begin
+                for i:=0 to implprocdefinfo^.capturedsyms.count-1 do
+                  dispose(pcapturedsyminfo(implprocdefinfo^.capturedsyms[i]));
+              end;
+            implprocdefinfo^.capturedsyms.free;
+            implprocdefinfo^.capturedsyms:=nil;
             freemem(implprocdefinfo);
             implprocdefinfo:=nil;
           end;
@@ -6781,6 +6812,28 @@ implementation
             ressym:=tsym(localst.Find('safecallresult'));
             resdef:=tabstractnormalvarsym(ressym).vardef;
           end
+      end;
+
+
+    procedure tprocdef.add_captured_sym(sym:tsym;const filepos:tfileposinfo);
+      var
+        i : longint;
+        capturedsym : pcapturedsyminfo;
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2021052601);
+        if not assigned(implprocdefinfo^.capturedsyms) then
+          implprocdefinfo^.capturedsyms:=tfplist.create;
+        for i:=0 to implprocdefinfo^.capturedsyms.count-1 do
+          begin
+            capturedsym:=pcapturedsyminfo(implprocdefinfo^.capturedsyms[i]);
+            if capturedsym^.sym=sym then
+              exit;
+          end;
+        new(capturedsym);
+        capturedsym^.sym:=sym;
+        capturedsym^.fileinfo:=filepos;
+        implprocdefinfo^.capturedsyms.add(capturedsym);
       end;
 
 

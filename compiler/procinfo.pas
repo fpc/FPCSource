@@ -185,6 +185,8 @@ unit procinfo;
           procedure add_local_ref_def(def:tdef);
           procedure export_local_ref_defs;
 
+          procedure add_captured_sym(sym:tsym;const fileinfo:tfileposinfo);
+
           function create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
@@ -355,6 +357,11 @@ implementation
               internalerror(2019111801);
             include(tprocdef(def).defoptions,df_has_global_ref);
           end;
+      end;
+
+    procedure tprocinfo.add_captured_sym(sym:tsym;const fileinfo:tfileposinfo);
+      begin
+        procdef.add_captured_sym(sym,fileinfo);
       end;
 
     function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
