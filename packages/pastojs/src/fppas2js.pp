@@ -1660,7 +1660,7 @@ type
       RaiseOnIncompatible: boolean): integer; override;
     // utility
     procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
-      Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF}; ErrorPosEl: TPasElement); override;
+      Args: array of const; ErrorPosEl: TPasElement); override;
     function GetOverloadName(El: TPasElement): string;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
       false): string; override;
@@ -1961,9 +1961,9 @@ type
     // Error functions
     Procedure DoError(Id: TMaxPrecInt; Const Msg : String);
     Procedure DoError(Id: TMaxPrecInt; Const Msg : String;
-      const Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF});
+      const Args: array of const);
     Procedure DoError(Id: TMaxPrecInt; MsgNumber: integer; const MsgPattern: string;
-      const Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF}; El: TPasElement);
+      const Args: array of const; El: TPasElement);
     procedure RaiseNotSupported(El: TPasElement; AContext: TConvertContext; Id: TMaxPrecInt; const Msg: string = '');
     procedure RaiseIdentifierNotFound(Identifier: string; El: TPasElement; Id: TMaxPrecInt);
     procedure RaiseInconsistency(Id: TMaxPrecInt; El: TPasElement);
@@ -2039,6 +2039,7 @@ type
     Function CreateVarDecl(const aName: String; Init: TJSElement; El: TPasElement): TJSVarDeclaration; virtual;
     // JS literals
     Function CreateLiteralNumber(El: TPasElement; const n: TJSNumber): TJSLiteral; virtual;
+    Function CreateLiteralFloat(El: TPasElement; const n: TJSNumber): TJSElement; virtual;
     Function CreateLiteralHexNumber(El: TPasElement; const n: TMaxPrecInt; Digits: byte): TJSLiteral; virtual;
     Function CreateLiteralString(El: TPasElement; const s: string): TJSLiteral; virtual;
     Function CreateLiteralJSString(El: TPasElement; const s: TJSString): TJSLiteral; virtual;
@@ -7163,7 +7164,7 @@ begin
 end;
 
 procedure TPas2JSResolver.RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer;
-  const Fmt: String; Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF};
+  const Fmt: String; Args: array of const;
   ErrorPosEl: TPasElement);
 begin
   {$IFDEF VerbosePas2JS}
@@ -17705,7 +17706,7 @@ begin
   revkUInt:
     Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
   revkFloat:
-    Result:=CreateLiteralNumber(El,TResEvalFloat(Value).FloatValue);
+    Result:=CreateLiteralFloat(El,TResEvalFloat(Value).FloatValue);
   {$IFDEF FPC_HAS_CPSTRING}
   revkString:
     Result:=CreateLiteralString(El,TResEvalString(Value).S);
@@ -24258,6 +24259,30 @@ begin
   Result.Value.AsNumber:=n;
 end;
 
+function TPasToJSConverter.CreateLiteralFloat(El: TPasElement;
+  const n: TJSNumber): TJSElement;
+var
+  DivExpr: TJSMultiplicativeExpressionDiv;
+  Lit: TJSLiteral;
+begin
+  if IsInfinite(n) then
+    begin
+    DivExpr:=TJSMultiplicativeExpressionDiv(CreateElement(TJSMultiplicativeExpressionDiv,El));
+    if n<0 then
+      DivExpr.A:=CreateLiteralNumber(El,-1)
+    else
+      DivExpr.A:=CreateLiteralNumber(El,1);
+    DivExpr.B:=CreateLiteralNumber(El,0);
+    Result:=DivExpr;
+    end
+  else
+    begin
+    Lit:=TJSLiteral(CreateElement(TJSLiteral,El));
+    Lit.Value.AsNumber:=n;
+    Result:=Lit;
+    end;
+end;
+
 function TPasToJSConverter.CreateLiteralHexNumber(El: TPasElement;
   const n: TMaxPrecInt; Digits: byte): TJSLiteral;
 begin
@@ -26779,7 +26804,7 @@ begin
 end;
 
 procedure TPasToJSConverter.DoError(Id: TMaxPrecInt; const Msg: String;
-  const Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF});
+  const Args: array of const);
 var
   E: EPas2JS;
 begin
@@ -26791,7 +26816,7 @@ end;
 
 procedure TPasToJSConverter.DoError(Id: TMaxPrecInt; MsgNumber: integer;
   const MsgPattern: string;
-  const Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF};
+  const Args: array of const;
   El: TPasElement);
 var
   E: EPas2JS;

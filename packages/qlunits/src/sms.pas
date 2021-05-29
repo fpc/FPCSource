@@ -12,6 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$PACKRECORDS 2}
 
 unit sms;
 
@@ -21,6 +22,9 @@ interface
 uses
   qdos;
 
+
+{ Variable/type includes before function declarations }
+{$i sms_sysvars.inc}
 
 { the functions declared in smsfuncs.inc are implemented in the system unit. They're included
   here via externals, do avoid double implementation of assembler wrappers. for this reason,

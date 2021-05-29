@@ -61,6 +61,7 @@ unit agarmgas;
     const 
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
+        'armv2',
         'armv3',
         'armv4',
         'armv4t',
@@ -433,6 +434,16 @@ unit agarmgas;
                        s:=s+sep+tostr(taicpu(hp).oper[1]^.val);
                      else
                        internalerror(2003112903);
+                   end;
+                 end
+               { syscall number for vasm does not need a # }
+               else if (target_asm.id=as_arm_vasm) and (i=0) and ((op=A_SWI) or (op=A_SVC)) then
+                 begin
+                   case taicpu(hp).oper[0]^.typ of
+                     top_const:
+                       s:=s+sep+tostr(taicpu(hp).oper[0]^.val);
+                     else
+                       internalerror(2021052301);
                    end;
                  end
                else

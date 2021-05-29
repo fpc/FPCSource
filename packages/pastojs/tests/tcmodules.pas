@@ -7125,11 +7125,15 @@ begin
   '  Test999 = 2.9999999999999;',
   '  Test111999 = 211199999999999000.0;',
   '  TestMinus111999 = -211199999999999000.0;',
+  '  Inf = 1.0 / 0.0;',
+  '  NegInf = -1.0 / 0.0;',
+  'procedure Run(d: double); external name ''Run'';',
   'var',
   '  d: double = b;',
   'begin',
   '  d:=1.0;',
   '  d:=1.0/3.0;',
+  '  d:=1.0/(3-2-1);',
   '  d:=1/3;',
   '  d:=5.0E-324;',
   '  d:=1.7E308;',
@@ -7162,6 +7166,8 @@ begin
   '  d:=double(MinSafeIntDouble2);',
   '  d:=MaxSafeIntDouble;',
   '  d:=default(double);',
+  '  Run(Inf);',
+  '  Run(NegInf);',
   '']);
   ConvertProgram;
   CheckSource('TestDouble',
@@ -7195,11 +7201,14 @@ begin
     'this.Test999 = 2.9999999999999;',
     'this.Test111999 = 211199999999999000.0;',
     'this.TestMinus111999 = -211199999999999000.0;',
-    'this.d = 4.4;'
-    ]),
+    'this.Inf = 1.0 / 0.0;',
+    'this.NegInf = -1.0 / 0.0;',
+    'this.d = 4.4;',
+    '']),
     LinesToStr([
     '$mod.d = 1.0;',
     '$mod.d = 1.0 / 3.0;',
+    '$mod.d = 1.0 / (3 - 2 - 1);',
     '$mod.d = 1 / 3;',
     '$mod.d = 5.0E-324;',
     '$mod.d = 1.7E308;',
@@ -7232,6 +7241,8 @@ begin
     '$mod.d = -9.007199254740992E15;',
     '$mod.d = 9007199254740991;',
     '$mod.d = 0.0;',
+    'Run(1 / 0);',
+    'Run(-1 / 0);',
     '']));
 end;
 
@@ -18003,11 +18014,20 @@ begin
   '{$modeswitch externalclass}',
   'type',
   '  TExtA = class external name ''ExtA''',
+  '  public type',
+  '    TExtB = class external name ''ExtB''',
+  '    public type',
+  '      TExtC = class external name ''ExtC''',
+  '        constructor New;',
+  '        constructor New(i: word);',
+  '      end;',
+  '    end;',
   '    constructor Create;',
   '    constructor Create(i: longint; j: longint = 2);',
   '  end;',
   'var',
   '  A: texta;',
+  '  C: texta.textb.textc;',
   'begin',
   '  a:=texta.create;',
   '  a:=texta(texta.create);',
@@ -18021,11 +18041,15 @@ begin
   '  a:=test1.texta.create;',
   '  a:=test1.texta.create();',
   '  a:=test1.texta.create(3);',
+  '  c:=texta.textb.textc.new;',
+  '  c:=texta.textb.textc.new();',
+  '  c:=texta.textb.textc.new(4);',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_Constructor',
     LinesToStr([ // statements
     'this.A = null;',
+    'this.C = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.A = new ExtA.Create();',
@@ -18038,6 +18062,9 @@ begin
     '$mod.A = new ExtA.Create();',
     '$mod.A = new ExtA.Create();',
     '$mod.A = new ExtA.Create(3,2);',
+    '$mod.C = new ExtA.ExtB.ExtC();',
+    '$mod.C = new ExtA.ExtB.ExtC();',
+    '$mod.C = new ExtA.ExtB.ExtC(4);',
     '']));
 end;
 
