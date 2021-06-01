@@ -12264,6 +12264,7 @@ rtl/unix/unxovlh.inc svneol=native#text/plain
 rtl/unix/x86.pp svneol=native#text/plain
 rtl/wasi/Makefile svneol=native#text/plain
 rtl/wasi/Makefile.fpc svneol=native#text/plain
+rtl/wasi/classes.pp svneol=native#text/plain
 rtl/wasi/rtldefs.inc svneol=native#text/plain
 rtl/wasi/si_prc.pp svneol=native#text/plain
 rtl/wasi/sysdir.inc svneol=native#text/plain
