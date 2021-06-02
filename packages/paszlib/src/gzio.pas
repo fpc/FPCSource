@@ -88,6 +88,7 @@ type gz_stream = record
   transparent : boolean;  { true if input file is not a .gz file }
   mode        : char;     { 'w' or 'r' }
   startpos    : longint;     { start of compressed data in file (header skipped) }
+  total_out : cardinal;  { Total read, over blocks }
 end;
 
 type gz_streamp = ^gz_stream;
@@ -164,6 +165,7 @@ begin
   s^.crc := crc32(0, nil, 0);
   s^.msg := '';
   s^.transparent := false;
+  s^.total_out:=0;
 
   s^.path := path; { limit to 255 chars }
 
@@ -563,7 +565,7 @@ var
 {$endif}
 
 begin
-
+  filelen := 0;
   s := gz_streamp(f);
   start := Pbyte(buf); { starting point for crc computation }
 
@@ -643,7 +645,7 @@ begin
       filecrc := getLong (s);
       filelen := getLong (s);
 
-      if (s^.crc <> filecrc) or (s^.stream.total_out <> filelen)
+      if (s^.crc <> filecrc) or (s^.stream.total_out-s^.total_out <> filelen)
         then s^.z_err := Z_DATA_ERROR
 	else begin
 	  { Check for concatenated .gz files: }
@@ -651,6 +653,7 @@ begin
 	  if (s^.z_err = Z_OK) then begin
             total_in := s^.stream.total_in;
             total_out := s^.stream.total_out;
+            s^.total_out:=total_out;
 
 	    inflateReset (s^.stream);
 	    s^.stream.total_in := total_in;

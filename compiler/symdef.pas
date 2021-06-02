@@ -2531,6 +2531,7 @@ implementation
              begin
                current_module.deflist.Add(self);
                defid:=current_module.deflist.Count-1;
+               registered_in_module:=current_module;
              end;
            maybe_put_in_symtable_stack;
          end

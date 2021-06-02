@@ -5,7 +5,10 @@
 main=rtl
 [target]
 loaders=
-units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst
+units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils \
+      sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts \
+      charset cpall character unicodedata unicodenumtable fpwidestring \
+      classes uuchar dos extpas
 
 [require]
 nortl=y
@@ -57,12 +60,21 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 system$(PPUEXT) : system.pp $(SYSDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fiwasiinc
 
+uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
@@ -82,7 +94,70 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
+# TP7 Compatible RTL Units
+#
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc system$(PPUEXT)
+        $(COMPILER) $<
+
+#
 # Delphi Compatible Units
 #
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) wasiapi$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $< -Fi$(OBJPASDIR)/sysutils
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) \
+                   sortbase$(PPUEXT)
+        $(COMPILER) $< -Fi$(OBJPASDIR)/classes
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) $<
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $<
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) $< -Sg
+
+types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+#
+# Mac Pascal Model
+#
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $< $(REDIR)
+
+#
+# Other system-independent RTL Units
+#
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) $<
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas $(SYSTEMUNIT)$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) $< -Fu$(INC) -Fi$(RTL)/charmaps
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $< -Fi$(OBJPASDIR)
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $< -Fi$(OBJPASDIR)
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
