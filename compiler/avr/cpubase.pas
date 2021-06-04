@@ -162,7 +162,7 @@ unit cpubase;
                                 Operands
 *****************************************************************************}
 
-      taddressmode = (AM_UNCHANGED,AM_POSTINCREMENT,AM_PREDRECEMENT);
+      taddressmode = (AM_UNCHANGED,AM_POSTINCREMENT,AM_PREDECREMENT);
 
 {*****************************************************************************
                                  Constants

@@ -351,7 +351,7 @@ Unit raavrgas;
                 begin
                   { Special handling of predecrement addressing }
                   oper.InitRef;
-                  oper.opr.ref.addressmode:=AM_PREDRECEMENT;
+                  oper.opr.ref.addressmode:=AM_PREDECREMENT;
 
                   consume(AS_MINUS);
 
