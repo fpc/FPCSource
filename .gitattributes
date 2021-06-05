@@ -15010,6 +15010,7 @@ tests/test/tcustomattr6.pp svneol=native#text/pascal
 tests/test/tcustomattr7.pp svneol=native#text/pascal
 tests/test/tcustomattr8.pp svneol=native#text/pascal
 tests/test/tcustomattr9.pp svneol=native#text/pascal
+tests/test/tcustomvar1.pp svneol=native#text/pascal
 tests/test/tdefault1.pp svneol=native#text/pascal
 tests/test/tdefault10.pp svneol=native#text/pascal
 tests/test/tdefault11.pp svneol=native#text/pascal
