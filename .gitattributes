@@ -17600,7 +17600,6 @@ tests/webtbs/tw17836.pp svneol=native#text/plain
 tests/webtbs/tw17838.pp svneol=native#text/pascal
 tests/webtbs/tw17846.pp svneol=native#text/plain
 tests/webtbs/tw17862.pp svneol=native#text/plain
-tests/webtbs/tw17904.pas svneol=native#text/plain
 tests/webtbs/tw17904.pp svneol=native#text/plain
 tests/webtbs/tw17907/main/main.pas svneol=native#text/plain
 tests/webtbs/tw17907/test.bat svneol=native#text/plain
