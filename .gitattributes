@@ -15096,6 +15096,7 @@ tests/test/testv8.pp svneol=native#text/plain
 tests/test/testv9.pp svneol=native#text/plain
 tests/test/texception1.pp svneol=native#text/plain
 tests/test/texception10.pp svneol=native#text/plain
+tests/test/texception11.pp svneol=native#text/pascal
 tests/test/texception2.pp svneol=native#text/plain
 tests/test/texception3.pp svneol=native#text/plain
 tests/test/texception4.pp svneol=native#text/plain
