@@ -16205,6 +16205,7 @@ tests/test/units/crt/tcrt.pp svneol=native#text/plain
 tests/test/units/crt/tctrlc.pp svneol=native#text/plain
 tests/test/units/dateutil/test_scandatetime_ampm.pas svneol=native#text/plain
 tests/test/units/dateutil/testscandatetime.pas svneol=native#text/plain
+tests/test/units/dateutil/tiso8601.pp svneol=native#text/plain
 tests/test/units/dateutil/tunitdt1.pp svneol=native#text/pascal
 tests/test/units/dos/hello.pp svneol=native#text/plain
 tests/test/units/dos/tbreak.pp svneol=native#text/plain
