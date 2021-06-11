@@ -32,6 +32,31 @@
   {$define USEINLINE}
 {$endif EXTDEBUG}
 
+{$ifdef DEBUG_ALL_OPT}
+  { for aopt unit }
+  {$define DEBUG_OPTALLOC}
+  {$define DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
+  {for CPU/aoptcpu unit }
+  {$define DEBUG_AOPTCPU}
+  {$define DEBUG_PREREGSCHEDULER (arm specific) }
+  { for aoptobj unit }
+  {$define DEBUG_AOPTOBJ}
+  {$define ALLOCREGDEBUG}
+  { for optconstprop unit }
+  {$define DEBUG_CONSTPROP}
+  { for optcse unit }
+  {$define CSEDEBUG}
+  { for optdeadstore unit }
+  {$define DEBUG_DEADSTORE}
+  { for optdfa unit }
+  {$define DEBUG_DFA}
+  { for optloop unit }
+  {$define DEBUG_OPTFORLOOP}
+  {$define DEBUG_OPTSTRENGTH}
+  { for optvirt unit }
+  {$define DEBUG_DEVIRT}
+{$endif}
+
 {$define USEEXCEPT}
 
 { This fake CPU is used to allow incorporation of globtype unit
