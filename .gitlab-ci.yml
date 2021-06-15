@@ -1,0 +1,9 @@
+image: quay.io/loesje/gitlab-ci-fpc-buildimage
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - make all
