@@ -11,7 +11,7 @@ build:
     - make full TEST_FPC=$(pwd)/../compiler/ppcx64
     - make digest TEST_FPC=$(pwd)/../compiler/ppcx64 > digest.txt
   artifacts:
-    name: "TestResults-$CI_COMMMIT_REF_NAME"
+    name: "TestResults-$CI_COMMIT_REF_NAME"
     paths:
       - tests/digest.txt
       - tests/output/x86_64-linux/faillist
