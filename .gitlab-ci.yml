@@ -8,8 +8,8 @@ build:
   script:
     - make all
     - cd tests
-    - make full TEST_FPC=../compiler/ppcx64
-    - make digest TEST_FPC=../compiler/ppcx64 > digest.txt
+    - make full TEST_FPC=$(pwd)/../compiler/ppcx64
+    - make digest TEST_FPC=$(pwd)/../compiler/ppcx64 > digest.txt
   artifacts:
     name: "TestResults-$CI_COMMMIT_REF_NAME"
     paths:
