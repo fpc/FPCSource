@@ -21614,7 +21614,7 @@
     ops     : 2;
     optypes : (ot_xmmreg_mz,ot_xmmrm,ot_none,ot_none);
     code    : #232#234#248#1#91#72;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_tfv]
   ),
   (
     opcode  : A_VCVTQQ2PS;
@@ -21768,7 +21768,7 @@
     ops     : 2;
     optypes : (ot_xmmreg_mz,ot_xmmrm,ot_none,ot_none);
     code    : #232#234#248#1#120#72;
-    flags   : [if_avx512]
+    flags   : [if_avx512,if_tfv]
   ),
   (
     opcode  : A_VCVTTPD2UDQ;
