@@ -3409,6 +3409,9 @@ endif
 ifdef LLVM
 FPMAKE_OPT+=--LLVM=1
 endif
+ifdef NOLLVM
+FPMAKE_OPT+=--NOLLVM=1
+endif
 .NOTPARALLEL:
 PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
 CLEAN_TARGETS=$(addsuffix _clean,$(sort $(PPC_TARGETS)))
