@@ -2071,8 +2071,21 @@ end;
 
 
 Function SameDateTime(const A, B: TDateTime): Boolean;
+
+  function MS(X: Double): Int64;
+  begin
+    if X >= 0 then
+      X := X * MSecsPerDay + 0.5
+    else if X > -1.0 then
+      X := -X * MSecsPerDay + 0.5
+    else
+      X := X * MSecsPerDay - 0.5;
+
+    Result := Trunc(X);
+  end;
+
 begin
-  Result:=Abs(A-B)<OneMilliSecond;
+  Result := MS(A) = MS(B);
 end;
 
 
