@@ -27,18 +27,52 @@ begin
 end;
 
 procedure Do_Erase(p: pchar; pchangeable: boolean);
+var
+  fd: __wasi_fd_t;
+  pr: PChar;
+  res: __wasi_errno_t;
 begin
-  DebugWriteLn('Do_Erase');
+  if not ConvertToFdRelativePath(p,fd,pr) then
+    exit;
+  res:=__wasi_path_unlink_file(fd,pr,StrLen(pr));
+  if res=__WASI_ERRNO_SUCCESS then
+    InOutRes:=0
+  else
+    InOutRes:=Errno2InoutRes(res);
+  FreeMem(pr);
 end;
 
 procedure do_truncate (handle:thandle;fpos:int64);
+var
+  res: __wasi_errno_t;
 begin
-  DebugWriteLn('do_truncate');
+  res:=__wasi_fd_filestat_set_size(handle,fpos);
+  if res=__WASI_ERRNO_SUCCESS then
+    InOutRes:=0
+  else
+    InOutRes:=Errno2InoutRes(res);
 end;
 
 procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
+var
+  fd1,fd2: __wasi_fd_t;
+  pr1,pr2: PChar;
+  res: __wasi_errno_t;
 begin
-  DebugWriteLn('Do_Rename');
+  if not ConvertToFdRelativePath(p1,fd1,pr1) then
+    exit;
+  if not ConvertToFdRelativePath(p2,fd2,pr2) then
+  begin
+    FreeMem(pr1);
+    exit;
+  end;
+  res:=__wasi_path_rename(fd1,pr1,StrLen(pr1),fd2,pr2,StrLen(pr2));
+  if res=__WASI_ERRNO_SUCCESS then
+    InOutRes:=0
+  else
+    InOutRes:=Errno2InoutRes(res);
+  FreeMem(pr1);
+  FreeMem(pr2);
 end;
 
 function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
@@ -88,23 +122,69 @@ begin
 end;
 
 function Do_FilePos(Handle: thandle):Int64;
+var
+  res: __wasi_errno_t;
+  fpos:__wasi_filesize_t;
 begin
-  DebugWriteLn('Do_FilePos');
+  res:=__wasi_fd_tell(Handle,@fpos);
+  if res=__WASI_ERRNO_SUCCESS then
+  begin
+    InOutRes:=0;
+    Do_FilePos:=fpos;
+  end
+  else
+  begin
+    InOutRes:=Errno2InoutRes(res);
+    Do_FilePos:=-1;
+  end;
 end;
 
 procedure Do_Seek(Handle:thandle;Pos:Int64);
+var
+  res: __wasi_errno_t;
+  newoffset: __wasi_filesize_t;
 begin
-  DebugWriteLn('Do_Seek');
+  res:=__wasi_fd_seek(Handle,Pos,__WASI_WHENCE_SET,@newoffset);
+  if res=__WASI_ERRNO_SUCCESS then
+    InOutRes:=0
+  else
+    InOutRes:=Errno2InoutRes(res);
 end;
 
 function Do_Seekend(Handle:thandle):Int64;
+var
+  res: __wasi_errno_t;
+  newoffset: __wasi_filesize_t;
 begin
-  DebugWriteLn('Do_Seekend');
+  res:=__wasi_fd_seek(Handle,0,__WASI_WHENCE_END,@newoffset);
+  if res=__WASI_ERRNO_SUCCESS then
+  begin
+    InOutRes:=0;
+    Do_Seekend:=newoffset;
+  end
+  else
+  begin
+    InOutRes:=Errno2InoutRes(res);
+    Do_Seekend:=-1;
+  end;
 end;
 
 function Do_FileSize(Handle:thandle):Int64;
+var
+  res: __wasi_errno_t;
+  buf: __wasi_filestat_t;
 begin
-  DebugWriteLn('Do_FileSize');
+  res:=__wasi_fd_filestat_get(Handle, @buf);
+  if res=__WASI_ERRNO_SUCCESS then
+  begin
+    InOutRes:=0;
+    Do_FileSize:=buf.size;
+  end
+  else
+  begin
+    InOutRes:=Errno2InoutRes(res);
+    Do_FileSize:=0;
+  end;
 end;
 
 procedure Do_Open(var f; p: pchar; flags: longint; pchangeable: boolean);
@@ -121,6 +201,8 @@ var
   fdflags: __wasi_fdflags_t = 0;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
+  pr: PChar;
+  fd: __wasi_fd_t;
 Begin
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -140,15 +222,44 @@ Begin
 { We do the conversion of filemodes here, concentrated on 1 place }
   case (flags and 3) of
    0 : begin
-         fs_rights_base :=__WASI_RIGHTS_FD_READ;
+         fs_rights_base :=__WASI_RIGHTS_FD_READ or
+                          __WASI_RIGHTS_FD_FILESTAT_GET or
+                          __WASI_RIGHTS_FD_SEEK or
+                          __WASI_RIGHTS_FD_TELL or
+                          __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                          __WASI_RIGHTS_FD_ADVISE or
+                          __WASI_RIGHTS_POLL_FD_READWRITE;
          FileRec(f).mode:=fminput;
        end;
    1 : begin
-         fs_rights_base :=__WASI_RIGHTS_FD_WRITE;
+         fs_rights_base :=__WASI_RIGHTS_FD_WRITE or
+                          __WASI_RIGHTS_FD_FILESTAT_GET or
+                          __WASI_RIGHTS_FD_SEEK or
+                          __WASI_RIGHTS_FD_TELL or
+                          __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                          __WASI_RIGHTS_FD_ADVISE or
+                          __WASI_RIGHTS_POLL_FD_READWRITE or
+                          __WASI_RIGHTS_FD_FILESTAT_SET_SIZE or
+                          __WASI_RIGHTS_FD_FILESTAT_SET_TIMES or
+                          __WASI_RIGHTS_FD_ALLOCATE or
+                          __WASI_RIGHTS_FD_DATASYNC or
+                          __WASI_RIGHTS_FD_SYNC;
          FileRec(f).mode:=fmoutput;
        end;
    2 : begin
-         fs_rights_base :=__WASI_RIGHTS_FD_READ or __WASI_RIGHTS_FD_WRITE;
+         fs_rights_base :=__WASI_RIGHTS_FD_READ or
+                          __WASI_RIGHTS_FD_WRITE or
+                          __WASI_RIGHTS_FD_FILESTAT_GET or
+                          __WASI_RIGHTS_FD_SEEK or
+                          __WASI_RIGHTS_FD_TELL or
+                          __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                          __WASI_RIGHTS_FD_ADVISE or
+                          __WASI_RIGHTS_POLL_FD_READWRITE or
+                          __WASI_RIGHTS_FD_FILESTAT_SET_SIZE or
+                          __WASI_RIGHTS_FD_FILESTAT_SET_TIMES or
+                          __WASI_RIGHTS_FD_ALLOCATE or
+                          __WASI_RIGHTS_FD_DATASYNC or
+                          __WASI_RIGHTS_FD_SYNC;
          FileRec(f).mode:=fminout;
        end;
   end;
@@ -174,12 +285,14 @@ Begin
      end;
      exit;
    end;
+  if not ConvertToFdRelativePath(p,fd,pr) then
+    exit;
 { real open call }
   repeat
-    res:=__wasi_path_open(3,  { not sure about this fd... }
+    res:=__wasi_path_open(fd,
                           0,
-                          p,
-                          strlen(p),
+                          pr,
+                          strlen(pr),
                           oflags,
                           fs_rights_base,
                           fs_rights_base,
@@ -203,4 +316,5 @@ Begin
       FileRec(f).Handle:=ourfd;
       InOutRes:=0;
     end;
+  FreeMem(pr);
 end;

@@ -1,6 +1,8 @@
 * text=auto !eol
+/LICENSE svneol=native#text/plain
 /Makefile svneol=native#text/plain
 /Makefile.fpc svneol=native#text/plain
+/README.md svneol=native#text/plain
 compiler/COPYING.txt svneol=native#text/plain
 compiler/MPWMake -text
 compiler/Makefile svneol=native#text/plain

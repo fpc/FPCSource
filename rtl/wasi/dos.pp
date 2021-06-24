@@ -24,7 +24,7 @@ Type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
-//    SearchPos  : TOff;        {directory position}
+    SearchPos  : UInt64;      {directory position}
     SearchNum  : LongInt;     {to track which search this is}
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
@@ -46,7 +46,7 @@ Type
 
 {Extra Utils}
 //function weekday(y,m,d : longint) : longint; platform;
-//Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime); platform;
+Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime); platform;
 //Function  DTToUnixDate(DT: DateTime): LongInt; platform;
 
 {Disk}
@@ -54,11 +54,8 @@ Type
 
 Implementation
 
-//Uses
-//  UnixUtil,
-//  Strings,
-//  Unix,
-//  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+Uses
+  WasiAPI;
 
 {$DEFINE HAS_GETMSCOUNT}
 
@@ -72,15 +69,15 @@ Implementation
                            --- Link C Lib if set ---
 ******************************************************************************}
 
-{type
+type
   RtlInfoType = Record
-    FMode,
-    FInode,
+    FMode: LongInt;
+    {FInode,
     FUid,
-    FGid,
-    FSize,
-    FMTime : LongInt;
-  End;}
+    FGid,}
+    FSize: __wasi_filesize_t;
+    FMTime: __wasi_timestamp_t;
+  End;
 
 
 {******************************************************************************
@@ -140,8 +137,45 @@ begin
 end;
 
 
-Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime);
+Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime);
+const
+  days_in_month: array [boolean, 1..12] of Byte =
+    ((31,28,31,30,31,30,31,31,30,31,30,31),
+     (31,29,31,30,31,30,31,31,30,31,30,31));
+var
+  leap: Boolean;
+  days_in_year: LongInt;
 Begin
+  { todo: convert UTC to local time, as soon as we can get the local timezone
+    from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+  NanoSecsPast:=NanoSecsPast div 1000000000;
+  Dt.Sec:=NanoSecsPast mod 60;
+  NanoSecsPast:=NanoSecsPast div 60;
+  Dt.Min:=NanoSecsPast mod 60;
+  NanoSecsPast:=NanoSecsPast div 60;
+  Dt.Hour:=NanoSecsPast mod 24;
+  NanoSecsPast:=NanoSecsPast div 24;
+  Dt.Year:=1970;
+  leap:=false;
+  days_in_year:=365;
+  while NanoSecsPast>=days_in_year do
+  begin
+    Dec(NanoSecsPast,days_in_year);
+    Inc(Dt.Year);
+    leap:=((Dt.Year mod 4)=0) and (((Dt.Year mod 100)<>0) or ((Dt.Year mod 400)=0));
+    if leap then
+      days_in_year:=366
+    else
+      days_in_year:=365;
+  end;
+  Dt.Month:=1;
+  Inc(NanoSecsPast);
+  while NanoSecsPast>days_in_month[leap,Dt.Month] do
+  begin
+    Dec(NanoSecsPast,days_in_month[leap,Dt.Month]);
+    Inc(Dt.Month);
+  end;
+  Dt.Day:=Word(NanoSecsPast);
 End;
 
 
@@ -371,22 +405,32 @@ End;
 
 
 Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
-{var
+var
+  s_ansi: ansistring;
   DT   : DateTime;
   Info : RtlInfoType;
-  st   : baseunix.stat;}
+  st   : __wasi_filestat_t;
+  fd   : __wasi_fd_t;
+  pr   : PChar;
 begin
-{  FindGetFileInfo:=false;
-  if not fpstat(s,st)>=0 then
-   exit;
-  info.FSize:=st.st_Size;
-  info.FMTime:=st.st_mtime;
-  if (st.st_mode and STAT_IFMT)=STAT_IFDIR then
+  FindGetFileInfo:=false;
+  s_ansi:=s;
+  if not ConvertToFdRelativePath(PChar(s_ansi),fd,pr) then
+    exit;
+  { todo: __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW??? }
+  if __wasi_path_filestat_get(fd,0,pr,StrLen(pr),@st)<>__WASI_ERRNO_SUCCESS then
+    begin
+      FreeMem(pr);
+      exit;
+    end;
+  info.FSize:=st.size;
+  info.FMTime:=st.mtim;
+  if st.filetype=__WASI_FILETYPE_DIRECTORY then
    info.fmode:=$10
   else
    info.fmode:=$0;
-  if (st.st_mode and STAT_IWUSR)=0 then
-   info.fmode:=info.fmode or 1;
+  {if (st.st_mode and STAT_IWUSR)=0 then
+   info.fmode:=info.fmode or 1;}
   if s[f.NamePos+1]='.' then
    info.fmode:=info.fmode or $2;
 
@@ -395,11 +439,12 @@ begin
      f.Name:=Copy(s,f.NamePos+1,255);
      f.Attr:=Info.FMode;
      f.Size:=Info.FSize;
-     f.mode:=st.st_mode;
-     UnixDateToDT(Info.FMTime, DT);
+     {f.mode:=st.st_mode;}
+     WasiDateToDT(Info.FMTime, DT);
      PackTime(DT,f.Time);
      FindGetFileInfo:=true;
-   End;}
+   End;
+  FreeMem(pr);
 end;
 
 
@@ -527,7 +572,7 @@ Procedure FindFirst(Const Path: PathStr; Attr: Word; Var f: SearchRec);
   opens dir and calls FindWorkProc
 }
 Begin
-(*  fillchar(f,sizeof(f),0);
+  fillchar(f,sizeof(f),0);
   if Path='' then
    begin
      DosError:=3;
@@ -539,7 +584,7 @@ Begin
   f.SearchAttr := Attr or archive or readonly;
   f.SearchPos  := 0;
   f.NamePos := Length(f.SearchSpec);
-  while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
+  while (f.NamePos>0) and (f.SearchSpec[f.NamePos] in ['/','\']) do
    dec(f.NamePos);
 {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
@@ -565,7 +610,7 @@ Begin
      f.SearchNum:=CurrSearchNum;
      f.SearchType:=0;
      FindNext(f);
-   end;*)
+   end;
 End;
 
 
@@ -623,20 +668,28 @@ Begin
 end;
 
 Procedure getftime (var f; var time : longint);
-{Var
-  Info: baseunix.stat;
-  DT: DateTime;}
+Var
+  res: __wasi_errno_t;
+  Info: __wasi_filestat_t;
+  DT: DateTime;
 Begin
-{  doserror:=0;
-  if fpfstat(filerec(f).handle,info)<0 then
+  doserror:=0;
+  res:=__wasi_fd_filestat_get(filerec(f).handle,@Info);
+  if res<>__WASI_ERRNO_SUCCESS then
    begin
      Time:=0;
-     doserror:=6;
+     case res of
+       __WASI_ERRNO_ACCES,
+       __WASI_ERRNO_NOTCAPABLE:
+         doserror:=5;
+       else
+         doserror:=6;
+     end;
      exit
    end
   else
-   UnixDateToDT(Info.st_mTime,DT);
-  PackTime(DT,Time);}
+   WasiDateToDt(Info.mtim,DT);
+  PackTime(DT,Time);
 End;
 
 Procedure setftime(var f; time : longint);
@@ -679,54 +732,66 @@ End;
 ******************************************************************************}
 
 Function EnvCount: Longint;
-{var
+var
   envcnt : longint;
-  p      : ppchar;}
+  p      : ppchar;
 Begin
-(*  envcnt:=0;
-  p:=envp;      {defined in syslinux}
-  while (p^<>nil) do
-   begin
-     inc(envcnt);
-     inc(p);
-   end;
-  EnvCount := envcnt*)
+  envcnt:=0;
+  p:=envp;      {defined in system}
+  if p<>nil then
+    while p^<>nil do
+      begin
+        inc(envcnt);
+        inc(p);
+      end;
+  EnvCount := envcnt
 End;
 
 
 Function EnvStr (Index: longint): String;
-{Var
+Var
   i : longint;
-  p : ppchar;}
+  p : ppchar;
 Begin
-(*  if Index <= 0 then
+  if (Index <= 0) or (envp=nil) then
     envstr:=''
   else
     begin
-      p:=envp;      {defined in syslinux}
+      p:=envp;      {defined in system}
       i:=1;
       while (i<Index) and (p^<>nil) do
         begin
           inc(i);
           inc(p);
         end;
-      if p=nil then
+      if p^=nil then
         envstr:=''
       else
         envstr:=strpas(p^)
-    end;*)
+    end;
 end;
 
 
 Function GetEnv(EnvVar: String): String;
-{var
-  p     : pchar;}
+var
+  hp : ppchar;
+  hs : string;
+  eqpos : longint;
 Begin
-{  p:=BaseUnix.fpGetEnv(EnvVar);
-  if p=nil then
-   GetEnv:=''
-  else
-   GetEnv:=StrPas(p);}
+  getenv:='';
+  hp:=envp;
+  if hp<>nil then
+    while assigned(hp^) do
+      begin
+        hs:=strpas(hp^);
+        eqpos:=pos('=',hs);
+        if copy(hs,1,eqpos-1)=envvar then
+          begin
+            getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
+            break;
+          end;
+        inc(hp);
+      end;
 End;
 
 
