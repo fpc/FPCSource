@@ -10152,6 +10152,7 @@ packages/x11/src/sunkeysym.pp svneol=native#text/plain
 packages/x11/src/x.pp svneol=native#text/plain
 packages/x11/src/xatom.pp svneol=native#text/plain
 packages/x11/src/xcms.pp svneol=native#text/plain
+packages/x11/src/xext.pp svneol=native#text/plain
 packages/x11/src/xf86dga.pp svneol=native#text/plain
 packages/x11/src/xf86dga1.inc svneol=native#text/plain
 packages/x11/src/xf86keysym.pp svneol=native#text/plain
