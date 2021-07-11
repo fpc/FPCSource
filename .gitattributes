@@ -10178,6 +10178,7 @@ packages/x11/src/xshm.pp svneol=native#text/plain
 packages/x11/src/xutil.pp svneol=native#text/plain
 packages/x11/src/xv.pp svneol=native#text/plain
 packages/x11/src/xvlib.pp svneol=native#text/plain
+packages/x11/tests/mitmisc_linktest.pp svneol=native#text/plain
 packages/x11/tests/xfixes_linktest.pp svneol=native#text/plain
 packages/x11/tests/xge_linktest.pp svneol=native#text/plain
 packages/x11/tests/xinput2_linktest.pp svneol=native#text/plain
