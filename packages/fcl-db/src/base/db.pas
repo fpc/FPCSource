@@ -1278,6 +1278,7 @@ type
     Procedure SetAsBCD(const AValue: Currency);
     Procedure SetAsBlob(const AValue: TBlobData);
     Procedure SetAsBoolean(AValue: Boolean);
+    Procedure SetAsByte(const AValue: LongInt);
     Procedure SetAsBytes(const AValue: TBytes);
     Procedure SetAsCurrency(const AValue: Currency);
     Procedure SetAsDate(const AValue: TDateTime);
@@ -1317,6 +1318,7 @@ type
     Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
     Property AsBlob : TBlobData read GetAsBytes write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
+    Property AsByte : LongInt read GetAsInteger write SetAsByte;
     Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
     Property AsDate : TDateTime read GetAsDateTime write SetAsDate;
