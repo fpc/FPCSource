@@ -927,7 +927,7 @@ Var
 begin
   B:=FEncoding.GetBytes(AString);
   if Length(B)>0 then
-    WriteBuffer(B[0],Length(Bytes));
+    WriteBuffer(B[0],Length(B));
 end;
 
 function TStringStream.ReadAnsiString(Count: Longint): AnsiString;
