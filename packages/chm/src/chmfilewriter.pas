@@ -1236,14 +1236,26 @@ begin
 end;
 
 procedure TChmProject.LoadSitemaps;
+
+function tryfn(fn: string;var fnout : string):boolean;
+begin
+  result:=true;
+  fnout:= IncludeTrailingPathDelimiter(ProjectDir()) + ExtractFileName(fn);
+  if not FileExists(fnout) then
+    begin
+      fnout:=fn;
+      if not FileExists(fnout) then
+         result:=false;
+    end;
+end;
+
 var
   FullFileName: string;
 // #IDXHDR (merged files) goes into the system file, and need to keep  TOC sitemap around
 begin
    if FTableOfContentsFileName<>'' then
    begin
-     FullFileName := IncludeTrailingPathDelimiter(ProjectDir()) + ExtractFileName(FTableOfContentsFileName);
-     if FileExists(FullFileName) then
+     if tryfn(FTableOfContentsFileName,FullFileName) then
        begin
          FreeAndNil(FTocStream);
          FTocStream:=TMemoryStream.Create;
@@ -1267,8 +1279,7 @@ begin
    end;
    if FIndexFileName<>'' then
      begin
-       FullFileName := IncludeTrailingPathDelimiter(ProjectDir()) + ExtractFileName(FIndexFileName);
-       if FileExists(FullFileName) then
+       if tryfn(FIndexFileName,FullFileName) then
          begin
             FreeAndNil(FIndexStream);
             FIndexStream:=TMemoryStream.Create;
