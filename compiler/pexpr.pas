@@ -239,7 +239,7 @@ implementation
                result can be wrong }
            end;
 
-         if might_have_sideeffects(p1,[mhs_exceptions]) then
+         if might_have_sideeffects(p1,[]) then
            begin
              typecheckpass(p1);
              result:=internalstatements(newstatement);
