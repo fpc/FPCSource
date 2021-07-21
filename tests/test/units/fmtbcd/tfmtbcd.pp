@@ -253,7 +253,6 @@ begin
   bcd:=strtobcd('0');
   testFormatBCD('0;;0',bcd, '0');
   testFormatBCD('0;;#',bcd, '');
-  testFormatBCD('0;;0.#',bcd, '0');
   testFormatBCD('0;;0.00',bcd, '0.00');
 
   // test StrToBCD:
@@ -302,6 +301,8 @@ begin
   testBCDCompare(-100.1, 100.1, -1);
   testBCDCompare(-100.1, -100.2, 1);
   testBCDCompare(100, 100.1, -1);
+  testBCDCompare(DoubleToBcd(0), 0, 0);
+  testBCDCompare(CurrToBcd(0), 0, 0);
   testBCDCompare(CurrToBcd(0.01), CurrToBcd(0.001), 1); // BCD values with Precision<Scale
   testBCDCompare(CurrToBcd(0.01), 0.01, 0);
 
