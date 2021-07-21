@@ -523,6 +523,9 @@
 
 
       function TObject.FieldAddress(const name : shortstring) : pointer;
+
+         {The following is copied to the typinfo unit. If it is changed here, change it there as well ! }
+
         type
            PFieldInfo = ^TFieldInfo;
            TFieldInfo =
