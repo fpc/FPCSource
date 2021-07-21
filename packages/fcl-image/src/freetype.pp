@@ -687,8 +687,8 @@ begin
         begin
         with gl^.advance do
           begin
-          advanceX := x div 64;
-          advanceY := y div 64;
+          advanceX := x shr 16;
+          advanceY := y shr 16;
           end;
         with bm^ do
           begin
@@ -814,8 +814,8 @@ begin
       begin
       with gl^.advance do
         begin
-        advanceX := x shr 6;
-        advanceY := y shr 6;
+        advanceX := x shr 16;
+        advanceY := y shr 16;
         end;
       with bm^ do
         begin
