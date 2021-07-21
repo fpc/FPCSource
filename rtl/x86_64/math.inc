@@ -292,19 +292,17 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
             movw oldcw,%cx
             orw $0x0c3f,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
             fldt d
             frndint
             fldt d
             fsub %st(1),%st
             fstp %st(1)
-            fnclex
             fldcw oldcw
+            fwait
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
 
