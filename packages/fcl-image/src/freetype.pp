@@ -1000,7 +1000,7 @@ begin
   While (l<Count) and (BitMaps[l]^.Width=0) and (BitMaps[l]^.Height=0) do
     Inc(l);
   if L<Count then
-    with BitMaps[0]^ do
+    with BitMaps[L]^ do
       begin
       FBounds.left := x;
       FBounds.top := y + height;
