@@ -106,3 +106,117 @@ Function TORDINALHELPER.TestBit(const Index: TORDINALBITINDEX):Boolean; inline;
 begin
   Result := (Self and TORDINALTYPE((TORDINALTYPE(1) shl index)))<>0;
 end;
+
+procedure TORDINALHELPER.Clear;
+begin
+  Self := 0;
+end;
+
+function TORDINALHELPER.HighestSetBitPos: cardinal;
+begin
+  {$ifdef TORDINALTYPESIZE1}
+        Result := BsrByte(byte(Self));
+  {$else}
+    {$ifdef TORDINALTYPESIZE2}
+        Result := BsrWord(word(Self));
+    {$else}
+      {$ifdef TORDINALTYPESIZE4}
+        Result := BsrDWord(dword(Self));
+      {$else} // TORDINALTYPESIZE8
+        Result := BsrQWord(qword(Self));
+      {$endif}
+    {$endif}
+  {$endif}
+end;
+
+function TORDINALHELPER.LowestSetBitPos: cardinal;
+begin
+  {$ifdef TORDINALTYPESIZE1}
+        Result := BsfByte(byte(Self));
+  {$else}
+    {$ifdef TORDINALTYPESIZE2}
+        Result := BsfWord(word(Self));
+    {$else}
+      {$ifdef TORDINALTYPESIZE4}
+        Result := BsfDWord(dword(Self));
+      {$else} // TORDINALTYPESIZE8
+        Result := BsfQWord(qword(Self));
+      {$endif}
+    {$endif}
+  {$endif}
+end;
+
+function TORDINALHELPER.SetBitsCount: byte;
+begin
+  {$ifdef TORDINALTYPESIZE1}
+        Result := PopCnt(byte(Self));
+  {$else}
+    {$ifdef TORDINALTYPESIZE2}
+        Result := PopCnt(word(Self));
+    {$else}
+      {$ifdef TORDINALTYPESIZE4}
+        Result := PopCnt(dword(Self));
+      {$else} // TORDINALTYPESIZE8
+        Result := PopCnt(qword(Self));
+      {$endif}
+    {$endif}
+  {$endif}
+end;
+
+function TORDINALHELPER.GetBit(const aIndex: TORDINALBITINDEX): boolean;
+begin
+  Result := ((Self shr aIndex) and TORDINALTYPE(1)) = TORDINALTYPE(1);
+end;
+
+procedure TORDINALHELPER.PutBit(const aIndex: TORDINALBITINDEX; const aNewValue: boolean);
+begin
+  Self := Self or (TORDINALTYPE(1) shl aIndex) xor (TORDINALTYPE(not aNewValue) shl aIndex);
+end;
+
+function TORDINALHELPER.GetNibble(const aIndex: TORDINALNIBBLEINDEX): nibble;
+begin
+  Result := TORDINALOVERLAY(Self).AsNibble[aIndex];
+end;
+
+procedure TORDINALHELPER.PutNibble(const aIndex: TORDINALNIBBLEINDEX; const aNewValue: nibble);
+begin
+  TORDINALOVERLAY(Self).AsNibble[aIndex] := aNewValue;
+end;
+
+{$ifndef TORDINALTYPESIZE1} // TWordHelper, TDWordHelper, TQWordHelper jump in here (and others with 2, 4 and 8 bytes)
+  function TORDINALHELPER.GetByte(const aIndex: TORDINALBYTEINDEX): byte;
+  begin
+    Result := TORDINALOVERLAY(Self).AsByte[aIndex];
+  end;
+
+  procedure TORDINALHELPER.PutByte(const aIndex: TORDINALBYTEINDEX; const aNewValue: byte);
+  begin
+    TORDINALOVERLAY(Self).AsByte[aIndex] := aNewValue;
+  end;
+
+  {$ifndef TORDINALTYPESIZE2} // TDWordHelper, TQWordHelper jump in here (and others with 4 and 8 bytes)
+    function TORDINALHELPER.GetWord(const aIndex: TORDINALWORDINDEX): word;
+    begin
+      Result := TORDINALOVERLAY(Self).AsWord[aIndex];
+    end;
+
+    procedure TORDINALHELPER.PutWord(const aIndex: TORDINALWORDINDEX; const aNewValue: word);
+    begin
+      TORDINALOVERLAY(Self).AsWord[aIndex] := aNewValue;
+    end;
+
+    {$ifndef TORDINALTYPESIZE4} // TQWordHelper jumps in here (and others with 8 bytes)
+      function TORDINALHELPER.GetDword(const aIndex: TORDINALDWORDINDEX): dword;
+      begin
+        Result := TORDINALOVERLAY(Self).AsDword[aIndex];
+      end;
+
+      procedure TORDINALHELPER.PutDword(const aIndex: TORDINALDWORDINDEX; const aNewValue: dword);
+      begin
+        TORDINALOVERLAY(Self).AsDword[aIndex] := aNewValue;
+      end;
+    {$endif}
+
+  {$endif}
+
+{$endif}
