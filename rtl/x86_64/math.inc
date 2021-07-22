@@ -1,3 +1,4 @@
+
 {
     Implementation of mathematical routines for x86_64
 
@@ -292,15 +293,14 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
+            fldt d
             movw oldcw,%cx
             orw $0x0c3f,%cx
             movw %cx,newcw
             fldcw newcw
-            fldt d
+            fld %st
             frndint
-            fldt d
-            fsub %st(1),%st
-            fstp %st(1)
+            fsubrp %st,%st(1)
             fldcw oldcw
             fwait
       end;
