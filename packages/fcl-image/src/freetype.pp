@@ -807,7 +807,7 @@ begin
       end;
     // render the glyph
     FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
-    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString4);
+    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, PFT_Vector(0), true),sErrMakingString4);
     // Copy what is needed to record
     bm := PFT_BitmapGlyph(gl);
     with ABitmaps.Bitmaps[r]^ do
@@ -842,11 +842,8 @@ begin
         end;
       end;
     // place position for next glyph
-    // The previous code in this place used shr 10, which
-    // produces wrongly spaced text and looks very ugly
-    // for more information see: http://bugs.freepascal.org/view.php?id=17156
-    pos.x := pos.x + (gl^.advance.x shr 11);
-    // pos.y := pos.y + (gl^.advance.y shr 6); // for angled texts also
+    // pos is in 26.6 format, whereas advance is in 16.16 format - we need (shr (16-6)) for the conversion
+    pos.x := pos.x + (gl^.advance.x shr 10);
     if prevx > pos.x then
       pos.x := prevx;
     // finish rendered glyph
