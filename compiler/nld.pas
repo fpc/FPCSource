@@ -390,7 +390,13 @@ implementation
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);
-                 end;
+                 end
+               { if this is a nested function and it uses the Self parameter then
+                 consider this as captured as well (needed for anonymous functions) }
+               else if assigned(current_procinfo) and
+                   (vo_is_self in tabstractvarsym(symtableentry).varoptions) and
+                   (symtable.symtablelevel>normal_function_level) then
+                 current_procinfo.add_captured_sym(symtableentry,fileinfo);
                resultdef:=tabstractvarsym(symtableentry).vardef;
 
                { e.g. self for objects is passed as var-parameter on the caller
