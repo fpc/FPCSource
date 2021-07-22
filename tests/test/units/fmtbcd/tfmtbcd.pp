@@ -254,6 +254,7 @@ begin
   testFormatBCD('0;;0',bcd, '0');
   testFormatBCD('0;;#',bcd, '');
   testFormatBCD('0;;0.00',bcd, '0.00');
+  testFormatBCD('0;;0.#',bcd, '0');
 
   // test StrToBCD:
   testBCDPrecScale(' 1.0000000000000000E-0003 ', 3, 3);
