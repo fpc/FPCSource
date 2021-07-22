@@ -46,8 +46,9 @@ interface
           cpo_ignoreframepointer,     // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
           cpo_compilerproc,
           cpo_rtlproc,
-          cpo_generic                 // two different undefined defs (or a constraint in the forward) alone or in open arrays are
+          cpo_generic,                // two different undefined defs (or a constraint in the forward) alone or in open arrays are
                                       // treated as exactly equal (also in open arrays) if they are owned by their respective procdefs
+          cpo_ignoreself              // ignore Self parameter, but leave other hidden parameters
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
@@ -2223,13 +2224,69 @@ implementation
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
       var
+         i1,i2     : byte;
+
+      procedure skip_args;
+        var
+          skipped : boolean;
+        begin
+          repeat
+            skipped:=false;
+            if cpo_ignorehidden in cpoptions then
+              begin
+                while (i1<para1.count) and
+                      (vo_is_hidden_para in tparavarsym(para1[i1]).varoptions) do
+                  begin
+                    inc(i1);
+                    skipped:=true;
+                  end;
+                while (i2<para2.count) and
+                      (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
+                  begin
+                    inc(i2);
+                    skipped:=true;
+                  end;
+              end;
+            if cpo_ignoreself in cpoptions then
+              begin
+                if (i1<para1.count) and
+                   (vo_is_self in tparavarsym(para1[i1]).varoptions) then
+                  begin
+                    inc(i1);
+                    skipped:=true;
+                  end;
+                if (i2<para2.count) and
+                   (vo_is_self in tparavarsym(para2[i2]).varoptions) then
+                  begin
+                    inc(i2);
+                    skipped:=true;
+                  end;
+              end;
+            if cpo_ignoreframepointer in cpoptions then
+              begin
+                if (i1<para1.count) and
+                   (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
+                  begin
+                    inc(i1);
+                    skipped:=true;
+                  end;
+                if (i2<para2.count) and
+                   (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
+                  begin
+                    inc(i2);
+                    skipped:=true;
+                  end;
+              end;
+          until not skipped;
+        end;
+
+      var
         currpara1,
         currpara2 : tparavarsym;
         eq,lowesteq : tequaltype;
         hpd       : tprocdef;
         convtype  : tconverttype;
         cdoptions : tcompare_defs_options;
-        i1,i2     : byte;
       begin
          compare_paras:=te_incompatible;
          cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check];
@@ -2238,24 +2295,7 @@ implementation
          lowesteq:=high(tequaltype);
          i1:=0;
          i2:=0;
-         if cpo_ignorehidden in cpoptions then
-           begin
-             while (i1<para1.count) and
-                   (vo_is_hidden_para in tparavarsym(para1[i1]).varoptions) do
-               inc(i1);
-             while (i2<para2.count) and
-                   (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
-               inc(i2);
-           end;
-         if cpo_ignoreframepointer in cpoptions then
-           begin
-             if (i1<para1.count) and
-                (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
-               inc(i1);
-             if (i2<para2.count) and
-                (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
-               inc(i2);
-           end;
+         skip_args;
          while (i1<para1.count) and (i2<para2.count) do
            begin
              eq:=te_incompatible;
@@ -2433,24 +2473,7 @@ implementation
                 lowesteq:=eq;
               inc(i1);
               inc(i2);
-              if cpo_ignorehidden in cpoptions then
-                begin
-                  while (i1<para1.count) and
-                        (vo_is_hidden_para in tparavarsym(para1[i1]).varoptions) do
-                    inc(i1);
-                  while (i2<para2.count) and
-                        (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
-                    inc(i2);
-                end;
-              if cpo_ignoreframepointer in cpoptions then
-                begin
-                  if (i1<para1.count) and
-                     (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
-                    inc(i1);
-                  if (i2<para2.count) and
-                     (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
-                    inc(i2);
-                end;
+              skip_args;
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
