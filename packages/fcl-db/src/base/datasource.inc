@@ -639,6 +639,7 @@ procedure TDatasource.SetEnabled(Value: Boolean);
 
 begin
   FEnabled:=Value;
+  ProcessEvent(deUpdateState,0);
 end;
 
 
@@ -679,7 +680,7 @@ procedure TDataSource.ProcessEvent(Event : TDataEvent; Info : Ptrint);
 
 Const
     OnDataChangeEvents = [deRecordChange, deDataSetChange, deDataSetScroll,
-                          deLayoutChange,deUpdateState];
+                          deLayoutChange, deUpdateState];
 
 Var
   NeedDataChange : Boolean;
@@ -691,7 +692,7 @@ begin
     begin
     NeedDataChange:=(FState=dsInactive);
     FLastState:=FState;
-    If Assigned(Dataset) then
+    If Assigned(Dataset) and FEnabled then
       FState:=Dataset.State
     else
       FState:=dsInactive;
