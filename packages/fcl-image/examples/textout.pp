@@ -3,10 +3,7 @@
 program textout;
 
 uses
-  {$IFDEF UNIX}cwstring, {$ENDIF} classes, sysutils, FPImage, FPCanvas, FPImgCanv, ftFont, FPWritePNG, freetype;
-
-const
-  MyColor : TFPColor = (Red: $7FFF; Green: $0000; Blue: $FFFF; Alpha: alphaOpaque);
+  {$IFDEF UNIX}cwstring, {$ENDIF} classes, sysutils, Types, FPImage, FPCanvas, FPImgCanv, ftFont, FPWritePNG, freetype;
 
 procedure DoDraw(FN, fnChinese : String);
 
@@ -17,6 +14,7 @@ var
   f : TFreeTypeFont;
   S : String;
   U : UnicodeString;
+  p : TSize;
 
 begin
   f:=Nil;
@@ -48,13 +46,22 @@ begin
       Font.Name:=FN;
       Font.Size:=14;
       Font.FPColor:=colBlack;
+      brush.style:=bsClear;
+      pen.FPColor:=colRed;
       S:='Hello, world!';
       Canvas.TextOut(20,20,S);
       F.Size := 14.5;
       Canvas.TextOut(20,30,S);
-      U:=UTF8Decode('привет, Мир!');
+      F.Angle := -45*2*3.14/360;
+      Canvas.TextOut(160,30,S);
+      p := Canvas.TextExtent(S);
+      Canvas.Rectangle(160,30,160+p.Width-1,30+p.Height-1); // the rectangle is misplaced in the y-direction but that is by design
+      F.Angle := 0;
+      U:=UTF8Decode('привет, Мир!a');
       Font.FPColor:=colBlue;
-      Canvas.TextOut(50,50,U);
+      Canvas.TextOut(30,50,U);
+      p := Canvas.TextExtent(U);
+      Canvas.Rectangle(30,50,30+p.Width-1,50-p.Height+1); // the rectangle is misplaced in the y-direction but that is by design
       if (FNChinese<>'') then
         begin
         Font.Name:=FNChinese;
@@ -82,13 +89,14 @@ begin
 end;
 
 Var
-  D,FontFile, FontFileChinese : String;
+  FontFile, FontFileChinese : String;
+  {$IF DEFINED(UNIX) AND NOT DEFINED(DARWIN)}
+  D : String;
   Info : TSearchRec;
-
+  {$ENDIF}
 begin
   // Initialize font search path;
-{$IFDEF UNIX}
-{$IFNDEF DARWIN}
+{$IF DEFINED(UNIX) AND NOT DEFINED(DARWIN)}
   D := '/usr/share/fonts/truetype/';
   DefaultSearchPath:=D;
   if FindFirst(DefaultSearchPath+AllFilesMask,faDirectory,Info)=0 then
@@ -101,7 +109,6 @@ begin
     finally
       FindClose(Info);
     end;
-{$ENDIF}
 {$ENDIF}
   FontFile:=ParamStr(1);
   if FontFile='' then

@@ -182,7 +182,7 @@ begin
   FLastText.GetBoundRect (r);
   with r do
     begin
-    w := right - left;
+    w := right;
     h := top - bottom;
     end;
 end;
@@ -202,7 +202,7 @@ begin
   GetText (text);
   FLastText.GetBoundRect (r);
   with r do
-    result := right - left;
+    result := right;
 end;
 
 procedure TFreeTypeFont.DoGetTextSize (text:unicodestring; var w,h:integer);
@@ -212,7 +212,7 @@ begin
   FLastText.GetBoundRect (r);
   with r do
     begin
-    w := right - left;
+    w := right;
     h := top - bottom;
     end;
 end;
@@ -232,7 +232,7 @@ begin
   GetText (text);
   FLastText.GetBoundRect (r);
   with r do
-    result := right - left;
+    result := right;
 end;
 
 procedure TFreeTypeFont.SetFlags (index:integer; AValue:boolean);
@@ -358,9 +358,9 @@ begin
       with Bitmaps[r]^ do
         begin
         if mode = btBlackWhite then
-          DrawCharBW (atX+x, atY+y, data, pitch, width, height)
+          DrawCharBW (atX+x+bearingX, atY+y-bearingY, data, pitch, width, height)
         else
-          DrawChar (atX+x, atY+y, data, pitch, width, height);
+          DrawChar (atX+x+bearingX, atY+y-bearingY, data, pitch, width, height);
         end;
 end;
 
