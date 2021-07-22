@@ -1295,7 +1295,7 @@ type
                 not(has_no_code(init_procinfo.code)) then
                begin
                  init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
-                 init_procinfo.generate_code;
+                 init_procinfo.generate_code_tree;
                  include(current_module.moduleflags,mf_init);
                end
              else
@@ -1310,7 +1310,7 @@ type
                 not(has_no_code(finalize_procinfo.code)) then
                begin
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
-                 finalize_procinfo.generate_code;
+                 finalize_procinfo.generate_code_tree;
                  include(current_module.moduleflags,mf_finalize);
                end
              else
@@ -2308,7 +2308,7 @@ type
            tstoredsymtable(current_module.localsymtable).checklabels;
 
          { See remark in unit init/final }
-         main_procinfo.generate_code;
+         main_procinfo.generate_code_tree;
          main_procinfo.resetprocdef;
          release_main_proc(main_procinfo);
          if assigned(init_procinfo) then
@@ -2327,7 +2327,7 @@ type
                 not(has_no_code(finalize_procinfo.code)) then
                begin
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
-                 finalize_procinfo.generate_code;
+                 finalize_procinfo.generate_code_tree;
                  include(current_module.moduleflags,mf_finalize);
                end;
              finalize_procinfo.resetprocdef;
