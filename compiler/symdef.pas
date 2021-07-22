@@ -6754,7 +6754,12 @@ implementation
         result:=assigned(owner) and
                 not is_methodpointer and
                 (not(m_nested_procvars in current_settings.modeswitches) or
-                 not is_nested_pd(self));
+                 not is_nested_pd(self)) and
+                 (
+                   not (po_anonymous in procoptions) or
+                   not assigned(capturedsyms) or
+                   (capturedsyms.count=0)
+                 );
       end;
 
 

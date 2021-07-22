@@ -1766,7 +1766,8 @@ implementation
                    begin
                      { proc -> procvar }
                      if (m_tp_procvar in current_settings.modeswitches) or
-                        (m_mac_procvar in current_settings.modeswitches) then
+                        (m_mac_procvar in current_settings.modeswitches) or
+                        (po_anonymous in tprocdef(def_from).procoptions) then
                       begin
                         subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
                         if subeq>te_incompatible then
@@ -2536,6 +2537,8 @@ implementation
          pa_comp:=[cpo_ignoreframepointer];
          if is_block(def2) then
            include(pa_comp,cpo_ignorehidden);
+         if po_anonymous in def1.procoptions then
+           include(pa_comp,cpo_ignoreself);
          if checkincompatibleuniv then
            include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }

@@ -549,7 +549,11 @@ implementation
         resultdef:=p;
         { nested procedure? }
         if assigned(p) and
-           is_nested_pd(p) then
+           is_nested_pd(p) and
+           (
+             not (po_anonymous in p.procoptions) or
+             (po_delphi_nested_cc in p.procoptions)
+           ) then
           begin
             if not(m_nested_procvars in current_settings.modeswitches) then
               CGMessage(type_e_cant_take_address_of_local_subroutine)
@@ -560,10 +564,20 @@ implementation
                 left:=cloadparentfpnode.create(tprocdef(p.owner.defowner),lpf_forpara);
               end;
           end
-        { we should never go from nested to non-nested }
+        { we should never go from nested to non-nested (except for an anonymous
+          function which might have been changed to a global function or a
+          method) }
         else if assigned(left) and
                 (left.nodetype=loadparentfpn) then
-          internalerror(2010072201);
+          begin
+            if po_anonymous in p.procoptions then
+              begin
+                left.free;
+                left:=nil;
+              end
+            else
+              internalerror(2010072201);
+          end;
       end;
 
 {*****************************************************************************

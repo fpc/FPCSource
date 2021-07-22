@@ -241,7 +241,10 @@ implementation
           begin
              if (pd.typ=procdef) and
                 assigned(tprocdef(pd).struct) and
-                (pd.parast.symtablelevel=normal_function_level) then
+                (
+                  (pd.parast.symtablelevel=normal_function_level) or
+                  (po_anonymous in pd.procoptions)
+                ) then
               begin
                 { static class methods have no hidden self/vmt pointer }
                 if pd.no_self_node then
