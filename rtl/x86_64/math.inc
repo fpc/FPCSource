@@ -314,12 +314,10 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
             movw oldcw,%cx
             orw $0x0c3f,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
             fldt d
             frndint
             fwait
@@ -337,7 +335,6 @@ const
         res   : int64;
       asm
         fnstcw oldcw
-        fwait
         movw oldcw,%cx
         orw $0x0c3f,%cx
         movw %cx,newcw
