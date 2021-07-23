@@ -382,6 +382,9 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
+    { returns true if def is a function reference }
+    function is_funcref(def:tdef):boolean;
+
     { returns true if def is a C "block" }
     function is_block(def: tdef): boolean;
 
@@ -1891,6 +1894,12 @@ implementation
     function is_methodpointer(def: tdef): boolean;
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
+
+    function is_funcref(def:tdef):boolean;
+      begin
+        result:=(def.typ=objectdef) and (oo_is_funcref in tobjectdef(def).objectoptions);
       end;
 
 
