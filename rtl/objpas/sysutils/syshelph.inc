@@ -10,8 +10,14 @@ Type
   TWordBitIndex = 0..15;
   TSmallIntBitIndex = 0..15;
   TCardinalBitIndex = 0..31;
+{$if sizeof(Integer)=2}
+  TIntegerBitIndex = 0..15;
+{$elseif sizeof(Integer)=4}
   TIntegerBitIndex = 0..31;
-  TLongIntBitIndex = TIntegerBitIndex;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+  TLongIntBitIndex = 0..31;
   TQwordBitIndex = 0..63;
   TInt64BitIndex = 0..63;
 {$IFDEF cpu16}
@@ -657,13 +663,22 @@ Type
   end;
 
   // TIntegerBitIndex is already defined
+{$if sizeof(Integer)=2}
+  TIntegerNibbleIndex = TWordNibbleIndex;
+  TIntegerByteIndex   = TWordByteIndex;
+
+  TIntegerOverlay = TWordOverlay;
+{$elseif sizeof(Integer)=4}
   TIntegerNibbleIndex = TDwordNibbleIndex;
   TIntegerByteIndex   = TDwordByteIndex;
   TIntegerWordIndex   = TDwordWordIndex;
 
   TIntegerOverlay = TDwordOverlay;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
 
-  TIntegerHelper = Type Helper for Integer { for LongInt Type too }
+  TIntegerHelper = Type Helper for Integer
   const
     MaxValue  = High(integer);
     MinValue  = Low(integer);
@@ -673,8 +688,10 @@ Type
     MinNibble = Low(TIntegerNibbleIndex);
     MaxByte   = High(TIntegerByteIndex);
     MinByte   = Low(TIntegerByteIndex);
+{$if sizeof(Integer)>=4}
     MaxWord   = High(TIntegerWordIndex);
     MinWord   = Low(TIntegerWordIndex);
+{$endif}
   public
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Integer): string; overload; inline; static;
@@ -687,8 +704,10 @@ Type
     procedure PutNibble(const aIndex: TIntegerNibbleIndex; const aNewValue: nibble); inline;
     function  GetByte(const aIndex: TIntegerByteIndex): byte;
     procedure PutByte(const aIndex: TIntegerByteIndex; const aNewValue: byte);
+{$if sizeof(Integer)>=4}
     function  GetWord(const aIndex: TIntegerWordIndex): word;
     procedure PutWord(const aIndex: TIntegerWordIndex; const aNewValue: word);
+{$endif}
   public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
@@ -707,9 +726,67 @@ Type
     function  LowestSetBitPos: cardinal; inline;
     function  SetBitsCount: byte; inline;
     property  Bits   [aIndex: TIntegerBitIndex]: boolean    read GetBit    write PutBit;
-    property  Nibbles[aIndex: TCardinalNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Nibbles[aIndex: TIntegerNibbleIndex]: nibble  read GetNibble write PutNibble;
     property  Bytes  [aIndex: TIntegerByteIndex]:  byte     read GetByte   write PutByte;
+{$if sizeof(Integer)>=4}
     property  Words  [aIndex: TIntegerWordIndex]:  word     read GetWord   write PutWord;
+{$endif}
+  end;
+
+  // TLongIntBitIndex is already defined
+  TLongIntNibbleIndex = TDwordNibbleIndex;
+  TLongIntByteIndex   = TDwordByteIndex;
+  TLongIntWordIndex   = TDwordWordIndex;
+
+  TLongIntOverlay = TDwordOverlay;
+
+  TLongIntHelper = Type Helper for LongInt
+  const
+    MaxValue  = High(LongInt);
+    MinValue  = Low(LongInt);
+    MaxBit    = High(TLongIntBitIndex);
+    MinBit    = Low(TLongIntBitIndex);
+    MaxNibble = High(TLongIntNibbleIndex);
+    MinNibble = Low(TLongIntNibbleIndex);
+    MaxByte   = High(TLongIntByteIndex);
+    MinByte   = Low(TLongIntByteIndex);
+    MaxWord   = High(TLongIntWordIndex);
+    MinWord   = Low(TLongIntWordIndex);
+  public
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: LongInt): string; overload; inline; static;
+    Class Function Parse(const AString: string): LongInt; inline; static;
+    Class Function TryParse(const AString: string; out AValue: LongInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TLongIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TLongIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TLongIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TLongIntNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TLongIntByteIndex): byte;
+    procedure PutByte(const aIndex: TLongIntByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TLongIntWordIndex): word;
+    procedure PutWord(const aIndex: TLongIntWordIndex; const aNewValue: word);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ClearBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ToggleBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function TestBit(const Index:TLongIntBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TLongIntBitIndex]: boolean    read GetBit    write PutBit;
+    property  Nibbles[aIndex: TLongIntNibbleIndex]: nibble  read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TLongIntByteIndex]:  byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TLongIntWordIndex]:  word     read GetWord   write PutWord;
   end;
 
   // TQwordBitIndex is already defined
@@ -848,23 +925,23 @@ Type
   end;
 
   // TNativeIntBitIndex is already defined
-  {$ifdef cpu16}
+  {$if sizeof(NativeInt)=2}
     TNativeIntNibbleIndex = TSmallIntNibbleIndex;
     TNativeIntByteIndex   = TSmallIntByteIndex;
     TNativeIntOverlay     = TSmallIntOverlay;
-  {$endif}
-  {$ifdef cpu32}
-    TNativeIntNibbleIndex = TIntegerNibbleIndex;
-    TNativeIntByteIndex   = TIntegerByteIndex;
-    TNativeIntWordIndex   = TIntegerWordIndex;
-    TNativeIntOverlay     = TIntegerOverlay;
-  {$endif}
-  {$ifdef cpu64}
+  {$elseif sizeof(NativeInt)=4}
+    TNativeIntNibbleIndex = TLongIntNibbleIndex;
+    TNativeIntByteIndex   = TLongIntByteIndex;
+    TNativeIntWordIndex   = TLongIntWordIndex;
+    TNativeIntOverlay     = TLongIntOverlay;
+  {$elseif sizeof(NativeInt)=8}
     TNativeIntNibbleIndex = TInt64NibbleIndex;
     TNativeIntByteIndex   = TInt64ByteIndex;
     TNativeIntWordIndex   = TInt64WordIndex;
     TNativeIntDwordIndex  = TInt64DWordIndex;
     TNativeIntOverlay     = TInt64Overlay;
+  {$else}
+    {$fatal Unsupported NativeInt type size}
   {$endif}
 
   TNativeIntHelper = Type Helper for NativeInt
@@ -878,13 +955,11 @@ Type
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
     MaxByte   = High(TNativeIntByteIndex);
     MinByte   = Low(TNativeIntByteIndex);
-    {$ifdef cpu32}
+    {$if sizeof(NativeInt)>=4}
     MaxWord   = High(TNativeIntWordIndex);
     MinWord   = Low(TNativeIntWordIndex);
     {$endif}
-    {$ifdef cpu64}
-    MaxWord   = High(TNativeIntWordIndex);
-    MinWord   = Low(TNativeIntWordIndex);
+    {$ifdef sizeof(NativeInt)>=8}
     MaxDword  = High(TNativeIntDwordIndex);
     MinDword  = Low(TNativeIntDwordIndex);
     {$endif}
@@ -901,13 +976,11 @@ Type
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
     function  GetByte(const aIndex: TNativeIntByteIndex): byte;
     procedure PutByte(const aIndex: TNativeIntByteIndex; const aNewValue: byte);
-    {$ifdef cpu32}
+    {$if sizeof(NativeInt)>=4}
     function  GetWord(const aIndex: TNativeIntWordIndex): word;
     procedure PutWord(const aIndex: TNativeIntWordIndex; const aNewValue: word);
     {$endif}
-    {$ifdef cpu64}
-    function  GetWord(const aIndex: TNativeIntWordIndex): word;
-    procedure PutWord(const aIndex: TNativeIntWordIndex; const aNewValue: word);
+    {$if sizeof(NativeInt)>=8}
     function  GetDword(const aIndex: TNativeIntDwordIndex): dword;
     procedure PutDword(const aIndex: TNativeIntDwordIndex; const aNewValue: dword);
     {$endif}
@@ -932,33 +1005,32 @@ Type
     property  Nibbles [aIndex: TNativeIntNibbleIndex]: nibble read GetNibble write PutNibble;
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
     property  Bytes [aIndex: TNativeIntByteIndex]: byte     read GetByte   write PutByte;
-    {$ifdef cpu32}
+    {$if sizeof(NativeInt)>=4}
     property  Words [aIndex: TNativeIntWordIndex]: word     read GetWord   write PutWord;
     {$endif}
-    {$ifdef cpu64}
-    property  Words [aIndex: TNativeIntWordIndex]: word     read GetWord   write PutWord;
+    {$if sizeof(NativeInt)>=8}
     property  DWords [aIndex: TNativeIntDwordIndex]: dword   read GetDWord  write PutDWord;
     {$endif}
   end;
 
   // TNativeUIntBitIndex is already defined
-  {$ifdef cpu16}
+  {$if sizeof(NativeUInt)=2}
     TNativeUIntNibbleIndex = TWordNibbleIndex;
     TNativeUIntByteIndex   = TWordByteIndex;
     TNativeUIntOverlay     = TWordOverlay;
-  {$endif}
-  {$ifdef cpu32}
+  {$elseif sizeof(NativeUInt)=4}
     TNativeUIntNibbleIndex = TDwordNibbleIndex;
     TNativeUIntByteIndex   = TDwordByteIndex;
     TNativeUIntWordIndex   = TDwordWordIndex;
     TNativeUIntOverlay     = TDwordOverlay;
-  {$endif}
-  {$ifdef cpu64}
+  {$elseif sizeof(NativeUInt)=8}
     TNativeUIntNibbleIndex = TQwordNibbleIndex;
     TNativeUIntByteIndex   = TQwordByteIndex;
     TNativeUIntWordIndex   = TQwordWordIndex;
     TNativeUIntDwordIndex  = TQwordDWordIndex;
     TNativeUIntOverlay     = TQwordOverlay;
+  {$else}
+    {$fatal Unsupported NativeUInt type size}
   {$endif}
 
   TNativeUIntHelper = Type Helper for NativeUInt
@@ -972,13 +1044,11 @@ Type
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
     MaxByte   = High(TNativeUIntByteIndex);
     MinByte   = Low(TNativeUIntByteIndex);
-    {$ifdef cpu32}
+    {$if sizeof(NativeUInt)>=4}
     MaxWord   = High(TNativeUIntWordIndex);
     MinWord   = Low(TNativeUIntWordIndex);
     {$endif}
-    {$ifdef cpu64}
-    MaxWord   = High(TNativeUIntWordIndex);
-    MinWord   = Low(TNativeUIntWordIndex);
+    {$if sizeof(NativeUInt)>=8}
     MaxDword  = High(TNativeUIntDwordIndex);
     MinDword  = Low(TNativeUIntDwordIndex);
     {$endif}
@@ -995,13 +1065,11 @@ Type
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
     function  GetByte(const aIndex: TNativeUIntByteIndex): byte;
     procedure PutByte(const aIndex: TNativeUIntByteIndex; const aNewValue: byte);
-    {$ifdef cpu32}
+    {$if sizeof(NativeUInt)>=4}
     function  GetWord(const aIndex: TNativeUIntWordIndex): word;
     procedure PutWord(const aIndex: TNativeUIntWordIndex; const aNewValue: word);
     {$endif}
-    {$ifdef cpu64}
-    function  GetWord(const aIndex: TNativeUIntWordIndex): word;
-    procedure PutWord(const aIndex: TNativeUIntWordIndex; const aNewValue: word);
+    {$if sizeof(NativeUInt)>=8}
     function  GetDword(const aIndex: TNativeUIntDwordIndex): dword;
     procedure PutDword(const aIndex: TNativeUIntDwordIndex; const aNewValue: dword);
     {$endif}
@@ -1026,11 +1094,10 @@ Type
     property  Nibbles [aIndex: TNativeUIntNibbleIndex]: nibble read GetNibble write PutNibble;
     // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
     property  Bytes [aIndex: TNativeUIntByteIndex]: byte     read GetByte   write PutByte;
-    {$ifdef cpu32}
+    {$if sizeof(NativeUInt)>=4}
     property  Words [aIndex: TNativeUIntWordIndex]: word     read GetWord   write PutWord;
     {$endif}
-    {$ifdef cpu64}
-    property  Words [aIndex: TNativeUIntWordIndex]: word     read GetWord   write PutWord;
+    {$if sizeof(NativeUInt)>=8}
     property  DWords [aIndex: TNativeUIntDwordIndex]: dword   read GetDWord  write PutDWord;
     {$endif}
   end;
