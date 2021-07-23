@@ -1639,6 +1639,29 @@ end;
 {$define TORDINALNIBBLEINDEX:=TIntegerNibbleIndex}
 {$define TORDINALBYTEINDEX:=TIntegerByteIndex}
 {$define TORDINALWORDINDEX:=TIntegerWordIndex}
+{$if sizeof(Integer)=2}
+  {$define TORDINALOVERLAY:=TWordOverlay}
+  {$define TORDINALTYPESIZE2}
+{$elseif sizeof(Integer)=4}
+  {$define TORDINALOVERLAY:=TDwordOverlay}
+  {$define TORDINALTYPESIZE4}
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+{$i syshelpo.inc}
+{$undef TORDINALTYPESIZE2}
+{$undef TORDINALTYPESIZE4}
+
+{ ---------------------------------------------------------------------
+  TLongIntHelper
+  ---------------------------------------------------------------------}
+
+{$define TORDINALHELPER:=TLongIntHelper}
+{$define TORDINALTYPE:=LongInt}
+{$define TORDINALBITINDEX:=TLongIntBitIndex}
+{$define TORDINALNIBBLEINDEX:=TLongIntNibbleIndex}
+{$define TORDINALBYTEINDEX:=TLongIntByteIndex}
+{$define TORDINALWORDINDEX:=TLongIntWordIndex}
 {$define TORDINALOVERLAY:=TDwordOverlay}
 {$define TORDINALTYPESIZE4}
 {$i syshelpo.inc}
@@ -1683,26 +1706,26 @@ end;
 {$define TORDINALHELPER:=TNativeIntHelper}
 {$define TORDINALTYPE:=NativeInt}
 {$define TORDINALBITINDEX:=TNativeIntBitIndex}
-{$ifdef cpu16}
+{$if sizeof(NativeInt)=2}
   {$define TORDINALNIBBLEINDEX:=TSmallIntNibbleIndex}
   {$define TORDINALBYTEINDEX:=TSmallIntByteIndex}
   {$define TORDINALOVERLAY:=TSmallIntOverlay}
   {$define TORDINALTYPESIZE2}
-{$endif}
-{$ifdef cpu32}
-  {$define TORDINALNIBBLEINDEX:=TIntegerNibbleIndex}
-  {$define TORDINALBYTEINDEX:=TIntegerByteIndex}
-  {$define TORDINALWORDINDEX:=TIntegerWordIndex}
-  {$define TORDINALOVERLAY:=TIntegerOverlay}
+{$elseif sizeof(NativeInt)=4}
+  {$define TORDINALNIBBLEINDEX:=TLongIntNibbleIndex}
+  {$define TORDINALBYTEINDEX:=TLongIntByteIndex}
+  {$define TORDINALWORDINDEX:=TLongIntWordIndex}
+  {$define TORDINALOVERLAY:=TLongIntOverlay}
   {$define TORDINALTYPESIZE4}
-{$endif}
-{$ifdef cpu64}
+{$elseif sizeof(NativeInt)=8}
   {$define TORDINALNIBBLEINDEX:=TInt64NibbleIndex}
   {$define TORDINALBYTEINDEX:=TInt64ByteIndex}
   {$define TORDINALWORDINDEX:=TInt64WordIndex}
   {$define TORDINALDWORDINDEX:=TInt64DWordIndex}
   {$define TORDINALOVERLAY:=TInt64Overlay}
   {$define TORDINALTYPESIZE8}
+{$else}
+  {$fatal Unsupported NativeInt type size}
 {$endif}
 {$i syshelpo.inc}
 {$undef TORDINALTYPESIZE2}
@@ -1716,26 +1739,26 @@ end;
 {$define TORDINALHELPER:=TNativeUIntHelper}
 {$define TORDINALTYPE:=NativeUInt}
 {$define TORDINALBITINDEX:=TNativeUIntBitIndex}
-{$ifdef cpu16}
+{$if sizeof(NativeUInt)=2}
   {$define TORDINALNIBBLEINDEX:=TWordNibbleIndex}
   {$define TORDINALBYTEINDEX:=TWordByteIndex}
   {$define TORDINALOVERLAY:=TWordOverlay}
   {$define TORDINALTYPESIZE2}
-{$endif}
-{$ifdef cpu32}
+{$elseif sizeof(NativeUInt)=4}
   {$define TORDINALNIBBLEINDEX:=TDwordNibbleIndex}
   {$define TORDINALBYTEINDEX:=TDwordByteIndex}
   {$define TORDINALWORDINDEX:=TDwordWordIndex}
   {$define TORDINALOVERLAY:=TDwordOverlay}
   {$define TORDINALTYPESIZE4}
-{$endif}
-{$ifdef cpu64}
+{$elseif sizeof(NativeUInt)=8}
   {$define TORDINALNIBBLEINDEX:=TQwordNibbleIndex}
   {$define TORDINALBYTEINDEX:=TQwordByteIndex}
   {$define TORDINALWORDINDEX:=TQwordWordIndex}
   {$define TORDINALDWORDINDEX:=TQwordDWordIndex}
   {$define TORDINALOVERLAY:=TQwordOverlay}
   {$define TORDINALTYPESIZE8}
+{$else}
+  {$fatal Unsupported NativeUInt type size}
 {$endif}
 {$i syshelpo.inc}
 {$undef TORDINALTYPESIZE2}
