@@ -189,6 +189,12 @@ begin
           AddUnit('xlib');
         end;
     T:=P.Targets.AddUnit('xmd.pp');
+    T:=P.Targets.AddUnit('dpms.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('dpmsconst.inc');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;

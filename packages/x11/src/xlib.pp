@@ -45,6 +45,7 @@ type
      For function results, longbool is OK, since everything <>0 
      is interpreted as true, so we introduce TBoolResult. }
    TBool = cint;
+   PBoolResult = ^TBoolResult;
    TBoolResult = longbool;
    PStatus = ^TStatus;
    TStatus = cint;
