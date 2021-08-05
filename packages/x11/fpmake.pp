@@ -181,6 +181,13 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xdbe.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('dbe.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
