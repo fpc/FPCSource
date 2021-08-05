@@ -202,6 +202,14 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('security.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('secur.inc');
+          AddInclude('xauth.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
