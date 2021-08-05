@@ -154,6 +154,13 @@ begin
           AddUnit('xlib');
           AddUnit('xutil');
         end;
+    T:=P.Targets.AddUnit('xevi.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('evi.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
