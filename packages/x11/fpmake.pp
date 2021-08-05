@@ -161,6 +161,12 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xlbx.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('lbx.inc');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
