@@ -195,6 +195,13 @@ begin
           AddInclude('dpmsconst.inc');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('multibuf.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('multibufconst.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
