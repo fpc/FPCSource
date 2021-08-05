@@ -259,6 +259,7 @@ type
         stack_mode : cint;
      end;
 
+   PPXColor = ^PXColor;
    PXColor = ^TXColor;
    TXColor = record
         pixel : culong;

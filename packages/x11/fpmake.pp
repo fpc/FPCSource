@@ -174,6 +174,13 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xcup.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('cup.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
