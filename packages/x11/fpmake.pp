@@ -188,6 +188,7 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xmd.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
