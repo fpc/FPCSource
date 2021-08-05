@@ -23,6 +23,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 unit xevi;
 
+{$PACKRECORDS c}
+
 interface
 
 uses
