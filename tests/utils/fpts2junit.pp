@@ -24,7 +24,7 @@ uses
   DOM, XMLWrite;
 
 const
-  MAX_XML_CHARS = 1000;
+  MAX_XML_CHARS = 10000;
   LOG_SHORT = 'log';
   LOG_LONG  = 'longlog';
 
@@ -74,6 +74,7 @@ var
   className: String;
   caseName: String;
   i: Integer;
+  lastname: string;
 begin
   logShort:=TStringList.Create;
   logLong:=TStringList.Create;
@@ -101,7 +102,7 @@ begin
   error:=0;
   skipped:=0;
   success:=0;
-
+  lastname := '';
   rootNode:=junitXML.CreateElement('testsuite');
   junitXML.AppendChild(rootNode);
 
@@ -120,13 +121,17 @@ begin
       className:=AnsiLeftStr(tmpString,RPos(DirectorySeparator,tmpString)-1);
       caseName:=ExtractWord(WordCount(tmpString,[DirectorySeparator]),tmpString,[DirectorySeparator]);
 
-      // create testcase node
-      caseNode:=junitXML.CreateElement('testcase');
-      if pos('../', classname) = 1 then
-        Delete(classname, 1, 3);
-      TDOMElement(caseNode).SetAttribute('classname',WideString(className));
-      TDOMElement(caseNode).SetAttribute('name',WideString(caseName));
-      rootNode.AppendChild(caseNode);
+      if LastName <> (classname + '.' + casename) then
+      begin
+        LastName := classname + '.' + casename;
+        // create testcase node
+        caseNode:=junitXML.CreateElement('testcase');
+        if pos('../', classname) = 1 then
+          Delete(classname, 1, 3);
+        TDOMElement(caseNode).SetAttribute('classname',WideString(className));
+        TDOMElement(caseNode).SetAttribute('name',WideString(caseName));
+        rootNode.AppendChild(caseNode);
+      end;
 
       if AnsiStartsText(PATTERN_FAILED, tmpLine) then
         begin
