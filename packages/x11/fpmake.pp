@@ -154,6 +154,78 @@ begin
           AddUnit('xlib');
           AddUnit('xutil');
         end;
+    T:=P.Targets.AddUnit('xevi.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('evi.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xlbx.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('lbx.inc');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xag.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('ag.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xcup.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('cup.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xdbe.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('dbe.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xmd.pp');
+    T:=P.Targets.AddUnit('dpms.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('dpmsconst.inc');
+          AddUnit('xlib');
+          AddUnit('xmd');
+        end;
+    T:=P.Targets.AddUnit('multibuf.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('multibufconst.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('security.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('secur.inc');
+          AddInclude('xauth.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('sync.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('syncconst.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xtestext1.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('xtestext1const.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+          AddUnit('xmd');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
