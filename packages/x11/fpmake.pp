@@ -217,6 +217,14 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xtestext1.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('xtestext1const.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+          AddUnit('xmd');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
