@@ -2250,6 +2250,120 @@ const
 var
     GfxBase : PGfxBase = nil;
 
+
+{$if defined(AMIGA_V1_2_ONLY)}
+FUNCTION AllocRaster(width : ULONG location 'd0'; height : ULONG location 'd1') : TPlanePtr; syscall GfxBase 492;
+PROCEDURE FreeRaster(p : TPlanePtr location 'a0'; width : ULONG location 'd0'; height : ULONG location 'd1'); syscall GfxBase 498;
+PROCEDURE InitBitMap(bitMap : pBitMap location 'a0'; depth : LONGINT location 'd0'; width : LONGINT location 'd1'; height : LONGINT location 'd2'); syscall GfxBase 390;
+PROCEDURE InitRastPort(rp : pRastPort location 'a1'); syscall GfxBase 198;
+PROCEDURE SetAPen(rp : pRastPort location 'a1'; pen : ULONG location 'd0'); syscall GfxBase 342;
+PROCEDURE SetBPen(rp : pRastPort location 'a1'; pen : ULONG location 'd0'); syscall GfxBase 348;
+PROCEDURE SetDrMd(rp : pRastPort location 'a1'; drawMode : ULONG location 'd0'); syscall GfxBase 354;
+PROCEDURE SetRast(rp : pRastPort location 'a1'; pen : ULONG location 'd0'); syscall GfxBase 234;
+
+PROCEDURE ClearEOL(rp : pRastPort location 'a1'); syscall GfxBase 042;
+PROCEDURE ClearScreen(rp : pRastPort location 'a1'); syscall GfxBase 048;
+PROCEDURE Draw(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall GfxBase 246;
+PROCEDURE DrawEllipse(rp : pRastPort location 'a1'; xCenter : LONGINT location 'd0'; yCenter : LONGINT location 'd1'; a : LONGINT location 'd2'; b : LONGINT location 'd3'); syscall GfxBase 180;
+PROCEDURE gfxMove(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall GfxBase 240;
+PROCEDURE PolyDraw(rp : pRastPort location 'a1'; count : LONGINT location 'd0';const polyTable : PSmallInt location 'a0'); syscall GfxBase 336;
+FUNCTION ReadPixel(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : ULONG; syscall GfxBase 318;
+PROCEDURE ScrollRaster(rp : pRastPort location 'a1'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'; xMin : LONGINT location 'd2'; yMin : LONGINT location 'd3'; xMax : LONGINT location 'd4'; yMax : LONGINT location 'd5'); syscall GfxBase 396;
+FUNCTION GfxText(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : LONGINT; syscall GfxBase 060;
+FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : smallint; syscall GfxBase 054;
+FUNCTION WritePixel(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LONGINT; syscall GfxBase 324;
+
+FUNCTION AreaDraw(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LONGINT; syscall GfxBase 258;
+FUNCTION AreaEllipse(rp : pRastPort location 'a1'; xCenter : LONGINT location 'd0'; yCenter : LONGINT location 'd1'; a : LONGINT location 'd2'; b : LONGINT location 'd3') : LONGINT; syscall GfxBase 186;
+FUNCTION AreaEnd(rp : pRastPort location 'a1') : LONGINT; syscall GfxBase 264;
+FUNCTION AreaMove(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LONGINT; syscall GfxBase 252;
+FUNCTION Flood(rp : pRastPort location 'a1'; mode : ULONG location 'd2'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LongBool; syscall GfxBase 330;
+PROCEDURE InitArea(areaInfo : pAreaInfo location 'a0'; vectorBuffer : POINTER location 'a1'; maxVectors : LONGINT location 'd0'); syscall GfxBase 282;
+FUNCTION InitTmpRas(tmpRas : pTmpRas location 'a0'; buffer : Pointer location 'a1'; size : LONGINT location 'd0') : pTmpRas; syscall GfxBase 468;
+PROCEDURE RectFill(rp : pRastPort location 'a1'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'); syscall GfxBase 306;
+
+PROCEDURE FreeColorMap(colorMap : pColorMap location 'a0'); syscall GfxBase 576;
+FUNCTION GetColorMap(entries : LONGINT location 'd0') : pColorMap; syscall GfxBase 570;
+FUNCTION GetRGB4(colorMap : pColorMap location 'a0'; entry : LONGINT location 'd0') : ULONG; syscall GfxBase 582;
+PROCEDURE LoadRGB4(vp : pViewPort location 'a0';const colors : pWord location 'a1'; count : LONGINT location 'd0'); syscall GfxBase 192;
+PROCEDURE SetRGB4(vp : pViewPort location 'a0'; index : LONGINT location 'd0'; red : ULONG location 'd1'; green : ULONG location 'd2'; blue : ULONG location 'd3'); syscall GfxBase 288;
+PROCEDURE SetRGB4CM(colorMap : pColorMap location 'a0'; index : LONGINT location 'd0'; red : ULONG location 'd1'; green : ULONG location 'd2'; blue : ULONG location 'd3'); syscall GfxBase 630;
+
+FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : pCHAR location 'a2') : LONGINT; syscall GfxBase 030;
+PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 606;
+PROCEDURE BltClear(memBlock : pointer location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
+PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : pCHAR location 'a2'); syscall GfxBase 636;
+PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : pCHAR location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
+PROCEDURE BltTemplate(const source : pWORD location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
+PROCEDURE ClipBlit(srcRP : pRastPort location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 552;
+PROCEDURE DisownBlitter; syscall GfxBase 462;
+PROCEDURE OwnBlitter; syscall GfxBase 456;
+PROCEDURE QBlit(blit : pbltnode location 'a1'); syscall GfxBase 276;
+PROCEDURE QBSBlit(blit : pbltnode location 'a1'); syscall GfxBase 294;
+PROCEDURE WaitBlit; syscall GfxBase 228;
+
+PROCEDURE CBump(copList : pUCopList location 'a1'); syscall GfxBase 366;
+PROCEDURE CMove(copList : pUCopList location 'a1'; destination : POINTER location 'a0'; data : LONGINT location 'd1'); syscall GfxBase 372;
+PROCEDURE CWait(copList : pUCopList location 'a1'; v : LONGINT location 'd0'; h : LONGINT location 'd1'); syscall GfxBase 378;
+PROCEDURE FreeCopList(copList : pCopList location 'a0'); syscall GfxBase 546;
+PROCEDURE FreeCprList(cprList : pcprlist location 'a0'); syscall GfxBase 564;
+PROCEDURE FreeVPortCopLists(vp : pViewPort location 'a0'); syscall GfxBase 540;
+PROCEDURE InitView(view : pView location 'a1'); syscall GfxBase 360;
+PROCEDURE InitVPort(vp : pViewPort location 'a0'); syscall GfxBase 204;
+PROCEDURE LoadView(view : pView location 'a1'); syscall GfxBase 222;
+FUNCTION MakeVPort(view : pView location 'a0'; vp : pViewPort location 'a1') : ULONG; syscall GfxBase 216;
+FUNCTION MrgCop(view : pView location 'a1') : ULONG; syscall GfxBase 210;
+PROCEDURE ScrollVPort(vp : pViewPort location 'a0'); syscall GfxBase 588;
+FUNCTION UCopperListInit(uCopList : pUCopList location 'a0'; n : LONGINT location 'd0') : pCopList; syscall GfxBase 594;
+FUNCTION VBeamPos : LONGINT; syscall GfxBase 384;
+PROCEDURE WaitBOVP(vp : pViewPort location 'a0'); syscall GfxBase 402;
+PROCEDURE WaitTOF; syscall GfxBase 270;
+
+PROCEDURE AndRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1'); syscall GfxBase 504;
+FUNCTION AndRegionRegion(const srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool; syscall GfxBase 624;
+FUNCTION AttemptLockLayerRom(layer : pLayer location 'a5') : LongBool; syscall GfxBase 654;
+FUNCTION ClearRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1') : LongBool; syscall GfxBase 522;
+PROCEDURE ClearRegion(region : pRegion location 'a0'); syscall GfxBase 528;
+PROCEDURE CopySBitMap(layer : pLayer location 'a0'); syscall GfxBase 450;
+PROCEDURE DisposeRegion(region : pRegion location 'a0'); syscall GfxBase 534;
+PROCEDURE LockLayerRom(layer : pLayer location 'a5'); syscall GfxBase 432;
+FUNCTION NewRegion : pRegion; syscall GfxBase 516;
+FUNCTION OrRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1') : LongBool; syscall GfxBase 510;
+FUNCTION OrRegionRegion(const srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool; syscall GfxBase 612;
+PROCEDURE SyncSBitMap(layer : pLayer location 'a0'); syscall GfxBase 444;
+PROCEDURE UnlockLayerRom(layer : pLayer location 'a5'); syscall GfxBase 438;
+FUNCTION XorRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1') : LongBool; syscall GfxBase 558;
+FUNCTION XorRegionRegion(const srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool; syscall GfxBase 618;
+
+PROCEDURE AddFont(textFont : pTextFont location 'a1'); syscall GfxBase 480;
+PROCEDURE AskFont(rp : pRastPort location 'a1'; textAttr : pTextAttr location 'a0'); syscall GfxBase 474;
+FUNCTION AskSoftStyle(rp : pRastPort location 'a1') : ULONG; syscall GfxBase 084;
+PROCEDURE CloseFont(textFont : pTextFont location 'a1'); syscall GfxBase 078;
+FUNCTION OpenFont(textAttr : pTextAttr location 'a0') : pTextFont; syscall GfxBase 072;
+PROCEDURE RemFont(textFont : pTextFont location 'a1'); syscall GfxBase 486;
+FUNCTION SetFont(rp : pRastPort location 'a1';const textFont : pTextFont location 'a0') : LONGINT; syscall GfxBase 066;
+FUNCTION SetSoftStyle(rp : pRastPort location 'a1'; style : ULONG location 'd0'; enable : ULONG location 'd1') : ULONG; syscall GfxBase 090;
+
+PROCEDURE AddAnimOb(anOb : pAnimOb location 'a0'; anKey : ppAnimOb location 'a1'; rp : pRastPort location 'a2'); syscall GfxBase 156;
+PROCEDURE AddBob(bob : pBob location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 096;
+PROCEDURE AddVSprite(vSprite : pVSprite location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 102;
+PROCEDURE Animate(anKey : ppAnimOb location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 162;
+PROCEDURE ChangeSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; newData : pWORD location 'a2'); syscall GfxBase 420;
+PROCEDURE DoCollision(rp : pRastPort location 'a1'); syscall GfxBase 108;
+PROCEDURE DrawGList(rp : pRastPort location 'a1'; vp : pViewPort location 'a0'); syscall GfxBase 114;
+PROCEDURE FreeGBuffers(anOb : pAnimOb location 'a0'; rp : pRastPort location 'a1'; flag : LONGINT location 'd0'); syscall GfxBase 600;
+PROCEDURE FreeSprite(num : LONGINT location 'd0'); syscall GfxBase 414;
+FUNCTION GetGBuffers(anOb : pAnimOb location 'a0'; rp : pRastPort location 'a1'; flag : LONGINT location 'd0') : LongBool; syscall GfxBase 168;
+FUNCTION GetSprite(sprite : pSimpleSprite location 'a0'; num : LONGINT location 'd0') : smallint; syscall GfxBase 408;
+PROCEDURE InitGels(head : pVSprite location 'a0'; tail : pVSprite location 'a1'; gelsInfo : pGelsInfo location 'a2'); syscall GfxBase 120;
+PROCEDURE InitGMasks(anOb : pAnimOb location 'a0'); syscall GfxBase 174;
+PROCEDURE InitMasks(vSprite : pVSprite location 'a0'); syscall GfxBase 126;
+PROCEDURE MoveSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall GfxBase 426;
+PROCEDURE RemIBob(bob : pBob location 'a0'; rp : pRastPort location 'a1'; vp : pViewPort location 'a2'); syscall GfxBase 132;
+PROCEDURE RemVSprite(vSprite : pVSprite location 'a0'); syscall GfxBase 138;
+PROCEDURE SetCollision(num : ULONG location 'd0'; routine : tPROCEDURE location 'a0'; gelsInfo : pGelsInfo location 'a1'); syscall GfxBase 144;
+PROCEDURE SortGList(rp : pRastPort location 'a1'); syscall GfxBase 150;
+{$else}
 PROCEDURE AddAnimOb(anOb : pAnimOb location 'a0'; anKey : ppAnimOb location 'a1'; rp : pRastPort location 'a2'); syscall GfxBase 156;
 PROCEDURE AddBob(bob : pBob location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 096;
 PROCEDURE AddFont(textFont : pTextFont location 'a1'); syscall GfxBase 480;
@@ -2424,6 +2538,9 @@ function ObtainBestPen(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; Const ar
 procedure SetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
 function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : LongWord;
 function WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : array of PtrUInt) : smallint;
+PROCEDURE SafeSetOutlinePen(w : pRastPort; c : byte);
+PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
+{$endif}
 
 { gfxmacros }
 
@@ -2433,9 +2550,7 @@ PROCEDURE SetAfPt(w: pRastPort;p: Pointer; n: Byte);
 PROCEDURE SetDrPt(w: pRastPort;p: Word);
 PROCEDURE SetOPen(w: pRastPort;c: Byte);
 PROCEDURE SetWrMsk(w: pRastPort; m: Byte);
-
-PROCEDURE SafeSetOutlinePen(w : pRastPort; c : byte);
-PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
+procedure RemBob(Bob: PBob); inline;
 
 PROCEDURE OFF_DISPLAY (cust: pCustom);
 PROCEDURE ON_DISPLAY (cust: pCustom);
@@ -2449,8 +2564,85 @@ function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inl
 
 function RasSize(w, h: Word): Integer;
 
+function CreateBitMap(Width, Height, Depth: Integer): PBitmap;
+procedure DestroyBitMap(MyBM: PBitmap; Width, Height, Depth: Integer);
+
+{$if defined(AMIGA_V1_2_ONLY)}
+procedure SetABPenDrMd(Rp: PRastPort; APen, BPen, Drawmode: LongWord); inline;
+function AllocBitMap(SizeX, SizeY, Depth, Flags: LongWord; friend_bitmap: PBitMap): PBitMap;
+procedure FreeBitMap(Bm: PBitMap);
+function GetBitMapAttr(Bm: PBitMap; AttrNum: LongWord): LongWord;
+{$endif}
+
+
 IMPLEMENTATION
 
+procedure RemBob(Bob: PBob);
+begin
+  Bob^.Flags := Bob^.Flags or BOBSAWAY;
+end;
+
+function CreateBitMap(Width, Height, Depth: Integer): PBitmap;
+var
+  MyBM: PBitmap;
+  i: Integer;
+begin
+  MyBM := ExecAllocMem(SizeOf(TBitMap), MEMF_CLEAR or MEMF_PUBLIC);
+  for i := 0 to Depth - 1 do
+    MyBM^.Planes[i] := AllocRaster(Width, Height);
+  for i := Depth to 7 do
+    MyBM^.Planes[i] := nil;
+  MyBM^.Flags := MyBM^.Flags or BMF_STANDARD;
+  CreateBitMap := MyBM;
+end;
+
+procedure DestroyBitMap(MyBM: PBitmap; Width, Height, Depth: Integer);
+var
+  i: Integer;
+begin
+  if MyBM <> nil then
+  begin
+    for i := 0 to Depth - 1 do
+      if MyBM^.Planes[i] <> nil then
+        FreeRaster(MyBM^.Planes[i], Width, Height);
+    FreeMem(MyBM, SizeOf(TBitMap));
+  end;
+end;
+
+
+{$if defined(AMIGA_V1_2_ONLY)}
+procedure SetABPenDrMd(Rp: PRastPort; APen, BPen, Drawmode: LongWord);
+begin
+  SetAPen(RP, APen);
+  SetBPen(RP, BPen);
+  SetDrMd(RP, DrawMode);
+end;
+
+function AllocBitMap(SizeX, SizeY, Depth, Flags: LongWord; friend_bitmap: PBitMap): PBitMap;
+begin
+  AllocBitMap := CreateBitmap(SizeX, SizeY, Depth);
+end;
+
+procedure FreeBitMap(Bm: PBitMap);
+begin
+  if bm <> nil then
+    DestroyBitMap(bm, Bm^.BytesPerRow * 8, bm^.Rows, bm^.Depth);
+end;
+
+function GetBitMapAttr(Bm: PBitMap; AttrNum: LongWord): LongWord;
+begin
+  case AttrNum of
+    BMA_HEIGHT: GetBitMapAttr := bm^.Rows;
+    BMA_WIDTH: GetBitMapAttr := bm^.BytesPerRow * 8;
+    BMA_DEPTH: GetBitMapAttr := bm^.Depth;
+    BMA_FLAGS: GetBitMapAttr := bm^.Flags and (BMF_DISPLAYABLE or BMF_INTERLEAVED or BMF_STANDARD);
+  else
+    GetBitMapAttr := 0;
+  end;
+end;
+{$endif}
+
+{$if not defined(AMIGA_V1_2_ONLY)}
 function AllocSpriteData(bm : pBitMap; Const argv : array of PtrUInt) : pExtSprite;
 begin
     AllocSpriteData := AllocSpriteDataA(bm,@argv);
@@ -2501,6 +2693,26 @@ begin
     WeighTAMatchTags := WeighTAMatch(reqTextAttr,targetTextAttr,@argv);
 end;
 
+PROCEDURE SafeSetOutlinePen(w : pRastPort; c : byte);
+begin
+    IF pGfxBase(GfxBase)^.LibNode.Lib_Version < 39 THEN begin
+        w^.AOlPen := c;
+        w^.Flags := w^.Flags OR AREAOUTLINE;
+    END ELSE begin
+        c := SetOutlinePen(w,c);
+    END;
+END;
+
+PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
+  VAR x : smallint ;
+BEGIN
+  IF pGfxBase(GfxBase)^.LibNode.Lib_Version < 39 THEN w^.Mask := BYTE(m)
+  ELSE x := SetWriteMask( w, m );
+END;
+
+
+{$endif}
+
 PROCEDURE BNDRYOFF (w: pRastPort);
 BEGIN
     WITH w^ DO BEGIN
@@ -2549,22 +2761,6 @@ BEGIN
     w^.Mask := m;
 END;
 
-PROCEDURE SafeSetOutlinePen(w : pRastPort; c : byte);
-begin
-    IF pGfxBase(GfxBase)^.LibNode.Lib_Version < 39 THEN begin
-        w^.AOlPen := c;
-        w^.Flags := w^.Flags OR AREAOUTLINE;
-    END ELSE begin
-        c := SetOutlinePen(w,c);
-    END;
-END;
-
-PROCEDURE SafeSetWriteMask( w : pRastPort ; m : smallint ) ;
-  VAR x : smallint ;
-BEGIN
-  IF pGfxBase(GfxBase)^.LibNode.Lib_Version < 39 THEN w^.Mask := BYTE(m)
-  ELSE x := SetWriteMask( w, m );
-END;
 
 PROCEDURE OFF_DISPLAY (cust: pCustom);
 BEGIN

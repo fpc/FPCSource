@@ -439,12 +439,16 @@ end;
 
 procedure MH_Set(Obj: PObject_; Tag, Data: PtrUInt);
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
   SetAttrs(Obj, [Tag, Data, TAG_END]);
+  {$endif}
 end;
 
 function MH_Get(Obj: PObject_; Tag: PtrUInt): PtrUInt;
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
   GetAttr(Tag, Obj, MH_Get);
+  {$endif}
 end;
 
 procedure MH_SetMutex(Obj: PObject_; n: Integer);
@@ -1635,13 +1639,21 @@ end;
 // ************************************************************************
 function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
 begin
+  {$if defined(AMIGA_V1_2_ONLY)}
+  MH_NewObject := nil;
+  {$else}
   MH_NewObject := NewObject(ClassPtr, ClassID, Tags);
+  {$endif}
 end;
 
 function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
 begin
+  {$if defined(AMIGA_V1_2_ONLY)}
+  MH_NewObject := nil;
+  {$else}
   PObject_(Obj) := NewObject(ClassPtr, ClassID, Tags);
   MH_NewObject := PObject_(Obj);
+  {$endif}
 end;
 
 // deprecated but widely used macros
