@@ -210,6 +210,13 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('sync.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('syncconst.inc');
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;

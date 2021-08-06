@@ -1,0 +1,45 @@
+{ this program just links all externals, declared in the sync unit }
+program sync_linktest;
+uses
+  sync;
+begin
+  halt(0);
+  XSyncIntToValue(nil,0);
+  XSyncIntsToValue(nil,0,0);
+  XSyncValueGreaterThan(PXSyncValue(nil)^,PXSyncValue(nil)^);
+  XSyncValueLessThan(PXSyncValue(nil)^,PXSyncValue(nil)^);
+  XSyncValueGreaterOrEqual(PXSyncValue(nil)^,PXSyncValue(nil)^);
+  XSyncValueLessOrEqual(PXSyncValue(nil)^,PXSyncValue(nil)^);
+  XSyncValueEqual(PXSyncValue(nil)^,PXSyncValue(nil)^);
+  XSyncValueIsNegative(PXSyncValue(nil)^);
+  XSyncValueIsZero(PXSyncValue(nil)^);
+  XSyncValueIsPositive(PXSyncValue(nil)^);
+  XSyncValueLow32(PXSyncValue(nil)^);
+  XSyncValueHigh32(PXSyncValue(nil)^);
+  XSyncValueAdd(nil,PXSyncValue(nil)^,PXSyncValue(nil)^,nil);
+  XSyncValueSubtract(nil,PXSyncValue(nil)^,PXSyncValue(nil)^,nil);
+  XSyncMaxValue(nil);
+  XSyncMinValue(nil);
+  XSyncQueryExtension(nil,nil,nil);
+  XSyncInitialize(nil,nil,nil);
+  XSyncListSystemCounters(nil,nil);
+  XSyncFreeSystemCounterList(nil);
+  XSyncCreateCounter(nil,PXSyncValue(nil)^);
+  XSyncSetCounter(nil,0,PXSyncValue(nil)^);
+  XSyncChangeCounter(nil,0,PXSyncValue(nil)^);
+  XSyncDestroyCounter(nil,0);
+  XSyncQueryCounter(nil,0,nil);
+  XSyncAwait(nil,nil,0);
+  XSyncCreateAlarm(nil,0,nil);
+  XSyncDestroyAlarm(nil,0);
+  XSyncQueryAlarm(nil,0,nil);
+  XSyncChangeAlarm(nil,0,0,nil);
+  XSyncSetPriority(nil,0,0);
+  XSyncGetPriority(nil,0,nil);
+  XSyncCreateFence(nil,0,0);
+  XSyncTriggerFence(nil,0);
+  XSyncResetFence(nil,0);
+  XSyncDestroyFence(nil,0);
+  XSyncQueryFence(nil,0,nil);
+  XSyncAwaitFence(nil,nil,0);
+end.
