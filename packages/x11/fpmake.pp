@@ -194,6 +194,7 @@ begin
         begin
           AddInclude('dpmsconst.inc');
           AddUnit('xlib');
+          AddUnit('xmd');
         end;
     T:=P.Targets.AddUnit('multibuf.pp');
       with T.Dependencies do
