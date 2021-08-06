@@ -999,7 +999,7 @@ type
     function ReadData(var Buffer: TExtended80Rec): NativeInt; overload;
     function ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
 {$ENDIF}
-    procedure ReadBuffer(var Buffer; Count: Longint);
+    procedure ReadBuffer(var Buffer; Count: NativeInt);
     procedure ReadBuffer(var Buffer: TBytes; Count: NativeInt); overload;
     procedure ReadBuffer(var Buffer: TBytes; Offset, Count: NativeInt); overload;
 
@@ -1035,7 +1035,7 @@ type
     procedure ReadBufferData(var Buffer: TExtended80Rec); overload;
     procedure ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt); overload;
 {$ENDIF}
-    procedure WriteBuffer(const Buffer; Count: Longint);
+    procedure WriteBuffer(const Buffer; Count: NativeInt);
     procedure WriteBuffer(const Buffer: TBytes; Count: NativeInt); overload;
     procedure WriteBuffer(const Buffer: TBytes; Offset, Count: NativeInt); overload;
 

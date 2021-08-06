@@ -404,19 +404,19 @@ begin
 end;
 {$ENDIF}
 
-procedure TStream.ReadBuffer(var Buffer; Count: Longint);
-
-Var
-  r,t : longint;
-
+procedure TStream.ReadBuffer(var Buffer; Count: NativeInt);
+var
+  r,t: NativeInt;
 begin
   t:=0;
   repeat
-    r:=Read(PByte(@Buffer)[t],Count-t);
+    r:=Count-t;
+    if r>High(Longint) then r:=High(Longint);
+    r:=Read(PByte(@Buffer)[t],r);
     inc(t,r);
   until (t=Count) or (r<=0);
   if (t<Count) then
-    Raise EReadError.Create(SReadError);
+    raise EReadError.Create(SReadError);
 end;
 
 procedure TStream.ReadBuffer(var Buffer: TBytes; Count: NativeInt);
@@ -581,20 +581,20 @@ begin
 end;
 {$ENDIF}
 
-procedure TStream.WriteBuffer(const Buffer; Count: Longint);
-
+procedure TStream.WriteBuffer(const Buffer; Count: NativeInt);
 var
-  r,t : Longint;
-
-  begin
-    T:=0;
-    Repeat
-       r:=Write(PByte(@Buffer)[t],Count-t);
-       inc(t,r);
-    Until (t=count) or (r<=0);
-    if (t<Count) then
-       Raise EWriteError.Create(SWriteError);
-  end;
+  w,t: NativeInt;
+begin
+  t:=0;
+  repeat
+    w:=Count-t;
+    if w>High(Longint) then w:=High(Longint);
+    w:=Write(PByte(@Buffer)[t],w);
+    inc(t,w);
+  until (t=count) or (w<=0);
+  if (t<Count) then
+    raise EWriteError.Create(SWriteError);
+end;
 
 procedure TStream.WriteBuffer(const Buffer: TBytes; Count: NativeInt);
 begin
