@@ -10,8 +10,14 @@ Type
   TWordBitIndex = 0..15;
   TSmallIntBitIndex = 0..15;
   TCardinalBitIndex = 0..31;
+{$if sizeof(Integer)=2}
+  TIntegerBitIndex = 0..15;
+{$elseif sizeof(Integer)=4}
   TIntegerBitIndex = 0..31;
-  TLongIntBitIndex = TIntegerBitIndex;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+  TLongIntBitIndex = 0..31;
   TQwordBitIndex = 0..63;
   TInt64BitIndex = 0..63;
 {$IFDEF cpu16}
@@ -251,7 +257,7 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;
     property Words[AIndex: Cardinal]: Word read GetW write SetW;
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
@@ -312,8 +318,8 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;  // 0..7
-    property Words[AIndex: Cardinal]: Word read GetW write SetW; // 0..3
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;  // 0..7
+    property Words [AIndex: Cardinal]: Word read GetW write SetW; // 0..3
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
     property Frac: QWord read GetF write SetF;
@@ -373,25 +379,45 @@ Type
     Function ToString(const AFormatSettings: TFormatSettings): string; overload; inline;
     Function ToString: string; overload; inline;
 
-    property Bytes[AIndex: Cardinal]: Byte read GetB write SetB;
-    property Words[AIndex: Cardinal]: Word read GetW write SetW;
+    property Bytes [AIndex: Cardinal]: Byte read GetB write SetB;
+    property Words [AIndex: Cardinal]: Word read GetW write SetW;
     property Sign: Boolean read GetS write SetS;
     property Exp: QWord read GetE write SetE;
     property Frac: QWord read GetF write SetF;
   end;
 {$ENDIF FPC_HAS_TYPE_EXTENDED}
 
+  nibble           = 0..15;
+  TNibbleBitIndex  = 0..3;
+
+  // TByteBitIndex is already defined
+  TByteNibbleIndex = 0..1;
+
+  TByteOverlay = bitpacked record case integer of     // for fast extraction of bits
+    0: (AsBit:    bitpacked array[TByteBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TByteNibbleIndex] of nibble);
+    2: (AsByte:   byte);
+  end;
+  
   TByteHelper = Type Helper for Byte
-  public
-    const
-      MaxValue = 255;
-      MinValue = 0;
+  const
+    MaxValue  = High(byte);
+    MinValue  = Low(byte);
+    MaxBit    = High(TByteBitIndex);
+    MinBit    = Low(TByteBitIndex);
+    MaxNibble = High(TByteNibbleIndex);
+    MinNibble = Low(TByteNibbleIndex);
   public
     Class Function Parse(const AString: string): Byte; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Byte): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Byte): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TByteBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TByteBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TByteNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TByteNibbleIndex; const aNewValue: nibble); inline;
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -404,18 +430,38 @@ Type
     Function ClearBit(const Index: TByteBitIndex) : Byte; inline;
     Function ToggleBit(const Index: TByteBitIndex) : Byte; inline;
     Function TestBit(const Index:TByteBitIndex):Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TByteBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TByteNibbleIndex]: nibble read GetNibble write PutNibble;
   end;
 
+  // TShortIntBitIndex is already defined
+
+  TShortIntNibbleIndex = TByteNibbleIndex;
+
+  TShortIntOverlay = TByteOverlay;
+
   TShortIntHelper = Type Helper for ShortInt
-  public
-    const
-      MaxValue = 127;
-      MinValue = -128;
+  const
+    MaxValue  = High(shortint);
+    MinValue  = Low(shortint);
+    MaxBit    = High(TShortIntBitIndex);
+    MinBit    = Low(TShortIntBitIndex);
+    MaxNibble = High(TShortIntNibbleIndex);
+    MinNibble = Low(TShortIntNibbleIndex);
   public
     Class Function Parse(const AString: string): ShortInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: ShortInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: ShortInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TShortIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TShortIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TShortIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TShortIntNibbleIndex; const aNewValue: nibble); inline;
   public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
@@ -429,18 +475,99 @@ Type
     Function ClearBit(const Index: TShortIntBitIndex): Shortint; inline;
     Function ToggleBit(const Index: TShortIntBitIndex): Shortint; inline;
     Function TestBit(const Index:TShortIntBitIndex):Boolean;
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TShortIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TShortIntNibbleIndex]: nibble read GetNibble write PutNibble;
   end;
 
-  TSmallIntHelper = Type Helper for SmallInt
+  // TWordBitIndex is already defined
+  TWordByteIndex   = 0..1;
+  TWordNibbleIndex = 0..3;
+
+  TWordOverlay = bitpacked record case integer of     // for fast extraction of bytes and bits
+    0: (AsBit:    bitpacked array[TWordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TWordNibbleIndex] of nibble);
+    2: (AsByte:             array[TWordByteIndex]   of byte);
+    3: (AsWord:             word);
+    // recursive overlay:
+    4: (AsByteOverlay:      array[TWordByteIndex]   of TByteOverlay);
+  end;
+  
+  TWordHelper = Type Helper for Word
+  const
+    MaxValue  = High(word);
+    MinValue  = Low(word);
+    MaxBit    = High(TWordBitIndex);
+    MinBit    = Low(TWordBitIndex);
+    MaxNibble = High(TWordNibbleIndex);
+    MinNibble = Low(TWordNibbleIndex);
+    MaxByte   = High(TWordByteIndex);
+    MinByte   = Low(TWordByteIndex);
   public
-    const
-      MaxValue = 32767;
-      MinValue = -32768;
+    Class Function Parse(const AString: string): Word; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Word): string; overload; inline; static;
+    Class Function TryParse(const AString: string; out AValue: Word): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TWordBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TWordBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TWordNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TWordNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TWordByteIndex): byte;
+    procedure PutByte(const aIndex: TWordByteIndex; const aNewValue: byte);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TWordBitIndex) : Word; inline;
+    Function ClearBit(const Index: TWordBitIndex) : Word; inline;
+    Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
+    Function TestBit(const Index:TWordBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TWordBitIndex]: boolean   read GetBit  write PutBit;
+    property  Nibbles [aIndex: TWordNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes [aIndex: TWordByteIndex]: byte     read GetByte write PutByte;
+  end;
+
+  // TSmallIntBitIndex is already defined
+  TSmallIntByteIndex   = TWordByteIndex;
+  TSmallIntNibbleIndex = TWordNibbleIndex;
+
+  TSmallIntOverlay = TWordOverlay;
+  
+  TSmallIntHelper = Type Helper for SmallInt
+  const
+    MaxValue  = High(SmallInt);
+    MinValue  = Low(SmallInt);
+    MaxBit    = High(TSmallIntBitIndex);
+    MinBit    = Low(TSmallIntBitIndex);
+    MaxNibble = High(TSmallIntNibbleIndex);
+    MinNibble = Low(TSmallIntNibbleIndex);
+    MaxByte   = High(TSmallIntByteIndex);
+    MinByte   = Low(TSmallIntByteIndex);
   public
     Class Function Parse(const AString: string): SmallInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: SmallInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: SmallInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TSmallIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TSmallIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TSmallIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TSmallIntNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TSmallIntByteIndex): byte;
+    procedure PutByte(const aIndex: TSmallIntByteIndex; const aNewValue: byte);
   public
     Function ToString: string; overload; inline;
     Function ToBoolean: Boolean; inline;
@@ -454,44 +581,65 @@ Type
     Function ClearBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function ToggleBit(const Index: TSmallIntBitIndex) : Smallint; inline;
     Function TestBit(const Index:TSmallIntBitIndex):Boolean;    
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TSmallIntBitIndex]: boolean   read GetBit  write PutBit;
+    property  Nibbles [aIndex: TSmallIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes [aIndex: TSmallIntByteIndex]: byte     read GetByte write PutByte;
+  end;
+  
+  TDwordBitIndex    = TCardinalBitIndex;
+  TDwordNibbleIndex = 0..7;
+  TDwordByteIndex   = 0..3;
+  TDwordWordIndex   = 0..1;
+
+  TDwordOverlay = bitpacked record case integer of     // for fast extraction of words, bytes and bits
+    0: (AsBit:    bitpacked array[TDwordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TDwordNibbleIndex] of nibble);
+    2: (AsByte:             array[TDwordByteIndex]   of byte);
+    3: (AsWord:             array[TDwordWordIndex]   of word);
+    4: (AsDword:            dword);
+    // recursive overlays:
+    5: (AsByteOverlay:      array[TDwordByteIndex]   of TByteOverlay);
+    6: (AsWordOverlay:      array[TDwordWordIndex]   of TWordOverlay);
   end;
 
-  TWordHelper = Type Helper for Word
-  public
-    const
-      MaxValue = 65535;
-      MinValue = 0;
-  Public
-    Class Function Parse(const AString: string): Word; inline; static;
-    Class Function Size: Integer; inline; static;
-    Class Function ToString(const AValue: Word): string; overload; inline; static;
-    Class Function TryParse(const AString: string; out AValue: Word): Boolean; inline; static;
-  Public
-    Function ToBoolean: Boolean; inline;
-    Function ToDouble: Double; inline;
-    Function ToExtended: Extended; inline;
-    Function ToBinString:string; inline;
-    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
-    Function ToHexString: string; overload; inline;
-    Function ToSingle: Single; inline;
-    Function ToString: string; overload; inline;
-    Function SetBit(const Index: TWordBitIndex) : Word; inline;
-    Function ClearBit(const Index: TWordBitIndex) : Word; inline;
-    Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
-    Function TestBit(const Index:TWordBitIndex):Boolean; inline;    
-  end;
+  // TCardinalBitIndex is already defined
+  TCardinalNibbleIndex = TDwordNibbleIndex;
+  TCardinalByteIndex   = TDwordByteIndex;
+  TCardinalWordIndex   = TDwordWordIndex;
 
+  TCardinalOverlay = TDwordOverlay;
+  
   TCardinalHelper = Type Helper for Cardinal { for LongWord Type too }
+  const
+    MaxValue  = High(Cardinal);
+    MinValue  = Low(Cardinal);
+    MaxBit    = High(TCardinalBitIndex);
+    MinBit    = Low(TCardinalBitIndex);
+    MaxNibble = High(TCardinalNibbleIndex);
+    MinNibble = Low(TCardinalNibbleIndex);
+    MaxByte   = High(TCardinalByteIndex);
+    MinByte   = Low(TCardinalByteIndex);
+    MaxWord   = High(TCardinalWordIndex);
+    MinWord   = Low(TCardinalWordIndex);
   public
-    const
-      MaxValue = 4294967295;
-      MinValue = 0;
-  Public
     Class Function Parse(const AString: string): Cardinal; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Cardinal): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Cardinal): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TCardinalBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TCardinalBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TCardinalNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TCardinalNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TCardinalByteIndex): byte;
+    procedure PutByte(const aIndex: TCardinalByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TCardinalWordIndex): word;
+    procedure PutWord(const aIndex: TCardinalWordIndex; const aNewValue: word);
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -504,19 +652,63 @@ Type
     Function ClearBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function ToggleBit(const Index: TCardinalBitIndex) : Cardinal; inline;
     Function TestBit(const Index:TCardinalBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TCardinalBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TCardinalNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TCardinalByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TCardinalWordIndex]: word     read GetWord   write PutWord;
   end;
 
-  TIntegerHelper = Type Helper for Integer { for LongInt Type too }
+  // TIntegerBitIndex is already defined
+{$if sizeof(Integer)=2}
+  TIntegerNibbleIndex = TWordNibbleIndex;
+  TIntegerByteIndex   = TWordByteIndex;
+
+  TIntegerOverlay = TWordOverlay;
+{$elseif sizeof(Integer)=4}
+  TIntegerNibbleIndex = TDwordNibbleIndex;
+  TIntegerByteIndex   = TDwordByteIndex;
+  TIntegerWordIndex   = TDwordWordIndex;
+
+  TIntegerOverlay = TDwordOverlay;
+{$else}
+  {$fatal Unsupported Integer type size}
+{$endif}
+
+  TIntegerHelper = Type Helper for Integer
+  const
+    MaxValue  = High(integer);
+    MinValue  = Low(integer);
+    MaxBit    = High(TIntegerBitIndex);
+    MinBit    = Low(TIntegerBitIndex);
+    MaxNibble = High(TIntegerNibbleIndex);
+    MinNibble = Low(TIntegerNibbleIndex);
+    MaxByte   = High(TIntegerByteIndex);
+    MinByte   = Low(TIntegerByteIndex);
+{$if sizeof(Integer)>=4}
+    MaxWord   = High(TIntegerWordIndex);
+    MinWord   = Low(TIntegerWordIndex);
+{$endif}
   public
-    const
-      MaxValue = 2147483647;
-      MinValue = -2147483648;
-  Public
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Integer): string; overload; inline; static;
     Class Function Parse(const AString: string): Integer; inline; static;
     Class Function TryParse(const AString: string; out AValue: Integer): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TIntegerBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TIntegerBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TIntegerNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TIntegerNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TIntegerByteIndex): byte;
+    procedure PutByte(const aIndex: TIntegerByteIndex; const aNewValue: byte);
+{$if sizeof(Integer)>=4}
+    function  GetWord(const aIndex: TIntegerWordIndex): word;
+    procedure PutWord(const aIndex: TIntegerWordIndex; const aNewValue: word);
+{$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -529,19 +721,186 @@ Type
     Function ClearBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function ToggleBit(const Index: TIntegerBitIndex) : Integer; inline;
     Function TestBit(const Index:TIntegerBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TIntegerBitIndex]: boolean    read GetBit    write PutBit;
+    property  Nibbles[aIndex: TIntegerNibbleIndex]: nibble  read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TIntegerByteIndex]:  byte     read GetByte   write PutByte;
+{$if sizeof(Integer)>=4}
+    property  Words  [aIndex: TIntegerWordIndex]:  word     read GetWord   write PutWord;
+{$endif}
   end;
 
-  TInt64Helper = Type Helper for Int64
+  // TLongIntBitIndex is already defined
+  TLongIntNibbleIndex = TDwordNibbleIndex;
+  TLongIntByteIndex   = TDwordByteIndex;
+  TLongIntWordIndex   = TDwordWordIndex;
+
+  TLongIntOverlay = TDwordOverlay;
+
+  TLongIntHelper = Type Helper for LongInt
+  const
+    MaxValue  = High(LongInt);
+    MinValue  = Low(LongInt);
+    MaxBit    = High(TLongIntBitIndex);
+    MinBit    = Low(TLongIntBitIndex);
+    MaxNibble = High(TLongIntNibbleIndex);
+    MinNibble = Low(TLongIntNibbleIndex);
+    MaxByte   = High(TLongIntByteIndex);
+    MinByte   = Low(TLongIntByteIndex);
+    MaxWord   = High(TLongIntWordIndex);
+    MinWord   = Low(TLongIntWordIndex);
   public
-    const
-      MaxValue = 9223372036854775807;
-      MinValue = -9223372036854775808;
-  Public
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: LongInt): string; overload; inline; static;
+    Class Function Parse(const AString: string): LongInt; inline; static;
+    Class Function TryParse(const AString: string; out AValue: LongInt): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TLongIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TLongIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TLongIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TLongIntNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TLongIntByteIndex): byte;
+    procedure PutByte(const aIndex: TLongIntByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TLongIntWordIndex): word;
+    procedure PutWord(const aIndex: TLongIntWordIndex; const aNewValue: word);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ClearBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function ToggleBit(const Index: TLongIntBitIndex) : LongInt; inline;
+    Function TestBit(const Index:TLongIntBitIndex):Boolean; inline;   
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TLongIntBitIndex]: boolean    read GetBit    write PutBit;
+    property  Nibbles[aIndex: TLongIntNibbleIndex]: nibble  read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TLongIntByteIndex]:  byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TLongIntWordIndex]:  word     read GetWord   write PutWord;
+  end;
+
+  // TQwordBitIndex is already defined
+  TQwordNibbleIndex = 0..15;
+  TQwordByteIndex   = 0..7;
+  TQwordWordIndex   = 0..3;
+  TQwordDwordIndex  = 0..1;
+
+  TQwordOverlay = bitpacked record case integer of     // for fast extraction of longwords, words, bytes and bits
+    0: (AsBit:    bitpacked array[TQwordBitIndex]    of boolean);
+    1: (AsNibble: bitpacked array[TQwordNibbleIndex] of nibble);
+    2: (AsByte:             array[TQwordByteIndex]   of byte);
+    3: (AsWord:             array[TQwordWordIndex]   of word);
+    4: (AsDword:            array[TQwordDwordIndex]  of dword);
+    5: (AsQword:            qword);
+    // recursive overlays:
+    6: (AsByteOverlay:      array[TQwordByteIndex]   of TByteOverlay);
+    7: (AsWordOverlay:      array[TQwordWordIndex]   of TWordOverlay);
+    8: (AsDwordOverlay:     array[TQwordDwordIndex]  of TDwordOverlay);
+  end;
+
+  TQWordHelper = Type Helper for QWord
+  const
+    MaxValue  = High(qword);
+    MinValue  = Low(qword);
+    MaxBit    = High(TQwordBitIndex);
+    MinBit    = Low(TQwordBitIndex);
+    MaxNibble = High(TQwordNibbleIndex);
+    MinNibble = Low(TQwordNibbleIndex);
+    MaxByte   = High(TQwordByteIndex);
+    MinByte   = Low(TQwordByteIndex);
+    MaxWord   = High(TQwordWordIndex);
+    MinWord   = Low(TQwordWordIndex);
+    MaxDword  = High(TQwordDwordIndex);
+    MinDword  = Low(TQwordDwordIndex);
+  public
+    Class Function Parse(const AString: string): Qword; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Qword): string; overload; inline; static;
+    Class Function TryParse(const AString: string; out AValue: Qword): Boolean; inline; static;
+  protected
+    function  GetBit(const aIndex: TQwordBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TQwordBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TQwordNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TQwordNibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TQwordByteIndex): byte;
+    procedure PutByte(const aIndex: TQwordByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TQwordWordIndex): word;
+    procedure PutWord(const aIndex: TQwordWordIndex; const aNewValue: word);
+    function  GetDword(const aIndex: TQwordDwordIndex): dword;
+    procedure PutDword(const aIndex: TQwordDwordIndex; const aNewValue: dword);
+  public
+    Function ToBoolean: Boolean; inline;
+    Function ToDouble: Double; inline;
+    Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
+    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
+    Function ToHexString: string; overload; inline;
+    Function ToSingle: Single; inline;
+    Function ToString: string; overload; inline;
+    Function SetBit(const Index: TQwordBitIndex): Qword; inline;
+    Function ClearBit(const Index: TQwordBitIndex): Qword; inline;
+    Function ToggleBit(const Index: TQwordBitIndex): Qword; inline;
+    Function TestBit(const Index:TQwordBitIndex): Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TQwordBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TQwordNibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TQwordByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TQwordWordIndex]: word     read GetWord   write PutWord;
+    property  DWords [aIndex: TQwordDwordIndex]: dword   read GetDWord  write PutDWord;
+  end;
+
+  // TInt64BitIndex is already defined
+  TInt64NibbleIndex = TQwordNibbleIndex;
+  TInt64ByteIndex   = TQwordByteIndex;
+  TInt64WordIndex   = TQwordWordIndex;
+  TInt64DwordIndex  = TQwordDwordIndex;
+
+  TInt64Overlay = TQwordOverlay;
+
+  TInt64Helper = Type Helper for Int64
+  const
+    MaxValue  = High(int64);
+    MinValue  = Low(int64);
+    MaxBit    = High(TInt64BitIndex);
+    MinBit    = Low(TInt64BitIndex);
+    MaxNibble = High(TInt64NibbleIndex);
+    MinNibble = Low(TInt64NibbleIndex);
+    MaxByte   = High(TInt64ByteIndex);
+    MinByte   = Low(TInt64ByteIndex);
+    MaxWord   = High(TInt64WordIndex);
+    MinWord   = Low(TInt64WordIndex);
+    MaxDword  = High(TInt64DwordIndex);
+    MinDword  = Low(TInt64DwordIndex);
+  public
     Class Function Parse(const AString: string): Int64; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: Int64): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: Int64): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TInt64BitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TInt64BitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TInt64NibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TInt64NibbleIndex; const aNewValue: nibble); inline;
+    function  GetByte(const aIndex: TInt64ByteIndex): byte;
+    procedure PutByte(const aIndex: TInt64ByteIndex; const aNewValue: byte);
+    function  GetWord(const aIndex: TInt64WordIndex): word;
+    procedure PutWord(const aIndex: TInt64WordIndex; const aNewValue: word);
+    function  GetDword(const aIndex: TInt64DwordIndex): dword;
+    procedure PutDword(const aIndex: TInt64DwordIndex; const aNewValue: dword);
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -553,45 +912,79 @@ Type
     Function SetBit(const Index: TInt64BitIndex) : Int64; inline;
     Function ClearBit(const Index: TInt64BitIndex) : Int64; inline;
     Function ToggleBit(const Index: TInt64BitIndex) : Int64; inline;
-    Function TestBit(const Index:TInt64BitIndex):Boolean; inline; 
+    Function TestBit(const Index: TInt64BitIndex): Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits   [aIndex: TInt64BitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles[aIndex: TInt64NibbleIndex]: nibble read GetNibble write PutNibble;
+    property  Bytes  [aIndex: TInt64ByteIndex]: byte     read GetByte   write PutByte;
+    property  Words  [aIndex: TInt64WordIndex]: word     read GetWord   write PutWord;
+    property  DWords [aIndex: TInt64DwordIndex]: dword   read GetDWord  write PutDWord;
   end;
 
-  TQWordHelper = Type Helper for QWord
-  public
-    const
-      MaxValue = 18446744073709551615;
-      MinValue = 0;
-  Public
-    Class Function Parse(const AString: string): QWord; inline; static;
-    Class Function Size: Integer; inline; static;
-    Class Function ToString(const AValue: QWord): string; overload; inline; static;
-    Class Function TryParse(const AString: string; out AValue: QWord): Boolean; inline; static;
-  Public
-    Function ToBoolean: Boolean; inline;
-    Function ToDouble: Double; inline;
-    Function ToExtended: Extended; inline;
-    Function ToBinString:string; inline;
-    Function ToHexString(const AMinDigits: Integer): string; overload; inline;
-    Function ToHexString: string; overload; inline;
-    Function ToSingle: Single; inline;
-    Function ToString: string; overload; inline;
-    Function SetBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function ClearBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function ToggleBit(const Index: TQwordBitIndex) : QWord; inline;
-    Function TestBit(const Index:TQwordBitIndex):Boolean; inline; 
-  end;
+  // TNativeIntBitIndex is already defined
+  {$if sizeof(NativeInt)=2}
+    TNativeIntNibbleIndex = TSmallIntNibbleIndex;
+    TNativeIntByteIndex   = TSmallIntByteIndex;
+    TNativeIntOverlay     = TSmallIntOverlay;
+  {$elseif sizeof(NativeInt)=4}
+    TNativeIntNibbleIndex = TLongIntNibbleIndex;
+    TNativeIntByteIndex   = TLongIntByteIndex;
+    TNativeIntWordIndex   = TLongIntWordIndex;
+    TNativeIntOverlay     = TLongIntOverlay;
+  {$elseif sizeof(NativeInt)=8}
+    TNativeIntNibbleIndex = TInt64NibbleIndex;
+    TNativeIntByteIndex   = TInt64ByteIndex;
+    TNativeIntWordIndex   = TInt64WordIndex;
+    TNativeIntDwordIndex  = TInt64DWordIndex;
+    TNativeIntOverlay     = TInt64Overlay;
+  {$else}
+    {$fatal Unsupported NativeInt type size}
+  {$endif}
 
   TNativeIntHelper = Type Helper for NativeInt
+  const
+    MaxValue  = High(NativeInt);
+    MinValue  = Low(NativeInt);
+    MaxBit    = High(TNativeIntBitIndex);
+    MinBit    = Low(TNativeIntBitIndex);
+    MaxNibble = High(TNativeIntNibbleIndex);
+    MinNibble = Low(TNativeIntNibbleIndex);
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
+    MaxByte   = High(TNativeIntByteIndex);
+    MinByte   = Low(TNativeIntByteIndex);
+    {$if sizeof(NativeInt)>=4}
+    MaxWord   = High(TNativeIntWordIndex);
+    MinWord   = Low(TNativeIntWordIndex);
+    {$endif}
+    {$ifdef sizeof(NativeInt)>=8}
+    MaxDword  = High(TNativeIntDwordIndex);
+    MinDword  = Low(TNativeIntDwordIndex);
+    {$endif}
   public
-    const
-      MaxValue = High(NativeInt);
-      MinValue = Low(NativeInt);
-  Public
     Class Function Parse(const AString: string): NativeInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: NativeInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: NativeInt): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TNativeIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TNativeIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TNativeIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TNativeIntNibbleIndex; const aNewValue: nibble); inline;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
+    function  GetByte(const aIndex: TNativeIntByteIndex): byte;
+    procedure PutByte(const aIndex: TNativeIntByteIndex; const aNewValue: byte);
+    {$if sizeof(NativeInt)>=4}
+    function  GetWord(const aIndex: TNativeIntWordIndex): word;
+    procedure PutWord(const aIndex: TNativeIntWordIndex; const aNewValue: word);
+    {$endif}
+    {$if sizeof(NativeInt)>=8}
+    function  GetDword(const aIndex: TNativeIntDwordIndex): dword;
+    procedure PutDword(const aIndex: TNativeIntDwordIndex; const aNewValue: dword);
+    {$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -604,19 +997,83 @@ Type
     Function ClearBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function ToggleBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
     Function TestBit(const Index:TNativeIntBitIndex):Boolean; inline; 
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TNativeIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TNativeIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
+    property  Bytes [aIndex: TNativeIntByteIndex]: byte     read GetByte   write PutByte;
+    {$if sizeof(NativeInt)>=4}
+    property  Words [aIndex: TNativeIntWordIndex]: word     read GetWord   write PutWord;
+    {$endif}
+    {$if sizeof(NativeInt)>=8}
+    property  DWords [aIndex: TNativeIntDwordIndex]: dword   read GetDWord  write PutDWord;
+    {$endif}
   end;
 
+  // TNativeUIntBitIndex is already defined
+  {$if sizeof(NativeUInt)=2}
+    TNativeUIntNibbleIndex = TWordNibbleIndex;
+    TNativeUIntByteIndex   = TWordByteIndex;
+    TNativeUIntOverlay     = TWordOverlay;
+  {$elseif sizeof(NativeUInt)=4}
+    TNativeUIntNibbleIndex = TDwordNibbleIndex;
+    TNativeUIntByteIndex   = TDwordByteIndex;
+    TNativeUIntWordIndex   = TDwordWordIndex;
+    TNativeUIntOverlay     = TDwordOverlay;
+  {$elseif sizeof(NativeUInt)=8}
+    TNativeUIntNibbleIndex = TQwordNibbleIndex;
+    TNativeUIntByteIndex   = TQwordByteIndex;
+    TNativeUIntWordIndex   = TQwordWordIndex;
+    TNativeUIntDwordIndex  = TQwordDWordIndex;
+    TNativeUIntOverlay     = TQwordOverlay;
+  {$else}
+    {$fatal Unsupported NativeUInt type size}
+  {$endif}
+
   TNativeUIntHelper = Type Helper for NativeUInt
+  const
+    MaxValue  = High(NativeUInt);
+    MinValue  = 0;
+    MaxBit    = High(TNativeUIntBitIndex);
+    MinBit    = Low(TNativeUIntBitIndex);
+    MaxNibble = High(TNativeUIntNibbleIndex);
+    MinNibble = Low(TNativeUIntNibbleIndex);
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need MaxByte and MinByte
+    MaxByte   = High(TNativeUIntByteIndex);
+    MinByte   = Low(TNativeUIntByteIndex);
+    {$if sizeof(NativeUInt)>=4}
+    MaxWord   = High(TNativeUIntWordIndex);
+    MinWord   = Low(TNativeUIntWordIndex);
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    MaxDword  = High(TNativeUIntDwordIndex);
+    MinDword  = Low(TNativeUIntDwordIndex);
+    {$endif}
   public
-    const
-      MaxValue = High(NativeUInt);
-      MinValue = 0;
-  Public
     Class Function Parse(const AString: string): NativeUInt; inline; static;
     Class Function Size: Integer; inline; static;
     Class Function ToString(const AValue: NativeUInt): string; overload; inline; static;
     Class Function TryParse(const AString: string; out AValue: NativeUInt): Boolean; inline; static;
-  Public
+  protected
+    function  GetBit(const aIndex: TNativeUIntBitIndex): boolean; inline;
+    procedure PutBit(const aIndex: TNativeUIntBitIndex; const aNewValue: boolean); inline;
+    function  GetNibble(const aIndex: TNativeUIntNibbleIndex): nibble; inline;
+    procedure PutNibble(const aIndex: TNativeUIntNibbleIndex; const aNewValue: nibble); inline;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need GetByte and PutByte
+    function  GetByte(const aIndex: TNativeUIntByteIndex): byte;
+    procedure PutByte(const aIndex: TNativeUIntByteIndex; const aNewValue: byte);
+    {$if sizeof(NativeUInt)>=4}
+    function  GetWord(const aIndex: TNativeUIntWordIndex): word;
+    procedure PutWord(const aIndex: TNativeUIntWordIndex; const aNewValue: word);
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    function  GetDword(const aIndex: TNativeUIntDwordIndex): dword;
+    procedure PutDword(const aIndex: TNativeUIntDwordIndex; const aNewValue: dword);
+    {$endif}
+  public
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
@@ -629,6 +1086,20 @@ Type
     Function ClearBit(const Index: TNativeUIntBitIndex): NativeUint; inline;
     Function ToggleBit(const Index: TNativeUIntBitIndex) : NativeUint; inline;
     Function TestBit(const Index:TNativeUIntBitIndex) :Boolean; inline;
+    procedure Clear; inline;
+    function  HighestSetBitPos: cardinal; inline;
+    function  LowestSetBitPos: cardinal; inline;
+    function  SetBitsCount: byte; inline;
+    property  Bits [aIndex: TNativeUIntBitIndex]: boolean   read GetBit    write PutBit;
+    property  Nibbles [aIndex: TNativeUIntNibbleIndex]: nibble read GetNibble write PutNibble;
+    // NativeInt on cpu16 has 2 bytes, so no need for cpu16 check because we always need Byte[]
+    property  Bytes [aIndex: TNativeUIntByteIndex]: byte     read GetByte   write PutByte;
+    {$if sizeof(NativeUInt)>=4}
+    property  Words [aIndex: TNativeUIntWordIndex]: word     read GetWord   write PutWord;
+    {$endif}
+    {$if sizeof(NativeUInt)>=8}
+    property  DWords [aIndex: TNativeUIntDwordIndex]: dword   read GetDWord  write PutDWord;
+    {$endif}
   end;
 
   {$SCOPEDENUMS ON}

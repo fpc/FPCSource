@@ -127,6 +127,7 @@ unit aoptx86;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
         function PrePeepholeOptIMUL(var p : tai) : boolean;
+        function PrePeepholeOptAND(var p : tai) : boolean;
 
         function OptPass1Test(var p: tai): boolean;
         function OptPass1Add(var p: tai): boolean;
@@ -147,6 +148,7 @@ unit aoptx86;
         function OptPass1VPXor(var p: tai): boolean;
         function OptPass1Imul(var p : tai) : boolean;
         function OptPass1Jcc(var p : tai) : boolean;
+        function OptPass1SHXX(var p: tai): boolean;
 
         function OptPass2Movx(var p : tai): Boolean;
         function OptPass2MOV(var p : tai) : boolean;
@@ -1214,17 +1216,31 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.PrePeepholeOptAND(var p : tai) : boolean;
+      begin
+        Result := False;
+        if MatchOperand(taicpu(p).oper[0]^, 0) and
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'AND 0 -> MOV 0', p);
+            taicpu(p).opcode := A_MOV;
+            Result := True;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
       var
-        p: taicpu;
+        p: taicpu absolute hp;
+        i: Integer;
       begin
+        Result := False;
         if not assigned(hp) or
            (hp.typ <> ait_instruction) then
-         begin
-           Result := false;
-           exit;
-         end;
-        p := taicpu(hp);
+         Exit;
+
+//        p := taicpu(hp);
+        Prefetch(insprop[p.opcode]);
         if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
           with insprop[p.opcode] do
             begin
@@ -1261,87 +1277,322 @@ unit aoptx86;
               end;
               exit;
             end;
-        Result :=
-          (((p.opcode = A_MOV) or
-            (p.opcode = A_MOVZX) or
-            (p.opcode = A_MOVSX) or
-            (p.opcode = A_LEA) or
-            (p.opcode = A_VMOVSS) or
-            (p.opcode = A_VMOVSD) or
-            (p.opcode = A_VMOVAPD) or
-            (p.opcode = A_VMOVAPS) or
-            (p.opcode = A_VMOVQ) or
-            (p.opcode = A_MOVSS) or
-            (p.opcode = A_MOVSD) or
-            (p.opcode = A_MOVQ) or
-            (p.opcode = A_MOVAPD) or
-            (p.opcode = A_MOVAPS) or
-{$ifndef x86_64}
-            (p.opcode = A_LDS) or
-            (p.opcode = A_LES) or
-{$endif not x86_64}
-            (p.opcode = A_LFS) or
-            (p.opcode = A_LGS) or
-            (p.opcode = A_LSS)) and
-           (p.ops=2) and  { A_MOVSD can have zero operands, so this check is needed }
-           (p.oper[1]^.typ = top_reg) and
-           (Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg)) and
-           ((p.oper[0]^.typ = top_const) or
-            ((p.oper[0]^.typ = top_reg) and
-             not(Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg))) or
-            ((p.oper[0]^.typ = top_ref) and
-             not RegInRef(reg,p.oper[0]^.ref^)))) or
-          ((p.opcode = A_POP) and
-           (Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg))) or
-          ((p.opcode = A_IMUL) and
-           (p.ops=3) and
-           (Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg,reg)) and
-           (((p.oper[1]^.typ=top_reg) and not(Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))) or
-            ((p.oper[1]^.typ=top_ref) and not(RegInRef(reg,p.oper[1]^.ref^))))) or
-          ((((p.opcode = A_IMUL) or
-             (p.opcode = A_MUL)) and
-            (p.ops=1)) and
-           (((p.oper[0]^.typ=top_reg) and not(Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg))) or
-            ((p.oper[0]^.typ=top_ref) and not(RegInRef(reg,p.oper[0]^.ref^)))) and
-           (((p.opsize=S_B) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg))) or
-            ((p.opsize=S_W) and Reg1WriteOverwritesReg2Entirely(NR_DX,reg)) or
-            ((p.opsize=S_L) and Reg1WriteOverwritesReg2Entirely(NR_EDX,reg))
+
+        { Handle special cases first }
+        case p.opcode of
+          A_MOV, A_MOVZX, A_MOVSX, A_LEA, A_VMOVSS, A_VMOVSD, A_VMOVAPD,
+          A_VMOVAPS, A_VMOVQ, A_MOVSS, A_MOVSD, A_MOVQ, A_MOVAPD, A_MOVAPS:
+            begin
+              Result :=
+              (p.ops=2) and { A_MOVSD can have zero operands, so this check is needed }
+              (p.oper[1]^.typ = top_reg) and
+               (Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg)) and
+               (
+                 (p.oper[0]^.typ = top_const) or
+                 (
+                   (p.oper[0]^.typ = top_reg) and
+                   not(Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg))
+                 ) or (
+                   (p.oper[0]^.typ = top_ref) and
+                   not RegInRef(reg,p.oper[0]^.ref^)
+                 )
+               );
+            end;
+
+          A_MUL, A_IMUL:
+            Result :=
+              (
+                (p.ops=3) and { IMUL only }
+                (Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg,reg)) and
+                (
+                  (
+                    (p.oper[1]^.typ=top_reg) and
+                    not Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg)
+                  ) or (
+                    (p.oper[1]^.typ=top_ref) and
+                    not RegInRef(reg,p.oper[1]^.ref^)
+                  )
+                )
+              ) or (
+                (
+                  (p.ops=1) and
+                  (
+                    (
+                      (
+                        (p.oper[0]^.typ=top_reg) and
+                        not Reg1ReadDependsOnReg2(p.oper[0]^.reg,reg)
+                      )
+                    ) or (
+                      (p.oper[0]^.typ=top_ref) and
+                      not RegInRef(reg,p.oper[0]^.ref^)
+                    )
+                  ) and (
+                    (
+                      (p.opsize=S_B) and
+                      Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and
+                      not Reg1ReadDependsOnReg2(NR_AL,reg)
+                    ) or (
+                      (p.opsize=S_W) and
+                      Reg1WriteOverwritesReg2Entirely(NR_DX,reg)
+                    ) or (
+                      (p.opsize=S_L) and
+                      Reg1WriteOverwritesReg2Entirely(NR_EDX,reg)
 {$ifdef x86_64}
-         or ((p.opsize=S_Q) and Reg1WriteOverwritesReg2Entirely(NR_RDX,reg))
+                    ) or (
+                      (p.opsize=S_Q) and
+                      Reg1WriteOverwritesReg2Entirely(NR_RDX,reg)
 {$endif x86_64}
-           )) or
-          ((p.opcode = A_CWD) and Reg1WriteOverwritesReg2Entirely(NR_DX,reg)) or
-          ((p.opcode = A_CDQ) and Reg1WriteOverwritesReg2Entirely(NR_EDX,reg)) or
-{$ifdef x86_64}
-          ((p.opcode = A_CQO) and Reg1WriteOverwritesReg2Entirely(NR_RDX,reg)) or
-{$endif x86_64}
-          ((p.opcode = A_CBW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg))) or
+                    )
+                  )
+                )
+              );
+
+          A_CBW:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_AX,reg) and not(Reg1ReadDependsOnReg2(NR_AL,reg));
 {$ifndef x86_64}
-          ((p.opcode = A_LDS) and (reg=NR_DS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
-          ((p.opcode = A_LES) and (reg=NR_ES) and not(RegInRef(reg,p.oper[0]^.ref^))) or
+          A_LDS:
+            Result := (reg=NR_DS) and not(RegInRef(reg,p.oper[0]^.ref^));
+
+          A_LES:
+            Result := (reg=NR_ES) and not(RegInRef(reg,p.oper[0]^.ref^));
 {$endif not x86_64}
-          ((p.opcode = A_LFS) and (reg=NR_FS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
-          ((p.opcode = A_LGS) and (reg=NR_GS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
-          ((p.opcode = A_LSS) and (reg=NR_SS) and not(RegInRef(reg,p.oper[0]^.ref^))) or
-{$ifndef x86_64}
-          ((p.opcode = A_AAM) and Reg1WriteOverwritesReg2Entirely(NR_AH,reg)) or
-{$endif not x86_64}
-          ((p.opcode = A_LAHF) and Reg1WriteOverwritesReg2Entirely(NR_AH,reg)) or
-          ((p.opcode = A_LODSB) and Reg1WriteOverwritesReg2Entirely(NR_AL,reg)) or
-          ((p.opcode = A_LODSW) and Reg1WriteOverwritesReg2Entirely(NR_AX,reg)) or
-          ((p.opcode = A_LODSD) and Reg1WriteOverwritesReg2Entirely(NR_EAX,reg)) or
+          A_LFS:
+            Result := (reg=NR_FS) and not(RegInRef(reg,p.oper[0]^.ref^));
+
+          A_LGS:
+            Result := (reg=NR_GS) and not(RegInRef(reg,p.oper[0]^.ref^));
+
+          A_LSS:
+            Result := (reg=NR_SS) and not(RegInRef(reg,p.oper[0]^.ref^));
+
+          A_LAHF{$ifndef x86_64}, A_AAM{$endif not x86_64}:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_AH,reg);
+
+          A_LODSB:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_AL,reg);
+
+          A_LODSW:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_AX,reg);
 {$ifdef x86_64}
-          ((p.opcode = A_LODSQ) and Reg1WriteOverwritesReg2Entirely(NR_RAX,reg)) or
+          A_LODSQ:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_RAX,reg);
 {$endif x86_64}
-          ((p.opcode = A_SETcc) and (p.oper[0]^.typ=top_reg) and Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) or
-          (((p.opcode = A_FSTSW) or
-            (p.opcode = A_FNSTSW)) and
-           (p.oper[0]^.typ=top_reg) and
-           Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) or
-          (((p.opcode = A_XOR) or (p.opcode = A_SUB) or (p.opcode = A_SBB)) and
-           (p.oper[0]^.typ=top_reg) and (p.oper[1]^.typ=top_reg) and
-           (p.oper[0]^.reg=p.oper[1]^.reg) and
-           Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg));
+          A_LODSD:
+            Result := Reg1WriteOverwritesReg2Entirely(NR_EAX,reg);
+
+          A_FSTSW, A_FNSTSW:
+            Result := (p.oper[0]^.typ=top_reg) and Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg);
+
+          else
+            begin
+              with insprop[p.opcode] do
+                begin
+                  if (
+                    { xor %reg,%reg etc. is classed as a new value }
+                    (([Ch_NoReadIfEqualRegs]*Ch)<>[]) and
+                    MatchOpType(p, top_reg, top_reg) and
+                    (p.oper[0]^.reg = p.oper[1]^.reg) and
+                    Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg,reg)
+                  ) then
+                    begin
+                      Result := True;
+                      Exit;
+                    end;
+
+                  { Make sure the entire register is overwritten }
+                  if (getregtype(reg) = R_INTREGISTER) then
+                    begin
+
+                      if (p.ops > 0) then
+                        begin
+                          if RegInOp(reg, p.oper[0]^) then
+                            begin
+                              if (p.oper[0]^.typ = top_ref) then
+                                begin
+                                  if RegInRef(reg, p.oper[0]^.ref^) then
+                                    begin
+                                      Result := False;
+                                      Exit;
+                                    end;
+                                 end
+                              else if (p.oper[0]^.typ = top_reg) then
+                                begin
+
+                                  if ([Ch_ROp1, Ch_RWOp1, Ch_MOp1]*Ch<>[]) then
+                                    begin
+                                      Result := False;
+                                      Exit;
+                                    end
+                                  else if ([Ch_WOp1]*Ch<>[]) then
+                                    begin
+                                      if Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg, reg) then
+                                        Result := True
+                                      else
+                                        begin
+                                          Result := False;
+                                          Exit;
+                                        end;
+                                    end;
+                                end;
+                            end;
+
+                          if (p.ops > 1) then
+                            begin
+                              if RegInOp(reg, p.oper[1]^) then
+                                begin
+                                  if (p.oper[1]^.typ = top_ref) then
+                                    begin
+                                      if RegInRef(reg, p.oper[1]^.ref^) then
+                                        begin
+                                          Result := False;
+                                          Exit;
+                                        end;
+                                     end
+                                  else if (p.oper[1]^.typ = top_reg) then
+                                    begin
+
+                                      if ([Ch_ROp2, Ch_RWOp2, Ch_MOp2]*Ch<>[]) then
+                                        begin
+                                          Result := False;
+                                          Exit;
+                                        end
+                                      else if ([Ch_WOp2]*Ch<>[]) then
+                                        begin
+                                          if Reg1WriteOverwritesReg2Entirely(p.oper[1]^.reg, reg) then
+                                            Result := True
+                                          else
+                                            begin
+                                              Result := False;
+                                              Exit;
+                                            end;
+                                        end;
+                                    end;
+                                end;
+
+                              if (p.ops > 2) then
+                                begin
+                                  if RegInOp(reg, p.oper[2]^) then
+                                    begin
+                                      if (p.oper[2]^.typ = top_ref) then
+                                        begin
+                                          if RegInRef(reg, p.oper[2]^.ref^) then
+                                            begin
+                                              Result := False;
+                                              Exit;
+                                            end;
+                                         end
+                                      else if (p.oper[2]^.typ = top_reg) then
+                                        begin
+
+                                          if ([Ch_ROp3, Ch_RWOp3, Ch_MOp3]*Ch<>[]) then
+                                            begin
+                                              Result := False;
+                                              Exit;
+                                            end
+                                          else if ([Ch_WOp3]*Ch<>[]) then
+                                            begin
+                                              if Reg1WriteOverwritesReg2Entirely(p.oper[2]^.reg, reg) then
+                                                Result := True
+                                              else
+                                                begin
+                                                  Result := False;
+                                                  Exit;
+                                                end;
+                                            end;
+                                        end;
+                                    end;
+
+                                  if (p.ops > 3) and RegInOp(reg, p.oper[3]^) then
+                                    begin
+                                      if (p.oper[3]^.typ = top_ref) then
+                                        begin
+                                          if RegInRef(reg, p.oper[3]^.ref^) then
+                                            begin
+                                              Result := False;
+                                              Exit;
+                                            end;
+                                         end
+                                      else if (p.oper[3]^.typ = top_reg) then
+                                        begin
+
+                                          if ([Ch_ROp4, Ch_RWOp4, Ch_MOp4]*Ch<>[]) then
+                                            begin
+                                              Result := False;
+                                              Exit;
+                                            end
+                                          else if ([Ch_WOp4]*Ch<>[]) then
+                                            begin
+                                              if Reg1WriteOverwritesReg2Entirely(p.oper[3]^.reg, reg) then
+                                                Result := True
+                                              else
+                                                begin
+                                                  Result := False;
+                                                  Exit;
+                                                end;
+                                            end;
+                                        end;
+                                    end;
+                                end;
+                            end;
+                        end;
+
+                      { Don't do these ones first in case an input operand is equal to an explicit output registers }
+                      case getsupreg(reg) of
+                        RS_EAX:
+                          if ([Ch_WEAX{$ifdef x86_64},Ch_WRAX{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EAX, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_ECX:
+                          if ([Ch_WECX{$ifdef x86_64},Ch_WRCX{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_ECX, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_EDX:
+                          if ([Ch_REDX{$ifdef x86_64},Ch_WRDX{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EDX, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_EBX:
+                          if ([Ch_WEBX{$ifdef x86_64},Ch_WRBX{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EBX, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_ESP:
+                          if ([Ch_WESP{$ifdef x86_64},Ch_WRSP{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_ESP, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_EBP:
+                          if ([Ch_WEBP{$ifdef x86_64},Ch_WRBP{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EBP, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_ESI:
+                          if ([Ch_WESI{$ifdef x86_64},Ch_WRSI{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_ESI, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        RS_EDI:
+                          if ([Ch_WEDI{$ifdef x86_64},Ch_WRDI{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EDI, reg) then
+                            begin
+                              Result := True;
+                              Exit;
+                            end;
+                        else
+                          ;
+                      end;
+                    end;
+               end;
+            end;
+          end;
       end;
 
 
@@ -2183,7 +2434,7 @@ unit aoptx86;
                         if (taicpu(hp1).opcode <> A_MOV) and (taicpu(hp1).opcode <> A_LEA) then
                           { Just to make a saving, since there are no more optimisations with MOVZX and MOVSX/D }
                           Exit;
-                  end;
+                    end;
                 end
              { The RegInOp check makes sure that movl r/m,%reg1l; movzbl (%reg1l),%reg1l"
                and "movl r/m,%reg1; leal $1(%reg1,%reg2),%reg1" etc. are not incorrectly
@@ -2238,7 +2489,7 @@ unit aoptx86;
                   MatchOperand(taicpu(hp1).oper[1]^,taicpu(hp2).oper[1]^) and
                   MatchOperand(taicpu(hp2).oper[0]^,taicpu(hp2).oper[1]^) and
                   GetNextInstruction(hp2,hp3) and
-                  MatchInstruction(hp3,A_Jcc,A_Setcc,[S_NO]) and
+                  MatchInstruction(hp3,A_Jcc,A_Setcc,[]) and
                   (taicpu(hp3).condition in [C_E,C_NE]) then
                   begin
                     TransferUsedRegs(TmpUsedRegs);
@@ -2357,6 +2608,39 @@ unit aoptx86;
                   end;
               end;
           end;
+
+        if (taicpu(hp1).opcode = A_OR) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          MatchOperand(taicpu(p).oper[0]^, 0) and
+          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) then
+          begin
+            {   mov 0,  %reg
+                or  ###,%reg
+              Change to (only if the flags are not used):
+                mov ###,%reg
+            }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            if not (RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs)) then
+              begin
+{$ifdef x86_64}
+                { OR only supports 32-bit sign-extended constants for 64-bit
+                  instructions, so compensate for this if the constant is
+                  encoded as a value greater than or equal to 2^31 }
+                if (taicpu(hp1).opsize = S_Q) and
+                  (taicpu(hp1).oper[0]^.typ = top_const) and
+                  (taicpu(hp1).oper[0]^.val >= $80000000) then
+                  taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val or $FFFFFFFF00000000;
+{$endif x86_64}
+
+                DebugMsg(SPeepholeOptimization + 'MOV 0 / OR -> MOV', p);
+                taicpu(hp1).opcode := A_MOV;
+                RemoveCurrentP(p, hp1);
+                Result := True;
+                Exit;
+              end;
+          end;
+
         { Next instruction is also a MOV ? }
         if MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
           begin
@@ -2824,7 +3108,11 @@ unit aoptx86;
                                 UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
                                 UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
 
-                                if not RegUsedAfterInstruction(CurrentReg, hp2, TmpUsedRegs) then
+                                if
+                                  { Make sure the original register isn't still present
+                                    and has been written to (e.g. with SHRX) }
+                                  RegLoadedWithNewValue(CurrentReg, hp2) or
+                                  not RegUsedAfterInstruction(CurrentReg, hp2, TmpUsedRegs) then
                                   begin
                                     { We can remove the original MOV }
                                     DebugMsg(SPeepholeOptimization + 'Mov2Nop 3b done',p);
@@ -2838,8 +3126,7 @@ unit aoptx86;
                                     hp3 := hp2;
                                     Continue;
                                   end;
-
-                                end;
+                              end;
                           end;
                       end;
                 end;
@@ -3406,7 +3693,7 @@ unit aoptx86;
             if (taicpu(p).oper[0]^.typ = top_reg) and
               (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
               MatchInstruction(hp1, A_JCC, []) and
-              (taicpu(hp1).oper[0]^.typ = top_ref) then
+              IsJumpToLabel(taicpu(hp1)) then
               begin
                 JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
                 p_label := nil;
@@ -3422,7 +3709,7 @@ unit aoptx86;
                   SuperRegistersEqual(taicpu(p_dist).oper[0]^.reg, taicpu(p).oper[0]^.reg) and
                   SuperRegistersEqual(taicpu(p_dist).oper[1]^.reg, taicpu(p).oper[1]^.reg) and
                   GetNextInstruction(p_dist, hp1_dist) and
-                  MatchInstruction(hp1_dist, A_JCC, []) then
+                  MatchInstruction(hp1_dist, A_JCC, []) then { This doesn't have to be an explicit label }
                   begin
                     JumpLabel_dist := TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol);
 
@@ -3430,9 +3717,10 @@ unit aoptx86;
                       { This is an infinite loop }
                       Exit;
 
-                    { Best optimisation when the second condition is a subset (or equal) to the first }
-                    if condition_in(taicpu(hp1_dist).condition, taicpu(hp1).condition) then
+                    { Best optimisation when the first condition is a subset (or equal) of the second }
+                    if condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
                       begin
+                        { Any registers used here will already be allocated }
                         if Assigned(JumpLabel_dist) then
                           JumpLabel_dist.IncRefs;
 
@@ -3501,8 +3789,15 @@ unit aoptx86;
         { changes "lea (%reg1), %reg2" into "mov %reg1, %reg2" }
         if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
            (taicpu(p).oper[0]^.ref^.index = NR_NO) and
-           { do not mess with leas acessing the stack pointer }
-           (taicpu(p).oper[1]^.reg <> NR_STACK_POINTER_REG) and
+           (
+             { do not mess with leas accessing the stack pointer
+               unless it's a null operation }
+             (taicpu(p).oper[1]^.reg <> NR_STACK_POINTER_REG) or
+             (
+               (taicpu(p).oper[0]^.ref^.base = NR_STACK_POINTER_REG) and
+               (taicpu(p).oper[0]^.ref^.offset = 0)
+             )
+           ) and
            (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
           begin
             if (taicpu(p).oper[0]^.ref^.offset = 0) then
@@ -4548,23 +4843,165 @@ unit aoptx86;
       end;
 
 
+     function IsCmpSubset(cond1, cond2: TAsmCond): Boolean; inline;
+       begin
+         Result := condition_in(cond1, cond2) or
+           { Not strictly subsets due to the actual flags checked, but because we're
+             comparing integers, E is a subset of AE and GE and their aliases }
+           ((cond1 in [C_E, C_Z]) and (cond2 in [C_AE, C_NB, C_NC, C_GE, C_NL]));
+       end;
+
+
      function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
        var
          v: TCGInt;
-         hp1, hp2: tai;
+         hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
          FirstMatch: Boolean;
+         JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
        begin
          Result:=false;
 
+         { All these optimisations need a next instruction }
+         if not GetNextInstruction(p, hp1) then
+           Exit;
+
+         { Search for:
+             cmp   ###,###
+             j(c1) @lbl1
+             ...
+           @lbl:
+             cmp   ###.### (same comparison as above)
+             j(c2) @lbl2
+
+           If c1 is a subset of c2, change to:
+             cmp   ###,###
+             j(c2) @lbl2
+             (@lbl1 may become a dead label as a result)
+         }
+
+         { Also handle cases where there are multiple jumps in a row }
+         p_jump := hp1;
+         while Assigned(p_jump) and MatchInstruction(p_jump, A_JCC, []) do
+           begin
+             if IsJumpToLabel(taicpu(p_jump)) then
+               begin
+                 JumpLabel := TAsmLabel(taicpu(p_jump).oper[0]^.ref^.symbol);
+                 p_label := nil;
+                 if Assigned(JumpLabel) then
+                   p_label := getlabelwithsym(JumpLabel);
+
+                 if Assigned(p_label) and
+                   GetNextInstruction(p_label, p_dist) and
+                   MatchInstruction(p_dist, A_CMP, []) and
+                   MatchOperand(taicpu(p_dist).oper[0]^, taicpu(p).oper[0]^) and
+                   MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
+                   GetNextInstruction(p_dist, hp1_dist) and
+                   MatchInstruction(hp1_dist, A_JCC, []) then { This doesn't have to be an explicit label }
+                   begin
+                     JumpLabel_dist := TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol);
+
+                     if JumpLabel = JumpLabel_dist then
+                       { This is an infinite loop }
+                       Exit;
+
+                     { Best optimisation when the first condition is a subset (or equal) of the second }
+                     if IsCmpSubset(taicpu(p_jump).condition, taicpu(hp1_dist).condition) then
+                       begin
+                         { Any registers used here will already be allocated }
+                         if Assigned(JumpLabel_dist) then
+                           JumpLabel_dist.IncRefs;
+
+                         if Assigned(JumpLabel) then
+                           JumpLabel.DecRefs;
+
+                         DebugMsg(SPeepholeOptimization + 'CMP/Jcc/@Lbl/CMP/Jcc -> CMP/Jcc, redirecting first jump', p_jump);
+                         taicpu(p_jump).condition := taicpu(hp1_dist).condition;
+                         taicpu(p_jump).loadref(0, taicpu(hp1_dist).oper[0]^.ref^);
+                         Result := True;
+                         { Don't exit yet.  Since p and p_jump haven't actually been
+                           removed, we can check for more on this iteration }
+                       end
+                     else if IsCmpSubset(taicpu(hp1_dist).condition, inverse_cond(taicpu(p_jump).condition)) and
+                       GetNextInstruction(hp1_dist, hp1_label) and
+                       SkipAligns(hp1_label, hp1_label) and
+                       (hp1_label.typ = ait_label) then
+                       begin
+                         JumpLabel_far := tai_label(hp1_label).labsym;
+
+                         if (JumpLabel_far = JumpLabel_dist) or (JumpLabel_far = JumpLabel) then
+                           { This is an infinite loop }
+                           Exit;
+
+                         if Assigned(JumpLabel_far) then
+                           begin
+                             { In this situation, if the first jump branches, the second one will never,
+                               branch so change the destination label to after the second jump }
+
+                             DebugMsg(SPeepholeOptimization + 'CMP/Jcc/@Lbl/CMP/Jcc/@Lbl -> CMP/Jcc, redirecting first jump to 2nd label', p_jump);
+
+                             if Assigned(JumpLabel) then
+                               JumpLabel.DecRefs;
+
+                             JumpLabel_far.IncRefs;
+
+                             taicpu(p_jump).oper[0]^.ref^.symbol := JumpLabel_far;
+
+                             Result := True;
+                             { Don't exit yet.  Since p and p_jump haven't actually been
+                               removed, we can check for more on this iteration }
+                             Continue;
+                           end;
+                       end;
+
+                   end;
+               end;
+             { Search for:
+                 cmp   ###,###
+                 j(c1) @lbl1
+                 cmp   ###,### (same as first)
+
+               Remove second cmp
+             }
+
+             if GetNextInstruction(p_jump, hp2) and
+               (
+                 (
+                   MatchInstruction(hp2, A_CMP, []) and
+                   (
+                     (
+                       MatchOpType(taicpu(p), top_const, top_reg) and
+                       (taicpu(hp2).oper[0]^.val = taicpu(p).oper[0]^.val) and
+                       SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp2).oper[1]^.reg)
+                     ) or (
+                       MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
+                       MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^)
+                     )
+                   )
+                 ) or (
+                   { Also match cmp $0,%reg; jcc @lbl; test %reg,%reg }
+                   MatchOperand(taicpu(p).oper[0]^, 0) and
+                   (taicpu(p).oper[1]^.typ = top_reg) and
+                   MatchInstruction(hp2, A_TEST, []) and
+                   MatchOpType(taicpu(hp2), top_reg, top_reg) and
+                   (taicpu(hp2).oper[0]^.reg = taicpu(hp2).oper[1]^.reg) and
+                   SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp2).oper[1]^.reg)
+                 )
+               ) then
+               begin
+                 DebugMsg(SPeepholeOptimization + 'CMP/Jcc/CMP; removed superfluous CMP', hp2);
+                 RemoveInstruction(hp2);
+                 Result := True;
+                 { Continue the while loop in case "Jcc/CMP" follows the second CMP that was just removed }
+               end;
+
+             GetNextInstruction(p_jump, p_jump);
+           end;
+
          if taicpu(p).oper[0]^.typ = top_const then
            begin
-             { Though GetNextInstruction can be factored out, it is an expensive
-               call, so delay calling it until we have first checked cheaper
-               conditions that are independent of it. }
 
              if (taicpu(p).oper[0]^.val = 0) and
                (taicpu(p).oper[1]^.typ = top_reg) and
-               GetNextInstruction(p, hp1) and
                MatchInstruction(hp1,A_Jcc,A_SETcc,[]) then
                begin
                  hp2 := p;
@@ -4667,7 +5104,6 @@ unit aoptx86;
                  Exit;
                end
              else if (taicpu(p).oper[0]^.val = 1) and
-               GetNextInstruction(p, hp1) and
                MatchInstruction(hp1,A_Jcc,A_SETcc,[]) and
                (taicpu(hp1).condition in [C_L, C_NGE]) then
                begin
@@ -4714,7 +5150,6 @@ unit aoptx86;
                  end;
 
                  if (taicpu(p).oper[0]^.val=v) and
-                    GetNextInstruction(p, hp1) and
                     MatchInstruction(hp1,A_Jcc,A_SETcc,[]) and
                     (Taicpu(hp1).condition in [C_E,C_NE]) then
                    begin
@@ -4739,7 +5174,6 @@ unit aoptx86;
            end;
 
          if (taicpu(p).oper[1]^.typ = top_reg) and
-           GetNextInstruction(p, hp1) and
            MatchInstruction(hp1,A_MOV,[]) and
            not RegInInstruction(taicpu(p).oper[1]^.reg, hp1) and
            (
@@ -4874,6 +5308,37 @@ unit aoptx86;
              begin
                taicpu(p).loadoper(2,taicpu(hp1).oper[1]^);
                DebugMsg(SPeepholeOptimization + 'ImulMov2Imul done',p);
+               RemoveInstruction(hp1);
+               result:=true;
+             end;
+         end;
+     end;
+
+
+   function TX86AsmOptimizer.OptPass1SHXX(var p: tai): boolean;
+     var
+       hp1 : tai;
+     begin
+       result:=false;
+       { replace
+           IMul   %reg0,%reg1,%reg2
+           Mov    %reg2,%reg3
+           dealloc  %reg2
+
+           by
+           Imul   %reg0,%reg1,%reg3
+       }
+       if GetNextInstruction(p,hp1) and
+         MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) and
+         MatchOperand(taicpu(p).oper[2]^,taicpu(hp1).oper[0]^) and
+         (taicpu(hp1).oper[1]^.typ=top_reg) then
+         begin
+           TransferUsedRegs(TmpUsedRegs);
+           UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+           if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)) then
+             begin
+               taicpu(p).loadoper(2,taicpu(hp1).oper[1]^);
+               DebugMsg(SPeepholeOptimization + 'SHXXMov2SHXX done',p);
                RemoveInstruction(hp1);
                result:=true;
              end;
@@ -5798,9 +6263,9 @@ unit aoptx86;
             checks first that are likely to be False. [Kit] }
           begin
 
-            if MatchOperand(taicpu(p).oper[1]^, NR_EDX) and
-              (
+            if (
                 (
+                  MatchOperand(taicpu(p).oper[1]^, NR_EDX) and
                   (taicpu(hp1).oper[1]^.reg = NR_EAX) and
                   (
                     MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
@@ -5808,6 +6273,7 @@ unit aoptx86;
                   )
                 ) or
                 (
+                  MatchOperand(taicpu(p).oper[1]^, NR_EAX) and
                   (taicpu(hp1).oper[1]^.reg = NR_EDX) and
                   (
                     MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
@@ -8418,7 +8884,9 @@ unit aoptx86;
               (
                 (
                   (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
-                  (taicpu(hp1).oper[0]^.ref^.index = NR_NO)
+                  (taicpu(hp1).oper[0]^.ref^.index = NR_NO) and
+                  { r/esp cannot be an index }
+                  (taicpu(p).oper[0]^.reg<>NR_STACK_POINTER_REG)
                 ) or (
                   (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
                   (taicpu(hp1).oper[0]^.ref^.base = NR_NO)

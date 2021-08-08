@@ -556,8 +556,10 @@ begin
   else
     InternalWrite(CSI + '22;3'+ IntToStr(AnsiColors[Color].o) + 'm')
   {$else}
+  {$if not defined(AMIGA_V1_2_ONLY)}
   if Pens[Color] < 0 then
     Pens[Color] := ObtainBestPen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, AnsiColors[color].r shl 24, AnsiColors[color].g shl 24, AnsiColors[color].b shl 24, [TAG_END]);
+  {$endif}
   TheUnit := GetConUnit;
   if Assigned(TheUnit) then
   begin
@@ -595,8 +597,10 @@ begin
   else
     InternalWrite(CSI + '22;4'+ IntToStr(AnsiColors[Color].o) + 'm')
   {$else}
+  {$if not defined(AMIGA_V1_2_ONLY)}
   if Pens[Color] < 0 then
     Pens[Color] := ObtainBestPen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, AnsiColors[color].r shl 24, AnsiColors[color].g shl 24, AnsiColors[color].b shl 24, [TAG_END]);
+  {$endif}
   TheUnit := GetConUnit;
   if Assigned(TheUnit) then
   begin
@@ -891,7 +895,9 @@ procedure InitCRT;
 var
   i: Integer;
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
   SetMode(DosOutput(), 1);
+  {$endif}
   //
   AssignCrt(Output);
   Rewrite(Output);
@@ -913,11 +919,15 @@ procedure FreeCRT;
 var
   i: Integer;
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
   SetMode(DosOutput(), 0);
+  {$endif}
   for i := 0 to High(Pens) do
   begin
+    {$if not defined(AMIGA_V1_2_ONLY)}
     if Pens[i] >= 0 then
       ReleasePen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, Pens[i]);
+    {$endif}
     Pens[i] := -1;
   end;
   // reset colors and delete to end of screen (get rid of old drawings behind the last caret position)

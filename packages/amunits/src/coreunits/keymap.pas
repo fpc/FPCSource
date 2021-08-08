@@ -110,12 +110,57 @@ VAR KeymapBase : pLibrary = nil;
 const
     KEYMAPNAME : PChar = 'keymap.library';
 
+{$if defined(AMIGA_V1_2_ONLY)}
+function MapRawKey(event: PInputEvent; Buffer: PCHAR; Length: LongInt; keyMap: PKeyMap): SmallInt;
+{$else}
 FUNCTION AskKeyMapDefault : pKeyMap; syscall KeymapBase 036;
 FUNCTION MapANSI(thestring : pCHAR location 'a0'; count : LONGINT location 'd0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : LONGINT; syscall KeymapBase 048;
 FUNCTION MapRawKey(event : pInputEvent location 'a0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : smallint; syscall KeymapBase 042;
 PROCEDURE SetKeyMapDefault(keyMap : pKeyMap location 'a0'); syscall KeymapBase 030;
+{$endif}
 
 IMPLEMENTATION
+
+{$if defined(AMIGA_V1_2_ONLY)}
+var
+  ConDev: PDevice = nil;
+  ConMsgPort: PMsgPort = nil;
+  ConIOReq: PIORequest = nil;
+
+function RawKeyConvert(Events: PInputEvent location 'a0'; Buffer: PCHAR location 'a1'; Length: LongInt location 'd1'; KeyMap: PKeyMap location 'a2'): LongInt; syscall ConDev 048;
+
+function MapRawKey(event: PInputEvent; Buffer: PCHAR; Length: LongInt; keyMap: PKeyMap): SmallInt;
+begin
+  if not Assigned(ConDev) then
+  begin
+    ConMsgPort := CreatePort(nil, 0);
+    ConIOReq := CreateExtIO(ConMsgPort, SizeOf(TIOStdReq));
+
+    OpenDevice('console.device', -1, ConIOReq, 0);
+
+    ConDev := ConIOReq^.io_Device;
+  end;
+  if Assigned(ConDev) then
+    MapRawKey := RawKeyConvert(event, Buffer, length, keymap)
+  else
+    MapRawKey := 0;
+end;
+
+procedure CloseKeyMapConsole;
+begin
+  if Assigned(ConDev) and Assigned(ConIOReq) then
+  begin
+    CloseDevice(ConIOReq);
+    DeleteExtIO(ConIOReq);
+  end;
+  ConDev := nil;
+  ConIOReq := nil;
+  if Assigned(ConMsgPort) then
+    DeletePort(ConMsgPort);
+  ConMsgPort := nil;
+end;
+
+{$endif}
 
 const
     { Change VERSION and LIBVERSION to proper values }
@@ -127,6 +172,9 @@ initialization
 finalization
   if Assigned(KeymapBase) then
     CloseLibrary(KeymapBase);
+  {$if defined(AMIGA_V1_2_ONLY)}
+  CloseKeyMapConsole;
+  {$endif}
 END. (* UNIT KEYMAP *)
 
 

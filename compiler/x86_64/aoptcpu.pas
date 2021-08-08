@@ -54,6 +54,8 @@ uses
                   result:=PrePeepholeOptIMUL(p);
                 A_SAR,A_SHR:
                   result:=PrePeepholeOptSxx(p);
+                A_AND:
+                  Result:=PrePeepholeOptAND(p);
                 else
                   ;
               end;
@@ -147,6 +149,9 @@ uses
                   Result:=OptPass1Test(p);
                 A_Jcc:
                   Result:=OptPass1Jcc(p);
+                A_SHRX,
+                A_SHLX:
+                  Result:=OptPass1SHXX(p);
                 else
                   ;
               end;

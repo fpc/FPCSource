@@ -501,6 +501,33 @@ implementation
           it saves us a register }
         else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) then
           a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+        { we cannot make use of SUB(X) here because the inital shift might overflow }
+        else if (op in [OP_MUL,OP_IMUL]) and (a=3) then
+          list.concat(taicpu.op_reg_reg_reg(A_ADDX2,dst,src,src))
+        else if (op in [OP_MUL,OP_IMUL]) and (a=5) then
+          list.concat(taicpu.op_reg_reg_reg(A_ADDX4,dst,src,src))
+        else if (op in [OP_MUL,OP_IMUL]) and (a=9) then
+          list.concat(taicpu.op_reg_reg_reg(A_ADDX8,dst,src,src))
+        else if (op in [OP_MUL,OP_IMUL]) and (src<>dst) and ispowerof2(a-8,l1) then
+          begin
+            a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst);
+            list.concat(taicpu.op_reg_reg_reg(A_ADDX8,dst,src,dst));
+          end
+        else if (op in [OP_MUL,OP_IMUL]) and (src<>dst) and ispowerof2(a-4,l1) then
+          begin
+            a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst);
+            list.concat(taicpu.op_reg_reg_reg(A_ADDX4,dst,src,dst));
+          end
+        else if (op in [OP_MUL,OP_IMUL]) and (src<>dst) and ispowerof2(a-2,l1) then
+          begin
+            a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst);
+            list.concat(taicpu.op_reg_reg_reg(A_ADDX2,dst,src,dst));
+          end
+        else if (op in [OP_MUL,OP_IMUL]) and (src<>dst) and ispowerof2(a-1,l1) then
+          begin
+            a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst);
+            list.concat(taicpu.op_reg_reg_reg(A_ADD,dst,src,dst));
+          end
         else if (op=OP_ADD) and (a>=-128) and (a<=127) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,a))
         else if (op=OP_ADD) and (a>=-128-32768) and (a<=127+32512) then

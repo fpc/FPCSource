@@ -1575,7 +1575,43 @@ CONST
 {    tags for NewLoadSeg }
 {    no tags are defined yet for NewLoadSeg }
 
+{$if defined(AMIGA_V1_2_ONLY)}
+PROCEDURE DOSClose(file_ : BPTR location 'd1'); syscall _DOSBase 036;
+FUNCTION DOSOpen(const name : pCHAR location 'd1'; accessMode : LONGINT location 'd2') : BPTR; syscall _DOSBase 030;
+FUNCTION DOSRead(file_ : BPTR location 'd1'; buffer : POINTER location 'd2'; length : LONGINT location 'd3') : LONGINT; syscall _DOSBase 042;
+FUNCTION DOSSeek(file_ : BPTR location 'd1'; position : LONGINT location 'd2'; offset : LONGINT location 'd3') : LONGINT; syscall _DOSBase 066;
+FUNCTION DOSWrite(file_ : BPTR location 'd1'; buffer : POINTER location 'd2'; length : LONGINT location 'd3') : LONGINT; syscall _DOSBase 048;
 
+FUNCTION CreateDir(const name : pCHAR location 'd1') : BPTR; syscall _DOSBase 120;
+FUNCTION CurrentDir(lock : BPTR location 'd1') : BPTR; syscall _DOSBase 126;
+FUNCTION DOSDeleteFile(const name : STRPTR location 'd1') : LongBool; syscall _DOSBase 072;
+FUNCTION Examine(lock : BPTR location 'd1'; fileInfoBlock : pFileInfoBlock location 'd2') : LongBool; syscall _DOSBase 102;
+FUNCTION ExNext(lock : BPTR location 'd1'; fileInfoBlock : pFileInfoBlock location 'd2') : LongBool; syscall _DOSBase 108;
+FUNCTION Info(lock : BPTR location 'd1'; parameterBlock : pInfoData location 'd2') : LongBool; syscall _DOSBase 114;
+FUNCTION ParentDir(lock : BPTR location 'd1') : BPTR; syscall _DOSBase 210;
+FUNCTION DOSRename(const oldName : STRPTR location 'd1';const newName : STRPTR location 'd2') : LongBool; syscall _DOSBase 078;
+FUNCTION SetComment(const name : pCHAR location 'd1';const comment : pCHAR location 'd2') : LongBool; syscall _DOSBase 180;
+FUNCTION SetProtection(const name : pCHAR location 'd1'; protect : LONGINT location 'd2') : LongBool; syscall _DOSBase 186;
+
+FUNCTION DupLock(lock : BPTR location 'd1') : BPTR; syscall _DOSBase 096;
+FUNCTION DOSInput : BPTR; syscall _DOSBase 054;
+FUNCTION IoErr : LONGINT; syscall _DOSBase 132;
+FUNCTION IsInteractive(file_ : BPTR location 'd1') : LongBool; syscall _DOSBase 216;
+FUNCTION Lock(const name : pCHAR location 'd1'; type_ : LONGINT location 'd2') : LONGINT; syscall _DOSBase 084;
+FUNCTION DOSOutput : BPTR; syscall _DOSBase 060;
+PROCEDURE UnLock(lock : BPTR location 'd1'); syscall _DOSBase 090;
+
+FUNCTION CreateProc(const name : pCHAR location 'd1'; pri : LONGINT location 'd2'; segList : BPTR location 'd3'; stackSize : LONGINT location 'd4') : pMsgPort; syscall _DOSBase 138;
+PROCEDURE DateStamp(date : pDateStamp location 'd1'); syscall _DOSBase 192;
+PROCEDURE DOSDelay(timeout : LONGINT location 'd1'); syscall _DOSBase 198;
+FUNCTION DeviceProc(const name : pCHAR location 'd1') : pMsgPort; syscall _DOSBase 174;
+PROCEDURE DOSExit(returnCode : LONGINT location 'd1'); syscall _DOSBase 144;
+FUNCTION WaitForChar(file_ : BPTR location 'd1'; timeout : LONGINT location 'd2') : LongBool; syscall _DOSBase 204;
+
+FUNCTION Execute(const string_ : pCHAR location 'd1'; file_ : BPTR location 'd2'; file2 : BPTR location 'd3') : LongBool; syscall _DOSBase 222;
+FUNCTION LoadSeg(const name : pCHAR location 'd1') : LONGINT; syscall _DOSBase 150;
+PROCEDURE UnLoadSeg(seglist : BPTR location 'd1'); syscall _DOSBase 156;
+{$else}
 PROCEDURE AbortPkt(port : pMsgPort location 'd1'; pkt : pDosPacket location 'd2'); syscall _DOSBase 264;
 FUNCTION AddBuffers(const name : pCHAR location 'd1'; number : LONGINT location 'd2') : LongBool; syscall _DOSBase 732;
 FUNCTION AddDosEntry(dlist : pDosList location 'd1') : LongBool; syscall _DOSBase 678;
@@ -1739,10 +1775,13 @@ FUNCTION VPrintf(const format : pCHAR location 'd1'; const argarray : PLongInt l
 FUNCTION WaitForChar(file_ : BPTR location 'd1'; timeout : LONGINT location 'd2') : LongBool; syscall _DOSBase 204;
 FUNCTION WaitPkt : pDosPacket; syscall _DOSBase 252;
 FUNCTION WriteChars(const buf : pCHAR location 'd1'; buflen : ULONG location 'd2') : LONGINT; syscall _DOSBase 942;
+{$endif}
+
 
 FUNCTION BADDR(bval :BPTR): POINTER;
 FUNCTION MKBADDR(adr: Pointer): BPTR;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 // var args version
 FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
 FUNCTION CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
@@ -1819,6 +1858,7 @@ FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos :
 FUNCTION StrToLong(const string_ : string; VAR value : LONGINT) : LONGINT;
 FUNCTION SystemTagList(const command : string;const tags : pTagItem) : LONGINT;
 FUNCTION DOSSystem(const command : string;const tags : pTagItem) : LONGINT;
+{$endif}
 
 IMPLEMENTATION
 
@@ -1832,7 +1872,7 @@ FUNCTION MKBADDR(adr : POINTER): BPTR; inline;
 BEGIN
     MKBADDR := BPTR( PTRUINT(adr) shr 2);
 END;
-
+{$if not defined(AMIGA_V1_2_ONLY)}
 FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
 begin
      AllocDosObjectTags := AllocDosObjectTagList(type_, @argv);
@@ -2192,7 +2232,7 @@ FUNCTION DOSSystem(const command : string;const tags : pTagItem) : LONGINT;
 begin
      DOSSystem := DOSSystem(PChar(RawByteString(command)),tags);
 end;
-
+{$endif}
 
 END. (* UNIT DOS *)
 

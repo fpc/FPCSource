@@ -166,6 +166,24 @@ type
 
   TDuplicates = (dupIgnore, dupAccept, dupError);
 
+  TPoint3D =
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+    packed
+  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    record
+
+    public
+     Type TSingle3Array = array[0..2] of single;
+     var
+     constructor Create(const ax,ay,az:single);
+     procedure   Offset(const adeltax,adeltay,adeltaz:single); inline;
+     procedure   Offset(const adelta:TPoint3D); inline;
+     case Integer of
+      0: (data:TSingle3Array);
+      1: (x,y,z : single);
+    end;
+
+
 type
   TOleChar = WideChar;
   POleStr = PWideChar;
@@ -722,6 +740,22 @@ begin
   left:=left+dx; right:=right+dx;
   bottom:=bottom+dy; top:=top+dy;
 end;
+
+constructor TPoint3D.Create(const ax,ay,az:single);
+begin
+  x:=ax; y:=ay; z:=az;
+end;
+
+procedure   TPoint3D.Offset(const adeltax,adeltay,adeltaz:single);
+begin
+  x:=x+adeltax; y:=y+adeltay; z:=z+adeltaz;
+end;
+
+procedure   TPoint3D.Offset(const adelta:TPoint3D);
+begin
+  x:=x+adelta.x; y:=y+adelta.y; z:=z+adelta.z;
+end;
+
 
 {$ifndef VER3_0}
 generic class procedure TBitConverter.UnsafeFrom<T>(const ASrcValue: T; var ADestination: Array of Byte; AOffset: Integer = 0);

@@ -59,9 +59,12 @@ begin
     if WBMsg <> nil then begin
        ProgramName := strpas(WBMsg^.sm_ArgList^[1].wa_Name);
     end else begin
+      {$if not defined(AMIGA_V1_2_ONLY)}
        if GetprogramName(buffer,255) then begin
            ProgramName := strpas(buffer);
-       end else begin
+       end else
+       {$endif}
+       begin
            ProgramName := '';
        end;
     end;

@@ -828,3 +828,4 @@ begin
 end;
 
 {$include ide/fpmake.pp}
+{$include gitlab/fpmake.pp}

@@ -100,6 +100,8 @@ unit aoptcpu;
                     Result:=PrePeepholeOptIMUL(p);
                   A_SAR,A_SHR:
                     Result:=PrePeepholeOptSxx(p);
+                  A_AND:
+                    Result:=PrePeepholeOptAND(p);
                   A_XOR:
                     begin
                       if (taicpu(p).oper[0]^.typ = top_reg) and
@@ -223,6 +225,9 @@ unit aoptcpu;
                 A_MOVSD,
                 A_MOVSS:
                   Result:=OptPass1MOVXX(p);
+                A_SHRX,
+                A_SHLX:
+                  Result:=OptPass1SHXX(p);
                 else
                   ;
               end;

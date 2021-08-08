@@ -88,10 +88,13 @@ function FExpandLock( l : BPTR): String;
 var
    buffer : array[0..255] of char;
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
    if l <> 0 then begin
       if NameFromLock(l,buffer,255) then FExpandLock := strpas(buffer)
       else FExpandLock := '';
-   end else FExpandLock := '';
+   end else
+   {$endif}
+     FExpandLock := '';
 end;
 
 Function CSCPAR(rk : pRemember; s : String) : STRPTR;

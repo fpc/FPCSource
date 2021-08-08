@@ -451,8 +451,8 @@ implementation
             end;
             tcgx86(cg).inc_fpu_stack;
             location.register:=NR_ST;
+            tg.ungetiftemp(current_asmdata.CurrAsmList,leftref);
           end;
-        location_freetemp(current_asmdata.CurrAsmList,left.location);
       end;
 
 begin

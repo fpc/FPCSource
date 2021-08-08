@@ -273,10 +273,14 @@ Implementation
         ait_instruction:
           begin
             case taicpu(p).opcode of
-              A_L32I:
+              A_ADD,
+              A_ADDI,
+              A_L32I,
+              A_SRLI,
+              A_SUB:
                 begin
                   if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                    RemoveSuperfluousMove(p, hp1, 'L32IMov2L32I') then
+                    RemoveSuperfluousMove(p, hp1, 'DataMov2Data') then
                     Result:=true;
                 end;
               else

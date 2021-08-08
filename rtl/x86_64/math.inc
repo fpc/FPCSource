@@ -1,3 +1,4 @@
+
 {
     Implementation of mathematical routines for x86_64
 
@@ -292,19 +293,16 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
+            fldt d
             movw oldcw,%cx
             orw $0x0c3f,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
-            fldt d
+            fld %st
             frndint
-            fldt d
-            fsub %st(1),%st
-            fstp %st(1)
-            fnclex
+            fsubrp %st,%st(1)
             fldcw oldcw
+            fwait
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
 
@@ -316,12 +314,10 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
             movw oldcw,%cx
             orw $0x0c3f,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
             fldt d
             frndint
             fwait
@@ -339,7 +335,6 @@ const
         res   : int64;
       asm
         fnstcw oldcw
-        fwait
         movw oldcw,%cx
         orw $0x0c3f,%cx
         movw %cx,newcw

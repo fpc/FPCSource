@@ -1278,6 +1278,25 @@ IMPLEMENTATION
       neg1,
       neg2 : Boolean;
 
+      // real/reduced precision if there are on left side insignificant zero digits
+      function BCDPrec(const BCD: tBCD): word;
+      var scale: word;
+      begin
+        Result := BCD.Precision;
+        scale := BCDScale(BCD);
+        i := Low(BCD.Fraction);
+        while (Result>0) and (Result>scale) do begin
+          // high nibble
+          if BCD.Fraction[i] shr 4 <> 0 then Exit;
+          Dec(Result);
+          if Result <= scale then Exit;
+          // low nibble
+          if BCD.Fraction[i] <> 0 then Exit;
+          Dec(Result);
+          Inc(i);
+        end;
+      end;
+
     begin
 {$ifndef bigger_BCD}
       neg1 := ( BCD1.SignSpecialPlaces AND NegBit ) <> 0;
@@ -1292,8 +1311,8 @@ IMPLEMENTATION
         _WHEN ( NOT neg1 ) AND neg2
           _THEN result := +1;
         _WHENOTHER
-          pr1 := BCD1.Precision;
-          pr2 := BCD2.Precision;
+          pr1 := BCDPrec(BCD1);
+          pr2 := BCDPrec(BCD2);
 {$ifndef bigger_BCD}
           pl1 := BCD1.SignSpecialPlaces AND PlacesMask;
           pl2 := BCD2.SignSpecialPlaces AND PlacesMask;
@@ -2842,10 +2861,12 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       PFmt := Section.FmtDS; // start from decimal point until end
       i := length(BCDStr) - Scale + ord(Scale=0);
       dec(j1, Section.FmtEnd-Section.FmtDS);
-      j := j1 + 1;
+      j := j1 + 1; // points to decimal separator in output buffer
       while PFmt < Section.FmtEnd do
         PutFmtDigit(PFmt, i, j, 1);
-      je := j; // store position after last decimal digit
+      if j-j1=2 then // alone decimal separator at end of output buffer
+        dec(j);
+      je := j; // store position after last decimal digit (or any constant character) in output buffer
     end;
 
     // output whole number part of BCDStr
