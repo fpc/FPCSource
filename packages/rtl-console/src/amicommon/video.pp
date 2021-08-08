@@ -177,10 +177,8 @@ var
   videoDefaultFlags: PtrUInt;
 begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
-  {$if not defined(AMIGA_V1_2_ONLY)}
   if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
     videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
-  {$endif}
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -277,6 +275,7 @@ begin
   {$else}
   VideoFont:=@vgafont;
   VideoFontHeight:=16;
+  {$endif}
   if GetVar('FPC_VIDEO_BUILTINFONT',@envBuf,sizeof(envBuf),0) > -1 then
     begin
       case lowerCase(envBuf) of
@@ -290,9 +289,13 @@ begin
             VideoFont:=@vgafont14;
             VideoFontHeight:=14;
           end;
+        'vga16':
+          begin
+            VideoFont:=@vgafont;
+            VideoFontHeight:=16;
+          end;
       end;
     end;
-  {$endif}
 
   // fill videobuf and oldvideobuf with different bytes, to allow proper first draw
   FillDword(VideoBuf^, VideoBufSize div 4, $1234D3AD);
