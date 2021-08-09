@@ -2487,7 +2487,8 @@ unit aoptx86;
                   GetNextInstruction(hp1,hp2) and
                   MatchInstruction(hp2,A_TEST,[taicpu(p).opsize]) and
                   MatchOperand(taicpu(hp1).oper[1]^,taicpu(hp2).oper[1]^) and
-                  MatchOperand(taicpu(hp2).oper[0]^,taicpu(hp2).oper[1]^) and
+                  (MatchOperand(taicpu(hp2).oper[0]^,taicpu(hp2).oper[1]^) or
+                   MatchOperand(taicpu(hp2).oper[0]^,-1)) and
                   GetNextInstruction(hp2,hp3) and
                   MatchInstruction(hp3,A_Jcc,A_Setcc,[]) and
                   (taicpu(hp3).condition in [C_E,C_NE]) then
