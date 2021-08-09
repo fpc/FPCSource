@@ -318,7 +318,7 @@ begin
     // borders or titlebar as intended.
     ScreenWidth := VideoWindow^.GZZWidth div 8;
     ScreenHeight := VideoWindow^.GZZHeight div VideoFontHeight;
-    ScreenColor := True;
+    ScreenColor := False;
 
     {$ifdef VIDEODEBUG}
     Writeln('DEBUG: Fullscreen - windowed - Width * Heigth = ',ScreenWidth,' * ',ScreenHeight);
@@ -856,7 +856,7 @@ begin
     0: begin
          Mode.Col := 80;
          Mode.Row := 25;
-         Mode.Color := False;
+         Mode.Color := True;
        end;
     {$if not defined(AMIGA_V1_2_ONLY)}
     1: begin
