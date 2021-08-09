@@ -590,7 +590,7 @@ implementation
 
       var
         t,vl,lefttarget,righttarget: tnode;
-        lt,rt   : tnodetype;
+        lt,rt,nt : tnodetype;
         hdef,
         rd,ld   , inttype: tdef;
         rv,lv,v : tconstexprint;
@@ -1726,6 +1726,55 @@ implementation
                  @IsAndOrAndNot,@TransformAndOrAndNot,Result) then
                  exit;
              end;
+            { optimize tests for a single bit:
+              (a and one_bit_mask_const) = <> one_bit_mask_const
+
+              into
+
+              (a and one_bit_mask_const) <> = 0
+            }
+            if (nodetype in [equaln,unequaln]) then
+              begin
+                if (lt=andn) and (rt=ordconstn) then
+                  begin
+                    t:=left;
+                    cr:=tordconstnode(right).value;
+                  end
+                else
+                  if (rt=andn) and (lt=ordconstn) then
+                    begin
+                      t:=right;
+                      cr:=tordconstnode(left).value;
+                    end
+                  else
+                    begin
+                      t:=nil;
+                      cr:=0;
+                    end;
+                if (t<>nil) and (PopCnt(cr) = 1) then
+                  begin
+                    if is_constintnode(taddnode(t).left) then
+                      vl:=taddnode(t).left
+                    else
+                      if is_constintnode(taddnode(t).right) then
+                        vl:=taddnode(t).right
+                      else
+                        vl:=nil;
+                    if (vl<>nil) and (tordconstnode(vl).value=cr) then
+                      begin
+                        if nodetype=equaln then
+                          nt:=unequaln
+                        else
+                          nt:=equaln;
+                        result:=caddnode.create(nt,t,cordconstnode.create(0,vl.resultdef,false));
+                        if t=left then
+                          left:=nil
+                        else
+                          right:=nil;
+                        exit;
+                      end;
+                  end;
+              end;
           end;
       end;
 
