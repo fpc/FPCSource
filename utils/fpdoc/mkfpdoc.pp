@@ -27,6 +27,7 @@ Type
     FBaseDescrDir: String;
     FBaseInputDir: String;
     FCurPackage : TFPDocPackage;
+    FExamplesPath: String;
     FProcessedUnits : TStrings;
     FOnLog: TPasParserLogHandler;
     FPParserLogEvents: TPParserLogEvents;
@@ -39,6 +40,7 @@ Type
     function GetPackages: TFPDocPackages;
     procedure SetBaseDescrDir(AValue: String);
     procedure SetBaseInputDir(AValue: String);
+    procedure SetExamplesPath(AValue: String);
     procedure SetProjectMacros(AValue: TStrings);
   Protected
     Function FixInputFile(Const AFileName : String) : String;
@@ -68,6 +70,7 @@ Type
     // When set, they will be prepended to non-absolute filenames.
     Property BaseInputDir : String Read FBaseInputDir Write SetBaseInputDir;
     Property BaseDescrDir : String Read FBaseDescrDir Write SetBaseDescrDir;
+    Property ExamplesPath : String Read FExamplesPath Write SetExamplesPath;
     // Macros used when loading the project file
     Property ProjectMacros : TStrings Read FProjectMacros Write SetProjectMacros;
   end;
@@ -188,6 +191,14 @@ begin
     FBaseInputDir:=IncludeTrailingPathDelimiter(FBaseInputDir);
 end;
 
+procedure TFPDocCreator.SetExamplesPath(AValue: String);
+begin
+  if FExamplesPath=AValue then Exit;
+  FExamplesPath:=AValue;
+  If FExamplesPath<>'' then
+    FExamplesPath:=IncludeTrailingPathDelimiter(FExamplesPath);
+end;
+
 procedure TFPDocCreator.SetProjectMacros(AValue: TStrings);
 begin
   if FProjectMacros=AValue then Exit;
@@ -260,7 +271,7 @@ begin
     Engine.WriteContentFile(APackage.ContentFile);
 end;
 
-Function TFPDocCreator.GetLogLevels : TFPDocLogLevels;
+function TFPDocCreator.GetLogLevels: TFPDocLogLevels;
 
   Procedure DoOpt(doSet : Boolean; aLevel: TFPDocLogLevel);
 
@@ -290,8 +301,9 @@ begin
   Cmd:='';
   FCurPackage:=APackage;
   Engine:=TFPDocEngine.Create;
-  Engine.OnLog:= @DoLogSender;
   try
+    Engine.OnLog:= @DoLogSender;
+    Engine.ExamplesPath:=Self.ExamplesPath;
     // get documentation Writer html, latex, and other
     WriterClass:=GetWriterClass(Options.Backend);
     For J:=0 to Apackage.Imports.Count-1 do

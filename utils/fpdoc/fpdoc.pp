@@ -85,6 +85,7 @@ begin
   Writeln(SUsageOption035);
   Writeln(SUsageOption040);
   Writeln(SUsageOption050);
+  Writeln(SUsageOption055);
   Writeln(SUsageOption060);
   Writeln(SUsageOption070);
   Writeln(SUsageOption080);
@@ -349,6 +350,8 @@ begin
       FProjectFile:=True;
       FCreator.LoadProjectFile(Arg);
       end
+    else if (Cmd = '--examples-dir') then
+      FCreator.ExamplesPath:=Arg
     else if (Cmd = '--descr') then
       AddToFileList(SelectedPackage.Descriptions, Arg)
     else if (Cmd = '--descr-dir') then
