@@ -17,7 +17,10 @@ type
     FConfig : TGitlabConfig;
     FClient : TGitLabClient;
     FIDS : TStrings;
+    FIssueState: String;
     FQuiet : Boolean;
+    FNoWrite : Boolean;
+    FToDoAction : String;
     procedure CloseTodo(aID: int64);
     procedure DoClientLog(Sender: TObject; const aMessage: string);
     procedure DoResource(Sender: TObject; aPage, aIndex, aCount: Integer; aObject: TJSONObject; aContinue: Boolean);
@@ -27,6 +30,10 @@ type
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure Usage(const aError : String); virtual;
+    Property NoWrite : Boolean Read FNoWrite Write FNoWrite;
+    Property Quiet : Boolean Read FQuiet Write FQuiet;
+    Property ToDoAction : String Read FToDoAction Write  FToDoAction;
+    Property IssueState : String Read FIssueState Write  FIssueState;
   end;
 
 { TCloseTodoApplication }
@@ -58,7 +65,7 @@ begin
   if Assigned(aData) then
     aBugIID:=aData.Asint64;
   DoClientLog(Self,Msg+Format('Project: %d, bug: %d, bug iid: %d, state : %s',[aProjectID,aBugID,aBugIID,aState]));
-  if SameText(aState,'closed') then
+  if (IssueState='any') or SameText(aState,IssueState) then
     begin
     if (FConfig.ProjectID=0) or (aProjectID=FConfig.ProjectID) then
       FIDS.Add(IntToStr(aObject.Get('id',Int64(0))));
@@ -75,7 +82,8 @@ begin
     exit;
   aResource:=Format('todos/%d/mark_as_done',[aID]);
   Writeln('Posting ',aResource);
-  FClient.CreateResource(aResource,Nil);
+  if not NoWrite then
+    FClient.CreateResource(aResource,Nil);
 end;
 
 procedure TCloseTodoApplication.DoClientLog(Sender: TObject;
@@ -94,14 +102,21 @@ var
 
 begin
   Terminate;
-  ErrorMsg:=CheckOptions('hc:l:q', ['help','config:','list:','quiet']);
+  ErrorMsg:=CheckOptions('hc:l:qna:s:', ['help','config:','list:','quiet','no-write','action:','state:']);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
     Usage(ErrorMsg);
     Exit;
     end;
   FQuiet:=HasOption('q','quiet');
+  FNoWrite:=HasOption('n','no-write');
   ConfigFN:=GetOptionValue('c','config');
+  FToDoAction:=GetOptionValue('a','action');
+  if FToDoAction='' then
+    FToDoAction:='assigned';
+  FIssueState:=GetOptionValue('s','state');
+  if FIssueState='' then
+    FIssueState:='closed';
   if ConfigFN='' then
     begin
     Usage('Need gitlab config file');
@@ -119,7 +134,7 @@ begin
     FIDS.LoadFromFile(ListFN)
   else
     begin
-    FClient.ForEachResource('todos',['action','assigned','state','pending'],@DoResource);
+    FClient.ForEachResource('todos',['action',FTodoAction,'state','pending'],@DoResource);
     if ListFN<>'' then
       FIDS.SaveToFile(ListFN);
     end;
@@ -153,10 +168,14 @@ begin
     Writeln('Error : ',aError);
   Writeln('Usage: ', ExeName, ' [options]');
   Writeln('Where [Options] is one or more of:');
-  Writeln('-h   --help        This help');
+  Writeln('-a --action=TYPE   Action of todo: default is "assigned". Other possibilities include:');
+  Writeln('                   mentioned, build_failed, marked, approval_required, unmergeable, directly_addressed or merge_train_removed.');
   Writeln('-c --config=FILE   Config file');
+  Writeln('-h   --help        This help');
   Writeln('-l --list=FILE     if file exists, read todo IDS from list. If file does not exist, write file after querying gitlab');
+  Writeln('-n --no-write     Do not actaully change the TODO item');
   Writeln('-q --quiet         less messages');
+  Writeln('-s --state=STATE   State of issue coupled to TODO. default is "closed". If set to "any" all issues will be marked.');
 end;
 
 var
