@@ -153,6 +153,7 @@ resourcestring
   SUsageOption035  = '                  --descr=c:\WIP\myzipperdoc.xml';
   SUsageOption040  = '                  This option is allowed more than once';
   SUsageOption050  = '--descr-dir=Dir   Add All XML files in Dir to list of description files';
+  SUsageOption055  = '--example-dir=DIR Look for examples in directory DIR';
   SUsageOption060  = '--format=fmt      Select output format.';
   SUsageOption070  = '--help            Show this help.';
   SUsageOption080  = '--hide-protected  Do not show protected methods in overview';
