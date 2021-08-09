@@ -759,7 +759,7 @@ procedure TField.CalcLookupValue;
 begin
   if FLookupCache then
     Value := LookupList.ValueOfKey(FDataSet.FieldValues[FKeyFields])
-  else if Assigned(FLookupDataSet) and FDataSet.Active then
+  else if Assigned(FLookupDataSet) and FLookupDataSet.Active then
     Value := FLookupDataSet.Lookup(FLookupKeyfields, FDataSet.FieldValues[FKeyFields], FLookupresultField);
 end;
 
