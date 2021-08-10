@@ -23,8 +23,8 @@ var
 
 { as we do not call these procedures directly, calling conventions do not matter and
   even if we did, we use c calling conventions anyways }
-procedure __libc_csu_init; external name '__libc_csu_init';
-procedure __libc_csu_fini; external name '__libc_csu_fini';
+procedure __libc_csu_init; weakexternal name '__libc_csu_init';
+procedure __libc_csu_fini; weakexternal name '__libc_csu_fini';
 
 procedure libc_start_main(main: TProcedure; argc: ptruint; argv: ppchar; init, fini, rtld_fini: TProcedure; stack_end: pointer); cdecl; external name '__libc_start_main';
 procedure libc_exit(code: ptruint); cdecl; external name 'exit';

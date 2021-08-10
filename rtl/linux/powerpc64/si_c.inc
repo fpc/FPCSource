@@ -657,8 +657,8 @@ _restvr_31: addi r12,r0,-16
                           Process start/halt
  ******************************************************************************}
 
-procedure __libc_csu_init; cdecl; external;
-procedure __libc_csu_fini; cdecl; external;
+procedure __libc_csu_init; cdecl; weakexternal;
+procedure __libc_csu_fini; cdecl; weakexternal;
 
 procedure __libc_start_main(r3,r4,r5,r6,r7,r8,r9: pointer); cdecl; external;
 
