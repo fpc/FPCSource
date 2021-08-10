@@ -51,7 +51,7 @@ type
 
   EScannerError = class(EParserError);
 
-  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates);
+  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates,joBOMCheck);
   TJSONOptions = set of TJSONOption;
 
 Const
@@ -141,10 +141,26 @@ end;
 
 constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
 
+  procedure SkipStreamBOM;
+  Var
+    OldPos : integer;
+    Header : array[0..3] of byte;
+  begin
+    OldPos := Source.Position;
+    FillChar(Header{%H-}, SizeOf(Header), 0);
+    if Source.Read(Header, 3) = 3 then
+      if (Header[0]=$EF) and (Header[1]=$BB) and (Header[2]=$BF) then
+        exit;
+    Source.Position := OldPos;
+  end;
+
+
 Var
   S : RawByteString;
 
 begin
+  if (joBOMCheck in aOptions) then
+    SkipStreamBom;
   S:='';
   SetLength(S,Source.Size-Source.Position);
   if Length(S)>0 then
@@ -238,7 +254,7 @@ var
   I : Integer;
   OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
   C , c2: char;
-  S : String[4];
+  S : String[8];
   Line : String;
   IsStar,EOC: Boolean;
 
@@ -258,6 +274,7 @@ var
     FCurTokenString:=FCurTokenString+U;
     OldLength:=Length(FCurTokenString);
     u1:=0;
+    u2:=0;
     end;
   end;
 
@@ -337,9 +354,11 @@ begin
                         Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
                       end;
                       end;
-                    // ToDo: 4-bytes UTF16
                     if u1<>0 then
                       begin
+                      // 4bytes, compose.
+                      if not ((u2>=$DC00) and (u2<=$DFFF)) then
+                        Error(SErrInvalidCharacter, [CurRow,CurColumn,IntToStr(u2)]);
                       if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
                         S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
                       else
@@ -348,9 +367,22 @@ begin
                       end
                     else
                       begin
-                      S:='';
-                      u1:=u2;
-                      end
+                      // Surrogate start
+                      if (u2>=$D800) and (U2<=$DBFF) then
+                        begin
+                        u1:=u2;
+                        S:='';
+                        end
+                      else
+                        begin
+                        if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+                          S:=Utf8Encode(WideString(WideChar(u2))) // ToDo: use faster function
+                        else
+                          S:=String(WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
+                        U1:=0;  
+                        U2:=0;
+                        end;
+                      end;
                     end;
               #0  : Error(SErrOpenString,[FCurRow]);
             else

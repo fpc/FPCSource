@@ -750,7 +750,7 @@ Implementation
 {$ifdef hasunix}
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_assemble_on_target] * current_settings.globalswitches) = []) and
-                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang_gas,as_clang_llvm,as_solaris_as]));
+                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang_gas,as_clang_llvm,as_solaris_as,as_clang_asdarwin]));
 {$else hasunix}
         DoPipe:=false;
 {$endif}
@@ -1403,8 +1403,8 @@ Implementation
                   len:=p-pstart;
                   if len>255 then
                     internalerror(200509187);
-                  move(pstart^,hs[1],len);
                   hs[0]:=chr(len);
+                  move(pstart^,hs[1],len);
                   sym:=objdata.symbolref(hs);
                   { Second symbol? }
                   if assigned(relocsym) then
@@ -1719,6 +1719,11 @@ Implementation
 {$ifdef ARM}
                    asd_thumb_func:
                      ObjData.ThumbFunc:=true;
+                   asd_force_thumb:
+                     begin
+                       ObjData.ThumbFunc:=true;
+                       Code16:=true;
+                     end;
                    asd_code:
                      begin
                        { ai_directive(hp).name can be only 16 or 32, this is checked by the reader }
@@ -1786,7 +1791,10 @@ Implementation
                    eattrtype_dword:
                      eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).value));
                    eattrtype_ntbs:
-                     eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1);
+                     if assigned(tai_eabi_attribute(hp).valuestr) then
+                       eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1)
+                     else
+                       eabi_section.alloc(1);
                    else
                      Internalerror(2019100701);
                  end;
@@ -1924,6 +1932,9 @@ Implementation
                    asd_thumb_func:
                      { ignore for now, but should be added}
                      ;
+                   asd_force_thumb:
+                     { ignore for now, but should be added}
+                     ;
                    asd_code:
                      { ignore for now, but should be added}
                      ;
@@ -1961,7 +1972,10 @@ Implementation
                    eattrtype_dword:
                      eabi_section.alloc(LengthUleb128(tai_eabi_attribute(hp).value));
                    eattrtype_ntbs:
-                     eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1);
+                     if assigned(tai_eabi_attribute(hp).valuestr) then
+                       eabi_section.alloc(Length(tai_eabi_attribute(hp).valuestr^)+1)
+                     else
+                       eabi_section.alloc(1);
                    else
                      Internalerror(2019100703);
                  end;
@@ -2328,7 +2342,10 @@ Implementation
                      end;
                    eattrtype_ntbs:
                      begin
-                       s:=tai_eabi_attribute(hp).valuestr^+#0;
+                       if assigned(tai_eabi_attribute(hp).valuestr) then
+                         s:=tai_eabi_attribute(hp).valuestr^+#0
+                       else
+                         s:=#0;
                        eabi_section.write(s[1],Length(s));
                      end
                    else

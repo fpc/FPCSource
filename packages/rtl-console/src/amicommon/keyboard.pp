@@ -22,7 +22,7 @@ interface
   message port of the window. This is mainly used in Free Vision to
   give up the Task''s timeslice instead of dos.library/Delay() which
   blocks the event handling and ruins proper window refreshing among
-  others 
+  others
   input: specify a timeout to wait for an event to arrive. this is the
          maximum timeout. the function might return earlier or even
          immediately if there's an event. it's specified in milliseconds
@@ -31,10 +31,17 @@ interface
 
 function WaitForSystemEvent(millisec: Integer): boolean;
 
+function IBMToANSI(s: RawByteString): RawByteString;
+function ANSIToIBM(s: RawByteString): RawByteString;
+
+var
+  FPC_DOKEYCONVERSION: boolean = False;
+
+
 implementation
 
 uses
-   video, exec, intuition, inputevent, mouse, sysutils, keymap, timer;
+   video, exec, intuition, inputevent, mouse, sysutils, keymap, timer, amigados;
 
 {$i keyboard.inc}
 {$i keyscan.inc}
@@ -69,7 +76,7 @@ end;
 var
   KeyQueue: TKeyEvent;
 
-type 
+type
   RawCodeEntry = record
     rc,n,s,c,a : Word; { raw code, normal, shift, ctrl, alt }
   end;
@@ -90,7 +97,7 @@ const
      (rc: 77; n: $5000; s: $5000; c: $9100; a: $A000; ), // DOWN   // shift?
      (rc: 78; n: $4D00; s: $4D00; c: $7400; a: $9D00; ), // RIGHT  // shift?
      (rc: 79; n: $4B00; s: $4B00; c: $7300; a: $9B00; ), // LEFT   // shift?
- 
+
      (rc: 80; n: $3B00; s: $5400; c: $5E00; a: $6800; ), // F1
      (rc: 81; n: $3C00; s: $5500; c: $5F00; a: $6900; ), // F2
      (rc: 82; n: $3D00; s: $5600; c: $6000; a: $6A00; ), // F3
@@ -175,6 +182,118 @@ begin
     LastShiftState := LastShiftState or $40;
 end;
 
+procedure AnsiToIBMChar(var c: Char); inline;
+begin
+  // https://en.wikipedia.org/wiki/Code_page_437
+  case c of
+    // line 8
+    #$C7: c := #128; // C
+    #$FC: c := #129; // ue
+    #$E9: c := #130; // e'
+    #$E2: c := #131; // a^
+    #$E4: c := #132; // ae
+    #$E0: c := #133; // a`
+    #$E5: c := #134; // a°
+    #$e7: c := #135; // c
+    #$ea: c := #136; // e^
+    #$eb: c := #137; // ee
+    #$E8: c := #138; // e`
+    #$ef: c := #139; // ie
+    #$ee: c := #140; // i^
+    #$ec: c := #141; // i`
+    #$C4: c := #142; // AE
+    // line 9
+    #$C9: c := #144; // Ee
+    #$e6: c := #145; // a-e
+    #$c6: c := #146; // A-E
+    #$F4: c := #147; // o^
+    #$F6: c := #148; // oe
+    #$F2: c := #149; // o`
+    #$FB: c := #150; // u^
+    #$F9: c := #151; // u`
+    #$FF: c := #152; // ye
+    #$D6: c := #153; // OE
+    #$DC: c := #154; // UE
+    #$A2: c := #155; // cent
+    #$A3: c := #156; // Pound
+    #$A5: c := #157; // Yen
+    // line A
+    #$E1: c := #160; // a'
+    #$ED: c := #161; // i'
+    #$F3: c := #162; // o'
+    #$FA: c := #163; // u'
+    #$F1: c := #164; // n~
+    #$D1: c := #165; // N~
+    // line E
+    #$DF: c := #225; // sz
+
+  end;
+end;
+
+procedure IBMToAnsiChar(var c: Char); inline;
+begin
+  case c of
+    // line 8
+    #128: c := #$C7; // C
+    #129: c := #$FC; // ue
+    #130: c := #$E9; // e'
+    #131: c := #$E2; // a^
+    #132: c := #$E4; // ae
+    #133: c := #$E0; // a`
+    #134: c := #$E5; // a°
+    #135: c := #$e7; // c
+    #136: c := #$ea; // e^
+    #137: c := #$eb; // ee
+    #138: c := #$E8; // e`
+    #139: c := #$ef; // ie
+    #140: c := #$ee; // i^
+    #141: c := #$ec; // i`
+    #142: c := #$C4; // AE
+    // line 9
+    #144: c := #$C9; // Ee
+    #145: c := #$e6; // a-e
+    #146: c := #$c6; // A-E
+    #147: c := #$F4; // o^
+    #148: c := #$F6; // oe
+    #149: c := #$F2; // o`
+    #150: c := #$FB; // u^
+    #151: c := #$F9; // u`
+    #152: c := #$FF; // ye
+    #153: c := #$D6; // OE
+    #154: c := #$DC; // UE
+    #155: c := #$A2; // cent
+    #156: c := #$A3; // Pound
+    #157: c := #$A5; // Yen
+    // line A
+    #160: c := #$E1; // a'
+    #161: c := #$ED; // i'
+    #162: c := #$F3; // o'
+    #163: c := #$FA; // u'
+    #164: c := #$F1; // n~
+    #165: c := #$D1; // N~
+    // line E
+    #225: c := #$DF; // sz
+  end;
+end;
+
+function IBMToANSI(s: RawByteString): RawByteString;
+var
+  i: Integer;
+begin
+  for i := 1 to Length(s) do
+    IBMToAnsiChar(s[i]);
+  IBMToANSI := s;
+end;
+
+function ANSIToIBM(s: RawByteString): RawByteString;
+var
+  i: Integer;
+begin
+  for i := 1 to Length(s) do
+    AnsiToIBMChar(s[i]);
+  ANSIToIBM := s;
+end;
+
 function SysPollKeyEvent: TKeyEvent;
 var
   MouseEvent: Boolean;   // got a mouseevent -> do not leave cycle
@@ -195,6 +314,7 @@ var
   KeyUp: Boolean;        // Event is a key up event
   Buff: array[0..19] of Char;
   ie: TInputEvent;       // for mapchar
+  IAddr: Pointer;
 begin
   KeyCode := 0;
   SysPollKeyEvent := 0;
@@ -223,6 +343,7 @@ begin
       IClass := iMsg^.iClass;
       MouseX := iMsg^.MouseX;
       MouseY := iMsg^.MouseY;
+      IAddr := iMsg^.IAddress;
       ReplyMsg(PMessage(iMsg)); // fast reply to system
       SetShiftState(IQual); // set Shift state qualifiers. do this for all messages we get.
       // main event case
@@ -231,7 +352,7 @@ begin
             GotActiveWindow;
           end;
         IDCMP_INACTIVEWINDOW: begin
-            // force cursor off. we stop getting IntuiTicks when 
+            // force cursor off. we stop getting IntuiTicks when
             // the window is inactive, so the blinking stops.
             ToggleCursor(true);
             GotInactiveWindow;
@@ -339,8 +460,11 @@ begin
           ie.ie_Code := ICode;
           ie.ie_Qualifier := IQual;
           ie.ie_NextEvent := nil;
+          ie.ie_position.ie_addr := PPointer(IAddr)^;
           Buff[0] := #0;
           Ret := MapRawKey(@ie, @Buff[0], 1, nil);
+          if FPC_DOKEYCONVERSION then
+            AnsiToIBMChar(Buff[0]);
           KeyCode := Ord(Buff[0]);
           KeySet^.KeyCode := Ord(Buff[0]);         // if maprawkey does not work it still is 0
           KeySet^.ShiftState := LastShiftState;    // shift state set before the case
@@ -370,6 +494,7 @@ begin
               ie.ie_Code := ICode;
               ie.ie_Qualifier := 0;
               ie.ie_NextEvent := nil;
+              ie.ie_position.ie_addr := IAddr;
               Buff[0] := #0;
               Ret := MapRawKey(@ie, @Buff[0], 1, nil);
               if Ret > 0 then
@@ -488,7 +613,7 @@ begin
       Res := SysPollKeyEvent;
       // remove event from KeyQueue, because we return it here,
       // else we get double keys if GetKeyevent is called without a PollKeyEvent called first
-      KeyQueue := 0; 
+      KeyQueue := 0;
     until Res <> 0;
   end else
   begin
@@ -558,7 +683,7 @@ begin
   if (recvbits and windowbit) > 0 then
     WaitForSystemEvent:=true;
 
-  if waitTimerFired then 
+  if waitTimerFired then
   begin
     AbortIO(PIORequest(waitTimer));
     WaitIO(PIORequest(waitTimer));
@@ -571,7 +696,7 @@ procedure DoneSystemEventWait;
 begin
   if assigned(waitTimer) then
   begin
-    if waitTimerFired then 
+    if waitTimerFired then
     begin
       AbortIO(PIORequest(waitTimer));
       WaitIO(PIORequest(waitTimer));
@@ -591,7 +716,13 @@ end;
 procedure InitSystemEventWait;
 var
   initOK: boolean;
+  envBuf: array[0..15] of char;
 begin
+  {.$if not defined(AMIGA_V1_2_ONLY)}
+  if GetVar('FPC_DOKEYCONVERSION',@envBuf,sizeof(envBuf),0) > -1 then
+    FPC_DOKEYCONVERSION := True;
+  {.$endif}
+
   waitTimerFired:=false;
   waitTPort:=CreateMsgPort();
   if assigned(waitTPort) then

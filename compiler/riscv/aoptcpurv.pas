@@ -47,6 +47,7 @@ type
     procedure DebugMsg(const s: string; p: tai);
 
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+    function OptPass1OP(var p: tai): boolean;
   end;
 
 implementation
@@ -175,6 +176,40 @@ implementation
     end;
 
 
+  function TRVCpuAsmOptimizer.OptPass1OP(var p : tai) : boolean;
+    var
+      hp1 : tai;
+    begin
+      result:=false;
+      { replace
+          <Op>   %reg3,%mreg2,%mreg1
+          addi   %reg4,%reg3,0
+          dealloc  %reg3
+
+          by
+          <Op>   %reg4,%reg2,%reg1
+        ?
+      }
+      if GetNextInstruction(p,hp1) and
+        { we mix single and double operations here because we assume that the compiler
+          generates vmovapd only after double operations and vmovaps only after single operations }
+        MatchInstruction(hp1,A_ADDI) and
+        (taicpu(hp1).oper[2]^.val=0) and
+        MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
+        begin
+          TransferUsedRegs(TmpUsedRegs);
+          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+          if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg,hp1,TmpUsedRegs)) then
+            begin
+              taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
+              DebugMsg('Peephole OpAddi02Op done',p);
+              RemoveInstruction(hp1);
+              result:=true;
+            end;
+        end;
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
 
     procedure RemoveInstr(var orig: tai; moveback: boolean = true);
@@ -214,7 +249,7 @@ implementation
                      MatchInstruction(hp1,[A_ADDI{$ifdef riscv64},A_ADDIW{$endif}]) and
                      (taicpu(hp1).ops=3) and
                      MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
-                     (taicpu(p).oper[2]^.typ=top_const) and
+                     (taicpu(hp1).oper[2]^.typ=top_const) and
                      is_imm12(taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val) and
                      (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
                      RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
@@ -440,6 +475,9 @@ implementation
                       result:=true;
                     end;
                 end;
+              A_SRLI,
+              A_SLLI:
+                result:=OptPass1OP(p);
               A_SLTI:
                 begin
                   {

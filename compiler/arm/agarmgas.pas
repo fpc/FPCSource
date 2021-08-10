@@ -61,6 +61,7 @@ unit agarmgas;
     const 
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
+        'armv2',
         'armv3',
         'armv4',
         'armv4t',
@@ -435,6 +436,16 @@ unit agarmgas;
                        internalerror(2003112903);
                    end;
                  end
+               { syscall number for vasm does not need a # }
+               else if (target_asm.id=as_arm_vasm) and (i=0) and ((op=A_SWI) or (op=A_SVC)) then
+                 begin
+                   case taicpu(hp).oper[0]^.typ of
+                     top_const:
+                       s:=s+sep+tostr(taicpu(hp).oper[0]^.val);
+                     else
+                       internalerror(2021052301);
+                   end;
+                 end
                else
                  s:=s+sep+getopstr(taicpu(hp).oper[i]^);
 
@@ -484,7 +495,7 @@ unit agarmgas;
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_arm_ios];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : 'L';
             labelmaxlen : -1;
             comment : '# ';

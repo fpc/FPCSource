@@ -20,8 +20,8 @@ fpcdir=.
 rule=help
 
 [prerules]
-REQUIREDVERSION=3.2.0
-REQUIREDVERSION2=3.0.4
+REQUIREDVERSION=3.2.2
+REQUIREDVERSION2=3.2.0
 
 
 # make versions < 3.77 (OS2 version) are buggy
@@ -96,6 +96,9 @@ PPSUF=xtensa
 endif
 ifeq ($(CPU_TARGET),z80)
 PPSUF=z80
+endif
+ifeq ($(CPU_TARGET),wasm32)
+PPSUF=wasm32
 endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix

@@ -4067,6 +4067,94 @@ CONST
 var
   IntuitionBase: pIntuitionBase;
 
+{$if defined(AMIGA_V1_2_ONLY)}
+PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
+PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
+FUNCTION ModifyIDCMP(window : pWindow location 'a0'; flags : ULONG location 'd0') : LongBool; syscall _IntuitionBase 150;
+PROCEDURE MoveWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 168;
+FUNCTION OpenWindow(const newWindow : pNewWindow location 'a0') : pWindow; syscall _IntuitionBase 204;
+PROCEDURE RefreshWindowFrame(window : pWindow location 'a0'); syscall _IntuitionBase 456;
+PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : pCHAR location 'a1';const screenTitle : pCHAR location 'a2'); syscall _IntuitionBase 276;
+PROCEDURE SizeWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 288;
+FUNCTION WindowLimits(window : pWindow location 'a0'; widthMin : LONGINT location 'd0'; heightMin : LONGINT location 'd1'; widthMax : ULONG location 'd2'; heightMax : ULONG location 'd3') : LongBool; syscall _IntuitionBase 318;
+PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 306;
+PROCEDURE WindowToFront(window : pWindow location 'a0'); syscall _IntuitionBase 312;
+
+FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
+FUNCTION AddGadget(window : pWindow location 'a0'; gadget : pGadget location 'a1'; position : ULONG location 'd0') : WORD; syscall _IntuitionBase 042;
+FUNCTION AddGList(window : pWindow location 'a0'; gadget : pGadget location 'a1'; position : ULONG location 'd0'; numGad : LONGINT location 'd1'; requester : pRequester location 'a2') : WORD; syscall _IntuitionBase 438;
+PROCEDURE ModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : ULONG location 'd0'; horizPot : ULONG location 'd1'; vertPot : ULONG location 'd2'; horizBody : ULONG location 'd3'; vertBody : ULONG location 'd4'); syscall _IntuitionBase 156;
+PROCEDURE NewModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : ULONG location 'd0'; horizPot : ULONG location 'd1'; vertPot : ULONG location 'd2'; horizBody : ULONG location 'd3'; vertBody : ULONG location 'd4'; numGad : LONGINT location 'd5'); syscall _IntuitionBase 468;
+PROCEDURE OffGadget(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'); syscall _IntuitionBase 174;
+PROCEDURE OnGadget(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'); syscall _IntuitionBase 186;
+PROCEDURE RefreshGadgets(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'); syscall _IntuitionBase 222;
+PROCEDURE RefreshGList(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; numGad : LONGINT location 'd0'); syscall _IntuitionBase 432;
+FUNCTION RemoveGadget(window : pWindow; gadget : pGadget) : WORD; syscall _IntuitionBase 228;
+FUNCTION RemoveGList(remPtr : pWindow location 'a0'; gadget : pGadget location 'a1'; numGad : LONGINT location 'd0') : WORD; syscall _IntuitionBase 444;
+
+PROCEDURE ClearMenuStrip(window : pWindow location 'a0'); syscall _IntuitionBase 054;
+FUNCTION ItemAddress(const menuStrip : pMenu location 'a0'; menuNumber : ULONG location 'd0') : pMenuItem; syscall _IntuitionBase 144;
+PROCEDURE OffMenu(window : pWindow location 'a0'; menuNumber : ULONG location 'd0'); syscall _IntuitionBase 180;
+PROCEDURE OnMenu(window : pWindow location 'a0'; menuNumber : ULONG location 'd0'); syscall _IntuitionBase 192;
+FUNCTION SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool; syscall _IntuitionBase 264;
+
+FUNCTION AutoRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; pFlag : ULONG location 'd0'; nFlag : ULONG location 'd1'; width : ULONG location 'd2'; height : ULONG location 'd3') : LongBool; syscall _IntuitionBase 348;
+FUNCTION BuildSysRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; flags : ULONG location 'd0'; width : ULONG location 'd1'; height : ULONG location 'd2') : pWindow; syscall _IntuitionBase 360;
+FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
+FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
+PROCEDURE EndRequest(requester : pRequester location 'a0'; window : pWindow location 'a1'); syscall _IntuitionBase 120;
+PROCEDURE FreeSysRequest(window : pWindow location 'a0'); syscall _IntuitionBase 372;
+PROCEDURE InitRequester(requester : pRequester location 'a0'); syscall _IntuitionBase 138;
+FUNCTION Request(requester : pRequester location 'a0'; window : pWindow location 'a1') : LongBool; syscall _IntuitionBase 240;
+FUNCTION SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : LongBool; syscall _IntuitionBase 258;
+
+function CloseScreen(screen : pScreen location 'a0'): LongBool; syscall _IntuitionBase 066;
+FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
+PROCEDURE DisplayBeep(screen : pScreen location 'a0'); syscall _IntuitionBase 096;
+FUNCTION GetScreenData(buffer : POINTER location 'a0'; size : ULONG location 'D0'; type_ : ULONG location 'd1';const screen : pScreen location 'a1') : LongBool; syscall _IntuitionBase 426;
+FUNCTION MakeScreen(screen : pScreen location 'a0') : LONGINT; syscall _IntuitionBase 378;
+PROCEDURE MoveScreen(screen : pScreen location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 162;
+FUNCTION OpenScreen(const newScreen : pNewScreen location 'a0') : pScreen; syscall _IntuitionBase 198;
+FUNCTION OpenWorkBench : ULONG; syscall _IntuitionBase 210;
+PROCEDURE ScreenToBack(screen : pScreen location 'a0'); syscall _IntuitionBase 246;
+PROCEDURE ScreenToFront(screen : pScreen location 'a0'); syscall _IntuitionBase 252;
+PROCEDURE ShowTitle(screen : pScreen location 'a0'; showIt : LONGINT location 'd0'); syscall _IntuitionBase 282;
+FUNCTION WBenchToBack : LongBool; syscall _IntuitionBase 336;
+FUNCTION WBenchToFront : LongBool; syscall _IntuitionBase 342;
+
+PROCEDURE ClearPointer(window : pWindow location 'a0'); syscall _IntuitionBase 060;
+PROCEDURE DrawBorder(rp : pRastPort location 'a0';const border : pBorder location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 108;
+PROCEDURE DrawImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 114;
+FUNCTION IntuiTextLength(const iText : pIntuiText location 'a0') : LONGINT; syscall _IntuitionBase 330;
+PROCEDURE PrintIText(rp : pRastPort location 'a0';const iText : pIntuiText location 'a1'; left : LONGINT location 'd0'; top : LONGINT location 'd1'); syscall _IntuitionBase 216;
+PROCEDURE SetPointer(window : pWindow location 'a0'; pointer_ : pword location 'a1'; height : LONGINT location 'd0'; width : LONGINT location 'd1'; xOffset : LONGINT location 'd2'; yOffset : LONGINT location 'd3'); syscall _IntuitionBase 270;
+
+FUNCTION AllocRemember(var rememberKey : pRemember location 'a0'; size : ULONG location 'd0'; flags : ULONG location 'd1') : POINTER syscall _IntuitionBase 396;
+PROCEDURE FreeRemember(VAR rememberKey : pRemember location 'a0'; reallyForget : LONGINT location 'd0'); syscall _IntuitionBase 408;
+
+PROCEDURE BeginRefresh(window : pWindow location 'a0'); syscall _IntuitionBase 354;
+PROCEDURE EndRefresh(window : pWindow location 'a0'; complete : LONGBOOL location 'd0'); syscall _IntuitionBase 366;
+FUNCTION RemakeDisplay : LONGINT; syscall _IntuitionBase 384;
+FUNCTION RethinkDisplay : LONGINT; syscall _IntuitionBase 390;
+
+FUNCTION LockIBase(dontknow : ULONG location 'd0') : ULONG; syscall _IntuitionBase 414;
+PROCEDURE UnlockIBase(ibLock : ULONG location 'a0'); syscall _IntuitionBase 420;
+FUNCTION ViewAddress : pView; syscall _IntuitionBase 294;
+FUNCTION ViewPortAddress(const window : pWindow location 'a0') : pViewPort; syscall _IntuitionBase 300;
+
+PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
+FUNCTION DoubleClick(sSeconds : ULONG location 'd0'; sMicros : ULONG location 'd1'; cSeconds : ULONG location 'd2'; cMicros : ULONG location 'd3') : LongBool; syscall _IntuitionBase 102;
+FUNCTION GetDefPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 126;
+FUNCTION GetPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 132;
+PROCEDURE ReportMouse(flag : LONGINT location 'd0'; window : pWindow location 'a0'); syscall _IntuitionBase 234;
+FUNCTION SetPrefs(const   preferences : pPreferences location 'a0'; size : LONGINT location 'd0'; inform : LONGINT location 'd1') : pPreferences; syscall _IntuitionBase 324;
+
+function OpenWindowTagList(NewWindow: PNewWindow; TagList: PTagItem):PWindow;
+function OpenScreenTagList(NewScreen: PNewScreen; TagList: PTagItem): PScreen;
+function EasyRequestArgs(Window: PWindow; const EasyStruct: PEasyStruct; IDCMPPtr: PLongWord; const Args: Pointer): LongInt;
+
+
+{$else}
 FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
 PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
 PROCEDURE AddClass(classPtr : pIClass location 'a0'); syscall _IntuitionBase 684;
@@ -4189,24 +4277,29 @@ FUNCTION WindowLimits(window : pWindow location 'a0'; widthMin : LONGINT locatio
 PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 306;
 PROCEDURE WindowToFront(window : pWindow location 'a0'); syscall _IntuitionBase 312;
 PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;
+{$endif}
 
 function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
 function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
+
+{$if not defined(AMIGA_V1_2_ONLY)}
+function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
 function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
 function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
 function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
-function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
-function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
 procedure SetWindowPointer(win : pWindow; tags: array of DWord);
-
+{$endif}
+function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
 
 { Intuition macros }
+{$if not defined(AMIGA_V1_2_ONLY)}
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
 function BASEOBJECT (o: p_Object): Pointer;
 function _OBJ(o: p_Object): p_Object; inline;
 function __OBJECT (o: Pointer): p_Object; inline;
 function OCLASS (o: Pointer): pIClass; inline;
+{$endif}
 function SHIFTITEM (n: smallint): word;
 function SHIFTMENU (n: smallint): word;
 function SHIFTSUB (n: smallint): word;
@@ -4222,14 +4315,17 @@ function SUBNUM( n : Word): Word;
 
 FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN;
 FUNCTION LockPubScreen(const name : string) : pScreen;
+{$if not defined(AMIGA_V1_2_ONLY)}
 FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
+{$endif}
 PROCEDURE SetDefaultPubScreen(const name : string);
 FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
 function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
 function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
@@ -4237,8 +4333,264 @@ function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg : APTR): PtrUInt;
 
 function DoMethod(Obj: PObject_; Params: array of PtrUInt): LongWord; inline;
 function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PtrUInt; inline;
+{$endif}
 
 IMPLEMENTATION
+
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function OpenWindowTagList(NewWindow: PNewWindow; TagList: PTagItem):PWindow;
+var
+  Nw: TNewWindow;
+  Scr: PScreen;
+  LockedScreenName: PChar;
+  ScreenTitle: PChar;
+  Win: PWindow;
+  ILock: LongWord;
+begin
+  if not Assigned(NewWindow) then
+  begin
+    NewWindow := @Nw;
+    FillChar(Nw, SizeOf(Nw), 0);
+    NW.LeftEdge := 20;
+    NW.TopEdge := 20;
+    NW.Width := 200;
+    NW.Height := 100;
+    Nw.DetailPen := 0;
+    Nw.BlockPen := 1;
+    nw.MaxWidth := 640;
+    nw.MaxHeight := 512;
+    nw.WType := WBENCHSCREEN_F;
+  end;
+  LockedScreenName := nil;
+  ScreenTitle := nil;
+  //
+  while TagList <> nil do
+  begin
+    case TagList^.ti_Tag of
+      WA_Flags: NewWindow^.Flags := NewWindow^.Flags or TagList^.ti_Data;
+      WA_Gadgets: NewWindow^.FirstGadget := Pointer(TagList^.ti_Data);
+      WA_GimmeZeroZero: NewWindow^.Flags := NewWindow^.Flags or WFLG_GIMMEZEROZERO;
+      WA_InnerHeight,WA_Height: NewWindow^.Height := TagList^.ti_Data;
+      WA_IDCMP: NewWindow^.IDCMPFlags := NewWindow^.IDCMPFlags or TagList^.ti_Data;
+      WA_Left: NewWindow^.LeftEdge := TagList^.ti_Data;
+      WA_MaxHeight: NewWindow^.MaxHeight := TagList^.ti_Data;
+      WA_MaxWidth: NewWindow^.MaxWidth := TagList^.ti_Data;
+      WA_MinHeight: NewWindow^.MinHeight := TagList^.ti_Data;
+      WA_MinWidth: NewWindow^.MinWidth := TagList^.ti_Data;
+      WA_NoCareRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_NOCAREREFRESH;
+      WA_PubScreen: NewWindow^.Screen := Pointer(TagList^.ti_Data);
+      WA_PubScreenName:
+      begin
+        ILock := LockIBase(0);
+        LockedScreenName := PChar(TagList^.ti_Data);
+        if (LowerCase(string(LockedScreenName)) = 'workbench') or (LockedScreenName = nil) then
+        begin
+          NewWindow^.WType := WBENCHSCREEN_F;
+          NewWindow^.Screen := nil;
+        end
+        else
+        begin
+          Scr := pIntuitionBase(_IntuitionBase)^.FirstScreen;
+        while Assigned(Scr) do
+        begin
+          if LowerCase(string(scr^.Title)) = LowerCase(string(LockedScreenName)) then
+          begin
+            NewWindow^.Screen := Scr;
+            NewWindow^.WType := CUSTOMSCREEN_F;
+            Break;
+          end;
+          Scr := Scr^.NextScreen
+        end;
+        UnlockIBase(ILock);
+      end;
+      end;
+      WA_ReportMouse: NewWindow^.Flags := NewWindow^.Flags or WFLG_REPORTMOUSE;
+      WA_RMBTrap: NewWindow^.Flags := NewWindow^.Flags or WFLG_RMBTRAP;
+      WA_ScreenTitle: ScreenTitle := PChar(TagList^.ti_Data);
+      WA_SimpleRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIMPLE_REFRESH;
+      WA_SizeBBottom: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEBBOTTOM;
+      WA_SizeBRight: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEBRIGHT;
+      WA_SizeGadget: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEGADGET;
+      WA_SmartRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_SMART_REFRESH;
+      WA_SuperBitMap: NewWindow^.BitMap := Pointer(TagList^.ti_Data);
+      WA_Title: NewWindow^.Title := PChar(TagList^.ti_Data);
+      WA_Top: NewWindow^.TopEdge := TagList^.ti_Data;
+      WA_InnerWidth,WA_Width: NewWindow^.Width := TagList^.ti_Data;
+    end;
+    TagList := NextTagItem(TagList);
+  end;
+  Win := OpenWindow(NewWindow);
+  if Assigned(Win) and Assigned(ScreenTitle) then
+    SetWindowTitles(Win, NewWindow^.Title, ScreenTitle);
+  OpenWindowTagList := Win;
+end;
+
+function OpenScreenTagList(NewScreen: PNewScreen; TagList: PTagItem): PScreen;
+var
+  Scr: PScreen;
+  Ns: TNewScreen;
+  ILock: LongWord;
+  STagList: PTagItem;
+begin
+  OpenScreenTagList := nil;
+  if not Assigned(NewScreen) then
+  begin
+    NewScreen := @Ns;
+    FillChar(Ns, SizeOf(Ns), 0);
+    Ns.LeftEdge := 0;
+    Ns.TopEdge := 0;
+    Ns.Width := 320;
+    Ns.Height := 200;
+    Ns.DetailPen := 0;
+    Ns.BlockPen := 1;
+    Ns.Depth := 1;
+    Ns.ViewModes := 0;
+  end;
+  // SEarch for Like Workbench
+  STagList := TagList;
+  while STagList <> nil do
+  begin
+    if STagList^.ti_Tag = SA_LikeWorkbench then
+    begin
+      ILock := LockIBase(0);
+      Scr := PIntuitionBase(_IntuitionBase)^.FirstScreen;
+      if Assigned(Scr) then
+      begin
+        NewScreen^.LeftEdge := Scr^.LeftEdge;
+        NewScreen^.TopEdge := Scr^.TopEdge;
+        NewScreen^.Width := Scr^.Width;
+        NewScreen^.Height := Scr^.Height;
+        NewScreen^.Font := Scr^.Font;
+        NewScreen^.Depth := Scr^.BitMap.Depth;
+        NewScreen^.DetailPen := Scr^.DetailPen;
+        NewScreen^.BlockPen := Scr^.BlockPen;
+        NewScreen^.ViewModes := Scr^.ViewPort.Modes;
+        NewScreen^.SType := Scr^.Flags; // not sure if that is correct
+      end;
+      UnlockIBase(ILock);
+    end;
+    STagList := NextTagItem(STagList);
+  end;
+  // check the other tags
+  while TagList <> nil do
+  begin
+    case TagList^.ti_Tag of
+      SA_AutoScroll: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or AUTOSCROLL else NewScreen^.SType := NewScreen^.SType and not AUTOSCROLL;
+      SA_Behind: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or SCREENBEHIND_F else NewScreen^.SType := NewScreen^.SType and not SCREENBEHIND_F;
+      SA_BitMap: begin NewScreen^.SType := NewScreen^.SType or CUSTOMBITMAP_F; NewScreen^.CustomBitMap := Pointer(TagList^.ti_Data); end;
+      SA_BlockPen: NewScreen^.BlockPen := TagList^.ti_Data;
+      //SA_ColorMapEntries: TODO:
+      //SA_Colors: todo: after
+      //SA_Colors32: todo: after
+      SA_Depth: NewScreen^.Depth := TagList^.ti_Data;
+      SA_DetailPen: NewScreen^.DetailPen := TagList^.ti_Data;
+      SA_Font: NewScreen^.Font := Pointer(TagList^.ti_Data);
+      //SA_FullPalette: TODO:
+      //SA_Pens: TODO:
+      SA_Height: NewScreen^.Height := TagList^.ti_Data;
+      SA_Left: NewScreen^.LeftEdge := TagList^.ti_Data;
+      //SA_PubName: TODO: hmmm, not really possible
+      SA_Quiet: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or SCREENQUIET_F else NewScreen^.SType := NewScreen^.SType and not SCREENQUIET_F;
+      SA_ShowTitle: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or SHOWTITLE_F else NewScreen^.SType := NewScreen^.SType and not SHOWTITLE_F;
+      SA_Title: NewScreen^.DefaultTitle := PChar(TagList^.ti_Data);
+      SA_Top: NewScreen^.TopEdge := TagList^.ti_Data;
+      SA_Type: NewScreen^.SType := NewScreen^.SType or (TagList^.ti_Data) and not PUBLICSCREEN_F;
+      SA_DisplayID: NewScreen^.ViewModes := TagList^.ti_Data;
+      SA_Width: NewScreen^.Width := TagList^.ti_Data;
+    end;
+    TagList := NextTagItem(TagList);
+  end;
+  Scr := OpenScreen(NewScreen);
+  OpenScreenTagList := Scr;
+end;
+
+function EasyRequestArgs(Window: PWindow; const EasyStruct: PEasyStruct; IDCMPPtr: PLongWord; const Args: Pointer): LongInt;
+var
+  Body, PosText, NegText: TIntuiText;
+  pFlags, nFlags, Width, Height: LongWord;
+  pText, NText, s: AnsiString;
+  Found: Boolean;
+  i: Integer;
+  Target: array[0..255] of Char;
+  Magic: LongWord;
+begin
+  Magic := $16c04e75; // move.b d0,(a3)+ rts
+  RawDoFmt(easyStruct^.es_TextFormat, args, TProcedure(@Magic), @Target[0]);
+  with Body do
+  begin
+    BackPen := 1;
+    FrontPen := 2;
+    DrawMode := JAM1;
+    IText := @Target[0];
+    LeftEdge := 17;
+    TopEdge := 20;
+    ITextFont := nil;
+    NextText := nil;
+  end;
+  //
+  NText := '';
+  PText := '';
+  if Assigned(easyStruct^.es_GadgetFormat) then
+  begin
+    s := string(easyStruct^.es_GadgetFormat);
+    Found := False;
+    for i := 1 to Length(s) do
+    begin
+      if not Found and (s[i] = '|') then
+        Found := True
+      else
+      begin
+        if Found then
+          NText := NText + s[i]
+        else
+          PText := PText + s[i];
+      end;
+    end;
+  end;
+
+  if (PText = '') and (NText = '') then
+    PText := 'Ok';
+
+  with PosText do
+  begin
+    BackPen := 1;
+    FrontPen := 2;
+    DrawMode := JAM1;
+    IText := PChar(PText);
+    LeftEdge := 7;
+    TopEdge := 4;
+    ITextFont := nil;
+    NextText := nil;
+  end;
+
+  with NegText do
+  begin
+    BackPen := 1;
+    FrontPen := 2;
+    DrawMode := JAM1;
+    IText := PChar(NText);
+    LeftEdge := 7;
+    TopEdge := 4;
+    ITextFont := nil;
+    NextText := nil;
+  end;
+
+  Width := IntuiTextLength(@Body) + 50;
+  Height := 70;
+  if idcmpPtr <> nil then
+    pFlags := idcmpPtr^
+  else
+    pFlags := 0;
+  NFlags := 0;
+
+  if AutoRequest(Window, @Body, @PosText, @NegText, pFlags, nFlags, Width, Height) then
+    EasyRequestArgs := 1
+  else
+    EasyRequestArgs := 0;
+end;
+{$endif}
+
 
 function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
 begin
@@ -4250,6 +4602,7 @@ begin
     OpenWindowTags := OpenWindowTagList(newWindow, @tagList);
 end;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
 begin
     NewObject := NewObjectA(classPtr,classID, @argv);
@@ -4270,16 +4623,19 @@ begin
     SetGadgetAttrs := SetGadgetAttrsA(gadget,window,requester,@argv);
 end;
 
+procedure SetWindowPointer(win : pWindow; tags: array of DWord);
+begin
+  SetWindowPointerA(win, @tags);
+end;
+{$endif}
+
 function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
 begin
   EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
 end;
 
-procedure SetWindowPointer(win : pWindow; tags: array of DWord);
-begin
-  SetWindowPointerA(win, @tags);
-end;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 function INST_DATA (cl: pIClass; o: p_Object): Pointer; inline;
 begin
     INST_DATA := Pointer(Longint(o) + cl^.cl_InstOffset);
@@ -4309,6 +4665,7 @@ function OCLASS (o: Pointer): pIClass; inline;
 begin
     OCLASS := p_Object(o - sizeof(t_Object))^.o_Class;
 end;
+{$endif}
 
 function SHIFTITEM (n: smallint): word; inline;
 begin
@@ -4389,6 +4746,7 @@ begin
       LockPubScreen := LockPubScreen(PChar(RawByteString(name)));
 end;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
       MakeClass := MakeClass(PChar(RawByteString(classID)),superClassID,superClassPtr,instanceSize,flags);
@@ -4408,6 +4766,7 @@ FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pT
 begin
       NewObjectA := NewObjectA(classPtr,PChar(RawByteString(classID)),taglist);
 end;
+{$endif}
 
 PROCEDURE SetDefaultPubScreen(const name : string);
 begin
@@ -4424,7 +4783,7 @@ begin
       UnlockPubScreen(PChar(RawByteString(name)),screen);
 end;
 
-
+{$if not defined(AMIGA_V1_2_ONLY)}
 function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
 begin
   if Assigned(Obj) then
@@ -4470,6 +4829,7 @@ begin
   arr[2] := 0;
   SetSuperAttrsA := DoSuperMethodA(Cl, Obj, @arr);
 end;
+{$endif}
 
 initialization
   IntuitionBase := pIntuitionBase(_IntuitionBase);

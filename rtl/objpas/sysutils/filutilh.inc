@@ -17,7 +17,7 @@ Type
 
 
   // Some operating systems need FindHandle to be a Pointer
-{$if defined(unix) or defined(msdos) or defined(hasamiga) or defined(atari) or defined(win16)}
+{$if defined(unix) or defined(msdos) or defined(hasamiga) or defined(atari) or defined(win16) or defined(sinclairql)}
     {$define FINDHANDLE_IS_POINTER}
 {$endif}
 
@@ -251,4 +251,10 @@ Function GetFileAsString(Const aFileName : RawByteString) : RawByteString;
 Function GetFileAsString(Const aFileName : RawByteString; aEncoding : TEncoding) : RawByteString;
 Function GetFileAsString(Const aFileName : UnicodeString) : UnicodeString;
 Function GetFileAsString(Const aFileName : UnicodeString; aEncoding : TEncoding) : UnicodeString;
+
+Function IsFileNameCaseSensitive(Const aFileName : RawByteString) : Boolean;
+Function IsFileNameCaseSensitive(Const aFileName : UnicodeString) : Boolean;
+
+Function IsFileNameCasePreserving(Const aFileName : RawByteString) : Boolean;
+Function IsFileNameCasePreserving(Const aFileName : UnicodeString) : Boolean;
 

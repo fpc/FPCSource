@@ -1213,7 +1213,10 @@ interface
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,
-       pvmttype      : tdef;     { type of classrefs, used for stabs }
+       { type of classrefs, used for stabs }
+       pvmttype,
+       { return type of the setjmp function }
+       exceptionreasontype      : tdef;
 
        { pointer to the anchestor of all classes }
        class_tobject : tobjectdef;
@@ -2528,6 +2531,7 @@ implementation
              begin
                current_module.deflist.Add(self);
                defid:=current_module.deflist.Count-1;
+               registered_in_module:=current_module;
              end;
            maybe_put_in_symtable_stack;
          end
@@ -4154,6 +4158,7 @@ implementation
          symtable:=tarraysymtable.create(self);
       end;
 
+
     constructor tarraydef.create_vector(l ,h: asizeint; def: tdef);
       begin
         self.create(l,h,def);
@@ -4163,7 +4168,8 @@ implementation
 
     constructor tarraydef.create_openarray;
       begin
-        self.create(0,-1,sizesinttype)
+        self.create(0,-1,sizesinttype);
+        include(arrayoptions,ado_OpenArray);
       end;
 
 
@@ -4367,7 +4373,7 @@ implementation
           end;
 
         { Tarraydef.size may never be called for an open array! }
-        if (highrange=-1) and (lowrange=0) then
+        if ado_OpenArray in arrayoptions then
           internalerror(99080501);
         if not (ado_IsBitPacked in arrayoptions) then
           cachedelesize:=elesize
@@ -4383,7 +4389,10 @@ implementation
 
         if (cachedelecount = 0) then
           begin
-            size := -1;
+            if ado_isconststring in arrayoptions then
+              size := 0
+            else
+              size := -1;
             exit;
           end;
 
@@ -4472,7 +4481,7 @@ implementation
            end
          else if (ado_IsDynamicArray in arrayoptions) then
            GetTypeName:='{Dynamic} Array Of '+elementdef.typename
-         else if ((highrange=-1) and (lowrange=0)) then
+         else if (ado_OpenArray in arrayoptions) then
            GetTypeName:='{Open} Array Of '+elementdef.typename
          else
            begin

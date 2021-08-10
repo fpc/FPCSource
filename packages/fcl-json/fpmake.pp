@@ -26,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'Json interfacing, part of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -83,12 +83,19 @@ begin
       begin
       AddUnit('fpjson');
       AddUnit('jsonparser');
-     end;
+      end;
     T:=P.Targets.AddUnit('json2yaml.pp');
     with T.Dependencies do
       begin
       AddUnit('fpjson');
-     end;
+      end;
+    T:=P.Targets.AddUnit('fpjsonapply.pp');
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      end;
+    T.ResourceStrings:=true;
+
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('confdemo.pp');

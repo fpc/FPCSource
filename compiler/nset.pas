@@ -61,6 +61,9 @@ interface
        tcaseblock = record
           { label (only used in pass_generate_code) }
           blocklabel : tasmlabel;
+{$ifdef WASM}
+          BlockBr : Integer;
+{$endif WASM}
 
           { shortcut - set to true if blocklabel isn't actually unique to the
             case block due to one of the following conditions:
@@ -247,6 +250,7 @@ implementation
 
       begin
          result:=nil;
+
          resultdef:=pasbool1type;
          typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
@@ -268,6 +272,13 @@ implementation
 
          if not assigned(left.resultdef) then
            internalerror(20021126);
+
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
 
          t:=self;
          if isbinaryoverloaded(t,[]) then

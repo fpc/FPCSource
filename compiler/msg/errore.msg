@@ -2930,7 +2930,7 @@ asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146_E_Not supported
 #
 # Assembler/binary writers
 #
-# 08035 is the last used one
+# 08036 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2987,6 +2987,7 @@ asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the
 asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
 asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
+asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
 #
 # Executing linker/assembler
 #
@@ -3909,10 +3910,23 @@ F*0*_Only options valid for the default or selected platform are listed.
 6*2Amot_Standard Motorola assembler
 6*2Avasm_Use vasm to assemble
 A*2Aas_Assemble using GNU AS
+A*2Aas-darwin_Assemble using GNU AS for Darwin targets
+A*2Aclang_Assemble using clang
+A*2Aelf_Assemble using internal ELF writer
+a*2Aas_Assemble using GNU AS
+a*2Aclang_Assemble using clang for darwin/ios targets
+a*2Aas-clang_Assemble using clang for other targets 
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+s*2Aas_Assemble using GNU AS
+v*2Aas_Assemble using GNU AS
+W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as)
+W*2Allvm-mc_Assemble using llvm-mc
+W*2Awabt_Assemble using wasa
+x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
 Z*2Az80asm_Assemble using z80asm
+Z*2Avasm_Assemble using Vasm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -4184,6 +4198,7 @@ A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
 a*2Tdarwin_Darwin/Mac OS X
+a*2Tfreebsd_FreeBSD
 a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64
@@ -4234,6 +4249,9 @@ x*2Tlinux_Linux
 Z*2Tembedded_Embedded
 Z*2Tzxspectrum_ZX Spectrum
 Z*2Tmsxdos_MSX-DOS
+# wasm32 targets
+W*2Tembedded_Embedded
+W*2Twasi_The WebAssembly System Interface (WASI)
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:

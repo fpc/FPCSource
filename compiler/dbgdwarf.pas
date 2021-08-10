@@ -683,7 +683,10 @@ implementation
         DW_OP_HP_unknown := $e0,
         DW_OP_HP_is_value := $e1,DW_OP_HP_fltconst4 := $e2,
         DW_OP_HP_fltconst8 := $e3,DW_OP_HP_mod_range := $e4,
-        DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6
+        DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6,
+
+        { WebAssembly extensions. }
+        DW_OP_WASM_location = $ed
         );
 {$pop}
 
@@ -1055,12 +1058,14 @@ implementation
 
     function TDebugInfoDwarf.is_fbreg(reg: tregister): boolean;
       begin
-{$ifdef i8086}
+{$if defined(i8086)}
         result:=reg=NR_BP;
-{$else i8086}
+{$elseif defined(wasm)}
+        result:=reg=NR_LOCAL_FRAME_POINTER_REG;
+{$else}
         { always return false, because we don't emit DW_AT_frame_base attributes yet }
         result:=false;
-{$endif i8086}
+{$endif}
       end;
 
     function TDebugInfoDwarf.def_dwarf_lab(def: tdef): tasmsymbol;
@@ -2243,6 +2248,9 @@ implementation
       var
         labsym : tasmsymbol;
       begin
+        { end of the symbol }
+        labsym:=def_dwarf_lab(def);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol_end.Create(labsym));
         { create a derived reference type for pass-by-reference parameters }
         { (gdb doesn't support DW_AT_variable_parameter yet)               }
         labsym:=def_dwarf_ref_lab(def);
@@ -3252,30 +3260,33 @@ implementation
         flist : TFPList;
         dbgname : String;
       begin
-        { insert DEBUGSTART and DEBUGEND labels }
-        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
-        { Darwin's linker does not like two global labels both pointing to the
-          end of a section, which can happen in case of units without code ->
-          make them local; we don't need the debugtable stuff there either,
-          so it doesn't matter that they are not global.
-        }
-        if (target_info.system in systems_darwin) then
-          dbgname:='L'+dbgname;
-        new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
-        if not(target_info.system in systems_darwin) then
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
-        else
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
+        if not (target_info.system in systems_wasm) then
+          begin
+            { insert DEBUGSTART and DEBUGEND labels }
+            dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+            { Darwin's linker does not like two global labels both pointing to the
+              end of a section, which can happen in case of units without code ->
+              make them local; we don't need the debugtable stuff there either,
+              so it doesn't matter that they are not global.
+            }
+            if (target_info.system in systems_darwin) then
+              dbgname:='L'+dbgname;
+            new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
+            if not(target_info.system in systems_darwin) then
+              current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
+            else
+              current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
 
-        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
-        { See above. }
-        if (target_info.system in systems_darwin) then
-          dbgname:='L'+dbgname;
-        new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
-        if not(target_info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
-        else
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
+            dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+            { See above. }
+            if (target_info.system in systems_darwin) then
+              dbgname:='L'+dbgname;
+            new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
+            if not(target_info.system in systems_darwin) then
+              current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
+            else
+              current_asmdata.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
+          end;
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
@@ -3570,19 +3581,27 @@ implementation
         if (m_objectivec1 in current_settings.modeswitches) then
           append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
 
-        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
-        if (target_info.system in systems_darwin) then
+        if target_info.system in systems_wasm then
           begin
-            bind:=AB_LOCAL;
-            dbgname:='L'+dbgname;
+            append_attribute(DW_AT_low_pc,DW_FORM_data4,[0]);
+            { todo: append DW_AT_ranges }
           end
         else
-          bind:=AB_GLOBAL;
-        append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
-        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
-        if (target_info.system in systems_darwin) then
-          dbgname:='L'+dbgname;
-        append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
+          begin
+            dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+            if (target_info.system in systems_darwin) then
+              begin
+                bind:=AB_LOCAL;
+                dbgname:='L'+dbgname;
+              end
+            else
+              bind:=AB_GLOBAL;
+            append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
+            dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+            if (target_info.system in systems_darwin) then
+              dbgname:='L'+dbgname;
+            append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
+          end;
 
         finish_entry;
 
@@ -3666,7 +3685,7 @@ implementation
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
         { to prevent eliminating them by smartlinking                 }
-        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
+        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin+systems_wasm)) then
           exit;
         new_section(list,sec_fpc,'links',0);
 
@@ -4521,6 +4540,12 @@ implementation
 
       begin
         case def.objecttype of
+          odt_objcclass,
+          odt_objcprotocol:
+            begin
+              inherited;
+              exit
+            end;
           odt_cppclass,
           odt_object:
             begin
@@ -4584,34 +4609,39 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_variant(list:TAsmList;def: tvariantdef);
       const
-        VARIANTS: array[1..27] of record Value: Word; Name: String end = (
-          (value:0;     name:''),
-          (value:1;     name:''),
-          (value:2;     name:'VSMALLINT'),
-          (value:3;     name:'VINTEGER'),
-          (value:4;     name:'VSINGLE'),
-          (value:5;     name:'VDOUBLE'),
-          (value:6;     name:'VCURRENCY'),
-          (value:7;     name:'VDATE'),
-          (value:8;     name:'VOLESTR'),
-          (value:9;     name:'VDISPATCH'),
-          (value:10;    name:'VERROR'),
-          (value:11;    name:'VBOOLEAN'),
-          (value:12;    name:''),
-          (value:13;    name:'VUNKNOWN'),
-          (value:14;    name:''),
-          (value:16;    name:'VSHORTINT'),
-          (value:17;    name:'VBYTE'),
-          (value:18;    name:'VWORD'),
-          (value:19;    name:'VLONGWORD'),
-          (value:20;    name:'VINT64'),
-          (value:21;    name:'VQWORD'),
-          (value:36;    name:'VRECORD'),
-          (value:$48;   name:''),
-          (value:$100;  name:'VSTRING'),
-          (value:$101;  name:'VANY'),
-          (value:$2000; name:'VARRAY'),
-          (value:$4000; name:'VPOINTER')
+        VARIANTS: array[1..27] of record
+          Value: Word;
+          Name: String;
+          { some fields are only supported by some features }
+          features : tfeatures
+        end = (
+          (value:0;     name:'';features: []),
+          (value:1;     name:'';features: []),
+          (value:2;     name:'VSMALLINT';features: []),
+          (value:3;     name:'VINTEGER';features: []),
+          (value:4;     name:'VSINGLE';features: [f_softfpu]),
+          (value:5;     name:'VDOUBLE';features: [f_softfpu]),
+          (value:6;     name:'VCURRENCY';features: [f_softfpu]),
+          (value:7;     name:'VDATE';features: [f_softfpu]),
+          (value:8;     name:'VOLESTR';features: []),
+          (value:9;     name:'VDISPATCH';features: []),
+          (value:10;    name:'VERROR';features: []),
+          (value:11;    name:'VBOOLEAN';features: []),
+          (value:12;    name:'';features: []),
+          (value:13;    name:'VUNKNOWN';features: []),
+          (value:14;    name:'';features: []),
+          (value:16;    name:'VSHORTINT';features: []),
+          (value:17;    name:'VBYTE';features: []),
+          (value:18;    name:'VWORD';features: []),
+          (value:19;    name:'VLONGWORD';features: []),
+          (value:20;    name:'VINT64';features: []),
+          (value:21;    name:'VQWORD';features: []),
+          (value:36;    name:'VRECORD';features: []),
+          (value:$48;   name:'';features: []),
+          (value:$100;  name:'VSTRING';features: []),
+          (value:$101;  name:'VANY';features: []),
+          (value:$2000; name:'VARRAY';features: []),
+          (value:$4000; name:'VPOINTER';features: [])
         );
       var
         fs: tfieldvarsym;
@@ -4644,20 +4674,23 @@ implementation
         { variants }
         for idx := Low(VARIANTS) to High(VARIANTS) do
           begin
-            append_entry(DW_TAG_variant,true,[
-              DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
-              ]);
-            finish_entry;
-
-            if VARIANTS[idx].name <> '' then
+            if (features*VARIANTS[idx].features)=VARIANTS[idx].features then
               begin
-                fs := tfieldvarsym(vardatadef.symtable.Find(VARIANTS[idx].name));
-                if (fs = nil) or (fs.typ <> fieldvarsym) then
-                  internalerror(20060927200+idx);
-                appendsym_fieldvar(list,fs);
-              end;
+                append_entry(DW_TAG_variant,true,[
+                  DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value
+                  ]);
+                finish_entry;
 
-            finish_children; { variant }
+                if VARIANTS[idx].name <> '' then
+                  begin
+                    fs := tfieldvarsym(vardatadef.symtable.Find(VARIANTS[idx].name));
+                    if (fs = nil) or (fs.typ <> fieldvarsym) then
+                      internalerror(2006092702+idx);
+                    appendsym_fieldvar(list,fs);
+                  end;
+
+                finish_children; { variant }
+              end;
           end;
 
 

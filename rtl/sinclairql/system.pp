@@ -19,16 +19,13 @@ interface
 {$define FPC_IS_SYSTEM}
 {$define FPC_STDOUT_TRUE_ALIAS}
 {$define FPC_ANSI_TEXTFILEREC}
-{$define FPC_QL_USE_TINYHEAP}
+{$define FPC_QL_USE_OSHEAP}
 
-{$ifdef FPC_QL_USE_TINYHEAP}
+{$ifdef FPC_QL_USE_OSHEAP}
 {$define HAS_MEMORYMANAGER}
-{$endif FPC_QL_USE_TINYHEAP}
+{$endif FPC_QL_USE_OSHEAP}
 
 {$i systemh.inc}
-{$ifdef FPC_QL_USE_TINYHEAP}
-{$i tnyheaph.inc}
-{$endif FPC_QL_USE_TINYHEAP}
 
 {Platform specific information}
 const
@@ -57,13 +54,13 @@ const
     StdErrorHandle: longint = UnusedHandle;
 
 var
-    args: PChar;
-    argc: LongInt;
+    QL_ChannelIDNum : word;
+    QL_ChannelIDs: pdword;
+    QL_CommandLineLen : word;
+    QL_CommandLine : pchar;
+
     argv: PPChar;
-    envp: PPChar;
-
-    heapStart: pointer;
-
+    argc: Longint;
 
     {$if defined(FPUSOFT)}
 
@@ -73,8 +70,26 @@ var
 
     {$endif defined(FPUSOFT)}
 
+type
+  QLConHandle = record
+    inputHandle: longint;
+    outputHandle: longint;
+    errorHandle: longint;
+    userData: pointer;
+  end;
+
+
+
+function SetQLJobName(const s: string): longint;
+function GetQLJobName: string;
+function GetQLJobNamePtr: pointer;
+
+procedure SetQLDefaultConExitMessage(const msg: PChar);
 
 implementation
+
+  {$define FPC_SYSTEM_HAS_STACKTOP}
+  {$define FPC_SYSTEM_HAS_BACKTRACESTR}
 
   {$if defined(FPUSOFT)}
 
@@ -99,9 +114,9 @@ implementation
   {$endif defined(FPUSOFT)}
 
   {$i system.inc}
-  {$ifdef FPC_QL_USE_TINYHEAP}
-  {$i tinyheap.inc}
-  {$endif FPC_QL_USE_TINYHEAP}
+  {$ifdef FPC_QL_USE_OSHEAP}
+  {$i osheap.inc}
+  {$endif FPC_QL_USE_OSHEAP}
 
 
 function GetProcessID:SizeUInt;
@@ -109,15 +124,94 @@ begin
   GetProcessID := mt_inf(nil, nil);
 end;
 
-procedure SysInitParamsAndEnv;
+{*****************************************************************************
+                             ParamStr
+*****************************************************************************}
+
+var
+  args: PChar;
+
+{ number of args }
+function ParamCount: LongInt;
 begin
+  ParamCount:=argc;
+end;
+
+{ argument number l }
+function ParamStr(l: LongInt): string;
+begin
+  if (l >= 0) and (l <= argc) then
+    ParamStr:=argv[l]
+  else
+    ParamStr:='';
+end;
+
+procedure SysInitParamsAndEnv;
+var
+  i,j : longint;
+  c : char;
+  argv_size : longint;
+const
+  word_separators=[' ',#0];
+begin
+  argc:=0;
+  argv:=nil;
+  args:=GetMem(QL_CommandLineLen+1);
+  if not assigned(args) then
+    exit;
+
+  Move(QL_CommandLine^,args^,QL_CommandLineLen);
+  args[QL_CommandLineLen]:=#0;
+
+  i:=0;
+  c:=' ';
+  while args[i]<>#0 do
+    begin
+      if (c in word_separators) and not (args[i] in word_separators) then
+        inc(argc);
+      c:=args[i];
+      inc(i);
+    end;
+
+  { +2 is because argv[0] should be program name, 
+    and argv[argc+1] is argv array terminator }
+  argv:=GetMem((argc+2)*sizeof(pointer));
+  if not assigned(argv) then
+    begin
+      argc:=0;
+      exit;
+    end;
+  argv[argc+1]:=nil;
+  { FIX ME: for now the 0th argument (program name) is just always empty }
+  argv[0]:=#0;
+
+  i:=0;
+  j:=1;
+  c:=' ';
+  while args[i]<>#0 do
+    begin
+      if (c in word_separators) and not (args[i] in word_separators) then
+        begin
+          argv[j]:=@args[i];
+          inc(j);
+        end;
+      c:=args[i];
+      if (c in word_separators) then
+        args[i]:=#0;
+      inc(i);
+    end;
 end;
 
 procedure randomize;
 begin
-  {$WARNING: randseed is uninitialized}
-  randseed:=0;
+  { Get the current date/time }
+  randseed:=mt_rclck;
 end;
+
+
+{*****************************************************************************
+                      Platform specific custom calls
+*****************************************************************************}
 
 procedure PrintStr(ch: longint; const s: shortstring);
 begin
@@ -132,35 +226,138 @@ begin
   for i:=0 to 10000 do begin end;
 end;
 
-{$ifdef FPC_QL_USE_TINYHEAP}
-procedure InitQLHeap;
+
+var
+  start_proc: byte; external name '_start'; 
+
+  { WARNING! if you change this value, make sure there's enough
+    buffer space for the job name in the startup code! }
+const
+  JOB_NAME_MAX_LEN = 48;
+
+function SetQLJobName(const s: string): longint;
+var
+  len: longint;
 begin
-  HeapOrg:=nil;
-  HeapEnd:=nil;
-  FreeList:=nil;
-  HeapPtr:=nil;
+  SetQLJobName:=-1;
+  if pword(@start_proc)[3] = $4afb then
+    begin
+      len:=length(s);
+      if len > JOB_NAME_MAX_LEN then
+        len:=JOB_NAME_MAX_LEN;
+      Move(s[1],pword(@start_proc)[5],len);
+      pword(@start_proc)[4]:=len;
+      SetQLJobName:=len;
+    end;
 end;
-{$endif}
+
+function GetQLJobName: string;
+var
+  len: longint;
+begin
+  GetQLJobName:='';
+  if pword(@start_proc)[3] = $4afb then
+    begin
+      len:=pword(@start_proc)[4];
+      if len <= JOB_NAME_MAX_LEN then
+        begin
+          SetLength(GetQLJobName,len);
+          Move(pword(@start_proc)[5],GetQLJobName[1],len);
+        end;
+    end;
+end;
+
+function GetQLJobNamePtr: pointer;
+begin
+  GetQLJobNamePtr:=nil;
+  if pword(@start_proc)[3] = $4afb then
+    begin
+      GetQLJobNamePtr:=@pword(@start_proc)[4];
+    end;
+end;
+
+const
+  QLDefaultConExitMessage: PChar = 'Press any key to exit';
+
+procedure SetQLDefaultConExitMessage(const msg: PChar);
+begin
+  QLDefaultConExitMessage:=msg;
+end;
+
+
+function QLOpenCon(var console: QLConHandle): boolean; weakexternal name 'QLOpenCon';
+procedure QLCloseCon(var console: QLConHandle); weakexternal name 'QLCloseCon';
+
+function DefaultQLOpenCon(var console: QLConHandle): boolean;
+var
+  r: TQLRect;
+begin
+  DefaultQLOpenCon:=false;
+  with console do
+    begin
+      inputHandle:=io_open('con_',Q_OPEN);
+      if inputHandle <= 0 then
+        exit;
+
+      outputHandle:=inputHandle;
+      errorHandle:=inputHandle;
+      userData:=nil;
+
+      r.q_width:=512;
+      r.q_height:=256;
+      r.q_x:=0;
+      r.q_y:=0;
+
+      sd_wdef(outputHandle,-1,2,1,@r);
+      sd_clear(outputHandle,-1);
+    end;
+  DefaultQLOpenCon:=true;
+end;
+
+procedure DefaultQLCloseCon(var console: QLConHandle);
+begin
+  with console do
+    begin
+      if assigned(QLDefaultConExitMessage) and (length(QLDefaultConExitMessage) > 0) then
+        begin
+          io_sstrg(outputHandle, -1, QLDefaultConExitMessage, length(QLDefaultConExitMessage));
+          io_fbyte(inputHandle, -1);
+        end;
+    end;
+end;
 
 {*****************************************************************************
                         System Dependent Entry code
 *****************************************************************************}
+var
+  jobStackDataPtr: pointer; external name '__stackpointer_on_entry';
+  program_name: shortstring; external name '__fpc_program_name';
+  QLCon: QLConHandle;
+  QLConOpen: boolean;
+
 { QL/QDOS specific startup }
 procedure SysInitQDOS;
-var
-  r: TQLRect;
 begin
-  stdInputHandle:=io_open('con_',Q_OPEN);
-  stdOutputHandle:=stdInputHandle;
-  stdErrorHandle:=stdInputHandle;
+  QL_ChannelIDNum:=pword(jobStackDataPtr)[0];
+  QL_ChannelIDs:=@pword(jobStackDataPtr)[1];
+  QL_CommandLineLen:=pword(@QL_ChannelIDs[QL_ChannelIDNum])[0];
+  QL_CommandLine:=@pword(@QL_ChannelIDs[QL_ChannelIDNum])[1];
 
-  r.q_width:=512;
-  r.q_height:=256;
-  r.q_x:=0;
-  r.q_y:=0;
+  SetQLJobName(program_name);
 
-  sd_wdef(stdInputHandle,-1,2,1,@r);
-  sd_clear(stdInputHandle,-1);
+  if assigned(@QLOpenCon) then
+    QLConOpen:=QLOpenCon(QLCon)
+  else
+    QLConOpen:=DefaultQLOpenCon(QLCon);
+  if not QLConOpen then
+    halt(1);
+
+  with QLCon do
+    begin
+      stdInputHandle:=inputHandle;
+      stdOutputHandle:=outputHandle;
+      stdErrorHandle:=errorHandle;
+    end;
 end;
 
 {*****************************************************************************
@@ -170,11 +367,19 @@ end;
 procedure haltproc(e:longint); external name '_haltproc';
 
 procedure system_exit;
-const
-  anyKey: string = 'Press any key to exit';
 begin
-  io_sstrg(stdOutputHandle, -1, @anyKey[1], ord(anyKey[0]));
-  io_fbyte(stdInputHandle, -1);
+  if assigned(args) then
+    FreeMem(args);
+  if assigned(argv) then
+    FreeMem(argv);
+
+  if QLConOpen then
+    begin
+      if assigned(@QLCloseCon) then
+        QLCloseCon(QLCon)
+      else
+        DefaultQLCloseCon(QLCon);
+    end;
 
   stdInputHandle:=UnusedHandle;
   stdOutputHandle:=UnusedHandle;
@@ -205,15 +410,17 @@ end;
 
 begin
   StackLength := CheckInitialStkLen (InitialStkLen);
+  StackBottom := StackTop - StackLength;
+  StackMargin := min(align(StackLength div 20,2),STACK_MARGIN_MAX);
 { Initialize ExitProc }
   ExitProc:=Nil;
   SysInitQDOS;
-{$ifndef FPC_QL_USE_TINYHEAP}
+{$ifndef FPC_QL_USE_OSHEAP}
 { Setup heap }
   InitHeap;
-{$else FPC_QL_USE_TINYHEAP}
-  InitQLHeap;
-{$endif FPC_QL_USE_TINYHEAP}
+{$else FPC_QL_USE_OSHEAP}
+//  InitOSHeap;
+{$endif FPC_QL_USE_OSHEAP}
   SysInitExceptions;
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;

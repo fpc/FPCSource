@@ -1,4 +1,4 @@
-  {
+  {                  f
     Copyright (c) 1998-2006 by the Free Pascal team
 
     This unit implements the generic part of the GNU assembler
@@ -32,7 +32,10 @@ interface
 
     uses
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcfi,
+      cpubase,aasmbase,aasmtai,aasmdata,aasmcfi,
+{$ifdef wasm}
+      aasmcpu,
+{$endif wasm}
       assemble;
 
     type
@@ -66,6 +69,9 @@ interface
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         destructor destroy; override;
+{$ifdef WASM}
+        procedure WriteFuncType(functype: TWasmFuncType);
+{$endif WASM}
        private
         setcount: longint;
         procedure WriteDecodedSleb128(a: int64);
@@ -118,7 +124,7 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
-      cpubase,objcasm;
+      objcasm;
 
     const
       line_length = 70;
@@ -507,7 +513,8 @@ implementation
          system_i386_OS2,
          system_i386_EMX: ;
          system_m68k_atari, { atari tos/mint GNU AS also doesn't seem to like .section (KB) }
-         system_m68k_amiga: { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+         system_m68k_amiga, { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+         system_m68k_sinclairql: { same story, only ancient GNU tools available (KB) }
            begin
              { ... but vasm is GAS compatible on amiga/atari, and supports named sections }
              if create_smartlink_sections then
@@ -549,6 +556,11 @@ implementation
            begin
              if (atype in [sec_stub]) then
                writer.AsmWrite('.section ');
+           end;
+         system_wasm32_wasi,
+         system_wasm32_embedded:
+           begin
+             writer.AsmWrite('.section ');
            end
          else
            begin
@@ -711,6 +723,37 @@ implementation
       end;
 
 
+{$ifdef WASM}
+    procedure TGNUAssembler.WriteFuncType(functype: TWasmFuncType);
+      var
+        wasm_basic_typ: TWasmBasicType;
+        first: boolean;
+      begin
+        writer.AsmWrite('(');
+        first:=true;
+        for wasm_basic_typ in functype.params do
+          begin
+            if first then
+              first:=false
+            else
+              writer.AsmWrite(',');
+            writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+          end;
+        writer.AsmWrite(') -> (');
+        first:=true;
+        for wasm_basic_typ in functype.results do
+          begin
+            if first then
+              first:=false
+            else
+              writer.AsmWrite(',');
+            writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+          end;
+        writer.AsmWrite(')');
+      end;
+{$endif WASM}
+
+
     procedure TGNUAssembler.WriteTree(p:TAsmList);
 
       function needsObject(hp : tai_symbol) : boolean;
@@ -797,6 +840,28 @@ implementation
               writer.AsmLn;
             end;
         end;
+
+{$ifdef WASM}
+      procedure WriteFuncTypeDirective(hp:tai_functype);
+        begin
+          writer.AsmWrite(#9'.functype'#9);
+          writer.AsmWrite(hp.funcname);
+          writer.AsmWrite(' ');
+          WriteFuncType(hp.functype);
+          writer.AsmLn;
+        end;
+
+
+      procedure WriteImportExport(hp:tai_impexp);
+        var
+          symstypestr: string;
+        begin
+          Str(hp.symstype,symstypestr);
+          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', extmodule='''+hp.extmodule+''', symstype='+symstypestr+')');
+          if hp.extmodule='' then
+            writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
+        end;
+{$endif WASM}
 
     var
       ch       : char;
@@ -1258,13 +1323,17 @@ implementation
              begin
                if (tai_label(hp).labsym.is_used) then
                 begin
-                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
-                    begin
-                      writer.AsmWrite(#9'.private_extern ');
-                      writer.AsmWriteln(tai_label(hp).labsym.name);
-                    end;
+{$ifdef DEBUG_LABEL}
+                  writer.AsmWrite(asminfo^.comment);
+                  writer.AsmWriteLn('References = ' + tostr(tai_label(hp).labsym.getrefs));
+{$endif DEBUG_LABEL}
                   if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
+                     if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
+                       begin
+                         writer.AsmWrite(#9'.private_extern ');
+                         writer.AsmWriteln(tai_label(hp).labsym.name);
+                       end;
 {$ifdef arm}
                      { do no change arm mode accidently, .globl seems to reset the mode }
                      if GenerateThumbCode or GenerateThumb2Code then
@@ -1343,7 +1412,8 @@ implementation
                  end
                else
                  begin
-                   if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
+                   if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) or
+                     (target_asm.id=as_arm_vasm) then
                      sepChar := '@'
                    else
                      sepChar := '#';
@@ -1377,6 +1447,10 @@ implementation
                  { the .localentry directive has to specify the size from the
                    start till here of the non-local entry code as second argument }
                  s:=', .-';
+               if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
+                 sepChar := '@'
+               else
+                 sepChar := '#';
                if replaceforbidden then
                  begin
                    { avoid string truncation }
@@ -1387,6 +1461,11 @@ implementation
                      begin
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
+                     end;
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     begin
+                       writer.AsmWrite(#9'.type'#9 + ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
+                       writer.AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end
                else
@@ -1399,6 +1478,11 @@ implementation
                      begin
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(tai_symbolpair(hp).sym^);
+                     end;
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     begin
+                       writer.AsmWrite(#9'.type'#9 + tai_symbolpair(hp).sym^);
+                       writer.AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
              end;
@@ -1538,16 +1622,43 @@ implementation
              end;
            ait_eabi_attribute:
              begin
-               case tai_eabi_attribute(hp).eattr_typ of
-                 eattrtype_dword:
-                   writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+','+tostr(tai_eabi_attribute(hp).value));
-                 eattrtype_ntbs:
-                   writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+',"'+tai_eabi_attribute(hp).valuestr^+'"');
-                 else
-                   Internalerror(2019100601);
-               end;
-               writer.AsmLn;
+               { as of today, vasm does not support the eabi directives }
+               if target_asm.id<>as_arm_vasm then
+                 begin
+                   case tai_eabi_attribute(hp).eattr_typ of
+                     eattrtype_dword:
+                       writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+','+tostr(tai_eabi_attribute(hp).value));
+                     eattrtype_ntbs:
+                       begin
+                         if assigned(tai_eabi_attribute(hp).valuestr) then
+                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+',"'+tai_eabi_attribute(hp).valuestr^+'"')
+                         else
+                           writer.AsmWrite(#9'.eabi_attribute '+tostr(tai_eabi_attribute(hp).tag)+',""');
+                       end
+                     else
+                       Internalerror(2019100601);
+                   end;
+                   writer.AsmLn;
+                 end;
              end;
+
+{$ifdef WASM}
+           ait_local:
+             begin
+               if tai_local(hp).first then
+                 writer.AsmWrite(#9'.local'#9)
+               else
+                 writer.AsmWrite(', ');
+               writer.AsmWrite(gas_wasm_basic_type_str[tai_local(hp).bastyp]);
+               if tai_local(hp).last then
+                 writer.AsmLn;
+             end;
+           ait_functype:
+             WriteFuncTypeDirective(tai_functype(hp));
+           ait_importexport:
+             WriteImportExport(tai_impexp(hp));
+{$endif WASM}
+
            else
              if not WriteComments(hp) then
                internalerror(2006012201);

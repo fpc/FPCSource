@@ -339,6 +339,11 @@ Type
 var
   UtilityBase: pUtilityBase;
 
+{$if defined(AMIGA_V1_2_ONLY)}
+function NextTagItem(var Item: PTagItem): PTagItem; inline;
+
+{$else}
+
 function AddNamedObject(nameSpace : pNamedObject location 'a0';obj : pNamedObject location 'a1') : LongBool; syscall _UtilityBase 222;
 function AllocateTagItems(num : ULONG location 'd0') : pTagItem; syscall _UtilityBase 066;
 function AllocNamedObjectA(const name : STRPTR location 'a0';const TagList : pTagItem location 'a1') : pNamedObject; syscall _UtilityBase 228;
@@ -389,6 +394,7 @@ FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
+{$endif}
 
 
 function TAG_(value: pointer): PtrUInt; overload; inline;
@@ -407,6 +413,40 @@ procedure HookEntry;
 procedure HookEntryPas;
 
 IMPLEMENTATION
+
+{$if defined(AMIGA_V1_2_ONLY)}
+{$HINTS OFF}
+
+function NextTagItem(var Item: PTagItem): PTagItem; inline;
+begin
+  NextTagItem := nil;
+  if Item = nil then
+    Exit;
+  //
+  Inc(Item);
+  repeat
+    if Item = nil then
+      Exit;
+    case Item^.ti_Tag of
+      TAG_DONE:
+      begin
+        Item := nil;
+        NextTagItem := nil;
+        Exit;
+      end;
+      TAG_SKIP: Inc(Item, Item^.ti_Data);
+      TAG_MORE: Item := PTagItem(Item^.ti_Data);
+      TAG_IGNORE: Inc(Item);
+      else
+      begin
+        NextTagItem := Item;
+        Exit;
+      end;
+    end;
+  until False;
+end;
+{$else}
+
 
 function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
 begin
@@ -453,6 +493,7 @@ FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGI
 begin
        Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
 end;
+{$endif}
 
 function TAG_(value: pointer): PtrUInt; inline;
 begin

@@ -46,8 +46,6 @@ Works:
 - gzipped json
 - write final switches
 - srcmaps for precompiled js
-
-ToDo:
 - generics:
   - generic proc bodies are stored with all elements, but without resolver customdata
   - specializations are stored like external elements
@@ -70,8 +68,9 @@ ToDo:
   - TPCUReader.ReadExternalSpecialized
     -
   - TPCUReader.ReadSpecializeType reads a TPasSpecializeType and creates specialized type
-  - TPCUReader.ReadInlineSpecializeExpr: ToDo create specialized type
+  - TPCUReader.ReadInlineSpecializeExpr: create specialized type
 
+Todo:
 - store used GUIDs
 - distinguish reader errors in fatal and error
 - when pcu is bad, unload and use src
@@ -81,7 +80,7 @@ unit Pas2JsFiler;
 
 {$mode objfpc}{$H+}
 
-{$IF FPC_FULLVERSION>30200}
+{$IF FPC_FULLVERSION>=30300}
 {$WARN 6060 off : case statement does not handle all possible cases}
 {$ENDIF}
 
@@ -514,7 +513,8 @@ const
     'DispId',
     'NoReturn',
     'Far',
-    'Final'
+    'Final',
+    'DiscardResult'
     );
   PCUProcedureModifiersImplProc = [pmInline,pmAssembler,pmCompilerProc,pmNoReturn];
 
@@ -3806,7 +3806,7 @@ begin
     else if C=TPasDestructor then
       Obj.Add('Type','Destructor')
     else if C=TPasClassDestructor then
-      Obj.Add('Type','Class Destructor')
+      Obj.Add('Type','ClassDestructor')
     else if C=TPasAnonymousProcedure then
       Obj.Add('Type','AnonymousProcedure')
     else if C=TPasAnonymousFunction then

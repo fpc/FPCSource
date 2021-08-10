@@ -224,6 +224,10 @@
   {$if defined(CPUARMHF) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEL)) and not(defined(FPC_ARMEB))}
     {$define FPC_ARMHF}
   {$endif}
+  { inherit FPC_OARM? }
+  {$if defined(CPUARM) and not(defined(FPC_ARMHF)) and not(defined(FPC_ARMEL)) and not(defined(FPC_ARMEB))}
+    {$define FPC_ARMHF}
+  {$endif}
 {$endif arm}
 
 {$ifdef m68k}
@@ -313,6 +317,8 @@
   {$define cpurefshaveindexreg}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
+  {$define cpucapabilities}
+  {$define fpucapabilities}
 {$endif aarch64}
 
 {$ifdef riscv32}
@@ -398,3 +404,14 @@
   {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}
+
+{$ifdef wasm32}
+  {$define wasm}
+  {$define cpu32bit}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+  {$define symansistr}
+  {$define SUPPORT_GET_FRAME}
+{$endif}
+

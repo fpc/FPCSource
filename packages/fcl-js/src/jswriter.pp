@@ -63,10 +63,10 @@ Type
     {$endif}
     Function Write(Const S : TJSWriterString) : Integer;
     Function WriteLn(Const S : TJSWriterString) : Integer;
-    Function Write(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
-    Function WriteLn(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
-    Function Write(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
-    Function WriteLn(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function Write(Const Fmt : TJSWriterString; Args : Array of const) : Integer;
+    Function WriteLn(Const Fmt : TJSWriterString; Args : Array of const) : Integer;
+    Function Write(Const Args : Array of const) : Integer;
+    Function WriteLn(Const Args : Array of const) : Integer;
     Property CurLine: integer read FCurLine write FCurLine;
     Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
     Property CurElement: TJSElement read FCurElement write SetCurElement;
@@ -179,7 +179,7 @@ Type
   Protected
     // Helper routines
     Procedure Error(Const Msg : TJSWriterString);
-    Procedure Error(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
+    Procedure Error(Const Fmt : TJSWriterString; Args : Array of const);
     Procedure WriteIndent; // inline;
     {$ifdef FPC_HAS_CPSTRING}
     Procedure Write(Const U : UnicodeString);
@@ -466,7 +466,7 @@ begin
 end;
 
 procedure TJSWriter.Error(const Fmt: TJSWriterString;
-  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
+  Args: array of const);
 begin
   Raise EJSWriter.CreateFmt(Fmt,Args);
 end;
@@ -1372,11 +1372,26 @@ begin
 end;
 
 procedure TJSWriter.WriteBinary(El: TJSBinary);
+var
+  ElC: TClass;
+  S : String;
+
+  procedure WriteRight(Bin: TJSBinary);
+  begin
+    FSkipRoundBrackets:=(Bin.B.ClassType=ElC)
+          and ((ElC=TJSLogicalOrExpression)
+            or (ElC=TJSLogicalAndExpression));
+    Write(S);
+    WriteJS(Bin.B);
+    Writer.CurElement:=Bin;
+  end;
 
 Var
-  S : String;
   AllowCompact, WithBrackets: Boolean;
-  ElC: TClass;
+  Left: TJSElement;
+  SubBin: TJSBinaryExpression;
+  Binaries: TJSElementArray;
+  BinariesCnt: integer;
 begin
   {$IFDEF VerboseJSWriter}
   System.writeln('TJSWriter.WriteBinary SkipRoundBrackets=',FSkipRoundBrackets);
@@ -1386,20 +1401,10 @@ begin
     Write('(');
   FSkipRoundBrackets:=false;
   ElC:=El.ClassType;
-  if El.A is TJSBinaryExpression then
-    if (El.A.ClassType=ElC)
-        and ((ElC=TJSLogicalOrExpression)
-        or (ElC=TJSLogicalAndExpression)
-        or (ElC=TJSBitwiseAndExpression)
-        or (ElC=TJSBitwiseOrExpression)
-        or (ElC=TJSBitwiseXOrExpression)
-        or (ElC=TJSAdditiveExpressionPlus)
-        or (ElC=TJSAdditiveExpressionMinus)
-        or (ElC=TJSMultiplicativeExpressionMul)) then
-      FSkipRoundBrackets:=true;
-  WriteJS(El.A);
-  Writer.CurElement:=El;
+  Left:=El.A;
   AllowCompact:=False;
+
+  S:='';
   if (El is TJSBinaryExpression) then
     begin
     S:=TJSBinaryExpression(El).OperatorString;
@@ -1412,17 +1417,47 @@ begin
     else
       S:=' '+S+' ';
     end;
-  FSkipRoundBrackets:=false;
-  ElC:=El.ClassType;
-  if El.B is TJSBinaryExpression then
-    if (El.B.ClassType=ElC)
-        and ((ElC=TJSLogicalOrExpression)
-        or (ElC=TJSLogicalAndExpression)) then
-      FSkipRoundBrackets:=true;
-  // Note: a+(b+c) <> a+b+c  e.g. floats, 0+string
-  Write(S);
-  WriteJS(El.B);
-  Writer.CurElement:=El;
+
+  if (Left is TJSBinaryExpression)
+      and (Left.ClassType=ElC)
+      and ((ElC=TJSLogicalOrExpression)
+        or (ElC=TJSLogicalAndExpression)
+        or (ElC=TJSBitwiseAndExpression)
+        or (ElC=TJSBitwiseOrExpression)
+        or (ElC=TJSBitwiseXOrExpression)
+        or (ElC=TJSAdditiveExpressionPlus)
+        or (ElC=TJSAdditiveExpressionMinus)
+        or (ElC=TJSMultiplicativeExpressionMul)) then
+    begin
+    // handle left handed multi add without stack
+    SetLength(Binaries{%H-},8);
+    BinariesCnt:=0;
+    while Left is TJSBinaryExpression do
+      begin
+      SubBin:=TJSBinaryExpression(Left);
+      if SubBin.ClassType<>ElC then break;
+      if BinariesCnt=length(Binaries) then
+        SetLength(Binaries,BinariesCnt*2);
+      Binaries[BinariesCnt]:=SubBin;
+      inc(BinariesCnt);
+      Left:=SubBin.A;
+      end;
+
+    WriteJS(Left);
+    Writer.CurElement:=El;
+
+    while BinariesCnt>0 do
+      begin
+      dec(BinariesCnt);
+      WriteRight(TJSBinaryExpression(Binaries[BinariesCnt]));
+      end;
+    end
+  else
+    begin;
+    WriteJS(Left);
+    Writer.CurElement:=El;
+    end;
+  WriteRight(El);
   if WithBrackets then
     Write(')');
 end;
@@ -2102,19 +2137,19 @@ begin
 end;
 
 function TTextWriter.Write(const Fmt: TJSWriterString;
-  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
+  Args: array of const): Integer;
 
 begin
   Result:=Write(Format(Fmt,Args));
 end;
 
 function TTextWriter.WriteLn(const Fmt: TJSWriterString;
-  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
+  Args: array of const): Integer;
 begin
   Result:=WriteLn(Format(Fmt,Args));
 end;
 
-function TTextWriter.Write(const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
+function TTextWriter.Write(const Args: array of const): Integer;
 
 Var
   I : Integer;
@@ -2174,8 +2209,7 @@ begin
     end;
 end;
 
-function TTextWriter.WriteLn(
-  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
+function TTextWriter.WriteLn(const Args: array of const): Integer;
 begin
   Result:=Write(Args)+Writeln('');
 end;

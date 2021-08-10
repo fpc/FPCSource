@@ -156,7 +156,7 @@ const
     { 14 } 32 {'jvm'},
     { 15 } 16 {'i8086'},
     { 16 } 64 {'aarch64'},
-    { 17 } 32 {'wasm'},
+    { 17 } 32 {'wasm32'},
     { 18 } 64 {'sparc64'},
     { 19 } 32 {'riscv32'},
     { 20 } 64 {'riscv64'},
@@ -182,7 +182,7 @@ const
     { 14 } 64 {'jvm'},
     { 15 } 16 {'i8086'},
     { 16 } 64 {'aarch64'},
-    { 17 } 64 {'wasm'},
+    { 17 } 64 {'wasm32'},
     { 18 } 64 {'sparc64'},
     { 19 } 32 {'riscv32'},
     { 20 } 64 {'riscv64'},
@@ -380,6 +380,11 @@ end;
 destructor tentryfile.destroy;
 begin
   closefile;
+{$ifdef DEBUG_PPU}
+  if flog_open then
+    close(flog);
+  flog_open:=false;
+{$endif DEBUG_PPU}
   if assigned(buf) then
     freemem(buf,entryfilebufsize);
 end;
@@ -573,11 +578,6 @@ begin
        f.Free;
      mode:=0;
      closed:=true;
-{$ifdef DEBUG_PPU}
-     if flog_open then
-       close(flog);
-     flog_open:=false;
-{$endif DEBUG_PPU}
    end;
 end;
 
@@ -683,14 +683,6 @@ var
 begin
   p:=pchar(@b);
   pbuf:=@buf[bufidx];
-{$ifdef DEBUG_PPU}
-  if ppu_log_level <= 0 then
-    begin
-      ppu_log('writedata, length='+tostr(len)+' level='+tostr(ppu_log_level));
-      for i:=0 to len-1 do
-        ppu_log_val('p['+tostr(i)+']=$'+hexstr(byte(p[i]),2));
-    end;
-{$endif DEBUG_PPU}
   repeat
     left:=bufsize-bufidx;
     if len<left then
@@ -704,6 +696,14 @@ begin
       exit;
   until false;
   move(pbuf^,p^,len);
+{$ifdef DEBUG_PPU}
+  if ppu_log_level <= 0 then
+    begin
+      ppu_log('writedata, length='+tostr(len)+' level='+tostr(ppu_log_level));
+      for i:=0 to len-1 do
+        ppu_log_val('p['+tostr(i)+']=$'+hexstr(byte(p[i]),2));
+    end;
+{$endif DEBUG_PPU}
   inc(bufidx,len);
 end;
 

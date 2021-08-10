@@ -797,10 +797,12 @@ INTERFACE
 {$endif}
 
   function __get_null : tBCD; Inline;
+  function __get_zero : tBCD; Inline;
   function __get_one : tBCD; Inline;
 
   PROPERTY
     NullBCD : tBCD Read __get_null;
+    ZeroBCD : tBCD Read __get_zero;
     OneBCD : tBCD Read __get_one;
 
 //{$define __lo_bh := 1 * ( -( MaxFmtBCDFractionSize * 1 + 2 ) ) }
@@ -813,7 +815,7 @@ INTERFACE
     __hi_bh =  ( MaxFmtBCDFractionSize + 1 );
 
   type
-    tBCD_helper = Maybe_Packed record
+    tBCD_helper =  Maybe_Packed record
                     Prec : {$ifopt r+} 0..( __hi_bh - __lo_bh + 1 ) {$else} Integer {$endif};
                     Plac : {$ifopt r+} 0..( __hi_bh - __lo_bh + 1 ) {$else} Integer {$endif};
                     FDig,
@@ -864,6 +866,7 @@ IMPLEMENTATION
     PROTECTED
       function GetInstance(const v : TVarData): tObject; OVERRIDE;
     PUBLIC
+      function LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean; override;
       procedure BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp); override;
       procedure Clear(var V: TVarData); override;
       procedure Copy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean); override;
@@ -887,16 +890,20 @@ IMPLEMENTATION
     OneBCD_ : tBCD;
 
   function __get_null : tBCD; Inline;
-
     begin
       __get_null := NullBCD_;
-     end;
+    end;
+
+  function __get_zero : tBCD; Inline;
+    begin
+      __get_zero := NullBCD_;
+      __get_zero.Precision := 1;
+    end;
 
   function __get_one : tBCD; Inline;
-
     begin
       __get_one := OneBCD_;
-     end;
+    end;
 
   type
     range_digits = 1..maxfmtbcdfractionsize;
@@ -1271,6 +1278,25 @@ IMPLEMENTATION
       neg1,
       neg2 : Boolean;
 
+      // real/reduced precision if there are on left side insignificant zero digits
+      function BCDPrec(const BCD: tBCD): word;
+      var scale: word;
+      begin
+        Result := BCD.Precision;
+        scale := BCDScale(BCD);
+        i := Low(BCD.Fraction);
+        while (Result>0) and (Result>scale) do begin
+          // high nibble
+          if BCD.Fraction[i] shr 4 <> 0 then Exit;
+          Dec(Result);
+          if Result <= scale then Exit;
+          // low nibble
+          if BCD.Fraction[i] <> 0 then Exit;
+          Dec(Result);
+          Inc(i);
+        end;
+      end;
+
     begin
 {$ifndef bigger_BCD}
       neg1 := ( BCD1.SignSpecialPlaces AND NegBit ) <> 0;
@@ -1285,8 +1311,8 @@ IMPLEMENTATION
         _WHEN ( NOT neg1 ) AND neg2
           _THEN result := +1;
         _WHENOTHER
-          pr1 := BCD1.Precision;
-          pr2 := BCD2.Precision;
+          pr1 := BCDPrec(BCD1);
+          pr2 := BCDPrec(BCD2);
 {$ifndef bigger_BCD}
           pl1 := BCD1.SignSpecialPlaces AND PlacesMask;
           pl2 := BCD2.SignSpecialPlaces AND PlacesMask;
@@ -1584,7 +1610,7 @@ IMPLEMENTATION
     begin
       _SELECT
         _WHEN aValue = 0
-          _THEN result := NullBCD;
+          _THEN result := ZeroBCD;
         _WHEN aValue = 1
           _THEN result := OneBCD;
         _WHEN aValue = low ( myInttype )
@@ -2835,10 +2861,12 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       PFmt := Section.FmtDS; // start from decimal point until end
       i := length(BCDStr) - Scale + ord(Scale=0);
       dec(j1, Section.FmtEnd-Section.FmtDS);
-      j := j1 + 1;
+      j := j1 + 1; // points to decimal separator in output buffer
       while PFmt < Section.FmtEnd do
         PutFmtDigit(PFmt, i, j, 1);
-      je := j; // store position after last decimal digit
+      if j-j1=2 then // alone decimal separator at end of output buffer
+        dec(j);
+      je := j; // store position after last decimal digit (or any constant character) in output buffer
     end;
 
     // output whole number part of BCDStr
@@ -4130,12 +4158,6 @@ begin
     else { array or something like that }
         not_implemented;
     end;
-  // peephole, avoids problems with databases, mantis #30853
-  if (Result.Precision = 0) and (Result.SignSpecialPlaces = 0) then 
-    begin
-      Result.Precision := 10;
-      Result.SignSpecialPlaces := 2;
-    end;
 end;
 
 function VarToBCD ( const aValue : Variant ) : tBCD;
@@ -4161,6 +4183,16 @@ function TFMTBcdFactory.GetInstance(const v : TVarData): tObject;
     result:=tObject(v.VPointer);
   end;
 
+
+function TFMTBcdFactory.LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean;
+// mantis 38496
+begin
+   if v.vtype in FloatVarTypes then  // floats can accept full result of a mixed float-bcd operation
+     RequiredVarType := v.vtype
+   else
+     RequiredVarType := VarType;
+   result:=true;
+end;
 
 procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp);
   var l, r: TBCD;

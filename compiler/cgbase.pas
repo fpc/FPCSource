@@ -99,7 +99,9 @@ interface
          addr_lo12,
          addr_pcrel_hi20,
          addr_pcrel_lo12,
-         addr_pcrel
+         addr_pcrel,
+         addr_got_pcrel_hi,
+         addr_plt
          {$endif RISCV}
          {$IFDEF AVR}
          ,addr_lo8
@@ -319,10 +321,6 @@ interface
          reglo,reghi : tregister;
       end;
 {$endif cpu64bitalu}
-
-      Tregistermmxset = record
-        reg0,reg1,reg2,reg3:Tregister
-      end;
 
       { Set type definition for registers }
       tsuperregisterset = array[byte] of set of byte;

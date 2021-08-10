@@ -814,6 +814,24 @@ const
   ST_LINKFILE  = -4;
   ST_PIPEFILE  = -5;
 
+type
+  TCLIDataItem = record
+    cdi_CLINum: LongInt;              // CLI number of the CLI
+    cdi_DefaultStack: LongInt;        // cli_DefaultStack of the CLI
+    cdi_GlobVec: LongInt;             // pr_GlobVec[0] of the CLI
+    cdi_Future: LongWord;             // For future expansion, 0 for now
+    cdi_Pri: ShortInt;                // CLI priority
+    cdi_Flags: Byte;                  // If bit 0 is set cdi_command is valid
+    cdi_Command: array[0..0] of Char; // 0-terminated command being executed
+  end;
+  PCLIDataItem = ^TCLIDataItem;
+
+  TCLIData = record
+    cd_NumCLIs: LongWord; // Number of entries in cd_cli array
+    cd_CLI: array[0..100] of PCLIDataItem; // the entries (could be more than 101 though)
+  end;
+  PCLIData = ^TCLIData;
+
 
 
 { * dos asl definitions
@@ -1297,8 +1315,33 @@ const
   FSCONTEXTINFOTAG_NAME           = FSCONTEXTINFOTAG_Dummy + $1;
 
   SEGLISTTAG_Dummy                = TAG_USER + 3400;
-  // return the ObjData object when it exists or nil.
-  SEGLISTTAG_OBJDATA              = SEGLISTTAG_Dummy + $1;
+
+  SEGLISTTAG_OBJDATA              = SEGLISTTAG_Dummy + $1; // return the ObjData object when it exists or nil.
+  // V51.52
+  SEGLISTTAG_SEGLISTTYPE          = SEGLISTTAG_Dummy + $2; // return the seglist type, one of SEGLISTTYPE_*.
+  SEGLISTTAG_DOS_SEGINDEX         = SEGLISTTAG_Dummy + $3; // specify that segment index is the hunk number, starting from 0.
+  SEGLISTTAG_ELF_SEGINDEX         = SEGLISTTAG_Dummy + $4; // specify that the segment index is the elf segment number, starting from 1.
+  SEGLISTTAG_SEGSTART             = SEGLISTTAG_Dummy + $5; // return segment start address for segment specified by either SEGLISTTAG_DOS_SEGINDEX or SEGLISTTAG_ELF_SEGINDEX.
+                                                           // note that SEGLISTTAG_ELF_SEGINDEX segments might return a nil pointer, so be prepared for this.
+  SEGLISTTAG_SEGSIZE              = SEGLISTTAG_Dummy + $6; // return segment data size for segment specified by either SEGLISTTAG_DOS_SEGINDEX or SEGLISTTAG_ELF_SEGINDEX.
+  // V51.54
+  SEGLISTTAG_ELF_SEGTYPE          = SEGLISTTAG_Dummy + $7; // return ELF segment type (ELF SHT_*). Only applicable for ELF.
+  SEGLISTTAG_ELF_SEGOFFSET        = SEGLISTTAG_Dummy + $8; // return ELF segment file offset. Only applicable for ELF.
+  SEGLISTTAG_ELF_SEGFLAGS         = SEGLISTTAG_Dummy + $9; // return ELF segment flags. Meaning depends on segment type. Refer to ELF documentation for details. Only applicable for ELF.
+  SEGLISTTAG_ELF_SEGADDRALIGN     = SEGLISTTAG_Dummy + $a; // return ELF segment alignment. 0 and 1 mean unaligned. Only applicable for ELF.
+  SEGLISTTAG_ELF_SEGNAME          = SEGLISTTAG_Dummy + $b; // return ELF segname name. Only applicable for ELF.
+
+
+  // for tag SEGLISTTAG_SEGLISTTYPE
+  SEGLISTTYPE_ELF                 = 1;
+  SEGLISTTYPE_POWERUP             = 2;
+  SEGLISTTYPE_AMIGA               = 3;
+
+  // QueryCLIDataTagList tags (V51.51)
+  CLIDATATAG_Dummy = TAG_USER + 3500;
+  CLIDATATAG_CLINumber   = CLIDATATAG_Dummy + $1; // Return only CLI matching the given CLI number (returns 0 or 1 entries)
+  CLIDATATAG_CommandName = CLIDATATAG_Dummy + $2; // Return only CLIs matching the given command (0 to n entries possible)
+  CLIDATATAG_Sorted      = CLIDATATAG_Dummy + $3; // When ti_Data is TRUE, return results sorted by CLI number(default to FALSE)
 
 
 { * dos stdio definitions
@@ -1613,8 +1656,8 @@ SysCall MOS_DOSBase 66;
 function dosDeleteFile(fname: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 72;
 
-function dosRename(oldName: PChar location 'd1';
-                   newName: PChar location 'd2'): LongInt;
+function dosRename(oldName: STRPTR location 'd1';
+                   newName: STRPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 78;
 
 function Lock(lname     : PChar   location 'd1';
@@ -1628,15 +1671,15 @@ function DupLock(lock: BPTR location 'd1'): LongInt;
 SysCall MOS_DOSBase 096;
 
 function Examine(lock         : BPTR        location 'd1';
-                 fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
+                 fileInfoBlock: PFileInfoBlock location 'd2'): LongBool;
 SysCall MOS_DOSBase 102;
 
 function ExNext(lock         : BPTR        location 'd1';
-                fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
+                fileInfoBlock: PFileInfoBlock location 'd2'): LongBool;
 SysCall MOS_DOSBase 108;
 
 function Info(lock          : BPTR   location 'd1';
-              parameterBlock: PInfoData location 'd2'): LongInt;
+              parameterBlock: PInfoData location 'd2'): LongBool;
 SysCall MOS_DOSBase 114;
 
 function dosCreateDir(dname: PChar location 'd1'): LongInt;
@@ -1671,7 +1714,7 @@ function SetComment(name   : PChar location 'd1';
 SysCall MOS_DOSBase 180;
 
 function SetProtection(name: PChar   location 'd1';
-                       mask: LongInt location 'd2'): LongInt;
+                       mask: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 186;
 
 function DateStamp(date: PDateStamp location 'd1'): PDateStamp;
@@ -1690,9 +1733,9 @@ SysCall MOS_DOSBase 210;
 function IsInteractive(file1: BPTR location 'd1'): LongBool;
 SysCall MOS_DOSBase 216;
 
-function Execute(string1: PChar   location 'd1';
-                 file1  : BPTR location 'd2';
-                 file2  : BPTR location 'd3'): LongBool;
+function Execute(string1: STRPTR location 'd1';
+                 file1  : BPTR   location 'd2';
+                 file2  : BPTR   location 'd3'): LongBool;
 SysCall MOS_DOSBase 222;
 
 function AllocDosObject(type1: Cardinal location 'd1';
@@ -1830,13 +1873,13 @@ function VFPrintf(fh      : BPTR location 'd1';
                   argarray: PLongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 354;
 
-function dosFlush(fh: BPTR location 'd1'): LongInt;
+function dosFlush(fh: BPTR location 'd1'): LongBool;
 SysCall MOS_DOSBase 360;
 
 function SetVBuf(fh   : BPTR location 'd1';
                  buff : PChar   location 'd2';
                  type1: LongInt location 'd3';
-                 size : LongInt location 'd4'): LongInt;
+                 size : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 366;
 
 function DupLockFromFH(fh: BPTR location 'd1'): BPTR;
@@ -1878,7 +1921,7 @@ function SameLock(lock1: BPTR location 'd1';
 SysCall MOS_DOSBase 420;
 
 function SetMode(fh  : BPTR location 'd1';
-                 mode: LongInt location 'd2'): LongInt;
+                 mode: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 426;
 
 function ExAll(lock   : BPTR       location 'd1';
@@ -2042,7 +2085,7 @@ SysCall MOS_DOSBase 666;
 function RemDosEntry(dlist: PDosList location 'd1'): LongBool;
 SysCall MOS_DOSBase 672;
 
-function AddDosEntry(dlist: PDosList location 'd1'): LongInt;
+function AddDosEntry(dlist: PDosList location 'd1'): LongBool;
 SysCall MOS_DOSBase 678;
 
 function FindDosEntry(dlist: PDosList location 'd1';
@@ -2264,6 +2307,12 @@ function ExNext64(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; sys
 function ExNext64TagList(Lock: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1150;
 function ExamineFH64(Fh: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1156;
 function ExamineFH64TagList(Fh: BPTR; Fib: PFileInfoBlock; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1156;
+// V51.51
+procedure ReleaseCLINumber(CLINum: LongInt); syscall BaseSysV MOS_DOSBase 1162;
+function QueryCLIDataTagList(Tags: PTagItem): PCLIData; syscall BaseSysV MOS_DOSBase 1168;
+procedure FreeCLIData(Data: PCLIData); syscall BaseSysV MOS_DOSBase 1174;
+// V51.52
+function GetSegListAttrTagList(SegList: BPTR; Attr: LongInt; Storage: APTR; StorageSize: LongInt; Tags: PTagItem): LongInt; syscall BaseSysV MOS_DOSBase 1180;
 
 
 { * dos global definitions (V50)
@@ -2300,6 +2349,9 @@ function GetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array o
 function Examine64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
 function ExNext64Tags(Lock: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
 function ExamineFH64Tags(Fh: BPTR; Fib: PFileInfoBlock; const Tags: array of PtrUInt): LongInt; inline;
+
+function QueryCLIDataTags(const Tags: array of PtrUInt): PCLIData; inline;
+function GetSegListAttrTags(SegList: BPTR; Attr: LongInt; Storage: APTR; StorageSize: LongInt; const Tags: array of PtrUInt): LongInt; inline;
 
 implementation
 
@@ -2405,6 +2457,17 @@ function ExamineFH64Tags(Fh: BPTR; Fib: PFileInfoBlock; const Tags: array of Ptr
 begin
   ExamineFH64Tags := ExamineFH64(Fh, Fib, @Tags);
 end;
+
+function QueryCLIDataTags(const Tags: array of PtrUInt): PCLIData;
+begin
+  QueryCLIDataTags := QueryCLIDataTagList(@Tags);
+end;
+
+function GetSegListAttrTags(SegList: BPTR; Attr: LongInt; Storage: APTR; StorageSize: LongInt; const Tags: array of PtrUInt): LongInt; inline;
+begin
+  GetSegListAttrTags := GetSegListAttrTagList(SegList, Attr, Storage, StorageSize, @Tags);
+end;
+
 
 begin
   DosBase:=MOS_DOSBase;

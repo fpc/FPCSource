@@ -4677,7 +4677,7 @@ implementation
             they can be interpreted as all different starting symbols of
             subsections and be reordered }
           if (item<>firstitem) and
-             (target_info.system in systems_darwin) then
+             (target_info.system in (systems_darwin+systems_wasm)) then
             begin
               { the .set already defines the symbol, so can't emit a tai_symbol as that will redefine it }
               if global then
@@ -5414,29 +5414,36 @@ implementation
            (po_nostackframe in current_procinfo.procdef.procoptions)
           )
          ) then
-        exit;
-
-      { constructors return self }
-      if current_procinfo.procdef.generate_safecall_wrapper then
         begin
-          if not current_procinfo.procdef.get_safecall_funcretsym_info(ressym,retdef) then
-            internalerror(2019112402);
-          gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
+          ressym:=current_procinfo.procdef.funcretsym;
+          if not assigned(ressym) then
+            exit;
         end
       else
         begin
-          if not current_procinfo.procdef.get_funcretsym_info(ressym,retdef) then
-            internalerror(2018122501);
-          if (ressym.refs>0) or
-             is_managed_type(retdef) then
+          { constructors return self }
+          if current_procinfo.procdef.generate_safecall_wrapper then
             begin
-              { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
-              if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-                gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
+              if not current_procinfo.procdef.get_safecall_funcretsym_info(ressym,retdef) then
+                internalerror(2019112402);
+              gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
             end
           else
-            gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
+            begin
+              if not current_procinfo.procdef.get_funcretsym_info(ressym,retdef) then
+                internalerror(2018122501);
+              if (ressym.refs>0) or
+                 is_managed_type(retdef) then
+                begin
+                  { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
+                  if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+                    gen_load_loc_function_result(list,retdef,tabstractnormalvarsym(ressym).localloc);
+                end
+              else
+                gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside]);
+            end;
         end;
+
       if tabstractnormalvarsym(ressym).localloc.loc=LOC_REFERENCE then
         tg.UnGetLocal(list,tabstractnormalvarsym(ressym).localloc.reference);
     end;

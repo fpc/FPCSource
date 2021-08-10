@@ -115,7 +115,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b rawseg -q $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink $QLFLAGS $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -144,6 +144,8 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  if UseVLink and (source_info.dirsep <> '/') then
+    LinkRes.fForceUseForwardSlash:=true;
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -222,6 +224,7 @@ begin
       Add('  .bss (NOLOAD): {');
       Add('      _sbss = .;');
       Add('      *(.bss .bss.*)');
+      Add('      . = ALIGN(2); SHORT(0x0000);');
       Add('      _ebss = .;');
       Add('  } :'+ProgramHeaderName);
       Add('}');
@@ -243,6 +246,7 @@ var
   DynLinkStr : string;
   GCSectionsStr : string;
   FlagsStr : string;
+  QLFlagsStr: string;
   MapStr : string;
   ExeName: string;
   fd,fs: file;
@@ -256,12 +260,14 @@ var
   QLHeader: TQLHeader;
   XTccData: TXTccData;
   BinSize: longint;
+  RelocSize: longint;
   DataSpace: DWord;
 begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
   FlagsStr:='';
+  QLFlagsStr:='';
   MapStr:='';
 
   if (cs_link_map in current_settings.globalswitches) then
@@ -274,6 +280,10 @@ begin
     begin
       if create_smartlink_sections then
         GCSectionsStr:='-gc-all';
+      if sinclairql_vlink_experimental then
+        QLFlagsStr:='-b sinclairql -q -'+lower(sinclairql_metadata_format)+' -stack='+tostr(StackSize)
+      else
+        QLFlagsStr:='-b rawseg -q';
     end;
 
   ExeName:=current_module.exefilename;
@@ -290,18 +300,20 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  Replace(cmdstr,'$QLFLAGS',QLFlagsStr);
 
   MakeSinclairQLExe:=DoExec(BinStr,CmdStr,true,false);
 
   { Kludge:
       With the above linker script, vlink will produce two files. The main binary 
       and the relocation info. Here we copy the two together. (KB) }
-  if MakeSinclairQLExe then
+  if MakeSinclairQLExe and not sinclairql_vlink_experimental then
     begin
       QLHeader:=DefaultQLHeader;
       XTccData:=DefaultXTccData;
 
       BinSize:=0;
+      RelocSize:=0;
       bufsize:=16384;
 {$push}
 {$i-}
@@ -319,13 +331,18 @@ begin
       assign(fd,ExeName);
       rewrite(fd,1);
 
+      assign(fs,ExeName+'.'+ProgramHeaderName+'.rel'+ProgramHeaderName);
+      reset(fs,1);
+      RelocSize := FileSize(fs);
+      close(fs);
+
       assign(fs,ExeName+'.'+ProgramHeaderName);
       reset(fs,1);
       BinSize := FileSize(fs);
 
       { We assume .bss size is total size indicated by linker minus emmited binary.
         DataSpace size is .bss + stack space }
-      DataSpace := NToBE(DWord(HeaderSize - BinSize + StackSize));
+      DataSpace := NToBE(DWord(max((HeaderSize - BinSize) - RelocSize + StackSize,0)));
 
       { Option: prepend QEmuLator and QPC2 v5 compatible header to EXE }
       if sinclairql_metadata_format='QHDR' then

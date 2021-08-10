@@ -489,6 +489,20 @@ implementation
         end;
 
 
+      function IsAndOrAndNot(n1,n2,n3,n4 : tnode): Boolean;
+        begin
+          result:=(n4.nodetype=notn) and
+            tnotnode(n4).left.isequal(n2);
+        end;
+
+
+      function TransformAndOrAndNot(n1,n2,n3,n4 : tnode): tnode;
+        begin
+          result:=caddnode.create_internal(xorn,n3.getcopy,
+            caddnode.create_internal(andn,caddnode.create_internal(xorn,n3.getcopy,n1.getcopy),n2.getcopy));
+        end;
+
+
       function SwapRightWithLeftRight : tnode;
         var
           hp : tnode;
@@ -576,7 +590,7 @@ implementation
 
       var
         t,vl,lefttarget,righttarget: tnode;
-        lt,rt   : tnodetype;
+        lt,rt,nt : tnodetype;
         hdef,
         rd,ld   , inttype: tdef;
         rv,lv,v : tconstexprint;
@@ -1689,6 +1703,78 @@ implementation
                    end;
               end;
 {$endif cpurox}
+            { optimize
+
+                (a and b) or (c and not(b))
+
+                into
+
+                c xor ((c xor a) and b)
+            }
+            if (nodetype=orn) and
+             (left.resultdef.typ=orddef) and
+             (left.nodetype=andn) and
+             (right.nodetype=andn) and
+             (not(is_boolean(resultdef)) or not(might_have_sideeffects(self,[mhs_exceptions])) or not(doshortbooleval(self))) and
+             { this test is not needed but it speeds up the test and allows to bail out early }
+             ((taddnode(left).left.nodetype=notn) or (taddnode(left).right.nodetype=notn) or
+              (taddnode(right).left.nodetype=notn) or (taddnode(right).right.nodetype=notn)
+             ) and
+             not(might_have_sideeffects(self)) then
+             begin
+               if MatchAndTransformNodesCommutative(taddnode(left).left,taddnode(left).right,taddnode(right).left,taddnode(right).right,
+                 @IsAndOrAndNot,@TransformAndOrAndNot,Result) then
+                 exit;
+             end;
+            { optimize tests for a single bit:
+              (a and one_bit_mask_const) = <> one_bit_mask_const
+
+              into
+
+              (a and one_bit_mask_const) <> = 0
+            }
+            if (nodetype in [equaln,unequaln]) then
+              begin
+                if (lt=andn) and (rt=ordconstn) then
+                  begin
+                    t:=left;
+                    cr:=tordconstnode(right).value;
+                  end
+                else
+                  if (rt=andn) and (lt=ordconstn) then
+                    begin
+                      t:=right;
+                      cr:=tordconstnode(left).value;
+                    end
+                  else
+                    begin
+                      t:=nil;
+                      cr:=0;
+                    end;
+                if (t<>nil) and (PopCnt(cr) = 1) then
+                  begin
+                    if is_constintnode(taddnode(t).left) then
+                      vl:=taddnode(t).left
+                    else
+                      if is_constintnode(taddnode(t).right) then
+                        vl:=taddnode(t).right
+                      else
+                        vl:=nil;
+                    if (vl<>nil) and (tordconstnode(vl).value=cr) then
+                      begin
+                        if nodetype=equaln then
+                          nt:=unequaln
+                        else
+                          nt:=equaln;
+                        result:=caddnode.create(nt,t,cordconstnode.create(0,vl.resultdef,false));
+                        if t=left then
+                          left:=nil
+                        else
+                          right:=nil;
+                        exit;
+                      end;
+                  end;
+              end;
           end;
       end;
 
@@ -1939,7 +2025,11 @@ implementation
               not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) then
              begin
                if cs_excessprecision in current_settings.localswitches then
-                 resultrealdef:=pbestrealtype^
+                 begin
+                   resultrealdef:=pbestrealtype^;
+                   inserttypeconv(right,resultrealdef);
+                   inserttypeconv(left,resultrealdef);
+                 end
                else
                  resultrealdef:=left.resultdef
              end

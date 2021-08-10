@@ -73,6 +73,7 @@ function CreateTask (name: STRPTR; pri: longint;
 procedure DeleteTask (task: pTask); inline;
 procedure NewList (list: pList); inline;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 // moved to commodities, use them from there
 {* Commodities support functions from amiga.lib *}
 procedure FreeIEvents (events: pInputEvent); inline;
@@ -99,6 +100,7 @@ function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong; inline;
 function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong; inline;
 
 function DoMethod(obj: PObject_; Params: array of DWord): LongWord; inline;
+{$endif}
 
 // moved to utility, use them from there
 procedure HookEntry;
@@ -256,6 +258,7 @@ begin
   CxTranslate := Commodities.CxTranslate(ie)
 end;
 
+{$if not defined(AMIGA_V1_2_ONLY)}
 function DoMethodA(obj : pObject_; msg : APTR): ulong; inline;
 begin
   DoMethodA := Intuition.DoMethodA(obj, msg);
@@ -280,7 +283,7 @@ function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong; inline;
 begin
   SetSuperAttrsA := Intuition.SetSuperAttrsA(cl, obj, msg);
 end;
-
+{$endif}
 { Do *NOT* change this to nostackframe! }
 { The compiler will build a stackframe with link/unlk. So that will actually correct
   the stackpointer for both Pascal/StdCall and Cdecl functions, so the stackpointer
@@ -333,7 +336,9 @@ begin
           end;
       end;
     end;
+  {$if not defined(AMIGA_V1_2_ONLY)}
   VPrintf(Fmtstr,@argarray[0]);
+  {$endif}
 end;
 
 procedure printf(Fmtstr : string; const Args : array of const);

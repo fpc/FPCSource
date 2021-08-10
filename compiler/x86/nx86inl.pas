@@ -352,7 +352,7 @@ implementation
      function tx86inlinenode.first_fma : tnode;
        begin
 {$ifndef i8086}
-         if ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]) and
+         if ((fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[]) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
              expectloc:=LOC_MMREGISTER;
@@ -1075,8 +1075,9 @@ implementation
                       ((tcallparanode(tcallparanode(left).right).left.location.value-setbase) div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
                   end;
+                LOC_CSUBSETREG,
                 LOC_CREGISTER :
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
+                  hlcg.a_op_const_loc(current_asmdata.CurrAsmList,cgop,tcallparanode(left).left.resultdef,l,tcallparanode(left).left.location);
                 else
                   internalerror(200405022);
               end;
@@ -1182,7 +1183,7 @@ implementation
 {$endif i8086}
       begin
 {$ifndef i8086}
-         if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+         if (fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
            begin
              negop3:=false;
              negproduct:=false;

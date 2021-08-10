@@ -31,8 +31,10 @@ var
   fib: TFileInfoBlock;
 begin
   Result := 0;
+  {$if not defined(AMIGA_V1_2_ONLY)}
   if Boolean(ExamineFH(BPTR(Handle), @fib)) then
     Result := fib.fib_size;
+  {$endif}
 end;
 
 function TInputPipeStream.GetPosition: Int64;
@@ -50,11 +52,13 @@ var
   Filename: array[0..255] of Char;
   DeleteIt: Boolean;
 begin
+  {$if not defined(AMIGA_V1_2_ONLY)}
   if (FHandle <> UnusedHandle) and (FHandle <> 0) then
   begin
    DeleteIt := NameFromFH(BPTR(FHandle), @(Filename[0]), 255);
    FileClose(FHandle);
    if DeleteIt then
      AmigaDos.dosDeleteFile(@(Filename[0]));
- end;
+  end;
+  {$endif}
 end;

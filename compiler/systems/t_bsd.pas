@@ -482,12 +482,14 @@ begin
      (tf_smartlink_sections in target_info.flags) then
     GCSectionsStr:='--gc-sections';
 
-   if(cs_profile in current_settings.moduleswitches) or
+  if (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and
       ((not SharedLibFiles.Empty) or
        (target_info.system in systems_openbsd))) then
-   DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
+    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
+  if rlinkpath<>'' then
+    DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
   if CShared Then
    begin
       DynLinKStr:=DynLinkStr+' --shared'
@@ -693,6 +695,11 @@ end;
 
 initialization
   RegisterLinker(ld_bsd,TLinkerBSD);
+{$ifdef aarch64}
+  RegisterImport(system_aarch64_freebsd,timportlibbsd);
+  RegisterExport(system_aarch64_freebsd,texportlibbsd);
+  RegisterTarget(system_aarch64_freebsd_info);
+{$endif aarch64}
 {$ifdef x86_64}
   RegisterImport(system_x86_64_dragonfly,timportlibbsd);
   RegisterExport(system_x86_64_dragonfly,texportlibbsd);

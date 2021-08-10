@@ -225,7 +225,6 @@ implementation
 
      function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
        var
-         hp    : tnode;
          hdef  : tdef;
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
@@ -240,13 +239,7 @@ implementation
                result can be wrong }
            end;
 
-         hp:=p1;
-         while assigned(hp) and
-               (hp.nodetype in [derefn,subscriptn,vecn,typeconvn]) do
-           hp:=tunarynode(hp).left;
-         if not assigned(hp) then
-           internalerror(200410121);
-         if (hp.nodetype=calln) then
+         if might_have_sideeffects(p1,[]) then
            begin
              typecheckpass(p1);
              result:=internalstatements(newstatement);
@@ -1319,6 +1312,7 @@ implementation
         isclassref:boolean;
         isrecordtype:boolean;
         isobjecttype:boolean;
+        ishelpertype:boolean;
       begin
          if sym=nil then
            begin
@@ -1340,12 +1334,18 @@ implementation
                  isclassref:=(p1.resultdef.typ=classrefdef);
                  isrecordtype:=(p1.nodetype=typen) and (p1.resultdef.typ=recorddef);
                  isobjecttype:=(p1.nodetype=typen) and is_object(p1.resultdef);
+                 ishelpertype:=is_objectpascal_helper(tdef(sym.owner.defowner)) and
+                               (p1.nodetype=typen) and
+                               not is_objectpascal_helper(p1.resultdef)
+                                {and
+                               not (cnf_inherited in callflags)};
                end
               else
                 begin
                   isclassref:=false;
                   isrecordtype:=false;
                   isobjecttype:=false;
+                  ishelpertype:=false;
                 end;
 
               if assigned(spezcontext) and not (sym.typ=procsym) then
@@ -1366,7 +1366,8 @@ implementation
                             isclassref or
                             (
                               (isobjecttype or
-                               isrecordtype) and
+                               isrecordtype or
+                               ishelpertype) and
                               not (cnf_inherited in callflags)
                             )
                           ) and
@@ -1422,8 +1423,10 @@ implementation
                             abstract class using the type name of that class. We
                             must not provide a warning if we use a "class of"
                             variable of that type though as we don't know the
-                            type of the class }
-                          if (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                            type of the class
+                            Note: structh might be Nil in case of a type helper }
+                          if assigned(structh) and
+                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
                               (oo_is_abstract in structh.objectoptions) and
                               assigned(tcallnode(p1).methodpointer) and
                               (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
@@ -2979,7 +2982,7 @@ implementation
                   (token=_ASSIGNMENT) then
                   begin
                     found_arg_name:=true;
-                    p1:=cstringconstnode.createstr(storedpattern);
+                    p1:=cstringconstnode.createstr(orgstoredpattern);
                     consume(_ASSIGNMENT);
                     exit;
                   end;

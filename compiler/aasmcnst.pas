@@ -1165,7 +1165,7 @@ implementation
    class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
      begin
        { darwin's linker does not support negative offsets }
-       if not(target_info.system in systems_darwin) and
+       if not(target_info.system in systems_darwin+systems_wasm) and
           { it seems that clang's assembler has a bug with the ADRP instruction... }
           (target_info.system<>system_aarch64_win64) then
          result:=0
@@ -1584,7 +1584,9 @@ implementation
 
    class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
      begin
-       result:=tf_smartlink_sections in target_info.flags;
+       result:=(tf_smartlink_sections in target_info.flags) and
+               (not(target_info.system in systems_darwin) or
+                (tf_supports_symbolorderfile in target_info.flags));
      end;
 
 

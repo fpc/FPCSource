@@ -51,6 +51,19 @@
     {$endif FPC_SYSTEM_HAS_SQRT}
 
 
+{$if not defined(VER3_2) and not defined(CPULLVM)}
+    {$ifndef FPC_SYSTEM_HAS_FRAC}
+    {$define FPC_SYSTEM_HAS_FRAC}
+    function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
+      begin
+        { Function is handled internal in the compiler }
+        runerror(207);
+        result:=0;
+      end;
+    {$endif FPC_SYSTEM_HAS_FRAC}
+{$endif not VER3_2 and not CPULLVM }
+
+
     {$ifndef FPC_SYSTEM_HAS_INT}
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
@@ -82,5 +95,3 @@
         fcvtzs x0,d0
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
-
-

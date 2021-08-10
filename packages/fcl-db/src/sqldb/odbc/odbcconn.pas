@@ -32,6 +32,8 @@ type
     FParamIndex:TParamBinding; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
     FParamBuf:array of pointer; // buffers that can be used to bind the i-th parameter in the query
   public
+    property STMTHandle:SQLHSTMT read FSTMTHandle;
+
     constructor Create(Connection:TODBCConnection);
     destructor Destroy; override;
   end;
@@ -141,6 +143,8 @@ type
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
   end;
+
+function ODBCSuccess(const Res:SQLRETURN):boolean;
 
 implementation
 
@@ -982,10 +986,24 @@ begin
     // NOTE: I made some guesses here after I found only limited information about TFieldType; please report any problems
     case DataType of
       SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize; end;
-      SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize; end;
+      SQL_VARCHAR:
+      begin
+        FieldSize:=ColumnSize;
+        if FieldSize=BLOB_BUF_SIZE then // SQL_VARCHAR declared as NVARCHAR(MAX) must be ftMemo - variable data size
+          FieldType:=ftMemo
+        else
+          FieldType:=ftString;
+      end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize; end;
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize; end;
+      SQL_WVARCHAR:
+      begin
+        FieldSize:=ColumnSize;
+        if FieldSize=BLOB_BUF_SIZE then // SQL_WVARCHAR declared as NVARCHAR(MAX) must be ftWideMemo - variable data size
+          FieldType:=ftWideMemo
+        else
+          FieldType:=ftWideString;
+      end;
       SQL_SS_XML,
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;

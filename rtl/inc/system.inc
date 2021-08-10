@@ -45,12 +45,13 @@ type
 
 const
 {$if defined(CPUAVR)}
-  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+  STACK_MARGIN_MAX = 64;    { Stack size margin for stack checking }
 {$elseif defined(CPUZ80)}
-  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+  STACK_MARGIN_MAX = 64;    { Stack size margin for stack checking }
 {$else}
-  STACK_MARGIN = 16384;    { Stack size margin for stack checking }
+  STACK_MARGIN_MAX = 16384;    { Stack size margin for stack checking }
 {$endif}
+  StackMargin: ptruint = STACK_MARGIN_MAX;
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
@@ -314,6 +315,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i z80.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpuz80}
+
+{$ifdef cpuwasm32}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i wasm32.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuwasm32}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
@@ -1034,7 +1043,7 @@ begin
   { don't use stack_size, since the stack pointer has already been
     decreased when this routine is called
   }
-  c := Sptr - STACK_MARGIN;
+  c := Sptr - StackMargin;
   if (c <= StackBottom) then
     begin
       StackError:=true;
@@ -1058,8 +1067,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : {$if defined(VER2)}longint
-                 {$elseif defined(VER3_0)}sizeint
+    InitCount  : {$if defined(VER3_0)}sizeint
                  {$else}ALUUInt{$endif}
                  ;
     Procs      : array[1..maxunits] of TInitFinalRec;
@@ -1282,10 +1290,12 @@ Begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_BACKTRACESTR}
 function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
   SysBackTraceStr:='  $'+hexstr(addr);
 end;
+{$endif FPC_SYSTEM_HAS_BACKTRACESTR}
 
 
 {$ifndef FPC_SYSTEM_HAS_CAPTUREBACKTRACE}

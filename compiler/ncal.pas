@@ -511,7 +511,7 @@ implementation
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
         paramssize:=0;
-        names := #0;
+        names := '';
         while assigned(para) do
           begin
             { Skipped parameters are actually (varType=varError, vError=DISP_E_PARAMNOTFOUND).
@@ -575,12 +575,11 @@ implementation
 
         if variantdispatch then
           begin
-            { length-1, because the following names variable *always* starts
-              with #0 which will be the terminator for methodname }
-            tcb.emit_pchar_const(pchar(methodname),length(methodname)-1,true);
-            { length-1 because we added a null terminator to the string itself
-              already }
-            tcb.emit_pchar_const(pchar(names),length(names)-1,true);
+            tcb.emit_pchar_const(pchar(methodname),length(methodname),true);
+            if names<>'' then
+              { length-1 because we added a null terminator to the string itself
+                already }
+              tcb.emit_pchar_const(pchar(names),length(names)-1,true);
           end;
 
         { may be referred from other units in case of inlining -> global
@@ -1986,7 +1985,8 @@ implementation
 
     procedure tcallnode.add_init_statement(n:tnode);
       var
-        lastinitstatement : tstatementnode;
+        lastinitstatement, before_firstpass : tstatementnode;
+        was_first_statement : boolean;
       begin
         if not assigned(n) then
           exit;
@@ -1999,6 +1999,7 @@ implementation
             exit;
           end;
         lastinitstatement:=laststatement(callinitblock);
+        was_first_statement:=(lastinitstatement=callinitblock.statements);
         { all these nodes must be immediately typechecked, because this routine }
         { can be called from pass_1 (i.e., after typecheck has already run) and }
         { moreover, the entire blocks themselves are also only typechecked in   }
@@ -2006,7 +2007,10 @@ implementation
         { typecheck pass for simplify purposes (not yet perfect, because the    }
         { statementnodes themselves are not typechecked this way)               }
         addstatement(lastinitstatement,n);
+        before_firstpass:=lastinitstatement;
         firstpass(tnode(lastinitstatement));
+        if was_first_statement and (lastinitstatement<>before_firstpass) then
+          callinitblock.statements:=lastinitstatement;
         { Update expectloc for callinitblock }
         callinitblock.expectloc:=lastinitstatement.expectloc;
       end;
@@ -2014,7 +2018,8 @@ implementation
 
     procedure tcallnode.add_done_statement(n:tnode);
       var
-        lastdonestatement : tstatementnode;
+        lastdonestatement, before_firstpass : tstatementnode;
+        was_first_statement : boolean;
       begin
         if not assigned(n) then
           exit;
@@ -2027,9 +2032,13 @@ implementation
             exit;
           end;
         lastdonestatement:=laststatement(callcleanupblock);
+        was_first_statement:=(lastdonestatement=callcleanupblock.statements);
         { see comments in add_init_statement }
         addstatement(lastdonestatement,n);
+        before_firstpass:=lastdonestatement;
         firstpass(tnode(lastdonestatement));
+        if was_first_statement and (lastdonestatement<>before_firstpass) then
+          callcleanupblock.statements:=lastdonestatement;
         { Update expectloc for callcleanupblock }
         callcleanupblock.expectloc:=lastdonestatement.expectloc;
       end;
@@ -4252,7 +4261,7 @@ implementation
                                  hp.parasym.paraloc[callerside].location^.reference.offset)) or
                                (paramanager.use_fixed_stack and
                                 (node_complexity(hpcurr.left)<node_complexity(hp.left))) then
-{$elseif defined(jvm)}
+{$elseif defined(jvm) or defined(wasm)}
                             if (hpcurr.parasym.paraloc[callerside].location^.reference.offset<hp.parasym.paraloc[callerside].location^.reference.offset) then
 {$else jvm}
                             if (node_complexity(hpcurr.left)<node_complexity(hp.left)) then

@@ -100,6 +100,8 @@ unit aoptcpu;
                     Result:=PrePeepholeOptIMUL(p);
                   A_SAR,A_SHR:
                     Result:=PrePeepholeOptSxx(p);
+                  A_AND:
+                    Result:=PrePeepholeOptAND(p);
                   A_XOR:
                     begin
                       if (taicpu(p).oper[0]^.typ = top_reg) and
@@ -166,6 +168,8 @@ unit aoptcpu;
                 A_MOVSX,
                 A_MOVZX :
                   Result:=OptPass1Movx(p);
+                A_TEST:
+                  Result:=OptPass1Test(p);
                 A_PUSH:
                   begin
                     if (taicpu(p).opsize = S_W) and
@@ -187,6 +191,8 @@ unit aoptcpu;
                   Result:=OptPass1SHLSAL(p);
                 A_SUB:
                   Result:=OptPass1Sub(p);
+                A_Jcc:
+                  Result:=OptPass1Jcc(p);
                 A_MOVAPD,
                 A_MOVAPS,
                 A_MOVUPD,
@@ -219,8 +225,9 @@ unit aoptcpu;
                 A_MOVSD,
                 A_MOVSS:
                   Result:=OptPass1MOVXX(p);
-                A_SETcc:
-                  Result:=OptPass1SETcc(p);
+                A_SHRX,
+                A_SHLX:
+                  Result:=OptPass1SHXX(p);
                 else
                   ;
               end;
@@ -258,6 +265,8 @@ unit aoptcpu;
                   Result:=OptPass2Movx(p);
                 A_SUB:
                   Result:=OptPass2SUB(p);
+                A_SETcc:
+                  Result:=OptPass2SETcc(p);
                 else
                   ;
               end;

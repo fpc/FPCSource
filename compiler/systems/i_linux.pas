@@ -227,17 +227,17 @@ unit i_linux;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 16;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
+                recordalignmax  : 16;
                 maxCrecordalign : 2;
               );
             first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
+            stacksize    : 8*1024*1024;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'todo';
@@ -1107,7 +1107,7 @@ unit i_linux;
             system       : system_riscv32_linux;
             name         : 'Linux for RISC-V 32';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_smartlink_sections,
+            flags        : [tf_needs_symbol_size,tf_smartlink_sections,tf_needs_dwarf_cfi,
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_has_winlike_resources,
                             tf_supports_hidden_symbols];
@@ -1144,7 +1144,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -1177,7 +1177,7 @@ unit i_linux;
             system       : system_riscv64_linux;
             name         : 'Linux for RISC-V 64';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_smartlink_sections,
+            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,tf_needs_dwarf_cfi,
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_has_winlike_resources,
                             tf_supports_hidden_symbols
@@ -1215,7 +1215,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_little;
             alignment    :

@@ -44,7 +44,7 @@ type
   TBitmapType = (btBlackWhite, bt256Gray);
   TFontBitmap = record
     height, width, pitch,
-    x,y, advanceX, advanceY : integer;
+    x,y, bearingX, bearingY, advanceX, advanceY : integer;
     data : PByteArray;
   end;
   PFontBitmap = ^TFontBitmap;
@@ -687,15 +687,20 @@ begin
         begin
         with gl^.advance do
           begin
-          advanceX := x div 64;
-          advanceY := y div 64;
+          // do not use shr 16 - rotated text can have negative advances
+          advanceX := x div 65536;
+          advanceY := y div 65536;
           end;
         with bm^ do
           begin
           height := bitmap.rows;
           width := bitmap.width;
-          x := {(pos.x div 64)} + left;  // transformed bitmap has correct x,y
-          y := {(pos.y div 64)} - top;   // not transformed has only a relative correction
+          // transformed bitmap has correct x,y
+          x := {(pos.x div 64)} + left;
+          y := {(pos.y div 64)} - top;
+          // bearings are not supported for rotated text (don't make sense)
+          bearingX := 0;
+          bearingY := 0;
           buf := PByteArray(bitmap.buffer);
           reverse := (bitmap.pitch < 0);
           if reverse then
@@ -783,6 +788,7 @@ var g : PMgrGlyph;
     pos, kern : FT_Vector;
     buf : PByteArray;
     reverse : boolean;
+    bmpr : PFontBitmap;
 begin
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
     ABitmaps.FMode := btBlackWhite
@@ -807,22 +813,29 @@ begin
       end;
     // render the glyph
     FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
-    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString4);
+    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, PFT_Vector(0), true),sErrMakingString4);
     // Copy what is needed to record
     bm := PFT_BitmapGlyph(gl);
-    with ABitmaps.Bitmaps[r]^ do
+    bmpr := ABitmaps.Bitmaps[r];
+    with bmpr^ do
       begin
+      // glyph size including bearings all around
       with gl^.advance do
         begin
-        advanceX := x shr 6;
-        advanceY := y shr 6;
+        advanceX := x shr 16;
+        advanceY := y shr 16;
         end;
       with bm^ do
         begin
+        // glyph pixel size
         height := bitmap.rows;
         width := bitmap.width;
-        x := (pos.x shr 6) + left;   // transformed bitmap has correct x,y
-        y := (pos.y shr 6) - top;    // not transformed has only a relative correction
+        // origin of the glyph
+        x := pos.x shr 6;
+        y := pos.y shr 6;
+        // bearing - where the pixels start relative to x/y origin
+        bearingX := left;
+        bearingY := top;
         buf := PByteArray(bitmap.buffer);
         reverse := (bitmap.pitch < 0);
         if reverse then
@@ -842,11 +855,8 @@ begin
         end;
       end;
     // place position for next glyph
-    // The previous code in this place used shr 10, which
-    // produces wrongly spaced text and looks very ugly
-    // for more information see: http://bugs.freepascal.org/view.php?id=17156
-    pos.x := pos.x + (gl^.advance.x shr 11);
-    // pos.y := pos.y + (gl^.advance.y shr 6); // for angled texts also
+    // pos is in 26.6 format, whereas advance is in 16.16 format - we need (shr (16-6)) for the conversion
+    pos.x := pos.x + (gl^.advance.x shr 10);
     if prevx > pos.x then
       pos.x := prevx;
     // finish rendered glyph
@@ -990,39 +1000,41 @@ end;
 
 procedure TBAseStringBitmaps.CalculateGlobals;
 var
-  l,r : integer;
+  r : integer;
+  Bmp : PFontBitmap;
 
 begin
   if count = 0 then
     Exit;
-  l:=0;
-  // Find first non-empty bitmap. Bitmaps can be empty for spaces.
-  While (l<Count) and (BitMaps[l]^.Width=0) and (BitMaps[l]^.Height=0) do
-    Inc(l);
-  if L<Count then
-    with BitMaps[0]^ do
-      begin
-      FBounds.left := x;
-      FBounds.top := y + height;
-      FBounds.bottom := y;
-      FBounds.right := x + width;
-      end;
-  // Find last non-empty bitmap
-  r:=Count-1;
-  While (R>l) and (BitMaps[r]^.Width=0) and (BitMaps[r]^.Height=0) do
-    Dec(r);
-  if R>L then
-    With Bitmaps[R]^ do
-      FBounds.right := x + width;
+  Bmp := Bitmaps[0];
+  with Bmp^ do
+    begin
+    FBounds.left := x;
+    FBounds.top := y + bearingY;
+    FBounds.bottom := y + bearingY - height;
+    end;
+  Bmp := Bitmaps[Count-1];
+  With Bmp^ do
+    begin
+    FBounds.right := x + advanceX;
+    // typographically it is not correct to check the real width of the character
+    //   because accents can exceed the advance (e.g. í - the dash goes beyond the character
+    //   but i and í should have the same width)
+    // on the other hand for some fonts the advance is always 1px short also for normal characters
+    //   and also with this we support rotated text
+    if FBounds.right < x + bearingX + width then
+      FBounds.right := x + bearingX + width;
+    end;
   // check top/bottom of other bitmaps
   for r := 1 to count-1 do
     begin
-    with Bitmaps[r]^ do
+    Bmp := Bitmaps[r];
+    with Bmp^ do
       begin
-      if FBounds.top < y + height then
-        FBounds.top := y + height;
-      if FBounds.bottom > y then
-        FBounds.bottom := y;
+      if FBounds.top < y + bearingY then
+        FBounds.top := y + bearingY;
+      if FBounds.bottom > y + bearingY - height then
+        FBounds.bottom := y + bearingY - height;
       end;
     end;
 end;

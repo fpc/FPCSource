@@ -82,11 +82,6 @@
 {$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
-{ bootstrapping, the starting compiler cannot be a downstripped compiler without unicodestring support }
-{$ifdef VER2_6}
-{$define FPC_HAS_FEATURE_UNICODESTRINGS}
-{$endif VER2_6}
-
 { for now, the presence of unicode strings is just an approximation,
   USE_FILEREC_FULLNAME can be also enabled for other targets if
   they need file names longer than 255 chars }
@@ -140,9 +135,7 @@ Type
     ValReal = Extended;
   {$endif}
 
-  {$ifndef VER2_6}
   FarPointer = NearFsPointer;
-  {$endif}
 {$endif CPUI386}
 
 {$ifdef CPUI8086}
@@ -388,6 +381,19 @@ Type
   FarPointer = Pointer;
 {$endif CPUZ80}
 
+{$ifdef CPUWASM32}
+  {$define DEFAULT_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    ValReal = Double;
+  {$endif}
+
+  FarPointer = Pointer;
+{$endif CPUWASM32}
+
 
 { By default enable a simple implementation of Random for 8/16 bit CPUs }
 {$if (defined(CPU16) or defined(CPU8)) and not defined(FPC_NO_SIMPLE_RANDOM)}
@@ -459,7 +465,7 @@ Type
   TExitCode = Word;
 {$endif CPU16}
 
-{$if defined(VER2) or defined(VER3_0)}
+{$if defined(VER3_0)}
 {$if defined(CPU16)}
 {$define CPUINT16}
 {$elseif defined(CPU32)}
@@ -467,7 +473,7 @@ Type
 {$elseif defined(CPU64)}
 {$define CPUINT64}
 {$endif defined(CPU64)}
-{$endif defined(VER2) or defined(VER3_0)}
+{$endif defined(VER3_0)}
 
 {$if defined(CPUINT8)}
   ALUSInt = ShortInt;
@@ -653,11 +659,6 @@ Type
   MarshaledAString    = PAnsiChar;
 
   TSystemCodePage     = Word;
-
-{$ifdef VER2_6}
-  { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
-  {$define FPC_ANSI_TEXTFILEREC}
-{$endif}
 
   TFileTextRecChar    = {$if defined(FPC_ANSI_TEXTFILEREC) or not(defined(FPC_HAS_FEATURE_WIDESTRINGS))}AnsiChar{$else}UnicodeChar{$endif};
   PFileTextRecChar    = ^TFileTextRecChar;
@@ -1306,7 +1307,7 @@ function  Pos(const substr : shortstring;c:char; Offset: Sizeint = 1): SizeInt;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
+Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Pos (const Substr : RawByteString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Function  Pos (c : AnsiChar; const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
 {$ifdef VER3_0}
@@ -1446,6 +1447,27 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 Function GetFullName(var T:Text) : UnicodeString;
 {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure SetTextAutoFlush (var T: Text; AutoFlush: boolean);
+(* By default, output to text files is buffered in case of "regular" files,  *)
+(* i.e. files on regular block devices, and not buffered in case of various  *)
+(* other devices like console or sockets. Calling this procedure right after *)
+(* opening the file (i.e. after Rewrite or Append) allows changing the       *)
+(* default behaviour either to always perform flush after every Write or     *)
+(* WriteLn in case of AutoFlush = true, i.e. disable output buffering for    *)
+(* the given particular open text file even in case of regular files on      *)
+(* block devices, or to enforce output buffering even in case of text files  *)
+(* used for output to other devices like console or sockets in case of       *)
+(* AutoFlush = false. Note that reopening the file resets the behaviour to   *)
+(* the default. Runtime error 103 is triggered if the text file is not open, *)
+(* runtime error 105 if the text file is open strictly for input. The call   *)
+(* is ignored if InOutRes is not 0 before the call.                          *)
+function GetTextAutoFlush (var T: Text): boolean;
+(* Check whether output buffering is enabled for the currently open file, or *)
+(* not - either due to default behaviour for the associated device, or due   *)
+(* a previous call of SetTextAutoFlush. Runtime error 103 is triggered if    *)
+(* the text file is not open, runtime error 105 if the text file is open     *)
+(* strictly for input. The call is ignored if InOutRes is not 0 before the   *)
+(* call.                                                                     *)
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************

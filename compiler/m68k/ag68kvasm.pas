@@ -96,12 +96,10 @@ unit ag68kvasm;
         result:=asminfo^.asmcmd;
 
         case target_info.system of
-          { a.out doesn't support named sections }
-          system_m68k_amiga: objtype:='-Felf';
-          { atari never had a standard object format, a.out is limited, vasm/vlink author recommends vobj }
+          { a.out doesn't support named sections, lets use ELF for interoperability }
+          system_m68k_amiga,
           system_m68k_atari,
-          { same with the QL }
-          system_m68k_sinclairql: objtype:='-Fvobj';
+          system_m68k_sinclairql: objtype:='-Felf';
         else
           internalerror(2016052601);
         end;

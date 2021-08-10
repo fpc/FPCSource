@@ -1690,6 +1690,7 @@ type
     procedure FinishMethodImplHeader(ImplProc: TPasProcedure); virtual;
     procedure FinishExceptOnExpr; virtual;
     procedure FinishExceptOnStatement; virtual;
+    procedure FinishParserSpecializeType(El: TPasSpecializeType); virtual;
     procedure FinishWithDo(El: TPasImplWithDo); virtual;
     procedure FinishForLoopHeader(Loop: TPasImplForLoop); virtual;
     procedure FinishDeclaration(El: TPasElement); virtual;
@@ -1800,7 +1801,7 @@ type
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: TMaxPrecInt;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
-      Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}; PosEl: TPasElement); virtual;
+      Args: array of const; PosEl: TPasElement); virtual;
     function OnExprEvalIdentifier(Sender: TResExprEvaluator;
       Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function OnExprEvalParams(Sender: TResExprEvaluator;
@@ -1808,6 +1809,8 @@ type
     procedure OnRangeCheckEl(Sender: TResExprEvaluator; El: TPasElement;
       var MsgType: TMessageType); virtual;
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
+    function EvalLengthOfString(ParamResolved: TPasResolverResult;
+      Param: TPasExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
   protected
     // generic/specialize
     type
@@ -2153,6 +2156,7 @@ type
     function PushHelperDotScope(HiType: TPasType): TPasDotBaseScope;
     function PushTemplateDotScope(TemplType: TPasGenericTemplateType; ErrorEl: TPasElement): TPasDotBaseScope;
     function PushDotScope(HiType: TPasType): TPasDotBaseScope;
+    function PushParserSpecializeType(SpecType: TPasSpecializeType): TPasDotBaseScope;
     function PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
     function StashScopes(NewScopeCnt: integer): integer; // returns old StashDepth
     function StashSubExprScopes: integer; // returns old StashDepth
@@ -2172,10 +2176,10 @@ type
     class function GetDbgSourcePosStr(El: TPasElement): string;
     function GetElementSourcePosStr(El: TPasElement): string;
     procedure SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
-      Const Fmt : String; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      Const Fmt : String; Args : Array of const;
       PosEl: TPasElement);
     procedure LogMsg(const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
-      const Fmt: String; Args: Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const Fmt: String; Args: Array of const;
       PosEl: TPasElement); overload;
     class function GetWarnIdentifierNumbers(Identifier: string;
       out MsgNumbers: TIntegerDynArray): boolean; virtual;
@@ -2186,7 +2190,7 @@ type
     procedure GetIncompatibleProcParamsDesc(GotType, ExpType: TPasProcedureType;
       out GotDesc, ExpDesc: string);
     procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
-      Args: Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      Args: Array of const;
       ErrorPosEl: TPasElement); virtual;
     procedure RaiseNotYetImplemented(id: TMaxPrecInt; El: TPasElement; Msg: string = ''); virtual;
     procedure RaiseInternalError(id: TMaxPrecInt; const Msg: string = '');
@@ -2200,13 +2204,13 @@ type
     procedure RaiseVarExpected(id: TMaxPrecInt; ErrorEl: TPasElement; IdentEl: TPasElement);
     procedure RaiseRangeCheck(id: TMaxPrecInt; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
-      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const Args: array of const;
       const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
     procedure RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
-      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const Args: array of const;
       GotType, ExpType: TPasType; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
-      const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+      const Args: array of const;
       const GotType, ExpType: TPasResolverResult;
       ErrorEl: TPasElement);
     procedure RaiseHelpersCannotBeUsedAsType(id: TMaxPrecInt; ErrorEl: TPasElement);
@@ -2387,6 +2391,7 @@ type
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
     function EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags): TResEvalValue; virtual; // compute low() and high()
     function HasTypeInfo(El: TPasType): boolean; virtual;
+    function IsAnonymousElType(El: TPasType): boolean; virtual;
     function GetActualBaseType(bt: TResolverBaseType): TResolverBaseType; virtual;
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedInt(const Int1, Int2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
@@ -5237,6 +5242,9 @@ begin
       begin
       // El is the first element found -> raise error
       // ToDo: use the ( as error position
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.OnFindCallElements El=',GetObjPath(El));
+      {$ENDIF}
       RaiseMsg(20170216151525,nIllegalQualifierAfter,sIllegalQualifierAfter,
         ['(',El.ElementTypeName],Data^.Params);
       end;
@@ -5487,7 +5495,9 @@ begin
             if (Proc.Visibility=visStrictPrivate)
                 or ((Proc.Visibility=visPrivate)
                   and (Proc.GetModule<>Data^.Proc.GetModule)) then
-              // a private private is hidden by definition -> no hint
+              // a private method is hidden by definition -> no hint
+            else if (Proc.Visibility=visPublished) then
+              // a published can hide (used for overloading rtti) -> no hint
             else if (ProcScope.ImplProc<>nil)  // not abstract, external
                 and (not ProcHasImplElements(ProcScope.ImplProc)) then
               // hidden method has implementation, but no statements -> useless
@@ -6229,16 +6239,54 @@ begin
 end;
 
 procedure TPasResolver.FinishSubElementType(Parent: TPasElement; El: TPasType);
+
+  procedure InsertInFront(NewParent: TPasElement; List: TFPList
+    {$IFDEF CheckPasTreeRefCount};const aId: string{$ENDIF});
+  var
+    i: Integer;
+    p, Prev: TPasElement;
+  begin
+    p:=El.Parent;
+    if NewParent=p.Parent then
+      begin
+      // e.g. m,n:array of longint; -> insert n$a in front of m
+      i:=List.Count-1;
+      while (i>=0) and (List[i]<>Pointer(p)) do
+        dec(i);
+      if P is TPasVariable then
+        begin
+        while (i>0) do
+          begin
+          Prev:=TPasElement(List[i-1]);
+          if (Prev.ClassType=P.ClassType) and (TPasVariable(Prev).VarType=TPasVariable(P).VarType) then
+            dec(i) // e.g. m,n: array of longint
+          else
+            break;
+          end;
+        end;
+      if i<0 then
+        List.Add(El)
+      else
+        List.Insert(i,El);
+      end
+    else
+      begin
+      List.Add(El);
+      end;
+    El.AddRef{$IFDEF CheckPasTreeRefCount}(aID){$ENDIF};
+    El.Parent:=NewParent;
+  end;
+
 var
   Decl: TPasDeclarations;
   EnumScope: TPasEnumTypeScope;
+  p: TPasElement;
+  MembersType: TPasMembersType;
 begin
   EmitTypeHints(Parent,El);
   if (El.Name<>'') or (AnonymousElTypePostfix='') then exit;
   if Parent.Name='' then
     RaiseMsg(20170415165455,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
-  if not (Parent.Parent is TPasDeclarations) then
-    RaiseMsg(20170416094735,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
   if El.Parent<>Parent then
     RaiseNotYetImplemented(20190215085011,Parent);
   // give anonymous sub type a name
@@ -6246,11 +6294,27 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishSubElementType parent="',GetObjName(Parent),'" named anonymous type "',GetObjName(El),'"');
   {$ENDIF}
-  Decl:=TPasDeclarations(Parent.Parent);
-  Decl.Declarations.Add(El);
-  El.AddRef{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Declarations'){$ENDIF};
-  El.Parent:=Decl;
-  Decl.Types.Add(El);
+
+  p:=Parent.Parent;
+  repeat
+    if p is TPasDeclarations then
+      begin
+      Decl:=TPasDeclarations(p);
+      InsertInFront(Decl,Decl.Declarations{$IFDEF CheckPasTreeRefCount},'TPasDeclarations.Declarations'{$ENDIF});
+      Decl.Types.Add(El);
+      break;
+      end
+    else if p is TPasMembersType then
+      begin
+      MembersType:=TPasMembersType(p);
+      InsertInFront(MembersType,MembersType.Members{$IFDEF CheckPasTreeRefCount},'TPasMembersType.Members'{$ENDIF});
+      break;
+      end
+    else
+      p:=p.Parent;
+    if p=nil then
+      RaiseMsg(20170416094735,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
+  until false;
   if (El.ClassType=TPasEnumType) and (Parent.ClassType=TPasSetType) then
     begin
     // anonymous enumtype
@@ -7549,6 +7613,12 @@ begin
   PopScope;
 end;
 
+procedure TPasResolver.FinishParserSpecializeType(El: TPasSpecializeType);
+begin
+  if El=nil then ;
+  PopScope;
+end;
+
 procedure TPasResolver.FinishWithDo(El: TPasImplWithDo);
 begin
   PopWithScope(El);
@@ -7819,6 +7889,8 @@ begin
     CheckUseAsType(El.VarType,20190123095916,El);
     if El.Expr<>nil then
       CheckAssignCompatibility(El,El.Expr,true);
+    if El.VarType.Parent=El then
+      FinishSubElementType(El,El.VarType);
     end
   else if El.Expr<>nil then
     begin
@@ -10538,6 +10610,9 @@ end;
 
 procedure TPasResolver.ResolveBinaryExpr(El: TBinaryExpr;
   Access: TResolvedRefAccess);
+var
+  Left, Next: TPasExpr;
+  Bin: TBinaryExpr;
 begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.ResolveBinaryExpr left=',GetObjName(El.left),' right=',GetObjName(El.right),' opcode=',OpcodeStrings[El.OpCode]);
@@ -10564,7 +10639,27 @@ begin
         RaiseNotYetImplemented(20160922163456,El);
         end;
     end;
-  eopAdd,
+  eopAdd:
+    begin
+    // handle multi add
+    Left:=El.left;
+    while (Left.ClassType=TBinaryExpr) do
+      begin
+      Bin:=TBinaryExpr(Left);
+      if Bin.OpCode<>eopAdd then break;
+      Next:=TBinaryExpr(Left).left;
+      if Next.Parent<>Left then
+        RaiseNotYetImplemented(20210321201257,Left);
+      Left:=Next;
+      end;
+    ResolveExpr(Left,rraRead);
+    repeat
+      Bin:=TBinaryExpr(Left.Parent);
+      if Bin.right<>nil then
+        ResolveExpr(Bin.right,rraRead);
+      Left:=Bin;
+    until Left=El;
+    end;
   eopSubtract,
   eopMultiply,
   eopDivide,
@@ -12278,12 +12373,17 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160929205732,El);
-  AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
+  if El.Name<>'' then
+    AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple)
+  else
+    begin
+    // anonymous enumtype
+    end;
   EnumScope:=TPasEnumTypeScope(PushScope(El,TPasEnumTypeScope));
   // add canonical set
   if El.Parent is TPasSetType then
     begin
-    // anonymous enumtype, e.g. "set of ()"
+    // set of anonymous enumtype, e.g. "set of ()"
     CanonicalSet:=TPasSetType(El.Parent);
     CanonicalSet.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
     end
@@ -12887,6 +12987,8 @@ procedure TPasResolver.ComputeBinaryExpr(Bin: TBinaryExpr; out
   StartEl: TPasElement);
 var
   LeftResolved, RightResolved: TPasResolverResult;
+  Left: TPasExpr;
+  SubBin: TBinaryExpr;
 begin
   if (Bin.OpCode=eopSubIdent)
   or ((Bin.OpCode=eopNone) and (Bin.left is TInheritedExpr)) then
@@ -12906,11 +13008,37 @@ begin
     exit;
     end;
 
-  ComputeElement(Bin.left,LeftResolved,Flags-[rcNoImplicitProc],StartEl);
-  ComputeElement(Bin.right,RightResolved,Flags-[rcNoImplicitProc],StartEl);
-  // ToDo: check operator overloading
+  Flags:=Flags-[rcNoImplicitProc,rcNoImplicitProcType];
+  if Bin.OpCode=eopAdd then
+    begin
+    // handle multi-adds without stack
+    Left:=Bin.left;
+    while Left.ClassType=TBinaryExpr do
+      begin
+      SubBin:=TBinaryExpr(Left);
+      if SubBin.OpCode<>eopAdd then break;
+      Left:=SubBin.left;
+      end;
+    // Left is now left-most of multi add
+    ComputeElement(Left,LeftResolved,Flags,StartEl);
+    repeat
+      SubBin:=TBinaryExpr(Left.Parent);
+      ComputeElement(SubBin.right,RightResolved,Flags,StartEl);
 
-  ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
+      // ToDo: check operator overloading
+      ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
+      LeftResolved:=ResolvedEl;
+      Left:=SubBin;
+    until Left=Bin;
+    end
+  else
+    begin
+    ComputeElement(Bin.left,LeftResolved,Flags,StartEl);
+    ComputeElement(Bin.right,RightResolved,Flags,StartEl);
+
+    // ToDo: check operator overloading
+    ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
+    end;
 end;
 
 procedure TPasResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
@@ -14791,6 +14919,7 @@ begin
       '0'..'9': i:=i*base+ord(Value[p])-ord('0');
       'A'..'Z': i:=i*base+ord(Value[p])-ord('A')+10;
       'a'..'z': i:=i*base+ord(Value[p])-ord('a')+10;
+      else break;
       end;
       inc(p);
       end;
@@ -15333,7 +15462,7 @@ end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
   const id: TMaxPrecInt; MsgType: TMessageType; MsgNumber: integer;
-  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const Fmt: String; Args: array of const;
   PosEl: TPasElement);
 begin
   if MsgType<=mtError then
@@ -15870,6 +15999,28 @@ begin
   finally
     ReleaseEvalValue(Value);
   end;
+end;
+
+function TPasResolver.EvalLengthOfString(ParamResolved: TPasResolverResult;
+  Param: TPasExpr; Flags: TResEvalFlags): TResEvalValue;
+var
+  Value: TResEvalValue;
+begin
+  Result:=nil;
+  if rrfReadable in ParamResolved.Flags then
+    begin
+    Value:=Eval(Param,Flags);
+    if Value=nil then exit;
+    case Value.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      Result:=TResEvalInt.CreateValue(length(TResEvalString(Value).S));
+    {$endif}
+    revkUnicodeString:
+      Result:=TResEvalInt.CreateValue(length(TResEvalUTF16(Value).S));
+    end;
+    ReleaseEvalValue(Value);
+    end
 end;
 
 procedure TPasResolver.AddGenericTemplateIdentifiers(
@@ -17834,7 +17985,7 @@ begin
 
   if GenEl.Body<>nil then
     begin
-    // implementation proc
+    // implementation or anonymous proc
     if SpecializedItem<>nil then
       SpecializedItem.Step:=prssImplementationBuilding;
     GenBody:=GenEl.Body;
@@ -18004,6 +18155,13 @@ begin
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
   SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
     {$IFDEF CheckPasTreeRefCount},'TPasSpecializeType.Params'{$ENDIF});
+
+  if GenEl.SubType<>nil then
+    begin
+    PushParserSpecializeType(SpecEl);
+    SpecializeElType(GenEl,SpecEl,GenEl.SubType,SpecEl.SubType);
+    PopScope;
+    end;
 
   FinishSpecializeType(SpecEl);
   {$IFDEF VerbosePasResolver}
@@ -18322,11 +18480,21 @@ begin
 end;
 
 procedure TPasResolver.SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
+var
+  GenProc: TPasAnonymousProcedure;
+  NewClass: TPTreeElement;
 begin
   SpecializeExpr(GenEl,SpecEl);
-  if GenEl.Proc=nil then
+  GenProc:=GenEl.Proc;
+  if GenProc=nil then
     RaiseNotYetImplemented(20190808221018,GenEl);
-  RaiseNotYetImplemented(20190808221040,GenEl);
+  if not (GenProc is TPasAnonymousProcedure) then
+    RaiseNotYetImplemented(20210331224052,GenEl);
+  if GenProc.Parent<>GenEl then
+    RaiseNotYetImplemented(20210331223856,GenEl);
+  NewClass:=TPTreeElement(GenProc.ClassType);
+  SpecEl.Proc:=TPasAnonymousProcedure(NewClass.Create(GenProc.Name,SpecEl));
+  SpecializeElement(GenProc,SpecEl.Proc);
 end;
 
 procedure TPasResolver.SpecializeResString(GenEl, SpecEl: TPasResString);
@@ -18633,7 +18801,6 @@ procedure TPasResolver.BI_Length_OnEval(Proc: TResElDataBuiltInProc;
 var
   Param, Expr: TPasExpr;
   ParamResolved: TPasResolverResult;
-  Value: TResEvalValue;
   Ranges: TPasExprArray;
   IdentEl: TPasElement;
 begin
@@ -18642,22 +18809,7 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType in btAllStringAndChars then
-    begin
-    if rrfReadable in ParamResolved.Flags then
-      begin
-      Value:=Eval(Param,Flags);
-      if Value=nil then exit;
-      case Value.Kind of
-      {$ifdef FPC_HAS_CPSTRING}
-      revkString:
-        Evaluated:=TResEvalInt.CreateValue(length(TResEvalString(Value).S));
-      {$endif}
-      revkUnicodeString:
-        Evaluated:=TResEvalInt.CreateValue(length(TResEvalUTF16(Value).S));
-      end;
-      ReleaseEvalValue(Value);
-      end
-    end
+    Evaluated:=EvalLengthOfString(ParamResolved,Param,Flags)
   else if ParamResolved.BaseType=btContext then
     begin
     if (ParamResolved.LoTypeEl.ClassType=TPasArrayType) then
@@ -19223,6 +19375,7 @@ var
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   C: TClass;
+  bt: TResolverBaseType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit(cIncompatible);
@@ -19232,12 +19385,15 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
-  if ParamResolved.BaseType in btAllRanges then
+  bt:=ParamResolved.BaseType;
+  if bt in btAllRanges then
     // e.g. high(char)
     Result:=cExact
-  else if ParamResolved.BaseType=btSet then
+  else if bt=btSet then
     Result:=cExact
-  else if (ParamResolved.BaseType=btContext) then
+  else if bt in btAllStrings then
+    Result:=cExact
+  else if (bt=btContext) then
     begin
     C:=ParamResolved.LoTypeEl.ClassType;
     if (C=TPasArrayType)
@@ -19292,6 +19448,12 @@ begin
     begin
     ResolvedEl.BaseType:=ResolvedEl.SubType;
     ResolvedEl.SubType:=btNone;
+    end
+  else if ResolvedEl.BaseType in btAllStrings then
+    begin
+    // high(aString)
+    SetResolverIdentifier(ResolvedEl,BaseTypeLength,Proc.Proc,
+      FBaseTypes[BaseTypeLength],FBaseTypes[BaseTypeLength],[rrfReadable]);
     end
   else
     ;// ordinal: result type is argument type
@@ -19472,6 +19634,13 @@ begin
       else
         Evaluated:=TResEvalUTF16.CreateValue(#$ffff);
       end
+    else if bt in btAllStrings then
+      begin
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalInt.CreateValue(1)
+      else
+        Evaluated:=EvalLengthOfString(ParamResolved,Param,Flags);
+      end
     else
       begin
       {$IFDEF VerbosePasResolver}
@@ -19484,6 +19653,13 @@ begin
     begin
     // e.g. type t = 2..10;
     Evaluated:=EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,FLags,Proc.BuiltIn=bfLow,Param);
+    end
+  else if ParamResolved.BaseType in btAllStrings then
+    begin
+    if Proc.BuiltIn=bfLow then
+      Evaluated:=TResEvalInt.CreateValue(1)
+    else
+      Evaluated:=EvalLengthOfString(ParamResolved,Param,Flags);
     end
   else
     begin
@@ -21051,8 +21227,8 @@ begin
       writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ...');
     {AllowWriteln-}
     {$ENDIF}
-    if not IsValidIdent(CurName) then
-      RaiseNotYetImplemented(20170328000033,ErrorEl,CurName);
+    // Note: CurName can be a non Pascal name, when specializing an autogenerated anonymous type
+    //if not IsValidIdent(CurName) then ;
     if CurScopeEl<>nil then
       begin
       NeedPop:=true;
@@ -21682,6 +21858,7 @@ end;
 procedure TPasResolver.BeginScope(ScopeType: TPasScopeType; El: TPasElement);
 begin
   case ScopeType of
+  stSpecializeType: PushParserSpecializeType(El as TPasSpecializeType);
   stWithExpr: PushWithExprScope(El as TPasExpr);
   else
     RaiseMsg(20181210163324,nNotYetImplemented,sNotYetImplemented+' BeginScope',[IntToStr(ord(ScopeType))],nil);
@@ -21699,9 +21876,10 @@ begin
   stResourceString: FinishResourcestring(El as TPasResString);
   stProcedure: FinishProcedure(El as TPasProcedure);
   stProcedureHeader: FinishProcedureType(El as TPasProcedureType);
+  stSpecializeType: FinishParserSpecializeType(El as TPasSpecializeType);
+  stWithExpr: FinishWithDo(El as TPasImplWithDo);
   stExceptOnExpr: FinishExceptOnExpr;
   stExceptOnStatement: FinishExceptOnStatement;
-  stWithExpr: FinishWithDo(El as TPasImplWithDo);
   stForLoopHeader: FinishForLoopHeader(El as TPasImplForLoop);
   stDeclaration: FinishDeclaration(El);
   stAncestors: FinishAncestors(El as TPasClassType);
@@ -22659,6 +22837,12 @@ begin
     Result:=PushHelperDotScope(HiType);
 end;
 
+function TPasResolver.PushParserSpecializeType(SpecType: TPasSpecializeType
+  ): TPasDotBaseScope;
+begin
+  Result:=PushDotScope(SpecType.DestType);
+end;
+
 function TPasResolver.PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
 var
   WithEl: TPasImplWithDo;
@@ -22919,7 +23103,7 @@ end;
 
 procedure TPasResolver.SetLastMsg(const id: TMaxPrecInt; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String;
-  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  Args: array of const;
   PosEl: TPasElement);
 var
 {$IFDEF VerbosePasResolver}
@@ -22961,7 +23145,7 @@ begin
 end;
 
 procedure TPasResolver.RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer;
-  const Fmt: String; Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const Fmt: String; Args: array of const;
   ErrorPosEl: TPasElement);
 var
   E: EPasResolve;
@@ -23073,25 +23257,22 @@ begin
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: integer;
-  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const Args: array of const;
   const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
 
   function GetString(ArgNo: integer): string;
   begin
     if ArgNo>High(Args) then
       exit('invalid param '+IntToStr(ArgNo));
-    {$ifdef pas2js}
-    if isString(Args[ArgNo]) then
-      Result:=String(Args[ArgNo])
-    else
-      Result:='invalid param '+jsTypeOf(Args[ArgNo]);
-    {$else}
     case Args[ArgNo].VType of
+{$IFDEF PAS2JS}    
+    vtUnicodeString: Result:=Args[ArgNo].VUnicodeString;
+{$ELSE}    
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
+{$ENDIF}    
     else
       Result:='invalid param '+IntToStr(Ord(Args[ArgNo].VType));
     end;
-    {$endif}
   end;
 
 begin
@@ -23119,7 +23300,7 @@ begin
 end;
 
 procedure TPasResolver.RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer;
-  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const Args: array of const;
   GotType, ExpType: TPasType; ErrorEl: TPasElement);
 var
   GotDesc, ExpDesc: String;
@@ -23129,7 +23310,7 @@ begin
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
-  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  const Args: array of const;
   const GotType, ExpType: TPasResolverResult;
   ErrorEl: TPasElement);
 var
@@ -23164,7 +23345,7 @@ end;
 
 procedure TPasResolver.LogMsg(const id: TMaxPrecInt; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String;
-  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
+  Args: array of const;
   PosEl: TPasElement);
 var
   Scanner: TPascalScanner;
@@ -25395,6 +25576,7 @@ function TPasResolver.ResolvedElIsClassOrRecordInstance(
   const ResolvedEl: TPasResolverResult): boolean;
 var
   TypeEl: TPasType;
+  C: TClass;
 begin
   Result:=false;
   if ResolvedEl.BaseType<>btContext then exit;
@@ -25407,10 +25589,14 @@ begin
   else if TypeEl.ClassType=TPasRecordType then
   else
     exit;
-  if (ResolvedEl.IdentEl is TPasVariable)
-      or (ResolvedEl.IdentEl.ClassType=TPasArgument)
-      or (ResolvedEl.IdentEl.ClassType=TPasResultElement) then
-    exit(true);
+  if ResolvedEl.IdentEl<>nil then
+    begin
+    C:=ResolvedEl.IdentEl.ClassType;
+    if C.InheritsFrom(TPasVariable)
+        or (C=TPasArgument)
+        or (C=TPasResultElement) then
+      exit(true);
+    end;
 end;
 
 function TPasResolver.GetResolver(El: TPasElement): TPasResolver;
@@ -27584,7 +27770,9 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
   var
     TypeEl: TPasType;
   begin
-    if SpecType.CustomData is TPasSpecializeTypeData then
+    if SpecType.SubType<>nil then
+      ComputeElement(SpecType.SubType,ResolvedEl,Flags,StartEl)
+    else if SpecType.CustomData is TPasSpecializeTypeData then
       begin
       TypeEl:=TPasSpecializeTypeData(SpecType.CustomData).SpecializedType;
       if TypeEl=nil then
@@ -28268,6 +28456,7 @@ function TPasResolver.ResolveAliasType(aType: TPasType; SkipTypeAlias: boolean
   ): TPasType;
 var
   C: TClass;
+  SpecType: TPasSpecializeType;
 begin
   while aType<>nil do
     begin
@@ -28281,9 +28470,16 @@ begin
       aType:=NoNil(TResolvedReference(aType.CustomData).Declaration) as TPasType
     else if C=TPasSpecializeType then
       begin
-      if aType.CustomData is TPasSpecializeTypeData then
-        exit(TPasSpecializeTypeData(aType.CustomData).SpecializedType);
-      aType:=TPasSpecializeType(aType).DestType;
+      SpecType:=TPasSpecializeType(aType);
+      if SpecType.SubType<>nil then
+        // e.g. a<b>.c
+        aType:=SpecType.SubType
+      else
+        begin
+        if SpecType.CustomData is TPasSpecializeTypeData then
+          exit(TPasSpecializeTypeData(SpecType.CustomData).SpecializedType);
+        aType:=SpecType.DestType;
+        end;
       end
     else
       exit(aType);
@@ -29073,20 +29269,23 @@ function TPasResolver.IsTGUID(RecTypeEl: TPasRecordType): boolean;
 var
   Members: TFPList;
   El: TPasElement;
+  i, MemberIndex: Integer;
 begin
   Result:=false;
   if not SameText(RecTypeEl.Name,'TGUID') then exit;
   if SameText(RecTypeEl.GetModule.Name,'system') then exit(true);
   Members:=RecTypeEl.Members;
-  if Members.Count<4 then exit;
-  El:=TPasElement(Members[0]);
-  if not SameText(El.Name,'D1') then exit;
-  El:=TPasElement(Members[1]);
-  if not SameText(El.Name,'D2') then exit;
-  El:=TPasElement(Members[2]);
-  if not SameText(El.Name,'D3') then exit;
-  El:=TPasElement(Members[3]);
-  if not SameText(El.Name,'D4') then exit;
+  i:=1;
+  for MemberIndex:=0 to Members.Count-1 do
+    begin
+    El:=TPasElement(Members[MemberIndex]);
+    if (El.ClassType<>TPasVariable) then continue;
+    if SameText(El.Name,'D'+IntToStr(i)) then
+      begin
+      if i=4 then exit(true);
+      inc(i);
+      end;
+    end;
   Result:=true;
 end;
 
@@ -29566,6 +29765,37 @@ begin
   else if El.Parent is TPasAnonymousProcedure then
     exit;
   Result:=true;
+end;
+
+function TPasResolver.IsAnonymousElType(El: TPasType): boolean;
+// e.g. b$a$a
+var
+  aName: String;
+  i, l: SizeInt;
+  j: Integer;
+begin
+  Result:=false;
+  if AnonymousElTypePostfix='' then exit;
+  aName:=El.Name;
+  l:=length(AnonymousElTypePostfix);
+  i:=length(aName);
+  repeat
+    dec(i,l);
+    if i>0 then
+      begin
+      j:=i;
+      while (j<=l) and (aName[i+j]=AnonymousElTypePostfix[j]) do inc(j);
+      if j>l then
+        begin
+        Result:=true;
+        continue;
+        end;
+      end;
+    if not Result then exit; // no postfix
+    // at least one anonymous eltype postfix
+    Result:=IsValidIdent(LeftStr(aName,i+l));
+    exit;
+  until false;
 end;
 
 function TPasResolver.GetActualBaseType(bt: TResolverBaseType

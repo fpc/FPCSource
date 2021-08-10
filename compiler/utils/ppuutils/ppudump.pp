@@ -82,7 +82,7 @@ const
     { 14 } 'jvm',
     { 15 } 'i8086',
     { 16 } 'aarch64',
-    { 17 } 'wasm',
+    { 17 } 'wasm32',
     { 18 } 'sparc64',
     { 19 } 'riscv32',
     { 20 } 'riscv64',
@@ -109,7 +109,7 @@ const
     { 14 } false {'jvm'},
     { 15 } false {'i8086'},
     { 16 } false {'aarch64'},
-    { 17 } false {'wasm'},
+    { 17 } false {'wasm32'},
     { 18 } false {'sparc64'},
     { 19 } false {'riscv32'},
     { 20 } false {'riscv64'},
@@ -233,7 +233,9 @@ const
   { 110 } 'MSX-DOS-Z80',
   { 111 } 'Darwin-AArch64',
   { 112 } 'AmstradCPC-Z80',
-  { 113 } 'SinclairQL-m68k'
+  { 113 } 'SinclairQL-m68k',
+  { 114 } 'WASI-WASM32',
+  { 115 } 'FreeBSD-AArch64'
   );
 
 const
@@ -387,8 +389,8 @@ type
        cpu_variant_armv8
       );
 
-  tcpu_wasm = (
-       cpu_variant_wasm_none);
+  tcpu_wasm32 = (
+       cpu_variant_wasm32_none);
 
   tcpu_sparc64 = (
     cpu_variant_sparc64_none,
@@ -448,8 +450,8 @@ type
           (cpu_i8086 : tcpu_i8086;);
        cpu_aarch64:                 { 16 }
           (cpu_aarch64 : tcpu_aarch64;);
-       cpu_wasm:                    { 17 }
-          (cpu_wasm : tcpu_wasm;);
+       cpu_wasm32:                  { 17 }
+          (cpu_wasm32 : tcpu_wasm32;);
        cpu_sparc64:                 { 18 }
           (cpu_sparc64 : tcpu_sparc64;);
        cpu_riscv32:                 { 19 }
@@ -3284,7 +3286,8 @@ const
    { ado_IsConstString      } 'ConstString',
    { ado_IsBitPacked        } 'BitPacked',
    { ado_IsVector           } 'Vector',
-   { ado_IsGeneric          } 'Generic'
+   { ado_IsGeneric          } 'Generic',
+   { ado_OpenArray          } 'OpenArray'
   );
 var
   symoptions: tarraydefoptions;

@@ -2060,8 +2060,21 @@ end;
 
 
 Function SameDateTime(const A, B: TDateTime): Boolean;
+
+  function MS(X: Double): Int64;
+  begin
+    if X >= 0 then
+      X := X * MSecsPerDay + 0.5
+    else if X > -1.0 then
+      X := -X * MSecsPerDay + 0.5
+    else
+      X := X * MSecsPerDay - 0.5;
+
+    Result := Trunc(X);
+  end;
+
 begin
-  Result:=Abs(A-B)<OneMilliSecond;
+  Result := MS(A) = MS(B);
 end;
 
 
@@ -2749,12 +2762,23 @@ var
   xYear, xMonth, xDay: LongInt;
 begin
   case Length(aString) of
-    8: Result :=
+    4: Result :=                                        // YYYY
+          TryStrToInt(aString, xYear) and
+          TryEncodeDate(xYear, 1, 1, outDate);
+    6: Result :=                                        // YYYYMM
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 5, 2), xMonth) and
+          TryEncodeDate(xYear, xMonth, 1, outDate);
+    7: Result :=                                        // YYYY-MM
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 6, 2), xMonth) and
+          TryEncodeDate(xYear, xMonth, 1, outDate);
+    8: Result :=                                        // YYYYMMDD
           TryStrToInt(Copy(aString, 1, 4), xYear) and
           TryStrToInt(Copy(aString, 5, 2), xMonth) and
           TryStrToInt(Copy(aString, 7, 2), xDay) and
           TryEncodeDate(xYear, xMonth, xDay, outDate);
-    10: Result :=
+    10: Result :=                                       //YYYY-MM-DD
           TryStrToInt(Copy(aString, 1, 4), xYear) and
           TryStrToInt(Copy(aString, 6, 2), xMonth) and
           TryStrToInt(Copy(aString, 9, 2), xDay) and
@@ -2769,7 +2793,9 @@ end;
 
 function TryISOStrToTime(const aString: string; Out outTime: TDateTime): Boolean;
 var
-  xHour, xMinute, xSecond, xMillisecond, xLength: LongInt;
+  xHour, xMinute, xSecond, xLength, res: LongInt;
+  xFractionalSecond: Extended;
+  tmp: String;
 begin
   Result := True;
   xLength := Length(aString);
@@ -2805,48 +2831,57 @@ begin
   end;
 
   case xLength of
-    2: Result :=
+    2: Result :=                                          // HH
           TryStrToInt(aString, xHour) and
           TryEncodeTime(xHour, 0, 0, 0, outTime);
-    4: Result :=
+    4: Result :=                                          // HHNN
           TryStrToInt(Copy(aString, 1, 2), xHour) and
           TryStrToInt(Copy(aString, 3, 2), xMinute) and
           TryEncodeTime(xHour, xMinute, 0, 0, outTime);
-    5: Result :=
+    5: Result :=                                          // HH:NN
           TryStrToInt(Copy(aString, 1, 2), xHour) and
           (aString[3] = ':') and
           TryStrToInt(Copy(aString, 4, 2), xMinute) and
           TryEncodeTime(xHour, xMinute, 0, 0, outTime);
-    6: Result :=
+    6: Result :=                                          // HHNNSS
           TryStrToInt(Copy(aString, 1, 2), xHour) and
           TryStrToInt(Copy(aString, 3, 2), xMinute) and
           TryStrToInt(Copy(aString, 5, 2), xSecond) and
           TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
-    8: Result :=
-          TryStrToInt(Copy(aString, 1, 2), xHour) and
-          (aString[3] = ':') and
-          TryStrToInt(Copy(aString, 4, 2), xMinute) and
-          (aString[6] = ':') and
-          TryStrToInt(Copy(aString, 7, 2), xSecond) and
-          TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
-    10: Result :=
-          TryStrToInt(Copy(aString, 1, 2), xHour) and
-          TryStrToInt(Copy(aString, 3, 2), xMinute) and
-          TryStrToInt(Copy(aString, 5, 2), xSecond) and
-          (aString[7] = '.') and
-          TryStrToInt(Copy(aString, 8, 3), xMillisecond) and
-          TryEncodeTime(xHour, xMinute, xSecond, xMillisecond, outTime);
-    12: Result :=
-          TryStrToInt(Copy(aString, 1, 2), xHour) and
-          (aString[3] = ':') and
-          TryStrToInt(Copy(aString, 4, 2), xMinute) and
-          (aString[6] = ':') and
-          TryStrToInt(Copy(aString, 7, 2), xSecond) and
-          (aString[9] = '.') and
-          TryStrToInt(Copy(aString, 10, 3), xMillisecond) and
-          TryEncodeTime(xHour, xMinute, xSecond, xMillisecond, outTime);
-  else
-    Result := False;
+    else
+       if (xLength >= 8) and (aString[3] = ':') and (aString[6] = ':') then
+       begin
+         Result :=                            // HH:NN:SS
+           TryStrToInt(Copy(aString, 1, 2), xHour) and
+           TryStrToInt(Copy(aString, 4, 2), xMinute) and
+           TryStrToInt(Copy(aString, 7, 2), xSecond) and
+           TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
+         if Result and (xLength >= 9) then    // HH:NN:SS.[z] (0 or several z)
+         begin
+           tmp := copy(aString, 10, xLength-9);
+           val('.' + tmp, xFractionalSecond, res);
+           Result := (res = 0);
+           if Result then
+             outTime := outTime + xFractionalSecond * OneSecond;
+         end;
+       end else
+       if (xLength >= 7) and (aString[7] in ['.', ',']) then
+       begin
+         Result :=                         // HHNNSS
+           TryStrToInt(Copy(aString, 1, 2), xHour) and
+           TryStrToInt(Copy(aString, 3, 2), xMinute) and
+           TryStrToInt(Copy(aString, 5, 2), xSecond) and
+           TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
+         tmp := copy(aString, 8, xLength-7);
+         if Result and (tmp <> '') then
+         begin                           // HHNNSS.[z] (0 or several z)
+           val('.'+tmp, xFractionalSecond, res);
+           Result := res = 0;
+           if Result then
+             outTime := outTime + xFractionalSecond * OneSecond;
+         end;
+       end else
+         Result := false;
   end;
 
   if not Result then
@@ -2861,12 +2896,27 @@ var
 
 begin
   xLength := Length(aString);
-  if (xLength>11) and CharInSet(aString[11], [' ', 'T']) then
+  if (xLength = 0) then
+    exit(false);
+
+  if (aString[1]='T') then
+    begin
+    Result := TryISOStrToTime(copy(aString, 2, Length(aString)-1), outDateTime);
+    exit;
+  end;
+
+  if (xLength in [4 {YYYY}, 7 {YYYY-MM}, 8 {YYYYMMDD}, 10 {YYYY-MM-DD}]) then
+    begin
+    Result := TryISOStrToDate(aString, outDateTime);
+    exit;
+    end;
+
+  if (xLength>11) and CharInSet(aString[11], [' ', 'T']) then   // YYYY-MM-DDT...
     begin
     sDate:=Copy(aString, 1, 10);
     sTime:=Copy(aString, 12, Length(aString))
     end
-  else if (xLength>9) and CharInSet(aString[9], [' ', 'T']) then
+  else if (xLength>9) and CharInSet(aString[9], [' ', 'T']) then    // YYYYMMDDT...
     begin
     sDate:=Copy(aString, 1, 8);
     sTime:=Copy(aString, 10, Length(aString));
@@ -2936,21 +2986,25 @@ begin
     TZ:='Z';
     S:=Copy(S,1,L-1);
     end
-  else If (L>2) and (S[L-2] in ['+','-']) then
+  else if ((L>11) and ((S[11] in ['T',' ']) or (S[9] in ['T',' ']))) or // make sure that we dont't have date-only
+          (S[1]='T') then
+  begin
+    If (S[L-2] in ['+','-']) then
     begin
     TZ:=Copy(S,L-2,3);
     S:=Copy(S,1,L-3);
     end
-  else If (L>4) and (S[L-4] in ['+','-']) then
+  else If (S[L-4] in ['+','-']) then
     begin
     TZ:=Copy(S,L-4,5);
     S:=Copy(S,1,L-5);
     end
-  else If (L>5) and (S[L-5] in ['+','-']) then
+  else If (S[L-5] in ['+','-']) and ((L > 13) or (S[1]='T')) then  // do not confuse with '2021-05-21T13'
     begin
     TZ:=Copy(S,L-5,6);
     S:=Copy(S,1,L-6);
     end;
+  end;
   Result:=TryIsoStrToDateTime(S,aDateTime) and TryISOTZStrToTZOffset(TZ,TZOffset);
   if not Result then
     exit;

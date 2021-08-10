@@ -821,4 +821,11 @@ begin
 {$include qlunits/fpmake.pp}
 end;
 
+procedure add_mustache(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-mustache/fpmake.pp}
+end;
+
 {$include ide/fpmake.pp}
+{$include gitlab/fpmake.pp}

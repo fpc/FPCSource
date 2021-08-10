@@ -175,7 +175,7 @@ type
     procedure AddSystemUnit(Parts: TSystemUnitParts = []);
     procedure StartProgram(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     procedure StartLibrary(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
-    procedure StartUnit(NeedSystemUnit: boolean);
+    procedure StartUnit(NeedSystemUnit: boolean; SystemUnitParts: TSystemUnitParts = []);
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
     property Hub: TPasResolverHub read FHub;
@@ -2345,10 +2345,11 @@ begin
   Add('library '+ExtractFileUnitName(MainFilename)+';');
 end;
 
-procedure TCustomTestResolver.StartUnit(NeedSystemUnit: boolean);
+procedure TCustomTestResolver.StartUnit(NeedSystemUnit: boolean;
+  SystemUnitParts: TSystemUnitParts);
 begin
   if NeedSystemUnit then
-    AddSystemUnit
+    AddSystemUnit(SystemUnitParts)
   else
     Parser.ImplicitUses.Clear;
   Add('unit '+ExtractFileUnitName(MainFilename)+';');
@@ -4956,14 +4957,21 @@ end;
 procedure TTestResolver.TestHighLow;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  bo: boolean;');
-  Add('  by: byte;');
-  Add('  ch: char;');
-  Add('begin');
-  Add('  for bo:=low(boolean) to high(boolean) do;');
-  Add('  for by:=low(byte) to high(byte) do;');
-  Add('  for ch:=low(char) to high(char) do;');
+  Add([
+  'const',
+  '  abc = ''abc'';',
+  'var',
+  '  bo: boolean;',
+  '  by: byte;',
+  '  ch: char;',
+  '  s: string;',
+  '  i: longint = high(abc);',
+  'begin',
+  '  for bo:=low(boolean) to high(boolean) do;',
+  '  for by:=low(byte) to high(byte) do;',
+  '  for ch:=low(char) to high(char) do;',
+  '  for i:=low(s) to high(s) do;',
+  '']);
   ParseProgram;
 end;
 

@@ -23,9 +23,7 @@ unit cclasses;
 
 {$i fpcdefs.inc}
 
-{$ifndef VER2_0}
-  {$define CCLASSESINLINE}
-{$endif}
+{$define CCLASSESINLINE}
 
 interface
 
@@ -77,6 +75,7 @@ type
   TListCallback = procedure(data,arg:pointer) of object;
   TListStaticCallback = procedure(data,arg:pointer);
   TDynStringArray = Array Of String;
+  TDirection = (FromBeginning,FromEnd);
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -87,18 +86,20 @@ type
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    Procedure RaiseIndexError(Index : Integer);noreturn;
+    property List: PPointerList read FList;
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    class procedure Error(const Msg: string; Data: PtrInt);noreturn;
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
+    function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
@@ -111,7 +112,6 @@ type
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
-    property List: PPointerList read FList;
   end;
 
 
@@ -145,6 +145,7 @@ type
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function IndexOfItem(AObject: TObject; Direction: TDirection): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     procedure Insert(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
     function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -224,7 +225,7 @@ type
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    class procedure Error(const Msg: string; Data: PtrInt);noreturn;
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
@@ -715,7 +716,7 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-procedure TFPList.RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+procedure TFPList.RaiseIndexError(Index : Integer);noreturn;
 begin
   Error(SListIndexError, Index);
 end;
@@ -811,7 +812,7 @@ begin
   end;
 end;
 
-class procedure TFPList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);noreturn;
 begin
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -869,6 +870,32 @@ begin
           exit;
         end;
       inc(psrc);
+    end;
+end;
+
+function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
+var
+  psrc  : PPointer;
+  Index : Integer;
+begin
+  if Direction=FromBeginning then
+    Result:=IndexOf(Item)
+  else
+    begin
+      Result:=-1;
+      if FCount>0 then
+        begin
+          psrc:=@FList^[FCount-1];
+          For Index:=FCount-1 downto 0 Do
+            begin
+              if psrc^=Item then
+                begin
+                  Result:=Index;
+                  exit;
+                end;
+              dec(psrc);
+            end;
+        end;
     end;
 end;
 
@@ -1056,6 +1083,11 @@ end;
 function TFPObjectList.IndexOf(AObject: TObject): Integer;
 begin
   Result := FList.IndexOf(Pointer(AObject));
+end;
+
+function TFPObjectList.IndexOfItem(AObject: TObject; Direction: TDirection): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+begin
+  Result := FList.IndexOfItem(Pointer(AObject),Direction);
 end;
 
 function TFPObjectList.GetCount: integer;
@@ -1510,7 +1542,7 @@ begin
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);noreturn;
 begin
   Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;

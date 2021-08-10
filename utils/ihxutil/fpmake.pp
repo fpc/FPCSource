@@ -15,8 +15,8 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-ihxutil');
-    P.ShortName:='ihxutil';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc];
+    P.ShortName:='ihxu';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

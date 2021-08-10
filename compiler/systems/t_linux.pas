@@ -140,9 +140,14 @@ begin
 {$else}
 {$ifdef powerpc64}
       if target_info.abi<>abi_powerpc_elfv2 then
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64;=/usr/lib64;=/usr/X11R6/lib64',true)
+        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/X11R6/lib64',true)
       else
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64;=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
+        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
+      { /lib64 should be the really first, so add it before everything else }
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
 {$else powerpc64}
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 {$endif powerpc64}
@@ -538,7 +543,13 @@ begin
            Message1(exec_w_init_file_not_found,'crti.o');
 
          { then the crtbegin* }
-         if cs_create_pic in current_settings.moduleswitches then
+         if (cs_create_pic in current_settings.moduleswitches)
+{$ifdef RISCV}
+         { on RISC-V we need to use always the *S.o variants
+           if shared libraries are involved }
+         or (not SharedLibFiles.Empty)
+{$endif RISCV}
+         then
            begin
              if librarysearchpath.FindFile('crtbeginS.o',false,s) then
                AddFileName(s)
@@ -649,7 +660,13 @@ begin
       { objects which must be at the end }
       if linklibc and (libctype<>uclibc) then
        begin
-         if cs_create_pic in current_settings.moduleswitches then
+         if (cs_create_pic in current_settings.moduleswitches)
+{$ifdef RISCV}
+         { on RISC-V we need to use always the *S.o variants
+           if shared libraries are involved }
+         or linksToSharedLibFiles
+{$endif RISCV}
+         then
            begin
              found1:=librarysearchpath.FindFile('crtendS.o',false,s1);
              if not(found1) then

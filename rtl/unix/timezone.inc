@@ -29,7 +29,7 @@ type
   pleap=^tleap;
   tleap=record
     transition : int64;
-    change     : int64;
+    change     : longint;
   end;
 
 var
@@ -64,8 +64,22 @@ var
     else
       Exit(0);
   end;
+var
+  timerLoUTC, timerHiUTC: int64;
 begin
-  if (num_transitions=0) or (timer<transitions[0]) then
+  if (num_transitions>0) and not timerIsUTC then
+   begin
+     timerLoUTC:=timer-types[type_idxs[0]].offset;
+     timerHiUTC:=timer-types[type_idxs[num_transitions-1]].offset;
+   end
+  else
+   begin
+     timerLoUTC:=timer;
+     timerHiUTC:=timer;
+   end;
+
+  if (num_transitions=0) or (timerLoUTC<transitions[0]) then
+   { timer is before the first transition }
    begin
      i:=0;
      while (i<num_types) and (types[i].isdst) do
@@ -77,6 +91,15 @@ begin
      trans_end:=high(trans_end);
    end
   else
+  if (num_transitions>0) and (timerHiUTC>=transitions[num_transitions-1]) then
+   { timer is after the last transition }
+   begin
+     i:=type_idxs[num_transitions-1];
+     trans_start:=transitions[num_transitions-1];
+     trans_end:=high(trans_end);
+   end
+  else
+   { timer inbetween }
    begin
       // Use binary search.
       L := 1;
@@ -210,7 +233,7 @@ var
   NewTZInfoEx: TTZInfoEx;
 begin
   LockTZInfo;
-  if GetLocalTimezone(fptime,false,NewTZInfo,NewTZInfoEx) then
+  if GetLocalTimezone(fptime,true,NewTZInfo,NewTZInfoEx) then
     SetTZInfo(NewTZInfo,NewTZInfoEx);
   UnlockTZInfo;
 end;
@@ -254,19 +277,34 @@ const
 var
   buf    : array[0..bufsize-1] of byte;
   bufptr : pbyte;
+  bufbytes : tsSize;
+  bufoverflow : boolean;
   f      : longint;
   tzhead : ttzhead;
 
-  procedure readfilebuf;
+  function readfilebuf : TsSize;
   begin
     bufptr := @buf[0];
-    fpread(f, buf, bufsize);
+    bufbytes:=fpread(f, buf, bufsize);
+    readfilebuf:=bufbytes;
+  end;
+
+  Procedure checkbufptr(asize : integer);
+  
+  var
+    a : tssize;
+    
+  begin
+    a:=bufptr-@buf+asize;
+    if (a>bufbytes) then
+      bufoverflow:=true;
   end;
 
   function readbufbyte: byte;
   begin
     if bufptr > @buf[bufsize-1] then
       readfilebuf;
+    checkbufptr(1);
     readbufbyte := bufptr^;
     inc(bufptr);
   end;
@@ -282,6 +320,7 @@ var
         numbytes := count;
       if numbytes > 0 then
       begin
+        checkbufptr(numbytes);
         if assigned(dest) then
           move(bufptr^, dest^, numbytes);
         inc(bufptr, numbytes);
@@ -380,13 +419,12 @@ var
      end;
 
     readbuf(zone_names,tzhead.tzh_charcnt);
-
     if version=2 then
       begin // read 64bit values
         for i:=0 to num_leaps-1 do
          begin
            readbuf(@leaps[i].transition,sizeof(int64));
-           readbuf(@leaps[i].change,sizeof(int64));
+           readbuf(@leaps[i].change,sizeof(longint));
            leaps[i].transition:=decode(leaps[i].transition);
            leaps[i].change:=decode(leaps[i].change);
          end;
@@ -410,6 +448,13 @@ var
 
     readdata:=true;
   end;
+  procedure ClearCurrentTZinfo;
+  var
+    i:integer;
+  begin
+    for i:=low(CurrentTZinfo) to high(CurrentTZinfo) do
+      CurrentTZinfo[i] := Default(TTZInfo);
+  end;
 begin
   if fn='' then
    fn:='localtime';
@@ -418,10 +463,12 @@ begin
   f:=fpopen(fn,Open_RdOnly);
   if f<0 then
    exit(False);
+  bufoverflow:=false;
   bufptr := @buf[bufsize-1]+1;
   tzhead:=default(ttzhead);
   LockTZInfo;
-  ReadTimezoneFile:=(readheader() and readdata());
+  ReadTimezoneFile:=(readheader() and readdata()) and not BufOverflow;
+  ClearCurrentTZinfo;
   UnlockTZInfo;
   fpclose(f);
 end;

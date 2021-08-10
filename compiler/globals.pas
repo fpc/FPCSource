@@ -416,6 +416,7 @@ interface
 {$if defined(m68k)}
        { Sinclair QL specific }
        sinclairql_metadata_format: string[4] = 'QHDR';
+       sinclairql_vlink_experimental: boolean = true; { temporary }
 {$endif defined(m68k)}
 
        { default name of the C-style "main" procedure of the library/program }
@@ -589,6 +590,12 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif z80}
+  {$ifdef wasm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif wasm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

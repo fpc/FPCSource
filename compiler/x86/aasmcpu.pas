@@ -2572,6 +2572,8 @@ implementation
            if ((br=NR_RIP) and (ir<>NR_NO)) or
              (ir=NR_RIP) then
              message(asmw_e_illegal_use_of_rip);
+           if ir=NR_STACK_POINTER_REG then
+             Message(asmw_e_illegal_use_of_sp);
            { 16 bit? }
 
            if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY,R_SUBMMZ]) and
@@ -3670,6 +3672,16 @@ implementation
              end;
 {$endif i386}
            objdata.writereloc(data,len,p,Reloctype);
+{$ifdef x86_64}
+	   { Computed offset is not yet correct for GOTPC relocation }
+           { RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX need special handling }
+           if assigned(p) and (RelocType in [RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX]) and
+              { These relocations seem to be used only for ELF
+                which always has relocs_use_addend set to true 
+                so that it is the orgsize of the last relocation which needs to be fixed PM  }
+              (insend<>objdata.CurrObjSec.size) then
+             dec(TObjRelocation(objdata.CurrObjSec.ObjRelocations.Last).orgsize,insend-objdata.CurrObjSec.size);
+{$endif}
          end;
 
 

@@ -129,6 +129,9 @@ begin
     SA_Draggable      , 1,
     SA_Quiet          , 1,
     SA_LikeWorkbench  , 1,     // Let OS
+    {$if defined(AMIGA_V1_2_ONLY)}
+    SA_Depth          , 4,
+    {$endif}
     TAG_END, TAG_END
   ]);
   {$ifdef VIDEODEBUG}
@@ -176,7 +179,6 @@ begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
   if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
     videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
-
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -196,7 +198,7 @@ begin
       WA_Activate   , 1,
       WA_Borderless , 1,
       WA_BackDrop   , 1,
-      WA_FLAGS      , VIDEO_WFLG_DEFAULTS,
+      WA_FLAGS      , VIDEO_WFLG_DEFAULTS or WFLG_BORDERLESS,
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
       TAG_END, TAG_END
     ]);
@@ -266,8 +268,14 @@ begin
   { FIXME/TODO: next to the hardwired selection, there could be some heuristics,
     which sets the font size correctly on screens according to the aspect
     ratio. (KB) }
+  {$if defined(AMIGA_V1_2_ONLY)}
+  VideoFont:=@vgafont8;
+  VideoFontHeight:=8;
+  FPC_VIDEO_FULLSCREEN := True;
+  {$else}
   VideoFont:=@vgafont;
   VideoFontHeight:=16;
+  {$endif}
   if GetVar('FPC_VIDEO_BUILTINFONT',@envBuf,sizeof(envBuf),0) > -1 then
     begin
       case lowerCase(envBuf) of
@@ -280,6 +288,11 @@ begin
           begin
             VideoFont:=@vgafont14;
             VideoFontHeight:=14;
+          end;
+        'vga16':
+          begin
+            VideoFont:=@vgafont;
+            VideoFontHeight:=16;
           end;
       end;
     end;
@@ -326,8 +339,13 @@ begin
 
   for Counter := 0 to 15 do
   begin
-    VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
+    {$if defined(AMIGA_V1_2_ONLY)}
+      VideoPens[Counter] := Counter;
+      SetRGB4(@(PScreen(VideoWindow^.WScreen)^.ViewPort), Counter, vgacolors[counter, 0] shr 4, vgacolors[counter, 1] shr 4, vgacolors[counter, 2] shr 4);
+    {$else}
+      VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
+    {$endif}
     {$ifdef VIDEODEBUG}
     If VideoPens[Counter] = -1 then
       WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
@@ -437,8 +455,10 @@ begin
   FreeBitmap(BufRp^.Bitmap);
   BufRp^.Bitmap := nil;
   {$endif}
+  {$if not defined(AMIGA_V1_2_ONLY)}
   for Counter := 0 to 15 do
     ReleasePen(VideoColorMap, VideoPens[Counter]);
+  {$endif}
   if ((FPC_VIDEO_FULLSCREEN) and (OS_Screen <> nil)) then
   begin
     CloseScreen(OS_Screen);
@@ -821,7 +841,11 @@ end;
 
 function SysGetVideoModeCount: Word;
 begin
+  {$if defined(AMIGA_V1_2_ONLY)}
+  SysGetVideoModeCount := 1;
+  {$else}
   SysGetVideoModeCount := 2;
+  {$endif}
 end;
 
 function SysGetVideoModeData(Index: Word; var Mode: TVideoMode): Boolean;
@@ -834,6 +858,7 @@ begin
          Mode.Row := 25;
          Mode.Color := True;
        end;
+    {$if not defined(AMIGA_V1_2_ONLY)}
     1: begin
         Screen := LockPubScreen('Workbench');
         Mode.Col := Screen^.Width div 8;
@@ -841,6 +866,7 @@ begin
         UnlockPubScreen('Workbench', Screen);
         Mode.Color := False;
       end;
+    {$endif}
   end;
   SysGetVideoModeData := True;
 end;

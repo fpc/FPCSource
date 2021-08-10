@@ -75,18 +75,20 @@ end;
 {   MSecsToTimeStamp   }
 
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
+var
+  D1:Int64;
 begin
-  result.Date := Trunc(msecs / msecsperday);
-  msecs:= msecs-comp(result.date)*msecsperday;
-  result.Time := Round(MSecs);
-end ;
+  D1:=Trunc(msecs);
+  result.Date := D1 div msecsperday;
+  result.Time := D1 - result.date * msecsperday;
+end;
 
 {   TimeStampToMSecs   }
 
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
 begin
   result := TimeStamp.Time + comp(timestamp.date)*msecsperday;
-end ;
+end;
 
 Function TryEncodeDate(Year,Month,Day : Word; Out Date : TDateTime) : Boolean;
 
@@ -1139,7 +1141,7 @@ var
             end ;
             'H':
               if isInterval then
-                StoreInt(Hour + trunc(abs(DateTime))*24, 0)
+                StoreInt(Hour + trunc(abs(DateTime))*24, Count)
               else
               if Clock12 then
               begin
@@ -1157,14 +1159,14 @@ var
                   StoreInt(Hour, 2);
               end;
             'N': if isInterval then
-                   StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
+                   StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, Count)
                  else
                  if Count = 1 then
                    StoreInt(Minute, 0)
                  else
                    StoreInt(Minute, 2);
             'S': if isInterval then
-                   StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, 0)
+                   StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, Count)
                  else
                  if Count = 1 then
                    StoreInt(Second, 0)

@@ -787,10 +787,11 @@ unit cgcpu;
         shifterop : tshifterop;
         bitsset : byte;
         negative : boolean;
-        first : boolean;
+        first, doshiftadd: boolean;
         b,
         cycles : byte;
         maxeffort : byte;
+        leftmostbit,i,shiftvalue: DWord;
       begin
         result:=true;
         cycles:=0;
@@ -800,7 +801,6 @@ unit cgcpu;
         if negative then
           inc(cycles);
         multiplier:=dword(abs(a));
-        bitsset:=popcnt(multiplier and $fffffffe);
 
         { heuristics to estimate how much instructions are reasonable to replace the mul,
           this is currently based on XScale timings }
@@ -823,6 +823,30 @@ unit cgcpu;
         { if the upper 17 bits are all set or clear, mul is another cycle faster }
         if ((dword(a) and $ffff8000)=0) or ((dword(a) and $ffff8000)=$ffff8000) then
           dec(maxeffort);
+
+        { "symmetric" bit pattern like $10101010 where
+          res:=a*$10101010 can be simplified into
+
+          temp:=a*$1010
+          res:=temp+temp shl 16
+        }
+        doshiftadd:=false;
+        leftmostbit:=BsrDWord(multiplier);
+        shiftvalue:=0;
+        if (maxeffort>1) and (leftmostbit>2) then
+          begin
+            for i:=2 to 31 do
+              if (multiplier shr i)=(multiplier and ($ffffffff shr (32-i))) then
+                begin
+                  doshiftadd:=true;
+                  shiftvalue:=i;
+                  dec(maxeffort);
+                  multiplier:=multiplier shr shiftvalue;
+                  break;
+                end;
+          end;
+
+        bitsset:=popcnt(multiplier and $fffffffe);
 
         { most simple cases }
         if a=1 then
@@ -857,6 +881,11 @@ unit cgcpu;
                 first:=false;
                 dec(multiplier,1 shl shifterop.shiftimm);
               end;
+            if doshiftadd then
+              begin
+                shifterop.shiftimm:=shiftvalue;
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,dst,dst,shifterop));
+              end;
             if negative then
               list.concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,0));
           end
@@ -888,6 +917,11 @@ unit cgcpu;
                       dec(multiplier,1 shl shifterop.shiftimm);
                     end;
                 first:=false;
+              end;
+            if doshiftadd then
+              begin
+                shifterop.shiftimm:=shiftvalue;
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,dst,dst,shifterop));
               end;
             if negative then
               list.concat(taicpu.op_reg_reg_const(A_RSB,dst,dst,0));
@@ -3739,6 +3773,10 @@ unit cgcpu;
               end;
 
             registerarea:=0;
+            { do not save integer registers if the procedure does not return }
+            if po_noreturn in current_procinfo.procdef.procoptions then
+              regs:=[];
+
             if regs<>[] then
                begin
                  for r:=RS_R0 to RS_R15 do
@@ -3815,6 +3853,10 @@ unit cgcpu;
          stackmisalignment: pint;
          stack_parameters : Boolean;
       begin
+        { a routine not returning needs no exit code,
+          we trust this directive as arm thumb is normally used if small code shall be generated }
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
         if not(nostackframe) then
           begin
             stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
@@ -5018,6 +5060,10 @@ unit cgcpu;
          LocalSize : longint;
          stackmisalignment: pint;
       begin
+        { a routine not returning needs no exit code,
+          we trust this directive as arm thumb is normally used if small code shall be generated }
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
         if not(nostackframe) then
           begin
             stackmisalignment:=0;

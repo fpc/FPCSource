@@ -229,7 +229,10 @@ var rtl = {
   createCallback: function(scope, fn){
     var cb;
     if (typeof(fn)==='string'){
-      cb = function(){
+      if (!scope.hasOwnProperty('$events')) scope.$events = {};
+      cb = scope.$events[fn];
+      if (cb) return cb;
+      scope.$events[fn] = cb = function(){
         return scope[fn].apply(scope,arguments);
       };
     } else {
@@ -243,32 +246,38 @@ var rtl = {
   },
 
   createSafeCallback: function(scope, fn){
-    var cb = function(){
-      try{
-        if (typeof(fn)==='string'){
+    var cb;
+    if (typeof(fn)==='string'){
+      if (!scope.hasOwnProperty('$events')) scope.$events = {};
+      cb = scope.$events[fn];
+      if (cb) return cb;
+      scope.$events[fn] = cb = function(){
+        try{
           return scope[fn].apply(scope,arguments);
-        } else {
+        } catch (err) {
+          if (!rtl.handleUncaughtException(err)) throw err;
+        }
+      };
+    } else {
+      cb = function(){
+        try{
           return fn.apply(scope,arguments);
-        };
-      } catch (err) {
-        if (!rtl.handleUncaughtException(err)) throw err;
-      }
+        } catch (err) {
+          if (!rtl.handleUncaughtException(err)) throw err;
+        }
+      };
     };
     cb.scope = scope;
     cb.fn = fn;
     return cb;
   },
 
-  cloneCallback: function(cb){
-    return rtl.createCallback(cb.scope,cb.fn);
-  },
-
   eqCallback: function(a,b){
     // can be a function or a function wrapper
-    if (a==b){
+    if (a===b){
       return true;
     } else {
-      return (a!=null) && (b!=null) && (a.fn) && (a.scope===b.scope) && (a.fn==b.fn);
+      return (a!=null) && (b!=null) && (a.fn) && (a.scope===b.scope) && (a.fn===b.fn);
     }
   },
 
@@ -1040,6 +1049,15 @@ var rtl = {
     }
   },
 
+  arrayInsert: function(item, arr, index){
+    if (arr){
+      arr.splice(index,0,item);
+      return arr;
+    } else {
+      return [item];
+    }
+  },
+
   setCharAt: function(s,index,c){
     return s.substr(0,index)+c+s.substr(index+1);
   },
@@ -1345,11 +1363,10 @@ var rtl = {
         };
       };
     };
-    tis.addMethod = function(name,methodkind,params,result,options){
+    tis.addMethod = function(name,methodkind,params,result,flags,options){
       var t = this.$addMember(name,rtl.tTypeMemberMethod,options);
       t.methodkind = methodkind;
-      t.procsig = rtl.newTIProcSig(params);
-      t.procsig.resulttype = result?result:null;
+      t.procsig = rtl.newTIProcSig(params,result?result:null,flags?flags:0);
       this.methods.push(name);
       return t;
     };

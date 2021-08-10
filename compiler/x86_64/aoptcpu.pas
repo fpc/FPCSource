@@ -54,6 +54,8 @@ uses
                   result:=PrePeepholeOptIMUL(p);
                 A_SAR,A_SHR:
                   result:=PrePeepholeOptSxx(p);
+                A_AND:
+                  Result:=PrePeepholeOptAND(p);
                 else
                   ;
               end;
@@ -127,8 +129,6 @@ uses
                   result:=OptPass1Sub(p);
                 A_SHL,A_SAL:
                   result:=OptPass1SHLSAL(p);
-                A_SETcc:
-                  result:=OptPass1SETcc(p);
                 A_FSTP,A_FISTP:
                   result:=OptPass1FSTP(p);
                 A_FLD:
@@ -145,6 +145,13 @@ uses
                 A_XORPD,
                 A_PXOR:
                   Result:=OptPass1PXor(p);
+                A_TEST:
+                  Result:=OptPass1Test(p);
+                A_Jcc:
+                  Result:=OptPass1Jcc(p);
+                A_SHRX,
+                A_SHLX:
+                  Result:=OptPass1SHXX(p);
                 else
                   ;
               end;
@@ -179,6 +186,8 @@ uses
                   Result:=OptPass2SUB(p);
                 A_ADD:
                   Result:=OptPass2ADD(p);
+                A_SETcc:
+                  result:=OptPass2SETcc(p);
                 else
                   ;
               end;

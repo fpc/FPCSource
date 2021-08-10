@@ -140,6 +140,7 @@ const
 
 
   suppported_targets_x_smallr = systems_linux + systems_solaris + systems_android
+                             + systems_openbsd
                              + [system_i386_haiku,system_x86_64_haiku]
                              + [system_i386_beos]
                              + [system_m68k_amiga];
@@ -212,6 +213,7 @@ var
   p : pchar;
   hs,hs1,hs3,s : TCmdStr;
   J: longint;
+  xmloutput: Text;
 const
   NewLineStr = '$\n';
   OSTargetsPlaceholder = '$OSTARGETS';
@@ -282,6 +284,22 @@ const
      end;
   end;
 
+  procedure ListOSTargetsXML;
+  var
+    target : tsystem;
+  begin
+    WriteLn(xmloutput,'    <ostargets>');
+    for target:=low(tsystem) to high(tsystem) do
+    if assigned(targetinfos[target]) then
+      begin
+        Write(xmloutput,'      <ostarget shortname="',targetinfos[target]^.shortname,'" name="',targetinfos[target]^.name,'"');
+        if tf_under_development in targetinfos[target]^.flags then
+          Write(' experimental="1"');
+        WriteLn('/>');
+      end;
+    WriteLn(xmloutput,'    </ostargets>');
+  end;
+
   procedure ListCPUInstructionSets (OrigString: TCmdStr);
   var
     cpu : tcputype;
@@ -318,6 +336,17 @@ const
       Comment(V_Normal,hs);
       hs1:=''
      end;
+  end;
+
+  procedure ListCPUInstructionSetsXML;
+  var
+    cpu : tcputype;
+  begin
+    WriteLn(xmloutput,'    <cpuinstructionsets>');
+    for cpu:=low(tcputype) to high(tcputype) do
+      if CPUTypeStr [CPU] <> '' then
+        WriteLn(xmloutput,'      <cpuinstructionset name="',CPUTypeStr [CPU], '"/>');
+    WriteLn(xmloutput,'    </cpuinstructionsets>');
   end;
 
   procedure ListFPUInstructionSets (OrigString: TCmdStr);
@@ -358,6 +387,17 @@ const
      end;
   end;
 
+  procedure ListFPUInstructionSetsXML;
+  var
+    fpu : tfputype;
+  begin
+    WriteLn(xmloutput,'    <fpuinstructionsets>');
+    for fpu:=low(tfputype) to high(tfputype) do
+      if FPUTypeStr [fpu] <> '' then
+        WriteLn(xmloutput,'      <cpuinstructionset name="',FPUTypeStr [fpu], '"/>');
+    WriteLn(xmloutput,'    </fpuinstructionsets>');
+  end;
+
   procedure ListABITargets (OrigString: TCmdStr);
   var
     abi : tabi;
@@ -380,6 +420,21 @@ const
          end;
        end;
      end;
+  end;
+
+  procedure ListABITargetsXML;
+  var
+    abi : tabi;
+  begin
+    WriteLn(xmloutput,'    <abis>');
+    for abi:=low(abi) to high(abi) do
+     begin
+      if not abiinfo[abi].supported then
+        continue;
+      if abiinfo[abi].name<>'' then;
+        WriteLn(xmloutput,'      <abi name="',abiinfo[abi].name, '"/>');
+     end;
+    WriteLn(xmloutput,'    </abis>');
   end;
 
   procedure ListOptimizations (OrigString: TCmdStr);
@@ -405,6 +460,17 @@ const
          end;
        end;
      end;
+  end;
+
+  procedure ListOptimizationsXML;
+  var
+    opt: toptimizerswitch;
+  begin
+    WriteLn(xmloutput,'    <optimizations>');
+    for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
+      if OptimizerSwitchStr[opt]<>'' then
+        WriteLn(xmloutput,'      <optimization name="',OptimizerSwitchStr[opt],'"/>');
+    WriteLn(xmloutput,'    </optimizations>');
   end;
 
   procedure ListWPOptimizations (OrigString: TCmdStr);
@@ -434,6 +500,17 @@ const
      end;
   end;
 
+  procedure ListWPOptimizationsXML;
+  var
+    wpopt: twpoptimizerswitch;
+  begin
+    WriteLn(xmloutput,'    <wpoptimizations>');
+    for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+      if WPOptimizerSwitchStr[wpopt]<>'' then
+        WriteLn(xmloutput,'      <wpoptimization name="',WPOptimizerSwitchStr[wpopt],'"/>');
+    WriteLn(xmloutput,'    </wpoptimizations>');
+  end;
+
   procedure ListAsmModes (OrigString: TCmdStr);
   var
     asmmode : tasmmode;
@@ -455,6 +532,17 @@ const
          end;
        end;
      end;
+  end;
+
+  procedure ListAsmModesXML;
+  var
+    asmmode : tasmmode;
+  begin
+    WriteLn(xmloutput,'    <asmmodes>');
+    for asmmode:=low(tasmmode) to high(tasmmode) do
+      if assigned(asmmodeinfos[asmmode]) then
+        WriteLn(xmloutput,'        <asmmode name="',asmmodeinfos[asmmode]^.idtxt,'"/>');
+    WriteLn(xmloutput,'    </asmmodes>');
   end;
 
   procedure ListControllerTypes (OrigString: TCmdStr);
@@ -502,6 +590,24 @@ const
 {$POP}
   end;
 
+  procedure ListControllerTypesXML;
+  var
+    controllertype : tcontrollertype;
+  begin
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+    if (ControllerSupport) then
+     begin
+      WriteLn(xmloutput,'    <controllertypes>');
+      for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
+        if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+          WriteLn(xmloutput,'      <controllertype name="',embedded_controllers[controllertype].ControllerTypeStr,
+            '" controllerunit="',embedded_controllers[controllertype].controllerunitstr, '"/>');
+      WriteLn(xmloutput,'    </controllertypes>');
+     end;
+{$POP}
+  end;
+
   procedure ListFeatures (OrigString: TCmdStr);
   var
     Feature: TFeature;
@@ -538,6 +644,17 @@ const
       Comment (V_Normal, HS);
       HS1 := ''
      end;
+  end;
+
+  procedure ListFeaturesXML;
+  var
+    Feature: TFeature;
+  begin
+    WriteLn(xmloutput,'    <features>');
+    for Feature := Low (TFeature) to High (TFeature) do
+      if FeatureStr [Feature] <> '' then
+         WriteLn(xmloutput,'      <feature name="',FeatureStr [Feature],'"/>');
+    WriteLn(xmloutput,'    </features>');
   end;
 
   procedure ListModeswitches (OrigString: TCmdStr);
@@ -578,6 +695,17 @@ const
      end;
   end;
 
+  procedure ListModeswitchesXML;
+  var
+    Modeswitch: TModeswitch;
+  begin
+    WriteLn(xmloutput,'    <modeswitches>');
+    for Modeswitch:=Low(TModeswitch) to High(TModeswitch) do
+      if ModeswitchStr [Modeswitch]<>'' then
+        WriteLn(xmloutput,'      <modeswitch name="',ModeswitchStr [Modeswitch],'"/>');
+    WriteLn(xmloutput,'    </modeswitches>');
+  end;
+
   procedure ListCodeGenerationBackend (OrigString: TCmdStr);
     begin
       SplitLine (OrigString, CodeGenerationBackendPlaceholder, HS3);
@@ -590,6 +718,11 @@ const
           Replace(hs,CodeGenerationBackendPlaceholder,hs1);
           Comment(V_Normal,hs);
         end;
+    end;
+
+  procedure ListCodeGenerationBackendXML;
+    begin
+      WriteLn(xmloutput,'    <codegeneratorbackend>',cgbackend2str[cgbackend],'</codegeneratorbackend>');
     end;
 
 begin
@@ -627,31 +760,53 @@ begin
        Comment(V_Normal,s);
      end;
    end
+  else if Copy(More,1,1) = 'x' then
+    begin
+      Assign(xmloutput,Copy(More,2,length(More)-1));
+      Rewrite(xmloutput);
+      WriteLn(xmloutput,'<?xml version="1.0" encoding="utf-8"?>');
+      WriteLn(xmloutput,'<fpcoutput>');
+      WriteLn(xmloutput,'  <info>');
+      ListOSTargetsXML;
+      ListCPUInstructionSetsXML;
+      ListFPUInstructionSetsXML;
+      ListABITargetsXML;
+      ListOptimizationsXML;
+      ListWPOptimizationsXML;
+      ListModeswitchesXML;
+      ListAsmModesXML;
+      ListControllerTypesXML;
+      ListFeaturesXML;
+      ListCodeGenerationBackendXML;
+      WriteLn(xmloutput,'  </info>');
+      WriteLn(xmloutput,'</fpcoutput>');
+      Close(xmloutput);
+   end
   else
    begin
-    J := 1;
-    while J <= Length (More) do
-     begin
-      if J > 1 then
-       Comment(V_Normal,'');  (* Put empty line between multiple sections *)
-      case More [J] of
-       'a': ListABITargets ('');
-       'b': Comment(V_Normal, cgbackend2str[cgbackend]);
-       'c': ListCPUInstructionSets ('');
-       'f': ListFPUInstructionSets ('');
-       'i': ListAsmModes ('');
-       'm': ListModeswitches ('');
-       'o': ListOptimizations ('');
-       'r': ListFeatures ('');
-       't': ListOSTargets ('');
-       'u': ListControllerTypes ('');
-       'w': ListWPOptimizations ('');
-      else
-       IllegalPara ('-i' + More);
+     J := 1;
+     while J <= Length (More) do
+      begin
+       if J > 1 then
+        Comment(V_Normal,'');  (* Put empty line between multiple sections *)
+       case More [J] of
+        'a': ListABITargets ('');
+        'b': Comment(V_Normal, cgbackend2str[cgbackend]);
+        'c': ListCPUInstructionSets ('');
+        'f': ListFPUInstructionSets ('');
+        'i': ListAsmModes ('');
+        'm': ListModeswitches ('');
+        'o': ListOptimizations ('');
+        'r': ListFeatures ('');
+        't': ListOSTargets ('');
+        'u': ListControllerTypes ('');
+        'w': ListWPOptimizations ('');
+       else
+        IllegalPara ('-i' + More);
+       end;
+       Inc (J);
       end;
-      Inc (J);
-     end;
-   end;
+    end;
   StopOptions(0);
 end;
 
@@ -763,6 +918,9 @@ begin
 {$endif}
 {$ifdef z80}
       'Z',
+{$endif}
+{$ifdef wasm32}
+      'W',
 {$endif}
       '*' : show:=true;
      end;
@@ -1952,7 +2110,7 @@ begin
            'i' :
              begin
                if (More='') or
-                    (More [1] in ['a', 'b', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w']) then
+                    (More [1] in ['a', 'b', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w', 'x']) then
                  WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;
@@ -2603,6 +2761,13 @@ begin
                           IllegalPara(opt);
                       end;
 {$if defined(m68k)}
+                    'L':
+                      begin
+                        if (target_info.system in [system_m68k_sinclairql]) then
+                          sinclairql_vlink_experimental:=false
+                        else
+                          IllegalPara(opt);
+                      end;
                     'Q':
                       begin
                         if (target_info.system in [system_m68k_sinclairql]) then
@@ -3435,7 +3600,7 @@ begin
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
     system_m68k_sinclairql:
-      target_unsup_features:=[f_threading,f_dynlibs,f_commandargs,f_exitcode];
+      target_unsup_features:=[f_threading,f_dynlibs];
     system_z80_zxspectrum:
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     system_z80_msxdos:
@@ -3874,6 +4039,14 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
       {$endif z80}
 
+      {$ifdef wasm32}
+        def_system_macro('CPUWASM');
+        def_system_macro('CPUWASM32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif wasm32}
+
       {$if defined(cpu8bitalu)}
         def_system_macro('CPUINT8');
       {$elseif defined(cpu16bitalu)}
@@ -4285,10 +4458,10 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if ((cs_asm_leave in init_settings.globalswitches) and
-     (af_outputbinary in target_asm.flags)) or
-     { if -s is passed, we shouldn't call the internal assembler }
-     (cs_asm_extern in init_settings.globalswitches) then
+  if (af_outputbinary in target_asm.flags) and
+     ((cs_asm_leave in init_settings.globalswitches) or
+      { if -s is passed, we shouldn't call the internal assembler }
+      (cs_asm_extern in init_settings.globalswitches)) then
    begin
      Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
@@ -4499,6 +4672,20 @@ begin
     def_system_macro('CPUTHUMB2');
 {$endif arm}
 
+{$ifdef aarch64}
+  case target_info.system of
+    system_aarch64_darwin:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_armv84a;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_armv84a;
+      end;
+    else
+      ;
+  end;
+{$endif aarch64}
+
 {$if defined(riscv32) or defined(riscv64)}
   { RISC-V defaults }
   if (target_info.abi = abi_riscv_hf) then
@@ -4697,7 +4884,7 @@ begin
 
 { hardware FMA support }
 {$if defined(i386) or defined(x86_64)}
-  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+  if (fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
     begin
       def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
       def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');
@@ -4767,9 +4954,21 @@ begin
 
   { Default alignment settings,
     1. load the defaults for the target
-    2. override with generic optimizer setting (little size)
-    3. override with the user specified -Oa }
+    2. adapt defaults specifically for the target
+    3. override with generic optimizer setting (little size)
+    4. override with the user specified -Oa }
   UpdateAlignment(init_settings.alignment,target_info.alignment);
+
+{$ifdef arm}
+  if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
+   begin
+     init_settings.alignment.procalign:=2;
+     init_settings.alignment.jumpalign:=2;
+     init_settings.alignment.coalescealign:=2;
+     init_settings.alignment.loopalign:=2;
+   end;
+{$endif arm}
+
   if (cs_opt_size in init_settings.optimizerswitches) then
    begin
      init_settings.alignment.procalign:=1;

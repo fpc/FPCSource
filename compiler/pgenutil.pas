@@ -116,6 +116,9 @@ uses
         { integer ords are compatible with float }
         else if (param1.typ=orddef) and is_integer(param1) and (param2.typ=floatdef) then
           result:=true
+        { chars are compatible with stringdef }
+        else if (param1.typ=orddef) and is_char(param1) and (param2.typ=stringdef) then
+          result:=true
         { undefined def is compatible with all types }
         else if param2.typ=undefineddef then
           result:=true
@@ -813,6 +816,9 @@ uses
             st : TSymtable;
             i : longint;
           begin
+            { since commit 48986 deflist might have NIL entries }
+            if not assigned(def) then
+              exit;
             case def.typ of
               procdef:
                 tprocdef(def).forwarddef:=false;
