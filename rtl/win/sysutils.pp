@@ -1197,7 +1197,7 @@ begin
 end;
 
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
-  function FixSeparator(const FromSeparator, ToSeparator: Char; const Format: string): string;
+  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: Char): string;
   var
     R: PChar;
   begin
@@ -1208,7 +1208,7 @@ procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSett
     while R^<>#0 do
       begin
       if R^=FromSeparator then
-        R^:='/';
+        R^:=ToSeparator;
       Inc(R);
       end;
   end;
@@ -1233,8 +1233,8 @@ begin
         LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
         end;
       DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
-      ShortDateFormat := FixSeparator(DateSeparator, '/', GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy'));
-      LongDateFormat := FixSeparator(DateSeparator, '/', GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy'));
+      ShortDateFormat := FixSeparator(GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy'), DateSeparator, '/');
+      LongDateFormat := FixSeparator(GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy'), DateSeparator, '/');
       { Time stuff }
       TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
       TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
