@@ -335,7 +335,7 @@ begin
     ExportSettings.ExportFormat:=AccessCompatible;
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=false;
-    ExportSettings.DecimalSeparator:=char(''); //don't override
+    ExportSettings.DecimalSeparator:=#0; //don't override
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];
@@ -391,7 +391,7 @@ begin
     ExportSettings.ExportFormat:=AccessCompatible;
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=true;
-    ExportSettings.DecimalSeparator:=char(''); //don't override
+    ExportSettings.DecimalSeparator:=char(#0); //don't override
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];
