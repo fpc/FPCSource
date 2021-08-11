@@ -1089,8 +1089,8 @@ var
           else
             raise EConvertError.Create('Illegal character in format string');
         end ;
-        '/': StoreStr(@FormatSettings.DateSeparator, 1);
-        ':': StoreStr(@FormatSettings.TimeSeparator, 1);
+        '/': if FormatSettings.DateSeparator<>#0 then StoreStr(@FormatSettings.DateSeparator, 1);
+        ':': if FormatSettings.TimeSeparator<>#0 then StoreStr(@FormatSettings.TimeSeparator, 1);
         '[': if (fdoInterval in Options) then isInterval := true else StoreStr(FormatCurrent, 1);
         ']': if (fdoInterval in Options) then isInterval := false else StoreStr(FormatCurrent, 1);
         ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' {$IFDEF MSWindows}, 'G', 'E'{$ENDIF MSWindows} :
