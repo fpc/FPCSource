@@ -540,8 +540,6 @@ type
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     procedure CalcRecordSize;
     function  IntAllocRecordBuffer: TRecordBuffer;
-    procedure IntLoadFieldDefsFromPacket(aReader : TDataPacketReader);
-    procedure IntLoadRecordsFromPacket(aReader : TDataPacketReader);
     function  GetCurrentBuffer: TRecordBuffer;
     procedure CurrentRecordToBuffer(Buffer: TRecordBuffer);
     function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
@@ -551,7 +549,9 @@ type
     function GetActiveRecordUpdateBuffer : boolean;
     procedure CancelRecordUpdateBuffer(AUpdateBufferIndex: integer; var ABookmark: TBufBookmark);
     procedure ParseFilter(const AFilter: string);
-
+    // Packet handling
+    procedure IntLoadFieldDefsFromPacket(aReader : TDataPacketHandler); virtual;
+    procedure IntLoadRecordsFromPacket(aReader : TDataPacketHandler);  virtual;
     function GetBufUniDirectional: boolean;
     // indexes handling
     function GetIndexDefs : TIndexDefs;
@@ -661,8 +661,8 @@ type
       const ACaseInsFields: string = ''); virtual;
     procedure ClearIndexes;
 
-    procedure SetDatasetPacket(AReader : TDataPacketReader);
-    procedure GetDatasetPacket(AWriter : TDataPacketReader);
+    procedure SetDatasetPacket(AReader : TDataPacketHandler);
+    procedure GetDatasetPacket(AWriter : TDataPacketHandler);
     procedure LoadFromStream(AStream : TStream; Format: TDataPacketFormat = dfDefault);
     procedure SaveToStream(AStream : TStream; Format: TDataPacketFormat = dfBinary);
     procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfDefault);
@@ -3468,7 +3468,7 @@ begin
   Result := TBufBlobStream.Create(Field as TBlobField, Mode);
 end;
 
-procedure TCustomBufDataset.SetDatasetPacket(AReader: TDataPacketReader);
+procedure TCustomBufDataset.SetDatasetPacket(AReader: TDataPacketHandler);
 begin
   FPacketHandler := AReader;
   try
@@ -3478,7 +3478,7 @@ begin
   end;
 end;
 
-procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
+procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketHandler);
 
   procedure StoreUpdateBuffer(AUpdBuffer : TRecUpdateBuffer; var ARowState: TRowState);
   var AThisRowState : TRowState;
@@ -3699,7 +3699,7 @@ begin
     Result := -1;
 end;
 
-procedure TCustomBufDataset.IntLoadFieldDefsFromPacket(aReader : TDataPacketReader);
+procedure TCustomBufDataset.IntLoadFieldDefsFromPacket(aReader : TDataPacketHandler);
 
 begin
   FReadFromFile := True;
@@ -3711,7 +3711,7 @@ begin
     BindFields(true);
 end;
 
-procedure TCustomBufDataset.IntLoadRecordsFromPacket(aReader : TDataPacketReader);
+procedure TCustomBufDataset.IntLoadRecordsFromPacket(aReader : TDataPacketHandler);
 
 var
   SavedState      : TDataSetState;
