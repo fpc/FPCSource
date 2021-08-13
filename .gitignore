@@ -61,3 +61,4 @@ units
 !/tests/test/units
 bin/
 fpmake
+packages/fcl-db/tests/database.ini
