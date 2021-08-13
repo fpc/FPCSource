@@ -295,7 +295,7 @@ const
             fnstcw oldcw
             fldt d
             movw oldcw,%cx
-            orw $0x0c3f,%cx
+            orw $0x0c00,%cx
             movw %cx,newcw
             fldcw newcw
             fld %st
@@ -315,7 +315,7 @@ const
       asm
             fnstcw oldcw
             movw oldcw,%cx
-            orw $0x0c3f,%cx
+            orw $0x0c00,%cx
             movw %cx,newcw
             fldcw newcw
             fldt d
@@ -336,7 +336,7 @@ const
       asm
         fnstcw oldcw
         movw oldcw,%cx
-        orw $0x0c3f,%cx
+        orw $0x0c00,%cx
         movw %cx,newcw
         fldcw newcw
         fldt d
