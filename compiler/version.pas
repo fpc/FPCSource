@@ -91,7 +91,7 @@ function full_version_string:string;
 begin
   full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch
 {$ifdef REVINC}
-  +'-r'+{$i revision.inc}
+  +'-'+{$i revision.inc}
 {$endif REVINC}
   ;
 end;
