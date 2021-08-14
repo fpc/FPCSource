@@ -63,7 +63,9 @@ Type
     FOnError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
+    FSetupSocket : Boolean;
     FBuffer : Ansistring;
+    FKeepAlive : Boolean;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
@@ -81,6 +83,7 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
+    property KeepAlive: Boolean read FKeepAlive;
   end;
 
   { TFPHTTPConnectionThread }
@@ -525,6 +528,7 @@ end;
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
 begin
   FSocket:=ASocket;
+  FSetupSocket:=True;
   FServer:=AServer;
   If Assigned(FServer) then
     InterLockedIncrement(FServer.FConnectionCount)
@@ -555,7 +559,15 @@ Var
 
 begin
   Try
-    SetupSocket;
+    if FSetupSocket then
+    begin
+      SetupSocket;
+      FSetupSocket:=False;
+    end else
+    begin
+      if not Socket.CanRead(1000) then
+        Exit;
+    end;
     // Read headers.
     Req:=ReadRequestHeaders;
     try
@@ -565,6 +577,12 @@ begin
       If Req.ContentLength>0 then
         ReadRequestContent(Req);
       Req.InitRequestVars;
+      // Read out keep-alive
+      FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
+      if SameText(Req.GetHeader(hhConnection),'close') then
+        FKeepAlive:=False
+      else if SameText(Req.GetHeader(hhConnection),'keep-alive') then
+        FKeepAlive:=True;
       // Create Response
       Resp:= Server.CreateResponse(Req);
       try
@@ -574,7 +592,12 @@ begin
         if Server.Active then
           Server.HandleRequest(Req,Resp);
         if Assigned(Resp) and (not Resp.ContentSent) then
+          begin
+          // Add connection header for HTTP 1.0 keep-alive
+          if FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
+            Resp.SetHeader(hhConnection,'keep-alive');
           Resp.SendContent;
+          end;
       finally
         FreeAndNil(Resp);
       end;
@@ -609,7 +632,9 @@ procedure TFPHTTPConnectionThread.Execute;
 begin
   try
     try
-      FConnection.HandleRequest;
+      repeat
+        FConnection.HandleRequest;
+      until not (FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then

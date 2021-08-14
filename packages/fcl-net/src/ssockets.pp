@@ -99,6 +99,7 @@ type
     Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
     destructor Destroy; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+    Function CanRead(TimeOut : Integer): Boolean;
     Function Read (Var Buffer; Count : Longint) : longint; Override;
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
@@ -482,6 +483,18 @@ function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Result:=0;
+end;
+
+Function TSocketStream.CanRead (TimeOut : Integer) : Boolean;
+var
+  B: Byte;
+  lTM: Integer;
+begin
+  lTM := IOTimeout;
+  IOTimeout := TimeOut;
+  FHandler.Recv(B,0);
+  Result := FHandler.FLastError=0;
+  IOTimeout := lTM;
 end;
 
 Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
