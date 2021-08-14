@@ -65,7 +65,7 @@ Type
     FSocket: TSocketStream;
     FSetupSocket : Boolean;
     FBuffer : Ansistring;
-    FKeepAliveEnabled : Boolean;
+    FEnableKeepAlive : Boolean;
     FKeepAlive : Boolean;
     FKeepAliveTimeout : Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
@@ -85,8 +85,14 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
+<<<<<<< HEAD
     Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
     Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
+=======
+
+    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
+    Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
+>>>>>>> Remove the KeepAlive* properties from TFPCustomHttpServer, rename KeepAliveEnabled to EnableKeepAlive
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
     Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
     // is the current connection set up for KeepAlive?
@@ -136,8 +142,6 @@ Type
     FConnectionThreadList: TThreadList;
     FConnectionCount : Integer;
     FUseSSL: Boolean;
-    FKeepAliveEnabled: Boolean;
-    FKeepAliveTimeout: Integer;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
     function GetConnectionCount: Integer;
@@ -231,10 +235,13 @@ Type
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
+<<<<<<< HEAD
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
     Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
     Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
+=======
+>>>>>>> Remove the KeepAlive* properties from TFPCustomHttpServer, rename KeepAliveEnabled to EnableKeepAlive
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -586,7 +593,7 @@ begin
       If Req.ContentLength>0 then
         ReadRequestContent(Req);
       Req.InitRequestVars;
-      if KeepAliveEnabled then
+      if EnableKeepAlive then
         begin
         // Read out keep-alive
         FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
@@ -648,12 +655,12 @@ begin
   try
     try
       repeat
-        if not Terminated and Connection.EnableKeepAlive and Connection.KeepAlive
+      FConnection.HandleRequest;
+      if Connection.EnableKeepAlive and Connection.KeepAlive
         and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
           break;
-
-      FConnection.HandleRequest;
-      until not (not Terminated and FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+        FConnection.HandleRequest;
+      until not (FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
@@ -841,11 +848,7 @@ begin
     Con.FServer:=Self;
     Con.OnRequestError:=@HandleRequestError;
     if Threaded then
-      begin
-      Con.KeepAliveEnabled:=KeepAliveEnabled;
-      Con.KeepAliveTimeout:=KeepAliveTimeout;
-      CreateConnectionThread(Con);
-      end
+      CreateConnectionThread(Con)
     else
       begin
       Con.HandleRequest;
