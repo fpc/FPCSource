@@ -491,6 +491,8 @@ var
   B: Byte;
   lTM: Integer;
 begin
+  // ToDo: support properly with the socket select() function
+  // currently a workaround
   lTM := IOTimeout;
   IOTimeout := TimeOut;
   FHandler.Recv(B,0);
