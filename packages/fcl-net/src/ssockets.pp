@@ -497,7 +497,10 @@ begin
   IOTimeout := TimeOut;
   FHandler.Recv(B,0);
   Result := FHandler.FLastError=0;
-  IOTimeout := lTM;
+  try
+    IOTimeout := lTM;
+  except
+  end;
 end;
 
 Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
