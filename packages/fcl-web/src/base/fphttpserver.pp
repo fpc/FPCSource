@@ -569,7 +569,7 @@ begin
   Try
     if FSetupSocket then
       begin
-    SetupSocket;
+      SetupSocket;
       FSetupSocket:=False;
       end;
     // Read headers.
@@ -613,7 +613,10 @@ begin
     end;
   Except
     On E : Exception do
+      begin
+      FKeepAlive:=False; // don't keep alive connections that failed
       HandleRequestError(E);
+      end;
   end;
 end;
 
