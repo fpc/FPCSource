@@ -569,7 +569,7 @@ begin
   Try
     if FSetupSocket then
       begin
-      SetupSocket;
+    SetupSocket;
       FSetupSocket:=False;
       end;
     // Read headers.
@@ -644,8 +644,8 @@ begin
         and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
           break;
 
-        FConnection.HandleRequest;
-      until not (Terminated and FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+      FConnection.HandleRequest;
+      until not (not Terminated and FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
@@ -973,7 +973,7 @@ begin
     try
       for I:= ThreadList.Count-1 downto 0 do
         try
-          CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
+        CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
         except
           // ignore exceptions during CloseSocket
         end
