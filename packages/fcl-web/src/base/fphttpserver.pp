@@ -583,12 +583,15 @@ begin
       If Req.ContentLength>0 then
         ReadRequestContent(Req);
       Req.InitRequestVars;
-      // Read out keep-alive
-      FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
-      if SameText(Req.GetHeader(hhConnection),'close') then
-        FKeepAlive:=False
-      else if SameText(Req.GetHeader(hhConnection),'keep-alive') then
-        FKeepAlive:=True;
+      if KeepAliveSupport then
+        begin
+        // Read out keep-alive
+        FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
+        if SameText(Req.GetHeader(hhConnection),'close') then
+          FKeepAlive:=False
+        else if SameText(Req.GetHeader(hhConnection),'keep-alive') then
+          FKeepAlive:=True;
+        end;
       // Create Response
       Resp:= Server.CreateResponse(Req);
       try
@@ -600,7 +603,7 @@ begin
         if Assigned(Resp) and (not Resp.ContentSent) then
           begin
           // Add connection header for HTTP 1.0 keep-alive
-          if FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
+          if KeepAliveSupport and FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
             Resp.SetHeader(hhConnection,'keep-alive');
           Resp.SendContent;
           end;
