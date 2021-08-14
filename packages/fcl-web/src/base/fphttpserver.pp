@@ -572,7 +572,7 @@ begin
   Try
     if FSetupSocket then
       begin
-    SetupSocket;
+      SetupSocket;
       FSetupSocket:=False;
       end;
     // Read headers.
