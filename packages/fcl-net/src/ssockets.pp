@@ -491,16 +491,11 @@ var
   B: Byte;
   lTM: Integer;
 begin
-  // ToDo: support properly with the socket select() function
-  // currently a workaround
   lTM := IOTimeout;
   IOTimeout := TimeOut;
   FHandler.Recv(B,0);
   Result := FHandler.FLastError=0;
-  try
-    IOTimeout := lTM;
-  except
-  end;
+  IOTimeout := lTM;
 end;
 
 Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
