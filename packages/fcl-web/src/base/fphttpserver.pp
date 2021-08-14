@@ -65,7 +65,7 @@ Type
     FSocket: TSocketStream;
     FSetupSocket : Boolean;
     FBuffer : Ansistring;
-    FKeepAliveSupport : Boolean;
+    FKeepAliveEnabled : Boolean;
     FKeepAlive : Boolean;
     FKeepAliveTimeout : Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
@@ -85,7 +85,7 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
+    Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
     Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
     Property KeepAlive: Boolean read FKeepAlive;
   end;
@@ -133,7 +133,7 @@ Type
     FConnectionThreadList: TThreadList;
     FConnectionCount : Integer;
     FUseSSL: Boolean;
-    FKeepAliveSupport: Boolean;
+    FKeepAliveEnabled: Boolean;
     FKeepAliveTimeout: Integer;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
@@ -229,7 +229,7 @@ Type
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
 
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
+    Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
     Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
   end;
@@ -583,7 +583,7 @@ begin
       If Req.ContentLength>0 then
         ReadRequestContent(Req);
       Req.InitRequestVars;
-      if KeepAliveSupport then
+      if KeepAliveEnabled then
         begin
         // Read out keep-alive
         FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
@@ -603,7 +603,7 @@ begin
         if Assigned(Resp) and (not Resp.ContentSent) then
           begin
           // Add connection header for HTTP 1.0 keep-alive
-          if KeepAliveSupport and FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
+          if FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
             Resp.SetHeader(hhConnection,'keep-alive');
           Resp.SendContent;
           end;
@@ -642,12 +642,12 @@ begin
   try
     try
       repeat
-        if Connection.KeepAliveSupport and Connection.KeepAlive
+        if Connection.KeepAliveEnabled and Connection.KeepAlive
         and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
           break;
 
         FConnection.HandleRequest;
-      until not (FConnection.KeepAliveSupport and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+      until not (FConnection.KeepAliveEnabled and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
@@ -831,7 +831,7 @@ begin
     Con.OnRequestError:=@HandleRequestError;
     if Threaded then
       begin
-      Con.KeepAliveSupport:=KeepAliveSupport;
+      Con.KeepAliveEnabled:=KeepAliveEnabled;
       Con.KeepAliveTimeout:=KeepAliveTimeout;
       CreateConnectionThread(Con);
       end
