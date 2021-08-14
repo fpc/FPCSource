@@ -65,7 +65,9 @@ Type
     FSocket: TSocketStream;
     FSetupSocket : Boolean;
     FBuffer : Ansistring;
+    FKeepAliveSupport : Boolean;
     FKeepAlive : Boolean;
+    FKeepAliveTimeout : Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
@@ -83,7 +85,9 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-    property KeepAlive: Boolean read FKeepAlive;
+    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
+    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
+    Property KeepAlive: Boolean read FKeepAlive;
   end;
 
   { TFPHTTPConnectionThread }
@@ -129,6 +133,8 @@ Type
     FConnectionThreadList: TThreadList;
     FConnectionCount : Integer;
     FUseSSL: Boolean;
+    FKeepAliveSupport: Boolean;
+    FKeepAliveTimeout: Integer;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
     function GetHostName: string;
@@ -222,6 +228,10 @@ Type
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
 
+    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
+    Property KeepAliveSupport: Boolean read FKeepAliveSupport write FKeepAliveSupport;
+    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -560,14 +570,10 @@ Var
 begin
   Try
     if FSetupSocket then
-    begin
+      begin
       SetupSocket;
       FSetupSocket:=False;
-    end else
-    begin
-      if not Socket.CanRead(1000) then
-        Exit;
-    end;
+      end;
     // Read headers.
     Req:=ReadRequestHeaders;
     try
@@ -633,8 +639,12 @@ begin
   try
     try
       repeat
+        if Connection.KeepAliveSupport and Connection.KeepAlive
+        and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
+          break;
+
         FConnection.HandleRequest;
-      until not (FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+      until not (FConnection.KeepAliveSupport and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
@@ -817,7 +827,11 @@ begin
     Con.FServer:=Self;
     Con.OnRequestError:=@HandleRequestError;
     if Threaded then
-      CreateConnectionThread(Con)
+      begin
+      Con.KeepAliveSupport:=KeepAliveSupport;
+      Con.KeepAliveTimeout:=KeepAliveTimeout;
+      CreateConnectionThread(Con);
+      end
     else
       begin
       Con.HandleRequest;
