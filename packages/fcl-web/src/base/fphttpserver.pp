@@ -85,7 +85,6 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
     Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
