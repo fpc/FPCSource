@@ -7,20 +7,13 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, Classes, fphttpserver, fpmimetypes, testhttpserver, syncobjs, ssockets;
+  sysutils, Classes, fphttpserver, fpmimetypes, testhttpserver, syncobjs;
 
 Type
-  THTTPServer = class(TTestHTTPServer)
-  protected
-    function CreateConnection(Data: TSocketStream): TFPHTTPConnection; override;
-  public
-    Property ConnectionCount;
-  end;
-
   TServerThread = class(TThread)
   private
     FCSWriteln: TCriticalSection;
-    FServ : THTTPServer;
+    FServ : TTestHTTPServer;
     procedure ServOnIdle(Sender: TObject);
     procedure WriteInfo(S: string);
   public
@@ -47,15 +40,17 @@ begin
 
   FCSWriteln := TCriticalSection.Create;
 
-  FServ:=THTTPServer.Create(Nil);
+  FServ:=TTestHTTPServer.Create(Nil);
   FServ.BaseDir:=ExtractFilePath(ParamStr(0));
 {$ifdef unix}
   FServ.MimeTypesFile:='/etc/mime.types';
 {$endif}
   FServ.Threaded:=True;
+  FServ.KeepAliveEnabled:=True;
+  FServ.KeepAliveTimeout:=60*1000;
   FServ.Port:=8080;
   FServ.WriteInfo := @WriteInfo;
-  FServ.AcceptIdleTimeout := 1000;
+  FServ.AcceptIdleTimeout := 500;
   FServ.OnAcceptIdle := @ServOnIdle;
 end;
 
