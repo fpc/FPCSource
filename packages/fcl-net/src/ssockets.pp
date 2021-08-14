@@ -477,6 +477,7 @@ end;
 Procedure TSocketStream.SetSocketOptions(Value : TSocketOptions);
 
 begin
+  FSocketOptions:=Value;
 end;
 
 function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
