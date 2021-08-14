@@ -7,13 +7,18 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, Classes, fphttpserver, fpmimetypes, testhttpserver, syncobjs;
+  sysutils, Classes, fphttpserver, fpmimetypes, testhttpserver, syncobjs, ssockets;
 
 Type
+  THTTPServer = class(TTestHTTPServer)
+  protected
+    function CreateConnection(Data: TSocketStream): TFPHTTPConnection; override;
+  end;
+
   TServerThread = class(TThread)
   private
     FCSWriteln: TCriticalSection;
-    FServ : TTestHTTPServer;
+    FServ : THTTPServer;
     procedure ServOnIdle(Sender: TObject);
     procedure WriteInfo(S: string);
   public
@@ -21,6 +26,16 @@ Type
     constructor Create(CreateSuspended: Boolean; const StackSize: SizeUInt = DefaultStackSize);
     destructor Destroy; override;
   end;
+
+{ THTTPServer }
+
+function THTTPServer.CreateConnection(Data: TSocketStream): TFPHTTPConnection;
+begin
+  Result := inherited CreateConnection(Data);
+  Result.Socket.IOTimeout := 15*1000;
+  Result.EnableKeepAlive := True;
+  Result.KeepAliveTimeout := 60*1000;
+end;
 
 { TServerThread }
 
@@ -30,14 +45,12 @@ begin
 
   FCSWriteln := TCriticalSection.Create;
 
-  FServ:=TTestHTTPServer.Create(Nil);
+  FServ:=THTTPServer.Create(Nil);
   FServ.BaseDir:=ExtractFilePath(ParamStr(0));
 {$ifdef unix}
   FServ.MimeTypesFile:='/etc/mime.types';
 {$endif}
   FServ.Threaded:=True;
-  FServ.KeepAliveEnabled:=True;
-  FServ.KeepAliveTimeout:=60*1000;
   FServ.Port:=8080;
   FServ.WriteInfo := @WriteInfo;
   FServ.AcceptIdleTimeout := 500;
