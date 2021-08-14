@@ -639,12 +639,12 @@ begin
   try
     try
       repeat
-        if Connection.EnableKeepAlive and Connection.KeepAlive
+        if not Terminated and Connection.EnableKeepAlive and Connection.KeepAlive
         and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
           break;
 
         FConnection.HandleRequest;
-      until not (FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
+      until not (Terminated and FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
     finally
       FreeAndNil(FConnection);
       if Assigned(FThreadList) then
@@ -966,7 +966,11 @@ begin
     ThreadList:=FConnectionThreadList.LockList;
     try
       for I:= ThreadList.Count-1 downto 0 do
-        CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
+        try
+          CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
+        except
+          // ignore exceptions during CloseSocket
+        end
     finally
       FConnectionThreadList.UnlockList;
     end;
