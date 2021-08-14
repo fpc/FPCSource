@@ -139,6 +139,7 @@ Type
     FUseSSL: Boolean;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
+    function GetConnectionCount: Integer;
     function GetHostName: string;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
@@ -188,7 +189,7 @@ Type
     // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     // Connection count
-    Property ConnectionCount : Integer Read FConnectionCount;
+    Property ConnectionCount : Integer Read GetConnectionCount;
   public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -682,6 +683,11 @@ begin
     Result:=FLoadActivate
   else
     Result:=Assigned(FServer);
+end;
+
+function TFPCustomHttpServer.GetConnectionCount: Integer;
+begin
+  Result := InterlockedExchangeAdd(FConnectionCount, 0);
 end;
 
 procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
