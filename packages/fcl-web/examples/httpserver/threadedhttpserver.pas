@@ -13,6 +13,8 @@ Type
   THTTPServer = class(TTestHTTPServer)
   protected
     function CreateConnection(Data: TSocketStream): TFPHTTPConnection; override;
+  public
+    Property ConnectionCount;
   end;
 
   TServerThread = class(TThread)
@@ -53,7 +55,7 @@ begin
   FServ.Threaded:=True;
   FServ.Port:=8080;
   FServ.WriteInfo := @WriteInfo;
-  FServ.AcceptIdleTimeout := 500;
+  FServ.AcceptIdleTimeout := 1000;
   FServ.OnAcceptIdle := @ServOnIdle;
 end;
 
