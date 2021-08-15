@@ -378,6 +378,12 @@ Type
   end;
 
   EHTTPClient = Class(EHTTP);
+  // socket stream exceptions
+  EHTTPClientStream = class(EHTTPClient);
+  // reading from socket
+  EHTTPClientStreamRead = Class(EHTTPClientStream);
+  // writing to socket
+  EHTTPClientStreamWrite = Class(EHTTPClientStream);
 
 Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
@@ -387,6 +393,7 @@ implementation
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
   SErrReadingSocket = 'Error reading data from socket';
+  SErrWritingSocket = 'Error writing data to socket';
   SErrInvalidProtocolVersion = 'Invalid protocol version in response: "%s"';
   SErrInvalidStatusCode = 'Invalid response status code: %s';
   SErrUnexpectedResponse = 'Unexpected response status code: %d';
@@ -736,10 +743,15 @@ begin
   FSentCookies:=FCookies;
   FCookies:=Nil;
   S:=S+CRLF;
-  if not Terminated then
-    FSocket.WriteBuffer(S[1],Length(S));
-  If Assigned(FRequestBody) and not Terminated then
-    FSocket.CopyFrom(FRequestBody,FRequestBody.Size);
+  try
+    if not Terminated then
+      FSocket.WriteBuffer(S[1],Length(S));
+    If Assigned(FRequestBody) and not Terminated then
+      FSocket.CopyFrom(FRequestBody,FRequestBody.Size);
+  except
+    on E: EWriteError do
+      raise EHTTPClientStreamWrite.Create(SErrWritingSocket);
+  end;
 end;
 
 function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
@@ -757,7 +769,7 @@ function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
     If (r=0) or Terminated Then
       Exit(False);
     If (r<0) then
-      Raise EHTTPClient.Create(SErrReadingSocket);
+      Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
     FDataRead:=FDataRead+R;
@@ -1031,7 +1043,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
   begin
     Result:=FSocket.Read(FBuffer[1],LB);
     If Result<0 then
-      Raise EHTTPClient.Create(SErrReadingSocket);
+      Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
     if (Result>0) then
       begin
       FDataRead:=FDataRead+Result;
@@ -1065,7 +1077,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
       SetLength(FBuffer,ReadBuflen);
       Cnt:=FSocket.Read(FBuffer[1],length(FBuffer));
       If Cnt<0 then
-        Raise EHTTPClient.Create(SErrReadingSocket);
+        Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
       SetLength(FBuffer,Cnt);
       BufPos:=1;
       Result:=Cnt>0;
@@ -1280,14 +1292,23 @@ begin
     If Not IsConnected Then
       ConnectToServer(CHost,CPort,AIsHttps);
     Try
-      if not Terminated then
+      if Terminated then
+        break;
+      try
         SendRequest(AMethod,AURI);
-      if not Terminated then
-        begin
+        if Terminated then
+          break;
         T := ReadResponse(AStream,AAllowedResponseCodes,AHeadersOnly);
-        If Not T Then
-          ReconnectToServer(CHost,CPort,AIsHttps);
+      except
+        on E: EHTTPClientStream do
+        begin
+          // failed socket stream operations raise exceptions - e.g. if ReadString() fails
+          // try to reconnect also in this case
+          T:=False;
         end;
+      end;
+      If Not T Then
+        ReconnectToServer(CHost,CPort,AIsHttps);
     Finally
       // On terminate, we close the request
       If HasConnectionClose or Terminated Then
