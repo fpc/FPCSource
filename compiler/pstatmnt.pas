@@ -1085,7 +1085,13 @@ implementation
 
          { Mark procedure that it has assembler blocks }
          include(current_procinfo.flags,pi_has_assembler_block);
-
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+         { We assume the function result is always used in the TP mode }
+         if (m_tp7 in current_settings.modeswitches) and
+            not (po_assembler in current_procinfo.procdef.procoptions) and
+            assigned(current_procinfo.procdef.funcretsym) then
+           current_procinfo.procdef.funcretsym.IncRefCount;
+{$endif}
          { Read first the _ASM statement }
          consume(_ASM);
 
