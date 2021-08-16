@@ -797,7 +797,7 @@ implementation
                      end;
                    _PUBLISHED :
                      begin
-                       Message(parser_e_no_record_published);
+                        Message(parser_e_no_record_published);
                        consume(_PUBLISHED);
                        current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
@@ -1048,7 +1048,9 @@ implementation
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
          maybe_insert_generic_rename_symbol(n,genericlist);
-
+         { apply $RTTI directive to current object }
+         current_structdef.apply_rtti_directive(current_module.rtti_directive);
+         
          if m_advanced_records in current_settings.modeswitches then
            begin
              parse_record_members(recsym);

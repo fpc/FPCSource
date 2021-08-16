@@ -143,7 +143,6 @@ interface
          function getcopyuntil(finalst: TSymtable): TSymtablestack;
        end;
 
-
     var
        initialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                             given on the command line. Is common

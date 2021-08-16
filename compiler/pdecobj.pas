@@ -1614,6 +1614,9 @@ implementation
               end
             else
               olddef:=nil;
+              
+            { apply $RTTI directive to current object }
+            current_structdef.apply_rtti_directive(current_module.rtti_directive);
 
             { parse and insert object members }
             parse_object_members;

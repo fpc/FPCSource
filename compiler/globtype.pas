@@ -884,6 +884,31 @@ interface
   const
     ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
 
+  { extended rtti directive }
+  type
+    trtti_clause = (
+      rtc_none,
+      rtc_inherit,
+      rtc_explicit
+    );
+    trtti_visibility = (
+      rv_private,
+      rv_protected,
+      rv_public,
+      rv_published
+    );
+    trtti_visibilities = set of trtti_visibility;
+    prtti_visibilities = ^trtti_visibilities;
+    trtti_option = (
+     ro_methods,
+     ro_fields,
+     ro_properties
+    );
+    trtti_directive = record
+      clause: trtti_clause;
+      options: array[trtti_option] of trtti_visibilities;
+    end;
+
 implementation
 
 end.
