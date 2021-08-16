@@ -67,11 +67,14 @@ Type
   private
     FDataRead : Int64;
     FContentLength : Int64;
+    FRequestDataWritten : Int64;
+    FRequestContentLength : Int64;
     FAllowRedirect: Boolean;
     FKeepConnection: Boolean;
     FMaxChunkSize: SizeUInt;
     FMaxRedirects: Byte;
     FOnDataReceived: TDataEvent;
+    FOnDataSent: TDataEvent;
     FOnHeaders: TNotifyEvent;
     FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
@@ -130,12 +133,18 @@ Type
     Function CreateProxyData : TProxyData;
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
+    // Called whenever data is written.
+    Procedure DoDataWrite; virtual;
     // Parse response status line. Saves status text and protocol, returns numerical code. Exception if invalid line.
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
     function GetServerURL(URI: TURI): String;
     // Read 1 line of response. Fills FBuffer
     function ReadString(out S: String): Boolean;
+    // Write string
+    function WriteString(S: String): Boolean;
+    // Write the request body
+    function WriteRequestBody: Boolean;
     // Check if response code is in AllowedResponseCodes. if not, an exception is raised.
     // If AllowRedirect is true, and the result is a Redirect status code, the result is also true
     // If the OnPassword event is set, then a 401 will also result in True.
@@ -336,6 +345,8 @@ Type
     Property OnPassword : TPasswordEvent Read FOnPassword Write FOnPassword;
     // Called whenever data is read from the connection.
     Property OnDataReceived : TDataEvent Read FOnDataReceived Write FOnDataReceived;
+    // Called whenever data is written to the connection.
+    Property OnDataSent : TDataEvent Read FOnDataSent Write FOnDataSent;
     // Called when headers have been processed.
     Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
     // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
@@ -368,6 +379,7 @@ Type
     Property Password;
     Property OnPassword;
     Property OnDataReceived;
+    Property OnDataSent;
     Property OnHeaders;
     Property OnGetSocketHandler;
     Property Proxy;
@@ -378,12 +390,12 @@ Type
   end;
 
   EHTTPClient = Class(EHTTP);
-  // socket stream exceptions
-  EHTTPClientStream = class(EHTTPClient);
+  // client socket exceptions
+  EHTTPClientSocket = class(EHTTPClient);
   // reading from socket
-  EHTTPClientStreamRead = Class(EHTTPClientStream);
+  EHTTPClientSocketRead = Class(EHTTPClientSocket);
   // writing to socket
-  EHTTPClientStreamWrite = Class(EHTTPClientStream);
+  EHTTPClientSocketWrite = Class(EHTTPClientSocket);
 
 Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
@@ -562,6 +574,12 @@ procedure TFPCustomHTTPClient.DoDataRead;
 begin
   If Assigned(FOnDataReceived) Then
     FOnDataReceived(Self,FContentLength,FDataRead);
+end;
+
+procedure TFPCustomHTTPClient.DoDataWrite;
+begin
+  If Assigned(FOnDataSent) Then
+    FOnDataSent(Self,FRequestContentLength,FRequestDataWritten);
 end;
 
 function TFPCustomHTTPClient.IndexOfHeader(const AHeader: String): Integer;
@@ -743,15 +761,15 @@ begin
   FSentCookies:=FCookies;
   FCookies:=Nil;
   S:=S+CRLF;
-  try
-    if not Terminated then
-      FSocket.WriteBuffer(S[1],Length(S));
-    If Assigned(FRequestBody) and not Terminated then
-      FSocket.CopyFrom(FRequestBody,0);
-  except
-    on E: EWriteError do
-      raise EHTTPClientStreamWrite.Create(SErrWritingSocket);
-  end;
+  if Assigned(FRequestBody) then
+    FRequestContentLength:=FRequestBody.Size
+  else
+    FRequestContentLength:=0;
+  FRequestDataWritten:=0;
+  if not Terminated and not WriteString(S) then
+    raise EHTTPClientSocketWrite.Create(SErrWritingSocket);
+  if not Terminated and Assigned(FRequestBody) and not WriteRequestBody then
+    raise EHTTPClientSocketWrite.Create(SErrWritingSocket);
 end;
 
 function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
@@ -769,7 +787,7 @@ function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
     If (r=0) or Terminated Then
       Exit(False);
     If (r<0) then
-      Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
+      Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
     if (r<ReadBuflen) then
       SetLength(FBuffer,r);
     FDataRead:=FDataRead+R;
@@ -822,6 +840,68 @@ begin
         end;
       end;
   until Result or Terminated;
+end;
+
+function TFPCustomHTTPClient.WriteString(S: String): Boolean;
+var
+  r,t : Longint;
+
+begin
+  if S='' then
+    Exit(True);
+
+  T:=0;
+  Repeat
+     r:=FSocket.Write(S[t+1],Length(S)-t);
+     inc(t,r);
+     DoDataWrite;
+  Until Terminated or (t=Length(S)) or (r<=0);
+
+  Result := t=Length(S);
+end;
+
+function TFPCustomHTTPClient.WriteRequestBody: Boolean;
+var
+   Buffer: Pointer;
+   BufferSize, i,t,w: LongInt;
+   s, SourceSize: int64;
+
+const
+   MaxSize = $20000;
+begin
+   if not Assigned(FRequestBody) or (FRequestBody.Size=0) then
+    Exit(True);
+
+   FRequestBody.Position:=0;   // This WILL fail for non-seekable streams...
+   BufferSize:=MaxSize;
+   SourceSize:=FRequestBody.Size;
+   if (SourceSize<BufferSize) then
+     BufferSize:=SourceSize;    // do not allocate more than needed
+
+   s:=0;
+   GetMem(Buffer,BufferSize);
+   try
+     repeat
+       i:=FRequestBody.Read(buffer^,BufferSize);
+       if i>0 then
+       begin
+         T:=0;
+         Repeat
+           w:=FSocket.Write(PByte(Buffer)[t],i-t);
+           FRequestDataWritten:=FRequestDataWritten+w;
+           DoDataWrite;
+           inc(t,w);
+         Until Terminated or (t=i) or (w<=0);
+         if t<>i then
+           Exit(False);
+         Inc(s,i);
+       end;
+     until Terminated or (s=SourceSize) or (i<=0);
+   finally
+     FreeMem(Buffer);
+   end;
+
+   Result:=s=SourceSize;
 end;
 
 Function GetNextWord(Var S : String) : string;
@@ -1043,7 +1123,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
   begin
     Result:=FSocket.Read(FBuffer[1],LB);
     If Result<0 then
-      Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
+      Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
     if (Result>0) then
       begin
       FDataRead:=FDataRead+Result;
@@ -1077,7 +1157,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
       SetLength(FBuffer,ReadBuflen);
       Cnt:=FSocket.Read(FBuffer[1],length(FBuffer));
       If Cnt<0 then
-        Raise EHTTPClientStreamRead.Create(SErrReadingSocket);
+        Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
       SetLength(FBuffer,Cnt);
       BufPos:=1;
       Result:=Cnt>0;
@@ -1300,9 +1380,9 @@ begin
           break;
         T := ReadResponse(AStream,AAllowedResponseCodes,AHeadersOnly);
       except
-        on E: EHTTPClientStream do
+        on E: EHTTPClientSocket do
         begin
-          // failed socket stream operations raise exceptions - e.g. if ReadString() fails
+          // failed socket operations raise exceptions - e.g. if ReadString() fails
           // try to reconnect also in this case
           T:=False;
         end;
