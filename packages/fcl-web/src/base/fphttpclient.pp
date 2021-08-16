@@ -1387,7 +1387,7 @@ begin
           T:=False;
         end;
       end;
-      If Not T Then
+      If Not T and Not Terminated Then
         ReconnectToServer(CHost,CPort,AIsHttps);
     Finally
       // On terminate, we close the request
