@@ -41,23 +41,23 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="testjsonparser.pp"/>
+        <Filename Value="testjsonparser.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="testjsondata.pp"/>
+        <Filename Value="testjsondata.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="testjsonrtti.pp"/>
+        <Filename Value="testjsonrtti.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../src/fpjsonrtti.pp"/>
+        <Filename Value="../src/fpjsonrtti.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
       <Unit5>
-        <Filename Value="testjsonreader.pp"/>
+        <Filename Value="testjsonreader.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit5>
     </Units>
