@@ -478,6 +478,7 @@ begin
     if (P>0) then
       begin
       Move(FBuffer[1],S[1],P);
+      FBuffer:='';
       L:=L-P;
       end;
     P:=P+1;
