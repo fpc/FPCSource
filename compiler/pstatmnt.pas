@@ -1161,6 +1161,8 @@ implementation
             else
               def:=sizesinttype;
           end;
+          if cv.uvalue>get_max_value(def).uvalue then
+            def:=get_unsigned_inttype(def);
           adaptrange(def,cv,rc_implicit);
           result:=cv.svalue;
         end;
@@ -1239,7 +1241,7 @@ implementation
                     begin
                       { Address of the static symbol or base offset for local symbols }
                       consume(_ID);
-                      if (sym.typ=staticvarsym) and (actype<>aitconst_128bit) then
+                      if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
                         Message1(type_e_integer_expr_expected,sym.name);
                       { Additional offset }
                       if token in [_PLUS,_MINUS] then
