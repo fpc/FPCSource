@@ -1,3 +1,4 @@
+{ %OPT=-Sc }
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2014 by Michael Van Canneyt
