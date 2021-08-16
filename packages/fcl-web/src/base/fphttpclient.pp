@@ -747,7 +747,7 @@ begin
     if not Terminated then
       FSocket.WriteBuffer(S[1],Length(S));
     If Assigned(FRequestBody) and not Terminated then
-      FSocket.CopyFrom(FRequestBody,FRequestBody.Size);
+      FSocket.CopyFrom(FRequestBody,0);
   except
     on E: EWriteError do
       raise EHTTPClientStreamWrite.Create(SErrWritingSocket);
