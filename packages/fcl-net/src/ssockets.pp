@@ -879,20 +879,30 @@ begin
 end;
 
 Function  TInetServer.SockToStream (ASocket : Longint) : TSocketStream;
-
 Var
   H : TSocketHandler;
+  A : Boolean;
+
+  procedure ShutDownH;
+  begin
+    H.Shutdown(False);
+    FreeAndNil(Result);
+  end;
 
 begin
   H:=GetClientSocketHandler(aSocket);
   Result:=TInetSocket.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
-  if Not H.Accept then
-    begin
-    H.Shutdown(False);
-    FreeAndNil(Result);
-    end;
+
+  try
+    A:=H.Accept;
+  except
+    ShutDownH;
+    raise;
+  end;
+  if Not A then
+    ShutDownH;
 end;
 
 Function TInetServer.Accept : Longint;
