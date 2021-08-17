@@ -43,6 +43,7 @@ a.out
 *.lpi
 !/compiler/ppc*.pas
 /compiler/*/pp
+/compiler/revision.inc
 /compiler/utils/fpc
 /compiler/utils/msg2inc
 /compiler/utils/mka64ins
