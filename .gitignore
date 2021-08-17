@@ -39,6 +39,7 @@ lazbuild
 *.wpo
 a.out
 /compiler/ppc*
+/compiler/gppc*
 !/compiler/ppc*.lpi
 *.lpi
 !/compiler/ppc*.pas
