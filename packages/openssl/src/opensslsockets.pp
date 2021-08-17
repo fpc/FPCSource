@@ -22,6 +22,7 @@ Type
     Function FetchErrorInfo: Boolean;
     function CheckSSL(SSLResult: Integer): Boolean;
     function CheckSSL(SSLResult: Pointer): Boolean;
+    function CreateSSLContext(AType: TSSLType): TSSLContext; virtual;
     function InitContext(NeedCertificate: Boolean): Boolean; virtual;
     function DoneContext: Boolean; virtual;
     function InitSslKeys: boolean;virtual;
@@ -49,6 +50,8 @@ implementation
 { TSocketHandler }
 Resourcestring
   SErrNoLibraryInit = 'Could not initialize OpenSSL library';
+  SErrCouldNotCreateSelfSignedCertificate = 'Failed to create self-signed certificate';
+  SErrCouldNotInitSSLKeys = 'Failed to initialize SSL keys';
 
 Procedure MaybeInitSSLInterface;
 
@@ -61,6 +64,11 @@ end;
 function TopenSSLSocketHandler.CreateCertGenerator: TX509Certificate;
 begin
   Result:=TOpenSSLX509Certificate.Create;
+end;
+
+function TOpenSSLSocketHandler.CreateSSLContext(AType: TSSLType): TSSLContext;
+begin
+  Result := TSSLContext.Create(AType);
 end;
 
 procedure TOpenSSLSocketHandler.SetSSLLastErrorString(AValue: string);
@@ -215,11 +223,10 @@ begin
   if Not Result then
     Exit;
   try
-    FCTX:=TSSLContext.Create(SSLType);
+    FCTX:=CreateSSLContext(SSLType);
   Except
     CheckSSL(Nil);
-    Result:=False;
-    Exit;
+    raise;
   end;
   S:=CertificateData.CipherList;
   FCTX.SetCipherList(S);
@@ -230,12 +237,12 @@ begin
     if Not CreateSelfSignedCertificate then
       begin
       DoneContext;
-      Exit(False);
+      raise ESSL.Create(SErrCouldNotCreateSelfSignedCertificate);
       end;
    if Not InitSSLKeys then
      begin
      DoneContext;
-     Exit(False);
+     raise ESSL.Create(SErrCouldNotInitSSLKeys);
      end;
    try
      FSSL:=TSSL.Create(FCTX);
@@ -243,7 +250,7 @@ begin
    Except
      CheckSSL(Nil);
      DoneContext;
-     Result:=False;
+     raise;
    end;
 end;
 
