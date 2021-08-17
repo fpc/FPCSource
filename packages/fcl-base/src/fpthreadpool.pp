@@ -851,6 +851,8 @@ end;
 
 function TFPCustomSimpleThreadPool.AddTask(aTask: TThreadPoolTask): Boolean;
 begin
+  While ThreadCount<MinThreads do
+    FTaskList.AddThread;
   CheckQueuedTasks;
   Result:=DoAddTask(aTask);
   if (not Result) and QueueTasks then
