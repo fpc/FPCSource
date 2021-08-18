@@ -67,7 +67,7 @@ Type
     FSocket: TSocketStream;
     FSetupSocket : Boolean;
     FBuffer : Ansistring;
-    FEnableKeepAlive : Boolean;
+    FKeepAliveEnabled : Boolean;
     FKeepAlive : Boolean;
     FKeepAliveTimeout : Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
@@ -88,8 +88,9 @@ Type
     Property Server : TFPCustomHTTPServer Read FServer;
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
     Property LookupHostNames : Boolean Read GetLookupHostNames;
+
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
+    Property KeepAliveEnabled : Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
     Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
     // is the current connection set up for KeepAlive?
@@ -219,7 +220,8 @@ Type
     FAdminName: string;
     FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
-    FEnableKeepAlive: Boolean;
+    FKeepAliveEnabled: Boolean;
+    FKeepAliveTimeout: Integer;
     FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
@@ -306,7 +308,9 @@ Type
     // Port to listen on.
     Property Port : Word Read FPort Write SetPort Default 80;
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property EnableKeepAlive: Boolean read FEnableKeepAlive write FEnableKeepAlive;
+    Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
+    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read FQueueSize Write SetQueueSize Default 5;
     // Called when deciding whether to accept a connection.
@@ -339,10 +343,6 @@ Type
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
-    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
-    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
-    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -356,6 +356,8 @@ Type
     Property OnRequestError;
     Property OnAcceptIdle;
     Property AcceptIdleTimeout;
+    Property KeepaliveEnabled;
+    Property KeepaliveTimeout;
   end;
 
   EHTTPServer = Class(EHTTP);
@@ -882,7 +884,7 @@ begin
       If Req.ContentLength>0 then
         ReadRequestContent(Req);
       Req.InitRequestVars;
-      if EnableKeepAlive then
+      if KeepAliveEnabled then
         begin
         // Read out keep-alive
         FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
@@ -931,7 +933,7 @@ procedure TFPHTTPConnectionThread.Execute;
 
   Function AllowReading : Boolean; // inline;
   begin
-    Result:=not Terminated and Connection.EnableKeepAlive and Connection.KeepAlive
+    Result:=not Terminated and Connection.KeepAliveEnabled and Connection.KeepAlive
   end;
 
 begin
@@ -1158,7 +1160,8 @@ begin
   Con:=CreateConnection(Data);
   Con.FServer:=Self;
   Con.OnRequestError:=@HandleRequestError;
-  Con.EnableKeepAlive:=Self.EnableKeepAlive;
+  Con.KeepAliveEnabled:=Self.KeepAliveEnabled;
+  Con.KeepAliveTimeout:=Self.KeepAliveTimeout;
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1224,6 +1227,8 @@ begin
   FQueueSize:=5;
   FServerBanner := 'FreePascal';
   FCertificateData:=CreateCertificateData;
+  FKeepAliveEnabled:=False;
+  FKeepAliveTimeout:=DefaultKeepaliveTimeout;
 end;
 
 
