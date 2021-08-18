@@ -26,7 +26,7 @@ Var
 
 procedure THTTPServer.DoIdle(Sender: TObject);
 begin
-  Writeln('Idle, waiting for connections');
+  // Writeln('Idle, waiting for connections');
 end;
 
 procedure THTTPServer.DoWriteInfo(S: string);
@@ -56,7 +56,7 @@ begin
     Serv.MimeTypesFile:='/etc/mime.types';
     {$endif}
     Serv.ThreadMode:=tmThreadPool;
-    Serv.AcceptIdleTimeout:=1000;
+    Serv.AcceptIdleTimeout:=10;
     Serv.OnAcceptIdle:=@Serv.DoIdle;
     Serv.WriteInfo:=@Serv.DoWriteInfo;
     Serv.KeepAliveEnabled:=True;
