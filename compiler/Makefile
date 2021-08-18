@@ -575,7 +575,7 @@ ifneq ($(wildcard ../.git),)
 ifneq ($(GIT),)
 GITDESCRIBE=$(shell $(GIT) describe --dirty)
 REVSTR:=$(word 2,$(subst -, ,$(GITDESCRIBE)))-$(word 3,$(subst -, ,$(GITDESCRIBE)))
-ifneq (git log @{u}..,)
+ifneq ($(shell $(GIT) log @{u}..),)
 REVSTR:=$(REVSTR)-unpushed
 endif
 ifneq ($(word 4,$(subst -, ,$(GITDESCRIBE))),)
