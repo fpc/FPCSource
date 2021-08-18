@@ -77,7 +77,7 @@ begin
     try
       CheckMimeLoaded;
       AResponse.ContentType:=MimeTypes.GetMimeType(ExtractFileExt(FN));
-      WriteInfo('Serving file: "'+Fn+'". Reported Mime type: '+AResponse.ContentType);
+      WriteInfo('Connection ('+aRequest.Connection.ConnectionID+') - Request ['+aRequest.RequestID+']: Serving file: "'+Fn+'". Reported Mime type: '+AResponse.ContentType);
       AResponse.ContentLength:=F.Size;
       AResponse.ContentStream:=F;
       AResponse.SendContent;

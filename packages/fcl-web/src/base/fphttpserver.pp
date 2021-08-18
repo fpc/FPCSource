@@ -62,7 +62,10 @@ Type
 
   TFPHTTPConnection = Class(TObject)
   private
+    Class var _ConnectionCount : Int64;
+  private
     FBusy: Boolean;
+    FConnectionID: String;
     FOnError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
@@ -75,12 +78,21 @@ Type
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
   Protected
+    // Allocate the ID for this connection.
+    Procedure AllocateConnectionID;
+    // Read the request content
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
+    // Allow descendents to handle unknown headers
     procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
+    // Handle request error, calls OnRequestError
     procedure HandleRequestError(E : Exception); virtual;
+    // Setup socket
     Procedure SetupSocket; virtual;
+    // Mark connection as busy with request
     Procedure SetBusy;
+    // Actually handle request
     procedure DoHandleRequest; virtual;
+    // Read request headers
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
     // Check if we have keep-alive and no errors occured
     Function AllowNewRequest : Boolean;
@@ -89,14 +101,24 @@ Type
     // True if we're handling a request. Needed to be able to schedule properly.
     Property Busy : Boolean Read FBusy;
   Public
+    Type
+      TConnectionIDAllocator = Procedure(out aID : String) of object;
+    class var IDAllocator : TConnectionIDAllocator;
+  Public
     Constructor Create(AServer : TFPCustomHTTPServer; ASocket : TSocketStream);
     Destructor Destroy; override;
+    // Handle 1 request: Set up socket if needed, Read request, dispatch, return response.
     Procedure HandleRequest;
+    // Unique ID per new connection
+    Property ConnectionID : String Read FConnectionID;
+    // The socket used by this connection
     Property Socket : TSocketStream Read FSocket;
+    // The server that created this connection
     Property Server : TFPCustomHTTPServer Read FServer;
+    // Handler to call when an error occurs.
     Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
+    // Look up host names to map IP -> hostname ?
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
     Property KeepAliveEnabled : Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
@@ -929,6 +951,7 @@ begin
   FSocket:=ASocket;
   FServer:=AServer;
   KeepAliveTimeout:=DefaultKeepaliveTimeout;
+  AllocateConnectionID;
 end;
 
 destructor TFPHTTPConnection.Destroy;
@@ -944,6 +967,15 @@ begin
     Result:=FServer.LookupHostNames
   else
     Result:=False;  
+end;
+
+procedure TFPHTTPConnection.AllocateConnectionID;
+
+begin
+  if Assigned(IDAllocator) then
+    IDAllocator(FConnectionID);
+  if FConnectionID='' then
+    FConnectionID:=IntToStr(InterlockedIncrement64(_ConnectionCount))
 end;
 
 procedure TFPHTTPConnection.DoHandleRequest;
