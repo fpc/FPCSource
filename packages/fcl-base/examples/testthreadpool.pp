@@ -90,7 +90,7 @@ begin
   MyPool:=TFPSimpleThreadPool.Create;
   try
     MyPool.AddTimeout:=40;
-    MyPool.AutoCheckQueuedTasks:=True;
+    MyPool.AutoCheckQueuedInterval:=50;
     // RunTest(MyPool);
     RunTest(TFPSimpleThreadPool.Instance);
   finally
