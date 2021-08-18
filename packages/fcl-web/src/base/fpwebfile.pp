@@ -262,10 +262,11 @@ begin
     aResponse.CacheControl:=Format('max-age=%d',[CacheControlMaxAge]);
   F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
   try
-    AResponse.ContentLength:=F.Size;
-    AResponse.ContentStream:=F;
+    AResponse.ContentStream:=F; // Sets size
     AResponse.SendContent;
     AResponse.ContentStream:=Nil;
+    // We set it again so an after request interceptor can see it
+    AResponse.ContentLength:=F.Size;
   finally
     F.Free;
   end;
