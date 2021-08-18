@@ -20,7 +20,8 @@ unit fphttpserver;
 interface
 
 uses
-  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpprotocol, httpdefs;
+  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpdefs, httpprotocol,
+  fpthreadpool;
 
 Const
   ReadBufLen = 4096;
@@ -77,6 +78,7 @@ Type
     procedure HandleRequestError(E : Exception); virtual;
     Procedure SetupSocket; virtual;
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
+    Function RequestPending : Boolean;
   Public
     Constructor Create(AServer : TFPCustomHTTPServer; ASocket : TSocketStream);
     Destructor Destroy; override;
@@ -94,14 +96,11 @@ Type
   end;
 
   { TFPHTTPConnectionThread }
-
   TFPHTTPConnectionThread = Class(TThread)
   private
     FConnection: TFPHTTPConnection;
-    FThreadList: TThreadList;
   Public
-    Constructor CreateConnection(AConnection : TFPHTTPConnection); virtual;
-    Constructor CreateConnection(AConnection : TFPHTTPConnection; AThreadList: TThreadList);
+    Constructor CreateConnection(AConnection : TFPHTTPConnection; aOnTerminate : TNotifyEvent); virtual;
     Procedure Execute; override;
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
@@ -112,6 +111,87 @@ Type
       Var AResponse : TFPHTTPConnectionResponse) of object;
 
   { TFPCustomHttpServer }
+  TThreadMode = (tmNone,tmThread,tmThreadPool);
+
+  { TFPHTTPServerConnectionHandler }
+
+  TFPHTTPServerConnectionHandler = Class(TObject)
+  Private
+    FServer : TFPCustomHttpServer;
+  Protected
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); virtual; abstract;
+  Public
+    Constructor Create(aServer : TFPCustomHttpServer); virtual;
+    Destructor Destroy; override;
+    Procedure CloseSockets; virtual; abstract;
+    Procedure CheckRequests; virtual; abstract;
+    Function WaitForRequests(MaxAttempts : Integer = 10) : Boolean; virtual;
+    Function GetActiveConnectionCount : Integer; virtual; abstract;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); virtual; abstract;
+    Property Server : TFPCustomHttpServer Read FServer;
+  end;
+
+  TConnectionList = Class(TThreadList)
+  Public
+    procedure CloseSockets; virtual;
+  end;
+
+  { TFPHTTPServerConnectionListHandler }
+
+  TFPHTTPServerConnectionListHandler = Class(TFPHTTPServerConnectionHandler)
+  Private
+    FList: TConnectionList;
+  Protected
+    Function CreateList : TConnectionList;
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
+  Public
+    Constructor Create(aServer : TFPCustomHTTPServer); override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    Procedure CloseSockets; override;
+    Function GetActiveConnectionCount : Integer; override;
+    Property List : TConnectionList Read FList;
+  end;
+
+
+  { TFPSimpleConnectionHandler }
+
+  TFPSimpleConnectionHandler = Class(TFPHTTPServerConnectionHandler)
+    FConnection : TFPHTTPConnection;
+  Protected
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
+  Public
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    Function GetActiveConnectionCount : Integer; override;
+    Procedure CloseSockets; override;
+    Property Connection : TFPHTTPConnection Read FConnection;
+  end;
+
+  { TFPThreadedConnectionHandler }
+
+  TFPThreadedConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
+  private
+    procedure ThreadDone(Sender: TObject);
+  Public
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+  end;
+
+  { TFPPooledConnectionHandler }
+
+  TFPPooledConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
+  Private
+    FPool : TFPCustomSimpleThreadPool;
+  Public
+    Constructor Create(aServer : TFPCustomHttpServer); override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    function CreatePool : TFPCustomSimpleThreadPool;
+    Property Pool : TFPCustomSimpleThreadPool Read FPool;
+  end;
+
+  // List of server connection handlers TFPHTTPServerConnectionHandler
+
+  { TConnectionList }
+
+
 
   TFPCustomHttpServer = Class(TComponent)
   Private
@@ -131,15 +211,15 @@ Type
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
-    FLookupHostNames,
-    FThreaded: Boolean;
-    FConnectionThreadList: TThreadList;
-    FConnectionCount : Integer;
+    FLookupHostNames : Boolean;
+    FTreadMode: TThreadMode;
     FUseSSL: Boolean;
+    FConnectionHandler : TFPHTTPServerConnectionHandler;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
     function GetConnectionCount: Integer;
     function GetHostName: string;
+    function GetThreaded: Boolean;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
     procedure SetCertificateData(AValue: TCertificateData);
@@ -150,9 +230,10 @@ Type
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    procedure SetThreadMode(AValue: TThreadMode);
     procedure SetupSocket;
-    procedure WaitForRequests(MaxAttempts: Integer = 10);
   Protected
+    Class procedure HandleUnexpectedError(E : Exception); virtual;
     // Override this to create descendent
     function CreateSSLSocketHandler: TSocketHandler;
     // Override this to create descendent
@@ -168,8 +249,8 @@ Type
     procedure DoAcceptError(Sender: TObject; ASocket: Longint; E: Exception;  var ErrorAction: TAcceptErrorAction);
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
-    // Create a connection handling thread.
-    Function CreateConnectionThread(Conn : TFPHTTPConnection) : TFPHTTPConnectionThread; virtual;
+    // Create a connection handler object depending on threadmode
+    Function CreateConnectionHandler : TFPHTTPServerConnectionHandler; virtual;
     // Check if server is inactive
     Procedure CheckInactive;
     // Called by TInetServer when a new connection is accepted.
@@ -204,7 +285,9 @@ Type
     // Called when deciding whether to accept a connection.
     Property OnAllowConnect : TConnectQuery Read FOnAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
-    property Threaded : Boolean read FThreaded Write SetThreaded;
+    property Threaded : Boolean read GetThreaded Write SetThreaded; deprecated 'Use ThreadMode instead';
+    // ThreadMode: none, threading, threadpool.
+    property ThreadMode : TThreadMode read FTreadMode Write SetThreadMode;
     // Called to handle the request. If Threaded=True, it is called in a the connection thread.
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
     // Called when an unexpected error occurs during handling of the request. Sender is the TFPHTTPConnection.
@@ -281,6 +364,161 @@ begin
     FreeAndNil(Resolver);
   end;
 end;
+
+{ TFPPooledConnectionHandler }
+
+constructor TFPPooledConnectionHandler.Create(aServer: TFPCustomHttpServer);
+begin
+  inherited Create(aServer);
+  FPool:=CreatePool;
+end;
+
+procedure TFPPooledConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+
+end;
+
+function TFPPooledConnectionHandler.CreatePool: TFPCustomSimpleThreadPool;
+begin
+  Result:=TFPSimpleThreadPool.Create;
+end;
+
+{ TFPHTTPServerConnectionListHandler }
+
+function TFPHTTPServerConnectionListHandler.CreateList: TConnectionList;
+begin
+  Result:=TConnectionList.Create;
+end;
+
+procedure TFPHTTPServerConnectionListHandler.RemoveConnection(aConnection: TFPHTTPConnection);
+begin
+  Flist.Remove(aConnection);
+end;
+
+constructor TFPHTTPServerConnectionListHandler.Create(aServer: TFPCustomHTTPServer);
+begin
+  inherited Create(aServer);
+  FList:=CreateList;
+end;
+
+procedure TFPHTTPServerConnectionListHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  FList.Add(aConnection);
+end;
+
+procedure TFPHTTPServerConnectionListHandler.CloseSockets;
+begin
+  FList.CloseSockets;
+end;
+
+function TFPHTTPServerConnectionListHandler.GetActiveConnectionCount: Integer;
+
+Var
+  L : TList;
+begin
+  L:=FList.LockList;
+  try
+    Result:=L.Count;
+  finally
+    FList.UnlockList;
+  end;
+end;
+
+{ TFPThreadedConnectionHandler }
+
+procedure TFPThreadedConnectionHandler.ThreadDone(Sender: TObject);
+begin
+  RemoveConnection(TFPHTTPConnectionThread(Sender).Connection)
+end;
+
+procedure TFPThreadedConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  Inherited; // Adds to list
+  TFPHTTPConnectionThread.CreateConnection(aConnection,@ThreadDone);
+end;
+
+
+{ TFPSimpleConnectionHandler }
+
+function TFPSimpleConnectionHandler.GetActiveConnectionCount: Integer;
+begin
+  Result:=Ord(Assigned(FConnection));
+end;
+
+procedure TFPSimpleConnectionHandler.RemoveConnection(aConnection: TFPHTTPConnection);
+begin
+  if aConnection=FConnection then
+    FConnection:=Nil;
+end;
+
+procedure TFPSimpleConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  FConnection:=AConnection;
+  try
+    FConnection.HandleRequest;
+  finally
+    RemoveConnection(aConnection);
+  end;
+end;
+
+procedure TFPSimpleConnectionHandler.CloseSockets;
+begin
+  if Assigned(FCOnnection) then
+    sockets.CloseSocket(FConnection.Socket.Handle);
+end;
+
+{ TConnectionList }
+
+procedure TConnectionList.CloseSockets;
+
+Var
+  L : TList;
+  I : Integer;
+
+begin
+  L:=LockList;
+  try
+    for I:= L.Count-1 downto 0 do
+      sockets.CloseSocket(TFPHTTPConnection(L[I]).Socket.Handle);
+  finally
+    UnlockList;
+  end;
+end;
+
+{ TFPHTTPServerConnectionHandler }
+
+constructor TFPHTTPServerConnectionHandler.Create(aServer: TFPCustomHttpServer);
+begin
+  FServer:=aServer;
+end;
+
+destructor TFPHTTPServerConnectionHandler.Destroy;
+begin
+  FServer:=Nil;
+  inherited Destroy;
+end;
+
+Function TFPHTTPServerConnectionHandler.WaitForRequests(MaxAttempts: Integer = 10) : Boolean;
+
+Var
+  aLastCount,ACount : Integer;
+
+begin
+  ACount:=0;
+  aLastCount:=GetActiveConnectionCount;
+  While (GetActiveConnectionCount>0) and (aCount<MaxAttempts) do
+    begin
+    Sleep(100);
+    if (GetActiveConnectionCount=aLastCount) then
+      Inc(ACount)
+    else
+      aLastCount:=GetActiveConnectionCount;
+    end;
+  Result:=aLastCount=0;
+end;
+
+
+
 
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
@@ -404,7 +642,8 @@ begin
     try
       FOnError(Self,E);
     except
-      // We really cannot handle this...
+      On E : exception do
+        TFPCustomHttpServer.HandleUnexpectedError(E);
     end;
 end;
 
@@ -536,19 +775,20 @@ begin
   end;
 end;
 
+function TFPHTTPConnection.RequestPending: Boolean;
+begin
+  Result:=Socket.CanRead(KeepAliveTimeout);
+end;
+
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
 begin
   FSocket:=ASocket;
   FSetupSocket:=True;
   FServer:=AServer;
-  If Assigned(FServer) then
-    InterLockedIncrement(FServer.FConnectionCount)
 end;
 
 destructor TFPHTTPConnection.Destroy;
 begin
-  If Assigned(FServer) then
-    InterLockedDecrement(FServer.FConnectionCount);
   FreeAndNil(FSocket);
   Inherited;
 end;
@@ -625,40 +865,32 @@ end;
 
 { TFPHTTPConnectionThread }
 
-constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection
-  );
+constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection; aOnTerminate : TNotifyEvent);
 begin
+  OnTerminate:=aOnTerminate;
   FConnection:=AConnection;
   FreeOnTerminate:=True;
   Inherited Create(False);
 end;
 
-constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection; AThreadList: TThreadList);
-begin
-  FThreadList := AThreadList;
-  if Assigned(FThreadList) then
-    FThreadList.Add(Self);
-  CreateConnection(AConnection);
-end;
 
 procedure TFPHTTPConnectionThread.Execute;
+
+  Function AllowReading : Boolean; inline;
+  begin
+    Result:=not Terminated and Connection.EnableKeepAlive and Connection.KeepAlive
+  end;
+
 begin
   try
-    try
-      repeat
-      FConnection.HandleRequest;
-        if not Terminated and Connection.EnableKeepAlive and Connection.KeepAlive
-        and not Connection.Socket.CanRead(Connection.KeepAliveTimeout) then
-          break;
-      FConnection.HandleRequest;
-      until not (not Terminated and FConnection.EnableKeepAlive and FConnection.KeepAlive and (FConnection.Socket.LastError=0));
-    finally
-      FreeAndNil(FConnection);
-      if Assigned(FThreadList) then
-        FThreadList.Remove(Self);
-    end;
+    repeat
+      if AllowReading and not Connection.RequestPending then
+        break;
+      Connection.HandleRequest;
+    until not (AllowReading and (FConnection.Socket.LastError=0));
   except
-    // Silently ignore errors.
+    on E : Exception do
+      TFPCustomHttpServer.HandleUnexpectedError(E);
   end;
 end;
 
@@ -670,7 +902,7 @@ begin
     try
       FOnRequestError(Sender,E);
     except
-      // Do not let errors in user code escape.
+      TFPCustomHttpServer.HandleUnexpectedError(E);
     end
 end;
 
@@ -693,7 +925,7 @@ end;
 
 function TFPCustomHttpServer.GetConnectionCount: Integer;
 begin
-  Result := InterlockedExchangeAdd(FConnectionCount, 0);
+  Result:=FConnectionHandler.GetActiveConnectionCount;
 end;
 
 procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
@@ -704,6 +936,11 @@ end;
 function TFPCustomHttpServer.GetHostName: string;
 begin
   Result:=FCertificateData.HostName;
+end;
+
+function TFPCustomHttpServer.GetThreaded: Boolean;
+begin
+  Result:=ThreadMode=tmThread;
 end;
 
 procedure TFPCustomHttpServer.SetAcceptIdleTimeout(AValue: Cardinal);
@@ -782,12 +1019,20 @@ begin
 end;
 
 procedure TFPCustomHttpServer.SetThreaded(const AValue: Boolean);
+
+Const
+  Modes : Array[Boolean] of TThreadMode = (tmNone,tmThread);
 begin
-  if FThreaded=AValue then exit;
+  if GetThreaded=AValue then exit;
+  ThreadMode:=Modes[aValue];
+end;
+
+procedure TFPCustomHttpServer.SetThreadMode(AValue: TThreadMode);
+begin
+  if FTreadMode=AValue then Exit;
   CheckInactive;
-  FThreaded:=AValue;
-  if FThreaded and not Assigned(FConnectionThreadList) then
-    FConnectionThreadList:=TThreadList.Create;
+  FTreadMode:=AValue;
+  FConnectionHandler:=CreateConnectionHandler();
 end;
 
 function TFPCustomHttpServer.CreateRequest: TFPHTTPConnectionRequest;
@@ -816,10 +1061,13 @@ begin
   Result:=TFPHTTPConnection.Create(Self,Data);
 end;
 
-function TFPCustomHttpServer.CreateConnectionThread(Conn: TFPHTTPConnection
-  ): TFPHTTPConnectionThread;
+function TFPCustomHttpServer.CreateConnectionHandler: TFPHTTPServerConnectionHandler;
 begin
-   Result:=TFPHTTPConnectionThread.CreateConnection(Conn, FConnectionThreadList);
+  case ThreadMode of
+    tmNone : Result:=TFPSimpleConnectionHandler.Create(Self);
+    tmThread : Result:=TFPThreadedConnectionHandler.Create(Self);
+    tmThreadPool : Result:=TFPPooledConnectionHandler.Create(Self);
+  end;
 end;
 
 procedure TFPCustomHttpServer.CheckInactive;
@@ -835,19 +1083,9 @@ Var
 
 begin
   Con:=CreateConnection(Data);
-  try
-    Con.FServer:=Self;
-    Con.OnRequestError:=@HandleRequestError;
-    if Threaded then
-      CreateConnectionThread(Con)
-    else
-      begin
-      Con.HandleRequest;
-      end;
-  finally
-    if not Threaded then
-      Con.Free;
-  end;
+  Con.FServer:=Self;
+  Con.OnRequestError:=@HandleRequestError;
+  FConnectionHandler.HandleConnection(Con);
 end;
 
 procedure TFPCustomHttpServer.SetupSocket;
@@ -855,6 +1093,11 @@ procedure TFPCustomHttpServer.SetupSocket;
 begin
   FServer.QueueSize:=Self.QueueSize;
   FServer.ReuseAddress:=true;
+end;
+
+class procedure TFPCustomHttpServer.HandleUnexpectedError(E: Exception);
+begin
+  // Do nothing.
 end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
@@ -901,23 +1144,6 @@ begin
   FCertificateData:=CreateCertificateData;
 end;
 
-procedure TFPCustomHttpServer.WaitForRequests(MaxAttempts: Integer);
-
-Var
-  FLastCount,ACount : Integer;
-
-begin
-  ACount:=0;
-  FLastCount:=FConnectionCount;
-  While (FConnectionCount>0) and (ACount<MaxAttempts) do
-    begin
-    Sleep(100);
-    if (FConnectionCount=FLastCount) then
-      Inc(ACount)
-    else
-      FLastCount:=FConnectionCount;
-    end;
-end;
 
 function TFPCustomHttpServer.CreateCertificateData: TCertificateData;
 begin
@@ -970,26 +1196,16 @@ var
   I: Integer;
 begin
   Active:=False;
-  if Threaded and (FConnectionCount>0) then
+  if (GetConnectionCount>0) then
   begin
+    FConnectionHandler.WaitForRequests;
     // first wait for open requests to finish and get closed automatically
-    WaitForRequests;
-    // force close open sockets
-    ThreadList:=FConnectionThreadList.LockList;
-    try
-      for I:= ThreadList.Count-1 downto 0 do
-        try
-        CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
-        except
-          // ignore exceptions during CloseSocket
-        end
-    finally
-      FConnectionThreadList.UnlockList;
-    end;
+    // Force close
+    FConnectionHandler.CloseSockets;
     // all requests must be destroyed - wait infinitely
-    WaitForRequests(High(Integer));
+    FConnectionHandler.WaitForRequests(High(Integer));
   end;
-  FreeAndNil(FConnectionThreadList);
+  FreeAndNil(FConnectionHandler);
   FreeAndNil(FCertificateData);
   inherited Destroy;
 end;
