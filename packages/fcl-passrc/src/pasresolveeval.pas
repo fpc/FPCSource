@@ -787,7 +787,7 @@ type
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalStringAddExpr(Expr, LeftExpr, RightExpr: TPasExpr;
       LeftValue, RightValue: TResEvalValue): TResEvalValue; virtual;
-    function LoHiValue(Value: TResEvalValue; ShiftSize: Integer; Mask: LongWord;
+    function ShiftAndMaskValue(Value: TResEvalValue; ShiftSize: Integer; Mask: LongWord;
       ErrorEl: TPasElement): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
@@ -5273,7 +5273,7 @@ begin
   end;
 end;
 
-function TResExprEvaluator.LoHiValue(Value: TResEvalValue; ShiftSize: Integer;
+function TResExprEvaluator.ShiftAndMaskValue(Value: TResEvalValue; ShiftSize: Integer;
   Mask: LongWord; ErrorEl: TPasElement): TResEvalValue;
 var
   uint: LongWord;
