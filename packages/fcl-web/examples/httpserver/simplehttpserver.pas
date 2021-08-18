@@ -59,7 +59,7 @@ begin
     Serv.AcceptIdleTimeout:=1000;
     Serv.OnAcceptIdle:=@Serv.DoIdle;
     Serv.WriteInfo:=@Serv.DoWriteInfo;
-    Serv.EnableKeepAlive:=True;
+    Serv.KeepAliveEnabled:=True;
     Serv.Active:=True;
   finally
     Serv.Free;
