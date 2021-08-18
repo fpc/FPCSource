@@ -1,7 +1,7 @@
-unit fpthreadpool;
+ unit fpthreadpool;
 
 {$mode ObjFPC}{$H+}
-{ $DEFINE DEBUGTHREADPOOL}
+{$DEFINE DEBUGTHREADPOOL}
 
 interface
 
@@ -780,17 +780,15 @@ begin
       T.Task:=aTask
     else
       begin
-      {$IFDEF DEBUGTHREADPOOL}DoLog('No available thread for task %s waiting %d to %d',[aTask.ToString,FAddWaitIntervalFAddTimeOut]);{$ENDIF}
-      Flush(output);
+      {$IFDEF DEBUGTHREADPOOL}DoLog('No available thread for task %s waiting %d to %d',[aTask.ToString,FAddWaitInterval,FAddTimeOut]);{$ENDIF}
       if WaitStart=0 then
         WaitStart:=Now;
       Sleep(FAddWaitInterval);
       TimeOut:=(FAddTimeOut>0) and (MillisecondsBetween(Now,WaitStart)>FAddTimeout);
+      {$IFDEF DEBUGTHREADPOOL}
       If TimeOut then
-        begin
-        {$IFDEF DEBUGTHREADPOOL}DoLog('TimeOut reached: ',TimeOut);{$ENDIF}
-        Flush(output);
-        end;
+        DoLog('TimeOut reached: ',TimeOut);
+      {$ENDIF}
       end;
   Until Result or TimeOut;
 end;
