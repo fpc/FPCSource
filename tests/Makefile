@@ -2756,11 +2756,22 @@ distclean: clean fpc_distclean
 digest : utils
 	-$(DIGEST) $(LOG)
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(wildcard ../.git),)
+ifneq ($(GIT),)
+GIT_GET_HASH=$(GIT) log -1 --format=%h
+SVN_TESTS_REV_STR=$(shell $(GIT_GET_HASH) .)
+SVN_COMPILER_REV_STR=$(shell $(GIT_GET_HASH) ../compiler)
+SVN_RTL_REV_STR=$(shell $(GIT_GET_HASH) ../rtl)
+SVN_PACKAGES_REV_STR=$(shell $(GIT_GET_HASH) ../packages)
+else
 ifneq ($(SVNVERSION),)
 SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
 SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
 SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
+endif
+endif
 endif
 ifeq ($(TEST_COMMENT),)
 TEST_COMMENT=$(TEST_OPT)
@@ -2785,7 +2796,7 @@ endif
 ifneq ($(TEST_FPC_FULLVERSION),)
 	$(ECHOREDIR) CompilerFullVersion=$(TEST_FPC_FULLVERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
-ifneq ($(SVNVERSION),)
+ifneq ($(SVN_TESTS_REV_STR),)
 	$(ECHOREDIR) svntestsrevision=$(SVN_TESTS_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) svncompilerrevision=$(SVN_COMPILER_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) svnrtlrevision=$(SVN_RTL_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
