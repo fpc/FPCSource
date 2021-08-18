@@ -462,6 +462,9 @@ unit FPPas2Js;
   {$define HasInt64}
 {$endif}
 
+{$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
+{$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
+
 interface
 
 uses
@@ -2076,6 +2079,7 @@ type
       RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement): TJSCallExpression; virtual;
     Function CreateRangeCheckCall_TypeRange(aType: TPasType; GetExpr: TJSElement;
       AContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
+    Procedure PrepareAssignDifferentIntegers(El: TPasImplAssign; AssignContext: TAssignContext); virtual;
     // reference
     Function CreateReferencePath(El: TPasElement; AContext: TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
@@ -13745,7 +13749,6 @@ begin
       end;
     btString:
       begin
-        writeln('AAA1 TPasToJSConverter.ConvertBuiltIn_LowHigh ',IsLow);
       if isLow then
         // low(aString) -> 1
         Result:=CreateLiteralNumber(El,1)
@@ -14262,7 +14265,7 @@ begin
     RaiseInconsistency(20190129102200,El);
   Param := El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedParam,[]);
-  if not (ResolvedParam.BaseType in btAllInteger) then
+  if not (ResolvedParam.BaseType in btAllJSInteger) then
     DoError(20190129121100,nXExpectedButYFound,sXExpectedButYFound,['integer type',
       AContext.Resolver.GetResolverResultDescription(ResolvedParam)],Param);
   Shift := AContext.Resolver.GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType,IsLoFunc,Mask);
@@ -22301,6 +22304,7 @@ begin
       end;
     if AssignContext.RightSide=nil then
       AssignContext.RightSide:=ConvertExpression(El.right,AContext);
+
     if (AssignContext.RightResolved.BaseType in [btSet,btArrayOrSet])
         and (AssignContext.RightResolved.IdentEl<>nil) then
       begin
@@ -22334,6 +22338,13 @@ begin
       // noncurrency := currency
       // e.g. double := currency  ->  double := currency/10000
       AssignContext.RightSide:=CreateDivideNumber(El,AssignContext.RightSide,10000);
+      end
+    else if (AssignContext.LeftResolved.BaseType<>AssignContext.RightResolved.BaseType)
+        and (AssignContext.LeftResolved.BaseType in btAllJSInteger)
+        and (AssignContext.RightResolved.BaseType in btAllJSInteger) then
+      begin
+      // AnInteger := OtherInteger
+      PrepareAssignDifferentIntegers(El,AssignContext);
       end
     else if AssignContext.RightResolved.BaseType in btAllStringAndChars then
       begin
@@ -22539,6 +22550,7 @@ begin
       if (bsRangeChecks in AContext.ScannerBoolSwitches)
           and not (T.Expr is TJSLiteral) then
         begin
+        // range checks
         if AssignContext.LeftResolved.BaseType in btAllJSInteger then
           begin
           if LeftTypeEl is TPasUnresolvedSymbolRef then
@@ -24797,6 +24809,97 @@ begin
     ReleaseEvalValue(Value);
     if Result=nil then
       GetExpr.Free;
+  end;
+end;
+
+procedure TPasToJSConverter.PrepareAssignDifferentIntegers(El: TPasImplAssign;
+  AssignContext: TAssignContext);
+
+  function CutToUIntDouble(IntValue: TMaxPrecInt): TMaxPrecInt;
+  begin
+    {$IFDEF pas2js}
+    Result:=((IntValue div $80000000) and $003fffff)*$80000000 +(IntValue and $7FFFFFFF);
+    {$ELSE}
+    Result:=IntValue and MaxSafeIntDouble;
+    {$ENDIF}
+  end;
+
+var
+  aResolver: TPas2JSResolver;
+  LeftBT, RightBT: TResolverBaseType;
+  Value: TResEvalValue;
+  IntValue, LeftMinVal, LeftMaxVal, RightMinVal, RightMaxVal: TMaxPrecInt;
+begin
+  aResolver:=AssignContext.Resolver;
+  LeftBT:=AssignContext.LeftResolved.BaseType;
+  RightBT:=AssignContext.RightResolved.BaseType;
+
+  if not aResolver.GetIntegerRange(LeftBT,LeftMinVal,LeftMaxVal) then
+    RaiseNotSupported(El.left,AssignContext,20210815195159);
+  if not aResolver.GetIntegerRange(RightBT,RightMinVal,RightMaxVal) then
+    RaiseNotSupported(El.right,AssignContext,20210815195228);
+  if (LeftMinVal<=RightMinVal) and (LeftMaxVal>=RightMaxVal) then
+    exit; // right is subset of left
+
+  // right might not fit into left
+
+  Value:=aResolver.Eval(El.right,[]);
+  try
+    if Value<>nil then
+      begin
+      if Value.Kind=revkInt then
+        begin
+        IntValue:=TResEvalInt(Value).Int;
+        if (IntValue>=LeftMinVal) and (IntValue<=LeftMaxVal) then
+          exit;
+        end
+      else if Value.Kind=revkUInt then
+        begin
+        if TResEvalUInt(Value).UInt<=HighIntAsUInt then
+          begin
+          IntValue:=TMaxPrecInt(TResEvalUInt(Value).UInt);
+          if (IntValue>=LeftMinVal) and (IntValue<=LeftMaxVal) then
+            exit;
+          end
+        else
+          {$IFDEF Pas2js}
+          RaiseNotSupported(El.right,AssignContext,20210815214534);
+          {$ELSE}
+          IntValue:=PMaxPrecInt(@TResEvalUInt(Value).UInt)^;
+          {$ENDIF}
+        end
+      else
+        RaiseNotSupported(El.right,AssignContext,20210815204203,'right='+Value.AsDebugString);
+
+      case LeftBT of
+      btByte: IntValue:=IntValue and $FF; // Note: "and" handles negative numbers
+      btShortInt:
+        begin
+        IntValue:=(IntValue and $FF);
+        if IntValue>$7F then IntValue:=IntValue-$100;
+        end;
+      btWord: IntValue:=IntValue and $FFFF;
+      btSmallInt:
+        begin
+        IntValue:=(IntValue and $FFFF);
+        if IntValue>$7FFF then IntValue:=IntValue-$10000;
+        end;
+      btLongWord: IntValue:=IntValue and $FFFFFFFF;
+      btLongint:
+        begin
+        IntValue:=(IntValue and $FFFFFFFF);
+        if IntValue>$7FFFFFFF then IntValue:=IntValue-$100000000;
+        end;
+      btUIntDouble:
+        IntValue:=CutToUIntDouble(IntValue);
+      btIntDouble:
+        IntValue:=CutToUIntDouble(IntValue);
+      end;
+
+      AssignContext.RightSide:=CreateLiteralNumber(El.right,IntValue);
+      end;
+  finally
+    ReleaseEvalValue(Value);
   end;
 end;
 
