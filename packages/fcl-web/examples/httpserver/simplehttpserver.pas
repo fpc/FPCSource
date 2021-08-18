@@ -7,7 +7,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, Classes, fphttpserver, fpmimetypes, testhttpserver;
+  sysutils, strutils,Classes, fphttpserver, fpmimetypes, testhttpserver;
 
 Type
 
@@ -35,17 +35,31 @@ begin
 end;
 
 begin
+  if IndexText(ParamStr(1),['-h','--help'])<>-1 then
+    begin
+    Writeln('Usage: ',ExtractFileName(ParamStr(0)),' [dir [port]]');
+    Writeln('Default dir is binary location');
+    Writeln('Default port is 8080');
+    Halt(0);
+    end;
   Serv:=THTTPServer.Create(Nil);
   try
-    Serv.BaseDir:=ExtractFilePath(ParamStr(0));
-{$ifdef unix}
+    if ParamCount=0 then
+      Serv.BaseDir:=ExtractFilePath(ParamStr(0))
+    else
+      Serv.BaseDir:=ParamStr(1);
+    if ParamCount>1 then
+      Serv.Port:=StrToIntDef(ParamStr(2),8080)
+    else
+      Serv.Port:=8080;
+    {$ifdef unix}
     Serv.MimeTypesFile:='/etc/mime.types';
-{$endif}
-    Serv.Threaded:=False;
-    Serv.Port:=8080;
+    {$endif}
+    Serv.ThreadMode:=tmThreadPool;
     Serv.AcceptIdleTimeout:=1000;
     Serv.OnAcceptIdle:=@Serv.DoIdle;
     Serv.WriteInfo:=@Serv.DoWriteInfo;
+    Serv.EnableKeepAlive:=True;
     Serv.Active:=True;
   finally
     Serv.Free;
