@@ -444,17 +444,19 @@ type
   { TRequest }
 
   TRequest = class(THttpHeader)
+  Private
+    class var _RequestCount : Int64;
   private
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
     FOnUnknownEncoding: TOnUnknownEncodingEvent;
     FFiles : TUploadedFiles;
+    FRequestID: String;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
     FContentRead : Boolean;
     FRouteParams : TStrings;
-
     FStreamingContentType: TStreamingContentType;
     FMimeItems: TMimeItems;
     FKeepFullContents: Boolean;
@@ -466,6 +468,7 @@ type
     function GetRP(AParam : String): String;
     procedure SetRP(AParam : String; AValue: String);
   Protected
+    procedure AllocateRequestID; virtual;
     Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
     Function CreateMimeItems : TMimeItems; virtual;
@@ -497,11 +500,16 @@ type
     procedure ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     procedure HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
     Property ContentRead : Boolean Read FContentRead Write FContentRead;
+  Public
+    Type
+      TConnectionIDAllocator = Procedure(out aID : String) of object;
+    class var IDAllocator : TConnectionIDAllocator;
   public
     Class Var DefaultRequestUploadDir : String;
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
+    Property RequestID : String Read FRequestID;
     Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
     Property LocalPathPrefix : string Read GetLocalPathPrefix;
@@ -2059,6 +2067,7 @@ begin
   FFiles:=CreateUploadedFiles;
   FFiles.FRequest:=Self;
   FLocalPathPrefix:='-';
+  AllocateRequestID;
 end;
 
 function TRequest.CreateUploadedFiles: TUploadedFiles;
@@ -2193,6 +2202,15 @@ begin
     FRouteParams:=TStringList.Create;
   if (AValue<>'') and Assigned(FRouteParams) then
     FRouteParams.Values[AParam]:=AValue;
+end;
+
+procedure TRequest.AllocateRequestID;
+begin
+  if Assigned(IDAllocator) then
+    IDAllocator(FRequestID);
+  if FRequestID='' then
+    FRequestID:=IntToStr(InterlockedIncrement64(_RequestCount))
+
 end;
 
 function TRequest.AllowReadContent: Boolean;
