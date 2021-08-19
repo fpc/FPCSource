@@ -445,7 +445,7 @@ type
 
   TRequest = class(THttpHeader)
   Private
-    class var _RequestCount : Int64;
+    class var _RequestCount : Cardinal;
   private
     FCommand: String;
     FCommandLine: String;
@@ -2209,7 +2209,7 @@ begin
   if Assigned(IDAllocator) then
     IDAllocator(FRequestID);
   if FRequestID='' then
-    FRequestID:=IntToStr(InterlockedIncrement64(_RequestCount))
+    FRequestID:=IntToStr(InterlockedIncrement(_RequestCount))
 
 end;
 

@@ -9,7 +9,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, Classes, fphttpserver, fpmimetypes;
+  sysutils, Classes, fphttpserver, fpmimetypes, URIParser;
 
 Type
 
@@ -64,9 +64,14 @@ procedure TTestHTTPServer.HandleRequest(var ARequest: TFPHTTPConnectionRequest;
 Var
   F : TFileStream;
   FN : String;
+  URI: TURI;
+  TimeOut: Longint;
 
 begin
-  FN:=ARequest.Url;
+  URI:=ParseURI(ARequest.Url, False);
+  FN:=URI.Path+URI.Document;
+  if TryStrToInt(URI.Params, TimeOut) then
+    Sleep(TimeOut);
   If (length(FN)>0) and (FN[1]='/') then
     Delete(FN,1,1);
   DoDirSeparators(FN);
@@ -89,6 +94,7 @@ begin
   else
     begin
     AResponse.Code:=404;
+    AResponse.ContentLength:=0;
     AResponse.SendContent;
     end;
   Inc(FCount);

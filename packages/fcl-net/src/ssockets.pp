@@ -67,6 +67,7 @@ type
     function Accept : Boolean; virtual;
     Function Close : Boolean; virtual;
     function Shutdown(BiDirectional : Boolean): boolean; virtual;
+    function CanRead(TimeOut : Integer): Boolean; virtual;
     function Recv(Const Buffer; Count: Integer): Integer; virtual;
     function Send(Const Buffer; Count: Integer): Integer; virtual;
     function BytesAvailable: Integer; virtual;
@@ -338,6 +339,33 @@ begin
   Result:=False;
 end;
 
+function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
+{$if defined(unix) or defined(windows)}
+var
+  FDS: TFDSet;
+  TimeV: TTimeVal;
+{$endif}
+begin
+  Result:=False;
+{$if defined(unix) or defined(windows)}
+  TimeV.tv_usec := (TimeOut mod 1000) * 1000;
+  TimeV.tv_sec := TimeOut div 1000;
+{$endif}
+{$ifdef unix}
+  FDS := Default(TFDSet);
+  fpFD_Zero(FDS);
+  fpFD_Set(FSocket.Handle, FDS);
+  Result := fpSelect(Socket.Handle + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+{$else}
+{$ifdef windows}
+  FDS := Default(TFDSet);
+  FD_Zero(FDS);
+  FD_Set(FSocket.Handle, FDS);
+  Result := Select(Socket.Handle + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+{$endif}
+{$endif}
+end;
+
 function TSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
 
 Var
@@ -487,20 +515,8 @@ begin
 end;
 
 Function TSocketStream.CanRead (TimeOut : Integer) : Boolean;
-var
-  B: Byte;
-  lTM: Integer;
 begin
-  // ToDo: support properly with the socket select() function
-  // currently a workaround
-  lTM := IOTimeout;
-  IOTimeout := TimeOut;
-  FHandler.Recv(B,0);
-  Result := FHandler.FLastError=0;
-  try
-    IOTimeout := lTM;
-  except
-  end;
+  Result:=FHandler.CanRead(TimeOut);
 end;
 
 Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
