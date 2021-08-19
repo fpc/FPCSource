@@ -169,7 +169,10 @@ RTLOPT:=$(OPT)
 endif
 
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+
+ifndef GIT
 GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+endif
 
 DATE_FMT = +%Y/%m/%d
 ifdef SOURCE_DATE_EPOCH
