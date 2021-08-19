@@ -25,7 +25,7 @@ uses
 
 Const
   ReadBufLen = 4096;
-  DefaultKeepaliveTimeout = 50; // Ms
+  DefaultKeepConnectionTimeout = 50; // Ms
 
 Type
   TFPHTTPConnection = Class;
@@ -62,18 +62,19 @@ Type
 
   TFPHTTPConnection = Class(TObject)
   private
-    Class var _ConnectionCount : Int64;
+    Class var _ConnectionCount : Cardinal;
   private
     FBusy: Boolean;
     FConnectionID: String;
-    FOnError: TRequestErrorHandler;
+    FOnRequestError: TRequestErrorHandler;
+    FOnUnexpectedError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
     FIsSocketSetup : Boolean;
     FBuffer : Ansistring;
-    FKeepAliveEnabled : Boolean;
     FKeepAlive : Boolean;
-    FKeepAliveTimeout : Integer;
+    function GetKeepConnections: Boolean;
+    function GetKeepConnectionTimeout: Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
@@ -86,6 +87,8 @@ Type
     procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
     // Handle request error, calls OnRequestError
     procedure HandleRequestError(E : Exception); virtual;
+    // Handle unexpected error, calls OnUnexpectedError
+    procedure HandleUnexpectedError(E : Exception); virtual;
     // Setup socket
     Procedure SetupSocket; virtual;
     // Mark connection as busy with request
@@ -100,6 +103,10 @@ Type
     Function RequestPending : Boolean;
     // True if we're handling a request. Needed to be able to schedule properly.
     Property Busy : Boolean Read FBusy;
+    // The server supports HTTP 1.1 connection: keep-alive
+    Property KeepConnections : Boolean read GetKeepConnections;
+    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    Property KeepConnectionTimeout: Integer read GetKeepConnectionTimeout;
   Public
     Type
       TConnectionIDAllocator = Procedure(out aID : String) of object;
@@ -116,13 +123,11 @@ Type
     // The server that created this connection
     Property Server : TFPCustomHTTPServer Read FServer;
     // Handler to call when an error occurs.
-    Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
+    Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Called when an unexpected error occurs outside the request.
+    Property OnUnexpectedError : TRequestErrorHandler Read FOnUnexpectedError Write FOnUnexpectedError;
     // Look up host names to map IP -> hostname ?
     Property LookupHostNames : Boolean Read GetLookupHostNames;
-    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property KeepAliveEnabled : Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
-    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
-    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
     // is the current connection set up for KeepAlive?
     Property KeepAlive: Boolean read FKeepAlive;
   end;
@@ -259,13 +264,14 @@ Type
     FAdminName: string;
     FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
-    FKeepAliveEnabled: Boolean;
-    FKeepAliveTimeout: Integer;
+    FKeepConnections: Boolean;
+    FKeepConnectionTimeout: Integer;
     FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
+    FOnUnexpectedError: TRequestErrorHandler;
     FAddress: string;
     FPort: Word;
     FQueueSize: Word;
@@ -295,7 +301,6 @@ Type
     procedure SetupSocket;
     procedure SetupConnectionHandler;
   Protected
-    Class procedure HandleUnexpectedError(E : Exception); virtual;
     // Override this to create descendent
     function CreateSSLSocketHandler: TSocketHandler;
     // Override this to create descendent
@@ -332,6 +337,8 @@ Type
                             Var AResponse : TFPHTTPConnectionResponse); virtual;
     // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
+    // Called when a connection encounters an error outside the request. Will call OnUnexpectedError when set.
+    procedure HandleUnexpectedError(Sender: TObject; E : Exception); virtual;
     // Connection Handler
     Property Connectionhandler : TFPHTTPServerConnectionHandler Read FConnectionHandler;
     // Connection count. Convenience shortcut for Connectionhandler.GetActiveConnectionCount;
@@ -347,9 +354,9 @@ Type
     // Port to listen on.
     Property Port : Word Read FPort Write SetPort Default 80;
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
-    Property KeepAliveEnabled: Boolean read FKeepAliveEnabled write FKeepAliveEnabled;
+    Property KeepConnections: Boolean read FKeepConnections write FKeepConnections;
     // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
-    Property KeepAliveTimeout: Integer read FKeepAliveTimeout write FKeepAliveTimeout;
+    Property KeepConnectionTimeout: Integer read FKeepConnectionTimeout write FKeepConnectionTimeout;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read FQueueSize Write SetQueueSize Default 5;
     // Called when deciding whether to accept a connection.
@@ -362,6 +369,8 @@ Type
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
     // Called when an unexpected error occurs during handling of the request. Sender is the TFPHTTPConnection.
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Called when an unexpected error occurs outside the request. Sender is either the TFPHTTPConnection or TFPCustomHttpServer
+    Property OnUnexpectedError : TRequestErrorHandler Read FOnUnexpectedError Write FOnUnexpectedError;
     // Called when there are no connections waiting.
     Property OnAcceptIdle : TNotifyEvent Read FOnAcceptIdle Write SetIdle;
     // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
@@ -391,12 +400,13 @@ Type
     Property QueueSize;
     Property OnAllowConnect;
     property Threaded;
+    property ThreadMode;
     Property OnRequest;
     Property OnRequestError;
     Property OnAcceptIdle;
     Property AcceptIdleTimeout;
-    Property KeepaliveEnabled;
-    Property KeepaliveTimeout;
+    Property KeepConnections;
+    Property KeepConnectionTimeout;
   end;
 
   EHTTPServer = Class(EHTTP);
@@ -449,7 +459,7 @@ begin
       FOnDone(Connection);
   except
     On E : Exception do
-      TFPCustomHttpServer.HandleUnexpectedError(E);
+      Connection.HandleUnexpectedError(E);
   end;
 end;
 
@@ -514,7 +524,7 @@ Var
 
 begin
   P:=TFPSimpleThreadPool.Create;
-  P.AddWaitInterval:=10;
+  //P.AddWaitInterval:=10;
   P.AddTimeout:=30;
   Result:=P;
 end;
@@ -792,13 +802,19 @@ end;
 
 procedure TFPHTTPConnection.HandleRequestError(E: Exception);
 begin
-  If Assigned(FOnError) then
+  If Assigned(FOnRequestError) then
     try
-      FOnError(Self,E);
+      FOnRequestError(Self,E);
     except
       On E : exception do
-        TFPCustomHttpServer.HandleUnexpectedError(E);
+        HandleUnexpectedError(E);
     end;
+end;
+
+procedure TFPHTTPConnection.HandleUnexpectedError(E: Exception);
+begin
+  If Assigned(FOnUnexpectedError) then
+    FOnUnexpectedError(Self,E);
 end;
 
 procedure TFPHTTPConnection.SetupSocket;
@@ -937,12 +953,12 @@ end;
 
 function TFPHTTPConnection.AllowNewRequest: Boolean;
 begin
-  Result:=not Busy and KeepAliveEnabled and KeepAlive and (Socket.LastError=0);
+  Result:=not Busy and KeepConnections and KeepAlive and (Socket.LastError=0);
 end;
 
 function TFPHTTPConnection.RequestPending: Boolean;
 begin
-  Result:=Socket.CanRead(KeepAliveTimeout);
+  Result:=Socket.CanRead(KeepConnectionTimeout);
 end;
 
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
@@ -950,7 +966,6 @@ begin
   FIsSocketSetup:=False;
   FSocket:=ASocket;
   FServer:=AServer;
-  KeepAliveTimeout:=DefaultKeepaliveTimeout;
   AllocateConnectionID;
 end;
 
@@ -975,7 +990,7 @@ begin
   if Assigned(IDAllocator) then
     IDAllocator(FConnectionID);
   if FConnectionID='' then
-    FConnectionID:=IntToStr(InterlockedIncrement64(_ConnectionCount))
+    FConnectionID:=IntToStr(InterlockedIncrement(_ConnectionCount))
 end;
 
 procedure TFPHTTPConnection.DoHandleRequest;
@@ -995,7 +1010,7 @@ begin
     If Req.ContentLength>0 then
       ReadRequestContent(Req);
     Req.InitRequestVars;
-    if KeepAliveEnabled then
+    if KeepConnections then
       begin
       // Read out keep-alive
       FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
@@ -1020,6 +1035,22 @@ begin
     FreeAndNil(Resp);
     FreeAndNil(Req);
   end;
+end;
+
+function TFPHTTPConnection.GetKeepConnections: Boolean;
+begin
+  if Assigned(FServer) then
+    Result := FServer.KeepConnections
+  else
+    Result := False;
+end;
+
+function TFPHTTPConnection.GetKeepConnectionTimeout: Integer;
+begin
+  if Assigned(FServer) then
+    Result := FServer.KeepConnectionTimeout
+  else
+    Result := 0;
 end;
 
 procedure TFPHTTPConnection.HandleRequest;
@@ -1063,7 +1094,7 @@ begin
         Connection.HandleRequest;
   except
     on E : Exception do
-      TFPCustomHttpServer.HandleUnexpectedError(E);
+      Connection.HandleUnexpectedError(E);
   end;
   If Assigned(FOnDone) then
     FOnDone(Connection);
@@ -1077,7 +1108,7 @@ begin
     try
       FOnRequestError(Sender,E);
     except
-      TFPCustomHttpServer.HandleUnexpectedError(E);
+      HandleUnexpectedError(Self, E);
     end
 end;
 
@@ -1120,7 +1151,7 @@ begin
     FConnectionHandler.CheckRequests;
   except
     On E : Exception do
-      HandleUnexpectedError(E);
+      HandleUnexpectedError(Self, E);
   end;
 end;
 
@@ -1278,8 +1309,7 @@ begin
   Con:=CreateConnection(Data);
   Con.FServer:=Self;
   Con.OnRequestError:=@HandleRequestError;
-  Con.KeepAliveEnabled:=Self.KeepAliveEnabled;
-  Con.KeepAliveTimeout:=Self.KeepAliveTimeout;
+  Con.OnUnexpectedError:=@HandleUnexpectedError;
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1297,10 +1327,10 @@ begin
   FConnectionHandler:=CreateConnectionHandler();
 end;
 
-class procedure TFPCustomHttpServer.HandleUnexpectedError(E: Exception);
+procedure TFPCustomHttpServer.HandleUnexpectedError(Sender: TObject; E: Exception);
 begin
-  if Assigned(E) then;
-  // Do nothing.
+  If Assigned(FOnUnexpectedError) then
+    FOnUnexpectedError(Sender,E);
 end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
@@ -1345,8 +1375,8 @@ begin
   FQueueSize:=5;
   FServerBanner := 'FreePascal';
   FCertificateData:=CreateCertificateData;
-  FKeepAliveEnabled:=False;
-  FKeepAliveTimeout:=DefaultKeepaliveTimeout;
+  FKeepConnections:=False;
+  FKeepConnectionTimeout:=DefaultKeepConnectionTimeout;
 end;
 
 
