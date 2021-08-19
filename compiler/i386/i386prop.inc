@@ -676,7 +676,7 @@
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
-(Ch: [Ch_All]),
+(Ch: [Ch_Wop2, Ch_Rop1]),
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
