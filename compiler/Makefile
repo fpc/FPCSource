@@ -452,7 +452,9 @@ ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+ifndef GIT
 GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+endif
 DATE_FMT = +%Y/%m/%d
 ifdef SOURCE_DATE_EPOCH
     COMPDATESTR ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
