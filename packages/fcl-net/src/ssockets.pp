@@ -50,6 +50,8 @@ type
   // Handles all OS calls
 
   { TSocketHandler }
+  TSocketState = (sosCanread,sosCanWrite,sosException);
+  TSocketStates = Set of TSocketState;
 
   TSocketHandler = Class(TObject)
   Private
@@ -67,6 +69,7 @@ type
     function Accept : Boolean; virtual;
     Function Close : Boolean; virtual;
     function Shutdown(BiDirectional : Boolean): boolean; virtual;
+    function Select(aCheck : TSocketStates; TimeOut : Integer): TSocketStates; virtual;
     function CanRead(TimeOut : Integer): Boolean; virtual;
     function Recv(Const Buffer; Count: Integer): Integer; virtual;
     function Send(Const Buffer; Count: Integer): Integer; virtual;
@@ -79,6 +82,7 @@ type
   TSocketHandlerClass = Class of TSocketHandler;
 
   { TSocketStream }
+  TSocketStreamArray = Array of TSocketStream;
 
   TSocketStream = class(THandleStream)
   Private
@@ -99,7 +103,9 @@ type
   Public
     Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
     destructor Destroy; override;
+    Class Function Select(Var aRead,aWrite,aExceptions : TSocketStreamArray; aTimeOut: Integer): Boolean; virtual;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Select(aCheck : TSocketStates; TimeOut : Integer): TSocketStates;
     Function CanRead(TimeOut : Integer): Boolean;
     Function Read (Var Buffer; Count : Longint) : longint; Override;
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
@@ -339,31 +345,79 @@ begin
   Result:=False;
 end;
 
-function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
+function TSocketHandler.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
 {$if defined(unix) or defined(windows)}
 var
-  FDS: TFDSet;
+  FDSR,FDSW,FDSE : TFDSet;
+  PFDSR,PFDSW,PFDSE : PFDSet;
   TimeV: TTimeVal;
+  res : Longint;
+
+  Procedure DoSet(var FDS : TFDSet; var PFDS : PFDSet; aState : TSocketState);
+
+  begin
+    if not (aState in aCheck) then
+      PFDS:=nil
+    else
+      begin
+      FDS := Default(TFDSet);
+      {$ifdef unix}
+      fpFD_Zero(FDS);
+      fpFD_Set(FSocket.Handle, FDS);
+      {$endif}
+      {$ifdef windows}
+      FDS := Default(TFDSet);
+      FD_Zero(FDS);
+      FD_Set(FSocket.Handle, FDS);
+      {$ENDIF}
+      PFDS:=@FDS;
+      end
+  end;
+
+  Procedure CheckSet(var FDS : TFDSet; aState : TSocketState);
+
+  begin
+    if aState in aCheck then
+      begin
+      {$ifdef unix}
+      if fpFD_IsSet(FSocket.Handle, FDS)>0 then
+        Include(Result,aState);
+      {$endif}
+      {$ifdef windows}
+      if FD_IsSet(FSocket.Handle, FDS)>0 then
+        Include(Result,aState);
+      {$endif}
+      end;
+  end;
+
 {$endif}
 begin
-  Result:=False;
+  Result:=[];
+  Res:=-1;
 {$if defined(unix) or defined(windows)}
   TimeV.tv_usec := (TimeOut mod 1000) * 1000;
   TimeV.tv_sec := TimeOut div 1000;
+  DoSet(FDSR,PFDSR,sosCanRead);
+  DoSet(FDSW,PFDSW,sosCanWrite);
+  DoSet(FDSE,PFDSE,sosException);
 {$endif}
 {$ifdef unix}
-  FDS := Default(TFDSet);
-  fpFD_Zero(FDS);
-  fpFD_Set(FSocket.Handle, FDS);
-  Result := fpSelect(Socket.Handle + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
-{$else}
+  Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
+{$endif}
 {$ifdef windows}
-  FDS := Default(TFDSet);
-  FD_Zero(FDS);
-  FD_Set(FSocket.Handle, FDS);
-  Result := Select(Socket.Handle + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+  Res:=Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
-{$endif}
+  if Res>0 then
+    begin
+    CheckSet(FDSR,sosCanRead);
+    CheckSet(FDSW,sosCanWrite);
+    CheckSet(FDSE,sosException);
+    end;
+end;
+
+function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
+begin
+  Result:=Select([sosCanRead],Timeout)<>[];
 end;
 
 function TSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
@@ -467,6 +521,90 @@ begin
   inherited Destroy;
 end;
 
+class function TSocketStream.Select(var aRead, aWrite, aExceptions: TSocketStreamArray; ATimeout : Integer): Boolean;
+
+{$if defined(unix) or defined(windows)}
+var
+  FDR,FDW,FDE: TFDSet;
+  TimeV: TTimeVal;
+  MaxHandle : Longint;
+{$endif}
+
+  Procedure FillFD(var FD : TFDSet; anArray : TSocketStreamArray);
+
+  Var
+    S : TSocketStream;
+
+  begin
+    FD := Default(TFDSet);
+    {$ifdef unix}
+    fpFD_Zero(FD);
+    For S in AnArray do
+      begin
+      fpFD_Set(S.Handle, FD);
+      if S.Handle>MaxHandle then
+        MaxHandle:=S.Handle;
+      end;
+    {$ENDIF}
+    {$ifdef windows}
+    FD_Zero(FDS);
+    For S in AnArray do
+      begin
+      FD_Set(FSocket.Handle, FDS);
+      if S.Handle>MaxHandle then
+        MaxHandle:=S.Handle;
+      end;
+    {$ENDIF}
+  end;
+
+  function FillArr(FD : TFDSet; Src : TSocketStreamArray) : TSocketStreamArray;
+
+  Var
+    S : TSocketStream;
+    aLen : Integer;
+
+  begin
+    SetLength(Result,Length(Src));
+    aLen:=0;
+    For S in Src do
+      begin
+{$IFDEF LINUX}
+      if fpFD_IsSet(S.Handle, FD)>0 then
+{$ENDIF}
+{$IFDEF Windows}
+      if FD_isSet(FSocket.Handle, FDS)>0 then
+{$ENDIF}
+        begin
+        Result[aLen]:=S;
+        Inc(aLen);
+        end;
+      end;
+    SetLength(Result,aLen);
+  end;
+
+begin
+  Result:=False;
+  MaxHandle:=0;
+{$if defined(unix) or defined(windows)}
+  TimeV.tv_usec := (aTimeOut mod 1000) * 1000;
+  TimeV.tv_sec := aTimeOut div 1000;
+{$endif}
+  FillFD(FDR,aRead);
+  FillFD(FDW,aWrite);
+  FillFD(FDE,aExceptions);
+  if MaxHandle=0 then
+    exit;
+{$ifdef unix}
+  Result := fpSelect(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+{$endif}
+{$ifdef windows}
+  Result := Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+{$endif}
+  aRead:=FillArr(FDR,aRead);
+  aWrite:=FillArr(FDR,aRead);
+  aExceptions:=FillArr(FDR,aRead);
+end;
+
 procedure TSocketStream.GetSockOptions;
 {$ifdef windows}
 var
@@ -512,6 +650,11 @@ function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Result:=0;
+end;
+
+function TSocketStream.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
+begin
+  Result:=FHandler.Select(aCheck,TimeOut);
 end;
 
 Function TSocketStream.CanRead (TimeOut : Integer) : Boolean;
