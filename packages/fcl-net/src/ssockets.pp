@@ -393,8 +393,8 @@ var
 {$endif}
 begin
   Result:=[];
-  Res:=-1;
 {$if defined(unix) or defined(windows)}
+  Res:=-1;
   TimeV.tv_usec := (TimeOut mod 1000) * 1000;
   TimeV.tv_sec := TimeOut div 1000;
   DoSet(FDSR,PFDSR,sosCanRead);
