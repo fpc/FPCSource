@@ -3479,19 +3479,19 @@ xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM
 
 [ROUNDPS]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x08\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDPD]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x09\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSS]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \336\361\3\x0F\x3A\x0A\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSD]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \337\361\3\x0F\x3A\x0B\110\26            SSE41,SM2,SB,AR2
 
 ;*******************************************************************************
