@@ -100,6 +100,7 @@ type
     function GetLocalAddress: TSockAddr;
     function GetRemoteAddress: TSockAddr;
     procedure SetIOTimeout(AValue: Integer);
+  Protected
   Public
     Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
     destructor Destroy; override;
@@ -118,6 +119,7 @@ type
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
     Property IOTimeout : Integer read FIOTimeout Write SetIOTimeout;
     Property ConnectTimeout : Integer read FConnectTimeout Write SetConnectTimeout;
+    Property Handler : TSocketHandler Read FHandler;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
