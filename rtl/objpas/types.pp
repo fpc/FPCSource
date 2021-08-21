@@ -174,7 +174,6 @@ type
 
     public
      Type TSingle3Array = array[0..2] of single;
-     var
      constructor Create(const ax,ay,az:single);
      procedure   Offset(const adeltax,adeltay,adeltaz:single); inline;
      procedure   Offset(const adelta:TPoint3D); inline;
