@@ -1,3 +1,4 @@
+
 {
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2005 by
@@ -1809,9 +1810,7 @@ begin
   CodeEl := CreateCode(CreatePara(TDEl));
   AppendKw(CodeEl, 'type');
 
-  if not Assigned(AClass.GenericTemplateTypes) then
-      Dolog('ERROR generic init: %s', [AClass.name]);
-  if AClass.GenericTemplateTypes.Count>0 then
+  if Assigned(AClass.GenericTemplateTypes) and AClass.GenericTemplateTypes.Count>0 then
     AppendGeneric(CodeEl, AClass)
   else
     AppendText(CodeEl, ' ' + UTF8Decode(AClass.Name) + ' ');
@@ -1827,8 +1826,8 @@ begin
     ThisTreeNode := TreeInterface.GetPasElNode(AClass)
   else
     ThisTreeNode := TreeClass.GetPasElNode(AClass);
-  if not Assigned(ThisTreeNode) Then
-    DoLog('ERROR Tree Class information: '+ThisClass.PathName);
+  //if not Assigned(ThisTreeNode) Then
+  //  DoLog('ERROR Tree Class information: '+ThisClass.PathName);
 
   if Assigned(AClass.AncestorType) then
   begin
