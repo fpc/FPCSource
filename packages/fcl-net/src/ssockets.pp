@@ -353,6 +353,7 @@ var
   FDSR,FDSW,FDSE : TFDSet;
   PFDSR,PFDSW,PFDSE : PFDSet;
   TimeV: TTimeVal;
+  PTV : ^TTimeVal;
   res : Longint;
 
   Procedure DoSet(var FDS : TFDSet; var PFDS : PFDSet; aState : TSocketState);
@@ -397,14 +398,20 @@ begin
   Result:=[];
 {$if defined(unix) or defined(windows)}
   Res:=-1;
-  TimeV.tv_usec := (TimeOut mod 1000) * 1000;
-  TimeV.tv_sec := TimeOut div 1000;
+  if Timeout<0 then
+    PTV:=Nil
+  else
+    begin
+    TimeV.tv_usec := (TimeOut mod 1000) * 1000;
+    TimeV.tv_sec := TimeOut div 1000;
+    PTV:=@TimeV;
+    end;
   DoSet(FDSR,PFDSR,sosCanRead);
   DoSet(FDSW,PFDSW,sosCanWrite);
   DoSet(FDSE,PFDSE,sosException);
 {$endif}
 {$ifdef unix}
-  Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
+  Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, PTV);
 {$endif}
 {$ifdef windows}
   Res:=winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
