@@ -143,7 +143,9 @@ else
    GIT_DIR = $(wildcard ../.git)
    ifneq ($(GIT_DIR),)
       # ... then take date from head
-      COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      ifneq ($(GIT),)
+        COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      endif
    endif
 endif
 
