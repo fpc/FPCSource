@@ -461,7 +461,9 @@ ifdef SOURCE_DATE_EPOCH
 else
    GIT_DIR = $(wildcard ../.git)
    ifneq ($(GIT_DIR),)
-      COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      ifneq ($(GIT),)
+	COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      endif
    endif
 endif
 ifdef COMPDATESTR
