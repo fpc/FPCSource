@@ -2459,6 +2459,15 @@ end;
 
 { Utility routines }
 
+
+Function IfThen(AValue: Boolean; const ATrue: TStringList; const AFalse: TStringList = nil): TStringList; overload;
+begin
+  if avalue then
+    result:=atrue
+  else
+    result:=afalse;
+end;
+
 function LineStart(Buffer, BufPos: PChar): PChar;
 
 begin
