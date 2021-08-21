@@ -1,4 +1,3 @@
-
 {
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2005 by
@@ -1810,7 +1809,7 @@ begin
   CodeEl := CreateCode(CreatePara(TDEl));
   AppendKw(CodeEl, 'type');
 
-  if Assigned(AClass.GenericTemplateTypes) and AClass.GenericTemplateTypes.Count>0 then
+  if Assigned(AClass.GenericTemplateTypes) and (AClass.GenericTemplateTypes.Count>0) then
     AppendGeneric(CodeEl, AClass)
   else
     AppendText(CodeEl, ' ' + UTF8Decode(AClass.Name) + ' ');
