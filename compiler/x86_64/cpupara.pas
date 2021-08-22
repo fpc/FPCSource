@@ -57,7 +57,7 @@ unit cpupara;
        systems,
        globals,defutil,
        symtable,symutil,
-       cpupi,
+       procinfo,cpupi,
        cgx86,cgobj,cgcpu;
 
     const
@@ -1809,12 +1809,15 @@ unit cpupara;
                                 be compatible with the system compiler clang
                                 (which extends on the caller side).
 
+                                Exception: if the call is not external, then we can follow the ABI as FPC
+                                generated code follows the ABI
+
                                 Not for LLVM, since there the zero/signext
                                 attributes by definition only apply to the
                                 caller side }
 {$ifndef LLVM}
                               if not(target_info.system in systems_darwin) and
-                                 (side=calleeside) and
+                                 ((side=calleeside) or (([po_weakexternal,po_external]*p.procoptions)=[])) and
                                  (hp.paraloc[side].intsize in [1,2]) then
                                 begin
                                   paraloc^.def:=hp.paraloc[side].def
