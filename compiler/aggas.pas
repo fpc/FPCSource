@@ -74,8 +74,6 @@ interface
 {$endif WASM}
        private
         setcount: longint;
-        procedure WriteDecodedSleb128(a: int64);
-        procedure WriteDecodedUleb128(a: qword);
         procedure WriteCFI(hp: tai_cfi_base);
         function NextSetLabel: string;
        protected
@@ -660,21 +658,6 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteDecodedUleb128(a: qword);
-      var
-        i,len : longint;
-        buf   : array[0..63] of byte;
-      begin
-        len:=EncodeUleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
-      end;
-
-
     procedure TGNUAssembler.WriteCFI(hp: tai_cfi_base);
       begin
         writer.AsmWrite(cfi2str[hp.cfityp]);
@@ -705,21 +688,6 @@ implementation
             internalerror(2019030203);
         end;
         writer.AsmLn;
-      end;
-
-
-    procedure TGNUAssembler.WriteDecodedSleb128(a: int64);
-      var
-        i,len : longint;
-        buf   : array[0..255] of byte;
-      begin
-        len:=EncodeSleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
       end;
 
 
@@ -1194,9 +1162,9 @@ implementation
                          writer.AsmWrite(ait_const2str[aitconst_8bit]);
                          case tai_const(hp).consttype of
                            aitconst_uleb128bit:
-                             WriteDecodedUleb128(qword(tai_const(hp).value));
+                             writer.AsmWrite(uleb128tostr(qword(tai_const(hp).value)));
                            aitconst_sleb128bit:
-                             WriteDecodedSleb128(int64(tai_const(hp).value));
+                             writer.AsmWrite(sleb128tostr(tai_const(hp).value));
                            else
                              ;
                          end

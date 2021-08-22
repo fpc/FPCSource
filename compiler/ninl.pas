@@ -2527,9 +2527,8 @@ implementation
                         else if not is_open_array(left.resultdef) and
                            not is_array_of_const(left.resultdef) and
                            not is_dynamic_array(left.resultdef) then
-                          result:=cordconstnode.create(tarraydef(left.resultdef).highrange-
-                            tarraydef(left.resultdef).lowrange+1,
-                            sinttype,true);
+                          result:=genintconstnode(tarraydef(left.resultdef).highrange-
+                            tarraydef(left.resultdef).lowrange+1,sizesinttype);
                       end;
                     else
                       ;

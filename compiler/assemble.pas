@@ -157,6 +157,8 @@ interface
         function single2str(d : single) : string; virtual;
         function double2str(d : double) : string; virtual;
         function extended2str(e : extended) : string; virtual;
+        function sleb128tostr(a : int64) : string;
+        function uleb128tostr(a : qword) : string;
         Function DoPipe:boolean; virtual;
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; virtual;
@@ -743,6 +745,36 @@ Implementation
           hs[1]:='+';
          extended2str:='0d'+hs
       end;
+
+    function TExternalAssembler.sleb128tostr(a: int64): string;
+      var
+        i,len : longint;
+        buf   : array[0..31] of byte;
+      begin
+        result:='';
+        len:=EncodeSleb128(a,buf,0);
+        for i:=0 to len-1 do
+          begin
+            if (i > 0) then
+              result:=result+',';
+            result:=result+tostr(buf[i]);
+          end;
+      end;
+
+    function TExternalAssembler.uleb128tostr(a: qword): string;
+    var
+      i,len : longint;
+      buf   : array[0..31] of byte;
+    begin
+      result:='';
+      len:=EncodeUleb128(a,buf,0);
+      for i:=0 to len-1 do
+        begin
+          if (i > 0) then
+            result:=result+',';
+          result:=result+tostr(buf[i]);
+        end;
+    end;
 
 
     Function TExternalAssembler.DoPipe:boolean;

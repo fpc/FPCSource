@@ -519,7 +519,7 @@ const
       (str:'EXCEPT'        ;special:false;keyword:[m_except];op:NOTOKEN),
       (str:'EXPORT'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'HELPER'        ;special:false;keyword:[m_none];op:NOTOKEN),
-      (str:'INLINE'        ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'INLINE'        ;special:false;keyword:[m_tp7];op:NOTOKEN),
       (str:'LEGACY'        ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'NESTED'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'OBJECT'        ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),

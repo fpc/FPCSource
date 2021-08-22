@@ -44,7 +44,7 @@ implementation
        globtype,globals,verbose,constexp,
        systems,
        { aasm }
-       cpubase,aasmtai,aasmdata,
+       cpubase,aasmtai,aasmdata,aasmbase,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
        paramgr,
@@ -1085,7 +1085,13 @@ implementation
 
          { Mark procedure that it has assembler blocks }
          include(current_procinfo.flags,pi_has_assembler_block);
-
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+         { We assume the function result is always used in the TP mode }
+         if (m_tp7 in current_settings.modeswitches) and
+            not (po_assembler in current_procinfo.procdef.procoptions) and
+            assigned(current_procinfo.procdef.funcretsym) then
+           current_procinfo.procdef.funcretsym.IncRefCount;
+{$endif}
          { Read first the _ASM statement }
          consume(_ASM);
 
@@ -1133,6 +1139,172 @@ implementation
 
          Inside_asm_statement:=false;
          _asm_statement:=asmstat;
+      end;
+
+
+    { Old Turbo Pascal INLINE(data/data/...) }
+    function tp_inline_statement : tnode;
+      var
+        actype : taiconst_type;
+
+      function eval_intconst: asizeint;
+        var
+          cv : Tconstexprint;
+          def: tdef;
+        begin
+          cv:=get_intconst;
+          case actype of
+            aitconst_8bit:
+              def:=s8inttype;
+            aitconst_16bit:
+              def:=s16inttype;
+            else
+              def:=sizesinttype;
+          end;
+          if cv.uvalue>get_max_value(def).uvalue then
+            def:=get_unsigned_inttype(def);
+          adaptrange(def,cv,rc_implicit);
+          result:=cv.svalue;
+        end;
+
+      var
+        cur_line : longint;
+        w : asizeint;
+        hl : TAsmList;
+        asmstat : tasmnode;
+        sym : tsym;
+        symtable : TSymtable;
+        s : tsymstr;
+        ac : tai_const;
+        nesting : integer;
+        tokenbuf : tdynamicarray;
+      begin
+        consume(_INLINE);
+        consume(_LKLAMMER);
+        hl:=TAsmList.create;
+        asmstat:=casmnode.create(hl);
+        asmstat.fileinfo:=current_filepos;
+        tokenbuf:=tdynamicarray.Create(16);
+        cur_line:=0;
+        { Parse data blocks }
+        repeat
+          { Record one data block for further replaying.
+            This is needed  since / is used as a data block delimiter and cause troubles
+            with constant evaluation which is allowed inside a data block. }
+          tokenbuf.reset;
+          current_scanner.startrecordtokens(tokenbuf);
+          nesting:=0;
+          while token<>_SLASH do
+            begin
+              case token of
+                _LKLAMMER:
+                  inc(nesting);
+                _RKLAMMER:
+                  begin
+                    dec(nesting);
+                    if nesting<0 then
+                      break;
+                  end;
+                _SEMICOLON:
+                  consume(_RKLAMMER); { error }
+                else
+                  ; {no action}
+              end;
+              consume(token);
+            end;
+          current_scanner.stoprecordtokens;
+          { Set the current token to ; to make the constant evaluator happy }
+          token:=_SEMICOLON;
+          { Parse recorded tokens }
+          current_scanner.startreplaytokens(tokenbuf,false);
+
+          if cur_line<>current_filepos.line then
+            begin
+              hl.concat(tai_force_line.Create);
+              cur_line:=current_filepos.line;
+            end;
+
+          { Data size override }
+          if try_to_consume(_GT) then
+            actype:=aitconst_16bit
+          else
+            if try_to_consume(_LT) then
+              actype:=aitconst_8bit
+            else
+              actype:=aitconst_128bit; { default size }
+          sym:=nil;
+          if token=_ID then
+            begin
+              if searchsym(pattern,sym,symtable) then
+                begin
+                  if sym.typ in [staticvarsym,localvarsym,paravarsym] then
+                    begin
+                      { Address of the static symbol or base offset for local symbols }
+                      consume(_ID);
+                      if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
+                        Message1(type_e_integer_expr_expected,sym.name);
+                      { Additional offset }
+                      if token in [_PLUS,_MINUS] then
+                        w:=eval_intconst
+                      else
+                        w:=0;
+                      if sym.typ=staticvarsym then
+                        s:=sym.mangledname
+                      else
+                        s:=sym.name;
+                      ac:=tai_const.Createname(s,w);
+                      if actype=aitconst_128bit then
+                        ac.consttype:=aitconst_ptr
+                      else
+                        ac.consttype:=actype;
+                      { For a local symbol it is needed to generate a constant with the symbols's stack offset.
+                        The stack offset is unavailable rigth now and will be resolved later in tcgasmnode.pass_generate_code.
+                        Set sym.bind:=AB_NONE to indicate that this is a local symbol. }
+                      if sym.typ<>staticvarsym then
+                        ac.sym.bind:=AB_NONE;
+                      hl.concat(ac);
+                    end
+                  else
+                    if sym.typ=constsym then
+                      sym:=nil
+                    else
+                      begin
+                        consume(_ID);
+                        Message(asmr_e_wrong_sym_type);
+                      end;
+                end;
+            end;
+
+          if sym=nil then
+            begin
+              { Integer constant expression }
+              w:=eval_intconst;
+              case actype of
+                aitconst_8bit:
+                  hl.concat(tai_const.Create_8bit(w));
+                aitconst_16bit:
+                  hl.concat(tai_const.Create_16bit(w));
+                else
+                  if w<$100 then
+                    hl.concat(tai_const.Create_8bit(w))
+                  else
+                    hl.concat(tai_const.Create_sizeint(w));
+              end;
+            end;
+
+          if not try_to_consume(_SEMICOLON) then
+            consume(_RKLAMMER); {error}
+        until nesting<0;
+        tokenbuf.free;
+        { mark boundaries of assembler block, this is necessary for optimizer }
+        hl.insert(tai_marker.create(mark_asmblockstart));
+        hl.concat(tai_marker.create(mark_asmblockend));
+        { Mark procedure that it has assembler blocks }
+        include(current_procinfo.flags,pi_has_assembler_block);
+        { Assume the function result is always used }
+        if assigned(current_procinfo.procdef.funcretsym) then
+          current_procinfo.procdef.funcretsym.IncRefCount;
+        result:=asmstat;
       end;
 
 
@@ -1247,6 +1419,10 @@ implementation
              begin
                Message(parser_e_syntax_error);
                consume(_PLUS);
+             end;
+           _INLINE:
+             begin
+               code:=tp_inline_statement;
              end;
            _EOF :
              Message(scan_f_end_of_file);

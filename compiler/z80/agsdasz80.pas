@@ -41,8 +41,6 @@ unit agsdasz80;
 
       TSdccSdasZ80Assembler=class(TExternalAssembler)
       private
-        procedure WriteDecodedSleb128(a: int64);
-        procedure WriteDecodedUleb128(a: qword);
         procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
@@ -78,38 +76,6 @@ unit agsdasz80;
         #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
         #9'.dw'#9,#9'FIXMEDD'#9,#9'FIXMEDQ'#9
       );
-
-    procedure TSdccSdasZ80Assembler.WriteDecodedSleb128(a: int64);
-      var
-        i,len : longint;
-        buf   : array[0..255] of byte;
-      begin
-        writer.AsmWrite(#9'.db'#9);
-        len:=EncodeSleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
-        writer.AsmWriteLn(#9'; sleb '+tostr(a));
-      end;
-
-    procedure TSdccSdasZ80Assembler.WriteDecodedUleb128(a: qword);
-      var
-        i,len : longint;
-        buf   : array[0..63] of byte;
-      begin
-        writer.AsmWrite(#9'.db'#9);
-        len:=EncodeUleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
-        writer.AsmWriteLn(#9'; uleb '+tostr(a));
-      end;
 
     procedure TSdccSdasZ80Assembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
       var
@@ -652,9 +618,9 @@ unit agsdasz80;
                 consttype:=tai_const(hp).consttype;
                 case consttype of
                   aitconst_uleb128bit:
-                    WriteDecodedUleb128(qword(tai_const(hp).value));
+                    writer.AsmWriteLn(ait_const2str[aitconst_8bit]+uleb128tostr(qword(tai_const(hp).value)));
                   aitconst_sleb128bit:
-                    WriteDecodedSleb128(int64(tai_const(hp).value));
+                    writer.AsmWriteLn(ait_const2str[aitconst_8bit]+sleb128tostr(tai_const(hp).value));
                   aitconst_64bit,
                   aitconst_64bit_unaligned,
                   aitconst_32bit,

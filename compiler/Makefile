@@ -451,13 +451,19 @@ endif
 ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
+SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+ifndef GIT
+GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+endif
 DATE_FMT = +%Y/%m/%d
 ifdef SOURCE_DATE_EPOCH
     COMPDATESTR ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
 else
    GIT_DIR = $(wildcard ../.git)
    ifneq ($(GIT_DIR),)
-      COMPDATESTR:=$(shell git log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      ifneq ($(GIT),)
+	COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      endif
    endif
 endif
 ifdef COMPDATESTR
@@ -557,7 +563,6 @@ CPUSUF=wasm32
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
-SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
 PPUDUMPPROG:=$(firstword $(strip $(wildcard $(addsuffix /ppudump$(SRCEXEEXT),$(SEARCHPATH)))))
 ifndef PPUDUMP
 ifdef PPUDUMPPROG
@@ -570,6 +575,18 @@ REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
 ifeq ($(REVSTR),)
+ifneq ($(wildcard ../.git),)
+ifneq ($(GIT),)
+GITDESCRIBE=$(shell $(GIT) describe --dirty)
+REVSTR:=$(word 2,$(subst -, ,$(GITDESCRIBE)))-$(word 3,$(subst -, ,$(GITDESCRIBE)))
+ifneq ($(shell $(GIT) log @{u}..),)
+REVSTR:=$(REVSTR)-unpushed
+endif
+ifneq ($(word 4,$(subst -, ,$(GITDESCRIBE))),)
+REVSTR:=$(REVSTR)-$(word 4,$(subst -, ,$(GITDESCRIBE)))
+endif
+export REVSTR
+else
 ifneq ($(SVNVERSION),)
 REVSTR:=$(subst r,,$(subst r1:,,r$(subst exported,,$(shell $(SVNVERSION) -c .))))
 export REVSTR
@@ -577,6 +594,8 @@ else
 ifeq ($(REVINC),force)
 REVSTR:=exported
 export REVSTR
+endif
+endif
 endif
 endif
 endif

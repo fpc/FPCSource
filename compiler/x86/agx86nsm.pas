@@ -800,13 +800,13 @@ interface
              begin
                consttype:=tai_const(hp).consttype;
                case consttype of
-                 aitconst_uleb128bit,
-                 aitconst_sleb128bit,
+                 aitconst_uleb128bit:
+                   writer.AsmWriteLn(ait_const2str[aitconst_8bit]+uleb128tostr(qword(tai_const(hp).value)));
+                 aitconst_sleb128bit:
+                   writer.AsmWriteLn(ait_const2str[aitconst_8bit]+sleb128tostr(tai_const(hp).value));
                  aitconst_128bit:
-                    begin
-                      writer.AsmWriteLn(asminfo^.comment+'Unsupported const type '+
-                        ait_const2str[consttype]);
-                    end;
+                   writer.AsmWriteLn(asminfo^.comment+'Unsupported const type '+
+                     ait_const2str[consttype]);
 {$ifdef i8086}
                  aitconst_farptr:
                    begin

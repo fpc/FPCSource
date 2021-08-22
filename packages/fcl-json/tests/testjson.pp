@@ -1,3 +1,4 @@
+{ %OPT=-S2 }
 {
     This file is part of the Free Component Library
 
