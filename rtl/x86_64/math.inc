@@ -301,8 +301,8 @@ const
             fld %st
             frndint
             fsubrp %st,%st(1)
-            fldcw oldcw
             fwait
+            fldcw oldcw
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
 
