@@ -32,6 +32,7 @@ fpcmade.*
 build-stamp.*
 log.*
 faillist.*
+link*.res
 longlog.*
 bin
 backup
@@ -56,6 +57,8 @@ a.out
 /compiler/utils/mkx86inl
 /packages/fpmake
 /packages/fpmkunit/units_bs
+/rtl/Package.fpc
+/rtl/units-*
 /utils/fpmake
 units
 /tests/createlst
