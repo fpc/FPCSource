@@ -4121,8 +4121,6 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2SI<x>_Set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface
-**2Sj_Allows typed constants to be writeable (default in all modes)
-**2Sk_Load fpcylix unit
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Sr_Transparent file names in ISO mode
@@ -4130,6 +4128,11 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2Sv_Support vector processing (use CPU vector extensions if available)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **2Sy_@<pointer> returns a typed pointer, same as $T+
+**1s_Do not call assembler and linker
+**2sh_Generate script to link on host, automatically switches to external assembler writer
+**2sT_Generate script only to link on target
+**2st_Generate script to assemble and link on target, automatically switches to external assembler writer
+**2sr_Skip register allocation phase (use with -alr), automatically switches to external assembler writer
 **1T<x>_Target operating system:
 # i386 targets
 3*2Tandroid_Android
