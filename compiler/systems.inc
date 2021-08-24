@@ -209,6 +209,7 @@
 
      type
        tasm = (as_none
+             ,as_default
              ,as_gas                   { standard gnu assembler }
              ,as_i386_as_aout
              ,as_i386_nasmcoff
