@@ -1356,7 +1356,10 @@ begin
 
            'A' :
              begin
-               paratargetasm:=find_asm_by_string(More);
+               if CompareText(More,'DEFAULT') = 0 then
+                 paratargetasm:=as_default
+               else
+                 paratargetasm:=find_asm_by_string(More);
                if paratargetasm=as_none then
                  IllegalPara(opt);
              end;
@@ -4423,6 +4426,10 @@ begin
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
     begin
+      if (option.paratargetasm=as_default) then
+        begin
+          option.paratargetasm:=target_info.assem;
+        end;
       if not set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then

@@ -218,7 +218,7 @@ interface
           newline      : string[2];
           dirsep       : char;
           assem        : tasm;
-          assemextern  : tasm; { external assembler, used by -a }
+          assemextern  : tasm; { external assembler, used by -a and -s }
           link         : tlink;
           linkextern   : tlink;  { external linker, used by -s }
           ar           : tar;
