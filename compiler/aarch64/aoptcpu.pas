@@ -549,6 +549,7 @@ Implementation
   function TCpuAsmOptimizer.OptPass1FMov(var p: tai): Boolean;
     var
       hp1: tai;
+      alloc, dealloc: tai_regalloc;
     begin
       {
         change
@@ -565,9 +566,48 @@ Implementation
         begin
           asml.Remove(hp1);
           hp1.free;
-          DebugMsg(SPeepholeOptimization + 'FMovFMov2FMov done', p);
+          DebugMsg(SPeepholeOptimization + 'FMovFMov2FMov 1 done', p);
           Result:=true;
         end;
+
+      { change
+          fmov reg0,const
+          fmov reg1,reg0
+          dealloc reg0
+          into
+          fmov reg1,const
+      }
+      if MatchOpType(taicpu(p),top_reg,top_realconst) and
+        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
+        MatchInstruction(hp1,A_FMOV,[taicpu(p).condition],[taicpu(p).oppostfix]) and
+        MatchOpType(taicpu(hp1),top_reg,top_reg) and
+        MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^.reg) and
+        (not RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1)) and
+        assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next)))
+        then
+        begin
+          DebugMsg('Peephole FMovFMov2FMov 2 done', p);
+
+          taicpu(hp1).loadrealconst(1,taicpu(p).oper[1]^.val_real);
+
+          alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.Previous));
+          dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
+
+          if assigned(alloc) and assigned(dealloc) then
+            begin
+              asml.Remove(alloc);
+              alloc.Free;
+              asml.Remove(dealloc);
+              dealloc.Free;
+            end;
+
+          { p will be removed, update used register as we continue
+            with the next instruction after p }
+
+          result:=RemoveCurrentP(p);
+        end;
+
       { not enabled as apparently not happening
       if MatchOpType(taicpu(p),top_reg,top_reg) and
         GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and

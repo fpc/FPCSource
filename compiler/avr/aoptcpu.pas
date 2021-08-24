@@ -1373,6 +1373,8 @@ Implementation
                 A_SBIC,
                 A_SBIS:
                   Result:=OptPass1SBI(p);
+                A_FMOV:
+                  Result:=OptPass1FMOV;
               end;
           end;
       end;
