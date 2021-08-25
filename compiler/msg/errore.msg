@@ -3876,46 +3876,46 @@ F*0*_Only options valid for the default or selected platform are listed.
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
 3*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
+3*2Acoff_COFF (Go32v2) using internal writer
+3*2Aelf_ELF (Linux) using internal writer
 3*2Amacho_Mach-O (Darwin, Intel 32 bit) using internal writer
-8*2Anasm_Assemble using Nasm
-8*2Anasmobj_Assemble using Nasm
+3*2Amasm_Obj file using Masm (Microsoft)
 3*2Anasm_Assemble using Nasm
 3*2Anasmcoff_COFF (Go32v2) file using Nasm
-3*2Anasmelf_ELF32 (Linux) file using Nasm
-3*2Anasmwin32_Win32 object file using Nasm
-3*2Anasmwdosx_Win32/WDOSX object file using Nasm
 3*2Anasmdarwin_macho32 object file using Nasm (experimental)
-3*2Awasm_Obj file using Wasm (Watcom)
+3*2Anasmelf_ELF32 (Linux) file using Nasm
 3*2Anasmobj_Obj file using Nasm
-3*2Amasm_Obj file using Masm (Microsoft)
-3*2Atasm_Obj file using Tasm (Borland)
-3*2Aelf_ELF (Linux) using internal writer
-3*2Acoff_COFF (Go32v2) using internal writer
+3*2Anasmwdosx_Win32/WDOSX object file using Nasm
+3*2Anasmwin32_Win32 object file using Nasm
 3*2Apecoff_PE-COFF (Win32) using internal writer
+3*2Atasm_Obj file using Tasm (Borland)
+3*2Awasm_Obj file using Wasm (Watcom)
 3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
-4*2Agas_Assemble using GNU GAS
 4*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
-4*2Amasm_Win64 object file using ml64 (Microsoft)
-4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Aelf_ELF (Linux-64bit) using internal writer
-4*2Ayasm_Assemble using Yasm (experimental)
+4*2Agas_Assemble using GNU GAS
+4*2Amasm_Win64 object file using ml64 (Microsoft)
 4*2Anasm_Assemble using Nasm (experimental)
-4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
-4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
 4*2Anasmdarwin_Assemble darwin macho64 object file using Nasm (experimental)
+4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
+4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
+4*2Apecoff_PE-COFF (Win64) using internal writer
+4*2Ayasm_Assemble using Yasm (experimental)
 6*2Aas_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
 6*2Avasm_Use vasm to assemble
+8*2Anasm_Assemble using Nasm
+8*2Anasmobj_Assemble using Nasm
 A*2Aas_Assemble using GNU AS
 A*2Aas-darwin_Assemble using GNU AS for Darwin targets
 A*2Aclang_Assemble using clang
 A*2Aelf_Assemble using internal ELF writer
 a*2Aas_Assemble using GNU AS
+a*2Aas-clang_Assemble using clang for other targets
 a*2Aclang_Assemble using clang for darwin/ios targets
-a*2Aas-clang_Assemble using clang for other targets 
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
 s*2Aas_Assemble using GNU AS
@@ -3925,8 +3925,8 @@ W*2Allvm-mc_Assemble using llvm-mc
 W*2Awabt_Assemble using wasa
 x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
-Z*2Az80asm_Assemble using z80asm
 Z*2Avasm_Assemble using Vasm
+Z*2Az80asm_Assemble using z80asm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -3955,9 +3955,9 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
-**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **3CPPACKENUM=<y>_ <y> enum packing: 0, 1, 2 and 4 or DEFAULT or NORMAL
 **3CPPACKRECORD=<y>_ <y> record packing: 0 or DEFAULT or NORMAL, 1, 2, 4, 8, 16 and 32
+**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_Range checking
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
@@ -3987,8 +3987,8 @@ A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
-**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2Dd<x>_Set description to <x>
+**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2DT<x>_Set the time string returned by %TIME% to x, it is not checked for being a valid time string
 **2Dv<x>_Set DLL version to <x>
 *O2Dw_PM application
@@ -4016,19 +4016,19 @@ A*2CV<x>_Set section threadvar model to <x>
 **2FR<x>_Set resource (.res) linker to <x>
 **2Fu<x>_Add <x> to unit path
 **2FU<x>_Set unit output path to <x>, overrides -FE
-**2FW<x>_Store generated whole-program optimization feedback in <x>
 **2Fw<x>_Load previously stored whole-program optimization feedback from <x>
+**2FW<x>_Store generated whole-program optimization feedback in <x>
 *g1g_Generate debug information (default format for target)
 *g2gc_Generate checks for pointers (experimental, only available on some targets, might generate false positive)
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2gm_Generate Microsoft CodeView debug information (experimental)
 *g2go<x>_Set debug information options
+*g3godwarfcpp_ Simulate C++ debug information in DWARF
+*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
+*g3godwarfomflinnum_ Generate line number information in OMF LINNUM records in MS LINK format in addition to the DWARF debug information (Open Watcom Debugger/Linker compatibility)
 *g3godwarfsets_ Enable DWARF 'set' type debug information (breaks gdb < 6.5)
 *g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
-*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
-*g3godwarfcpp_ Simulate C++ debug information in DWARF
-*g3godwarfomflinnum_ Generate line number information in OMF LINNUM records in MS LINK format in addition to the DWARF debug information (Open Watcom Debugger/Linker compatibility)
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses; multiple 't' changes the trashing value)
@@ -4038,36 +4038,36 @@ A*2CV<x>_Set section threadvar model to <x>
 *g2gw3_Generate DWARFv3 debug information
 *g2gw4_Generate DWARFv4 debug information (experimental)
 **1i_Information
-**2iD_Return compiler date
-**2iSO_Return compiler OS
-**2iSP_Return compiler host processor
-**2iTO_Return target OS
-**2iTP_Return target processor
-**2iV_Return short compiler version
-**2iW_Return full compiler version
 **2ia_Return list of supported ABI targets
 **2ib_Return the used code generation backend type
 **2ic_Return list of supported CPU instruction sets
+**2iD_Return compiler date
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes
 **2im_Return list of supported modeswitches
 **2io_Return list of supported optimizations
 **2ir_Return list of recognized compiler and RTL features
+**2iSO_Return compiler OS
+**2iSP_Return compiler host processor
 **2it_Return list of supported targets
+**2iTO_Return target OS
+**2iTP_Return target processor
 **2iu_Return list of supported microcontroller types
+**2iV_Return short compiler version
 **2iw_Return list of supported whole program optimizations
+**2iW_Return full compiler version
 **1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_Write logo
 **1M<x>_Set language mode to <x> / enable modeswitch <x> (see option -im)
-**2Mfpc_Free Pascal dialect (default)
-**2Mobjfpc_FPC mode with Object Pascal support
 **2Mdelphi_Delphi 7 compatibility mode
-**2Mtp_TP/BP 7.0 compatibility mode
-**2Mmacpas_Macintosh Pascal dialects compatibility mode
-**2Miso_ISO 7185 mode
-**2Mextendedpascal_ISO 10206 mode
 **2Mdelphiunicode_Delphi 2009 and later compatibility mode
+**2Mextendedpascal_ISO 10206 mode
+**2Mfpc_Free Pascal dialect (default)
+**2Miso_ISO 7185 mode
+**2Mmacpas_Macintosh Pascal dialects compatibility mode
+**2Mobjfpc_FPC mode with Object Pascal support
+**2Mtp_TP/BP 7.0 compatibility mode
 **2*_Each mode (as listed above) enables its default set of modeswitches.
 **2*_Other modeswitches are disabled and need to be enabled one by another.
 **1M<x>-_Disable modeswitch <x> (see option -im)
@@ -4082,9 +4082,9 @@ A*2CV<x>_Set section threadvar model to <x>
 **2Oa<x>=<y>_Set alignment
 **2Oo[NO]<x>_Enable or disable optimizations; see fpc -i or fpc -io for possible values
 **2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic for possible values
-**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
-**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
 **2Os_Optimize for size rather than speed
+**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 F*1P<x>_Target CPU / compiler related options:
 F*2PB_Show default compiler binary
@@ -4099,25 +4099,30 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 8*2Ratt_Read AT&T style assembler
 8*2Rintel_Read Intel style assembler
 6*2RMOT_Read Motorola style assembler
+**1s_Do not call assembler and linker
+**2sh_Generate script to link on host, automatically switches to external assembler writer
+**2sr_Skip register allocation phase (use with -alr), automatically switches to external assembler writer
+**2st_Generate script to assemble and link on target, automatically switches to external assembler writer
+**2sT_Generate script only to link on target
 **1S<x>_Syntax options:
 **2S2_Same as -Mobjfpc
-**2Sc_Support operators like C (*=,+=,/= and -=)
 **2Sa_Turn on assertions
+**2Sc_Support operators like C (*=,+=,/= and -=)
 **2Sd_Same as -Mdelphi
 **2Se<x>_Error options. <x> is a combination of the following:
 **3*_<n> : Compiler halts after the <n> errors (default is 1)
-**3*_w : Compiler also halts after warnings
-**3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
+**3*_n : Compiler also halts after notes
+**3*_w : Compiler also halts after warnings
 **2Sf_Enable certain features in compiler and RTL; see fpc -i or fpc -ir for possible values)
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
 **2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
-**2Sj_Allows typed constants to be writeable (default in all modes)
-**2Sk_Load fpcylix unit
 **2SI<x>_Set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface
+**2Sj_Allows typed constants to be writeable (default in all modes)
+**2Sk_Load fpcylix unit
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Sr_Transparent file names in ISO mode
@@ -4125,11 +4130,6 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2Sv_Support vector processing (use CPU vector extensions if available)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **2Sy_@<pointer> returns a typed pointer, same as $T+
-**1s_Do not call assembler and linker
-**2sh_Generate script to link on host, automatically switches to external assembler writer
-**2sT_Generate script only to link on target
-**2st_Generate script to assemble and link on target, automatically switches to external assembler writer
-**2sr_Skip register allocation phase (use with -alr), automatically switches to external assembler writer
 **1T<x>_Target operating system:
 # i386 targets
 3*2Tandroid_Android
@@ -4149,8 +4149,8 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
+3*2Tsymbian_Symbian OS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
@@ -4228,11 +4228,11 @@ p*2Tdarwin_Darwin/Mac OS X
 p*2Tembedded_Embedded
 p*2Tlinux_Linux
 # riscv32 targets
-R*2Tlinux_Linux
 R*2Tembedded_Embedded
+R*2Tlinux_Linux
 # riscv64 targets
-r*2Tlinux_Linux
 r*2Tembedded_Embedded
+r*2Tlinux_Linux
 # sparc targets
 S*2Tlinux_Linux
 S*2Tsolaris_Solaris
@@ -4247,8 +4247,8 @@ x*2Tfreertos_FreeRTOS
 x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
-Z*2Tzxspectrum_ZX Spectrum
 Z*2Tmsxdos_MSX-DOS
+Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
 W*2Twasi_The WebAssembly System Interface (WASI)
@@ -4259,18 +4259,18 @@ W*2Twasi_The WebAssembly System Interface (WASI)
 **2Ur_Generate release unit files (never automatically recompiled)
 **2Us_Compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_e : Show errors (default)       0 : Show nothing (except errors)
-**2*_w : Show warnings               u : Show unit info
-**2*_n : Show notes                  t : Show tried/used files
-**2*_h : Show hints                  c : Show conditionals
-**2*_i : Show general info           d : Show debug info
-**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
-**2*_s : Show time stamps            q : Show message numbers
-**2*_a : Show everything             x : Show info about invoked tools
-**2*_b : Write file names messages   p : Write tree.log with parse tree
-**2*_    with full path              v : Write fpcdebug.txt with
-**2*_z : Write output to stderr          lots of debugging info
+**2*_0 : Show nothing (except errors) p : Write tree.log with parse tree
+**2*_a : Show everything              q : Show message numbers
+**2*_b : Write file names messages    r : Rhide/GCC compatibility mode
+**2*_    with full path               s : Show time stamps
+**2*_c : Show conditionals            t : Show tried/used files
+**2*_d : Show debug info              u : Show unit info
+**2*_e : Show errors (default)        v : Write fpcdebug.txt with
+**2*_h : Show hints                       lots of debugging info
+**2*_i : Show general info            w : Show warnings
+**2*_l : Show linenumbers             x : Show info about invoked tools
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
+**2*_n : Show notes                   z : Write output to stderr
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)
@@ -4344,8 +4344,8 @@ A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)
 8*2Wt<x>_Set the target executable format
-8*3Wtexe_Create a DOS .EXE file (default)
 8*3Wtcom_Create a DOS .COM file (requires tiny memory model)
+8*3Wtexe_Create a DOS .EXE file (default)
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*2WQ<x>_Set executable metadata format (Sinclair QL)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)
@@ -4356,15 +4356,15 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xa_Generate code which allows to use more than 2 GB static data on 64 Bit targets (Linux)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
+**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xe_Use external linker
 **2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
-**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
 L*2XlS<x>_LLVM utilties suffix (e.g. -7 in case clang is called clang-7)
 **2XLA_Define library substitutions for linking
-**2XLO_Define order of library linking
 **2XLD_Exclude default order of standard libraries
+**2XLO_Define order of library linking
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)
