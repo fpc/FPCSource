@@ -11,10 +11,20 @@ stages:          # List of stages for jobs, and their order of execution
 build-and-test-job:       # This job runs in the build stage, which runs first.
   stage: buildandtest
   script:
-    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 OPT="-gl" FPMAKEOPT="-T 4"
+    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4"
     - FPC_SRC=$(pwd)
     - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
     - cd tests
+    - cd utils
+    - make fpts2junit
+    - cd ..
     - make clean TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
     - make full TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
-    
+    - cd $FPC_SRC
+    - tests/utils/fpts2junit $FPC_SRC/tests/output/x86_64-linux/ testresult.xml
+  artifacts:
+    when: always  
+    paths:
+      - testresult.xml
+    reports:
+      junit: testresult.xml
