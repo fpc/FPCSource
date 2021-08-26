@@ -15,11 +15,10 @@ build-and-test-job:       # This job runs in the build stage, which runs first.
     - FPC_SRC=$(pwd)
     - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
     - cd tests
-    - cd utils
-    - make fpts2junit
-    - cd ..
     - make clean TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
     - make full TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
+    - cd utils
+    - make fpts2junit
     - cd $FPC_SRC
     - tests/utils/fpts2junit $FPC_SRC/tests/output/x86_64-linux/ testresult.xml
   artifacts:
