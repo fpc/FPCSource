@@ -13,7 +13,7 @@ compiler-fullcycle-job:
   stage: compilercycle
   script:
     - cd compiler
-    - make fullcycle
+    - make fullcycle -j 4
 
 build-and-test-job:
   stage: buildandtest
