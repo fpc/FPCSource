@@ -6,17 +6,12 @@
 image: registry.gitlab.com/freepascal.org/fpc/source:buster_fpcbuild
 
 stages:          # List of stages for jobs, and their order of execution
-  - build
-  - test
+  - buildandtest
 
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
+build-and-test-job:       # This job runs in the build stage, which runs first.
+  stage: buildandtest
   script:
     - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 OPT="-gl" FPMAKEOPT="-T 4"
-    
-regression-test-job:   # This job runs in the test stage.
-  stage: test          # It only starts when the job in the build stage completes successfully.
-  script:
     - FPC_SRC=$(pwd)
     - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
     - cd tests
