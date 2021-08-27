@@ -659,7 +659,11 @@ end;
 constructor TCompComponent.Create(AOwner: TComponent);
 begin
   inherited;
+{$if defined(FPC_COMP_IS_INT64)}
+  F:=Round(4.56);
+{$else defined(FPC_COMP_IS_INT64)}
   F:=4.56;
+{$endif defined(FPC_COMP_IS_INT64)}
 end;
 
 { TCurrencyComponent }
