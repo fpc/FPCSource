@@ -386,7 +386,7 @@ var
         Include(Result,aState);
       {$endif}
       {$ifdef windows}
-      if FD_IsSet(FSocket.Handle, FDS)>0 then
+      if FD_IsSet(FSocket.Handle, FDS) then
         Include(Result,aState);
       {$endif}
       end;
@@ -407,7 +407,7 @@ begin
   Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
 {$ifdef windows}
-  Res:=Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
+  Res:=winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
   if Res>0 then
     begin
@@ -549,10 +549,10 @@ var
       end;
     {$ENDIF}
     {$ifdef windows}
-    FD_Zero(FDS);
+    FD_Zero(FD);
     For S in AnArray do
       begin
-      FD_Set(FSocket.Handle, FDS);
+      FD_Set(S.Handle, FD);
       if S.Handle>MaxHandle then
         MaxHandle:=S.Handle;
       end;
@@ -566,6 +566,7 @@ var
     aLen : Integer;
 
   begin
+    Result:=nil;
     SetLength(Result,Length(Src));
     aLen:=0;
     For S in Src do
@@ -574,7 +575,7 @@ var
       if fpFD_IsSet(S.Handle, FD)>0 then
 {$ENDIF}
 {$IFDEF Windows}
-      if FD_isSet(FSocket.Handle, FDS)>0 then
+      if FD_isSet(S.Handle, FD) then
 {$ENDIF}
         begin
         Result[aLen]:=S;
@@ -600,7 +601,7 @@ begin
   Result := fpSelect(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
 {$endif}
 {$ifdef windows}
-  Result := Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+  Result := winsock2.Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
 {$endif}
   aRead:=FillArr(FDR,aRead);
   aWrite:=FillArr(FDR,aRead);
@@ -798,7 +799,7 @@ begin
     FDS := Default(TFDSet);
     FD_Zero(FDS);
     FD_Set(FSocket, FDS);
-    Result := Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+    Result := winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
     If not Result then
@@ -1272,7 +1273,7 @@ begin
     Res:=fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   {$ifdef windows}
-    Res:=select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
+    Res:=winsock2.select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   if (Res=0) then
     Result:=ctrTimeout
