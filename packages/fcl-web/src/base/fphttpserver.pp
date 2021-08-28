@@ -62,7 +62,7 @@ Type
 
   TFPHTTPConnection = Class(TObject)
   private
-    Class var _ConnectionCount : Cardinal;
+    Class var _ConnectionCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
   private
     FBusy: Boolean;
     FConnectionID: String;
@@ -990,7 +990,11 @@ begin
   if Assigned(IDAllocator) then
     IDAllocator(FConnectionID);
   if FConnectionID='' then
-    FConnectionID:=IntToStr(InterlockedIncrement(_ConnectionCount))
+{$IFDEF CPU64}
+    FConnectionID:=IntToStr(InterlockedIncrement64(_ConnectionCount));
+{$ELSE}
+    FConnectionID:=IntToStr(InterlockedIncrement(_ConnectionCount));
+{$ENDIF}
 end;
 
 procedure TFPHTTPConnection.DoHandleRequest;
