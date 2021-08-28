@@ -6,14 +6,18 @@
 image: registry.gitlab.com/freepascal.org/fpc/source:buster_fpcbuild
 
 stages:
+  - compilercycle
   - buildandtest
+
+compiler-fullcycle-job:
+  stage: compilercycle
+  script:
+    - cd compiler
+    - make fullcycle
 
 build-and-test-job:
   stage: buildandtest
   script:
-    - cd compiler
-    - make fullcycle
-    - cd ..
     - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4"
     - FPC_SRC=$(pwd)
     - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
