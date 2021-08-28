@@ -454,7 +454,7 @@ begin
   ACodePage := CodePageNameToCodePage(AnsiString(EncodingName));
   if ACodePage = $FFFF then
     raise EEncodingError.CreateFmt(SNotValidCodePageName, [EncodingName]);
-  Result := TMBCSEncoding.Create(ACodePage);
+  Result := GetEncoding(ACodePage);
 end;
 
 function TEncoding.GetString(const Bytes: TBytes): UnicodeString;
