@@ -445,7 +445,7 @@ type
 
   TRequest = class(THttpHeader)
   Private
-    class var _RequestCount : Cardinal;
+    class var _RequestCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
   private
     FCommand: String;
     FCommandLine: String;
@@ -2209,8 +2209,11 @@ begin
   if Assigned(IDAllocator) then
     IDAllocator(FRequestID);
   if FRequestID='' then
-    FRequestID:=IntToStr(InterlockedIncrement(_RequestCount))
-
+{$IFDEF CPU64}
+    FRequestID:=IntToStr(InterlockedIncrement64(_RequestCount));
+{$ELSE}
+    FRequestID:=IntToStr(InterlockedIncrement(_RequestCount));
+{$ENDIF}
 end;
 
 function TRequest.AllowReadContent: Boolean;
