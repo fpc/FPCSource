@@ -187,6 +187,7 @@ Type
     Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
   Public
     Constructor Create(aServer : TFPCustomHTTPServer); override;
+    Destructor Destroy; override;
     Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
     Procedure CloseSockets; override;
     Function GetActiveConnectionCount : Integer; override;
@@ -534,6 +535,13 @@ end;
 function TFPHTTPServerConnectionListHandler.CreateList: TConnectionList;
 begin
   Result:=TConnectionList.Create;
+end;
+
+destructor TFPHTTPServerConnectionListHandler.Destroy;
+begin
+  FList.Free;
+
+  inherited Destroy;
 end;
 
 procedure TFPHTTPServerConnectionListHandler.CloseConnectionSocket(aConnection: TFPHTTPConnection; var aContinue: boolean);
