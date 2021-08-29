@@ -1740,13 +1740,13 @@ begin
              end;
            'D' :
              begin
-               include(init_settings.globalswitches,cs_link_deffile);
                j:=1;
                while j<=length(more) do
                 begin
                   case more[j] of
                     'd' :
                       begin
+                        include(init_settings.globalswitches,cs_link_deffile);
                         description:=Copy(more,j+1,255);
                         break;
                       end;
@@ -1762,6 +1762,7 @@ begin
                       end;
                     'v' :
                       begin
+                        include(init_settings.globalswitches,cs_link_deffile);
                         dllversion:=Copy(more,j+1,255);
                         l:=pos('.',dllversion);
                         dllminor:=0;
@@ -1792,7 +1793,10 @@ begin
                         break;
                       end;
                     'w' :
-                      usewindowapi:=true;
+                      begin
+                        include(init_settings.globalswitches,cs_link_deffile);
+                        usewindowapi:=true;
+                       end;
                     '-' :
                       begin
                         exclude(init_settings.globalswitches,cs_link_deffile);
