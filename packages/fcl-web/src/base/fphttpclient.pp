@@ -19,7 +19,7 @@ unit fphttpclient;
 interface
 
 uses
-  Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets;
+  Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets, DateUtils;
 
 Const
   // Socket Read buffer size
@@ -73,6 +73,7 @@ Type
     FKeepConnection: Boolean;
     FMaxChunkSize: SizeUInt;
     FMaxRedirects: Byte;
+    FOnIdle: TNotifyEvent;
     FOnDataReceived: TDataEvent;
     FOnDataSent: TDataEvent;
     FOnHeaders: TNotifyEvent;
@@ -131,6 +132,10 @@ Type
     Function ProxyActive : Boolean;
     // Override this if you want to create a custom instance of proxy.
     Function CreateProxyData : TProxyData;
+    // Called before data is read.
+    Procedure DoBeforeDataRead; virtual;
+    // Called when the client is waiting for the server.
+    Procedure DoOnIdle; virtual;
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
     // Called whenever data is written.
@@ -345,6 +350,8 @@ Type
     Property OnPassword : TPasswordEvent Read FOnPassword Write FOnPassword;
     // Called whenever data is read from the connection.
     Property OnDataReceived : TDataEvent Read FOnDataReceived Write FOnDataReceived;
+    // Called when the client is waiting for the server
+    Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;
     // Called whenever data is written to the connection.
     Property OnDataSent : TDataEvent Read FOnDataSent Write FOnDataSent;
     // Called when headers have been processed.
@@ -380,6 +387,7 @@ Type
     Property OnPassword;
     Property OnDataReceived;
     Property OnDataSent;
+    Property OnIdle;
     Property OnHeaders;
     Property OnGetSocketHandler;
     Property Proxy;
@@ -689,6 +697,21 @@ begin
   FreeAndNil(FSocket);
 end;
 
+procedure TFPCustomHTTPClient.DoBeforeDataRead;
+var
+  BreakUTC: TDateTime;
+begin
+  // use CanRead to keep the client responsive in case the server needs a lot of time to respond
+  if IOTimeout>0 then
+    BreakUTC := IncMilliSecond(NowUTC, IOTimeout);
+  while not Terminated and not FSocket.CanRead(10) do
+    begin
+    DoOnIdle;
+    if (IOTimeout>0) and (CompareDateTime(NowUTC, BreakUTC)>0) then // we exceeded the timeout -> read error
+      Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
+    end;
+end;
+
 function TFPCustomHTTPClient.AllowHeader(var AHeader: String): Boolean;
 
 begin
@@ -780,6 +803,7 @@ function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
     R : Integer;
 
   begin
+    DoBeforeDataRead;
     if Terminated then
       Exit(False);
     SetLength(FBuffer,ReadBufLen);
@@ -1121,6 +1145,9 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
   Function Transfer(LB : Integer) : Integer;
 
   begin
+    DoBeforeDataRead;
+    if Terminated then
+      Exit(0);
     Result:=FSocket.Read(FBuffer[1],LB);
     If Result<0 then
       Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
@@ -1152,6 +1179,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
 
     begin
       Result:=False;
+      DoBeforeDataRead;
       If Terminated then
         exit;
       SetLength(FBuffer,ReadBuflen);
@@ -1354,6 +1382,12 @@ begin
   Finally
     DisconnectFromServer;
   End;
+end;
+
+procedure TFPCustomHTTPClient.DoOnIdle;
+begin
+  If Assigned(FOnIdle) Then
+    FOnIdle(Self);
 end;
 
 Procedure TFPCustomHTTPClient.DoKeepConnectionRequest(const AURI: TURI;
