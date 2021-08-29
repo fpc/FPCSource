@@ -704,12 +704,15 @@ begin
   // use CanRead to keep the client responsive in case the server needs a lot of time to respond
   if IOTimeout>0 then
     BreakUTC := IncMilliSecond(NowUTC, IOTimeout);
-  while not Terminated and not FSocket.CanRead(10) do
+  while not Terminated and not FSocket.CanRead(10) and (FSocket.LastError=0) do
     begin
     DoOnIdle;
     if (IOTimeout>0) and (CompareDateTime(NowUTC, BreakUTC)>0) then // we exceeded the timeout -> read error
       Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
     end;
+
+  if FSocket.LastError<>0 then
+    Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
 end;
 
 function TFPCustomHTTPClient.AllowHeader(var AHeader: String): Boolean;
