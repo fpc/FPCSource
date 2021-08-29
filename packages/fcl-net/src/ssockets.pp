@@ -422,6 +422,10 @@ begin
     CheckSet(FDSW,sosCanWrite);
     CheckSet(FDSE,sosException);
     end;
+  if Res<0 then
+    FLastError:=SocketError
+  else
+    FLastError:=0;
 end;
 
 function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
