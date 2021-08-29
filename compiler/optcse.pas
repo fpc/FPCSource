@@ -42,6 +42,7 @@ unit optcse;
       Further, it could be done probably in a faster way though the complexity can't probably not reduced
     }
     function do_optcse(var rootnode : tnode) : tnode;
+    function do_consttovar(var rootnode : tnode) : tnode;
 
   implementation
 
@@ -51,6 +52,9 @@ unit optcse;
       nutils,compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
+      procinfo,
+      paramgr,
+      cpubase,
       symconst,symdef,symsym,symtable,symtype,
       defutil,
       optbase;
@@ -577,6 +581,199 @@ unit optcse;
         writeln('====================================================================================');
         writeln;
 {$endif csedebug}
+        result:=nil;
+      end;
+
+    type
+      tconstentry = record
+        valuenode : tnode;
+        weight : TCGInt;
+        temp : ttempcreatenode;
+      end;
+
+      pconstentry = ^tconstentry;
+
+      tconstentries = array of tconstentry;
+      pconstentries = ^tconstentries;
+
+    function collectconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        consts: pconstentries;
+        found: Boolean;
+        i: Integer;
+      begin
+        result:=fen_true;
+        consts:=pconstentries(arg);
+        if n.nodetype=realconstn then
+          begin
+            found:=false;
+            i:=0;
+            for i:=0 to High(consts^) do
+              begin
+                if tnode(consts^[i].valuenode).isequal(n) then
+                  begin
+                    found:=true;
+                    break;
+                  end;
+              end;
+            if found then
+              inc(consts^[i].weight)
+            else
+              begin
+                SetLength(consts^,length(consts^)+1);
+                with consts^[high(consts^)] do
+                  begin
+                    valuenode:=n.getcopy;
+                    valuenode.fileinfo:=current_procinfo.entrypos;
+                    weight:=1;
+                  end;
+              end;
+          end;
+      end;
+
+
+    function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        hp: tnode;
+      begin
+        result:=fen_true;
+        if tnode(pconstentry(arg)^.valuenode).isequal(n) then
+          begin
+            hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+            hp.fileinfo:=n.fileinfo;
+            n.Free;
+            n:=hp;
+            do_firstpass(n);
+          end;
+       end;
+
+
+    function do_consttovar(var rootnode : tnode) : tnode;
+
+      var
+        constentries : tconstentries;
+
+      Procedure QuickSort(L, R : Longint);
+        var
+          I, J, P: Longint;
+          Item, Q : tconstentry;
+        begin
+         repeat
+           I := L;
+           J := R;
+           P := (L + R) div 2;
+           repeat
+             Item := constentries[P];
+             while Item.weight>constentries[I].weight do
+               I := I + 1;
+             while Item.weight<constentries[J].weight do
+               J := J - 1;
+             If I <= J then
+             begin
+               Q := constentries[I];
+               constentries[I] := constentries[J];
+               constentries[J] := Q;
+               if P = I then
+                P := J
+               else if P = J then
+                P := I;
+               I := I + 1;
+               J := J - 1;
+             end;
+           until I > J;
+           if L < J then
+             QuickSort(L, J);
+           L := I;
+         until I >= R;
+        end;
+
+      var
+        creates,
+        deletes,
+        statements : tstatementnode;
+        createblock,
+        deleteblock,
+        rootblock : tblocknode;
+        i, maxassigned, regsassigned: Integer;
+        old_current_filepos: tfileposinfo;
+      begin
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization pass started');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
+        foreachnodestatic(pm_postprocess,rootnode,@collectconsts,@constentries);
+        createblock:=nil;
+        deleteblock:=nil;
+        rootblock:=nil;
+        { estimate how many registers can be used for constants }
+{$if defined(x86) or defined(aarch64) or defined(arm)}
+        { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
+        if pi_do_call in current_procinfo.flags then
+          maxassigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 4
+        else
+          maxassigned:=max(first_mm_imreg div 4,1);
+{$else defined(x86) or defined(aarch64) or defined(arm)}
+        if pi_do_call in current_procinfo.flags then
+          maxassigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 4
+        else
+          maxassigned:=max(first_fpu_imreg div 4,1);
+{$endif defined(x86) or defined(aarch64) or defined(arm)}
+        regsassigned:=0;
+        if Length(constentries)>0 then
+          begin
+            { sort entries by weight }
+            QuickSort(0,High(constentries));
+            { assign only the constants with the highest weight to a register }
+            for i:=High(constentries) downto 0 do
+              begin
+                if regsassigned>=maxassigned then
+                  break;
+                if { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>3) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+{$ifdef x86}
+                  { x87 consts would end up in memory, so loading them in temps. makes no sense }
+                  and use_vectorfpu(constentries[i].valuenode.resultdef)
+{$endif x86}
+                then
+                  begin
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
+                       constentries[i].valuenode.resultdef.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                  end;
+              end;
+          end;
+        if assigned(createblock) then
+          begin
+            addstatement(statements,createblock);
+            addstatement(statements,rootnode);
+            addstatement(statements,deleteblock);
+            rootnode:=rootblock;
+            do_firstpass(rootnode);
+          end;
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization result');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
         result:=nil;
       end;
 

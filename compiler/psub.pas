@@ -1280,6 +1280,9 @@ implementation
 
        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
          do_optloadmodifystore(code);
+
+       if cs_opt_consts in current_settings.optimizerswitches then
+         do_consttovar(code);
       end;
 
 

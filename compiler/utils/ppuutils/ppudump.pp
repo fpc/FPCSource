@@ -2445,7 +2445,8 @@ const
          'cs_opt_dead_store_eliminate',
          'cs_opt_forcenostackframe',
          'cs_opt_use_load_modify_store',
-         'cs_opt_unused_para'
+         'cs_opt_unused_para',
+         'cs_opt_consts'
        );
     var
          globalswitch  : tglobalswitch;
