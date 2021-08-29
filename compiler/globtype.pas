@@ -349,7 +349,8 @@ interface
          cs_opt_dead_store_eliminate,
          cs_opt_forcenostackframe,
          cs_opt_use_load_modify_store,
-         cs_opt_unused_para
+         cs_opt_unused_para,
+         cs_opt_consts
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -414,7 +415,7 @@ interface
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
          'DEADSTORE','FORCENOSTACKFRAME','USELOADMODIFYSTORE',
-         'UNUSEDPARA'
+         'UNUSEDPARA','CONSTS'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
