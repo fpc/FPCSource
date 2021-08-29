@@ -71,6 +71,7 @@ Type
     FRequestContentLength : Int64;
     FAllowRedirect: Boolean;
     FKeepConnection: Boolean;
+    FKeepConnectionReconnectLimit: Integer;
     FMaxChunkSize: SizeUInt;
     FMaxRedirects: Byte;
     FOnIdle: TNotifyEvent;
@@ -340,6 +341,8 @@ Type
     Property Connected: Boolean read IsConnected;
     // Keep-Alive support. Setting to true will set HTTPVersion to 1.1
     Property KeepConnection: Boolean Read FKeepConnection Write SetKeepConnection;
+    // Maximum reconnect attempts during one request. -1=unlimited, 0=don't try to reconnect
+    Property KeepConnectionReconnectLimit: Integer Read FKeepConnectionReconnectLimit Write FKeepConnectionReconnectLimit;
     // SSL certificate validation.
     Property VerifySSLCertificate : Boolean Read FVerifySSLCertificate Write FVerifySSLCertificate;
     // Called On redirect. Dest URL can be edited.
@@ -1401,10 +1404,11 @@ Var
   T: Boolean;
   CHost: string;
   CPort: Word;
-
+  A: Integer;
 begin
   ExtractHostPort(AURI, CHost, CPort);
   T := False;
+  A := 0;
   Repeat
     If Not IsConnected Then
       ConnectToServer(CHost,CPort,AIsHttps);
@@ -1419,13 +1423,22 @@ begin
       except
         on E: EHTTPClientSocket do
         begin
-          // failed socket operations raise exceptions - e.g. if ReadString() fails
-          // try to reconnect also in this case
-          T:=False;
+          if ((FKeepConnectionReconnectLimit>=0) and (A>=KeepConnectionReconnectLimit)) then
+            raise // reconnect limit is reached -> reraise
+          else
+            begin
+            // failed socket operations raise exceptions - e.g. if ReadString() fails
+            // this can be due to a closed keep-alive connection by the server
+            // -> try to reconnect
+            T:=False;
+            end;
         end;
       end;
+      if (FKeepConnectionReconnectLimit>=0) and (A>=KeepConnectionReconnectLimit) then
+        break; // reconnect limit is reached -> exit
       If Not T and Not Terminated Then
         ReconnectToServer(CHost,CPort,AIsHttps);
+      Inc(A);
     Finally
       // On terminate, we close the request
       If HasConnectionClose or Terminated Then
@@ -1462,6 +1475,7 @@ begin
   // Infinite timeout on most platforms
   FIOTimeout:=0;
   FConnectTimeout:=3000;
+  FKeepConnectionReconnectLimit:=1;
   FRequestHeaders:=TStringList.Create;
   FRequestHeaders.NameValueSeparator:=':';
   FResponseHeaders:=TStringList.Create;
