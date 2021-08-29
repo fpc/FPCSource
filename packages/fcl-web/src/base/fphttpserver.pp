@@ -539,8 +539,7 @@ end;
 
 destructor TFPHTTPServerConnectionListHandler.Destroy;
 begin
-  FList.Free;
-
+  FreeAndNil(FList);
   inherited Destroy;
 end;
 
