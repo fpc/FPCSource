@@ -716,7 +716,6 @@ begin
     if (IOTimeout>0) and (CompareDateTime(NowUTC, BreakUTC)>0) then // we exceeded the timeout -> read error
       Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
     end;
-
   if FSocket.LastError<>0 then
     Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
 end;
