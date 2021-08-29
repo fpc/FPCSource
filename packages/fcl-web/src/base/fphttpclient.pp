@@ -1401,14 +1401,14 @@ Procedure TFPCustomHTTPClient.DoKeepConnectionRequest(const AURI: TURI;
   const AAllowedResponseCodes: array of Integer;
   AHeadersOnly, AIsHttps: Boolean);
 Var
-  T: Boolean;
+  SkipReconnect: Boolean;
   CHost: string;
   CPort: Word;
-  A: Integer;
+  ACount: Integer;
 begin
   ExtractHostPort(AURI, CHost, CPort);
-  T := False;
-  A := 0;
+  SkipReconnect := False;
+  ACount := 0;
   Repeat
     If Not IsConnected Then
       ConnectToServer(CHost,CPort,AIsHttps);
@@ -1419,32 +1419,32 @@ begin
         SendRequest(AMethod,AURI);
         if Terminated then
           break;
-        T := ReadResponse(AStream,AAllowedResponseCodes,AHeadersOnly);
+        SkipReconnect := ReadResponse(AStream,AAllowedResponseCodes,AHeadersOnly);
       except
         on E: EHTTPClientSocket do
         begin
-          if ((FKeepConnectionReconnectLimit>=0) and (A>=KeepConnectionReconnectLimit)) then
+          if ((FKeepConnectionReconnectLimit>=0) and (aCount>=KeepConnectionReconnectLimit)) then
             raise // reconnect limit is reached -> reraise
           else
             begin
             // failed socket operations raise exceptions - e.g. if ReadString() fails
             // this can be due to a closed keep-alive connection by the server
             // -> try to reconnect
-            T:=False;
+            SkipReconnect:=False;
             end;
         end;
       end;
-      if (FKeepConnectionReconnectLimit>=0) and (A>=KeepConnectionReconnectLimit) then
+      if (FKeepConnectionReconnectLimit>=0) and (ACount>=KeepConnectionReconnectLimit) then
         break; // reconnect limit is reached -> exit
-      If Not T and Not Terminated Then
+      If Not SkipReconnect and Not Terminated Then
         ReconnectToServer(CHost,CPort,AIsHttps);
-      Inc(A);
+      Inc(ACount);
     Finally
       // On terminate, we close the request
       If HasConnectionClose or Terminated Then
         DisconnectFromServer;
     End;
-  Until T or Terminated;
+  Until SkipReconnect or Terminated;
 end;
 
 Procedure TFPCustomHTTPClient.DoMethod(Const AMethod, AURL: String;
