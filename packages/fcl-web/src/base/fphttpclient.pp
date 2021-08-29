@@ -136,7 +136,7 @@ Type
     // Called before data is read.
     Procedure DoBeforeDataRead; virtual;
     // Called when the client is waiting for the server.
-    Procedure DoOnIdle; virtual;
+    Procedure DoOnIdle;
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
     // Called whenever data is written.
@@ -704,7 +704,10 @@ procedure TFPCustomHTTPClient.DoBeforeDataRead;
 var
   BreakUTC: TDateTime;
 begin
-  // use CanRead to keep the client responsive in case the server needs a lot of time to respond
+  // Use CanRead to keep the client responsive in case the server needs a lot of time to respond.
+  // The request can be terminated in OnIdle - therefore it makes sense only if FOnIdle is set
+  If not Assigned(FOnIdle) Then
+    Exit;
   if IOTimeout>0 then
     BreakUTC := IncMilliSecond(NowUTC, IOTimeout);
   while not Terminated and not FSocket.CanRead(10) and (FSocket.LastError=0) do
