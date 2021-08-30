@@ -23,10 +23,13 @@ interface
 
 type
   generic TDeque<T>=class
-  private
+  public
   type
     PT=^T;
+  protected
+  type
     TArr=array of T;
+  private
   var
     FData:TArr;
     FDataSize:SizeUInt;
