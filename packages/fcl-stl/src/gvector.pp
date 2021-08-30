@@ -21,10 +21,13 @@ type
   { TVector }
 
   generic TVector<T> = class
-  private
+  public
   type
     PT = ^ T;
+  protected
+  type
     TArr = array of T;
+  private
   var
     FCapacity:SizeUInt;
     FDataSize:SizeUInt;
