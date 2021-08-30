@@ -30,6 +30,7 @@
 fpcmade.*
 *-stamp.*
 build-stamp.*
+BuildUnit_*.pp
 log.*
 faillist.*
 link*.res
