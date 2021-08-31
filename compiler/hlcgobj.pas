@@ -688,7 +688,8 @@ implementation
        fmodule,
        verbose,defutil,paramgr,
        symtable,
-       nbas,ncon,nld,ncgrtti,pass_2,
+       nbas,ncon,nld,nmem,
+       ncgrtti,pass_2,
        cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
@@ -4652,6 +4653,11 @@ implementation
         inn,
         asn,isn:
           result := fen_norecurse_false;
+        vecn:
+          { we cannot do SSA during partial writes to arrays which span multiple registers, see also tw39325 }
+          if (tvecnode(n).left.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+            (tcgsize2size[reg_cgsize(tvecnode(n).left.location.register)]<>tvecnode(n).left.resultdef.size) then
+            result := fen_norecurse_false;
         else
           ;
       end;
