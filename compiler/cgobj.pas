@@ -757,7 +757,7 @@ implementation
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
         if not has_next_reg[getsupreg(r)] then
-          internalerror(2017091103);
+          internalerror(2017091104);
 {$endif AVR}
         if getregtype(r)<>R_INTREGISTER then
           internalerror(2017091101);
