@@ -4241,7 +4241,6 @@ xmmreg_mz,xmmreg,mem64                    \334\350\352\362\370\1\x5A\75\120     
 xmmreg_mz,xmmreg,xmmreg_er                \334\350\352\362\370\1\x5A\75\120         AVX,SANDYBRIDGE
 
 
-
 ; special handling - gas suffix "S" =>> instructions-opsize = source-operand
 [VCVTSI2SD,vcvtsi2sdS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
@@ -4250,6 +4249,7 @@ xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120 
 xmmreg,xmmreg_er,mem32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
 xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,T1S
 
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
 [VCVTSI2SS,vcvtsi2ssS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg_er,reg32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
@@ -7285,7 +7285,7 @@ zmmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x7B\110        
 ; VCVTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                               map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTPD2UDQ, vcvtpd2udqN]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \350\352\364\370\1\x79\110                AVX512,TFV
 xmmreg_mz,xmmrm                           \350\352\370\1\x79\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x79\110                    AVX512,BCST2,TFV
@@ -7349,7 +7349,7 @@ zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\xE6\110        
 ; VCVTQQ2PS xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTQQ2PS,vcvtqq2psN]
-
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \350\352\364\370\1\x5B\110                AVX512,TFV
 xmmreg_mz,xmmrm                           \350\352\370\1\x5B\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x5B\110                    AVX512,BCST2,TFV
@@ -7386,8 +7386,7 @@ zmmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\x7A\110        
 ; VCVTTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                                map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTTPD2UDQ,vcvttpd2udqN]
-(Ch_All)
-;xmmreg_mz,mem128                          \350\352\370\1\x78\110                    AVX512,TFV
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \350\352\364\370\1\x78\110                AVX512,TFV
 xmmreg_mz,xmmrm                           \350\352\370\1\x78\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x78\110                    AVX512,BCST2,TFV
@@ -7486,7 +7485,7 @@ zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\x7A\110        
 ; VCVTTUQQ2PSQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
 ;                                                 map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTUQQ2PS,vcvtuqq2psN]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \334\350\352\364\370\1\x7A\110            AVX512,TFV
 xmmreg_mz,xmmrm                           \334\350\352\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,bmem64                          \334\350\352\370\1\x7A\110                AVX512,BCST2,TFV
@@ -7495,9 +7494,10 @@ xmmreg_mz,ymmreg                          \334\350\352\364\370\1\x7A\110        
 ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\x7A\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\x7A\110            AVX512,BCST8,TFV
 
+
 ; special handling - gas suffix "S" =>> instructions-opsize = source-operand
 [VCVTUSI2SD,vcvtusi2sdS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg_er,reg32                    \334\350\370\1\x7B\75\120                 AVX512
 xmmreg,xmmreg_er,reg64                    \334\350\352\370\1\x7B\75\120             AVX512,X86_64
 xmmreg,xmmreg_er,mem32                    \334\350\370\1\x7B\75\120                 AVX512,T1S
@@ -7506,7 +7506,7 @@ xmmreg,xmmreg_er,mem64                    \334\350\352\370\1\x7B\75\120         
 
 ; special handling - gas suffix "S" =>> instructions-opsize = source-operand
 [VCVTUSI2SS,vcvtusi2ssS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmreg_er,reg32                    \333\350\370\1\x7B\75\120                 AVX512
 xmmreg,xmmreg_er,reg64                    \333\350\352\370\1\x7B\75\120             AVX512,X86_64
 xmmreg,xmmreg_er,mem32                    \333\350\370\1\x7B\75\120                 AVX512,T1S
