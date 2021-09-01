@@ -545,7 +545,6 @@ var
   FDR,FDW,FDE: TFDSet;
   TimeV: TTimeVal;
   MaxHandle : Longint;
-{$endif}
 
   Procedure FillFD(var FD : TFDSet; anArray : TSocketStreamArray);
 
@@ -599,6 +598,8 @@ var
       end;
     SetLength(Result,aLen);
   end;
+  
+{$ENDIF} // Unix or windows
 
 begin
   Result:=False;
@@ -606,7 +607,6 @@ begin
 {$if defined(unix) or defined(windows)}
   TimeV.tv_usec := (aTimeOut mod 1000) * 1000;
   TimeV.tv_sec := aTimeOut div 1000;
-{$endif}
   FillFD(FDR,aRead);
   FillFD(FDW,aWrite);
   FillFD(FDE,aExceptions);
@@ -621,6 +621,11 @@ begin
   aRead:=FillArr(FDR,aRead);
   aWrite:=FillArr(FDR,aRead);
   aExceptions:=FillArr(FDR,aRead);
+{$ELSE}  // Unix or windows
+  aRead:=[];
+  aWrite:=[];
+  aExceptions:=[];
+{$ENDIF}  
 end;
 
 procedure TSocketStream.GetSockOptions;
@@ -722,6 +727,7 @@ Var
 {$endif unix}
 
 begin
+  E:=False;
   if FIOTimeout=AValue then Exit;
   FIOTimeout:=AValue;
 
