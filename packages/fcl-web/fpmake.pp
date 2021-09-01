@@ -453,6 +453,18 @@ begin
       AddUnit('fpcustwsserver');
       end;
     end;
+    T:=P.Targets.AddUnit('fphttpclientpool.pas');
+    T.Resourcestrings:=True;
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      end;
+    T:=P.Targets.AddUnit('fphttpclientasyncpool.pas');
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      AddUnit('fphttpclientpool');
+      end;
 end;
     
 {$ifndef ALLPACKAGES}
