@@ -541,7 +541,10 @@ implementation
                 but this is only useful if no pointer operation is done }
               left:=ctypeconvnode.create_internal(left,resultdef);
               do_typecheckpass(left);
-            end;
+            end
+          else if tpointerdef(resultdef).pointeddef.size>1 then
+          { the constants were already multiplied by the pointer element size }
+            left:=cmoddivnode.create(divn,left,cordconstnode.create(tpointerdef(resultdef).pointeddef.size,left.resultdef,false));
           right:=left;
           left:=hp;
           result:=GetCopyAndTypeCheck;
