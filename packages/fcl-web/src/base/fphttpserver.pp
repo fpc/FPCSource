@@ -66,6 +66,7 @@ Type
   private
     FBusy: Boolean;
     FConnectionID: String;
+    FIsUpgraded: Boolean;
     FOnRequestError: TRequestErrorHandler;
     FOnUnexpectedError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
@@ -130,6 +131,8 @@ Type
     Property LookupHostNames : Boolean Read GetLookupHostNames;
     // is the current connection set up for KeepAlive?
     Property KeepAlive: Boolean read FKeepAlive;
+    // Is the current connection upgraded ?
+    Property IsUpgraded : Boolean Read FIsUpgraded;
   end;
 
   { TFPHTTPConnectionThread }
@@ -254,6 +257,35 @@ Type
 
   // List of server connection handlers TFPHTTPServerConnectionHandler
 
+
+  THandlesUpgradeEvent = procedure(aRequest : TFPHTTPConnectionRequest; var aHandlesUpgrade : Boolean) of object;
+  TUpgradeConnectionEvent = procedure(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) of object;
+
+  { TUpgradeHandlerItem }
+
+  TUpgradeHandlerItem = Class(TCollectionItem)
+  private
+    FName: String;
+    FOnHandlesUpgrade: THandlesUpgradeEvent;
+    FOnUpgrade: TUpgradeConnectionEvent;
+  Public
+    Property Name : String Read FName Write FName;
+    Property OnHandleUpgrade : THandlesUpgradeEvent Read FOnHandlesUpgrade Write FOnHandlesUpgrade;
+    Property OnUpgrade : TUpgradeConnectionEvent Read FOnUpgrade Write FOnUpgrade;
+  end;
+
+  { TUpgradeHandlerList }
+
+  TUpgradeHandlerList = Class(TCollection)
+  private
+    function GetHandlerItem(aIndex : Integer): TUpgradeHandlerItem;
+  Public
+    Function IndexOfName(const aName : String) : Integer;
+    Function HandlerByName(const aName : String) : TUpgradeHandlerItem;
+    Function AddHandler(const aName : String; aOnCheck : THandlesUpgradeEvent; aOnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem; virtual;
+    Property Handler[aIndex :Integer] : TUpgradeHandlerItem Read GetHandlerItem; default;
+  end;
+
   { TConnectionList }
 
 
@@ -283,11 +315,14 @@ Type
     FTreadMode: TThreadMode;
     FUseSSL: Boolean;
     FConnectionHandler : TFPHTTPServerConnectionHandler;
+    FUpdateHandlers : TUpgradeHandlerList;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
     function GetConnectionCount: Integer;
+    function GetHasUpdateHandlers: Boolean;
     function GetHostName: string;
     function GetThreaded: Boolean;
+    function GetUpdateHandlers: TUpgradeHandlerList;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
     procedure SetCertificateData(AValue: TCertificateData);
@@ -302,6 +337,9 @@ Type
     procedure SetupSocket;
     procedure SetupConnectionHandler;
   Protected
+    Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // Override this to create Descendent
+    Function CreateUpgradeHandlerList : TUpgradeHandlerList;
     // Override this to create descendent
     function CreateSSLSocketHandler: TSocketHandler;
     // Override this to create descendent
@@ -344,9 +382,15 @@ Type
     Property Connectionhandler : TFPHTTPServerConnectionHandler Read FConnectionHandler;
     // Connection count. Convenience shortcut for Connectionhandler.GetActiveConnectionCount;
     Property ConnectionCount : Integer Read GetConnectionCount;
+    // Upgrade handlers. Created on demand
+    Property UpdateHandlers : TUpgradeHandlerList Read GetUpdateHandlers;
+    // Has update handlers
+    Property HasUpdateHandlers : Boolean Read GetHasUpdateHandlers;
   public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
+    Function RegisterUpdateHandler(Const aName : string;  OnCheck : THandlesUpgradeEvent; OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
+    Procedure UnRegisterUpdateHandler(Const aName : string);
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
@@ -421,6 +465,7 @@ resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
   SErrMissingProtocol = 'Missing HTTP protocol version in request';
+  SErrDuplicateUpgradeHandler = 'Duplicate upgrade handler';
 
 { TFPHTTPConnectionRequest }
 Function GetStatusCode (ACode: Integer) : String;
@@ -442,6 +487,44 @@ begin
   finally
     FreeAndNil(Resolver);
   end;
+end;
+
+{ TUpgradeHandlerList }
+
+function TUpgradeHandlerList.GetHandlerItem(aIndex : Integer): TUpgradeHandlerItem;
+begin
+  Result:=TUpgradeHandlerItem(Items[aIndex]);
+end;
+
+function TUpgradeHandlerList.IndexOfName(const aName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and Not SameText(aName,GetHandlerItem(Result).Name) do
+    Dec(Result);
+end;
+
+function TUpgradeHandlerList.HandlerByName(const aName: String): TUpgradeHandlerItem;
+
+Var
+  Idx : integer;
+
+begin
+  Idx:=IndexOfName(aName);
+  if (Idx=-1) then
+    Result:=Nil
+  else
+    Result:=GetHandlerItem(Idx);
+end;
+
+function TUpgradeHandlerList.AddHandler(const aName: String; aOnCheck: THandlesUpgradeEvent; aOnUpgrade: TUpgradeConnectionEvent
+  ): TUpgradeHandlerItem;
+begin
+  if IndexOfName(aName)<>-1 then
+    Raise EHTTPServer.CreateFmt(SErrDuplicateUpgradeHandler,[aName]);
+  Result:=add as TUpgradeHandlerItem;
+  Result.Name:=aName;
+  Result.OnHandleUpgrade:=aOnCheck;
+  Result.OnUpgrade:=aOnUpgrade;
 end;
 
 { TFPPooledConnectionHandler.THandleRequestTask }
@@ -545,7 +628,8 @@ end;
 
 procedure TFPHTTPServerConnectionListHandler.CloseConnectionSocket(aConnection: TFPHTTPConnection; var aContinue: boolean);
 begin
-  sockets.CloseSocket(aConnection.Socket.Handle);
+  if Not aConnection.IsUpgraded then
+    sockets.CloseSocket(aConnection.Socket.Handle);
 end;
 
 procedure TFPHTTPServerConnectionListHandler.Foreach(aIterator: TConnectionIterator);
@@ -721,6 +805,8 @@ Var
   S : String;
   I : Integer;
 begin
+  if Connection.IsUpgraded then
+    exit;
   S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetHTTPStatusText(Code)]);
   For I:=0 to Headers.Count-1 do
     S:=S+Headers[i]+#13#10;
@@ -730,6 +816,8 @@ end;
 
 procedure TFPHTTPConnectionResponse.DoSendContent;
 begin
+  if Connection.IsUpgraded then
+    exit;
   If Assigned(ContentStream) then
     Connection.Socket.CopyFrom(ContentStream,0)
   else
@@ -853,6 +941,8 @@ begin
     Exit;
     end;
   N:=Copy(V,1,P-1);
+  if SameText(N,'Upgrade') then
+    V:=V;
   Delete(V,1,P);
   V:=Trim(V);
   ARequest.SetFieldByName(N,V);
@@ -919,7 +1009,7 @@ begin
       end;
     P:=P+1;
     R:=1;
-    While (L<>0) and (R>0) do
+    While (L>=0) and (R>0) do
       begin
       R:=FSocket.Read(S[p],L);
       If R<0 then
@@ -960,16 +1050,18 @@ end;
 
 function TFPHTTPConnection.AllowNewRequest: Boolean;
 begin
-  Result:=not Busy and KeepConnections and KeepAlive and (Socket.LastError=0);
+  Result:=not (Busy or IsUpgraded);
+  Result:=Result and KeepConnections and KeepAlive and (Socket.LastError=0) ;
 end;
 
 function TFPHTTPConnection.RequestPending: Boolean;
 begin
-  Result:=Socket.CanRead(KeepConnectionTimeout);
+  Result:=(Not IsUpgraded) and Socket.CanRead(KeepConnectionTimeout);
 end;
 
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
 begin
+  FIsUpgraded:=False;
   FIsSocketSetup:=False;
   FSocket:=ASocket;
   FServer:=AServer;
@@ -1011,6 +1103,8 @@ Var
   Resp : TFPHTTPConnectionResponse;
 
 begin
+  if IsUpgraded then
+    exit;
   // Read headers.
   Resp:=Nil;
   Req:=ReadRequestHeaders;
@@ -1021,6 +1115,12 @@ begin
     If Req.ContentLength>0 then
       ReadRequestContent(Req);
     Req.InitRequestVars;
+    If Server.CheckUpgrade(Self,Req) then
+      begin
+      FSocket:=Nil; // Must have been taken over by upgrader
+      FIsUpgraded:=True;
+      Exit;
+      end;
     if KeepConnections then
       begin
       // Read out keep-alive
@@ -1148,6 +1248,11 @@ begin
     Result:=0;
 end;
 
+function TFPCustomHttpServer.GetHasUpdateHandlers: Boolean;
+begin
+  Result:=FUpdateHandlers<>Nil;
+end;
+
 procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
 begin
   AHandler:=GetSocketHandler(UseSSL);
@@ -1174,6 +1279,13 @@ end;
 function TFPCustomHttpServer.GetThreaded: Boolean;
 begin
   Result:=ThreadMode=tmThread;
+end;
+
+function TFPCustomHttpServer.GetUpdateHandlers: TUpgradeHandlerList;
+begin
+  If FUpdateHandlers=Nil then
+    FUpdateHandlers:=CreateUpgradeHandlerList;
+  Result:=FUpdateHandlers;
 end;
 
 procedure TFPCustomHttpServer.SetAcceptIdleTimeout(AValue: Cardinal);
@@ -1338,6 +1450,39 @@ begin
   FConnectionHandler:=CreateConnectionHandler();
 end;
 
+function TFPCustomHttpServer.CheckUpgrade(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
+
+Var
+  I : Integer;
+  Handler : TUpgradeHandlerItem;
+  S : String;
+
+begin
+  Result:=HasUpdateHandlers;
+  If Result then
+    begin
+    Result:=False;
+    If Pos('upgrade',LowerCase(aRequest.GetHeader(hhConnection)))=0 then
+      Exit;
+    If (aRequest.GetHeader(hhUpgrade)='') then
+      Exit;
+    I:=0;
+    While (I<UpdateHandlers.Count) and not Result do
+      begin
+      Handler:=UpdateHandlers[i];
+      Handler.OnHandleUpgrade(aRequest,Result);
+      Inc(I);
+      end;
+   If Result then
+     Handler.OnUpgrade(aConnection,aRequest);
+   end;
+end;
+
+function TFPCustomHttpServer.CreateUpgradeHandlerList: TUpgradeHandlerList;
+begin
+  Result:=TUpgradeHandlerList.Create(TUpgradeHandlerItem);
+end;
+
 procedure TFPCustomHttpServer.HandleUnexpectedError(Sender: TObject; E: Exception);
 begin
   If Assigned(FOnUnexpectedError) then
@@ -1452,6 +1597,27 @@ begin
   FreeAndNil(FConnectionHandler);
   FreeAndNil(FCertificateData);
   inherited Destroy;
+end;
+
+function TFPCustomHttpServer.RegisterUpdateHandler(const aName: string; OnCheck: THandlesUpgradeEvent;
+  OnUpgrade: TUpgradeConnectionEvent): TUpgradeHandlerItem;
+begin
+  With UpdateHandlers do
+    Result:=AddHandler(aName,OnCheck,OnUpgrade)
+end;
+
+procedure TFPCustomHttpServer.UnRegisterUpdateHandler(const aName: string);
+
+Var
+  Idx : Integer;
+
+begin
+  With UpdateHandlers do
+    begin
+    Idx:=IndexOfName(aName);
+    if Idx<>-1 then
+      Delete(Idx);
+    end;
 end;
 
 end.
