@@ -603,8 +603,8 @@ var
 
 begin
   Result:=False;
-  MaxHandle:=0;
 {$if defined(unix) or defined(windows)}
+  MaxHandle:=0;
   TimeV.tv_usec := (aTimeOut mod 1000) * 1000;
   TimeV.tv_sec := aTimeOut div 1000;
   FillFD(FDR,aRead);
