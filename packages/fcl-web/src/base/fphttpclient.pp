@@ -19,7 +19,7 @@ unit fphttpclient;
 interface
 
 uses
-  Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets, DateUtils;
+  Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets;
 
 Const
   // Socket Read buffer size
@@ -74,7 +74,6 @@ Type
     FKeepConnectionReconnectLimit: Integer;
     FMaxChunkSize: SizeUInt;
     FMaxRedirects: Byte;
-    FOnIdle: TNotifyEvent;
     FOnDataReceived: TDataEvent;
     FOnDataSent: TDataEvent;
     FOnHeaders: TNotifyEvent;
@@ -133,10 +132,6 @@ Type
     Function ProxyActive : Boolean;
     // Override this if you want to create a custom instance of proxy.
     Function CreateProxyData : TProxyData;
-    // Called before data is read.
-    Procedure DoBeforeDataRead; virtual;
-    // Called when the client is waiting for the server.
-    Procedure DoOnIdle;
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
     // Called whenever data is written.
@@ -145,6 +140,10 @@ Type
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
     function GetServerURL(URI: TURI): String;
+    // Read raw data from socket
+    Function ReadFromSocket(var Buffer; Count: Longint): Longint; virtual;
+    // Write raw data to socket
+    Function WriteToSocket(const Buffer; Count: Longint): Longint; virtual;
     // Read 1 line of response. Fills FBuffer
     function ReadString(out S: String): Boolean;
     // Write string
@@ -300,6 +299,8 @@ Type
     // Has Terminate been called ?
     Property Terminated : Boolean Read FTerminated;
   Protected
+    // Socket
+    Property Socket : TInetSocket read FSocket;
     // Timeouts
     Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
     Property ConnectTimeout : Integer read FConnectTimeout write SetConnectTimeout;
@@ -353,8 +354,6 @@ Type
     Property OnPassword : TPasswordEvent Read FOnPassword Write FOnPassword;
     // Called whenever data is read from the connection.
     Property OnDataReceived : TDataEvent Read FOnDataReceived Write FOnDataReceived;
-    // Called when the client is waiting for the server
-    Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;
     // Called whenever data is written to the connection.
     Property OnDataSent : TDataEvent Read FOnDataSent Write FOnDataSent;
     // Called when headers have been processed.
@@ -390,7 +389,6 @@ Type
     Property OnPassword;
     Property OnDataReceived;
     Property OnDataSent;
-    Property OnIdle;
     Property OnHeaders;
     Property OnGetSocketHandler;
     Property Proxy;
@@ -700,24 +698,13 @@ begin
   FreeAndNil(FSocket);
 end;
 
-procedure TFPCustomHTTPClient.DoBeforeDataRead;
-var
-  BreakUTC: TDateTime;
+function TFPCustomHTTPClient.ReadFromSocket(var Buffer; Count: Longint): Longint;
 begin
-  // Use CanRead to keep the client responsive in case the server needs a lot of time to respond.
-  // The request can be terminated in OnIdle - therefore it makes sense only if FOnIdle is set
-  If not Assigned(FOnIdle) Then
-    Exit;
-  if IOTimeout>0 then
-    BreakUTC := IncMilliSecond(NowUTC, IOTimeout);
-  while not Terminated and not FSocket.CanRead(10) and (FSocket.LastError=0) do
-    begin
-    DoOnIdle;
-    if (IOTimeout>0) and (CompareDateTime(NowUTC, BreakUTC)>0) then // we exceeded the timeout -> read error
-      Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
-    end;
-  if FSocket.LastError<>0 then
-    Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
+  Result:=FSocket.Read(Buffer,Count)
+end;
+function TFPCustomHTTPClient.WriteToSocket(const Buffer; Count: Longint): Longint;
+begin
+  Result:=FSocket.Write(Buffer,Count)
 end;
 
 function TFPCustomHTTPClient.AllowHeader(var AHeader: String): Boolean;
@@ -811,11 +798,10 @@ function TFPCustomHTTPClient.ReadString(out S: String): Boolean;
     R : Integer;
 
   begin
-    DoBeforeDataRead;
     if Terminated then
       Exit(False);
     SetLength(FBuffer,ReadBufLen);
-    r:=FSocket.Read(FBuffer[1],ReadBufLen);
+    r:=ReadFromSocket(FBuffer[1],ReadBufLen);
     If (r=0) or Terminated Then
       Exit(False);
     If (r<0) then
@@ -884,7 +870,7 @@ begin
 
   T:=0;
   Repeat
-     r:=FSocket.Write(S[t+1],Length(S)-t);
+     r:=WriteToSocket(S[t+1],Length(S)-t);
      inc(t,r);
      DoDataWrite;
   Until Terminated or (t=Length(S)) or (r<=0);
@@ -919,7 +905,7 @@ begin
        begin
          T:=0;
          Repeat
-           w:=FSocket.Write(PByte(Buffer)[t],i-t);
+           w:=WriteToSocket(PByte(Buffer)[t],i-t);
            FRequestDataWritten:=FRequestDataWritten+w;
            DoDataWrite;
            inc(t,w);
@@ -1153,10 +1139,9 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
   Function Transfer(LB : Integer) : Integer;
 
   begin
-    DoBeforeDataRead;
     if Terminated then
       Exit(0);
-    Result:=FSocket.Read(FBuffer[1],LB);
+    Result:=ReadFromSocket(FBuffer[1],LB);
     If Result<0 then
       Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
     if (Result>0) then
@@ -1187,11 +1172,10 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
 
     begin
       Result:=False;
-      DoBeforeDataRead;
       If Terminated then
         exit;
       SetLength(FBuffer,ReadBuflen);
-      Cnt:=FSocket.Read(FBuffer[1],length(FBuffer));
+      Cnt:=ReadFromSocket(FBuffer[1],length(FBuffer));
       If Cnt<0 then
         Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
       SetLength(FBuffer,Cnt);
@@ -1390,12 +1374,6 @@ begin
   Finally
     DisconnectFromServer;
   End;
-end;
-
-procedure TFPCustomHTTPClient.DoOnIdle;
-begin
-  If Assigned(FOnIdle) Then
-    FOnIdle(Self);
 end;
 
 Procedure TFPCustomHTTPClient.DoKeepConnectionRequest(const AURI: TURI;
