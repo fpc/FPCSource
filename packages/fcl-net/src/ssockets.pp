@@ -586,7 +586,7 @@ var
     aLen:=0;
     For S in Src do
       begin
-{$IFDEF LINUX}
+{$IFDEF UNIX}
       if fpFD_IsSet(S.Handle, FD)>0 then
 {$ENDIF}
 {$IFDEF Windows}
