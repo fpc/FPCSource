@@ -1740,13 +1740,14 @@ end;
 
 
 function THTTPHeader.GetFieldByName(const AName: String): String;
+
 var
-  i: Integer;
+  H : THeader;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    Result:=self.GetFieldValue(i)
+  H:=HeaderType(aName);
+    If (h<>hhUnknown) then
+    Result:=GetHeader(h)
   else
     Result:=GetCustomHeader(AName);
 end;
@@ -1827,13 +1828,14 @@ begin
 end;
 
 procedure THTTPHeader.SetFieldByName(const AName, AValue: String);
+
 var
-  i: Integer;
+  H : THeader;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    SetFieldValue(i,AValue)
+  H:=HeaderType(aName);
+  If (h<>hhUnknown) then
+    SetHeader(H,aValue)
   else
     SetCustomHeader(AName,AValue);
 end;
@@ -2141,6 +2143,7 @@ begin
   FCommandLine := line;
   i := Pos(' ', line);
   FCommand := UpperCase(Copy(line, 1, i - 1));
+  Method:=FCommand;
   URI := Copy(line, i + 1, Length(line));
 
   // Extract HTTP version
