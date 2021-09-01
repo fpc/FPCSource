@@ -1189,13 +1189,13 @@ var rtl = {
 	  // exponent width
 	  var pad = "";
 	  var ad = Math.abs(d);
-	  if (ad<1.0e+10) {
+	  if (((ad>1) && (ad<1.0e+10)) ||  ((ad>1.e-10) && (ad<1))) {
 		pad='00';
-	  } else if (ad<1.0e+100) {
+	  } else if ((ad>1) && (ad<1.0e+100) || (ad<1.e-10)) {
 		pad='0';
       }  	
 	  if (arguments.length<2) {
-	    w=9;		
+	    w=24;		
       } else if (w<9) {
 		w=9;
       }		  
