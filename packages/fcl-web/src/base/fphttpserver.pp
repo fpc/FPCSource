@@ -1003,6 +1003,8 @@ begin
     P:=Length(FBuffer);
     if (P>0) then
       begin
+      if P>L then
+        P:=L;
       Move(FBuffer[1],S[1],P);
       FBuffer:='';
       L:=L-P;
