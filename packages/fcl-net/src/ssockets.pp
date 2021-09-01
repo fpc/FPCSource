@@ -416,6 +416,7 @@ begin
 {$ifdef windows}
   Res:=winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
+{$if defined(unix) or defined(windows)}
   if Res>0 then
     begin
     CheckSet(FDSR,sosCanRead);
@@ -426,6 +427,9 @@ begin
     FLastError:=SocketError
   else
     FLastError:=0;
+{$else}
+  FLastError:=0;    
+{$endif}
 end;
 
 function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
