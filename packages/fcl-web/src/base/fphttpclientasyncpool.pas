@@ -180,7 +180,6 @@ type
 
     procedure OnDataReceived(Sender: TObject; const aContentLength, aCurrentPos: Int64);
     procedure OnDataSent(Sender: TObject; const aContentLength, aCurrentPos: Int64);
-    procedure OnIdle(Sender: TObject);
 
     // the ExecOn* methods call their DoOn* counterparts - do the synchronisation here
     procedure ExecOnInit;
@@ -253,6 +252,7 @@ type
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
+    function CreatePool: TFPCustomHTTPClientPool; virtual;
     function CreateRequestThread(aRequest: TFPHTTPClientAsyncPoolRequest; aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread; virtual;
     function CreateWaitForAllRequestsThread(const aOnAllDone: TNotifyEvent; const aSynchronizeOnAllDone: Boolean;
       const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolWaitForAllThread; virtual;
@@ -366,6 +366,7 @@ begin
   inherited OwnerDestroyed;
 
   fOwner := nil;
+  fOnAllDone := nil;
 end;
 
 { TFPHTTPClientAsyncPoolThread }
@@ -601,6 +602,11 @@ begin
   InterlockedIncrement(fBlockRequestsCounter);
 end;
 
+function TFPCustomHTTPClientAsyncPool.CreatePool: TFPCustomHTTPClientPool;
+begin
+  Result := TFPCustomHTTPClientPool.Create(Self);
+end;
+
 function TFPCustomHTTPClientAsyncPool.CreateRequestThread(aRequest: TFPHTTPClientAsyncPoolRequest;
   aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread;
 begin
@@ -618,7 +624,7 @@ constructor TFPCustomHTTPClientAsyncPool.Create(AOwner: TComponent);
 begin
   fWorkingThreads := TThreadList.Create;
   fWaitingQueue := TList.Create;
-  fHttpPool := TFPCustomHTTPClientPool.Create(Self);
+  fHttpPool := CreatePool;
   fDoOnAbortedFinishSynchronizedCS := TCriticalSection.Create;
 
   inherited Create(AOwner);
@@ -986,12 +992,6 @@ begin
   OnDataReceivedSend(Sender, pdDataSent, aContentLength, aCurrentPos);
 end;
 
-procedure TFPHTTPClientAsyncPoolRequestThread.OnIdle(Sender: TObject);
-begin
-  if Terminated then
-    (Sender as TFPCustomHTTPClient).Terminate;
-end;
-
 procedure TFPHTTPClientAsyncPoolRequestThread.OwnerDestroyed;
 begin
   inherited;
@@ -1026,47 +1026,19 @@ begin
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnFinish;
-var
-  xUnlocked: Boolean;
 begin
-  xUnlocked := False;
-  LockProperties;
-  try
-    if Request.SynchronizeOnFinish then
-    begin
-      UnlockProperties;
-      xUnlocked := True;
-      Synchronize(@DoOnFinish)
-    end
-    else
-      DoOnFinish;
-  finally
-    if not xUnlocked then
-      UnlockProperties;
-  end;
+  if Request.SynchronizeOnFinish then
+    Synchronize(@DoOnFinish)
+  else
+    DoOnFinish;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnInit;
-var
-  xUnlocked: Boolean;
 begin
-  xUnlocked := False;
-  LockProperties;
-  try
-    if not Assigned(Request.OnInit) then
-      Exit;
-
-    if Request.SynchronizeOnInit then
-    begin
-      UnlockProperties;
-      xUnlocked := True;
-      Synchronize(@DoOnInit);
-    end else
-      DoOnInit;
-  finally
-    if not xUnlocked then
-      UnlockProperties;
-  end;
+  if Request.SynchronizeOnInit then
+    Synchronize(@DoOnInit)
+  else
+    DoOnInit;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
@@ -1079,61 +1051,63 @@ procedure TFPHTTPClientAsyncPoolRequestThread.Execute;
 begin
   // don't LockProperties here - Request.Headers/ContentType/URLData/Method/URL/ResponseStream/AllowedResponseCodes are read-only
   try
-    fClient.ConnectTimeout := Request.ConnectTimeout;
-    fClient.IOTimeout := Request.IOTimeout;
-
-    fClient.RequestHeaders.Text := Request.Headers;
-    if Request.ContentType<>'' then
-      fClient.AddHeader(fClient.RequestHeaders, HeaderContentType, Request.ContentType);
-    if Length(Request.URLData)>0 then
-      fClient.RequestBody := TBytesStream.Create(Request.URLData);
-
-    ExecOnInit;
-
-    fClient.OnDataReceived := @OnDataReceived;
-    fClient.OnDataSent := @OnDataSent;
-    fClient.OnIdle := @OnIdle;
-
-    if Terminated then
-    begin
-      fResult.MethodResult := mrAbortedByClient;
-      Exit;
-    end;
-
     try
-      fClient.HTTPMethod(Request.Method, Request.URL, fResult.ResponseStream, Request.AllowedResponseCodes);
-    finally
-      fClient.RequestBody.Free;
-      fClient.RequestBody := nil;
+      fClient.ConnectTimeout := Request.ConnectTimeout;
+      fClient.IOTimeout := Request.IOTimeout;
+
+      fClient.RequestHeaders.Text := Request.Headers;
+      if Request.ContentType<>'' then
+        fClient.AddHeader(fClient.RequestHeaders, HeaderContentType, Request.ContentType);
+      if Length(Request.URLData)>0 then
+        fClient.RequestBody := TBytesStream.Create(Request.URLData);
+
+      ExecOnInit;
+
+      fClient.OnDataReceived := @OnDataReceived;
+      fClient.OnDataSent := @OnDataSent;
+
+      if Terminated then
+      begin
+        fResult.MethodResult := mrAbortedByClient;
+        Exit;
+      end;
+
+      try
+        fClient.HTTPMethod(Request.Method, Request.URL, fResult.ResponseStream, Request.AllowedResponseCodes);
+      finally
+        fClient.RequestBody.Free;
+        fClient.RequestBody := nil;
+      end;
+      fResult.ResponseStream.Position := 0;
+      if Terminated then
+      begin
+        fResult.MethodResult := mrAbortedByClient;
+      end else
+      begin
+        fResult.MethodResult := mrSuccess;
+        fResult.ResponseStatusCode := fClient.ResponseStatusCode;
+        fResult.ResponseStatusText := fClient.ResponseStatusText;
+        fResult.ResponseHeaders.Assign(fClient.ResponseHeaders);
+      end;
+    except
+      on E: TObject do
+      begin
+        if Terminated then // client terminated the connection -> it has priority above mrAbortedWithException
+          fResult.MethodResult := mrAbortedByClient
+        else
+          fResult.MethodResult := mrAbortedWithException;
+        fResult.ExceptionClass := E.ClassType;
+        if E is Exception then
+          fResult.ExceptionMessage := Exception(E).Message;
+      end;
     end;
-    fResult.ResponseStream.Position := 0;
-    if Terminated then
-    begin
-      fResult.MethodResult := mrAbortedByClient;
-    end else
-    begin
-      fResult.MethodResult := mrSuccess;
-      fResult.ResponseStatusCode := fClient.ResponseStatusCode;
-      fResult.ResponseStatusText := fClient.ResponseStatusText;
-      fResult.ResponseHeaders.Assign(fClient.ResponseHeaders);
+  finally
+    try
+      Pool.ReleaseClient(Request.URL, fClient);
+      fClient := nil; // do not use fClient - it doesn't belong here anymore
+      ExecOnFinish;
+    except
     end;
-  except
-    on E: TObject do
-    begin
-      if Terminated then // client terminated the connection -> it has priority above mrAbortedWithException
-        fResult.MethodResult := mrAbortedByClient
-      else
-        fResult.MethodResult := mrAbortedWithException;
-      fResult.ExceptionClass := E.ClassType;
-      if E is Exception then
-        fResult.ExceptionMessage := Exception(E).Message;
-    end;
-  end;
-  try
-    Pool.ReleaseClient(Request.URL, fClient);
-    fClient := nil; // do not use fClient - it doesn't belong here anymore
-    ExecOnFinish;
-  except
   end;
 end;
 
