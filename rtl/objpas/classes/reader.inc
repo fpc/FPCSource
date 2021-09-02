@@ -1784,7 +1784,7 @@ begin
     OnFindComponentClass(Self, AClassName, Result);
 
   if (Result=nil) or (not Result.InheritsFrom(TComponent)) then
-    raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
+    raise EClassNotFound.CreateFmt(SNoFieldOfClassIn, [AClassName, Root.ClassName]);
 end;
 
 

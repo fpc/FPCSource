@@ -203,6 +203,7 @@ ResourceString
   SNoCanvasHandle               = 'Canvas handle does not allow drawing';
   SNoComSupport                 = '"%s" has not been registered as a COM class';
   SNoDefaultPrinter             = 'No default printer was selected';
+  SNoFieldOfClassIn             = 'No field of class "%s" in "%s"';
   SNoMDIForm                    = 'No MDI form is available, none is active';
   SNoTimers                     = 'No timers available';
   SNotOpenErr                   = 'No MCI-device opened';
