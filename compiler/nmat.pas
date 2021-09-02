@@ -111,6 +111,7 @@ implementation
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
         rv,lv : tconstexprint;
+        hp: tnode;
       begin
         result:=nil;
 
@@ -162,8 +163,22 @@ implementation
                 left:=nil;
                 exit;
               end;
+            if (nodetype=divn) and (left.nodetype=divn) and is_constintnode(tmoddivnode(left).right) and
+              { we need a type and the types must be consistent }
+              assigned(resultdef) and
+              (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+              begin
+                { re-use the current node so we get the result type right }
+                right:=caddnode.create_internal(muln,right,tmoddivnode(left).right.getcopy);
+                hp:=tmoddivnode(left).left.getcopy;
+                left.Free;
+                left:=hp;
+                Result:=getcopy;
+                Result.resultdef:=nil;
+                Result:=ctypeconvnode.create_internal(Result,resultdef);
+                exit;
+              end;
           end;
-
         if is_constintnode(right) and is_constintnode(left) then
           begin
             rv:=tordconstnode(right).value;
@@ -379,6 +394,10 @@ implementation
                 inserttypeconv(left,sinttype);
               resultdef:=right.resultdef;
            end;
+
+         result:=simplify(false);
+         if assigned(result) then
+           exit;
 
          { when the result is currency we need some extra code for
            division. this should not be done when the divn node is
