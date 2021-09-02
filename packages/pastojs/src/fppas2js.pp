@@ -12136,7 +12136,7 @@ begin
         JSBaseType:=TResElDataPas2JSBaseType(ParamTypeEl.CustomData).JSBaseType;
         if JSBaseType=pbtJSValue then
           begin
-          if (C=TPasClassType)
+          if ((C=TPasClassType) and not TPasClassType(Decl).IsExternal)
               or (C=TPasClassOfType)
               or (C=TPasRecordType) then
             begin

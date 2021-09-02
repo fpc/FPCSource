@@ -18575,6 +18575,9 @@ begin
   '  end;',
   '  TExtChildB = class external name ''ExtChildB''(TExtRootB)',
   '  end;',
+  '  TExtString = class external name ''String''',
+  '    function charAt(aIndex : NativeInt) : string;',
+  '  end;',
   'var',
   '  Obj: TObject;',
   '  Child: TChild;',
@@ -18583,6 +18586,8 @@ begin
   '  RootB: TExtRootB;',
   '  ChildB: TExtChildB;',
   '  i: IUnknown;',
+  '  s: string;',
+  '  v: jsvalue;',
   'begin',
   '  obj:=tobject(roota);',
   '  obj:=tobject(childa);',
@@ -18592,7 +18597,9 @@ begin
   '  roota:=textroota(rootb);',
   '  roota:=textroota(childb);',
   '  childa:=textchilda(textroota(obj));',
-  '  roota:=TExtRootA(i)',
+  '  roota:=TExtRootA(i);',
+  '  s:=TExtString(s).charAt(7);',
+  '  s:=TExtString(v).charAt(8);',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
@@ -18613,6 +18620,8 @@ begin
     'this.RootB = null;',
     'this.ChildB = null;',
     'this.i = null;',
+    'this.s = "";',
+    'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.RootA;',
@@ -18624,6 +18633,8 @@ begin
     '$mod.RootA = $mod.ChildB;',
     '$mod.ChildA = $mod.Obj;',
     '$mod.RootA = $mod.i;',
+    '$mod.s = $mod.s.charAt(7);',
+    '$mod.s = $mod.v.charAt(8);',
     '']));
 end;
 
