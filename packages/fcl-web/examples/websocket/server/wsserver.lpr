@@ -72,7 +72,7 @@ begin
     Terminate
   else
     While Not Terminated do
-      Sleep(10)
+      Sleep(10);
 end;
 
 begin
