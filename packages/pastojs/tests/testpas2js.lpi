@@ -43,63 +43,63 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="tcconverter.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit1>
-      <Unit2>
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPas2Js"/>
-      </Unit2>
-      <Unit3>
+      </Unit1>
+      <Unit2>
         <Filename Value="tcmodules.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCModules"/>
-      </Unit3>
-      <Unit4>
+      </Unit2>
+      <Unit3>
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCOptimizations"/>
-      </Unit4>
-      <Unit5>
+      </Unit3>
+      <Unit4>
         <Filename Value="tcsrcmap.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCSrcMap"/>
-      </Unit5>
-      <Unit6>
+      </Unit4>
+      <Unit5>
         <Filename Value="../src/fppjssrcmap.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPJsSrcMap"/>
-      </Unit6>
-      <Unit7>
+      </Unit5>
+      <Unit6>
         <Filename Value="tcfiler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCFiler"/>
-      </Unit7>
-      <Unit8>
+      </Unit6>
+      <Unit7>
         <Filename Value="../src/pas2jsfiler.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Pas2JsFiler"/>
-      </Unit8>
-      <Unit9>
+      </Unit7>
+      <Unit8>
         <Filename Value="tcunitsearch.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCUnitSearch"/>
-      </Unit9>
-      <Unit10>
+      </Unit8>
+      <Unit9>
         <Filename Value="tcprecompile.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCPrecompile"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="../src/pas2jsuseanalyzer.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Pas2jsUseAnalyzer"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="tcgenerics.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TCGenerics"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="tcconverter.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit12>
     </Units>
   </ProjectOptions>
