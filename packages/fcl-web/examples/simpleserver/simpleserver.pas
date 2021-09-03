@@ -16,7 +16,7 @@
 {$h+}
 
 { $DEFINE USEGNUTLS}
-{$DEFINE USEMICROHTTP}
+{ $DEFINE USEMICROHTTP}
 
 program simpleserver;
 
