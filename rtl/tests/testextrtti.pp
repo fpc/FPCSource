@@ -7,8 +7,12 @@ program testextrtti;
 uses typinfo, sysutils;
 
 Type
-  {$RTTI EXPLICIT PROPERTIES([vcPrivate,vcProtected,vcPublic,vcPublished])}
-  {$RTTI EXPLICIT FIELDS([vcPrivate,vcProtected,vcPublic,vcPublished])}
+  {$RTTI EXPLICIT
+     PROPERTIES([vcPrivate,vcProtected,vcPublic,vcPublished])
+     FIELDS([vcPrivate,vcProtected,vcPublic,vcPublished])
+     METHODS([vcPrivate,vcProtected,vcPublic,vcPublished])}
+//  {$RTTI EXPLICIT }
+//  {$RTTI EXPLICIT }
 
   { TFieldRTTI }
 
@@ -48,6 +52,8 @@ Type
       Property RPublicA : Integer Read FRPublicA Write FRPublicA;
       Property RPublicB : Integer Read FRPublicA Write FRPublicB;
    end;
+
+  { TMethodClassRTTI }
 
   TMethodClassRTTI = Class (TObject)
   private
@@ -228,6 +234,107 @@ begin
   A:=Nil;
 end;
 
+
+Procedure CheckMethod(aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass);
+
+Var
+  Msg : String;
+
+begin
+  Msg:='Checking method '+IntToStr(aIdx)+' ('+aName+') ';
+  AssertEquals(Msg+'name',aData^.Name,aName);
+  AssertEquals(Msg+'visibility',aData^.MethodVisibility,aVisibility);
+end;
+
+procedure TestClassMethods;
+
+Var
+  A : PExtendedMethodInfoTable;
+  aCount : Integer;
+
+begin
+  aCount:=GetMethodList(TMethodClassRTTI,A,[]);
+  AssertEquals('Full Count',12,aCount);
+  CheckMethod(0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod(1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod(2, A^[2],'PrivateMethodC',vcPrivate);
+  CheckMethod(3, A^[3],'ProtectedMethodA',vcProtected);
+  CheckMethod(4, A^[4],'ProtectedMethodB',vcProtected);
+  CheckMethod(5, A^[5],'ProtectedMethodC',vcProtected);
+  CheckMethod(6, A^[6],'PublicMethodA',vcPublic);
+  CheckMethod(7, A^[7],'PublicMethodB',vcPublic);
+  CheckMethod(8, A^[8],'PublicMethodC',vcPublic);
+  CheckMethod(9, A^[9],'PublishedMethodA',vcPublished);
+  CheckMethod(10, A^[10],'PublishedMethodB',vcPublished);
+  CheckMethod(11, A^[11],'PublishedMethodC',vcPublished);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI,A,[vcPrivate]);
+  AssertEquals('Private Count',3,aCount);
+  CheckMethod(0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod(1, A^[1],'PrivateMethodA',vcPrivate);
+  CheckMethod(2, A^[2],'PrivateMethodC',vcPrivate);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI,A,[vcProtected]);
+  AssertEquals('Protected Count',3,aCount);
+  CheckMethod(0, A^[0],'ProtectedMethodA',vcProtected);
+  CheckMethod(1, A^[1],'ProtectedMethodB',vcProtected);
+  CheckMethod(2, A^[2],'ProtectedMethodB',vcProtected);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI,A,[vcPublic]);
+  AssertEquals('Public Count',3,aCount);
+  CheckMethod(0, A^[0],'PublicMethodA',vcProtected);
+  CheckMethod(1, A^[1],'PublicMethodB',vcProtected);
+  CheckMethod(2, A^[2],'PublicMethodB',vcProtected);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI,A,[vcPublished]);
+  AssertEquals('Published Count',3,aCount);
+  CheckMethod(0, A^[0],'PublishedMethodA',vcPublished);
+  CheckMethod(1, A^[1],'PublishedMethodB',vcPublished);
+  CheckMethod(2, A^[2],'PublishedMethodB',vcPublished);
+  FreeMem(A);
+end;
+
+{ TMethodClassRTTI }
+
+procedure TMethodClassRTTI.PrivateMethodA;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.PrivateMethodB;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.ProtectedMethodA;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.ProtectedMethodB;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.PublicMethodA;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.PublicMethodB;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.PublishedMethodA;
+begin
+  //
+end;
+
+procedure TMethodClassRTTI.PublishedMethodB;
+begin
+  //
+end;
 
 begin
   // TestProperties;
