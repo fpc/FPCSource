@@ -1011,7 +1011,7 @@ begin
       end;
     P:=P+1;
     R:=1;
-    While (L>=0) and (R>0) do
+    While (L>0) and (R>0) do
       begin
       R:=FSocket.Read(S[p],L);
       If R<0 then
