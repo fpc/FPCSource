@@ -69,6 +69,7 @@ const
   nNoResourceSupport = 1033;
   nResourceFileNotFound = 1034;
   nErrInvalidMultiLineLineEnding = 1035;
+  nWarnIgnoringLinkLib = 1036;
 
 // resourcestring patterns of messages
 resourcestring
@@ -109,6 +110,7 @@ resourcestring
   SErrWrongSwitchToggle = 'Wrong switch toggle, use ON/OFF or +/-';
   SNoResourceSupport = 'No support for resources of type "%s"';
   SErrInvalidMultiLineLineEnding = 'Invalid multilinestring line ending type: use one of CR/LF/CRLF/SOURCE/PLATFORM' ;
+  SWarnIgnoringLinkLib = 'Ignoring LINKLIB directive %s -> %s (Options: %s)';
 
 type
   TMessageType = (
@@ -701,6 +703,7 @@ type
   TPScannerFormatPathEvent = function(const aPath: string): string of object;
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
   TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
+  TPScannerLinkLibEvent = procedure(Sender: TObject; Const aLibName,aLibAlias,aLibOptions : String; var Handled: boolean) of object;
 
   // aFileName: full filename (search is already done) aOptions: list of name:value pairs.
   TResourceHandler = Procedure (Sender : TObject; const aFileName : String; aOptions : TStrings) of object;
@@ -754,6 +757,7 @@ type
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
     FOnFormatPath: TPScannerFormatPathEvent;
+    FOnLinkLib: TPScannerLinkLibEvent;
     FOnModeChanged: TPScannerModeDirective;
     FOnWarnDirective: TPScannerWarnEvent;
     FOptions: TPOptions;
@@ -812,6 +816,7 @@ type
     procedure Error(MsgNumber: integer; const Fmt: string; Args: array of const);overload;
     procedure PushSkipMode;
     function GetMultiLineStringLineEnd(aReader: TLineReader): string;
+    function MakeLibAlias(const LibFileName: String): string; virtual;
 
     function HandleDirective(const ADirectiveText: String): TToken; virtual;
     function HandleLetterDirective(Letter: char; Enable: boolean): TToken; virtual;
@@ -835,6 +840,7 @@ type
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleIncludeString(Param: String); virtual;
     procedure HandleResource(Param : string); virtual;
+    procedure HandleLinkLib(Param : string); virtual;
     procedure HandleOptimizations(Param : string); virtual;
     procedure DoHandleOptimization(OptName, OptValue: string); virtual;
 
@@ -936,8 +942,7 @@ type
     property OnModeChanged: TPScannerModeDirective read FOnModeChanged write FOnModeChanged; // set by TPasParser
     property OnDirective: TPScannerDirectiveEvent read FOnDirective write FOnDirective;
     property OnComment: TPScannerCommentEvent read FOnComment write FOnComment;
-
-
+    Property OnLinkLib : TPScannerLinkLibEvent Read FOnLinkLib Write FOnLinkLib;
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
@@ -3730,6 +3735,73 @@ begin
   end;
 end;
 
+Function TPascalScanner.MakeLibAlias(Const LibFileName : String): string;
+
+Var
+  p,l,d : integer;
+
+begin
+  l:=Length(LibFileName);
+  p:=l;
+  d:=0;
+  while (p>0) and not (LibFileName[p]='/') do
+    begin
+    if (LibFileName[p]='.') and (d=0) then
+      d:=p;
+    dec(P);
+    end;
+  if d=0 then
+    d:=l+1;
+  Result:=LowerCase(Copy(LibFileName,P+1,D-P-1));
+  for p:=1 to length(Result) do
+    if not (result[P] in ['a'..'z','A'..'Z','0'..'9','_']) then
+      Result[p]:='_';
+end;
+
+procedure TPascalScanner.HandleLinkLib(Param: string);
+
+Var
+  P,L : Integer;
+  LibFileName,LibAlias,LibOptions : string;
+  IsHandled: Boolean;
+
+  Function NextWord : String;
+
+  Var
+    lp : integer;
+
+  begin
+    lP:=P;
+    while (lp<=l) and not (Param[lp]  in [' ',#9,#10,#13]) do
+      inc(lp);
+    Result:=Copy(Param,P,lp-P);
+    P:=LP;
+  end;
+
+  Procedure DoSkipwhitespace;
+  begin
+    while (p<=l) and (Param[p]  in [' ',#9,#10,#13]) do
+      inc(p);
+  end;
+
+begin
+  Param:=Trim(Param);
+  L:=Length(Param);
+  P:=1;
+  LibFileName:=NextWord;
+  DoSkipWhiteSpace;
+  if P<=L then
+    LibAlias:=NextWord
+  else
+    LibAlias:=MakeLibAlias(LibFileName);
+  LibOptions:=Trim(Copy(Param,P,L-P+1));
+  IsHandled:=False;
+  if Assigned(OnLinkLib) then
+    OnLinkLib(Self,LibFileName,LibAlias,LibOptions,IsHandled);
+  if not IsHandled then
+    DoLog(mtNote,nWarnIgnoringLinkLib,SWarnIgnoringLinkLib,[LibFileName,LibAlias,LibOptions]);
+end;
+
 procedure TPascalScanner.HandleOptimizations(Param: string);
 // $optimization A,B-,C+
 var
@@ -4412,6 +4484,8 @@ begin
         HandleInterfaces(Param);
       'LONGSTRINGS':
         DoBoolDirective(bsLongStrings);
+      'LINKLIB':
+        HandleLinkLib(Param);
       'MACRO':
         DoBoolDirective(bsMacro);
       'MESSAGE':
