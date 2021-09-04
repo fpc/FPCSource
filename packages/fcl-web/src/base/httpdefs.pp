@@ -564,6 +564,8 @@ type
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
     Procedure SendRedirect(const TargetURL:String);
+    // Set Code and CodeText. Send content if aSend=True
+    Procedure SetStatus(aStatus : Cardinal; aSend : Boolean = False);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
@@ -1016,11 +1018,7 @@ begin
       if MaxAge>0 then
         SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
       if (hcSend in aOptions) then
-        begin
-        Code:=200;
-        CodeText:='OK';
-        SendResponse;
-        end;
+        SetStatus(200,True);
       end;
     end;
 end;
@@ -2801,8 +2799,7 @@ constructor TResponse.Create(ARequest : TRequest);
 begin
   inherited Create;
   FRequest:=ARequest;
-  FCode := 200;
-  FCodeText := 'OK';
+  SetStatus(200);
   ContentType:='text/html';
   FContents:=TStringList.Create;
   TStringList(FContents).OnChange:=@ContentsChanged;
@@ -2870,6 +2867,14 @@ begin
     Code := 302;// HTTP/1.0 302 HTTP_MOVED_TEMPORARILY -> 'Found'
     CodeText := 'Moved Temporarily';
     end;
+end;
+
+procedure TResponse.SetStatus(aStatus: Cardinal; aSend: Boolean = False);
+begin
+  Code:=aStatus;
+  CodeText:=GetHTTPStatusText(aStatus);
+  if aSend then
+    SendContent;
 end;
 
 procedure TResponse.SetFirstHeaderLine(const line: String);
