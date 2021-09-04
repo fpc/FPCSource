@@ -53,6 +53,10 @@ type
   TTestScanner= class(TTestCase)
   Private
     FLI: String;
+    FLibAlias: String;
+    FLibName: String;
+    FLibOptions: String;
+    FLinkLibHandled: Boolean;
     FScanner : TPascalScanner;
     FResolver : TStreamResolver;
     FDoCommentCalled : Boolean;
@@ -61,10 +65,12 @@ type
     FTestTokenString: String;
   protected
     procedure DoComment(Sender: TObject; aComment: String);
+    procedure DoLinkLib(Sender: TObject; const aLibName,aAlias,aOptions : String; var aHandled : Boolean);
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure DoMultilineError;
     Function TokenToString(tk : TToken) : string;
+
     Procedure AssertEquals(Msg : String; Expected,Actual : TToken); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitch); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitches); overload;
@@ -78,6 +84,12 @@ type
     // Path for source filename.
     Property PathPrefix : String Read FPathPrefix Write FPathPrefix;
     Property TestTokenString : String Read FTestTokenString;
+    // Results from DoLinkLib;
+    Property LibName : String Read FLibName;
+    Property LibAlias : String Read FLibAlias;
+    Property LibOptions : String read FLibOptions;
+    // Will be returned in aHandled in DoLinkLib
+    Property LinkLibHandled : Boolean Read FLinkLibHandled Write FLinkLibHandled;
   published
     Procedure TestEmpty;
     procedure TestEOF;
@@ -287,6 +299,11 @@ type
     Procedure TestOperatorIdentifier;
     Procedure TestUTF8BOM;
     Procedure TestBooleanSwitch;
+    Procedure TestLinkLibSimple;
+    Procedure TestLinkLibAlias;
+    Procedure TestLinkLibDefaultAlias;
+    Procedure TestLinkLibDefaultAliasStrip;
+    Procedure TestLinkLibOptions;
   end;
 
 implementation
@@ -417,9 +434,21 @@ begin
   FComment:=aComment;
 end;
 
+procedure TTestScanner.DoLinkLib(Sender: TObject; const aLibName, aAlias, aOptions: String; var aHandled: Boolean);
+begin
+  FLibName:=aLibName;
+  FLibAlias:=aAlias;
+  FLibOptions:=aOptions;
+  aHandled:=FLinkLibHandled;
+end;
+
 procedure TTestScanner.SetUp;
 begin
   FTestTokenString:='';
+  FLibAlias:='';
+  FLibName:='';
+  FLibOptions:='';
+  FLinkLibHandled:=False;
   FDoCommentCalled:=False;
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
@@ -2133,6 +2162,56 @@ begin
   NewSource('{$HINTS OFF }');
   While not (Scanner.FetchToken=tkEOF) do;
   AssertFalse('Hints off',bshints in Scanner.CurrentBoolSwitches);
+end;
+
+procedure TTestScanner.TestLinkLibSimple;
+begin
+  FScanner.OnLinkLib:=@DoLinkLib;
+  // DoTestToken because we don't want to change casing
+  DoTestToken(tkComment,'{$LINKLIB myfile.js}');
+  AssertEquals('Library name','myfile.js',LibName);
+  AssertEquals('Library alias','myfile',LibAlias);
+  AssertEquals('Library options','',LibOptions);
+end;
+
+procedure TTestScanner.TestLinkLibAlias;
+begin
+  FScanner.OnLinkLib:=@DoLinkLib;
+  // DoTestToken because we don't want to change casing
+  DoTestToken(tkComment,'{$LINKLIB myfile.js MyLib}');
+  AssertEquals('Library name','myfile.js',LibName);
+  AssertEquals('Library alias','MyLib',LibAlias);
+  AssertEquals('Library options','',LibOptions);
+end;
+
+procedure TTestScanner.TestLinkLibDefaultAlias;
+begin
+  FScanner.OnLinkLib:=@DoLinkLib;
+  // DoTestToken because we don't want to change casing
+  DoTestToken(tkComment,'{$LINKLIB my-file.min.js}');
+  AssertEquals('Library name','my-file.min.js',LibName);
+  AssertEquals('Library alias','my_file_min',LibAlias);
+  AssertEquals('Library options','',LibOptions);
+end;
+
+procedure TTestScanner.TestLinkLibDefaultAliasStrip;
+begin
+  FScanner.OnLinkLib:=@DoLinkLib;
+  // DoTestToken because we don't want to change casing
+  DoTestToken(tkComment,'{$LINKLIB ../solong/my-file.min.js}');
+  AssertEquals('Library name','../solong/my-file.min.js',LibName);
+  AssertEquals('Library alias','my_file_min',LibAlias);
+  AssertEquals('Library options','',LibOptions);
+end;
+
+procedure TTestScanner.TestLinkLibOptions;
+begin
+  FScanner.OnLinkLib:=@DoLinkLib;
+  // DoTestToken because we don't want to change casing
+  DoTestToken(tkComment,'{$LINKLIB ../solong/my-file.min.js MyFile opt1, opt2 }');
+  AssertEquals('Library name','../solong/my-file.min.js',LibName);
+  AssertEquals('Library alias','MyFile',LibAlias);
+  AssertEquals('Library options','opt1, opt2',LibOptions);
 end;
 
 initialization
