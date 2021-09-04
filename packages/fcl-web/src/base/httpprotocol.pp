@@ -133,7 +133,7 @@ Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 Function ExcludeHTTPPathDelimiter(const AStr: String): String;
-Function GetHTTPStatusText (ACode: Integer) : String;
+Function GetHTTPStatusText (ACode: Cardinal; aUppercase : Boolean = False) : String;
 
 implementation
 
@@ -269,7 +269,7 @@ begin
     Result:=AStr;
 end;
 
-Function GetHTTPStatusText (ACode: Integer) : String;
+Function GetHTTPStatusText (ACode: Cardinal; aUppercase : Boolean = False) : String;
 
 begin
   Case ACode of
@@ -326,8 +326,10 @@ begin
     504 :  Result:='Gateway Time-out';
     505 :  Result:='HTTP Version not supported';
   else
-    Result:='Unknown status';
+    Result:=Format('Unknown status: %d',[aCode]);
   end;
+  If aUpperCase then
+    Result:=Uppercase(Result);
 end;
 
 end.
