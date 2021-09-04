@@ -64,6 +64,11 @@ begin
       T.ResourceStrings:=true;
     T.Dependencies.AddUnit('httpdefs');
 
+    T:=P.Targets.AddUnit('httpjson.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpdefs');
+    T.Dependencies.AddUnit('httpprotocol');
+
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('custcgi.pp');
