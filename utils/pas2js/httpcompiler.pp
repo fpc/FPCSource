@@ -6,8 +6,10 @@ unit httpcompiler;
 interface
 
 uses
-  sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp,
-  fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler, Pas2JSCompilerCfg;
+  {$ifdef unix}baseunix,{$endif}
+  sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
+  fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
+  Pas2JSCompilerCfg;
 
 Const
   nErrTooManyThreads = -1;
@@ -80,8 +82,11 @@ Type
 
   THTTPCompilerApplication = Class(TCustomHTTPApplication)
   private
+    FAPI: String;
     FBaseDir: String;
     FConfigFile: String;
+    FIndexPageName: String;
+    FNoIndexPage: Boolean;
     FProjectFile: String;
     FStatusLock : TCriticalSection;
     FQuiet: Boolean;
@@ -90,9 +95,18 @@ Type
     FStatusList : TFPObjectList;
     FCompiles : TCompiles;
     FServeOnly  : Boolean;
+    FMimeFile : String;
+    FBackground:boolean;
+    FPassword:String;
+    FEcho:Boolean;
+    FMaxAge: integer;
     procedure AddToStatus(O: TJSONObject);
+    procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
+    procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
+    procedure Doquit(ARequest: TRequest; AResponse: TResponse);
     function HandleCompileOptions(aDir: String): Boolean;
     function ProcessOptions: Boolean;
+    procedure ReadConfigFile(const ConfigFile: string);
     Procedure ReportBuilding(AItem : TCompileItem);
     Procedure ReportBuilt(AItem : TCompileItem);
     Procedure AddToStatus(AEntry : TDirectoryEntry; AEvents : TFileEvents);
@@ -109,15 +123,22 @@ Type
     Destructor Destroy; override;
     procedure DoLog(EventType: TEventType; const Msg: String); override;
     Procedure DoRun; override;
+    Property API : String Read FAPI Write FAPI;
     property Quiet : Boolean read FQuiet Write FQuiet;
     Property Watch : Boolean Read FWatch Write FWatch;
     Property ProjectFile : String Read FProjectFile Write FProjectFile;
     Property ConfigFile : String Read FConfigFile Write FConfigFile;
     Property BaseDir : String Read FBaseDir;
     Property ServeOnly : Boolean Read FServeOnly;
+    Property MimeFile : String Read FMimeFile;
+    Property NoIndexPage : Boolean Read FNoIndexPage Write FNoIndexPage;
+    Property IndexPageName : String Read FIndexPageName Write FIndexPageName;
   end;
 
+
 Implementation
+
+uses strutils;
 
 { TCompileThread }
 
@@ -254,17 +275,18 @@ begin
     Writeln('Error: ',Msg);
   Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
   Writeln('Where options is one or more of : ');
-  Writeln('-d --directory=dir  Base directory from which to serve files.');
-  Writeln('                    Default is current working directory: ',GetCurrentDir);
-  Writeln('-h --help           This help text');
-  Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
-  Writeln('-n --noindexpage    Do not allow index page.');
-  Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
-  Writeln('-q --quiet          Do not write diagnostic messages');
-  Writeln('-w --watch          Watch directory for changes');
-  Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
-  Writeln('-m --mimetypes=file filename of mimetypes. Default is ',GetDefaultMimeTypesFile);
-  Writeln('-s --simpleserver   Only serve files, do not enable compilation.');
+  Writeln('-A --api=location,secret Enable location management API.');
+  Writeln('-c --compile[=proj]      Recompile project if pascal files change. Default project is app.lpr');
+  Writeln('-d --directory=dir       Base directory from which to serve files.');
+  Writeln('                         Default is current working directory: ',GetCurrentDir);
+  Writeln('-h --help                This help text');
+  Writeln('-i --indexpage=name      Directory index page to use (default: index.html)');
+  Writeln('-m --mimetypes=file      Set Filename for loading mimetypes. Default is ',GetDefaultMimeTypesFile);
+  Writeln('-n --noindexpage         Do not allow index page.');
+  Writeln('-p --port=NNNN           TCP/IP port to listen on (default is 3000)');
+  Writeln('-q --quiet               Do not write diagnostic messages');
+  Writeln('-s --simpleserver        Only serve files, do not enable compilation.');
+  Writeln('-w --watch               Watch directory for changes');
   Halt(Ord(Msg<>''));
   {AllowWriteln-}
 end;
@@ -482,10 +504,10 @@ begin
     PF:=ProjectFile;
   If (PF='') then
     begin
-    AResponse.Code:=404;
-    AResponse.CodeText:='No project file';
     AResponse.ContentType:='application/json';
     AResponse.Content:='{ "success" : false, "message": "no project file set or provided" }';
+    AResponse.Code:=404;
+    AResponse.CodeText:='No project file';
     end
   else
     begin
@@ -548,16 +570,142 @@ begin
   Result:=True;
 end;
 
+procedure THTTPCompilerApplication.DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
+
+Var
+  Msg : String;
+
+begin
+  if Quiet then
+    exit;
+  Msg:=Format('(Proxy redirect) location: %s, Method: %s, From: %s, to: %s',[aLocation,aMethod,aFromURl,atoURL]);
+  if IsConsole then
+    Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',etInfo,'] ',Msg)
+  else
+    inherited DoLog(etInfo, Msg);
+end;
+
+procedure THTTPCompilerApplication.DoEcho(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  L : TStrings;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.AddStrings(['<!doctype html>',
+      '<html>',
+      '<head>',
+      '<title>Echo request</title>',
+      '</head>',
+      '<body>'
+    ]);
+    DumpRequest(aRequest,L);
+    L.AddStrings(['</body>','</html>']);
+    AResponse.Content:=L.Text;
+    AResponse.SendResponse;
+  finally
+    L.Free;
+  end;
+end;
+procedure THTTPCompilerApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  PWD : String;
+
+begin
+  PWD:=ARequest.QueryFields.Values['password'];
+  if PWD='' then
+    ARequest.ContentFields.Values['password'];
+  if PWD=FPassword then
+    begin
+    AResponse.Content:='OK';
+    AResponse.SendContent;
+    Terminate;
+    end
+  else
+    begin
+    AResponse.Code:=403;
+    AResponse.CodeText:='Forbidden';
+    AResponse.SendContent;
+    end;
+end;
+
+procedure THTTPCompilerApplication.ReadConfigFile(Const ConfigFile : string);
+
+Const
+  SConfig  = 'Server';
+  SProxy = 'Proxy';
+  SLocations = 'Locations';
+
+  KeyPort  = 'Port';
+  KeyDir   = 'Directory';
+  KeyIndexPage = 'IndexPage';
+  KeyHostName = 'hostname';
+  keyMimetypes = 'mimetypes';
+  KeySSL = 'SSL';
+  KeyQuiet = 'quiet';
+  KeyQuit = 'quit';
+  KeyEcho = 'echo';
+  KeyNoIndexPage = 'noindexpage';
+  KeyBackground = 'background';
+  KeyMaxAge = 'MaxAge';
+  KeyAPI = 'API';
+
+Var
+  L : TStringList;
+  P,U : String;
+  I : Integer;
+
+begin
+  if (ConfigFile='') or Not FileExists(ConfigFile) then exit;
+  L:=Nil;
+  With TMemIniFile.Create(ConfigFile) do
+    try
+      FBaseDir:=ReadString(SConfig,KeyDir,BaseDir);
+      Port:=ReadInteger(SConfig,KeyPort,Port);
+      Quiet:=ReadBool(SConfig,KeyQuiet,Quiet);
+      FMimeFile:=ReadString(SConfig,keyMimetypes,MimeFile);
+      NoIndexPage:=ReadBool(SConfig,KeyNoIndexPage,NoIndexPage);
+      IndexPageName:=ReadString(SConfig,KeyIndexPage,IndexPageName);
+      HostName:=ReadString(SConfig,KeyHostName,HostName);
+      UseSSL:=ReadBool(SConfig,KeySSL,UseSSL);
+      FBackground:=ReadBool(SConfig,Keybackground,FBackGround);
+      FPassword:=ReadString(SConfig,KeyQuit,FPassword);
+      FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
+      FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
+      FAPI:=ReadString(SConfig,keyAPI,'');
+      L:=TstringList.Create;
+      ReadSectionValues(SProxy,L,[]);
+      For I:=0 to L.Count-1 do
+        begin
+        L.GetNameValue(I,P,U);
+        if (P<>'') and (U<>'') then
+          ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
+        end;
+      L.Clear;
+      ReadSectionValues(SLocations,L,[]);
+      For I:=0 to L.Count-1 do
+        begin
+        L.GetNameValue(I,P,U);
+        if (P<>'') and (U<>'') then
+          RegisterFileLocation(P,U);
+        end;
+    finally
+      L.Free;
+      Free;
+    end;
+end;
+
+
 function THTTPCompilerApplication.ProcessOptions: Boolean;
 
 Var
-  S,IndexPage,D : String;
+  IndexPage,D : String;
 
 begin
   Result:=False;
-  S:=Checkoptions('shqd:ni:p:wP::cm:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:']);
-  if (S<>'') or HasOption('h','help') then
-    usage(S);
+  FAPI:=GetOptionValue('A','api');
   FServeOnly:=HasOption('s','serve-only');
   Quiet:=HasOption('q','quiet');
   Port:=StrToIntDef(GetOptionValue('p','port'),3000);
@@ -599,17 +747,49 @@ end;
 
 procedure THTTPCompilerApplication.DoRun;
 
+Var
+  S : String;
+
 begin
+  S:=Checkoptions('shqd:ni:p:wP::cm:A:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:']);
+  if (S<>'') or HasOption('h','help') then
+    usage(S);
+  if HasOption('c','config') then
+    ConfigFile:=GetOptionValue('c','config')
+  else
+    ConfigFile:='compileserver.ini';
+  ReadConfigFile(ConfigFile);
   If not ProcessOptions then
     begin
     Terminate;
     exit;
     end;
+  if FBackground then
+    begin
+{$ifdef unix}
+    if FPFork>0 then Halt(0);
+{$else}
+    Log(etError,'Background option not supported');
+{$endif}
+    end;
+  // Handle options
+  if FPassword<>'' then
+    HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
+  if FEcho  then
+    HTTPRouter.RegisterRoute('/echo',rmAll,@DoEcho,False);
+  if ProxyManager.LocationCount>0 then
+    begin
+    TProxyWebModule.RegisterModule('Proxy',True);
+    ProxyManager.OnLog:=@DoProxyLog;
+    end;
+  DefaultCacheControlMaxAge:=FMaxAge; // one year by default
   if not ServeOnly then
     begin
     httprouter.RegisterRoute('$sys/compile',rmPost,@DoRecompile);
     httprouter.RegisterRoute('$sys/status',rmGet,@DoStatusRequest);
     end;
+  if FAPI<>'' then
+    TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPI,[',']),ExtractWord(2,FAPI,[',']));
   TSimpleFileModule.RegisterDefaultRoute;
   inherited;
 end;
