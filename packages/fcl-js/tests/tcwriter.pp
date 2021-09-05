@@ -97,6 +97,8 @@ type
     Procedure TestVarListDeclaration;
     Procedure TestVarListDeclarationInit;
     Procedure TestVarDeclarationStatement;
+    Procedure TestLetDeclarationStatement;
+    Procedure TestConstDeclarationStatement;
     Procedure TestVarListDeclarationStatement;
     Procedure TestVarListDeclarationStatement2Vars;
     Procedure TestVarListDeclarationStatement3Vars;
@@ -974,6 +976,33 @@ begin
   S.A:=V;
   V.Name:='a';
   AssertWrite('simple var','var a',S);
+end;
+
+procedure TTestStatementWriter.TestLetDeclarationStatement;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+begin
+  S:=TJSVariableStatement.Create(0,0);
+  S.varType:=vtLet;
+  V:=TJSVarDeclaration.Create(0,0);
+  S.A:=V;
+  V.Name:='a';
+  AssertWrite('simple let','let a',S);
+end;
+
+procedure TTestStatementWriter.TestConstDeclarationStatement;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+begin
+  S:=TJSVariableStatement.Create(0,0);
+  S.varType:=vtConst;
+  V:=TJSVarDeclaration.Create(0,0);
+  S.A:=V;
+  V.Name:='a';
+  V.Init:=CreateLiteral(1);
+  AssertWrite('simple const','const a = 1',S);
 end;
 
 procedure TTestStatementWriter.TestVarListDeclarationStatement;
