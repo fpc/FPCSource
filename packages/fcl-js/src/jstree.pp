@@ -669,6 +669,8 @@ Type
     Property C : TJSElement Read FC Write FC;
   end;
 
+  TJSDebuggerStatement = Class(TJSElement);
+
   { TJSAssignStatement - e.g. LHS operator Expr }
 
   TJSAssignStatement = Class(TJSElement)

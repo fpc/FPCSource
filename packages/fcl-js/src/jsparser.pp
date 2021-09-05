@@ -26,6 +26,7 @@ Const
    SEmptyLabel = '';
    MinAsyncVersion = ecma2021;
    minLetVersion = ecma2021;
+   MinDebuggerVersion = ecma2021;
 
 Type
   TECMAVersion = jsScanner.TECMAVersion;
@@ -102,6 +103,7 @@ Type
     function ParseThrowStatement: TJSElement;
     function ParseTryStatement: TJSElement;
     function ParseUnaryExpression: TJSElement;
+    function ParseDebuggerStatement: TJSElement;
     function ParseVariableDeclaration(aVarType : TJSVarType = vtVar): TJSElement;
     function ParseVariableDeclarationList(aVarType : TJSVarType = vtVar): TJSElement;
     function ParseVariableStatement(aVarType : TJSVarType = vtVar): TJSElement;
@@ -966,6 +968,17 @@ begin
     Raise;
   end;
   {$ifdef debugparser} Writeln('Exit ParseUnaryExpression');{$endif debugparser}
+end;
+
+function TJSParser.ParseDebuggerStatement: TJSElement;
+
+begin
+  Result:=CreateElement(TJSDebuggerStatement);
+  try
+    Consume(tjsDebugger);
+  except
+    FreeAndNil(Result);
+  end;
 end;
 
 function TJSParser.ParseMultiplicativeExpression: TJSElement;
@@ -2014,6 +2027,8 @@ begin
       Result:=ParseReturnStatement;
     tjsWith:
       Result:=ParseWithStatement;
+    tjsDebugger:
+      Result:=ParseDebuggerStatement;
     tjsSwitch:
       Result:=ParseSwitchStatement;
     tjsThrow:
@@ -2043,7 +2058,7 @@ Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
       tjsTHIS, tjsIdentifier,jstoken.tjsSTRING,tjsNUMBER,
       tjsBraceOpen,tjsCurlyBraceOpen,tjsSquaredBraceOpen,
-      tjsLet, tjsConst,
+      tjsLet, tjsConst, tjsDebugger,
       tjsNew,tjsDelete,tjsVoid,tjsTypeOf,
       tjsPlusPlus,tjsMinusMinus,
       tjsPlus,tjsMinus,tjsNot,tjsNE,tjsSNE,tjsSemicolon,

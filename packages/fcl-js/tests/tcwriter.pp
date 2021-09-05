@@ -99,6 +99,7 @@ type
     Procedure TestVarDeclarationStatement;
     Procedure TestLetDeclarationStatement;
     Procedure TestConstDeclarationStatement;
+    Procedure TestDebuggerStatement;
     Procedure TestVarListDeclarationStatement;
     Procedure TestVarListDeclarationStatement2Vars;
     Procedure TestVarListDeclarationStatement3Vars;
@@ -1003,6 +1004,15 @@ begin
   V.Name:='a';
   V.Init:=CreateLiteral(1);
   AssertWrite('simple const','const a = 1',S);
+end;
+
+procedure TTestStatementWriter.TestDebuggerStatement;
+Var
+  S : TJSDebuggerStatement;
+
+begin
+  S:=TJSDebuggerStatement.Create(0,0);
+  AssertWrite('debugger statement','debugger',S);
 end;
 
 procedure TTestStatementWriter.TestVarListDeclarationStatement;
