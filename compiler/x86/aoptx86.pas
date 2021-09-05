@@ -7187,7 +7187,7 @@ unit aoptx86;
               (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
               (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
               GetNextInstruction(hp1, hp2) and
-              MatchInstruction(hp2, A_Jcc, []) then
+              MatchInstruction(hp2, A_Jcc, A_SETcc, []) then
               { Change from:             To:
 
                 set(C) %reg              j(~C) label
@@ -7198,6 +7198,8 @@ unit aoptx86;
                 set(C) %reg              j(C)  label
                 test   %reg,%reg/cmp $0,%reg
                 jne    label
+
+                (Also do something similar with sete/setne instead of je/jne)
               }
               begin
                 { Before we do anything else, we need to check the instructions
@@ -7423,10 +7425,16 @@ unit aoptx86;
                 if not TmpUsedRegs[getregtype(taicpu(p).oper[0]^.reg)].IsUsed(taicpu(p).oper[0]^.reg) then
                   begin
                     RemoveCurrentp(p, hp2);
-                    DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+                    if taicpu(hp2).opcode = A_SETcc then
+                      DebugMsg(SPeepholeOptimization + 'SETcc/TEST/SETcc -> SETcc',p)
+                    else
+                      DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
                   end
                 else
-                  DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> SETcc/Jcc',p);
+                  if taicpu(hp2).opcode = A_SETcc then
+                    DebugMsg(SPeepholeOptimization + 'SETcc/TEST/SETcc -> SETcc/SETcc',p)
+                  else
+                    DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> SETcc/Jcc',p);
 
                 Result := True;
               end
