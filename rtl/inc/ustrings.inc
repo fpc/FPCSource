@@ -939,6 +939,12 @@ begin
   if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<1) then
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
+
+Procedure fpc_UnicodeStr_ZeroBased_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_ZEROBASED_RANGECHECK']; compilerproc;
+begin
+  if (p=nil) or (index>=PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<0) then
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+end;
 {$endif FPC_HAS_UNICODESTR_RANGECHECK}
 
 
