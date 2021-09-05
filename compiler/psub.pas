@@ -1274,6 +1274,12 @@ implementation
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
          procdef.isempty:=true;
+
+       if cs_opt_nodecse in current_settings.optimizerswitches then
+         do_optcse(code);
+
+       if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
+         do_optloadmodifystore(code);
       end;
 
 
@@ -1940,12 +1946,6 @@ implementation
 
         { add implicit entry and exit code }
         add_entry_exit_code;
-
-        if cs_opt_nodecse in current_settings.optimizerswitches then
-          do_optcse(code);
-
-        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
-          do_optloadmodifystore(code);
 
         { only do secondpass if there are no errors }
         if (ErrorCount<>0) then
