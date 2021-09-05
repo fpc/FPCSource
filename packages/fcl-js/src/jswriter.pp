@@ -206,6 +206,7 @@ Type
     Procedure WriteAssignStatement(El: TJSAssignStatement);virtual;
     Procedure WriteForInStatement(El: TJSForInStatement);virtual;
     Procedure WriteWhileStatement(El: TJSWhileStatement);virtual;
+    Procedure WriteImportStatement(El: TJSImportStatement);virtual;
     Procedure WriteForStatement(El: TJSForStatement);virtual;
     Procedure WriteIfStatement(El: TJSIfStatement);virtual;
     Procedure WriteSourceElements(El: TJSSourceElements);virtual;
@@ -1677,6 +1678,48 @@ begin
     end;
 end;
 
+procedure TJSWriter.WriteImportStatement(El: TJSImportStatement);
+
+Var
+  I : integer;
+  N : TJSNamedImportElement;
+  needFrom : Boolean;
+
+begin
+  Write('import ');
+  needFrom:=False;
+  if El.DefaultBinding<>'' then
+    begin
+    Write(El.DefaultBinding+' ');
+    if (El.NameSpaceImport<>'') or El.HaveNamedImports then
+      Write(', ');
+    needFrom:=True;
+    end;
+  if El.NameSpaceImport<>''  then
+    begin
+    Write('* as '+El.NameSpaceImport+' ');
+    needFrom:=True;
+    end;
+  if El.HaveNamedImports then
+    begin
+    needFrom:=True;
+    Write('{ ');
+    For I:=0 to EL.NamedImports.Count-1 do
+      begin
+      N:=EL.NamedImports[i];
+      if I>0 then
+        Write(', ');
+      Write(N.Name+' ');
+      if N.Alias<>'' then
+        Write('as '+N.Alias+' ');
+      end;
+    Write('} ');
+    end;
+  if NeedFrom then
+    Write('from ');
+  write('"'+El.ModuleName+'"');
+end;
+
 procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
@@ -1981,6 +2024,8 @@ begin
     WriteVarDeclaration(TJSVarDeclaration(El))
   else if (C=TJSIfStatement) then
     WriteIfStatement(TJSIfStatement(El))
+  else if (C=TJSImportStatement) then
+    WriteImportStatement(TJSImportStatement(El))
   else if C.InheritsFrom(TJSTargetStatement) then
     WriteTargetStatement(TJSTargetStatement(El))
   else if (C=TJSReturnStatement) then

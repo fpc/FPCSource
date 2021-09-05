@@ -94,6 +94,7 @@ type
     procedure TestExpressionPrecedenceBracePlusMul;
     procedure TestExpressionFunction;
     procedure TestFunctionCallNoArgs;
+    procedure TestAwaitFunctionCallNoArgs;
     procedure TestFunctionCallOneArg;
     procedure TestFunctionCallTwoArgs;
     procedure TestArrayExpressionNumericalArgs;
@@ -140,6 +141,16 @@ type
     procedure TestSwitchOne;
     procedure TestSwitchTwo;
     procedure TestSwitchTwoDefault;
+    Procedure TestImportModule;
+    Procedure TestImportImportedDefault;
+    Procedure TestImportNamespaceImport;
+    Procedure TestImportImportedDefaultAndNamespaceImport;
+    Procedure TestImportNamedImport;
+    Procedure TestImportNamedImportAlias;
+    Procedure TestImport2NamedImports;
+    Procedure TestImport2NamedImportAlias;
+    Procedure TestImport2NamedImportsComma;
+    Procedure TestImportDefaultAndNamedImport;
   end;
 
 implementation
@@ -1471,6 +1482,27 @@ begin
   AssertEquals('Function name correct','abc',TJSPrimaryExpressionIdent(C.Expr).Name);
 end;
 
+procedure TTestJSParser.TestAwaitFunctionCallNoArgs;
+
+Var
+  X : TJSExpressionStatement;
+  W : TJSAwaitExpression;
+  C : TJSCallExpression;
+
+begin
+  CreateParser('await abc();',MinAwaitVersion);
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSAwaitExpression);
+  W:=TJSAwaitExpression(X.A);
+  CheckClass(W.A,TJSCallExpression);
+  C:=TJSCallExpression(W.A);
+  AssertEquals('No arguments',0,C.Args.Elements.Count);
+  AssertNotNull('Call function expression',C.Expr);
+  CheckClass(C.Expr,TJSPrimaryExpressionIdent);
+  AssertEquals('Function name correct','abc',TJSPrimaryExpressionIdent(C.Expr).Name);
+end;
+
+
 procedure TTestJSParser.TestFunctionCallOneArg;
 
 Var
@@ -2411,6 +2443,199 @@ begin
   C:=TJSCaseElement(S.Cases[2]);
   CheckClass(C.Body,TJSEmptyBlockStatement);
   AssertSame('Default',C,S.TheDefault);
+end;
+
+procedure TTestJSParser.TestImportModule;
+
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+
+begin
+  CreateParser('import "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertFalse('Named imports',Imp.HaveNamedImports);
+end;
+
+procedure TTestJSParser.TestImportImportedDefault;
+
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+
+begin
+  CreateParser('import A from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','A',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertFalse('Named imports',Imp.HaveNamedImports);
+end;
+
+procedure TTestJSParser.TestImportNamespaceImport;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+
+begin
+  CreateParser('import * as A from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','A',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertFalse('Named imports',Imp.HaveNamedImports);
+end;
+
+procedure TTestJSParser.TestImportImportedDefaultAndNamespaceImport;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+
+begin
+  CreateParser('import A, * as B from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','A',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','B',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertFalse('Named imports',Imp.HaveNamedImports);
+end;
+
+procedure TTestJSParser.TestImportNamedImport;
+
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import {A} from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',1,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name','A',NamedImp.Name);
+  AssertEquals('Named import alias','',NamedImp.Alias);
+end;
+
+procedure TTestJSParser.TestImportNamedImportAlias;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import {A as C} from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',1,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name','A',NamedImp.Name);
+  AssertEquals('Named import alias','C',NamedImp.Alias);
+end;
+
+procedure TTestJSParser.TestImport2NamedImports;
+
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import {A, B} from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',2,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name 1','A',NamedImp.Name);
+  AssertEquals('Named import alias 1','',NamedImp.Alias);
+  NamedImp:=Imp.NamedImports[1];
+  AssertEquals('Named import name 2','B',NamedImp.Name);
+  AssertEquals('Named import alias 2','',NamedImp.Alias);
+end;
+
+procedure TTestJSParser.TestImport2NamedImportAlias;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import {A as C, B as D} from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',2,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name 1','A',NamedImp.Name);
+  AssertEquals('Named import alias 1','C',NamedImp.Alias);
+  NamedImp:=Imp.NamedImports[1];
+  AssertEquals('Named import name 2','B',NamedImp.Name);
+  AssertEquals('Named import alias 2','D',NamedImp.Alias);
+end;
+
+procedure TTestJSParser.TestImport2NamedImportsComma;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import {A, B, } from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',2,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name 1','A',NamedImp.Name);
+  AssertEquals('Named import alias 1','',NamedImp.Alias);
+  NamedImp:=Imp.NamedImports[1];
+  AssertEquals('Named import name 2','B',NamedImp.Name);
+  AssertEquals('Named import alias 2','',NamedImp.Alias);
+end;
+
+procedure TTestJSParser.TestImportDefaultAndNamedImport;
+Var
+  E : TJSElement;
+  Imp : TJSImportStatement absolute E;
+  NamedImp : TJSNamedImportElement;
+
+begin
+  CreateParser('import D, {A} from "a.js"',MinImportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSImportStatement);
+  AssertEquals('DefaultImportedName','D',Imp.DefaultBinding);
+  AssertEquals('NamespaceImport','',Imp.NameSpaceImport);
+  AssertEquals('Modulename','a.js',Imp.ModuleName);
+  AssertTrue('Named imports',Imp.HaveNamedImports);
+  AssertEquals('Named import count',1,Imp.NamedImports.Count);
+  NamedImp:=Imp.NamedImports[0];
+  AssertEquals('Named import name','A',NamedImp.Name);
+  AssertEquals('Named import alias','',NamedImp.Alias);
 end;
 
 procedure TTestJSParser.TestBreak;

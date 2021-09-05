@@ -401,6 +401,14 @@ Type
     Class function PrefixOperatorToken : tjsToken; Override;
   end;
 
+  { TJSYieldExpression }
+
+  TJSYieldExpression = Class(TJSUnaryExpression)
+  Public
+    Class function PrefixOperatorToken : tjsToken; Override;
+  end;
+
+
   { TJSUnaryPrePlusPlusExpression - e.g. '++A' }
 
   TJSUnaryPrePlusPlusExpression = Class(TJSUnaryExpression)
@@ -864,6 +872,44 @@ Type
     Property List : TJSElement Read FList Write FList;
   end;
 
+  TJSNamedImportElement = Class(TCollectionItem)
+  private
+    FName : String;
+    FAlias : String;
+  Public
+    Property Name : String Read FName Write FName;
+    Property Alias : String Read FAlias Write FAlias;
+  end;
+
+  { TJSNamedImportElements - NamedImports property of TJSImportStatement }
+
+  TJSNamedImportElements = Class(TCollection)
+  private
+    function GetE(AIndex : Integer): TJSNamedImportElement;
+  Public
+    Function AddElement : TJSNamedImportElement;
+    Property Imports[AIndex : Integer] : TJSNamedImportElement Read GetE ;default;
+  end;
+
+  { TJSImportStatement }
+
+  TJSImportStatement = class(TJSElement)
+  Private
+    FDefaultBinding: String;
+    FModuleName: String;
+    FNamedImports : TJSNamedImportElements;
+    FNameSpaceImport: String;
+    function GetHaveNamedImports: Boolean;
+    function GetNamedImports: TJSNamedImportElements;
+  Public
+    Destructor Destroy; override;
+    Property ModuleName : String Read FModuleName Write FModuleName;
+    Property DefaultBinding : String Read FDefaultBinding Write FDefaultBinding;
+    Property NameSpaceImport : String Read FNameSpaceImport Write FNameSpaceImport;
+    Property HaveNamedImports : Boolean Read GetHaveNamedImports;
+    Property NamedImports : TJSNamedImportElements Read GetNamedImports;
+  end;
+
   { TJSContinueStatement - e.g. 'continue'}
 
   TJSContinueStatement = Class(TJSTargetStatement);
@@ -1009,6 +1055,45 @@ Type
   end;
 
 implementation
+
+{ TJSImportStatement }
+
+function TJSImportStatement.GetNamedImports: TJSNamedImportElements;
+begin
+  if FNamedImports=Nil then
+    FNamedImports:=TJSNamedImportElements.Create(TJSNamedImportElement);
+  Result:=FNamedImports;
+end;
+
+function TJSImportStatement.GetHaveNamedImports: Boolean;
+begin
+  Result:=Assigned(FNamedImports) and (FNamedImports.Count>0);
+end;
+
+destructor TJSImportStatement.Destroy;
+begin
+  FreeAndNil(FNamedImports);
+  inherited Destroy;
+end;
+
+{ TJSNamedImportElements }
+
+function TJSNamedImportElements.GetE(aIndex: Integer): TJSNamedImportElement;
+begin
+  Result:=TJSNamedImportElement(Items[aIndex]);
+end;
+
+function TJSNamedImportElements.AddElement: TJSNamedImportElement;
+begin
+  Result:=TJSNamedImportElement(Add);
+end;
+
+{ TJSYieldExpression }
+
+class function TJSYieldExpression.PrefixOperatorToken: tjsToken;
+begin
+  Result:=tjsYield;
+end;
 
 {$IFDEF NOCLASSES}
 { TCollectionItem }
