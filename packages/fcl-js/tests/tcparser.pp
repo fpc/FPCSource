@@ -23,6 +23,7 @@ type
     Procedure CreateParser(Const ASource : string; aVersion : TECMAVersion = TECMAVersion.ecma5);
     Procedure CheckClass(E : TJSElement; C : TJSElementClass);
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
+    Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSVarType); overload;
     Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
     Function  GetSourceElements : TJSSourceElements;
     Function  GetVars : TJSElementNodes;
@@ -99,8 +100,10 @@ type
     procedure TestArrayExpressionStringArgs;
     procedure TestArrayExpressionIdentArgs;
     Procedure TestVarDeclarationSimple;
+    Procedure TestLetDeclarationSimple;
     procedure TestVarDeclarationDouble;
     procedure TestVarDeclarationSimpleInit;
+    procedure TestConstDeclarationSimpleInit;
     procedure TestVarDeclarationDoubleInit;
     procedure TestBlockEmpty;
     procedure TestBlockEmptyStatement;
@@ -151,6 +154,17 @@ Var
 begin
   NE:=GetEnumName(TypeInfo(TJSType),Ord(Expected));
   NA:=GetEnumName(TypeInfo(TJSType),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
+end;
+
+procedure TTestJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSVarType);
+
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TJSVarType),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TJSVarType),Ord(Actual));
   AssertEquals(AMessage,NE,NA);
 end;
 
@@ -1563,8 +1577,24 @@ Var
 begin
   CreateParser('var a;');
   X:=GetFirstVar;
+  AssertNotNull('Variable statement assigned',(X));
   CheckClass(X,TJSVarDeclaration);
   V:=TJSVarDeclaration(X);
+  AssertEquals('correct variable type', vtVar, V.VarType);
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNull('No initialization expression', V.Init);
+end;
+
+procedure TTestJSParser.TestLetDeclarationSimple;
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('let a;',minLetVersion);
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+  AssertEquals('correct variable type', vtLet, V.VarType);
 //  AssertNotNull('Variable statement assigned',(X));
   AssertEquals('variable name correct registered', 'a', V.Name);
   AssertNull('No initialization expression', V.Init);
@@ -1582,11 +1612,13 @@ begin
   X:=GetFirstVar;
   CheckClass(X,TJSVarDeclaration);
   V:=TJSVarDeclaration(X);
+  AssertEquals('correct variable type', vtVar, V.VarType);
 //  AssertNotNull('Variable statement assigned',(X));
   AssertEquals('variable name correct registered', 'a', V.name);
   X:=GetVars.Nodes[1].Node;
   CheckClass(X,TJSVarDeclaration);
   V:=TJSVarDeclaration(X);
+  AssertEquals('correct variable type', vtVar, V.VarType);
   AssertEquals('variable name correct registered', 'b', V.Name);
   AssertNull('No initialization expression', V.Init);
 end;
@@ -1606,6 +1638,23 @@ begin
   AssertNotNull('Initialization expression present', V.Init);
   CheckClass(V.Init,TJSPrimaryExpressionIdent);
   AssertEquals('Member name identifier correct', 'b', TJSPrimaryExpressionIdent(V.init).Name);
+end;
+
+procedure TTestJSParser.TestConstDeclarationSimpleInit;
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('const a = 1;',MinLetVersion);
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+//  AssertNotNull('Variable statement assigned',(X));
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNotNull('Initialization expression present', V.Init);
+  CheckClass(V.Init,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(V.Init).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(V.Init).Value.AsNumber);
 end;
 
 procedure TTestJSParser.TestVarDeclarationDoubleInit;

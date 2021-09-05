@@ -25,6 +25,7 @@ uses
 Const
    SEmptyLabel = '';
    MinAsyncVersion = ecma2021;
+   minLetVersion = ecma2021;
 
 Type
   TECMAVersion = jsScanner.TECMAVersion;
@@ -101,9 +102,9 @@ Type
     function ParseThrowStatement: TJSElement;
     function ParseTryStatement: TJSElement;
     function ParseUnaryExpression: TJSElement;
-    function ParseVariableDeclaration: TJSElement;
-    function ParseVariableDeclarationList: TJSElement;
-    function ParseVariableStatement: TJSElement;
+    function ParseVariableDeclaration(aVarType : TJSVarType = vtVar): TJSElement;
+    function ParseVariableDeclarationList(aVarType : TJSVarType = vtVar): TJSElement;
+    function ParseVariableStatement(aVarType : TJSVarType = vtVar): TJSElement;
     function ParseWithStatement: TJSElement;
   Protected
     Procedure CheckParser;
@@ -1334,16 +1335,17 @@ begin
   {$ifdef debugparser}  Writeln('Exit ParseAssignmentExpression');{$endif debugparser}
 end;
 
-function TJSParser.ParseVariableDeclaration: TJSElement;
+function TJSParser.ParseVariableDeclaration(aVarType : TJSVarType = vtVar): TJSElement;
 
 Var
   V : TJSVarDeclaration;
 
 begin
   {$ifdef debugparser}  Writeln('ParseVariableDeclaration');{$endif debugparser}
-  V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration));;
+  V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration));
   try
     V.Name:=CurrenttokenString;
+    V.VarType:=aVarType;
     Consume(tjsIdentifier);
     if (CurrentToken=tjsAssign) then
       begin
@@ -1359,7 +1361,7 @@ begin
   {$ifdef debugparser}  Writeln('Exit ParseVariableDeclaration');{$endif debugparser}
 end;
 
-function TJSParser.ParseVariableDeclarationList: TJSElement;
+function TJSParser.ParseVariableDeclarationList(aVarType : TJSVarType = vtVar): TJSElement;
 
 Var
   E,N : TJSElement;
@@ -1367,7 +1369,7 @@ Var
 
 begin
   {$ifdef debugparser}  Writeln('ParseVariableDeclarationList entry');{$endif debugparser}
-  E:=ParseVariableDeclaration;
+  E:=ParseVariableDeclaration(aVarType);
   If (CurrentToken<>tjsComma) then
     Result:=E
   else
@@ -1387,7 +1389,10 @@ begin
   {$ifdef debugparser}  Writeln('ParseVariableDeclarationList exit');{$endif debugparser}
 end;
 
-function TJSParser.ParseVariableStatement : TJSElement;
+function TJSParser.ParseVariableStatement(aVarType : TJSVarType = vtVar): TJSElement;
+
+Const
+   InitialTokens : Array[TJSVarType] of TJSToken = (tjsVar,tjsLet,tjsConst);
 
 Var
   V : TJSVariableStatement;
@@ -1395,11 +1400,12 @@ Var
 begin
   {$ifdef debugparser}  Writeln('ParseVariableStatement entry');{$endif debugparser}
   Result:=Nil;
-  Consume(tjsVar);
-  Result:=ParseVariableDeclarationList;
+  Consume(InitialTokens[aVarType]);
+  Result:=ParseVariableDeclarationList(aVarType);
   try
     Consume(tjsSemicolon,true);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement));
+    V.varType:=aVarType;
     V.A:=Result;
     Result:=V;
   except
@@ -1988,8 +1994,12 @@ begin
   Case CurrentToken of
     tjsCurlyBraceOpen :
       Result:=ParseBlock;
+    tjsLet:
+      Result:=ParseVariableStatement(vtLet);
+    tjsConst:
+      Result:=ParseVariableStatement(vtConst);
     tjsVar:
-      Result:=ParseVariableStatement;
+      Result:=ParseVariableStatement(vtVar);
     tjsSemicolon:
       Result:=ParseEmptyStatement;
     tjsIf:
@@ -2033,6 +2043,7 @@ Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
       tjsTHIS, tjsIdentifier,jstoken.tjsSTRING,tjsNUMBER,
       tjsBraceOpen,tjsCurlyBraceOpen,tjsSquaredBraceOpen,
+      tjsLet, tjsConst,
       tjsNew,tjsDelete,tjsVoid,tjsTypeOf,
       tjsPlusPlus,tjsMinusMinus,
       tjsPlus,tjsMinus,tjsNot,tjsNE,tjsSNE,tjsSemicolon,

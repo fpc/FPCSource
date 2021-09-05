@@ -349,9 +349,16 @@ Type
   end;
   TJSUnaryClass = class of TJSUnary;
 
-  { TJSVariableStatement - e.g. 'var A' }
+  { TJSVariableStatement - e.g. 'var A' 'let A', 'const a'}
 
-  TJSVariableStatement = Class(TJSUnary);
+  TJSVarType = (vtVar,vtLet,vtConst);
+  TJSVarTypes = Set of TJSVarType;
+  TJSVariableStatement = Class(TJSUnary)
+  private
+    FVarType: TJSVarType;
+  Public
+    Property varType : TJSVarType Read FVarType Write FVarType;
+  end;
 
   { TJSExpressionStatement - A; }
 
@@ -768,10 +775,12 @@ Type
   private
     FInit: TJSElement;
     FName: String;
+    FVarType: TJSVarType;
   Public
     Destructor Destroy; override;
     Property Name : String Read FName Write FName;
     Property Init : TJSElement Read FInit Write FInit;
+    Property VarType : TJSVarType Read FVarType Write FVarType;
   end;
 
   { TJSIfStatement - e.g. if (Cond) btrue else bfalse }

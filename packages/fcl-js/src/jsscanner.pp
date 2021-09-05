@@ -29,7 +29,7 @@ Const
   // Here we specify what keywords are not keywords for 'older' versions.
   NonJSKeywords : Array [TECMAVersion] of TJSTokens
     = (
-        [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsSUPER, tjsYield], //ecma5
+        [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsLet, tjsSUPER, tjsYield], //ecma5
         [] // ecma2022
       );
 

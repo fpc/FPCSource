@@ -131,6 +131,8 @@ type
     procedure TestImportECMA2021;
     procedure TestIn;
     procedure TestInstanceOf;
+    procedure TestLetECMA5;
+    procedure TestLetECMA2021;
     procedure TestNew;
     procedure TestReturn;
     procedure TestSuperECMA5;
@@ -674,6 +676,16 @@ procedure TTestJSScanner.TestInstanceOf;
 
 begin
   CheckToken(tjsinstanceof,'instanceof');
+end;
+
+procedure TTestJSScanner.TestLetECMA5;
+begin
+  CheckToken(tjsIdentifier,'let');
+end;
+
+procedure TTestJSScanner.TestLetECMA2021;
+begin
+  CheckToken(tjsLet,'let');
 end;
 
 procedure TTestJSScanner.TestNew;

@@ -1910,8 +1910,11 @@ end;
 
 procedure TJSWriter.WriteVariableStatement(El: TJSVariableStatement);
 
+Const
+  Keywords : Array[TJSVarType] of string = ('var','let','const');
+
 begin
-  Write('var ');
+  Write(Keywords[el.varType]+' ');
   FSkipRoundBrackets:=true;
   WriteJS(El.A);
 end;
