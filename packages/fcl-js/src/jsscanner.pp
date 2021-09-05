@@ -21,6 +21,18 @@ interface
 
 uses SysUtils, Classes, jstoken;
 
+Type
+  TECMAVersion = (ecma5,ecma2021);
+
+Const
+  // TJSToken is the maximum known set of keywords.
+  // Here we specify what keywords are not keywords for 'older' versions.
+  NonJSKeywords : Array [TECMAVersion] of TJSTokens
+    = (
+        [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsSUPER, tjsYield], //ecma5
+        [] // ecma2022
+      );
+
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'string exceeds end of line';
@@ -71,6 +83,7 @@ Type
 
   TJSScanner = class
   private
+    FECMAVersion: TECMAVersion;
     FReturnComments: Boolean;
     FReturnWhiteSpace: Boolean;
     FSourceFile: TLineReader;
@@ -83,6 +96,7 @@ Type
     FWasEndOfLine : Boolean;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
+    FNonKeyWords : TJSTokens;
     function CommentDiv: TJSToken;
     function DoIdentifier : TJSToken;
     function DoMultiLineComment: TJSToken;
@@ -94,12 +108,13 @@ Type
     function GetCurColumn: Integer;
     function ReadUnicodeEscape: WideChar;
     Function ReadRegex : TJSToken;
+    procedure SetECMAVersion(AValue: TECMAVersion);
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
-    constructor Create(ALineReader: TLineReader);
-    constructor Create(AStream : TStream);
+    constructor Create(ALineReader: TLineReader; ECMAVersion : TECMAVersion = ecma5);
+    constructor Create(AStream : TStream; ECMAVersion : TECMAVersion = ecma5);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -115,6 +130,7 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
   end;
 
 
@@ -146,13 +162,14 @@ begin
   ReadLn(FTextFile, Result);
 end;
 
-constructor TJSScanner.Create(ALineReader: TLineReader);
+constructor TJSScanner.Create(ALineReader: TLineReader; ECMAVersion: TECMAVersion);
 begin
   inherited Create;
   FSourceFile := ALineReader;
+  FNonKeyWords:=NonJSKeywords[ECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream);
+constructor TJSScanner.Create(AStream: TStream; ECMAVersion: TECMAVersion);
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
@@ -371,6 +388,13 @@ begin
   Result:=tjsRegEx;
 end;
 
+procedure TJSScanner.SetECMAVersion(AValue: TECMAVersion);
+begin
+  if FECMAVersion=AValue then Exit;
+  FECMAVersion:=AValue;
+  FNonKeyWords:=NonJSKeywords[aValue];
+end;
+
 function TJSScanner.DoStringLiteral: TJSToken;
 
 Var
@@ -507,12 +531,13 @@ begin
   // Check if this is a keyword or identifier
   // !!!: Optimize this!
   for i:=FirstKeyword to Lastkeyword do
-    if CurTokenString=TokenInfos[i] then
-      begin
-      Result := i;
-      FCurToken := Result;
-      exit;
-      end;
+    if Not (I in FNonKeyWords) then
+      if (CurTokenString=TokenInfos[i]) then
+        begin
+        Result := i;
+        FCurToken := Result;
+        exit;
+        end;
 end;
 
 Function TJSScanner.FetchToken: TJSToken;
