@@ -24,8 +24,10 @@ uses
 
 Const
    SEmptyLabel = '';
+   MinAsyncVersion = ecma2021;
 
 Type
+  TECMAVersion = jsScanner.TECMAVersion;
 
   { TJSParser }
 
@@ -51,6 +53,7 @@ Type
     procedure Expect(aToken: TJSToken);
     procedure Consume(aToken: TJSToken; AllowSemicolonInsert : Boolean = False);
     procedure FreeCurrentLabelSet;
+    function GetVersion: TECMAVersion;
     procedure LeaveLabel;
     function LookupLabel(ALabelName: String; Kind: TJSToken): TJSLabel;
     function ParseAdditiveExpression: TJSElement;
@@ -117,7 +120,8 @@ Type
     Property NoIn : Boolean Read FNoIn Write FNoIn;
     Property IsLHS : Boolean Read FIsLHS Write FIsLHS;
   Public
-    Constructor Create(AInput: TStream);
+    Constructor Create(AInput: TStream; aVersion : TECMAVersion = ecma5);
+    // Scanner has version
     Constructor Create(AScanner : TJSScanner);
     Destructor Destroy; override;
     Function Parse : TJSElement;
@@ -127,6 +131,7 @@ Type
     Function GetNextToken : TJSToken;
     Function PeekNextToken : TJSToken;
     Function IsEndOfLine : Boolean;
+    Property ECMAVersion : TECMAVersion Read GetVersion;
   end;
 
 implementation
@@ -349,11 +354,11 @@ begin
   Error(Format(Fmt,Args));
 end;
 
-Constructor TJSParser.Create(AInput: TStream);
+Constructor TJSParser.Create(AInput: TStream; aVersion : TECMAVersion = ecma5);
 begin
   FInput:=AInput;
   FCurrent:=TJSUnknown;
-  FScanner:=TJSScanner.Create(FInput);
+  FScanner:=TJSScanner.Create(FInput,aVersion);
   FFreeScanner:=True;
 end;
 
@@ -1931,6 +1936,11 @@ begin
     end;
 end;
 
+function TJSParser.GetVersion: TECMAVersion;
+begin
+  Result:=FSCanner.ECMAVersion;
+end;
+
 function TJSParser.ParseExpressionStatement : TJSElement;
 
 Var
@@ -2034,21 +2044,27 @@ Var
   E : TJSElement;
   Done : Boolean;
   VS : TJSElementNodes;
+  aSync : Boolean;
 begin
   {$ifdef debugparser} Writeln('>>> Entering source elements');{$endif}
   Result:=TJSSourceElements(CreateElement(TJSSourceElements));
   try
     Done:=False;
+    aSync:=False;
     VS:=FCurrentVars;
     Try
       FCurrentVars:=Result.Vars;
       Repeat
         {$ifdef debugparser} Writeln('Sourceelements start:',GetEnumName(TypeInfo(TJSToken),Ord(CurrentToken)), ' As string: ',CurrentTokenString);{$endif debugparser}
+        aSync:= (ECMAVersion>=MinAsyncVersion) and (CurrentToken=tjsIdentifier) and (CurrentTokenString='async');
+        if aSync then
+          GetNextToken;
         If (CurrentToken=jstoken.tjsFunction) then
           begin
           If (PeekNextToken<>tjsBraceOpen) then
             begin
             F:=Self.ParseFunctionDeclaration;
+            F.AFunction.IsAsync:=aSync;
             Result.Functions.AddNode.Node:=F;
             end
           else

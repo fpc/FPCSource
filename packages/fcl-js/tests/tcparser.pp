@@ -5,7 +5,7 @@ unit tcparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, jsParser, jstree, jsbase;
+  Classes, SysUtils, fpcunit, testregistry,  jsParser, jstree, jsbase;
 
 type
 
@@ -20,7 +20,7 @@ type
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
-    Procedure CreateParser(Const ASource : string);
+    Procedure CreateParser(Const ASource : string; aVersion : TECMAVersion = TECMAVersion.ecma5);
     Procedure CheckClass(E : TJSElement; C : TJSElementClass);
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
     Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
@@ -106,6 +106,7 @@ type
     procedure TestBlockEmptyStatement;
     procedure TestBlockSimpleStatement;
     procedure TestFunctionDeclarationEmpty;
+    procedure TestFunctionDeclarationAsync;
     procedure TestFunctionDeclarationWithArgs;
     procedure TestFunctionDeclarationWithBody;
     procedure TestIfSimple;
@@ -1691,6 +1692,7 @@ begin
   CheckClass(N,TJSFunctionDeclarationStatement);
   FD:=TJSFunctionDeclarationStatement(N);
   AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertFalse('Async function ',FD.AFunction.IsAsync);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
   AssertEquals('No parameters',0,FD.AFunction.Params.Count);
@@ -1701,6 +1703,33 @@ begin
   E:=TJSSourceElements(TJSFunctionBody(N).A);
   AssertEquals('0 statement in functionbody elements',0,E.Statements.Count);
 //  TJSEmptyBlockStatement
+end;
+
+procedure TTestJSParser.TestFunctionDeclarationAsync;
+Var
+  E : TJSSourceElements;
+  N : TJSElement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('async function a () {}',MinAsyncVersion);
+  E:=GetSourceElements;
+  AssertEquals('1 function defined',1,E.functions.Count);
+  N:=E.Functions.Nodes[0].Node;
+  AssertNotNull('Function element defined ',N);
+  CheckClass(N,TJSFunctionDeclarationStatement);
+  FD:=TJSFunctionDeclarationStatement(N);
+  AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertTrue('Async function ',FD.AFunction.IsAsync);
+  AssertEquals('Function name OK','a',FD.AFunction.Name);
+  AssertNotNull('Function body assigned', FD.AFunction.Body);
+  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  N:=FD.AFunction.Body;
+  CheckClass(N,TJSFunctionBody);
+  AssertNotNull('Function body has element',TJSFunctionBody(N).A);
+  CheckClass(TJSFunctionBody(N).A,  TJSSourceElements);
+  E:=TJSSourceElements(TJSFunctionBody(N).A);
+  AssertEquals('0 statement in functionbody elements',0,E.Statements.Count);
 end;
 
 procedure TTestJSParser.TestFunctionDeclarationWithArgs;
@@ -2521,10 +2550,10 @@ begin
   FReeAndNil(FSource);
 end;
 
-Procedure TTestJSParser.CreateParser(Const ASource: string);
+Procedure TTestJSParser.CreateParser(Const ASource: string; aVersion : TECMAVersion = TECMAVersion.ecma5);
 begin
   FSource:=TStringStream.Create(ASource);
-  FParser:=TJSParser.Create(FSource);
+  FParser:=TJSParser.Create(FSource,aVersion);
 end;
 
 Procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
