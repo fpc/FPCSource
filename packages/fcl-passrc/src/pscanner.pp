@@ -4388,7 +4388,7 @@ function TPascalScanner.HandleDirective(const ADirectiveText: String): TToken;
 Var
   Directive,Param : String;
   P : Integer;
-  Handled: Boolean;
+  IsFlowControl,Handled: Boolean;
 
   procedure DoBoolDirective(bs: TBoolSwitch);
   begin
@@ -4416,7 +4416,8 @@ begin
   {$IFDEF VerbosePasDirectiveEval}
   Writeln('TPascalScanner.HandleDirective.Directive: "',Directive,'", Param : "',Param,'"');
   {$ENDIF}
-
+  Handled:=true;
+  IsFlowControl:=True;
   Case UpperCase(Directive) of
   'IFDEF':
      HandleIFDEF(Param);
@@ -4440,7 +4441,7 @@ begin
     HandleENDIF(Param);
   else
     if PPIsSkipping then exit;
-
+    IsFlowControl:=False;
     Handled:=false;
     if (length(Directive)=2)
         and (Directive[1] in ['a'..'z','A'..'Z'])
@@ -4540,13 +4541,12 @@ begin
         Handled:=false;
       end;
       end;
-
-    DoHandleDirective(Self,Directive,Param,Handled);
-    if (not Handled) then
-      if LogEvent(sleDirective) then
-        DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
-          [Directive]);
   end;
+  DoHandleDirective(Self,Directive,Param,Handled);
+  if not (Handled or IsFlowControl) then // in case of flowcontrol, it is definitely handled
+    if LogEvent(sleDirective) then
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+        [Directive]);
 end;
 
 function TPascalScanner.HandleLetterDirective(Letter: char; Enable: boolean): TToken;
