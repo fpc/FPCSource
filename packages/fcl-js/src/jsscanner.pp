@@ -113,8 +113,8 @@ Type
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
-    constructor Create(ALineReader: TLineReader; ECMAVersion : TECMAVersion = ecma5);
-    constructor Create(AStream : TStream; ECMAVersion : TECMAVersion = ecma5);
+    constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -162,18 +162,18 @@ begin
   ReadLn(FTextFile, Result);
 end;
 
-constructor TJSScanner.Create(ALineReader: TLineReader; ECMAVersion: TECMAVersion);
+constructor TJSScanner.Create(ALineReader: TLineReader; aECMAVersion: TECMAVersion);
 begin
   inherited Create;
   FSourceFile := ALineReader;
-  FNonKeyWords:=NonJSKeywords[ECMAVersion];
+  ECMAVersion:=aECMAVersion;
 end;
 
-constructor TJSScanner.Create(AStream: TStream; ECMAVersion: TECMAVersion);
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion);
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
-  Create(TStreamLineReader.Create(AStream));
+  Create(TStreamLineReader.Create(AStream),aECMAVersion);
 end;
 
 destructor TJSScanner.Destroy;
