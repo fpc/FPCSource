@@ -483,6 +483,12 @@ begin
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
+Procedure fpc_WideStr_ZeroBased_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_WIDESTR_ZEROBASED_RANGECHECK']; compilerproc;
+begin
+  if (p=nil) or (index>=PWideRec(p-WideFirstOff)^.len div 2) or (Index<0) then
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+end;
+
 Procedure fpc_WideStr_SetLength(Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; compilerproc;
 {
   Sets The length of string S to L.

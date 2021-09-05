@@ -759,6 +759,12 @@ begin
   if (p=nil) or (index>PAnsiRec(p-AnsiFirstOff)^.Len) or (Index<1) then
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
+
+Procedure fpc_AnsiStr_ZeroBased_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_ZEROBASED_RANGECHECK'];  compilerproc;
+begin
+  if (p=nil) or (index>=PAnsiRec(p-AnsiFirstOff)^.Len) or (Index<0) then
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+end;
 {$endif FPC_HAS_ANSISTR_RANGECHECK}
 
 {$ifndef FPC_HAS_ANSISTR_SETLENGTH}
