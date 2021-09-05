@@ -1,6 +1,7 @@
+
 program project1;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$R+}
 {$ZeroBasedStrings On}
 
 uses sysutils;
