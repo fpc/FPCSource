@@ -181,6 +181,14 @@ type
     Procedure TestWithCompact;
     Procedure TestSourceElements;
     Procedure TestSourceElementsCompact;
+    Procedure TestImportModule;
+    Procedure TestImportDefaultBinding;
+    Procedure TestImportDefaultBindingNameSpace;
+    Procedure TestImportNameSpace;
+    Procedure TestImportNamedImport;
+    Procedure TestImportNamedImportAlias;
+    Procedure TestImport2NamedImport;
+    Procedure TestImportDefaultBindingNamedImport;
   end;
 
   { TTestExpressionWriter }
@@ -198,6 +206,7 @@ type
     Procedure TestUnaryVoid;
     Procedure TestUnaryTypeOf;
     Procedure TestUnaryAwait;
+    Procedure TestUnaryYield;
     Procedure TestPrefixPlusPLus;
     Procedure TestPrefixMinusMinus;
     Procedure TestUnaryMinus;
@@ -355,6 +364,11 @@ end;
 procedure TTestExpressionWriter.TestUnaryAwait;
 begin
   TestUnary('await expresssion',TJSAwaitExpression,'await a');
+end;
+
+procedure TTestExpressionWriter.TestUnaryYield;
+begin
+  TestUnary('await expresssion',TJSYieldExpression,'yield a');
 end;
 
 procedure TTestExpressionWriter.TestPrefixPlusPLus;
@@ -2231,6 +2245,116 @@ begin
   A.Expr:=M;
   T.Statements.AddNode.Node:=A;
   AssertWrite('Statement lists compact','b=b*10; c=c*2;',T);
+end;
+
+procedure TTestStatementWriter.TestImportModule;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportDefaultBinding;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  Imp.DefaultBinding:='A';
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import A from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportDefaultBindingNameSpace;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  Imp.DefaultBinding:='A';
+  Imp.NameSpaceImport:='Q';
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import A , * as Q from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportNameSpace;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  Imp.NameSpaceImport:='Q';
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import * as Q from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportNamedImport;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  With Imp.NamedImports.AddElement do
+    begin
+    Name:='A';
+    end;
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import { A } from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportNamedImportAlias;
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  With Imp.NamedImports.AddElement do
+    begin
+    Name:='A';
+    Alias:='Q';
+    end;
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import { A as Q } from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImport2NamedImport;
+
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  With Imp.NamedImports.AddElement do
+    begin
+    Name:='A';
+    end;
+  With Imp.NamedImports.AddElement do
+    begin
+    Name:='B';
+    end;
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import { A , B } from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestImportDefaultBindingNamedImport;
+Var
+  Imp : TJSImportStatement;
+
+begin
+  Imp:=TJSImportStatement.Create(0,0);
+  Imp.DefaultBinding:='C';
+  With Imp.NamedImports.AddElement do
+    Name:='A';
+  Imp.ModuleName:='a.js';
+  AssertWrite('Import statement','import C , { A } from "a.js"',Imp);
 end;
 
 { ---------------------------------------------------------------------
