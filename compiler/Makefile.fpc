@@ -826,6 +826,10 @@ else
 	$(MAKE) revision.inc REVINC=force
 endif
 
+ifeq ($(COMPILEREXENAME),)
+COMPILEREXENAME:=$(EXENAME)
+endif
+
 .PHONY : revision
 
 revision :
@@ -850,9 +854,8 @@ else
 endif
         $(COMPILER) version.pas
 endif
-        $(COMPILER) pp.pas
+        $(COMPILER) -o$(BASEDIR)/$(COMPILEREXENAME) pp.pas
         $(EXECPPAS)
-        $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 
 #####################################################################
 # Cycle targets
@@ -897,13 +900,11 @@ wpocycle:
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtlclean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtl
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' $(addsuffix _clean,$(ALLTARGETS))
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' compiler
-        $(MOVE) $(EXENAME) $(TEMPWPONAME1)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler 
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtl
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' $(addsuffix _clean,$(ALLTARGETS))
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' compiler
-        $(COPY) $(EXENAME) $(TEMPWPONAME2)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' 'COMPILEREXENAME=$(EXENAME)' compiler
 else
 wpocycle:
 endif
@@ -941,19 +942,13 @@ next :
 endif
 
 $(TEMPNAME1) :
-        $(MAKE) 'OLDFPC=' next CYCLELEVEL=1
-        -$(DEL) $(TEMPNAME1)
-        $(MOVE) $(EXENAME) $(TEMPNAME1)
+	$(MAKE) 'OLDFPC=' next CYCLELEVEL=1 'COMPILEREXENAME=$(TEMPNAME1PREFIX)$(TEMPNAME1)'
 
 $(TEMPNAME2) : $(TEMPNAME1)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1PREFIX)$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2
-        -$(DEL) $(TEMPNAME2)
-        $(MOVE) $(EXENAME) $(TEMPNAME2)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1PREFIX)$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2 'COMPILEREXENAME=$(TEMPNAME2REFIX)$(TEMPNAME2)'
 
 $(TEMPNAME3) : $(TEMPNAME2)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2PREFIX)$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next CYCLELEVEL=3
-        -$(DEL) $(TEMPNAME3)
-        $(MOVE) $(EXENAME) $(TEMPNAME3)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2PREFIX)$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next CYCLELEVEL=3 'COMPILEREXENAME=$(TEMPNAME3PREFIX)$(TEMPNAME3)'
 
 cycle:
 ifdef NEED_G_COMPILERS
