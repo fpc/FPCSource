@@ -105,6 +105,7 @@ type
     procedure TestVarDeclarationSimpleInit;
     procedure TestConstDeclarationSimpleInit;
     procedure TestVarDeclarationDoubleInit;
+    procedure TestDebuggerStatement;
     procedure TestBlockEmpty;
     procedure TestBlockEmptyStatement;
     procedure TestBlockSimpleStatement;
@@ -1678,6 +1679,19 @@ begin
   AssertNotNull('No initialization expression', V.Init);
   CheckClass(V.Init,TJSPrimaryExpressionIdent);
   AssertEquals('Member name identifier correct', 'b', TJSPrimaryExpressionIdent(V.init).Name);
+end;
+
+procedure TTestJSParser.TestDebuggerStatement;
+Var
+  E : TJSSourceElements;
+  X : TJSElement;
+
+begin
+  CreateParser('debugger',MinDebuggerVersion);
+  E:=GetSourceElements;
+  AssertEquals('1 statement in block',1,E.Statements.Count);
+  X:=E.Statements.Nodes[0].Node;
+  CheckClass(X,TJSDebuggerStatement);
 end;
 
 procedure TTestJSParser.TestBlockEmpty;

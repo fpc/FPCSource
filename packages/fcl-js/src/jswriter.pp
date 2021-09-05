@@ -195,6 +195,7 @@ Type
     Procedure WriteVariableStatement(El: TJSVariableStatement);
     Procedure WriteEmptyBlockStatement(El: TJSEmptyBlockStatement); virtual;
     Procedure WriteEmptyStatement(El: TJSEmptyStatement);virtual;
+    Procedure WriteDebuggerStatement(E: TJSDebuggerStatement) ;virtual;
     Procedure WriteLiteral(El: TJSLiteral);virtual;
     Procedure WriteArrayLiteral(El: TJSArrayLiteral);virtual;
     Procedure WriteObjectLiteral(El: TJSObjectLiteral);virtual;
@@ -1002,6 +1003,11 @@ begin
   if El=nil then ;
   if woEmptyStatementAsComment in Options then
     Write('/* Empty statement */')
+end;
+
+procedure TJSWriter.WriteDebuggerStatement(E: TJSDebuggerStatement);
+begin
+  Write('debugger');
 end;
 
 procedure TJSWriter.WriteRegularExpressionLiteral(
@@ -1935,6 +1941,8 @@ begin
     WriteEmptyBlockStatement(TJSEmptyBlockStatement(El))
   else if (C=TJSEmptyStatement) then
     WriteEmptyStatement(TJSEmptyStatement(El))
+  else if (C=TJSDebuggerStatement) then
+    WriteDebuggerStatement(TJSDebuggerStatement(El))
   else if (C=TJSLiteral) then
     WriteLiteral(TJSLiteral(El))
   else if C.InheritsFrom(TJSPrimaryExpression) then
