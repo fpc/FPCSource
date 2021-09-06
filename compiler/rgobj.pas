@@ -297,6 +297,8 @@ unit rgobj;
         procedure set_live_end(reg : tsuperregister;t : tai);
         function get_live_end(reg : tsuperregister) : tai;
         procedure alloc_spillinfo(max_reg: Tsuperregister);
+        { Remove p from the list and set p to the next element in the list }
+        procedure remove_ai(list:TAsmList; var p:Tai);
 {$ifdef DEBUG_SPILLCOALESCE}
         procedure write_spill_stats;
 {$endif DEBUG_SPILLCOALESCE}
@@ -2182,7 +2184,7 @@ unit rgobj;
         end;
 
       var
-        hp,p,q:Tai;
+        hp,p:Tai;
         i:shortint;
         u:longint;
         s:string;
@@ -2208,10 +2210,7 @@ unit rgobj;
                           other regalloc }
                         if not(ratype in [ra_alloc,ra_dealloc]) then
                           begin
-                            q:=Tai(next);
-                            list.remove(p);
-                            p.free;
-                            p:=q;
+                            remove_ai(list,p);
                             continue;
                           end
                         else
@@ -2245,10 +2244,7 @@ unit rgobj;
                           if tai_varloc(p).newlocationhi<>NR_NO then
                             setsupreg(tai_varloc(p).newlocationhi,reginfo[getsupreg(tai_varloc(p).newlocationhi)].colour);
                         end;
-                      q:=tai(p.next);
-                      list.remove(p);
-                      p.free;
-                      p:=q;
+                      remove_ai(list,p);
                       continue;
                     end;
                 end;
@@ -2334,10 +2330,7 @@ unit rgobj;
                       it is a move and both arguments are the same }
                     if is_same_reg_move(regtype) then
                       begin
-                        q:=Tai(p.next);
-                        list.remove(p);
-                        p.free;
-                        p:=q;
+                        remove_ai(list,p);
                         continue;
                       end;
                   end;
@@ -2355,7 +2348,7 @@ unit rgobj;
       var
         i : cardinal;
         t : tsuperregister;
-        p,q : Tai;
+        p : Tai;
         regs_to_spill_set:Tsuperregisterset;
         spill_temps : ^Tspill_temp_list;
         supreg,x,y : tsuperregister;
@@ -2483,10 +2476,7 @@ unit rgobj;
                                 dec(reginfo[supreg].weight,100);
                               end;
                             { Remove the regalloc }
-                            q:=Tai(p.next);
-                            list.remove(p);
-                            p.free;
-                            p:=q;
+                            remove_ai(list,p);
                             continue;
                           end
                         else
@@ -2915,6 +2905,17 @@ unit rgobj;
           certain constraints regarding which imaginary registers interfere
           with certain physical registers. }
         add_cpu_interferences(instr);
+      end;
+
+
+    procedure trgobj.remove_ai(list:TAsmList; var p:Tai);
+      var
+        q:Tai;
+      begin
+        q:=tai(p.next);
+        list.remove(p);
+        p.free;
+        p:=q;
       end;
 
 
