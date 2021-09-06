@@ -635,6 +635,8 @@ var
   readsize: ULONG;
   res: ULONG;
 begin
+  Result := False;
+
   if not Assigned(fBuffer) then begin
     InitUrls;
 
