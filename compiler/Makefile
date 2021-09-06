@@ -574,30 +574,31 @@ endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
-ifeq ($(REVSTR),)
-ifneq ($(wildcard ../.git),)
-ifneq ($(GIT),)
+ ifeq ($(REVSTR),)
+  ifneq ($(wildcard ../.git),)
+   ifneq ($(GIT),)
 GITDESCRIBE=$(shell $(GIT) describe --dirty)
 REVSTR:=$(word 2,$(subst -, ,$(GITDESCRIBE)))-$(word 3,$(subst -, ,$(GITDESCRIBE)))
-ifneq ($(shell $(GIT) log @{u}..),)
+    ifneq ($(shell $(GIT) log @{u}..),)
 REVSTR:=$(REVSTR)-unpushed
-endif
-ifneq ($(word 4,$(subst -, ,$(GITDESCRIBE))),)
+    endif
+    ifneq ($(word 4,$(subst -, ,$(GITDESCRIBE))),)
 REVSTR:=$(REVSTR)-$(word 4,$(subst -, ,$(GITDESCRIBE)))
-endif
+    endif
+   endif
 export REVSTR
-else
-ifneq ($(SVNVERSION),)
+  else
+   ifneq ($(SVNVERSION),)
 REVSTR:=$(subst r,,$(subst r1:,,r$(subst exported,,$(shell $(SVNVERSION) -c .))))
 export REVSTR
-else
+   endif
+  endif
+ endif
+endif
 ifeq ($(REVINC),force)
+ifeq ($(REVSTR),)
 REVSTR:=exported
 export REVSTR
-endif
-endif
-endif
-endif
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB
