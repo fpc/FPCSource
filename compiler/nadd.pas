@@ -3200,7 +3200,7 @@ implementation
             end;
           end;
 
-         if (errorcount=0) and
+         if not(codegenerror) and
             not assigned(result) then
            result:=simplify(false);
       end;
