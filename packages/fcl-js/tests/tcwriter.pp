@@ -189,6 +189,18 @@ type
     Procedure TestImportNamedImportAlias;
     Procedure TestImport2NamedImport;
     Procedure TestImportDefaultBindingNamedImport;
+    Procedure TestExportAll;
+    Procedure TestExportAllFrom;
+    Procedure TestExportExportName;
+    Procedure TestExportExportNameAlias;
+    Procedure TestExportExportNameFrom;
+    Procedure TestExportVar;
+    Procedure TestExportLet;
+    Procedure TestExportConst;
+    Procedure TestExportFunction;
+    Procedure TestExportDefaultAssignment;
+    Procedure TestExportDefaultFunction;
+    Procedure TestExportDefaultAsyncFunction;
   end;
 
   { TTestExpressionWriter }
@@ -2355,6 +2367,177 @@ begin
     Name:='A';
   Imp.ModuleName:='a.js';
   AssertWrite('Import statement','import C , { A } from "a.js"',Imp);
+end;
+
+procedure TTestStatementWriter.TestExportAll;
+
+Var
+  Exp : TJSExportStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.NameSpaceExport:='*';
+  AssertWrite('Export statement','export *',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportAllFrom;
+Var
+  Exp : TJSExportStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.NameSpaceExport:='*';
+  Exp.ModuleName:='a.js';
+  AssertWrite('Export statement','export * from "a.js"',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportExportName;
+Var
+  Exp : TJSExportStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.ExportNames.AddAlias.Name:='a';
+  AssertWrite('Export statement','export { a }',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportExportNameAlias;
+Var
+  Exp : TJSExportStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  With Exp.ExportNames.AddAlias do
+    begin
+    Name:='a';
+    Alias:='b';
+    end;
+  AssertWrite('Export statement','export { a as b }',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportExportNameFrom;
+Var
+  Exp : TJSExportStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.ExportNames.AddAlias.Name:='a';
+  Exp.ModuleName:='a.js';
+  AssertWrite('Export statement','export { a } from "a.js"',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportVar;
+Var
+  Exp : TJSExportStatement;
+  VS : TJSVariableStatement;
+  VV : TJSVarDeclaration;
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  VS:=TJSVariableStatement.Create(0,0);
+  VV:=TJSVarDeclaration.Create(0,0);
+  VS.A:=VV;
+  VV.Name:='a';
+  Exp.Declaration:=VS;
+  AssertWrite('Export statement','export var a',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportLet;
+Var
+  Exp : TJSExportStatement;
+  VS : TJSVariableStatement;
+  VV : TJSVarDeclaration;
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  VS:=TJSVariableStatement.Create(0,0);
+  VS.varType:=vtLet;
+  VV:=TJSVarDeclaration.Create(0,0);
+  VS.A:=VV;
+  VV.varType:=vtLet;
+  VV.Name:='a';
+  Exp.Declaration:=VS;
+  AssertWrite('Export statement','export let a',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportConst;
+Var
+  Exp : TJSExportStatement;
+  VS : TJSVariableStatement;
+  VV : TJSVarDeclaration;
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  VS:=TJSVariableStatement.Create(0,0);
+  VS.varType:=vtConst;
+  VV:=TJSVarDeclaration.Create(0,0);
+  VS.A:=VV;
+  VV.varType:=vtConst;
+  VV.Name:='a';
+  Exp.Declaration:=VS;
+  AssertWrite('Export statement','export const a',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportFunction;
+Var
+  Exp : TJSExportStatement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  FD:=TJSFunctionDeclarationStatement.Create(0,0);
+  FD.AFunction:=TJSFuncDef.Create;
+  FD.AFunction.Name:='a';
+  Exp.Declaration:=FD;
+  AssertWrite('Empty function',
+     'export function a() {'+sLineBreak
+    +'}',Exp);
+
+end;
+
+procedure TTestStatementWriter.TestExportDefaultAssignment;
+Var
+  Exp : TJSExportStatement;
+  U : TJSAssignStatement;
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.IsDefault:=True;
+  U:=CreateAssignment(TJSSimpleAssignStatement);
+  Exp.Declaration:=U;
+  AssertWrite('Export','export default a = b',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportDefaultFunction;
+
+Var
+  Exp : TJSExportStatement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.IsDefault:=True;
+  FD:=TJSFunctionDeclarationStatement.Create(0,0);
+  FD.AFunction:=TJSFuncDef.Create;
+  FD.AFunction.Name:='a';
+  Exp.Declaration:=FD;
+  AssertWrite('Empty function',
+     'export default function a() {'+sLineBreak
+    +'}',Exp);
+end;
+
+procedure TTestStatementWriter.TestExportDefaultAsyncFunction;
+Var
+  Exp : TJSExportStatement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  Exp:=TJSExportStatement.Create(0,0);
+  Exp.IsDefault:=True;
+  FD:=TJSFunctionDeclarationStatement.Create(0,0);
+  FD.AFunction:=TJSFuncDef.Create;
+  FD.AFunction.IsAsync:=True;
+  FD.AFunction.Name:='a';
+  Exp.Declaration:=FD;
+  AssertWrite('Empty function',
+     'export default async function a() {'+sLineBreak
+    +'}',Exp);
 end;
 
 { ---------------------------------------------------------------------

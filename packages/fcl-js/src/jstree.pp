@@ -81,6 +81,7 @@ Type
   TJSElementFlags = set of TJSElementFlag;
 
   TJSFunctionBody = Class;
+  TJSClassDeclaration = Class;
 
   { TJSElement }
 
@@ -872,7 +873,7 @@ Type
     Property List : TJSElement Read FList Write FList;
   end;
 
-  TJSNamedImportElement = Class(TCollectionItem)
+  TJSAliasElement = Class(TCollectionItem)
   private
     FName : String;
     FAlias : String;
@@ -881,14 +882,27 @@ Type
     Property Alias : String Read FAlias Write FAlias;
   end;
 
+  { TJSAliasElements }
+
+  TJSAliasElements = Class(TCollection)
+  private
+    function GetA(AIndex : Integer): TJSAliasElement;
+  Public
+    Function AddAlias : TJSAliasElement;
+    Property Imports[AIndex : Integer] : TJSAliasElement Read GetA; default;
+  end;
+
+  TJSNamedImportElement = Class(TJSAliasElement);
+
+
   { TJSNamedImportElements - NamedImports property of TJSImportStatement }
 
-  TJSNamedImportElements = Class(TCollection)
+  TJSNamedImportElements = Class(TJSAliasElements)
   private
     function GetE(AIndex : Integer): TJSNamedImportElement;
   Public
     Function AddElement : TJSNamedImportElement;
-    Property Imports[AIndex : Integer] : TJSNamedImportElement Read GetE ;default;
+    Property Imports[AIndex : Integer] : TJSNamedImportElement Read GetE; default;
   end;
 
   { TJSImportStatement }
@@ -908,6 +922,39 @@ Type
     Property NameSpaceImport : String Read FNameSpaceImport Write FNameSpaceImport;
     Property HaveNamedImports : Boolean Read GetHaveNamedImports;
     Property NamedImports : TJSNamedImportElements Read GetNamedImports;
+  end;
+
+  TJSExportNameElement = Class(TJSAliasElement);
+
+  { TJSExportNameElements - NamedExports property of TJSExportStatement }
+
+  TJSExportNameElements = Class(TJSAliasElements)
+  private
+    function GetE(AIndex : Integer): TJSExportNameElement;
+  Public
+    Function AddElement : TJSExportNameElement;
+    Property ExportedNames[AIndex : Integer] : TJSExportNameElement Read GetE ;default;
+  end;
+
+  { TJSExportStatement }
+
+  TJSExportStatement = class(TJSElement)
+  Private
+    FDeclaration: TJSElement;
+    FIsDefault: Boolean;
+    FModuleName: String;
+    FNamedExports: TJSExportNameElements;
+    FNameSpaceExport: String;
+    function GetHaveNamedExports: Boolean;
+    function GetNamedExports: TJSExportNameElements;
+  Public
+    Destructor Destroy; override;
+    Property IsDefault : Boolean Read FIsDefault Write FIsDefault;
+    Property Declaration : TJSElement Read FDeclaration Write FDeclaration;
+    Property NameSpaceExport : String Read FNameSpaceExport Write FNameSpaceExport;
+    Property ModuleName : String Read FModuleName Write FModuleName;
+    Property HaveExportNames : Boolean Read GetHaveNamedExports;
+    Property ExportNames : TJSExportNameElements Read GetNamedExports;
   end;
 
   { TJSContinueStatement - e.g. 'continue'}
@@ -1017,6 +1064,10 @@ Type
     Property isProgram : Boolean Read FIsProgram Write FIsProgram;
   end;
 
+  TJSClassDeclaration = Class(TJSElement)
+  end;
+
+
   { TJSElementNode - element of TJSElementNodes }
 
   TJSElementNode = Class(TCollectionItem)
@@ -1056,6 +1107,51 @@ Type
 
 implementation
 
+{ TJSAliasElements }
+
+function TJSAliasElements.GetA(AIndex: Integer): TJSAliasElement;
+begin
+  Result:=TJSAliasElement(Items[aIndex])
+end;
+
+function TJSAliasElements.AddAlias: TJSAliasElement;
+begin
+  Result:=TJSAliasElement(add);
+end;
+
+{ TJSNamedExportElements }
+
+function TJSExportNameElements.GetE(AIndex: Integer): TJSExportNameElement;
+begin
+  Result:=TJSExportNameElement(Items[aIndex]);
+end;
+
+function TJSExportNameElements.AddElement: TJSExportNameElement;
+begin
+  Result:=TJSExportNameElement(Add);
+end;
+
+{ TJSExportStatement }
+
+function TJSExportStatement.GetNamedExports: TJSExportNameElements;
+begin
+  If FNamedExports=Nil then
+    FNamedExports:=TJSExportNameElements.Create(TJSExportNameElement);
+  Result:=FNamedExports;
+end;
+
+function TJSExportStatement.GetHaveNamedExports: Boolean;
+begin
+  Result:=Assigned(FNamedExports)
+end;
+
+destructor TJSExportStatement.Destroy;
+begin
+  FreeAndNil(FNamedExports);
+  FreeAndNil(FDeclaration);
+  inherited Destroy;
+end;
+
 { TJSImportStatement }
 
 function TJSImportStatement.GetNamedImports: TJSNamedImportElements;
@@ -1067,7 +1163,7 @@ end;
 
 function TJSImportStatement.GetHaveNamedImports: Boolean;
 begin
-  Result:=Assigned(FNamedImports) and (FNamedImports.Count>0);
+  Result:=Assigned(FNamedImports);
 end;
 
 destructor TJSImportStatement.Destroy;

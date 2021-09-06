@@ -207,6 +207,7 @@ Type
     Procedure WriteForInStatement(El: TJSForInStatement);virtual;
     Procedure WriteWhileStatement(El: TJSWhileStatement);virtual;
     Procedure WriteImportStatement(El: TJSImportStatement);virtual;
+    Procedure WriteExportStatement(El: TJSExportStatement);virtual;
     Procedure WriteForStatement(El: TJSForStatement);virtual;
     Procedure WriteIfStatement(El: TJSIfStatement);virtual;
     Procedure WriteSourceElements(El: TJSSourceElements);virtual;
@@ -1720,6 +1721,44 @@ begin
   write('"'+El.ModuleName+'"');
 end;
 
+procedure TJSWriter.WriteExportStatement(El: TJSExportStatement);
+Var
+  I : integer;
+  N : TJSExportNameElement;
+
+begin
+  Write('export ');
+  if El.IsDefault then
+    Write('default ');
+  if assigned(El.Declaration) then
+    WriteJS(EL.Declaration)
+  else if (El.NameSpaceExport<>'') then
+    begin
+    if El.NameSpaceExport<>'*' then
+      Write('* as '+El.NameSpaceExport)
+    else
+      Write('*');
+    if EL.ModuleName<>'' then
+      Write(' from "'+EL.ModuleName+'"');
+    end
+  else if El.HaveExportNames then
+    begin
+    Write('{ ');
+    For I:=0 to EL.ExportNames.Count-1 do
+      begin
+      N:=EL.ExportNames[i];
+      if I>0 then
+        Write(', ');
+      Write(N.Name+' ');
+      if N.Alias<>'' then
+        Write('as '+N.Alias+' ');
+      end;
+    Write('}');
+    if El.ModuleName<>'' then
+      Write(' from "'+El.ModuleName+'"');
+    end;
+end;
+
 procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
@@ -2026,6 +2065,8 @@ begin
     WriteIfStatement(TJSIfStatement(El))
   else if (C=TJSImportStatement) then
     WriteImportStatement(TJSImportStatement(El))
+  else if (C=TJSExportStatement) then
+    WriteExportStatement(TJSExportStatement(El))
   else if C.InheritsFrom(TJSTargetStatement) then
     WriteTargetStatement(TJSTargetStatement(El))
   else if (C=TJSReturnStatement) then
