@@ -61,12 +61,14 @@ Const
 
 const
   { RHIDE expect gcc like error output }
-  fatalstr      : string[20] = 'Fatal:';
-  errorstr      : string[20] = 'Error:';
-  warningstr    : string[20] = 'Warning:';
-  notestr       : string[20] = 'Note:';
-  hintstr       : string[20] = 'Hint:';
-
+  fatalstr      : string[6] = 'Fatal:';
+  errorstr      : string[6] = 'Error:';
+  warningstr    : string[8] = 'Warning:';
+  notestr       : string[5] = 'Note:';
+  hintstr       : string[5] = 'Hint:';
+  warningerrorstr    : string[29] = 'Warning: (treated as Error:)';
+  noteerrorstr       : string[27] = 'Note: (treated as Error:)';
+  hinterrorstr       : string[27] = 'Hint: (treated as Error:)';
 type
   PCompilerStatus = ^TCompilerStatus;
   TCompilerStatus = record
@@ -314,11 +316,20 @@ begin
   if not(status.use_gccoutput) then
     begin
       if (status.verbosity and Level)=V_Hint then
-        MsgTypeStr:=hintstr;
+        if status.errorhint then
+          MsgTypeStr:=hinterrorstr
+        else
+          MsgTypeStr:=hintstr;
       if (status.verbosity and Level)=V_Note then
-        MsgTypeStr:=notestr;
+        if status.errornote then
+          MsgTypeStr:=noteerrorstr
+        else
+          MsgTypeStr:=notestr;
       if (status.verbosity and Level)=V_Warning then
-        MsgTypeStr:=warningstr;
+        if status.errorwarning then
+          MsgTypeStr:=warningerrorstr
+        else
+          MsgTypeStr:=warningstr;
       if (status.verbosity and Level)=V_Error then
         MsgTypeStr:=errorstr;
       if (status.verbosity and Level)=V_Fatal then
