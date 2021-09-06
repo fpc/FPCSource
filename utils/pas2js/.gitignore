@@ -1,0 +1,8 @@
+/lib
+/*.compiled
+/compileserver
+/libstub
+/makestub
+/nodepas2js
+/pas2js
+/webidl2pas
