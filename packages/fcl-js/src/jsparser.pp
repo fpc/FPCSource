@@ -30,6 +30,7 @@ Const
    minLetVersion = ecma2021;
    MinDebuggerVersion = ecma2021;
    MinImportVersion = ecma2021;
+   MinExportVersion = ecma2021;
 
 Type
   TECMAVersion = jsScanner.TECMAVersion;
@@ -67,6 +68,7 @@ Type
     procedure LeaveLabel;
     function LookupLabel(ALabelName: String; Kind: TJSToken): TJSLabel;
     function ParseAdditiveExpression: TJSElement;
+    procedure ParseAliasElements(aElements: TJSAliasElements);
     function ParseArguments: TJSarguments;
     function ParseArrayLiteral: TJSElement;
     function ParseAssignmentExpression: TJSElement;
@@ -86,9 +88,11 @@ Type
     function ParseFunctionExpression: TJSFunctionDeclarationStatement;
     function ParseFunctionStatement: TJSElement;
     function ParseFunctionBody: TJSFunctionBody;
+    function ParseClassDeclaration : TJSClassDeclaration;
     function ParseIdentifier: String;
     function ParseIfStatement: TJSElement;
     function ParseImportStatement: TJSElement;
+    function ParseExportStatement: TJSElement;
     function ParseIterationStatement: TJSElement;
     function ParseLabeledStatement: TJSElement;
     function ParseLeftHandSideExpression: TJSElement;
@@ -178,6 +182,7 @@ Resourcestring
   SErrFunctionNotAllowedHere = 'function keyword not allowed here';
   SErrExpectedButFound       = 'Unexpected token. Expected "%s" but found "%s"';
   SErrExpectedMulOrCurlyBrace = 'Unexpected token: Expected * or {, got: %s';
+  SErrExpectedMulOrCurlyBraceOrDefault = 'Unexpected token: Expected * or { or default , got: %s';
 
 { TJSScanner }
 
@@ -1641,11 +1646,42 @@ begin
   end;
 end;
 
+Procedure TJSParser.ParseAliasElements(aElements : TJSAliasElements);
+// Parse { N [as M] }. On entry, must be on {, on exit curtoken is token after }
+Var
+  aName,aAlias : String;
+begin
+  Consume(tjsCurlyBraceOpen);
+  if (CurrentToken<>tjsCurlyBraceClose) then
+    begin
+    Repeat
+      Expect(tjsIdentifier);
+      aName:=CurrentTokenString;
+      aAlias:='';
+      Consume(tjsIdentifier);
+      if IdentifierIsLiteral('as') then
+        begin
+        Consume(tjsIdentifier);
+        Expect(tjsIdentifier);
+        aAlias:=CurrentTokenString;
+        Consume(tjsIdentifier);
+        end;
+      With aElements.AddAlias do
+        begin
+        Name:=aName;
+        Alias:=aAlias;
+        end;
+      if CurrentToken=tjsComma then
+        GetNextToken;
+    Until (CurrentToken=tjsCurlyBraceClose);
+    end;
+  Consume(tjsCurlyBraceClose);
+end;
+
 function TJSParser.ParseImportStatement: TJSElement;
 
 Var
   Imp : TJSImportStatement;
-  aName,aAlias : String;
   aExpectMore : Boolean;
 begin
   aExpectMore:=True;
@@ -1679,28 +1715,7 @@ begin
         end;
       tjsCurlyBraceOpen:
         begin
-        Consume(tjsCurlyBraceOpen);
-        Repeat
-          Expect(tjsIdentifier);
-          aName:=CurrentTokenString;
-          aAlias:='';
-          Consume(tjsIdentifier);
-          if IdentifierIsLiteral('as') then
-            begin
-            Consume(tjsIdentifier);
-            Expect(tjsIdentifier);
-            aAlias:=CurrentTokenString;
-            Consume(tjsIdentifier);
-            end;
-          With Imp.NamedImports.AddElement do
-            begin
-            Name:=aName;
-            Alias:=aAlias;
-            end;
-          if CurrentToken=tjsComma then
-            GetNextToken;
-        Until (CurrentToken=tjsCurlyBraceClose);
-        Consume(tjsCurlyBraceClose);
+        ParseAliasElements(Imp.NamedImports);
         end
     else
       if aExpectMore then
@@ -1710,6 +1725,82 @@ begin
     Expect(tjsString);
     Imp.ModuleName:=CurrentTokenString;
     Consume(tjsString);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TJSParser.ParseExportStatement: TJSElement;
+Var
+  Exp : TJSExportStatement;
+  async, aExpectFrom : Boolean;
+  F : TJSFunctionDeclarationStatement;
+
+begin
+  aExpectFrom:=True;
+  Consume(tjsExport);
+  Exp:=TJSExportStatement(CreateElement(TJSExportStatement));
+  try
+    Result:=Exp;
+    Case CurrentToken of
+      tjsMUL : // NameSpaceImport
+        begin
+        Consume(tjsMul);
+        if not IdentifierIsLiteral('as') then
+          Exp.NameSpaceExport:='*'
+        else
+          begin
+          ConsumeIdentifierLiteral('as');
+          Expect(tjsIdentifier);
+          Exp.NameSpaceExport:=CurrentTokenString;
+          Consume(tjsIdentifier);
+          end
+        end;
+      tjsCurlyBraceOpen:
+        begin
+        ParseAliasElements(Exp.ExportNames);
+        end;
+      tjsVAR:
+        Exp.Declaration:=ParseVariableStatement(vtVar);
+      tjsConst:
+        Exp.Declaration:=ParseVariableStatement(vtConst);
+      tjsLet:
+        Exp.Declaration:=ParseVariableStatement(vtLet);
+      tjsFunction :
+        Exp.Declaration:=ParseFunctionDeclaration;
+      tjsClass :
+        Exp.Declaration:=ParseClassDeclaration;
+      tjsDEFAULT:
+        begin
+        Exp.IsDefault:=True;
+        aExpectFrom:=False;
+        Consume(tjsDefault);
+        async:=IdentifierIsLiteral('async');
+        if Async then
+          GetNextToken;
+        case CurrentToken of
+          tjsFunction :
+            begin
+            F:=ParseFunctionDeclaration;
+            F.AFunction.IsAsync:=async;
+            Exp.Declaration:=F;
+            end;
+          tjsClass : Exp.Declaration:=ParseClassDeclaration;
+        else
+          Exp.Declaration:=ParseAssignmentExpression;
+        end;
+        end;
+    else
+      Error(SErrExpectedMulOrCurlyBraceOrDefault,[CurrentTokenString]);
+    end;
+    if aExpectFrom and IdentifierIsLiteral('from') then
+      begin
+      ConsumeIdentifierLiteral('from');
+      Expect(tjsString);
+      Exp.ModuleName:=CurrentTokenString;
+      Consume(tjsString);
+      end;
   except
     FreeAndNil(Result);
     Raise;
@@ -2149,6 +2240,8 @@ begin
       Result:=ParseContinueStatement;
     tjsImport:
       Result:=ParseImportStatement;
+    tjsExport:
+      Result:=ParseExportStatement;
     tjsBreak:
       Result:=ParseBreakStatement;
     tjsReturn:
@@ -2188,7 +2281,7 @@ Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
       tjsAWait, tjsTHIS, tjsIdentifier,jstoken.tjsSTRING,tjsNUMBER,
       tjsBraceOpen,tjsCurlyBraceOpen,tjsSquaredBraceOpen,
-      tjsLet, tjsConst, tjsDebugger, tjsImport,
+      tjsLet, tjsConst, tjsDebugger, tjsImport, tjsExport,
       tjsNew,tjsDelete,tjsVoid,tjsTypeOf,
       tjsPlusPlus,tjsMinusMinus,
       tjsPlus,tjsMinus,tjsNot,tjsNE,tjsSNE,tjsSemicolon,
@@ -2265,6 +2358,11 @@ begin
     Raise;
   end;
   {$ifdef debugparser} Writeln('<<< Exiting FunctionBody');{$endif}
+end;
+
+function TJSParser.ParseClassDeclaration: TJSClassDeclaration;
+begin
+  Result:=Nil;
 end;
 
 Function TJSParser.ParseProgram: TJSFunctionDeclarationStatement;

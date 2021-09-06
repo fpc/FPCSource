@@ -5,7 +5,7 @@ unit tcparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry,  jsParser, jstree, jsbase;
+  Classes, SysUtils, fpcunit, testregistry, jstoken, jsParser, jstree, jsbase;
 
 type
 
@@ -22,6 +22,7 @@ type
     procedure TearDown; override;
     Procedure CreateParser(Const ASource : string; aVersion : TECMAVersion = TECMAVersion.ecma5);
     Procedure CheckClass(E : TJSElement; C : TJSElementClass);
+    Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSToken); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSVarType); overload;
     Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
@@ -151,6 +152,18 @@ type
     Procedure TestImport2NamedImportAlias;
     Procedure TestImport2NamedImportsComma;
     Procedure TestImportDefaultAndNamedImport;
+    Procedure TestExportAll;
+    Procedure TestExportAllFrom;
+    Procedure TestExportExportNameFrom;
+    Procedure TestExportExportName;
+    Procedure TestExportExportNameAlias;
+    Procedure TestExportVar;
+    Procedure TestExportLet;
+    Procedure TestExportConst;
+    Procedure TestExportFunction;
+    Procedure TestExportDefaultAssignment;
+    Procedure TestExportDefaultFunction;
+    Procedure TestExportDefaultAsyncFunction;
   end;
 
 implementation
@@ -2638,6 +2651,244 @@ begin
   AssertEquals('Named import alias','',NamedImp.Alias);
 end;
 
+procedure TTestJSParser.TestExportAll;
+
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+
+begin
+  CreateParser('export *',MinExportVersion);
+  E:=GetFirstStatement;
+  AssertFalse('Default',Exp.IsDefault);
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','*',Exp.NameSpaceExport);
+  AssertNull('Declaration',Exp.Declaration);
+  AssertEquals('ModuleName','',Exp.ModuleName);
+  AssertFalse('ExportNames',Exp.HaveExportNames);
+end;
+
+procedure TTestJSParser.TestExportAllFrom;
+
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+
+begin
+  CreateParser('export * from "a.js"',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','*',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNull('Declaration',Exp.Declaration);
+  AssertEquals('ModuleName','a.js',Exp.ModuleName);
+  AssertFalse('ExportNames',Exp.HaveExportNames);
+end;
+
+procedure TTestJSParser.TestExportExportName;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  El : TJSExportNameElement;
+
+begin
+  CreateParser('export { a }',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNull('Declaration',Exp.Declaration);
+  AssertEquals('ModuleName','',Exp.ModuleName);
+  AssertTrue('ExportNames',Exp.HaveExportNames);
+  AssertEquals('ExportNames count',1,Exp.ExportNames.Count);
+  El:=Exp.ExportNames[0];
+  AssertEquals('ExportNames[0].Name','a',El.Name);
+  AssertEquals('ExportNames[0].Name','',El.Alias);
+end;
+
+procedure TTestJSParser.TestExportExportNameAlias;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  El : TJSExportNameElement;
+
+begin
+  CreateParser('export { a as b }',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNull('Declaration',Exp.Declaration);
+  AssertEquals('ModuleName','',Exp.ModuleName);
+  AssertTrue('ExportNames',Exp.HaveExportNames);
+  AssertEquals('ExportNames count',1,Exp.ExportNames.Count);
+  El:=Exp.ExportNames[0];
+  AssertEquals('ExportNames[0].Name','a',El.Name);
+  AssertEquals('ExportNames[0].Name','b',El.Alias);
+end;
+
+procedure TTestJSParser.TestExportVar;
+
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  V : TJSVariableStatement;
+
+begin
+  CreateParser('export var a = 1',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSVariableStatement);
+  V:=TJSVariableStatement(Exp.Declaration);
+  AssertEquals('var type',vtVar,V.varType);
+  CheckClass(V.A,TJSVarDeclaration);
+  AssertEquals('Variable name','a',TJSVarDeclaration(V.a).Name);
+end;
+
+procedure TTestJSParser.TestExportLet;
+
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  V : TJSVariableStatement;
+
+begin
+  CreateParser('export let a = 1',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSVariableStatement);
+  V:=TJSVariableStatement(Exp.Declaration);
+  AssertEquals('var type',vtLet,V.varType);
+  CheckClass(V.A,TJSVarDeclaration);
+  AssertEquals('Variable name','a',TJSVarDeclaration(V.a).Name);
+end;
+
+procedure TTestJSParser.TestExportConst;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  V : TJSVariableStatement;
+
+begin
+  CreateParser('export const a = 1',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSVariableStatement);
+  V:=TJSVariableStatement(Exp.Declaration);
+  AssertEquals('var type',vtConst,V.varType);
+  CheckClass(V.A,TJSVarDeclaration);
+  AssertEquals('Variable name','a',TJSVarDeclaration(V.a).Name);
+end;
+
+procedure TTestJSParser.TestExportFunction;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  F : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('export function a () { return 1; } ',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertFalse('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSFunctionDeclarationStatement);
+  F:=TJSFunctionDeclarationStatement(Exp.Declaration);
+  AssertNotNull('Have function', F.AFunction);
+  AssertEquals('Variable name','a',F.AFunction.Name);
+end;
+
+procedure TTestJSParser.TestExportDefaultAssignment;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  A : TJSAssignStatement;
+
+begin
+  CreateParser('export default a = 1',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertTrue('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(Exp.Declaration);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Operator token',jstoken.tjsASSIGN,A.OperatorToken);
+  AssertEquals('Variable name','a',TJSPrimaryExpressionIdent(A.LHS).Name);
+end;
+
+procedure TTestJSParser.TestExportDefaultFunction;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  F : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('export default function a () { return 1; } ',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertTrue('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSFunctionDeclarationStatement);
+  F:=TJSFunctionDeclarationStatement(Exp.Declaration);
+  AssertNotNull('Have function', F.AFunction);
+  AssertEquals('Variable name','a',F.AFunction.Name);
+  AssertFalse('Async',F.AFunction.IsAsync);
+end;
+
+procedure TTestJSParser.TestExportDefaultAsyncFunction;
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  F : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('export default async function a () { return 1; } ',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertTrue('Default',Exp.IsDefault);
+  AssertNotNull('Declaration',Exp.Declaration);
+  CheckClass(Exp.Declaration,TJSFunctionDeclarationStatement);
+  F:=TJSFunctionDeclarationStatement(Exp.Declaration);
+  AssertNotNull('Have function', F.AFunction);
+  AssertEquals('Variable name','a',F.AFunction.Name);
+  AssertTrue('Async',F.AFunction.IsAsync);
+end;
+
+procedure TTestJSParser.TestExportExportNameFrom;
+
+Var
+  E : TJSElement;
+  Exp : TJSExportStatement absolute E;
+  El : TJSExportNameElement;
+
+begin
+  CreateParser('export { a } from "a.js"',MinExportVersion);
+  E:=GetFirstStatement;
+  CheckClass(E,TJSExportStatement);
+  AssertEquals('NameSpaceExport','',Exp.NameSpaceExport);
+  AssertNull('Declaration',Exp.Declaration);
+  AssertEquals('ModuleName','a.js',Exp.ModuleName);
+  AssertTrue('ExportNames',Exp.HaveExportNames);
+  AssertEquals('ExportNames count',1,Exp.ExportNames.Count);
+  El:=Exp.ExportNames[0];
+  AssertEquals('ExportNames[0].Name','a',El.Name);
+  AssertEquals('ExportNames[0].Name','',El.Alias);
+end;
+
 procedure TTestJSParser.TestBreak;
 Var
   E : TJSElement;
@@ -2847,6 +3098,16 @@ end;
 Procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
 begin
   AssertEquals(C,E.ClassType);
+end;
+
+procedure TTestJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSToken);
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TJSToken),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TJSToken),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
 end;
 
 Function TTestJSParser.GetSourceElements: TJSSourceElements;
