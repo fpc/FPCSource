@@ -139,6 +139,7 @@ Type
   protected
     Procedure DoRun; override;
     Function CreateEventLog : TEventLog; virtual;
+    procedure FreeEventLog(AEventLog: TEventLog); virtual;
     function InitializeWebHandler: TWebHandler; virtual; abstract;
     Procedure DoLog(EventType: TEventType; const Msg: String); override;
     procedure SetTitle(const AValue: string); override;
@@ -579,6 +580,11 @@ begin
     end;
 end;
 
+procedure TCustomWebApplication.FreeEventLog(AEventLog: TEventLog);
+begin
+  AEventLog.Free;
+end;
+
 function TCustomWebApplication.GetEventLog: TEventLog;
 
 begin
@@ -731,8 +737,7 @@ end;
 destructor TCustomWebApplication.Destroy;
 begin
   FWebHandler.Free;
-  if assigned(FEventLog) then
-    FEventLog.Free;
+  FreeEventLog(FEventLog);
   Inherited;
 end;
 
