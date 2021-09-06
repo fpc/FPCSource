@@ -2467,8 +2467,9 @@ unit rgobj;
                   begin
                     if (getregtype(reg)=regtype) then
                       begin
-                        {A register allocation of a spilled register can be removed.}
-                        supreg:=getsupreg(reg);
+                        {A register allocation of the spilled register (and all coalesced registers) 
+                         must be removed.}
+                        supreg:=get_alias(getsupreg(reg));
                         if supregset_in(regs_to_spill_set,supreg) then
                           begin
                             { Remove loading of the register from its initial memory location
