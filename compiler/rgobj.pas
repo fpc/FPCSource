@@ -2415,6 +2415,20 @@ unit rgobj;
         if not spilled then
           exit;
 
+        { Check if the instruction is "OP reg1,reg2" and reg1 is coalesced with reg2 }
+        if (regs.reginfocount=1) and (instr.ops=2) and
+          (instr.oper[0]^.typ=top_reg) and (instr.oper[1]^.typ=top_reg) and
+          (getregtype(instr.oper[0]^.reg)=getregtype(instr.oper[1]^.reg)) then
+          begin
+            { Set both registers in the instruction to the same register }
+            setsupreg(instr.oper[0]^.reg, regs.reginfo[0].orgreg);
+            setsupreg(instr.oper[1]^.reg, regs.reginfo[0].orgreg);
+            { In case of MOV reg,reg no spilling is needed.
+              This MOV will be removed later in translate_registers() }
+            if instr.is_same_reg_move(regtype) then
+              exit;
+          end;
+
 {$if defined(x86) or defined(mips) or defined(sparcgen) or defined(arm) or defined(m68k)}
         { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions
