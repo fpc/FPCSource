@@ -2194,6 +2194,7 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
       hp1, hp2, hp3: tai;
+      DoOptimisation, TempBool: Boolean;
 
       procedure convert_mov_value(signed_movop: tasmop; max_value: tcgint); inline;
         begin
@@ -2622,7 +2623,120 @@ unit aoptx86;
             }
             TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-            if not (RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs)) then
+            DoOptimisation := True;
+
+            { Even if the flags are used, we might be able to do the optimisation
+              if the conditions are predictable }
+            if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+              begin
+                { Only perform if ### = %reg (the same register) or equal to 0,
+                  so %reg is guaranteed to still have a value of zero }
+                if MatchOperand(taicpu(hp1).oper[0]^, 0) or
+                  MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^.reg) then
+                  begin
+                    hp2 := hp1;
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                    while RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                      GetNextInstruction(hp2, hp3) do
+                      begin
+                        { Don't continue modifying if the flags state is getting changed }
+                        if RegModifiedByInstruction(NR_DEFAULTFLAGS, hp3) then
+                          Break;
+
+                        UpdateUsedRegs(TmpUsedRegs, tai(hp3.Next));
+                        if MatchInstruction(hp3, A_Jcc, A_SETcc, A_CMOVcc, []) then
+                          begin
+
+                            if condition_in(C_E, taicpu(hp3).condition) or (taicpu(hp3).condition in [C_NC, C_NS, C_NO]) then
+                              begin
+                                { Condition is always true }
+                                case taicpu(hp3).opcode of
+                                  A_Jcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (jump made unconditional)', hp3);
+                                      { Check for jump shortcuts before we destroy the condition }
+                                      DoJumpOptimizations(hp3, TempBool);
+                                      MakeUnconditional(taicpu(hp3));
+                                      Result := True;
+                                    end;
+                                  A_CMOVcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (CMOVcc -> MOV)', hp3);
+                                      taicpu(hp3).opcode := A_MOV;
+                                      taicpu(hp3).condition := C_None;
+                                      Result := True;
+                                    end;
+                                  A_SETcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always true (changed to MOV 1)', hp3);
+                                      { Convert "set(c) %reg" instruction to "movb 1,%reg" }
+                                      taicpu(hp3).opcode := A_MOV;
+                                      taicpu(hp3).ops := 2;
+                                      taicpu(hp3).condition := C_None;
+                                      taicpu(hp3).opsize := S_B;
+                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
+                                      taicpu(hp3).loadconst(0, 1);
+                                      Result := True;
+                                    end;
+                                  else
+                                    InternalError(2021090701);
+                                end;
+                              end
+                            else if (taicpu(hp3).condition in [C_A, C_B, C_C, C_G, C_L, C_NE, C_NZ, C_O, C_S]) then
+                              begin
+                                { Condition is always false }
+                                case taicpu(hp3).opcode of
+                                  A_Jcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (jump removed)', hp3);
+                                      TAsmLabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
+                                      RemoveInstruction(hp3);
+                                      Result := True;
+                                      { Since hp3 was deleted, hp2 must not be updated }
+                                      Continue;
+                                    end;
+                                  A_CMOVcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (conditional load removed)', hp3);
+                                      RemoveInstruction(hp3);
+                                      Result := True;
+                                      { Since hp3 was deleted, hp2 must not be updated }
+                                      Continue;
+                                    end;
+                                  A_SETcc:
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Condition is always false (changed to MOV 0)', hp3);
+                                      { Convert "set(c) %reg" instruction to "movb 0,%reg" }
+                                      taicpu(hp3).opcode := A_MOV;
+                                      taicpu(hp3).ops := 2;
+                                      taicpu(hp3).condition := C_None;
+                                      taicpu(hp3).opsize := S_B;
+                                      taicpu(hp3).loadreg(1,taicpu(hp3).oper[0]^.reg);
+                                      taicpu(hp3).loadconst(0, 0);
+                                      Result := True;
+                                    end;
+                                  else
+                                    InternalError(2021090702);
+                                end;
+                              end
+                            else
+                              { Uncertain what to do - don't optimise (although optimise other conditional statements if present) }
+                              DoOptimisation := False;
+                          end;
+
+                        hp2 := hp3;
+                      end;
+
+                    { Flags are still in use - don't optimise }
+                    if DoOptimisation and RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                      DoOptimisation := False;
+
+                  end
+                else
+                  DoOptimisation := False;
+              end;
+
+            if DoOptimisation then
               begin
 {$ifdef x86_64}
                 { OR only supports 32-bit sign-extended constants for 64-bit
