@@ -4672,7 +4672,36 @@ unit aoptx86;
                 taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val and mask;
 {$endif DEBUG_AOPTCPU}
               end;
+          end;
+        {
+           change
+           shl/sal const,reg
+           <op> ...(...,reg,1),...
 
+           into
+
+           <op> ...(...,reg,1 shl const),...
+
+           if const in 1..3
+        }
+
+        if MatchOpType(taicpu(p), top_const, top_reg) and
+          (taicpu(p).oper[0]^.val in [1..3]) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1,A_MOV,A_LEA,[]) and
+          MatchOpType(taicpu(hp1), top_ref, top_reg) and
+          (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index) and
+          (taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+              begin
+                taicpu(hp1).oper[0]^.ref^.scalefactor:=1 shl taicpu(p).oper[0]^.val;
+                DebugMsg(SPeepholeOptimization + 'ShlOp2Op', p);
+                RemoveCurrentP(p);
+                Result:=true;
+              end;
           end;
       end;
 
