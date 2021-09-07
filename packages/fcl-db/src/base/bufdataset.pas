@@ -2940,12 +2940,12 @@ begin
     on E: EDatabaseError do
       begin
       Result.Response:=ErrorResponse[AbortOnError];
-      if HandleUpdateError(aUpdate,Result,E) then
-         DoApplyUpdate(aUpdate,AbortOnError);
       Result.HadError:=True;
-      end
-    else
-      raise;
+      if HandleUpdateError(aUpdate,Result,E) then
+        DoApplyUpdate(aUpdate,AbortOnError)
+      else
+        raise;
+      end;
   end;
 end;
 
@@ -2995,8 +2995,11 @@ begin
           else
             begin
             FUpdateBuffer[r].Processing:=False;
-            if not UpdOK then // We have an exception, force HadError
+            if not UpdOK then // We have an exception, res is not valid in this case. So force HadError
+              begin
               Res.HadError:=True;
+              Res.Response:=rrAbort;
+              end;
             if Res.HadError then
               Inc(FailedCount);
             if Res.Response in [rrApply, rrIgnore] then
