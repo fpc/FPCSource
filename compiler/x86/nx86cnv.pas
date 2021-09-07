@@ -120,6 +120,7 @@ implementation
             LOC_CREFERENCE,
             LOC_REFERENCE :
               begin
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 {$ifndef cpu64bitalu}
                 if left.location.size in [OS_64,OS_S64{$ifdef cpu16bitalu},OS_32,OS_S32{$endif}] then
                  begin
@@ -145,6 +146,7 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 {$if defined(cpu32bitalu)}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
@@ -196,6 +198,7 @@ implementation
                 begin
                   hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                   cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,resflags,hreg2);
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   if (is_cbool(resultdef)) then
                     cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_32,hreg2,hreg2);
                   location.register64.reglo:=hreg2;
@@ -212,6 +215,7 @@ implementation
                begin
                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                  cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+                 cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                  if (is_cbool(resultdef)) then
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,location.register,location.register);
                end
