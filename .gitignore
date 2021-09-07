@@ -40,6 +40,7 @@ backup
 lazbuild
 *.wpo
 a.out
+symbol_order*.fpc
 /compiler/ppc*
 /compiler/gppc*
 !/compiler/ppc*.lpi
