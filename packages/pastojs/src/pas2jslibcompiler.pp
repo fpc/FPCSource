@@ -70,7 +70,7 @@ Type
     function GetLogEncoding: String;
     procedure SetLogEncoding(AValue: String);
   Protected
-    Function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
+    Function DoWriteJSFile(const DestFilename, MapFilename: String; aWriter: TPas2JSMapper): Boolean; override;
     Procedure GetLastError(AError : PAnsiChar; Var AErrorLength : Longint;
       AErrorClass : PAnsiChar; Var AErrorClassLength : Longint);
     Function ReadFile(aFilename: string; var aSource: string): boolean; virtual;
@@ -134,19 +134,29 @@ begin
   Log.Encoding := AValue;
 end;
 
-function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean;
+function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename,
+  MapFilename: String; aWriter: TPas2JSMapper): Boolean;
 
 Var
-  Src : string;
+  WithUTF8BOM: Boolean;
+  ms: TMemoryStream;
 
 begin
   Result:=Assigned(OnWriteJSCallBack);
   if Result then
+    begin
+    ms:=TMemoryStream.Create;
     try
-      Src:=aWriter.{$IF FPC_FULLVERSION>30101}AsString{$ELSE}AsAnsistring{$ENDIF};
-      OnWriteJSCallBack(OnWriteJSData,PAnsiChar(DestFileName),Length(DestFileName),PAnsiChar(Src),Length(Src));
-    except
-      Result:=False;
+      try
+        WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
+        aWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),ms);
+        OnWriteJSCallBack(OnWriteJSData,PAnsiChar(DestFileName),Length(DestFileName),PAnsiChar(ms.Memory),ms.Position);
+      except
+        Result:=False;
+      end;
+    finally
+      ms.Free;
+    end;
     end;
 end;
 
