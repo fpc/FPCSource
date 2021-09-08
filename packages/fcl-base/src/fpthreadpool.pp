@@ -189,6 +189,7 @@ Type
          Procedure ThreadTerminated(Sender : TObject);
        public
          Constructor CreateList(aPool : TFPCustomSimpleThreadPool); override;
+         Destructor Destroy; override;
          Procedure TerminateThreads; override;
          Function GetAvailableThread : TAbstractTaskThread; override;
          Function AddThread : TAbstractTaskThread; override;
@@ -444,6 +445,12 @@ constructor TFPCustomSimpleThreadPool.TThreadPoolList.CreateList(aPool : TFPCust
 begin
   Inherited;
   FList:=TThreadList.Create;
+end;
+
+destructor TFPCustomSimpleThreadPool.TThreadPoolList.Destroy;
+begin
+  FreeAndNil(FList);
+  Inherited;
 end;
 
 function TFPCustomSimpleThreadPool.TThreadPoolList.GetAvailableThread: TAbstractTaskThread;
