@@ -94,7 +94,7 @@ uses
   {$endif}
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
-  Pas2jsFileUtils, FPPas2Js, jsbase;
+  Pas2jsFileUtils, FPPas2Js, Pas2JSUtils, jsbase;
 
 const
   PCUMagic = 'Pas2JSCache';

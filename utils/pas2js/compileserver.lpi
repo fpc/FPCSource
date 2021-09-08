@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="11"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="compileserver"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -48,7 +48,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../packages/fcl-base/src;../../packages/fcl-js/src;../../packages/fcl-json/src;../../packages/fcl-passrc/src;../../packages/pastojs/src"/>
+      <OtherUnitFiles Value="../../packages/fcl-js/src;../../packages/fcl-json/src;../../packages/fcl-passrc/src;../../packages/pastojs/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>

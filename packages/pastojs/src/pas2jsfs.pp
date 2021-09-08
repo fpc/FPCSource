@@ -143,6 +143,7 @@ Type
 
   TPas2jsFile = class
   private
+    FAllowSrcMap: boolean;
     FFilename: string;
     FFS: TPas2JSFS;
     FSource: string;
@@ -153,8 +154,9 @@ Type
     function CreateLineReader(RaiseOnError: boolean): TSourceLineReader; virtual; abstract;
     function Load(RaiseOnError: boolean; Binary: boolean): boolean; virtual; abstract;
     property Source: string read FSource; // UTF-8 without BOM or Binary
-    Property FS: TPas2JSFS Read FFS;
+    property FS: TPas2JSFS Read FFS;
     property Filename: string read FFilename;
+    property AllowSrcMap: boolean read FAllowSrcMap write FAllowSrcMap;
   end;
 
   { TPas2jsFSResolver }

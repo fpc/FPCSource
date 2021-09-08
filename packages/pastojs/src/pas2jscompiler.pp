@@ -594,7 +594,7 @@ type
     procedure ReadVerbosityFlags(Param: String; p: integer);
   protected
     // Create various other classes. Virtual so they can be overridden in descendents
-    function CreateJSMapper: TPas2JSMapper;virtual;
+    function CreateJSMapper: TPas2JSMapper; virtual;
     function CreateJSWriter(aFileWriter: TPas2JSMapper): TJSWriter; virtual;
     function CreateLog: TPas2jsLogger; virtual;
     function CreateMacroEngine: TPas2jsMacroEngine;virtual;
@@ -618,7 +618,7 @@ type
     procedure HandleOptionInfo(aValue: string);
     function HandleOptionOptimization(C: Char; aValue: String): Boolean;
     // DoWriteJSFile: return false to use the default write function.
-    function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; virtual;
+    function DoWriteJSFile(const DestFilename, MapFilename: String; aWriter: TPas2JSMapper): Boolean; virtual;
     procedure Compile(StartTime: TDateTime);
     procedure ProcessQueue;
     function MarkNeedBuilding(aFile: TPas2jsCompilerFile;
@@ -2335,11 +2335,12 @@ begin
   end;
 end;
 
-function TPas2jsCompiler.DoWriteJSFile(const DestFilename: String;
+function TPas2jsCompiler.DoWriteJSFile(const DestFilename, MapFilename: String;
   aWriter: TPas2JSMapper): Boolean;
 begin
   Result:=False;
   if DestFilename='' then ;
+  if MapFilename='' then ;
   if aWriter=nil then ;
 end;
 
@@ -2350,7 +2351,6 @@ begin
 end;
 
 function TPas2jsCompiler.CreateJSMapper: TPas2JSMapper;
-
 begin
   Result:=TPas2JSMapper.Create(4096);
 end;
@@ -2418,7 +2418,6 @@ begin
   end;
 end;
 
-
 procedure TPas2jsCompiler.WriteJSToFile(const MapFileName: string;
   aFileWriter: TPas2JSMapper);
 
@@ -2428,7 +2427,7 @@ Var
   {$ELSE}
   buf: TMemoryStream;
   {$ENDIF}
-  Src : String;
+  WithUTF8BOM: Boolean;
 
 begin
   // write js
@@ -2439,34 +2438,8 @@ begin
     buf:=TMemoryStream.Create;
     {$ENDIF}
     try
-      {$IFDEF FPC_HAS_CPSTRING}
-      // UTF8-BOM
-      if (Log.Encoding='') or (Log.Encoding='utf8') then
-      begin
-        Src:=String(UTF8BOM);
-        buf.Write(Src[1],length(Src));
-      end;
-      {$ENDIF}
-      // JS source
-      {$IFDEF Pas2js}
-      buf:=TJSArray(aFileWriter.Buffer).slice();
-      {$ELSE}
-      buf.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
-      {$ENDIF}
-      // source map comment
-      if aFileWriter.SrcMap<>nil then
-      begin
-        Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
-        {$IFDEF Pas2js}
-        buf.push(Src);
-        {$ELSE}
-        buf.Write(Src[1],length(Src));
-        {$ENDIF}
-      end;
-      //SetLength(Src,buf.Position);
-      //Move(buf.Memory^,Src[1],length(Src));
-      //writeln('TPas2jsCompiler.WriteJSFiles ====',Src);
-      //writeln('TPas2jsCompiler.WriteJSFiles =======================');
+      WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
+      aFileWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),buf);
       {$IFDEF Pas2js}
       {$ELSE}
       buf.Position:=0;
@@ -2801,8 +2774,12 @@ begin
       if Assigned(PostProcessorSupport) then
         PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
 
+      MapFilename:=aFileWriter.DestFilename+'.map';
+
+      CheckOutputDir(aFileWriter.DestFileName);
+
       // Give chance to descendants to write file
-      JSFileWritten:=DoWriteJSFile(aFile.JSFilename,aFileWriter);
+      JSFileWritten:=DoWriteJSFile(aFile.JSFilename,MapFilename,aFileWriter);
 
       if (aFile.JSFilename='') and (MainJSFile='.') then
         WriteToStandardOutput(aFileWriter);
@@ -2810,9 +2787,6 @@ begin
       //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.UnitFilename,' ',aFile.JSFilename);
       Log.LogMsg(nWritingFile,[FullFormatPath(aFileWriter.DestFilename)],'',0,0, not (coShowLineNumbers in Options));
 
-      CheckOutputDir(aFileWriter.DestFileName);
-
-      MapFilename:=aFileWriter.DestFilename+'.map';
       if not JSFileWritten then
         WriteJSToFile(MapFileName,aFileWriter);
       if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
