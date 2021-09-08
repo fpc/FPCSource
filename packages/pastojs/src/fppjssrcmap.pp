@@ -25,8 +25,8 @@ unit FPPJsSrcMap;
 interface
 
 uses
-  SysUtils, math,
-  jswriter, jstree, JSSrcMap;
+  SysUtils, Classes, math,
+  jswriter, jstree, JSSrcMap, fpjson, Pas2JSUtils;
 
 type
   { TPas2JSSrcMap }
@@ -40,10 +40,13 @@ type
     procedure Release;
   end;
 
+  TPas2jsMap_IsBinaryEvent = function(Sender: TObject; const aFilename: string): boolean of object;
+
   { TPas2JSMapper }
 
   TPas2JSMapper = class(TBufferWriter)
   private
+    FOnIsBinary: TPas2jsMap_IsBinaryEvent;
     FPCUExt: string;
     FDestFileName: String;
     FSrcMap: TPas2JSSrcMap;
@@ -62,10 +65,12 @@ type
   public
     property SrcMap: TPas2JSSrcMap read FSrcMap write SetSrcMap;
     destructor Destroy; override;
+    procedure SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: string; s: TFPJSStream);
     procedure WriteFile(Src, Filename: string);
     // Final destination filename. Usually unit, unless combining javascript in single file.
     property DestFileName : String read FDestFileName Write FDestFileName;
     property PCUExt: string read FPCUExt write FPCUExt;
+    property OnIsBinary: TPas2jsMap_IsBinaryEvent read FOnIsBinary write FOnIsBinary;
   end;
 
 implementation
@@ -142,6 +147,8 @@ begin
   if FSrcFilename=Value then exit;
   FSrcFilename:=Value;
   FSrcIsBinary:=SameText(ExtractFileExt(Value),FPCUExt);
+  if (not FSrcIsBinary) and Assigned(FOnIsBinary) then
+    FSrcIsBinary:=FOnIsBinary(Self,Value);
 end;
 
 procedure TPas2JSMapper.Writing;
@@ -217,6 +224,37 @@ destructor TPas2JSMapper.Destroy;
 begin
   SrcMap:=nil;
   inherited Destroy;
+end;
+
+procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean;
+  const MapFilename: string; s: TFPJSStream);
+var
+  MapSrc: string;
+  {$ifndef pas2js}
+  bom: string;
+  {$endif}
+begin
+  if MapFilename<>'' then
+    MapSrc:='//# sourceMappingURL='+MapFilename+LineEnding
+  else
+    MapSrc:='';
+  {$ifdef pas2js}
+  if WithUTF8BOM then ;
+  for i:=0 to FBufPos-1 do
+    s.push(Buffer[i]);
+  if MapSrc<>'' then
+    s.push(MapSrc);
+  {$else}
+  if WithUTF8BOM then
+    begin
+    bom:=UTF8BOM;
+    s.Write(bom[1],length(bom));
+    end;
+  if BufferLength>0 then
+    s.Write(Buffer^,BufferLength);
+  if MapSrc<>'' then
+    s.Write(MapSrc[1],length(MapSrc));
+  {$endif}
 end;
 
 procedure TPas2JSMapper.WriteFile(Src, Filename: string);
