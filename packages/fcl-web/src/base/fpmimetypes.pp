@@ -266,7 +266,7 @@ begin
           aType:= Reg.ReadString('Content Type');
           Reg.CloseKey;
           if aType<>'' then
-            AddType(aType,Ext);
+            AddType(aType,Copy(Ext,2,Length(Ext)-1));
           end;
         end;
       Reg.CloseKey;
