@@ -250,6 +250,7 @@ Type
     Procedure CloseSockets; override;
     procedure CheckRequests; override;
     Constructor Create(aServer : TFPCustomHttpServer); override;
+    Destructor Destroy; override;
     Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
     function CreatePool : TFPCustomSimpleThreadPool;
     Property Pool : TFPCustomSimpleThreadPool Read FPool;
@@ -562,6 +563,12 @@ constructor TFPPooledConnectionHandler.Create(aServer: TFPCustomHttpServer);
 begin
   inherited Create(aServer);
   FPool:=CreatePool;
+end;
+
+destructor TFPPooledConnectionHandler.Destroy;
+begin
+  FreeAndNil(FPool);
+  inherited Destroy;
 end;
 
 procedure TFPPooledConnectionHandler.ScheduleRequest(aConnection: TFPHTTPConnection);
