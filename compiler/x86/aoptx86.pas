@@ -4691,6 +4691,7 @@ unit aoptx86;
           MatchInstruction(hp1,A_MOV,A_LEA,[]) and
           MatchOpType(taicpu(hp1), top_ref, top_reg) and
           (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index) and
+          (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^.ref^.base) and
           (taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) then
           begin
             TransferUsedRegs(TmpUsedRegs);
