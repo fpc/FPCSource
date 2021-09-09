@@ -139,6 +139,7 @@ uses
         will be removed by the load operation }
       procedure a_load_ref_stack(list : TAsmList;size: tdef;const ref: treference;extra_slots: longint);
       procedure a_load_const_stack(list : TAsmList;size: tdef;a :tcgint; typ: TRegisterType);
+      procedure a_load_subsetref_stack(list : TAsmList;size: tdef; const sref: tsubsetreference);
       procedure a_loadaddr_ref_stack(list : TAsmList;fromsize, tosize : tdef;const ref : treference);
 
       procedure a_load_stack_loc(list : TAsmList;size: tdef;const loc: tlocation);
@@ -462,6 +463,8 @@ implementation
           end;
         LOC_CONSTANT:
           a_load_const_stack(list,size,loc.value,def2regtyp(size));
+        LOC_SUBSETREF,LOC_CSUBSETREF:
+          a_load_subsetref_stack(list,size,loc.sref);
         else
           internalerror(2011010401);
       end;
@@ -1861,6 +1864,12 @@ implementation
       // there's no cast check in Wasm
       //if ref.checkcast then
       //  gen_typecheck(list,a_checkcast,size);
+    end;
+
+  procedure thlcgwasm.a_load_subsetref_stack(list : TAsmList;size: tdef; const sref: tsubsetreference);
+    begin
+      { todo: implement }
+      internalerror(2021080901);
     end;
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
