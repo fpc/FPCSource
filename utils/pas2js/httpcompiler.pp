@@ -705,11 +705,14 @@ Var
 
 begin
   Result:=False;
-  FAPI:=GetOptionValue('A','api');
-  FServeOnly:=HasOption('s','serve-only');
-  Quiet:=HasOption('q','quiet');
-  Port:=StrToIntDef(GetOptionValue('p','port'),3000);
-  D:=GetOptionValue('d','directory');
+  if HasOption('A','api') then
+    FAPI:=GetOptionValue('A','api');
+  FServeOnly:=FServeOnly or HasOption('s','serve-only');
+  Quiet:=Quiet or HasOption('q','quiet');
+  if (Port=0) or HasOption('p','port') then
+    Port:=StrToIntDef(GetOptionValue('p','port'),3000);
+  if HasOption('d','directory') then
+    D:=GetOptionValue('d','directory');
   if D='' then
     D:=GetCurrentDir;
   if HasOption('m','mimetypes') then
@@ -734,9 +737,11 @@ begin
   Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
   if ServeOnly then
     Log(etInfo,'Compile requests will be ignored.');
-  If not HasOption('n','noindexpage') then
-    begin
+  NoIndexPage:=NoIndexPage or HasOption('n','noindexpage');
+  if HasOption('i','indexpage') then
     IndexPage:=GetOptionValue('i','indexpage');
+  If not NoIndexPage then
+    begin
     if (IndexPage='') then
       IndexPage:='index.html';
     Log(etInfo,'Using index page %s',[IndexPage]);
