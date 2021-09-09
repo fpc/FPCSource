@@ -2820,7 +2820,7 @@ unit rgobj;
               belong to the previous instruction and not the current instruction }
             if (tai_regalloc(loadpos).instr=instr) and
                (tai_regalloc(loadpos).ratype=ra_dealloc) then
-              live_registers.add(getsupreg(tai_regalloc(loadpos).reg));
+              live_registers.add(get_alias(getsupreg(tai_regalloc(loadpos).reg)));
             loadpos:=tai(loadpos.previous);
           end;
         loadpos:=tai(loadpos.next);
