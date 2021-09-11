@@ -11,7 +11,7 @@ uses
   { you can add units after this };
 
 Var
-  AString : String;
+  AString : utf8string;
 begin
   AString := 'öö';
   Case AString of
