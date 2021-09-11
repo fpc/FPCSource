@@ -516,6 +516,7 @@ type
     FResources : TPas2JSResourceHandler;
     FResourceStrings : TResourceStringsFile;
     FResourceStringFile :  TP2JSResourceStringFile;
+    FImports : TJSSourceElements;
     procedure AddInsertJSFilename(const aFilename: string);
     procedure AddAppendJSFilename(const aFilename: string);
     Procedure AddNamespaces(const Paths: string; FromCmdLine: boolean);
@@ -543,6 +544,7 @@ type
     function IndexOfAppendJSFilename(const aFilename: string): integer;
     procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
     procedure AppendCustomJSFiles(aWriter: TPas2JSMapper);
+    procedure InsertImportSection(aFileWriter: TPas2JSMapper);
     function LoadUsedUnit(Info: TLoadUnitInfo; Context: TPas2jsCompilerFile): TPas2jsCompilerFile;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer): boolean;
     procedure RemoveInsertJSFilename(const aFilename: string);
@@ -594,6 +596,8 @@ type
     procedure ReadVerbosityFlags(Param: String; p: integer);
   protected
     // Create various other classes. Virtual so they can be overridden in descendents
+    function CreateImportList : TJSSourceElements;
+    function CreateImportStatement : TJSImportStatement;
     function CreateJSMapper: TPas2JSMapper; virtual;
     function CreateJSWriter(aFileWriter: TPas2JSMapper): TJSWriter; virtual;
     function CreateLog: TPas2jsLogger; virtual;
@@ -608,6 +612,7 @@ type
     procedure WriteHelpLine(S: String);
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile;
     // Override these for PCU format
+    procedure HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String; var Handled: boolean);
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; virtual;
     // Command-line option handling
     procedure HandleOptionPCUFormat(aValue: String); virtual;
@@ -2388,6 +2393,46 @@ begin
   end;
 end;
 
+procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String;
+  var Handled: boolean);
+
+Var
+  Imp : TJSImportStatement;
+  PasLib : TJSSimpleAssignStatement;
+  dmAlias,dmimp : TJSDotMemberExpression;
+  pePas,peAlias :  TJSPrimaryExpressionIdent;
+  LibModuleName : String;
+
+
+begin
+  Handled:=true;
+  Imp:=CreateImportStatement;
+  Imp.NameSpaceImport:=aLibAlias;
+  LibModuleName:=aLibName;
+  if ExtractFileExt(LibModuleName)='' then
+    LibModuleName:=LibModuleName+'.js';
+  Imp.ModuleName:=LibModuleName;
+  // pas.$imports.libalias:=libalias
+  // LHS
+  pePas:=TJSPrimaryExpressionIdent.Create(0,0,'');
+  pePas.Name:='pas';
+  dmImp:=TJSDotMemberExpression.Create(0,0,'');
+  dmImp.Name:='$libimports';
+  dmImp.MExpr:=pePas;
+  dmAlias:=TJSDotMemberExpression.Create(0,0,'');
+  dmAlias.Name:=alibAlias;
+  dmAlias.MExpr:=dmImp;
+  peAlias:=TJSPrimaryExpressionIdent.Create(0,0,'');
+  peAlias.Name:=aLibAlias;
+  // Put all together
+  PasLib:=TJSSimpleAssignStatement.Create(0,0,'');
+  PasLib.LHS:=dmAlias;
+  pasLib.Expr:=peAlias;
+  // Add to statements
+  FImports.Statements.AddNode.Node:=Imp;
+  FImports.Statements.AddNode.Node:=pasLib;
+end;
+
 
 procedure TPas2jsCompiler.EmitJavaScript(aFile: TPas2jsCompilerFile;
   aFileWriter: TPas2JSMapper);
@@ -2764,7 +2809,7 @@ begin
     FResources.DoneUnit(aFile.isMainFile);
     EmitJavaScript(aFile,aFileWriter);
 
-    if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
+    if aFile.IsMainFile and (TargetPlatform in [PlatformNodeJS,PlatformModule]) then
       aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
 
     if isSingleFile or aFile.isMainFile then
@@ -2813,6 +2858,35 @@ begin
   end;
 end;
 
+procedure TPas2jsCompiler.InsertImportSection(aFileWriter : TPas2JSMapper);
+
+var
+  aJSWriter: TJSWriter;
+begin
+  if FImports.Statements.Count=0 then
+    exit;
+  // write JavaScript
+  aJSWriter:=CreateJSWriter(aFileWriter);
+  try
+    aJSWriter.Options:=DefaultJSWriterOptions;
+    aJSWriter.IndentSize:=2;
+    try
+      aJSWriter.WriteJS(FImports);
+    except
+      on E: Exception do begin
+        if ShowDebug then
+          Log.LogExceptionBackTrace(E);
+        Log.LogPlain('[20210911104700] Error while creating JavaScript '+FullFormatPath(aFileWriter.DestFilename)+': '+E.Message);
+        Terminate(ExitCodeErrorInternal);
+      end
+      {$IFDEF Pas2js}
+      else HandleJSException('[20210911104700] TPas2jsCompiler.WriteJSFiles Error while creating JavaScript',JSExceptValue);
+      {$ENDIF}
+    end;
+  Finally
+    aJSWriter.Free;
+  end;
+end;
 
 procedure TPas2jsCompiler.WriteJSFiles(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
 
@@ -2849,6 +2923,8 @@ begin
     // create CombinedFileWriter
     aFileWriter:=CreateFileWriter(aFile,GetResolvedMainJSFile);
     InsertCustomJSFiles(aFileWriter);
+    if TargetPlatform in [PlatformNodeJS,PlatformModule] then
+      InsertImportSection(aFileWriter);
     if FResources.OutputMode=romExtraJS then
       aFileWriter.WriteFile(FResources.AsString,GetResolvedMainJSFile);
     end;
@@ -3155,7 +3231,7 @@ begin
   if OldPlatform=AValue then Exit;
   RemoveDefine(PasToJsPlatformNames[OldPlatform]);
   FConverterGlobals.TargetPlatform:=AValue;
-  if AValue=PlatformNodeJS then
+  if AValue in [PlatformNodeJS,PlatformModule] then
     AllJSIntoMainJS:=true;
   AddDefinesForTargetPlatform;
 end;
@@ -4152,6 +4228,16 @@ begin
   end;
 end;
 
+function TPas2jsCompiler.CreateImportList: TJSSourceElements;
+begin
+  Result:=TJSSourceElements.Create(0,0,'');
+end;
+
+function TPas2jsCompiler.CreateImportStatement: TJSImportStatement;
+begin
+  Result:=TJSImportStatement.Create(0,0,'');
+end;
+
 procedure TPas2jsCompiler.SetAllJSIntoMainJS(AValue: Boolean);
 begin
   if FAllJSIntoMainJS=AValue then Exit;
@@ -4198,6 +4284,7 @@ begin
   FDefines:=TStringList.Create;
   FInsertFilenames:=TStringList.Create;
   FAppendFileNames:=TStringList.Create;
+  FImports:=CreateImportList;
   FLog:=CreateLog;
   FLog.OnFormatPath:=@FormatPath;
   FParamMacros:=CreateMacroEngine;
@@ -4222,6 +4309,7 @@ destructor TPas2jsCompiler.Destroy;
 
   procedure FreeStuff;
   begin
+    FreeAndNil(FImports);
     FreeAndNil(FResourceStrings);
     FreeAndNil(FNamespaces);
     FreeAndNil(FWPOAnalyzer);
@@ -4766,6 +4854,7 @@ begin
   w('    -Tbrowser: default');
   w('    -Tnodejs : add pas.run(), includes -Jc');
   w('    -Telectron: experimental');
+  w('    -Tmodule : add pas.run(), includes -Jc');
   w('  -u<x>  : Undefines the symbol <x>');
   w('  -v<x>  : Be verbose. <x> is a combination of the following letters:');
   w('    e    : Show errors (default)');
@@ -5091,7 +5180,7 @@ begin
   // scanner
   aFile.ResourceHandler:=FResources;;
   aFile.CreateScannerAndParser(FS.CreateResolver);
-
+  aFile.Scanner.OnLinkLib:=@HandleLinkLibStatement;
   if ShowDebug then
     Log.LogPlain(['Debug: Opening file "',UnitFilename,'"...']);
   if IsPCU then
