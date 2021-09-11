@@ -1,4 +1,4 @@
-﻿var pas = {};
+﻿var pas = { "$libimports" : {} };
 
 var rtl = {
 
