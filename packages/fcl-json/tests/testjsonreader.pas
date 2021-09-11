@@ -50,12 +50,12 @@ type
     procedure CallNoHandlerStream;
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
-    procedure DoTestString(S: String; AValue: String='');
+    procedure DoTestString(S: TJSONStringType; AValue: TJSONStringType='');
     procedure DoTrailingCommaErrorArray;
     procedure DoTrailingCommaErrorObject;
   Protected
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts); virtual; abstract;
-    Procedure TestRead(aJSON : String; AResult : Array of string); virtual; abstract;
+    Procedure TestRead(aJSON : String; AResult : Array of TJSONStringType); virtual; abstract;
   published
     procedure TestEmpty;
     procedure TestNull;
@@ -86,7 +86,7 @@ type
     Procedure Teardown; override;
   Public
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts); override;
-    Procedure TestRead(aJSON : String; AResult : Array of string); override;
+    Procedure TestRead(aJSON : String; AResult : Array of TJSONStringType); override;
     Property Reader : TMyJSONReader Read FReader;
   end;
 
@@ -125,7 +125,7 @@ type
     Procedure Teardown; override;
   Public
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts); override;
-    Procedure TestRead(aJSON : String; AResult : Array of string); override;
+    Procedure TestRead(aJSON : String; AResult : Array of TJSONStringType); override;
     Property Reader : TJSONConsumerReader Read FReader;
   end;
 
@@ -154,7 +154,7 @@ type
     Procedure Teardown; override;
   Public
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts); override;
-    Procedure TestRead(aJSON : String; AResult : Array of string); override;
+    Procedure TestRead(aJSON : String; AResult : Array of TJSONStringType); override;
     Property Reader : TJSONEventReader Read FReader;
   end;
 
@@ -241,8 +241,11 @@ begin
 end;
 
 procedure TMyJSONReader.StringValue(const AValue: TJSONStringType);
+var
+  s: TJSONStringType;
 begin
-  List.Add('string:'+AValue)
+  s:='string:'+AValue;
+  List.Add(s);
 end;
 
 destructor TMyJSONReader.Destroy;
@@ -492,11 +495,11 @@ begin
   end;
 end;
 
-procedure TBaseTestReader.DoTestString(S: String; AValue : String = '');
-
+procedure TBaseTestReader.DoTestString(S: TJSONStringType; AValue : TJSONStringType = '');
 begin
   if AValue='' then
     AValue:=S;
+  FOptions:=[joUTF8];
   TestRead('"'+S+'"',['string:'+AValue]);
 end;
 
@@ -522,7 +525,7 @@ begin
   inherited Teardown;
 end;
 
-procedure TTestReader.TestRead(aJSON: String; AResult: array of string);
+procedure TTestReader.TestRead(aJSON: String; AResult: array of TJSONStringType);
 
 Var
   I : Integer;
@@ -633,8 +636,11 @@ begin
 end;
 
 procedure TJSONConsumer.StringValue(const AValue: TJSONStringType);
+var
+  s: TJSONStringType;
 begin
-  List.Add('string:'+AValue)
+  s:='string:'+AValue;
+  List.Add(s);
 end;
 
 constructor TJSONConsumer.Create(AList: TStrings);
@@ -642,7 +648,7 @@ begin
   FList:=AList;
 end;
 
-procedure TTestJSONConsumerReader.TestRead(aJSON: String; AResult: array of string);
+procedure TTestJSONConsumerReader.TestRead(aJSON: String; AResult: array of TJSONStringType);
 
 Var
   I : Integer;
@@ -731,7 +737,7 @@ begin
     Fail('Parse of JSON string "'+S+'" should fail, but succeeded');
 end;
 
-procedure TTestJSONEventReader.TestRead(aJSON: String; AResult: array of string);
+procedure TTestJSONEventReader.TestRead(aJSON: String; AResult: array of TJSONStringType);
 
 Var
   I : Integer;
@@ -817,8 +823,11 @@ begin
 end;
 
 procedure TTestJSONEventReader.StringValue(Sender: TObject; const AValue: TJSONStringType);
+var
+  s: TJSONStringType;
 begin
-  FList.Add('string:'+AValue)
+  s:='string:'+AValue;
+  FList.Add(s);
 end;
 
 procedure TTestJSONEventReader.HookupEvents(AReader: TJSONEventReader);

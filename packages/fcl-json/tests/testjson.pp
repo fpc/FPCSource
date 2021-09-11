@@ -1,4 +1,4 @@
-{ %OPT=-S2 }
+{ %OPT=-S2 -Fcutf8 }
 {
     This file is part of the Free Component Library
 
