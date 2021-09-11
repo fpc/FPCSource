@@ -6,6 +6,7 @@
 {$mode objfpc}
 {$endif}
 { $define BugAvoid}
+uses windows;
 type
  pVariant=^Variant;
 function ShowHTMLDialog(const hwndParent:longint;const pmk:pointer;
@@ -102,6 +103,9 @@ begin
  InParam:=ws;
 
 {$endif}
+
+ // Create a dummy main window to prevent a crash in ShowHTMLDialog() on some versions of Windows
+ CreateWindow('STATIC', 'Test', WS_POPUP, 0, 0, 200, 200, 0, 0, HInstance, nil);
 
  ShowHTMLDialog(0,pmk,InParam,nil,nil);
 end.
