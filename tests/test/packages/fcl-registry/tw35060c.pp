@@ -1,4 +1,5 @@
 { %TARGET=win32,win64,wince }
+{ %OPT=-Fccp1252 }
 
 program tw35060c;
 
@@ -119,6 +120,7 @@ var
   Err: Integer;
 
 begin
+  DefaultSystemCodePage:=1252;
   CreateTestKey;
   Name := 'הכן';
   U := UnicodeString(Name);
