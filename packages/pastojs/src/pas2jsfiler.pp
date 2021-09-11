@@ -268,7 +268,8 @@ const
   PCUTargetPlatformNames: array[TPasToJsPlatform] of string = (
     'Browser',
     'NodeJS',
-    'Electron'
+    'Electron',
+    'Module'
     );
 
   PCUDefaultTargetProcessor = ProcessorECMAScript5;
