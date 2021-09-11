@@ -251,6 +251,7 @@ begin
 end;
 
 begin
+  DefaultRTLFileSystemCodePage:=CP_UTF8;
   tffirstutf8;
   tffirstutf16;
 end.  
