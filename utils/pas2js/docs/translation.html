@@ -23,7 +23,9 @@
      .section {
        padding-bottom: 1em;
      }
-    </style>
+     .tt {
+       font-family: "Lucida Console", "Menlo", "Monaco", "Courier",  monospace;
+     }    </style>
 </head>
 <body>
     <div id="head">
@@ -3155,106 +3157,113 @@ end.
     </ul>
     In source files:
     <ul>
-    <li>{$Define <i>MacroName</i>}: defines macro <i>MacroName</i> with value '1'.</li>
-    <li>{$Define <i>MacroName:=value</i>}: defines macro <i>MacroName</i> with custom value.</li>
-    <li>{$Undef <i>MacroName</i>}: undefines macro <i>MacroName</i>.</li>
-    <li>{$IfDef <i>MacroName</i>}: if <i>MacroName</i> is not defined, skip to next $Else or $EndIf. Can be nested.</li>
-    <li>{$IfNDef <i>MacroName</i>}: as $IfDef, except negated.</li>
-    <li>{$If <i>boolean expression</i>}: if <i>expression</i> evaluates to true
-      (not '0'), skip to next $Else or $EndIf. Can be nested.<br>
+    <li><span class="tt">{$Define <i>MacroName</i>}</span>: defines macro <i>MacroName</i> with value '1'.</li>
+    <li><span class="tt">{$Define <i>MacroName:=value</i>}</span>: defines macro <i>MacroName</i> with custom value.</li>
+    <li><span class="tt">{$Undef <i>MacroName</i>}</span>: undefines macro <i>MacroName</i>.</li>
+    <li><span class="tt">{$IfDef <i>MacroName</i>}</span>: if <i>MacroName</i> is not defined, skip to next <span class="tt">$Else</span> or <span class="tt">$EndIf</span>. Can be nested.</li>
+    <li><span class="tt">{$IfNDef <i>MacroName</i>}</span>: as <span class="tt">$IfDef</span>, except negated.</li>
+    <li><span class="tt">{$If <i>boolean expression</i>}</span>: if <i>expression</i> evaluates to true
+      (not '0'), skip to next <span class="tt">$Else</span> or <span class="tt">$EndIf</span>. Can be nested.<br>
       Supported functions and operators:<br>
       <ul>
         <li>macro - replaced by its value, a simple define has value '1'</li>
         <li>defined(macro) - '1' if defined, '0' otherwise</li>
-        <li>undefined(macro) - as <i>not defined(macro)</i></li>
-        <li>option(letter) - same as <i>{$IFOpt letter+}</i></li>
-        <li>not - first level of precedence</li>
-        <li>*, /, div, mod, and, shl, shr - second level of precedence</li>
-        <li>+, -, or, xor - third level of precedence</li>
-        <li>=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;= - fourth level of precedence</li>
+        <li>undefined(macro) - as <span class="tt"><i>not defined(macro)</i></span></li>
+        <li>option(letter) - same as <i><span class="tt">{$IFOpt letter+}</span></i></li>
+        <li><span class="tt">not</span> - first level of precedence</li>
+        <li><span class="tt">*, /, div, mod, and, shl, shr</span> - second level of precedence</li>
+        <li><span class="tt">+, -, or, xor</span> - third level of precedence</li>
+        <li><span class="tt">=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;=</span> - fourth level of precedence</li>
         <li>If the operands can be converted to numbers they are combined as numbers, otherwise as strings.</li>
       </ul>
       Not supported functions and operators:<br>
       <ul>
-        <li>defined(Pascal identifier), undefined(Pascal identifier)</li>
-        <li>declared(Pascal identifier)</li>
-        <li>in operator</li>
+        <li><span class="tt">defined(Pascal identifier), undefined(Pascal identifier)</span></li>
+        <li><span class="tt">declared(Pascal identifier)</span></li>
+        <li><span class="tt">in</span> operator</li>
       </ul>
     </li>
-    <li>{$IfOpt <i>Letter+,-</i>}: if <i>expression</i> evaluates to true (not '0'), skip to next $Else or $EndIf. Can be nested.</li>
-    <li>{$Else}: If previous $IfDef, $If or $IfOpt was skipped, execute next block, otherwise skip.</li>
-    <li>{$ElseIf <i>boolean expression</i>}: As $Else, except with an extra expression like $if to test. There can be multiple $elseif.</li>
-    <li>{$EndIf}: ends an $IfDef block</li>
-    <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
-    <li>{$modeswitch externalclass}: allow declaring external classes</li>
-    <li>{$modeswitch arrayoperators}: allow + operator to concatenate arrays, default in mode delphi</li>
-    <li>{$modeswitch OmitRTTI}: treat published sections as public</li>
-    <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
-    <li>{$I filename} or {$include filename} - insert include file</li>
-    <li>{$I %param%}:
+    <li><span class="tt">{$IfOpt <i>Letter+,-</i>}</span>: if <i>expression</i> evaluates to true (not '0'), skip to next <span class="tt">$Else</span> or <span class="tt">$EndIf</span>. Can be nested.</li>
+    <li><span class="tt">{$Else}</span>: If previous <span class="tt">$IfDef</span>, <span class="tt">$If</span> or <span class="tt">$IfOpt</span> was skipped, execute next block, otherwise skip.</li>
+    <li><span class="tt">{$ElseIf <i>boolean expression</i>}</span> : As <span class="tt">$Else</span>, except with an extra expression like <span class="tt">$if</span> to test. There can be multiple <span class="tt">$elseif</span>.</li>
+    <li><span class="tt">{$EndIf}</span> : ends an <span class="tt">$IfDef</span> block</li>
+    <li><span class="tt">{$mode delphi} or {$mode objfpc}</span> : Same as <span class="tt">-Mdelphi</span> or <span class="tt">-Mobjfpc</span>, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
+    <li><span class="tt">{$modeswitch externalclass}</span> : allow declaring external classes</li>
+    <li><span class="tt">{$modeswitch arrayoperators}</span> : allow + operator to concatenate arrays, default in mode delphi</li>
+    <li><span class="tt">{$modeswitch OmitRTTI}</span> : treat published sections as public</li>
+    <li><span class="tt">{$macro on|off}</span>  enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
+    <li><span class="tt">{$I filename} or {$include filename}</span>  - insert include file</li>
+    <li><span class="tt">{$I %param%}</span> :
       <ul>
-        <li>%date%: current date as string literal, '[yyyy/mm/dd]'</li>
-        <li>%time%: current time as string literal, 'hh:mm:ss'. Note that the
-          inclusion of %date% and %time% will not cause the compiler to
+        <li><span class="tt">%date%</span>: current date as string literal, '[yyyy/mm/dd]'</li>
+        <li><span class="tt">%time%</span>: current time as string literal, 'hh:mm:ss'. Note that the
+          inclusion of <span class="tt">%date%</span> and <span class="tt">%time%</span> will not cause the compiler to
           recompile the unit every time it is used:
           the date and time will be the date and time when the unit was last compiled.</li>
-        <li>%file%: current source filename as string literal, e.g. <i>'unit1.pas'</i></li>
-        <li>%line%: current source line number as string literal, e.g. <i>'123'</i></li>
-        <li>%linenum%: current source line number as integer, e.g. <i>123</i></li>
-        <li>%currentroutine%: name of current routine as string literal</li>
-        <li>%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%: target os as string literal, e.g. 'Browser'</li>
-        <li>%pas2jstargetcpu%, %fpctargetcpu%: target cpu as string literal, e.g. 'ECMAScript5'</li>
-        <li>%pas2jsversion%, %fpcversion%: compiler version as strnig literal, e.g. '1.0.2'</li>
+        <li><span class="tt">%file%</span>: current source filename as string literal, e.g. <i>'unit1.pas'</i></li>
+        <li><span class="tt">%line%</span>: current source line number as string literal, e.g. <i>'123'</i></li>
+        <li><span class="tt">%linenum%</span>: current source line number as integer, e.g. <i>123</i></li>
+        <li><span class="tt">%currentroutine%</span>: name of current routine as string literal</li>
+        <li><span class="tt">%pas2jstarget%, %pas2jstargetos%, %fpctarget%, %fpctargetos%</span>: target os as string literal, e.g. 'Browser'</li>
+        <li><span class="tt">%pas2jstargetcpu%, %fpctargetcpu%</span>: target cpu as string literal, e.g. 'ECMAScript5'</li>
+        <li><span class="tt">%pas2jsversion%, %fpcversion%</span>: compiler version as strnig literal, e.g. '1.0.2'</li>
         <li>If param is none of the above it will use the environment variable.
         Keep in mind that depending on the platform the name may be case sensitive.
         If there is no such variable an empty string <i>''</i> is inserted.</li>
       </ul>
     </li>
-    <li>{$Warnings on|off}</li>
-    <li>{$Notes on|off}</li>
-    <li>{$Hints on|off}</li>
-    <li>{$Error text} : emit an error</li>
-    <li>{$Warning text} : emit a warning</li>
-    <li>{$Note text} : emit a note</li>
-    <li>{$Hint text} : emit a hint</li>
-    <li>{$Message hint-text} :  emit a hint</li>
-    <li>{$Message hint|note|warn|error|fatal text} : emit a message</li>
-    <li>{$Warn identifier on|off|default|error} : enable or disable a specific hint.<br>
+    <li><span class="tt">{$Warnings on|off}</span> </li>
+    <li><span class="tt">{$Notes on|off}</span> </li>
+    <li><span class="tt">{$Hints on|off}</span> </li>
+    <li><span class="tt">{$Error text}</span>  : emit an error</li>
+    <li><span class="tt">{$Warning text}</span>  : emit a warning</li>
+    <li><span class="tt">{$Note text}</span>  : emit a note</li>
+    <li><span class="tt">{$Hint text}</span>  : emit a hint</li>
+    <li><span class="tt">{$Message hint-text}</span>  :  emit a hint</li>
+    <li><span class="tt">{$Message hint|note|warn|error|fatal text}</span>  : emit a message</li>
+    <li><span class="tt">{$Warn identifier on|off|default|error}</span>  : enable or disable a specific hint.<br>
       Note, that some hints like "Parameter %s not used" are currently using the enable state at the end of the module, not the state at the hint source position.<br>
       Identifier can be a message number as written by -vq or one of the following case insensitive:<br>
       <ul>
-        <li>CONSTRUCTING_ABSTRACT: Constructing an instance of a class with abstract methods.</li>
-        <li>IMPLICIT_VARIANTS: Implicit use of the variants unit.</li>
-        <li>NO_RETVAL: Function result is not set</li>
-        <li>SYMBOL_DEPRECATED: Deprecated symbol.</li>
-        <li>SYMBOL_EXPERIMENTAL: Experimental symbol</li>
-        <li>SYMBOL_LIBRARY</li>
-        <li>SYMBOL_PLATFORM: Platform-dependent symbol.</li>
-        <li>SYMBOL_UNIMPLEMENTED: Unimplemented symbol.</li>
-        <li>HIDDEN_VIRTUAL: method hides virtual method of ancestor</li>
-        <li>GARBAGE: text after final end.</li>
-        <li>BOUNDS_ERROR: range check errors</li>
-        <li>MESSAGE_DIRECTIVE: user defined $message</li>
+        <li><span class="tt">CONSTRUCTING_ABSTRACT</span> : Constructing an instance of a class with abstract methods.</li>
+        <li><span class="tt">IMPLICIT_VARIANTS</span> : Implicit use of the variants unit.</li>
+        <li><span class="tt">NO_RETVAL</span> : Function result is not set</li>
+        <li><span class="tt">SYMBOL_DEPRECATED</span> : Deprecated symbol.</li>
+        <li><span class="tt">SYMBOL_EXPERIMENTAL</span> : Experimental symbol</li>
+        <li><span class="tt">SYMBOL_LIBRARY</span> </li>
+        <li><span class="tt">SYMBOL_PLATFORM</span> : Platform-dependent symbol.</li>
+        <li><span class="tt">SYMBOL_UNIMPLEMENTED</span> : Unimplemented symbol.</li>
+        <li><span class="tt">HIDDEN_VIRTUAL</span> : method hides virtual method of ancestor</li>
+        <li><span class="tt">GARBAGE</span> : text after final end.</li>
+        <li><span class="tt">BOUNDS_ERROR</span> : range check errors</li>
+        <li><span class="tt">MESSAGE_DIRECTIVE</span> : user defined $message</li>
       </ul>
       </li>
-    <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
-    <li>{$ScopedEnums on|off} disabled(default): propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
-    <li>{$C+} generate code for assertions</li>
-    <li>{$H+}, but not {$H-}</li>
-    <li>{$J-}, {$WriteableConst off}: Typed const become readonly. For example <i>const i:byte=3; ... i:=4</i> creates a compile time error.</li>
-    <li>{$M+} : allow published members
-    <li>{$Q+} :  not yet supported, ignored
-    <li>{$R+}, {$RangeChecks on}: compile time range check hints become errors
+    <li><span class="tt">{$M+}, {$TypeInfo on}</span> : switches default visibility for class members from public to published</li>
+    <li><span class="tt">{$ScopedEnums on|off}</span>  disabled(default): propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
+    <li><span class="tt">{$C+}</span>  generate code for assertions</li>
+    <li><span class="tt">{$H+}</span> , but not <span class="tt">{$H-}</span> </li>
+    <li><span class="tt">{$J-}, {$WriteableConst off}</span> : Typed const become readonly. For example <i>const i:byte=3; ... i:=4</i> creates a compile time error.</li>
+    <li><span class="tt">{$M+}</span>  : allow published members
+    <li><span class="tt">{$Q+}</span>  :  not yet supported, ignored
+    <li><span class="tt">{$R+}, {$RangeChecks on}</span> : compile time range check hints become errors
       and add runtime range checks for assignments.</li>
-    <li>{$ObjectChecks on|off}:
+    <li><span class="tt">{$ObjectChecks on|off}</span> :
       <ul>
         <li>Verify method calls, i.e. check at runtime in every method if <i>Self</i> is a descendant class.</li>
         <li>Check type casts, e.g. <i>TBird(AnObject)</i> becomes <i>AnObject as TBird</i></li>
       </ul>
     </li>
-    <li>{$DispatchField Msg}: enable checking <i>message number</i> methods for record field name "Msg"</li>
-    <li>{$DispatchStrField MsgStr}: enable checking <i>message string</i> methods for record field name "Msg"</li>
-    <li>{$Optimization Name}: same as command line option -OoName</li>
+    <li><span class="tt">{$DispatchField Msg}</span> : enable checking <i>message number</i> methods for record field name "Msg"</li>
+    <li><span class="tt">{$DispatchStrField MsgStr}</span> : enable checking <i>message string</i> methods for record field name "Msg"</li>
+    <li><span class="tt">{$Optimization Name}</span> : same as command line option -OoName</li>
+    <li><span class="tt">{$linklib filename [alias]}</span>:
+      <ul>
+        <li><span class="tt">filename</span> filename to import.</li>
+        <li><span class="tt">alias</span> alias for this import. Must be a pascal identifier.  If no alias is specified, the last part of the filename is used, all non-alphanumeric characters are converted to underscores.
+        </li>
+      </ul>
+    </li>
     </ul>
     Defines:
     <ul>
