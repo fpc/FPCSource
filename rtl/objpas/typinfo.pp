@@ -518,7 +518,7 @@ unit TypInfo;
         StackSize: SizeInt;
         NamePtr: PShortString;
         Flags : Byte;
-        VmtIndex : Smallint;
+        // VmtIndex : Smallint;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
@@ -542,11 +542,14 @@ unit TypInfo;
       private
         function GetMethod(Index: Word): PVmtMethodExEntry;
       public
+        Count0,Count1: Word;
         Count: Word;
-        { Entry: array[0..Count - 1] of TIntfMethodEntry }
+        { Entry: array[0..Count - 1] of TVmtMethodExEntry }
         property Method[Index: Word]: PVmtMethodExEntry read GetMethod;
       end;
 
+      PExtendedMethodInfoTable = ^TExtendedMethodInfoTable;
+      TExtendedMethodInfoTable = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfo))-2{$else}65535{$endif}] of PVmtMethodExEntry;
 
       TRecOpOffsetEntry =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -1077,6 +1080,13 @@ Function GetRecordFieldList(aRecord: PRecordData; Out FieldList: PExtendedFieldI
 function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 
+Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodInfos(aRecord: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
+Function GetRecordMethodList(aRecord: PRecordData; Out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 
 
 // Property information routines.
@@ -2458,334 +2468,15 @@ begin
   end;
 end;
 
-Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
-type
-  TBooleanIndexFunc=function(Index:integer):boolean of object;
-  TBooleanFunc=function:boolean of object;
-
-var
-  AMethod : TMethod;
+function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 begin
   Result:=GetMethodList(Instance.ClassType,MethodList,Visibilities);
 end;
 
 
-Function GetPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities : TVisibilityClasses = []) : Integer;
-
-Var
-  TD : PPropDataEx;
-  TP : PPropListEx;
-  Offset,I,Count : Longint;
-
-begin
-  Result:=0;
-  // Clear list
-  repeat
-    TD:=PClassData(GetTypeData(TypeInfo))^.ExRTTITable;
-    FillChar(PropList^,TD^.PropCount*sizeof(TPropInfoEx),0);
-    Count:=TD^.PropCount;
-    // Now point TP to first propinfo record.
-    Inc(Pointer(TP),SizeOF(Word));
-    tp:=aligntoptr(tp);
-    For I:=0 to Count-1 do
-      if ([]=Visibilities) or (TVisibilityClass(PropList^[Result]^.Flags) in Visibilities) then
-        begin
-        // When passing nil, we just need the count
-        if Assigned(PropList) then
-          PropList^[Result]:=TD^.Prop[i];
-        Inc(Result);
-        end;
-    if PClassData(GetTypeData(TypeInfo))^.Parent<>Nil then
-      TypeInfo:=Nil
-    else
-      TypeInfo:=PClassData(GetTypeData(TypeInfo))^.Parent^;
-  until TypeInfo=nil;
-end;
-
-
-Procedure InsertPropEx (PL : PProplistEx;PI : PPropInfoEx; Count : longint);
-
-Var
-  I : Longint;
-
-begin
-  I:=0;
-  While (I<Count) and (PI^.Info^.Name>PL^[I]^.Info^.Name) do
-    Inc(I);
-  If I<Count then
-    Move(PL^[I], PL^[I+1], (Count - I) * SizeOf(Pointer));
-  PL^[I]:=PI;
-end;
-
-
-Procedure InsertPropnosortEx (PL : PProplistEx;PI : PPropInfoEx; Count : longint);
-
-begin
-  PL^[Count]:=PI;
-end;
-
-
-Function GetPropListEx(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropListEx; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-
-Type
-   TInsertPropEx = Procedure (PL : PProplistEx;PI : PPropInfoex; Count : longint);
-{
-  Store Pointers to property information OF A CERTAIN KIND in the list pointed
-  to by proplist. PRopList must contain enough space to hold ALL
-  properties.
-}
-
-Var
-  TempList : PPropListEx;
-  PropInfo : PPropinfoEx;
-  I,Count : longint;
-  DoInsertPropEx : TInsertPropEx;
-
-begin
-  if sorted then
-    DoInsertPropEx:=@InsertPropEx
-  else
-    DoInsertPropEx:=@InsertPropnosortEx;
-  Result:=0;
-  Count:=GetPropListEx(TypeInfo,TempList,Visibilities);
-  Try
-     For I:=0 to Count-1 do
-       begin
-       PropInfo:=TempList^[i];
-       If PropInfo^.Info^.PropType^.Kind in TypeKinds then
-         begin
-         If (PropList<>Nil) then
-           DoInsertPropEx(PropList,PropInfo,Result);
-         Inc(Result);
-         end;
-       end;
-  finally
-    FreeMem(TempList,Count*SizeOf(Pointer));
-  end;
-end;
-
-
-Function GetPropListEx(TypeInfo: PTypeInfo; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): SizeInt;
-
-begin
-  // When passing nil, we get the count
-  result:=GetPropInfosEx(TypeInfo,Nil,Visibilities);
-  if result>0 then
-    begin
-      getmem(PropList,result*sizeof(pointer));
-      GetPropInfosEx(TypeInfo,PropList);
-    end
-  else
-    PropList:=Nil;
-end;
-
-
-function GetPropListEx(AClass: TClass; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
-
-begin
-  Result:=GetPropListEx(PTypeInfo(aClass.ClassInfo),PropList,Visibilities);
-end;
-
-
-function GetPropListEx(Instance: TObject; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): Integer;
-
-begin
-  Result:=GetPropListEx(Instance.ClassType,PropList,Visibilities);
-end;
-
-
-Function GetFieldInfos(aRecord: PRecordData; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-
-Var
-   FieldTable: PExtendedFieldTable;
-   FieldEntry: PExtendedFieldEntry;
-   I : Integer;
-
-begin
-  Result:=0;
-  if aRecord=Nil then exit;
-  FieldTable:=aRecord^.ExtendedFields;
-  if FieldTable=Nil then exit;
-  if FieldList<>Nil then
-    FillChar(FieldList^[Result],FieldTable^.FieldCount*sizeof(Pointer),0);
-  For I:=0 to FieldTable^.FieldCount-1 do
-    begin
-    FieldEntry:=FieldTable^.Field[i];
-    if ([]=Visibilities) or (FieldEntry^.FieldVisibility in Visibilities) then
-      begin
-      if Assigned(FieldList) then
-        FieldList^[Result]:=FieldEntry;
-      Inc(Result);
-      end;
-    end;
-end;
-
-
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-
-var
-  vmt: PVmt;
-  FieldTable: PVmtExtendedFieldTable;
-  FieldEntry: PExtendedVmtFieldEntry;
-  i: longint;
-
-begin
-  Result:=0;
-  vmt := PVmt(AClass);
-  while vmt <> nil do
-    begin
-    // a class can not have any fields...
-    if vmt^.vFieldTable<>Nil then
-      begin
-      FieldTable := PVmtExtendedFieldTable(PVmtFieldTable(vmt^.vFieldTable)^.Next);
-      if FieldList<>Nil then
-        FillChar(FieldList^[Result],FieldTable^.FieldCount*sizeof(Pointer),0);
-      For I:=0 to FieldTable^.FieldCount-1 do
-        begin
-        FieldEntry:=FieldTable^.Field[i];
-        if ([]=Visibilities) or (FieldEntry^.FieldVisibility in Visibilities) then
-          begin
-          if Assigned(FieldList) then
-            FieldList^[Result]:=FieldEntry;
-          Inc(Result);
-          end;
-        end;
-      end;
-    { Go to parent type }
-    vmt:=vmt^.vParent;
-    end;
-end;
-
-
-function GetFieldInfos(TypeInfo: PTypeInfo; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
-
-begin
-  if TypeInfo^.Kind=tkRecord then
-    Result:=GetFieldInfos(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
-  else if TypeInfo^.Kind=tkObject then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
-  else
-    Result:=0
-end;
-
-
-Procedure InsertFieldEntry (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
-
-Var
-  I : Longint;
-
-begin
-  I:=0;
-  While (I<Count) and (PI^.Name^>PL^[I]^.Name^) do
-    Inc(I);
-  If I<Count then
-    Move(PL^[I], PL^[I+1], (Count - I) * SizeOf(Pointer));
-  PL^[I]:=PI;
-end;
-
-
-Procedure InsertFieldEntryNoSort (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
-
-begin
-  PL^[Count]:=PI;
-end;
-
-function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; Out FieldList : PExtendedFieldInfoTable; Sorted: boolean; Visibilities: TVisibilityClasses): longint;
-
-Type
-   TInsertField = Procedure (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
-{
-  Store Pointers to property information OF A CERTAIN KIND in the list pointed
-  to by proplist. PRopList must contain enough space to hold ALL
-  properties.
-}
-
-Var
-  TempList : PExtendedFieldInfoTable;
-  FieldEntry : PExtendedVmtFieldEntry;
-  I,Count : longint;
-  DoInsertField : TInsertField;
-
-begin
-  if sorted then
-    DoInsertField:=@InsertFieldEntry
-  else
-    DoInsertField:=@InsertFieldEntryNoSort;
-  Result:=0;
-  Count:=GetFieldList(TypeInfo,TempList,Visibilities);
-  Try
-     For I:=0 to Count-1 do
-       begin
-       FieldEntry:=TempList^[i];
-       If PPTypeInfo(FieldEntry^.FieldType)^^.Kind in TypeKinds then
-         begin
-         If (FieldList<>Nil) then
-           DoInsertField(FieldList,FieldEntry,Result);
-         Inc(Result);
-         end;
-       end;
-  finally
-    FreeMem(TempList);
-  end;
-end;
-
-
-function GetRecordFieldList(ARecord: PRecordData; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
-
-Var
-  aCount : Integer;
-
-begin
-  Result:=0;
-  aCount:=GetFieldInfos(aRecord,Nil,[]);
-  FieldList:=Getmem(aCount*SizeOf(Pointer));
-  try
-    Result:=GetFieldInfos(aRecord,FieldList,Visibilities);
-  except
-    FreeMem(FieldList);
-    Raise;
-  end;
-end;
-
-
-function GetFieldList(TypeInfo: PTypeInfo; out FieldList : PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): SizeInt;
-
-begin
-  if TypeInfo^.Kind=tkRecord then
-    Result:=GetRecordFieldList(PRecordData(GetTypeData(TypeInfo)),FieldList,Visibilities)
-  else if TypeInfo^.Kind=tkObject then
-    Result:=GetFieldInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),FieldList,Visibilities)
-  else
-    Result:=0
-end;
-
-
-function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
-
-Var
-  aCount : Integer;
-
-begin
-  Result:=0;
-  aCount:=GetFieldInfos(aClass,Nil,[]);
-  FieldList:=Getmem(aCount*SizeOf(Pointer));
-  try
-    Result:=GetFieldInfos(aClass,FieldList,Visibilities);
-  except
-    FreeMem(FieldList);
-    Raise;
-  end;
-end;
-
-
-function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
-
-begin
-  Result:=GetFieldList(Instance.ClassType,FieldList,Visibilities);
-end;
-
+{ -- Properties -- }
 
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
 {
@@ -4603,7 +4294,8 @@ end;
 
 function TVMTMethodExEntry.GetTail: Pointer;
 begin
-  Result := PByte(@VmtIndex) + SizeOf(VmtIndex);
+  Result := PByte(@Flags) + SizeOf(Flags);
+//  Result := PByte(@VmtIndex) + SizeOf(VmtIndex);
   if ParamCount > 0 then
     Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam))));
   if Assigned(ResultType) then
@@ -4744,7 +4436,7 @@ Var
 begin
   oVmt:=PVmt(ClassType);
   methodtable:=pmethodnametable(ovmt^.vMethodTable);
-  // Shift toll after
+  // Shift till after
   PByte(Result):=PByte(methodtable)+ SizeOf(dword)+SizeOf(tmethodnamerec) * methodtable^.count;
 end;
 
