@@ -294,8 +294,8 @@ implementation
 
                       { write visiblity section for extended RTTI }
                       if extended_rtti then
-                        tcb.emit_ord_const(byte(visibility_to_rtti(sym.visibility)),u8inttype);
-
+                        tcb.emit_ord_const(byte(visibility_to_rtti(def.visibility)),u8inttype);
+ 
                       for k:=0 to def.paras.count-1 do
                         begin
                           para:=tparavarsym(def.paras[k]);

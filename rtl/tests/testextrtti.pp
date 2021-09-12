@@ -243,7 +243,7 @@ Var
 begin
   Msg:='Checking method '+IntToStr(aIdx)+' ('+aName+') ';
   AssertEquals(Msg+'name',aData^.Name,aName);
-  AssertEquals(Msg+'visibility',aData^.MethodVisibility,aVisibility);
+  AssertEquals(Msg+'visibility',aVisibility,aData^.MethodVisibility);
 end;
 
 procedure TestClassMethods;
