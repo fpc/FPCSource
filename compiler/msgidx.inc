@@ -132,6 +132,10 @@ const
   scan_e_emptymacroname=02106;
   scan_e_unexpected_ifend=02107;
   scan_e_unexpected_endif=02108;
+  scan_e_invalid_rtti_clause=02109;
+  scan_e_incomplete_rtti_clause=02110;
+  scan_e_invalid_rtti_option=02111;
+  scan_e_duplicate_rtti_option=02112;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -1157,9 +1161,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 90618;
+  MsgTxtSize = 90879;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,109,366,132,100,63,148,38,223,71,
+    28,113,366,132,100,63,148,38,223,71,
     65,20,30,1,1,1,1,1,1,1
   );

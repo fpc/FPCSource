@@ -28,6 +28,7 @@ interface
     uses
        cclasses,
        globtype,globals,constexp,version,tokens,
+       symtype,symdef,symsym,
        verbose,comphook,
        finput,
        widestr;
@@ -253,6 +254,7 @@ interface
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
           function  readpreprocint(var value:int64;const place:string):boolean;
+          function  readpreprocset(conform_to:tsetdef;var value:tnormalset;const place:string):boolean;
           function  asmgetchar:char;
        end;
 
@@ -309,7 +311,7 @@ implementation
       cutils,cfileutl,
       systems,
       switches,
-      symbase,symtable,symtype,symsym,symconst,symdef,defutil,
+      symbase,symtable,symconst,defutil,defcmp,node,
       { This is needed for tcputype }
       cpuinfo,
       fmodule,fppu,
@@ -1022,6 +1024,7 @@ type
     function asInt: Integer;
     function asInt64: Int64;
     function asStr: String;
+    function asSet: tnormalset;
     destructor destroy; override;
   end;
 
@@ -1478,6 +1481,11 @@ type
       result:=value.valueord.svalue;
     end;
 
+  function texprvalue.asSet: tnormalset;
+    begin
+      result:=pnormalset(value.valueptr)^;
+    end;
+
   function texprvalue.asStr: String;
     var
       b:byte;
@@ -1566,7 +1574,7 @@ type
       end;
 
 
-    function preproc_comp_expr:texprvalue;
+    function preproc_comp_expr(conform_to:tdef):texprvalue;
 
         function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean):texprvalue; forward;
 
@@ -2216,21 +2224,54 @@ type
                               case srsym.typ of
                                 constsym:
                                   begin
-                                    result.free;
-                                    result:=texprvalue.create_const(tconstsym(srsym));
-                                    tconstsym(srsym).IncRefCount;
+                                    { const def must conform to the set type }
+                                    if (conform_to<>nil) and 
+                                      (conform_to.typ=setdef) and
+                                      (tconstsym(srsym).constdef.typ=setdef) and
+                                      (compare_defs(tsetdef(tconstsym(srsym).constdef).elementdef,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                                        begin
+                                          result.free;
+                                          result:=nil;
+                                          // TODO: better error?
+                                          Message(scan_e_error_in_preproc_expr);
+                                        end;
+                                    if result<>nil then
+                                      begin
+                                        result.free;
+                                        result:=texprvalue.create_const(tconstsym(srsym));
+                                      end;
                                   end;
                                 enumsym:
                                   begin
-                                    result.free;
-                                    result:=texprvalue.create_int(tenumsym(srsym).value);
-                                    tenumsym(srsym).IncRefCount;
+                                    { enum definition must conform to the set type }
+                                    if (conform_to<>nil) and 
+                                      (conform_to.typ=setdef) and
+                                      (compare_defs(tenumsym(srsym).definition,tsetdef(conform_to).elementdef,nothingn)<>te_exact) then
+                                        begin
+                                          result.free;
+                                          result:=nil;
+                                          // TODO: better error?
+                                          Message(scan_e_error_in_preproc_expr);
+                                        end;
+                                    if result<>nil then
+                                      begin
+                                        result.free;
+                                        result:=texprvalue.create_int(tenumsym(srsym).value);
+                                      end;
                                   end;
                                 else
                                   ;
                               end;
                           end
-                        end
+                        { the id must be belong to the set type }
+                        else if (conform_to<>nil) and (conform_to.typ=setdef) then
+                          begin
+                            result.free;
+                            result:=nil;
+                            // TODO: better error?
+                            Message(scan_e_error_in_preproc_expr);
+                          end;
+                      end
                       { skip id(<expr>) if expression must not be evaluated }
                       else if not(eval) and (result.consttyp=conststring) then
                         begin
@@ -2261,13 +2302,21 @@ type
                while current_scanner.preproc_token in [_ID,_INTCONST] do
                begin
                  exprvalue:=preproc_factor(eval);
+                 { the const set does not conform to the set def }
+                 if (conform_to<>nil) and 
+                   (conform_to.typ=setdef) and 
+                   (exprvalue.consttyp=constnone) then
+                   begin
+                     result:=texprvalue.create_error;
+                     break;
+                   end;
                  include(ns,exprvalue.asInt);
                  if current_scanner.preproc_token = _COMMA then
                    preproc_consume(_COMMA);
                end;
-               // TODO Add check of setElemType
                preproc_consume(_RECKKLAMMER);
-               result:=texprvalue.create_set(ns);
+               if result=nil then
+                 result:=texprvalue.create_set(ns);
              end
            else if current_scanner.preproc_token = _INTCONST then
              begin
@@ -2366,7 +2415,7 @@ type
       var
         hs: texprvalue;
       begin
-        hs:=preproc_comp_expr;
+        hs:=preproc_comp_expr(nil);
         if hs.isBoolean then
           result:=hs.asBool
         else
@@ -2545,7 +2594,7 @@ type
         if c='=' then
           begin
              current_scanner.readchar;
-             exprvalue:=preproc_comp_expr;
+             exprvalue:=preproc_comp_expr(nil);
              if not is_boolean(exprvalue.def) and
                 not is_integer(exprvalue.def) then
                exprvalue.error('Boolean, Integer', 'SETC');
@@ -2768,7 +2817,6 @@ type
              Message(scan_f_include_deep_ten);
          end;
       end;
-
 
 {*****************************************************************************
                             Preprocessor writing
@@ -6080,7 +6128,7 @@ exit_label:
       var
         hs : texprvalue;
       begin
-        hs:=preproc_comp_expr;
+        hs:=preproc_comp_expr(nil);
         if hs.isInt then
           begin
             value:=hs.asInt64;
@@ -6089,6 +6137,25 @@ exit_label:
         else
           begin
             hs.error('Integer',place);
+            result:=false;
+          end;
+        hs.free;
+      end;
+
+
+    function tscannerfile.readpreprocset(conform_to:tsetdef;var value:tnormalset;const place:string):boolean;
+      var
+        hs : texprvalue;
+      begin
+        hs:=preproc_comp_expr(conform_to);
+        if hs.def.typ=setdef then
+          begin
+            value:=hs.asSet;
+            result:=true;
+          end
+        else
+          begin
+            hs.error('Set',place);
             result:=false;
           end;
         hs.free;
