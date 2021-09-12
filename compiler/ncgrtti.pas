@@ -764,7 +764,7 @@ implementation
         tcb.begin_anonymous_record('',packrecords,1,
           targetinfos[target_info.system]^.alignment.recordalignmin);
         { emit method count }
-        tcb.emit_tai(Tai_const.Create_16bit(methodcount),u16inttype);
+        tcb.emit_ord_const(methodcount,u16inttype);
         { emit method entries (array) }
         if methodcount>0 then
           write_methods(tcb,def.symtable,true,def.rtti_visibilities_for_option(ro_methods));
