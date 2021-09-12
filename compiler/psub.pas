@@ -1223,7 +1223,8 @@ implementation
                include(flags,pi_dfaavailable);
              end;
 
-           RedoDFA:=OptimizeForLoop(code);
+           if cs_opt_forloop in current_settings.optimizerswitches then
+             RedoDFA:=OptimizeForLoop(code);
 
            RedoDFA:=ConvertForLoops(code) or RedoDFA;
 

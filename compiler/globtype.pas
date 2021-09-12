@@ -350,7 +350,8 @@ interface
          cs_opt_forcenostackframe,
          cs_opt_use_load_modify_store,
          cs_opt_unused_para,
-         cs_opt_consts
+         cs_opt_consts,
+         cs_opt_forloop
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -415,7 +416,7 @@ interface
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
          'DEADSTORE','FORCENOSTACKFRAME','USELOADMODIFYSTORE',
-         'UNUSEDPARA','CONSTS'
+         'UNUSEDPARA','CONSTS','FORLOOP'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -441,7 +442,9 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_empty_proc,cs_opt_unused_para];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa{$ifndef llvm},cs_opt_use_load_modify_store{$endif},cs_opt_loopunroll];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa
+                                         {$ifndef llvm},cs_opt_use_load_modify_store{$endif},
+                                         cs_opt_loopunroll,cs_opt_forloop];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
