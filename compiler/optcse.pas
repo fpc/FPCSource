@@ -50,7 +50,7 @@ unit optcse;
       globtype,globals,
       cutils,cclasses,
       nutils,compinnr,
-      nbas,nld,ninl,ncal,nadd,nmem,
+      nbas,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
       procinfo,
       paramgr,
@@ -604,13 +604,15 @@ unit optcse;
       begin
         result:=fen_true;
         consts:=pconstentries(arg);
-        if (n.nodetype=realconstn)
+        if ((n.nodetype=realconstn)
 {$ifdef x86}
           { x87 consts would end up in memory, so loading them in temps. makes no sense }
           and use_vectorfpu(n.resultdef)
 {$endif x86}
-
-        then
+          ) or
+          ((n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym) and
+           (vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
+          ) then
           begin
             found:=false;
             i:=0;
@@ -645,7 +647,16 @@ unit optcse;
         result:=fen_true;
         if tnode(pconstentry(arg)^.valuenode).isequal(n) then
           begin
-            hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+            { threadvar, so we took the address? }
+            if (pconstentry(arg)^.valuenode.nodetype=loadn) and (tloadnode(pconstentry(arg)^.valuenode).symtableentry.typ=staticvarsym) and
+              (vo_is_thread_var in tstaticvarsym(tloadnode(pconstentry(arg)^.valuenode).symtableentry).varoptions) then
+              begin
+                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
+                tderefnode(hp).left.fileinfo:=n.fileinfo;
+              end
+            else
+              hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+
             hp.fileinfo:=n.fileinfo;
             n.Free;
             n:=hp;
@@ -700,7 +711,8 @@ unit optcse;
         createblock,
         deleteblock,
         rootblock : tblocknode;
-        i, maxassigned, regsassigned: Integer;
+        i, max_fpu_regs_assigned, fpu_regs_assigned,
+        max_int_regs_assigned, int_regs_assigned: Integer;
         old_current_filepos: tfileposinfo;
       begin
   {$ifdef csedebug}
@@ -716,19 +728,24 @@ unit optcse;
         deleteblock:=nil;
         rootblock:=nil;
         { estimate how many registers can be used for constants }
+        if pi_do_call in current_procinfo.flags then
+          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption)) div 4
+        else
+          max_int_regs_assigned:=max(first_int_imreg div 4,1);
 {$if defined(x86) or defined(aarch64) or defined(arm)}
         { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
         if pi_do_call in current_procinfo.flags then
-          maxassigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 4
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 5
         else
-          maxassigned:=max(first_mm_imreg div 4,1);
+          max_fpu_regs_assigned:=max(first_mm_imreg div 5,1);
 {$else defined(x86) or defined(aarch64) or defined(arm)}
         if pi_do_call in current_procinfo.flags then
-          maxassigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 4
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 4
         else
-          maxassigned:=max(first_fpu_imreg div 4,1);
+          max_fpu_regs_assigned:=max(first_fpu_imreg div 4,1);
 {$endif defined(x86) or defined(aarch64) or defined(arm)}
-        regsassigned:=0;
+        fpu_regs_assigned:=0;
+        int_regs_assigned:=0;
         if Length(constentries)>0 then
           begin
             { sort entries by weight }
@@ -736,13 +753,14 @@ unit optcse;
             { assign only the constants with the highest weight to a register }
             for i:=High(constentries) downto 0 do
               begin
-                if regsassigned>=maxassigned then
-                  break;
-                if { if there is a call, we need most likely to save/restore a register }
+                if (constentries[i].valuenode.nodetype=realconstn) and
+                   { if there is a call, we need most likely to save/restore a register }
                   ((constentries[i].weight>3) or
                   ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
                 then
                   begin
+                    if fpu_regs_assigned>=max_fpu_regs_assigned then
+                      break;
                     old_current_filepos:=current_filepos;
                     current_filepos:=current_procinfo.entrypos;
                     if not(assigned(createblock)) then
@@ -757,6 +775,33 @@ unit optcse;
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(fpu_regs_assigned);
+                  end
+                else if (constentries[i].valuenode.nodetype=loadn) and (tloadnode(constentries[i].valuenode).symtableentry.typ=staticvarsym) and
+                  (vo_is_thread_var in tstaticvarsym(tloadnode(constentries[i].valuenode).symtableentry).varoptions) and
+                   { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>2) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                then
+                  begin
+                    if int_regs_assigned>=max_int_regs_assigned then
+                      break;
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(voidpointertype,
+                       voidpointertype.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
+                       caddrnode.create_internal(constentries[i].valuenode)));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(int_regs_assigned);
                   end;
               end;
           end;
