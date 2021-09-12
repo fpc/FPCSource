@@ -1115,7 +1115,7 @@ Implementation
         hp1: tai;
         Reference: TReference;
         SizeMismatch: Boolean;
-        SrcReg: TRegister;
+        SrcReg, DstReg: TRegister;
         NewOp: TAsmOp;
       begin
         Result := False;
@@ -1130,16 +1130,14 @@ Implementation
           (hp1.typ = ait_instruction) and
           (taicpu(hp1).condition = C_None) and
           (taicpu(hp1).oppostfix = taicpu(p).oppostfix) then
-
-        if GetNextInstruction(p, hp1) and
-          (hp1.typ = ait_instruction) and
-          (taicpu(hp1).condition = C_None) then
           begin
             { Saves constant dereferencing and makes it easier to change the size if necessary }
             SrcReg := taicpu(p).oper[0]^.reg;
+            DstReg := taicpu(hp1).oper[0]^.reg;
 
             if (taicpu(hp1).opcode = A_LDR) and
               RefsEqual(taicpu(hp1).oper[1]^.ref^, Reference) and
+              (taicpu(hp1).oper[1]^.ref^.volatility=[]) and
               (
                 (taicpu(hp1).oppostfix = taicpu(p).oppostfix) or
                 ((taicpu(p).oppostfix = PF_B) and (taicpu(hp1).oppostfix = PF_SB)) or
@@ -1157,7 +1155,7 @@ Implementation
                   If reg1 <> reg2, replace ldr with "mov reg2,reg1"
                 }
 
-                if (SrcReg = taicpu(hp1).oper[0]^.reg) and
+                if (SrcReg = DstReg) and
                   { e.g. the ldrb in strb/ldrb is not a null operation as it clears the upper 24 bits }
                   (taicpu(p).oppostfix=PF_None) then
                   begin
@@ -1166,43 +1164,65 @@ Implementation
                     Result := True;
                     Exit;
                   end
-                else if (getregtype(taicpu(p).oper[0]^.reg) = R_INTREGISTER) and
-                  (getregtype(taicpu(hp1).oper[0]^.reg) = R_INTREGISTER) and
-                  (getsubreg(taicpu(p).oper[0]^.reg) = getsubreg(taicpu(hp1).oper[0]^.reg)) then
+                else if (getregtype(SrcReg) = R_INTREGISTER) and
+                  (getregtype(DstReg) = R_INTREGISTER) and
+                  (getsubreg(SrcReg) = getsubreg(DstReg)) then
                   begin
                     NewOp:=A_NONE;
                     if taicpu(hp1).oppostfix=PF_None then
                       NewOp:=A_MOV
                     else 
-{$ifndef AARCH64}
-                      if (current_settings.cputype >= cpu_armv6) then
-{$endif not AARCH64}
-                      case taicpu(hp1).oppostfix of
-                        PF_B:
-                          NewOp := A_UXTB;
-                        PF_SB:
-                          NewOp := A_SXTB;
-                        PF_H:
-                          NewOp := A_UXTH;
-                        PF_SH:
-                          NewOp := A_SXTH;
-{$ifdef AARCH64}
-                        PF_SW:
-                          NewOp := A_SXTW;
-                        PF_W:
-                          NewOp := A_MOV;
-{$endif AARCH64}
+{$ifdef ARM}
+                      if (current_settings.cputype < cpu_armv6) then
+                        begin
+                          { The zero- and sign-extension operations were only
+                            introduced under ARMv6 }
+                          case taicpu(hp1).oppostfix of
+                            PF_B:
+                              begin
+                                { The if-block afterwards will set the middle operand to the correct register }
+                                taicpu(hp1).allocate_oper(3);
+                                taicpu(hp1).ops := 3;
+                                taicpu(hp1).loadconst(2, $FF);
+                                NewOp := A_AND;
+                              end;
+                            PF_H:
+                              { ARMv5 and under doesn't have a concise way of storing the immediate $FFFF, so leave alone };
+                            PF_SB,
+                            PF_SH:
+                              { Do nothing - can't easily encode sign-extensions };
+                            else
+                              InternalError(2021043002);
+                          end;
+                        end
                       else
-                        InternalError(2021043001);
-                      end;
+{$endif ARM}
+                        case taicpu(hp1).oppostfix of
+                          PF_B:
+                            NewOp := A_UXTB;
+                          PF_SB:
+                            NewOp := A_SXTB;
+                          PF_H:
+                            NewOp := A_UXTH;
+                          PF_SH:
+                            NewOp := A_SXTH;
+{$ifdef AARCH64}
+                          PF_SW:
+                            NewOp := A_SXTW;
+                          PF_W:
+                            NewOp := A_MOV;
+{$endif AARCH64}
+                        else
+                          InternalError(2021043001);
+                        end;
                     if (NewOp<>A_None) then
                       begin
                         DebugMsg(SPeepholeOptimization + 'Changed ldr' + oppostfix2str[taicpu(hp1).oppostfix] + ' to ' + gas_op2str[NewOp] + ' (store/load -> store/move)', hp1);
 
                         taicpu(hp1).oppostfix := PF_None;
                         taicpu(hp1).opcode := NewOp;
-                        taicpu(hp1).loadreg(1, taicpu(p).oper[0]^.reg);
-                        AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
+                        taicpu(hp1).loadreg(1, SrcReg);
+                        AllocRegBetween(SrcReg, p, hp1, UsedRegs);
                         Result := True;
                         Exit;
                       end;
@@ -1218,7 +1238,7 @@ Implementation
                   If reg1 <> reg2, delete the first str
                   IF reg1 = reg2, delete the second str
                 }
-                if SrcReg = taicpu(hp1).oper[0]^.reg then
+                if (SrcReg = DstReg) and (taicpu(hp1).oper[1]^.ref^.volatility=[]) then
                   begin
                     DebugMsg(SPeepholeOptimization + 'Removed duplicate store instruction (store/store -> store/nop)', hp1);
                     RemoveInstruction(hp1);
@@ -1227,7 +1247,8 @@ Implementation
                   end
                 else if
                   { Registers same byte size? }
-                  (tcgsize2size[reg_cgsize(taicpu(p).oper[0]^.reg)] = tcgsize2size[reg_cgsize(taicpu(hp1).oper[0]^.reg)]) then
+                  (tcgsize2size[reg_cgsize(SrcReg)] = tcgsize2size[reg_cgsize(DstReg)]) and
+                  (taicpu(p).oper[1]^.ref^.volatility=[])  then
                   begin
                     DebugMsg(SPeepholeOptimization + 'Removed dominated store instruction (store/store -> nop/store)', p);
                     RemoveCurrentP(p, hp1);
