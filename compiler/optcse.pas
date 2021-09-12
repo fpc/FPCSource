@@ -604,7 +604,13 @@ unit optcse;
       begin
         result:=fen_true;
         consts:=pconstentries(arg);
-        if n.nodetype=realconstn then
+        if (n.nodetype=realconstn)
+{$ifdef x86}
+          { x87 consts would end up in memory, so loading them in temps. makes no sense }
+          and use_vectorfpu(n.resultdef)
+{$endif x86}
+
+        then
           begin
             found:=false;
             i:=0;
@@ -735,10 +741,6 @@ unit optcse;
                 if { if there is a call, we need most likely to save/restore a register }
                   ((constentries[i].weight>3) or
                   ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
-{$ifdef x86}
-                  { x87 consts would end up in memory, so loading them in temps. makes no sense }
-                  and use_vectorfpu(constentries[i].valuenode.resultdef)
-{$endif x86}
                 then
                   begin
                     old_current_filepos:=current_filepos;
