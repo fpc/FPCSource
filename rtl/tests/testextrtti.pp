@@ -235,13 +235,13 @@ begin
 end;
 
 
-Procedure CheckMethod(aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass);
+Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass);
 
 Var
   Msg : String;
 
 begin
-  Msg:='Checking method '+IntToStr(aIdx)+' ('+aName+') ';
+  Msg:=aPrefix+': Checking method '+IntToStr(aIdx)+' ('+aName+') ';
   AssertEquals(Msg+'name',aData^.Name,aName);
   AssertEquals(Msg+'visibility',aVisibility,aData^.MethodVisibility);
 end;
@@ -255,42 +255,42 @@ Var
 begin
   aCount:=GetMethodList(TMethodClassRTTI,A,[]);
   AssertEquals('Full Count',12,aCount);
-  CheckMethod(0, A^[0],'PrivateMethodA',vcPrivate);
-  CheckMethod(1, A^[1],'PrivateMethodB',vcPrivate);
-  CheckMethod(2, A^[2],'PrivateMethodC',vcPrivate);
-  CheckMethod(3, A^[3],'ProtectedMethodA',vcProtected);
-  CheckMethod(4, A^[4],'ProtectedMethodB',vcProtected);
-  CheckMethod(5, A^[5],'ProtectedMethodC',vcProtected);
-  CheckMethod(6, A^[6],'PublicMethodA',vcPublic);
-  CheckMethod(7, A^[7],'PublicMethodB',vcPublic);
-  CheckMethod(8, A^[8],'PublicMethodC',vcPublic);
-  CheckMethod(9, A^[9],'PublishedMethodA',vcPublished);
-  CheckMethod(10, A^[10],'PublishedMethodB',vcPublished);
-  CheckMethod(11, A^[11],'PublishedMethodC',vcPublished);
+  CheckMethod('Full',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Full',1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod('Full',2, A^[2],'PrivateMethodC',vcPrivate);
+  CheckMethod('Full',3, A^[3],'ProtectedMethodA',vcProtected);
+  CheckMethod('Full',4, A^[4],'ProtectedMethodB',vcProtected);
+  CheckMethod('Full',5, A^[5],'ProtectedMethodC',vcProtected);
+  CheckMethod('Full',6, A^[6],'PublicMethodA',vcPublic);
+  CheckMethod('Full',7, A^[7],'PublicMethodB',vcPublic);
+  CheckMethod('Full',8, A^[8],'PublicMethodC',vcPublic);
+  CheckMethod('Full',9, A^[9],'PublishedMethodA',vcPublished);
+  CheckMethod('Full',10, A^[10],'PublishedMethodB',vcPublished);
+  CheckMethod('Full',11, A^[11],'PublishedMethodC',vcPublished);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcPrivate]);
   AssertEquals('Private Count',3,aCount);
-  CheckMethod(0, A^[0],'PrivateMethodA',vcPrivate);
-  CheckMethod(1, A^[1],'PrivateMethodA',vcPrivate);
-  CheckMethod(2, A^[2],'PrivateMethodC',vcPrivate);
+  CheckMethod('Priv',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Priv',1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod('Priv',2, A^[2],'PrivateMethodC',vcPrivate);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcProtected]);
   AssertEquals('Protected Count',3,aCount);
-  CheckMethod(0, A^[0],'ProtectedMethodA',vcProtected);
-  CheckMethod(1, A^[1],'ProtectedMethodB',vcProtected);
-  CheckMethod(2, A^[2],'ProtectedMethodB',vcProtected);
+  CheckMethod('Prot',0, A^[0],'ProtectedMethodA',vcProtected);
+  CheckMethod('Prot',1, A^[1],'ProtectedMethodB',vcProtected);
+  CheckMethod('Prot',2, A^[2],'ProtectedMethodC',vcProtected);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcPublic]);
   AssertEquals('Public Count',3,aCount);
-  CheckMethod(0, A^[0],'PublicMethodA',vcProtected);
-  CheckMethod(1, A^[1],'PublicMethodB',vcProtected);
-  CheckMethod(2, A^[2],'PublicMethodB',vcProtected);
+  CheckMethod('Publ',0, A^[0],'PublicMethodA',vcPublic);
+  CheckMethod('Publ',1, A^[1],'PublicMethodB',vcPublic);
+  CheckMethod('Publ',2, A^[2],'PublicMethodC',vcPublic);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcPublished]);
   AssertEquals('Published Count',3,aCount);
-  CheckMethod(0, A^[0],'PublishedMethodA',vcPublished);
-  CheckMethod(1, A^[1],'PublishedMethodB',vcPublished);
-  CheckMethod(2, A^[2],'PublishedMethodB',vcPublished);
+  CheckMethod('Pubs',0, A^[0],'PublishedMethodA',vcPublished);
+  CheckMethod('Pubs',1, A^[1],'PublishedMethodB',vcPublished);
+  CheckMethod('Pubs',2, A^[2],'PublishedMethodC',vcPublished);
   FreeMem(A);
 end;
 
