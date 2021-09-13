@@ -1112,7 +1112,7 @@ implementation
         p: pbyte;
       begin
         p := pbyte(@r);
-{$ifdef CPU_ARM}
+{$ifdef FPUARM_HAS_FPA}
         inc(p,4);
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}

@@ -6,8 +6,12 @@ function get_sign(d: double): Integer;
   begin
     get_sign:=1;
     p:=pbyte(@d);
+{$ifdef FPUARM_HAS_FPA}
+    inc(p,4);
+{$else}
 {$ifdef FPC_LITTLE_ENDIAN}
     inc(p,4);
+{$endif}
 {$endif}
     if (p^ and $80)=0 then
       get_sign:=-1;
