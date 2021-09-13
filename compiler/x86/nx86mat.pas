@@ -164,18 +164,63 @@ interface
 
 
     procedure tx86unaryminusnode.second_float;
+      var
+        l1: TAsmLabel;
+        href: treference;
+        reg: tregister;
       begin
         secondpass(left);
 
         if expectloc=LOC_MMREGISTER then
           begin
-            if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
-              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+            if cs_opt_fastmath in current_settings.optimizerswitches then
+              begin
+                if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
+                  hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-            cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,location.register,location.register,nil);
-            cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,left.location,location.register,mms_movescalar);
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,location.size,location.register,location.register,nil);
+                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,left.location,location.register,mms_movescalar);
+              end
+            else
+              begin
+                location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+
+                current_asmdata.getglobaldatalabel(l1);
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                case def_cgsize(resultdef) of
+                  OS_F32:
+                    current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
+                  OS_F64:
+                    begin
+                      current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(0));
+                      current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(-(1 shl 31)));
+                    end
+                  else
+                    internalerror(2004110215);
+                end;
+
+                reference_reset_symbol(href,l1,0,resultdef.alignment,[]);
+
+                if UseAVX then
+                  begin
+                    if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                    location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                    cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
+                  end
+                else
+                  begin
+                    reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                    cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
+                    if not(left.location.loc=LOC_MMREGISTER) then
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                    location.register:=left.location.register;
+                    cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,mms_movescalar);
+                  end;
+              end;
           end
         else
           begin
