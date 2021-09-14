@@ -512,9 +512,9 @@ unit optloop;
 
             loopcode:=internalstatements(loopcodestatements);
             addstatement(loopcodestatements,tfornode(node).t2);
+            addstatement(loopcodestatements,calccode);
             tfornode(node).t2:=loopcode;
             do_firstpass(node);
-            addstatement(loopcodestatements,calccode);
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
