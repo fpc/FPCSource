@@ -794,7 +794,11 @@ begin
     httprouter.RegisterRoute('$sys/status',rmGet,@DoStatusRequest);
     end;
   if FAPI<>'' then
+    {$IF FPC_FULLVERSION > 30300}
     TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPI,[',']),ExtractWord(2,FAPI,[',']));
+    {$ELSE}
+    Log(etError,'API support missing, Compile with fpc 3.3.1+');
+    {$ENDIF}
   TSimpleFileModule.RegisterDefaultRoute;
   inherited;
 end;
