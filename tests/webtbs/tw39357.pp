@@ -10,10 +10,10 @@ function get_sign(d: double): Integer;
     inc(p,4);
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}
-    inc(p,4);
+    inc(p,sizeof(d)-1);
 {$endif}
 {$endif}
-    if (p^ and $80)=0 then
+    if (p^ and $80)<>0 then
       get_sign:=-1;
   end;
 
@@ -23,6 +23,10 @@ var
     zero : Double;
 begin
     zero:=0.0;
+
+    if get_sign(1.0)<>1 then
+      halt(1);
+
 	writeln(-zero);
     if get_sign(-zero)<>-1 then
       halt(1);
