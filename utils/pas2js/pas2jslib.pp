@@ -18,7 +18,8 @@ exports
   SetPas2JSUnitAliasCallBack,
   SetPas2JSCompilerLogCallBack,
   GetPas2JSCompilerLastError,
-  SetPas2JSLogEncoding;
+  SetPas2JSLogEncoding,
+  SetPas2JSGetFileSrcAttrCallBack;
 
 end.
 
