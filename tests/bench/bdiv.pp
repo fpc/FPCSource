@@ -134,6 +134,46 @@ type
       function WriteResults: Boolean; override;
   end;
 
+  TUInt32ModCmpTest = class(TTestAncestor)
+    protected
+      FInputArray: array[$00..$FF] of Cardinal;
+      FResultArray: array[$00..$FF] of Boolean;
+      function GetDivisor: Cardinal; virtual; abstract;
+      function DoMod0(Numerator: Cardinal): Boolean; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
+  TSInt32ModCmpTest = class(TTestAncestor)
+    protected
+      FInputArray: array[$00..$FF] of Integer;
+      FResultArray: array[$00..$FF] of Boolean;
+      function GetDivisor: Integer; virtual; abstract;
+      function DoMod0(Numerator: Integer): Boolean; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
+  TUInt64ModCmpTest = class(TTestAncestor)
+    protected
+      FInputArray: array[$00..$FF] of QWord;
+      FResultArray: array[$00..$FF] of Boolean;
+      function GetDivisor: QWord; virtual; abstract;
+      function DoMod0(Numerator: QWord): Boolean; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
+  TSInt64ModCmpTest = class(TTestAncestor)
+    protected
+      FInputArray: array[$00..$FF] of Int64;
+      FResultArray: array[$00..$FF] of Boolean;
+      function GetDivisor: Int64; virtual; abstract;
+      function DoMod0(Numerator: Int64): Boolean; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
 {$I bdiv_u16.inc}
 {$I bdiv_u32.inc}
 {$I bdiv_u64.inc}
@@ -429,9 +469,109 @@ function TSInt64ModTest.WriteResults: Boolean;
       end;
   end;
 
+{ TSInt32ModCmpTest }
+
+function TSInt32ModCmpTest.DoMod0(Numerator: Integer): Boolean;
+  begin
+    Result := (Numerator mod GetDivisor) = 0;
+  end;
+
+function TSInt32ModCmpTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Boolean;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoMod0(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - (', FInputArray[X], ' mod ', GetDivisor, ') = 0; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
+  end;
+
+{ TUInt32ModCmpTest }
+
+function TUInt32ModCmpTest.DoMod0(Numerator: Cardinal): Boolean;
+  begin
+    Result := (Numerator mod GetDivisor) = 0;
+  end;
+
+function TUInt32ModCmpTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Boolean;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoMod0(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - (', FInputArray[X], ' mod ', GetDivisor, ') = 0; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
+  end;
+
+{ TSInt64ModCmpTest }
+
+function TSInt64ModCmpTest.DoMod0(Numerator: Int64): Boolean;
+  begin
+    Result := (Numerator mod GetDivisor) = 0;
+  end;
+
+function TSInt64ModCmpTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Boolean;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoMod0(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - (', FInputArray[X], ' mod ', GetDivisor, ') = 0; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
+  end;
+
+{ TUInt64ModCmpTest }
+
+function TUInt64ModCmpTest.DoMod0(Numerator: QWord): Boolean;
+  begin
+    Result := (Numerator mod GetDivisor) = 0;
+  end;
+
+function TUInt64ModCmpTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Boolean;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoMod0(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - (', FInputArray[X], ' mod ', GetDivisor, ') = 0; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
+  end;
+
 { Main function }
 const
-  TestClasses: array[0..69] of TTestClass = (
+  TestClasses: array[0..84] of TTestClass = (
     TUInt16Bit1Test,
     TUInt16Bit1ModTest,
     TUInt16Bit2Test,
@@ -501,7 +641,22 @@ const
     TSInt64Bit10000Test,
     TSInt64Bit10000ModTest,
     TSInt64Bit86400000Test,
-    TSInt64Bit86400000ModTest
+    TSInt64Bit86400000ModTest,
+    TUInt32Bit3ModCmpTest,
+    TSInt32Bit3ModCmpTest,
+    TUInt32Bit10ModCmpTest,
+    TSInt32Bit10ModCmpTest,
+    TUInt32Bit100ModCmpTest,
+    TSInt32Bit100ModCmpTest,
+    TUInt32Bit400ModCmpTest,
+    TUInt32Bit1000ModCmpTest,
+    TUInt64Bit3ModCmpTest,
+    TSInt64Bit3ModCmpTest,
+    TUInt64Bit10ModCmpTest,
+    TSInt64Bit10000ModCmpTest,
+    TUInt64Bit100ModCmpTest,
+    TSInt64Bit86400000ModCmpTest,
+    TUInt64Bit1000000000ModCmpTest
   );
 
 var
