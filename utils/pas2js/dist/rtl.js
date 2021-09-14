@@ -1,4 +1,4 @@
-﻿var pas = { "$libimports" : {} };
+﻿var pas = {};
 
 var rtl = {
 
@@ -1366,7 +1366,7 @@ var rtl = {
     tis.addMethod = function(name,methodkind,params,result,flags,options){
       var t = this.$addMember(name,rtl.tTypeMemberMethod,options);
       t.methodkind = methodkind;
-      t.procsig = rtl.newTIProcSig(params,result?result:null,flags?flags:0);
+      t.procsig = rtl.newTIProcSig(params,result,flags);
       this.methods.push(name);
       return t;
     };
@@ -1474,8 +1474,8 @@ var rtl = {
   newTIProcSig: function(params,result,flags){
     var s = {
       params: rtl.newTIParams(params),
-      resulttype: result,
-      flags: flags
+      resulttype: result?result:null,
+      flags: flags?flags:0
     };
     return s;
   },
