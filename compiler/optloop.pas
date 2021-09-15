@@ -354,8 +354,10 @@ unit optloop;
         dummy : longint;
         nn : tnode;
         nt : tnodetype;
+        nflags : tnodeflags;
       begin
         result:=fen_false;
+        nflags:=n.flags;
         case n.nodetype of
           forn:
             { inform for loop search routine, that it needs to search more deeply }
@@ -507,6 +509,14 @@ unit optloop;
 
                       { ... and add a temp. release node }
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
+                    end;
+                  { Copy the nf_write,nf_modify flags to the new deref node of the temp.
+                    Othewise assignments to vector elements will be removed. }
+                  if nflags*[nf_write,nf_modify]<>[] then
+                    begin
+                      if (n.nodetype<>typeconvn) or (ttypeconvnode(n).left.nodetype<>derefn) then
+                        internalerror(2021091501);
+                      ttypeconvnode(n).left.flags:=ttypeconvnode(n).left.flags+nflags*[nf_write,nf_modify];
                     end;
                   { set types }
                   do_firstpass(n);
