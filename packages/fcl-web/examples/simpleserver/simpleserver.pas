@@ -60,6 +60,7 @@ Type
     FAPISecret : String;
     FBaseDir: string;
     FIndexPageName: String;
+    FInterfaceAddress: String;
     FMimeFile: String;
     FNoIndexPage: Boolean;
     FQuiet: Boolean;
@@ -84,6 +85,7 @@ Type
     Property BaseDir : string Read FBaseDir Write FBaseDir;
     Property NoIndexPage : Boolean Read FNoIndexPage Write FNoIndexPage;
     Property IndexPageName : String Read FIndexPageName Write FIndexPageName;
+    Property InterfaceAddress : String Read FInterfaceAddress Write FInterfaceAddress;
   end;
 
 Var
@@ -181,6 +183,7 @@ begin
   Writeln('-h --help             This help text');
   Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate');
   Writeln('-i --indexpage=name   Directory index page to use (default: index.html)');
+  Writeln('-I --interface=IP     Listen on this interface address only.');
   Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types');
   Writeln('-n --noindexpage      Do not allow index page.');
   Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000)');
@@ -213,7 +216,7 @@ begin
     MimeTypes.LoadFromFile(MimeTypesFile);  
 end;
 
-procedure THTTPApplication.AddProxy(Const aProxyDef : String);
+procedure THTTPApplication.AddProxy(const aProxyDef: String);
 
 Var
   P : Integer;
@@ -229,7 +232,7 @@ begin
 end;
 
 
-procedure THTTPApplication.ReadConfigFile(Const ConfigFile : string);
+procedure THTTPApplication.ReadConfigFile(const ConfigFile: string);
 
 Const
   SConfig  = 'Server';
@@ -237,6 +240,7 @@ Const
   SLocations = 'Locations';
 
   KeyPort  = 'Port';
+  KeyInterface = 'Interface';
   KeyDir   = 'Directory';
   KeyIndexPage = 'IndexPage';
   KeyHostName = 'hostname';
@@ -262,6 +266,7 @@ begin
     try
       BaseDir:=ReadString(SConfig,KeyDir,BaseDir);
       Port:=ReadInteger(SConfig,KeyPort,Port);
+      InterfaceAddress:=ReadString(SConfig,KeyInterface,InterfaceAddress);
       Quiet:=ReadBool(SConfig,KeyQuiet,Quiet);
       MimeFile:=ReadString(SConfig,keyMimetypes,MimeFile);
       NoIndexPage:=ReadBool(SConfig,KeyNoIndexPage,NoIndexPage);
@@ -318,6 +323,8 @@ begin
     NoIndexPage:=True
   else
     IndexPageName:=GetOptionValue('i','indexpage');
+  if HasOption('I','interface') then
+    InterfaceAddress:=GetOptionValue('I','interface');
   FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
   FBackground:=HasOption('b','background');
 end;
@@ -389,6 +396,8 @@ begin
     end;
   if not Quiet then
     WriteInfo;
+  if InterfaceAddress<>'' then
+    HTTPHandler.Address:=InterfaceAddress;
   inherited;
 end;
 
