@@ -169,7 +169,7 @@
 (Ch: [Ch_All]),
 (Ch: [Ch_Wop2, Ch_Rop1]),
 (Ch: [Ch_Wop2, Ch_Rop1]),
-(Ch: [Ch_RWESP, Ch_WEBP]),
+(Ch: [Ch_RWESP, Ch_RWEBP]),
 (Ch: [Ch_Wop2, Ch_Rop1]),
 (Ch: [Ch_Wop2, Ch_Rop1]),
 (Ch: []),
