@@ -957,6 +957,9 @@ unit nx86add;
             if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,left.location,location.register,mms_movescalar);
+
+            if left.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           end
         else
           begin
@@ -974,6 +977,9 @@ unit nx86add;
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
 
+            if left.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -983,6 +989,9 @@ unit nx86add;
               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
 
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,location.register,mms_movescalar);
+
+            if right.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
           end;
       end;
 
