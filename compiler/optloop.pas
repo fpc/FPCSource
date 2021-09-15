@@ -256,7 +256,17 @@ unit optloop;
       templist : tfplist;
       inductionexprs : tfplist;
       changedforloop,
-      containsnestedforloop : boolean;
+      containsnestedforloop,
+      docalcatend: boolean;
+
+    function checkcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+      begin
+        if n.nodetype=continuen then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
 
     function is_loop_invariant(loop : tnode;expr : tnode) : boolean;
       begin
@@ -330,9 +340,20 @@ unit optloop;
             end;
         end;
 
+
+      procedure CheckCalcAtEnd;
+        begin
+          if not assigned(initcode) then
+            docalcatend:=not(foreachnodestatic(tfornode(arg).t2,@checkcontinue,nil)) and
+              not(assigned(tfornode(arg).entrylabel));
+        end;
+
+
       var
         tempnode : ttempcreatenode;
         dummy : longint;
+        nn : tnode;
+        nt : tnodetype;
       begin
         result:=fen_false;
         case n.nodetype of
@@ -346,9 +367,7 @@ unit optloop;
                 { plain read of the loop variable? }
                 not(nf_write in taddnode(n).right.flags) and
                 not(nf_modify in taddnode(n).right.flags) and
-                is_loop_invariant(tfornode(arg),taddnode(n).left) and
-                { for now, we can handle only constant lower borders }
-                is_constnode(tfornode(arg).right) then
+                is_loop_invariant(tfornode(arg),taddnode(n).left) then
                 taddnode(n).swapleftright;
 
               if (taddnode(n).left.nodetype=loadn) and
@@ -356,14 +375,19 @@ unit optloop;
                 { plain read of the loop variable? }
                 not(nf_write in taddnode(n).left.flags) and
                 not(nf_modify in taddnode(n).left.flags) and
-                is_loop_invariant(tfornode(arg),taddnode(n).right) and
-                { for now, we can handle only constant lower borders }
-                is_constnode(tfornode(arg).right) then
+                is_loop_invariant(tfornode(arg),taddnode(n).right) then
                 begin
                   changedforloop:=true;
                   { did we use the same expression before already? }
                   if not(findpreviousstrengthreduction) then
                     begin
+{$ifdef DEBUG_OPTSTRENGTH}
+                      writeln('**********************************************************************************');
+                      writeln(parser_current_file, ': Found expression for strength reduction (MUL): ');
+                      printnode(n);
+                      writeln('**********************************************************************************');
+{$endif DEBUG_OPTSTRENGTH}
+                      CheckCalcAtEnd;
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,
                         tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable);
 
@@ -381,11 +405,23 @@ unit optloop;
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))));
 
                       addstatement(initcodestatements,tempnode);
+                      nn:=tfornode(arg).right.getcopy;
+                      { If the calculation is not performed at the end
+                        it is needed to adjust the starting value }
+                      if not docalcatend then
+                        begin
+                          if lnf_backward in tfornode(arg).loopflags then
+                            nt:=addn
+                          else
+                            nt:=subn;
+                          nn:=caddnode.create_internal(nt,nn,
+                             cordconstnode.create(1,nn.resultdef,false));
+                        end;
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
-                        caddnode.create(muln,tfornode(arg).right.getcopy,
-                          taddnode(n).right.getcopy)
-                        )
-                      );
+                          caddnode.create(muln,nn,
+                            taddnode(n).right.getcopy)
+                          )
+                        );
 
                       { finally replace the node by a temp. ref }
                       n:=ctemprefnode.create(tempnode);
@@ -426,10 +462,11 @@ unit optloop;
                     begin
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
-                      writeln('Found expression for strength reduction: ');
+                      writeln(parser_current_file,': Found expression for strength reduction (VEC): ');
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
+                      CheckCalcAtEnd;
                       tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
 
                       templist.Add(tempnode);
@@ -448,11 +485,22 @@ unit optloop;
                           cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
 
                       addstatement(initcodestatements,tempnode);
-                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
-                        caddrnode.create(
+                      nn:=caddrnode.create(
                           cvecnode.create(tvecnode(n).left.getcopy,tfornode(arg).right.getcopy)
-                        )
-                      ));
+                        );
+                      { If the calculation is not performed at the end
+                        it is needed to adjust the starting value }
+                      if not docalcatend then
+                        begin
+                          if lnf_backward in tfornode(arg).loopflags then
+                            nt:=addn
+                          else
+                            nt:=subn;
+                          nn:=caddnode.create_internal(nt,
+                             ctypeconvnode.create_internal(nn,voidpointertype),
+                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false));
+                        end;
+                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),nn));
 
                       { finally replace the node by a temp. ref }
                       n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),n.resultdef);
@@ -489,6 +537,7 @@ unit optloop;
         initcodestatements:=nil;
         calccodestatements:=nil;
         deletecodestatements:=nil;
+        docalcatend:=false;
         { find all expressions being candidates for strength reduction
           and replace them }
         foreachnodestatic(pm_postprocess,node,@dostrengthreductiontest,node);
@@ -511,8 +560,11 @@ unit optloop;
             node:=fornode;
 
             loopcode:=internalstatements(loopcodestatements);
+            if not docalcatend then
+              addstatement(loopcodestatements,calccode);
             addstatement(loopcodestatements,tfornode(node).t2);
-            addstatement(loopcodestatements,calccode);
+            if docalcatend then
+              addstatement(loopcodestatements,calccode);
             tfornode(node).t2:=loopcode;
             do_firstpass(node);
 
@@ -556,6 +608,9 @@ unit optloop;
 
     function OptimizeInductionVariables(node : tnode) : boolean;
       begin
+        Result:=false;
+        if not(pi_dfaavailable in current_procinfo.flags) then
+          exit;
         changedforloop:=false;
         foreachnodestatic(pm_postprocess,node,@OptimizeInductionVariables_iterforloops,nil);
         Result:=changedforloop;
