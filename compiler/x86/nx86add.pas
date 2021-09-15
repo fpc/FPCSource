@@ -166,7 +166,7 @@ unit nx86add;
                  if (op=A_SUB) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    overflowcheck and
+                    not overflowcheck and
                     UseIncDec then
                   begin
                     emit_reg(A_DEC,TCGSize2Opsize[opsize],left.location.register);
