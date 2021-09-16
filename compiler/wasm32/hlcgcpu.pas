@@ -72,6 +72,7 @@ uses
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list : TAsmList;fromsize, tosize : tdef;const sref : treference;const dref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
+      procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); override;
 
       { basic arithmetic operations }
       procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
@@ -1167,6 +1168,51 @@ implementation
     begin
       a_loadaddr_ref_stack(list,fromsize,tosize,ref);
       a_load_stack_reg(list, tosize, r);
+    end;
+
+  procedure thlcgwasm.a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister);
+    var
+      tmpref: treference;
+      extra_value_reg,
+      tmpreg: tregister;
+    begin
+      tmpreg:=getintregister(list,osuinttype);
+      tmpref:=sref.ref;
+      inc(tmpref.offset,loadbitsize div 8);
+      extra_value_reg:=getintregister(list,osuinttype);
+
+      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,valuereg);
+
+      { ensure we don't load anything past the end of the array }
+      a_cmp_const_reg_stack(list,osuinttype,OC_A,loadbitsize-sref.bitlen,sref.bitindexreg);
+
+      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
+      thlcgwasm(hlcg).incblock;
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+      { Y-x = -(Y-x) }
+      a_op_const_reg_reg(list,OP_SUB,osuinttype,loadbitsize,sref.bitindexreg,tmpreg);
+      a_op_reg_reg(list,OP_NEG,osuinttype,tmpreg,tmpreg);
+
+      { load next "loadbitsize" bits of the array }
+      a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
+
+      { tmpreg is in the range 1..<cpu_bitsize>-1 -> always ok }
+      a_op_reg_reg(list,OP_SHL,osuinttype,tmpreg,extra_value_reg);
+      { merge }
+      a_op_reg_reg(list,OP_OR,osuinttype,extra_value_reg,valuereg);
+
+      current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+      thlcgwasm(hlcg).decblock;
+
+      { sign extend or mask other bits }
+      if is_signed(subsetsize) then
+        begin
+          a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-sref.bitlen,valuereg);
+          a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+        end
+      else
+        a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
     end;
 
   procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
