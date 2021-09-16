@@ -310,7 +310,14 @@ interface
            allows Windows to move code segments around (in order to defragment
            memory) and then walk through the stacks of all running programs and
            update the segment values of the segment that has moved. }
-         ts_x86_far_procs_push_odd_bp
+         ts_x86_far_procs_push_odd_bp,
+         { no exception support. Raising an exception will abort the program. }
+         ts_wasm_no_exceptions,
+         { JavaScript-based exception support }
+         ts_wasm_js_exceptions,
+         { native WebAssembly exceptions support:
+           https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md }
+         ts_wasm_native_exceptions
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -436,7 +443,10 @@ interface
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
          (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
-         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP'),
+         (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
+         (name: 'JSEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_JS_EXCEPTIONS'),
+         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS')
        );
 
        { switches being applied to all CPUs at the given level }
