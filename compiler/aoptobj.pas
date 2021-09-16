@@ -1410,6 +1410,7 @@ Unit AoptObj;
             hp := tai_regalloc.alloc(reg,nil);
             insertllItem(p1.previous,p1,hp);
             IncludeRegInUsedRegs(reg,initialusedregs);
+            lastRemovedWasDealloc := True; { If no tai_regallocs are found at all, treat as if the last one was a deallocation }
           end;
         while assigned(p1) and
               (p1 <> p2) do
