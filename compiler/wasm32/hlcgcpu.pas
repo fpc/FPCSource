@@ -1867,9 +1867,12 @@ implementation
     end;
 
   procedure thlcgwasm.a_load_subsetref_stack(list : TAsmList;size: tdef; const sref: tsubsetreference);
+    var
+      tmpreg: TRegister;
     begin
-      { todo: implement }
-      internalerror(2021080901);
+      tmpreg:=getintregister(list,size);
+      a_load_subsetref_reg(list,size,size,sref,tmpreg);
+      a_load_reg_stack(list,size,tmpreg);
     end;
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
