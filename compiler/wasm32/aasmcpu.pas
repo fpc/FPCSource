@@ -114,6 +114,14 @@ uses
         destructor destroy;override;
       end;
 
+      { tai_tagtype }
+
+      tai_tagtype = class(tai)
+        tagname: string;
+        params: TWasmResultType;
+        constructor create(const atagname: string; aparams: TWasmResultType);
+      end;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -137,6 +145,15 @@ implementation
       begin
         functype.free;
         inherited;
+      end;
+
+    { tai_tagtype }
+
+    constructor tai_tagtype.create(const atagname: string; aparams: TWasmResultType);
+      begin
+        typ:=ait_tagtype;
+        tagname:=atagname;
+        params:=aparams;
       end;
 
     { tai_local }
