@@ -1188,8 +1188,8 @@ implementation
       a_cmp_const_reg_stack(list,osuinttype,OC_A,loadbitsize-sref.bitlen,sref.bitindexreg);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-      thlcgwasm(hlcg).incblock;
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      incblock;
+      decstack(current_asmdata.CurrAsmList,1);
 
       { Y-x = -(Y-x) }
       a_op_const_reg_reg(list,OP_SUB,osuinttype,loadbitsize,sref.bitindexreg,tmpreg);
@@ -1204,7 +1204,7 @@ implementation
       a_op_reg_reg(list,OP_OR,osuinttype,extra_value_reg,valuereg);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-      thlcgwasm(hlcg).decblock;
+      decblock;
 
       { sign extend or mask other bits }
       if is_signed(subsetsize) then
