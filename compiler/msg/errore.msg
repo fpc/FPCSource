@@ -3969,6 +3969,7 @@ p*2CT<x>_Target-specific code generation options
 P*2CT<x>_Target-specific code generation options
 J*2CT<x>_Target-specific code generation options
 A*2CT<x>_Target-specific code generation options
+W*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTautogetterprefix=X_  Automatically create getters for properties with prefix X (empty string disables)
@@ -3982,6 +3983,9 @@ J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumt
 J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
 J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
+W*3CTnoexceptions_        Disable the exception support. Raising an exception will abort the program.
+W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly
+W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 J*2Cv_Var/out parameter copy-out checking
 A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
