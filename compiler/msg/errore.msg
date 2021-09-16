@@ -3428,7 +3428,7 @@ unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both
 #
 #  Options
 #
-# 11063 is the last used one
+# 11064 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3587,6 +3587,8 @@ option_debug_info_requires_external_linker=11061_N_The selected debug format is 
 option_valgrind_heaptrc_mismatch=11062_E_You can not use both options ($1) ($2) at same time.
 option_unsupported_fpu=11063_F_The selected FPU type "$1" is not supported by the selected instruction set "$2"
 % Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
+option_too_many_exception_modes=11064_E_Only one WebAssembly exception support mode can be specified.
+% Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
 %\end{description}
 # EndOfTeX
 
