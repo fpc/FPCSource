@@ -83,7 +83,9 @@ uses
       a_i32_load8_u, a_i32_load16_u, a_i64_load8_u, a_i64_load16_u, a_i64_load32_u,
       a_i32_store8, a_i32_store16, a_i64_store8, a_i64_store16, a_i64_store32,
       // additional memory
-      a_memory_grow, a_memory_size
+      a_memory_grow, a_memory_size,
+      // exceptions
+      a_try,a_catch,a_catch_all,a_delegate,a_throw,a_rethrow,a_end_try
       );
 
       TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
