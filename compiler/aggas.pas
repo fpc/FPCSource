@@ -829,6 +829,29 @@ implementation
           if hp.extmodule='' then
             writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
         end;
+
+
+      procedure WriteTagType(hp: tai_tagtype);
+        var
+          wasm_basic_typ: TWasmBasicType;
+          first: boolean;
+        begin
+          writer.AsmWrite(#9'.tagtype'#9);
+          writer.AsmWrite(hp.tagname);
+          first:=true;
+          for wasm_basic_typ in hp.params do
+            begin
+              if first then
+                begin
+                  first:=false;
+                  writer.AsmWrite(' ');
+                end
+              else
+                writer.AsmWrite(',');
+              writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+            end;
+          writer.AsmLn;
+        end;
 {$endif WASM}
 
     var
@@ -1625,6 +1648,8 @@ implementation
              WriteFuncTypeDirective(tai_functype(hp));
            ait_importexport:
              WriteImportExport(tai_impexp(hp));
+           ait_tagtype:
+             WriteTagType(tai_tagtype(hp));
 {$endif WASM}
 
            else
