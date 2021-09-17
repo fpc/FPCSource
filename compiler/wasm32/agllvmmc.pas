@@ -157,7 +157,10 @@ implementation
       { print all global procedures/functions }
       WriteImports;
       if ts_wasm_native_exceptions in current_settings.targetswitches then
-        writer.AsmWriteLn(#9'.tagtype'#9'__FPC_exception');
+        begin
+          writer.AsmWriteLn(#9'.tagtype'#9'__FPC_exception');
+          writer.AsmWriteLn('__FPC_exception:');
+        end;
       inherited;
     end;
 
