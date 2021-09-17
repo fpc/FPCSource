@@ -99,6 +99,8 @@ uses
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
 
+      procedure g_unreachable(list: TAsmList); override;
+
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference); override;
 
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
@@ -1680,6 +1682,11 @@ implementation
       a_load_reg_stack(list,fromsize,reg1);
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
       a_load_stack_reg(list,tosize,reg2);
+    end;
+
+  procedure thlcgwasm.g_unreachable(list: TAsmList);
+    begin
+      list.Concat(taicpu.op_none(a_unreachable));
     end;
 
   procedure thlcgwasm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
