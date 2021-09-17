@@ -2320,6 +2320,7 @@ implementation
 
     function tai_realconst.datasize: word;
       begin
+        result:=0;
         case realtyp of
           aitrealconst_s32bit:
             result:=4;

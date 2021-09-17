@@ -362,6 +362,7 @@ implementation
         oldContinueLabel:=nil;
         continuefinallylabel:=nil;
         breakfinallylabel:=nil;
+        oldLoopBreakBr:=0;
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
