@@ -99,19 +99,38 @@ implementation
 
     type
       twasmexceptionstatehandler_jsexceptions = class(tcgexceptionstatehandler)
+        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
       end;
 
+    class procedure twasmexceptionstatehandler_jsexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
+      begin
+        if not assigned(exceptionreasontype) then
+          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
+        reference_reset(t.envbuf,0,[]);
+        reference_reset(t.jmpbuf,0,[]);
+        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+      begin
+        tg.ungettemp(list,t.reasonbuf);
+      end;
+
     class procedure twasmexceptionstatehandler_jsexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
     class procedure twasmexceptionstatehandler_jsexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
       end;
 
     class procedure twasmexceptionstatehandler_jsexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
