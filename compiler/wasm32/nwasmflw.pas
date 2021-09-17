@@ -285,14 +285,7 @@ implementation
     procedure twasmtryexceptnode.pass_generate_code_no_exceptions;
       begin
         location_reset(location,LOC_VOID,OS_NO);
-
-        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..except, try')));
-
         secondpass(left);
-        //if codegenerror then
-        //  goto errorexit;
-
-        current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..except, end')));
       end;
 
     procedure twasmtryexceptnode.pass_generate_code_js_exceptions;
