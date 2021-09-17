@@ -363,6 +363,7 @@ implementation
         continuefinallylabel:=nil;
         breakfinallylabel:=nil;
         oldLoopBreakBr:=0;
+        oldLoopContBr:=0;
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
@@ -548,6 +549,8 @@ implementation
         oldContinueLabel:=nil;
         continuefinallylabel:=nil;
         breakfinallylabel:=nil;
+        oldLoopBreakBr:=0;
+        oldLoopContBr:=0;
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
