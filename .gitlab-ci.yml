@@ -13,12 +13,12 @@ compiler-fullcycle-job:
   stage: compilercycle
   script:
     - cd compiler
-    - make fullcycle -j 4
+    - make fullcycle -j 4 "OPT=-Oodfa"
 
 build-and-test-job:
   stage: buildandtest
   script:
-    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4"
+    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4" "OPT=-Oodfa"
     - FPC_SRC=$(pwd)
     - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
     - cd tests
