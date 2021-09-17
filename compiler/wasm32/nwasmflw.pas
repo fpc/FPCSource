@@ -66,6 +66,10 @@ interface
       { twasmtryfinallynode }
 
       twasmtryfinallynode = class(tcgtryfinallynode)
+      private
+        procedure pass_generate_code_no_exceptions;
+        procedure pass_generate_code_js_exceptions;
+        procedure pass_generate_code_native_exceptions;
       public
         procedure pass_generate_code;override;
       end;
@@ -291,7 +295,7 @@ implementation
                              twasmtryfinallynode
 *****************************************************************************}
 
-    procedure twasmtryfinallynode.pass_generate_code;
+    procedure twasmtryfinallynode.pass_generate_code_no_exceptions;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -320,6 +324,28 @@ implementation
         if codegenerror then
           exit;
         current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('TODO: try..finally, end')));
+      end;
+
+    procedure twasmtryfinallynode.pass_generate_code_js_exceptions;
+      begin
+        internalerror(2021091702);
+      end;
+
+    procedure twasmtryfinallynode.pass_generate_code_native_exceptions;
+      begin
+        internalerror(2021091703);
+      end;
+
+    procedure twasmtryfinallynode.pass_generate_code;
+      begin
+        if ts_wasm_no_exceptions in current_settings.targetswitches then
+          pass_generate_code_no_exceptions
+        else if ts_wasm_js_exceptions in current_settings.targetswitches then
+          pass_generate_code_js_exceptions
+        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+          pass_generate_code_native_exceptions
+        else
+          internalerror(2021091704);
       end;
 
 initialization
