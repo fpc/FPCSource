@@ -46,7 +46,7 @@ implementation
 
     uses
       systems,verbose,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,cgexcept,
-      tgobj,paramgr,symconst,symcpu;
+      tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2;
 
 {*****************************************************************************
                      twasmexceptionstatehandler_noexceptions
@@ -54,19 +54,38 @@ implementation
 
     type
       twasmexceptionstatehandler_noexceptions = class(tcgexceptionstatehandler)
+        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
       end;
 
+    class procedure twasmexceptionstatehandler_noexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
+      begin
+        if not assigned(exceptionreasontype) then
+          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
+        reference_reset(t.envbuf,0,[]);
+        reference_reset(t.jmpbuf,0,[]);
+        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
+      end;
+
+    class procedure twasmexceptionstatehandler_noexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+      begin
+        tg.ungettemp(list,t.reasonbuf);
+      end;
+
     class procedure twasmexceptionstatehandler_noexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
     class procedure twasmexceptionstatehandler_noexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
       end;
 
     class procedure twasmexceptionstatehandler_noexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
