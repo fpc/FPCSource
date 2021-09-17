@@ -153,10 +153,10 @@ implementation
 
   procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
     begin
-      inherited;
-      { print all global procedures/functions }
       writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
+      { print all global procedures/functions }
       WriteImports;
+      inherited;
     end;
 
 
