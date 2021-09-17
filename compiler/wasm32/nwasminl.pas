@@ -38,6 +38,7 @@ interface
         procedure second_memory_size;
         procedure second_memory_grow;
         procedure second_unreachable;
+        procedure second_throw_fpcexception;
       protected
         function first_sqr_real: tnode; override;
       public
@@ -155,6 +156,13 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_throw_fpcexception;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_throw));
+      end;
+
+
     function twasminlinenode.first_sqr_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -194,7 +202,8 @@ implementation
           in_wasm32_memory_size,
           in_wasm32_memory_grow:
             expectloc:=LOC_REGISTER;
-          in_wasm32_unreachable:
+          in_wasm32_unreachable,
+          in_wasm32_throw_fpcexception:
             expectloc:=LOC_VOID;
           else
             Result:=inherited first_cpu;
@@ -211,6 +220,8 @@ implementation
             second_memory_grow;
           in_wasm32_unreachable:
             second_unreachable;
+          in_wasm32_throw_fpcexception:
+            second_throw_fpcexception;
           else
             inherited pass_generate_code_cpu;
         end;
