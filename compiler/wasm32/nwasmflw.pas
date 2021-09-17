@@ -366,7 +366,8 @@ implementation
 
     procedure twasmtryexceptnode.pass_generate_code_native_exceptions;
       begin
-        internalerror(2021091707);
+        location_reset(location,LOC_VOID,OS_NO);
+        secondpass(left);
       end;
 
     procedure twasmtryexceptnode.pass_generate_code;
