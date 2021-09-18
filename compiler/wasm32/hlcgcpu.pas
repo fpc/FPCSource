@@ -295,6 +295,7 @@ implementation
     begin
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
+      br_blocks:=0;
       fntypelookup:=TWasmProcTypeLookup.Create;
     end;
 
