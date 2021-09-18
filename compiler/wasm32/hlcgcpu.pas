@@ -2048,7 +2048,11 @@ implementation
       list.concat(taicpu.op_none(a_end_block));
       decblock;
       if fevalstackheight<>0 then
+{$ifdef DEBUG_WASMSTACK}
         list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));
+{$else DEBUG_WASMSTACK}
+        internalerror(2021091801);
+{$endif DEBUG_WASMSTACK}
       inherited;
     end;
 
