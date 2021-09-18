@@ -340,7 +340,7 @@ topsize2memsize: array[topsize] of integer =
     function reg2opsize(r:Tregister):topsize;
     function reg_cgsize(const reg: tregister): tcgsize;
     function is_calljmp(o:tasmop):boolean;
-    function is_calljmpuncond(o:tasmop):boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function is_calljmpuncondret(o:tasmop):boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
     function is_segment_reg(r:tregister):boolean;
@@ -570,7 +570,6 @@ implementation
           A_LOOPZ,
           A_LCALL,
           A_LJMP,
-          A_RET,
           A_Jcc :
             is_calljmp:=true;
           else
@@ -579,7 +578,7 @@ implementation
       end;
 
 
-    function is_calljmpuncond(o:tasmop):boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function is_calljmpuncondret(o:tasmop):boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         case o of
           A_CALL,
@@ -587,9 +586,9 @@ implementation
           A_RET,
           A_LCALL,
           A_LJMP:
-            is_calljmpuncond:=true;
+            Result:=true;
           else
-            is_calljmpuncond:=false;
+            Result:=false;
         end;
       end;
 

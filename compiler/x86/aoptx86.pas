@@ -411,7 +411,7 @@ unit aoptx86;
       repeat
         Result := GetNextInstruction(Next,Next);
         if Result and (Next.typ=ait_instruction) and is_calljmp(taicpu(Next).opcode) then
-          if is_calljmpuncond(taicpu(Next).opcode) then
+          if is_calljmpuncondret(taicpu(Next).opcode) then
             begin
               Result := False;
               Exit;
@@ -3020,7 +3020,7 @@ unit aoptx86;
           end;
 
         { search further than the next instruction for a mov (as long as it's not a jump) }
-        if not is_calljmpuncond(taicpu(hp1).opcode) and
+        if not is_calljmpuncondret(taicpu(hp1).opcode) and
           { check as much as possible before the expensive GetNextInstructionUsingRegCond call }
           (taicpu(p).oper[1]^.typ = top_reg) and
           (taicpu(p).oper[0]^.typ in [top_reg,top_const]) and
