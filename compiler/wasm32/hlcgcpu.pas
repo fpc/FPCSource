@@ -334,7 +334,11 @@ implementation
       dec(fevalstackheight,slots);
       if (fevalstackheight<0) and
          not(cs_no_regalloc in current_settings.globalswitches) then
+{$ifdef DEBUG_WASMSTACK}
+        list.concat(tai_comment.Create(strpnew('!!! stack underflow')));
+{$else DEBUG_WASMSTACK}
         internalerror(2010120501);
+{$endif DEBUG_WASMSTACK}
       if cs_asm_regalloc in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
