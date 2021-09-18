@@ -292,7 +292,7 @@ implementation
                       maybe_add_comment(tcb,#9'name');
                       tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
-                      { write visiblity section for extended RTTI }
+                      { write visibility section for extended RTTI }
                       if extended_rtti then
                         tcb.emit_ord_const(byte(visibility_to_rtti(def.visibility)),u8inttype);
  
@@ -886,7 +886,7 @@ implementation
         tbllab : tasmlabel;
         tbldef : tdef;
 
-        procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
+        procedure writeaccessproc(tcb: ttai_typedconstbuilder; pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
            typvalue : byte;
            hp : ppropaccesslistitem;
@@ -1017,8 +1017,8 @@ implementation
             else
               proctypesinfo:=0;
             write_rtti_reference(tcb,sym.propdef,fullrtti);
-            writeaccessproc(palt_read,0,0);
-            writeaccessproc(palt_write,2,0);
+            writeaccessproc(tcb,palt_read,0,0);
+            writeaccessproc(tcb,palt_write,2,0);
             { is it stored ? }
             if not(ppo_stored in sym.propoptions) then
               begin
@@ -1027,7 +1027,7 @@ implementation
                 proctypesinfo:=proctypesinfo or (3 shl 4);
               end
             else
-              writeaccessproc(palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
+              writeaccessproc(tcb,palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
             tcb.emit_ord_const(sym.index,u32inttype);
             tcb.emit_ord_const(sym.default,u32inttype);
             propnameitem:=TPropNameListItem(propnamelist.Find(sym.name));
@@ -1058,6 +1058,7 @@ implementation
                       TPropInfoEx = record
                         Flags: Byte;
                         Info: PPropInfo;
+                        // AttrData: TAttrData
                       end;
                     }
                     maybe_add_comment(tcb,'RTTI: begin property '+sym.prettyname);
@@ -1066,6 +1067,7 @@ implementation
                     { write visiblity flags for extended RTTI }
                     maybe_add_comment(tcb,#9'visibility flags');
                     tcb.emit_ord_const(byte(visibility_to_rtti(sym.visibility)),u8inttype);
+                    // TODO: for published properties write a label to the existing legacy table
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
                     tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
@@ -1078,6 +1080,7 @@ implementation
                     { write the pointer to the prop info }
                     maybe_add_comment(tcb,#9'property info reference');
                     tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
+                    // TODO: there is supposed to be an attribute table (TAttrData) here?
                     { end record }
                     tcb.end_anonymous_record;
                     maybe_add_comment(tcb,'RTTI: "end property '+sym.prettyname);
