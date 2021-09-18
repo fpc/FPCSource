@@ -49,7 +49,7 @@ interface
 implementation
 
     uses
-      globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst;
+      globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst, paramgr;
 
       { twasmcallnode }
 
@@ -61,6 +61,8 @@ implementation
     procedure twasmcallnode.do_release_unused_return_value;
       begin
         if is_void(resultdef) then
+          exit;
+        if paramanager.ret_in_param(resultdef,procdefinition) then
           exit;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
