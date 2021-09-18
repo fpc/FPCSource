@@ -794,10 +794,8 @@ implementation
             Fields: array[0..0] of TExtendedFieldInfo;
           end;
         }
-        tcb.begin_anonymous_record(
-          internaltypeprefixName[itp_rtti_header]+tostr(list.count),packrecords,1,
-          targetinfos[target_info.system]^.alignment.recordalignmin);
-        tcb.emit_tai(Tai_const.Create_16bit(list.count),u16inttype);
+        tcb.begin_anonymous_record('',packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+        tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin
             sym:=tsym(list[i]);
@@ -1633,7 +1631,6 @@ implementation
            { write extended rtti }
            if rt=fullrtti then
              begin
-               // TODO(ryan): write_extended_field_table is crashing sysctl.pp while compiling the RTL (sysctl.pp)
                write_extended_field_table(tcb,def,defaultpacking);
                write_extended_method_table(tcb,def,defaultpacking);
                write_extended_property_table;
