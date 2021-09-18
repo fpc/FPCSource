@@ -1,2 +1,2 @@
 #!/bin/bash
-exec /home/michael/FPC/ext_rtti/compiler/ppcx64 testextrtti.pp -Fu../units/x86_64-linux -gl $*
+exec /home/michael/fpc/compiler/ppcx64 -vwhn testextrtti.pp -Fu../units/x86_64-linux -gl $*

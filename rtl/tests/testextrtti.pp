@@ -141,6 +141,13 @@ begin
   try
     AssertEquals('Count',8,aCount);
     CheckProperty(0, A^[0]^,'PrivateA',tkInteger,vcPrivate);
+    CheckProperty(1, A^[1]^,'PrivateB',tkInteger,vcPrivate);
+    CheckProperty(2, A^[2]^,'ProtectedA',tkInteger,vcProtected);
+    CheckProperty(3, A^[3]^,'ProtectedB',tkInteger,vcProtected);
+    CheckProperty(4, A^[4]^,'PublicA',tkInteger,vcPublic);
+    CheckProperty(5, A^[5]^,'PublicB',tkInteger,vcPublic);
+    CheckProperty(6, A^[6]^,'PublishedA',tkInteger,vcPublished);
+    CheckProperty(7, A^[7]^,'PublishedB',tkInteger,vcPublished);
   finally
     Freemem(A);
   end;
@@ -337,9 +344,9 @@ begin
 end;
 
 begin
-  // TestProperties;
+  TestProperties;
   // TestClassFields;
   // TestRecordFields;
-  TestClassMethods;
+  // TestClassMethods;
 end.
 

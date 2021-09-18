@@ -1972,7 +1972,8 @@ begin
   // Clear list
   repeat
     TD:=PClassData(GetTypeData(TypeInfo))^.ExRTTITable;
-    FillChar(PropList^,TD^.PropCount*sizeof(TPropInfoEx),0);
+    if PropList<>Nil then
+      FillChar(PropList^,TD^.PropCount*sizeof(TPropInfoEx),0);
     Count:=TD^.PropCount;
     // Now point TP to first propinfo record.
     Inc(Pointer(TP),SizeOF(Word));
