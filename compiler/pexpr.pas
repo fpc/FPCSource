@@ -2383,6 +2383,7 @@ implementation
 
                if (p1.nodetype=stringconstn) and (token=_ID) then
                  begin
+                   strdef:=nil;
                    { the def of a string const is an array }
                    case tstringconstnode(p1).cst_type of
                      cst_conststring:
