@@ -215,10 +215,8 @@ interface
                   begin
                     reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
                     cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
-                    if not(left.location.loc=LOC_MMREGISTER) then
-                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-                    location.register:=left.location.register;
-                    cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,mms_movescalar);
+                    location.register:=reg;
+                    cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,left.location,location.register,mms_movescalar);
                   end;
               end;
           end
