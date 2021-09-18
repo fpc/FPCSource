@@ -570,6 +570,7 @@ implementation
           A_LOOPZ,
           A_LCALL,
           A_LJMP,
+          A_RET,
           A_Jcc :
             is_calljmp:=true;
           else
@@ -583,6 +584,7 @@ implementation
         case o of
           A_CALL,
           A_JMP,
+          A_RET,
           A_LCALL,
           A_LJMP:
             is_calljmpuncond:=true;
