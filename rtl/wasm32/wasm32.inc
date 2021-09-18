@@ -111,3 +111,7 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
     Result:=Target;
     inc(Target,Source);
   end;
+
+{$if defined(FPC_WASM_NATIVE_EXCEPTIONS)}
+  {$I except_native.inc}
+{$endif}
