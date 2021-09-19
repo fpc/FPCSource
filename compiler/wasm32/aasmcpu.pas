@@ -548,6 +548,8 @@ implementation
                     internalerror(2021092011);
                 end;
             end;
+          a_end_function:
+            result:=0;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -955,6 +957,8 @@ implementation
                     internalerror(2021092011);
                 end;
             end;
+          a_end_function:
+            ;
           else
             Writeln('Warning! Not implemented opcode, pass2: ', opcode);
         end;
