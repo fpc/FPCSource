@@ -188,7 +188,7 @@ interface
                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
                 current_asmdata.getglobaldatalabel(l1);
-                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(16));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                 case def_cgsize(resultdef) of
                   OS_F32:
@@ -213,10 +213,10 @@ interface
                   end
                 else
                   begin
-                    reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-                    cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
-                    location.register:=reg;
-                    cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,left.location,location.register,mms_movescalar);
+                    if not(left.location.loc=LOC_MMREGISTER) then
+                      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+                    location.register:=left.location.register;
+                    cg.a_opmm_ref_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,location.register,mms_movescalar);
                   end;
               end;
           end
