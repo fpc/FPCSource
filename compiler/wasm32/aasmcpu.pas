@@ -339,6 +339,15 @@ implementation
             until ((v=0) and ((byte(v) and 64)=0)) or ((v=-1) and ((byte(v) and 64)<>0));
           end;
 
+        function UlebSize(v: tcgint): longint;
+          begin
+            result:=0;
+            repeat
+              v:=v shr 7;
+              Inc(result);
+            until v=0;
+          end;
+
       begin
         result:=0;
         case opcode of
@@ -495,6 +504,28 @@ implementation
                   Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' ', oper[0]^.typ);
               end;
             end;
+          a_local_get,
+          a_local_set,
+          a_local_tee:
+            begin
+              if ops<>1 then
+                internalerror(2021092001);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        internalerror(2021092005);
+                      if ref^.base<>NR_STACK_POINTER_REG then
+                        internalerror(2021092006);
+                      if ref^.index<>NR_NO then
+                        internalerror(2021092007);
+                      result:=1+UlebSize(ref^.offset);
+                    end;
+                  else
+                    internalerror(2021092008);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -522,6 +553,19 @@ implementation
                 b:=b or 128;
               objdata.writebytes(b,1);
             until Done;
+          end;
+
+        procedure WriteUleb(v: tcgint);
+          var
+            b: byte;
+          begin
+            repeat
+              b:=byte(v) and 127;
+              v:=v shr 7;
+              if v<>0 then
+                b:=b or 128;
+              objdata.writebytes(b,1);
+            until v=0;
           end;
 
       begin
@@ -826,6 +870,38 @@ implementation
                 else
                   Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', oper[0]^.typ);
               end;
+            end;
+          a_local_get,
+          a_local_set,
+          a_local_tee:
+            begin
+              case opcode of
+                a_local_get:
+                  WriteByte($20);
+                a_local_set:
+                  WriteByte($21);
+                a_local_tee:
+                  WriteByte($22);
+                else
+                  internalerror(2021092003);
+              end;
+              if ops<>1 then
+                internalerror(2021092004);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        internalerror(2021092005);
+                      if ref^.base<>NR_STACK_POINTER_REG then
+                        internalerror(2021092006);
+                      if ref^.index<>NR_NO then
+                        internalerror(2021092007);
+                      WriteUleb(ref^.offset);
+                    end;
+                  else
+                    internalerror(2021092008);
+                end;
             end;
           else
             Writeln('Warning! Not implemented opcode, pass2: ', opcode);
