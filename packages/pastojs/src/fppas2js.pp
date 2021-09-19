@@ -24849,13 +24849,14 @@ begin
   try
     if Value<>nil then
       begin
-      if Value.Kind=revkInt then
+      case Value.Kind of
+      revkInt:
         begin
         IntValue:=TResEvalInt(Value).Int;
         if (IntValue>=LeftMinVal) and (IntValue<=LeftMaxVal) then
           exit;
-        end
-      else if Value.Kind=revkUInt then
+        end;
+      revkUInt:
         begin
         if TResEvalUInt(Value).UInt<=HighIntAsUInt then
           begin
@@ -24869,9 +24870,12 @@ begin
           {$ELSE}
           IntValue:=PMaxPrecInt(@TResEvalUInt(Value).UInt)^;
           {$ENDIF}
-        end
+        end;
+      revkExternal:
+        exit;
       else
         RaiseNotSupported(El.right,AssignContext,20210815204203,'right='+Value.AsDebugString);
+      end;
 
       case LeftBT of
       btByte: IntValue:=IntValue and $FF; // Note: "and" handles negative numbers
