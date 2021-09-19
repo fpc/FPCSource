@@ -40,6 +40,11 @@ interface
 
     type
 
+      { TWasmObjSection }
+
+      TWasmObjSection = class(TObjSection)
+      end;
+
       { TWasmObjData }
 
       TWasmObjData = class(TObjData)
@@ -47,6 +52,7 @@ interface
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       public
+        constructor create(const n:string);override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
@@ -210,6 +216,12 @@ implementation
           end
         else
           result:=secname;
+      end;
+
+    constructor TWasmObjData.create(const n: string);
+      begin
+        inherited;
+        CObjSection:=TWasmObjSection;
       end;
 
     function TWasmObjData.sectionname(atype: TAsmSectiontype;
