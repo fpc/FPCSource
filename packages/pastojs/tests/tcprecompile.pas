@@ -602,7 +602,8 @@ begin
     '  $mod.$main = function () {',
     '    rtl.checkVersion('+IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease)+');',
     '  };',
-    '});']);
+    '});',
+    '//# sourceMappingURL=test1.js.map']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
@@ -632,7 +633,8 @@ begin
     '    rtl.checkVersion('+IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease)+');',
     '    pas.system.Writeln();',
     '  };',
-    '});']);
+    '});',
+    '//# sourceMappingURL=test1.js.map']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
@@ -659,7 +661,8 @@ begin
     '  "use strict";',
     '  rtl.checkVersion('+VerStr+');',
     '  var $mod = this;',
-    '});']);
+    '});',
+    '//# sourceMappingURL=system.js.map']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
