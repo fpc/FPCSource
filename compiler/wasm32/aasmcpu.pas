@@ -329,7 +329,18 @@ implementation
 
 
     function taicpu.Pass1(objdata: TObjData): longint;
+
+        function SlebSize(v: tcgint): longint;
+          begin
+            result:=0;
+            repeat
+              v:=SarInt64(v,7);
+              Inc(result);
+            until ((v=0) and ((byte(v) and 64)=0)) or ((v=-1) and ((byte(v) and 64)<>0));
+          end;
+
       begin
+        result:=0;
         case opcode of
           a_unreachable,
           a_nop,
@@ -472,11 +483,20 @@ implementation
           a_memory_size,
           a_memory_grow:
             result:=2;
-          else
+          a_i32_const,
+          a_i64_const:
             begin
-              Writeln('Warning! Not implemented opcode, pass1: ', opcode);
-              result:=0;
+              if ops<>1 then
+                internalerror(2021092001);
+              case oper[0]^.typ of
+                top_const:
+                  result:=1+SlebSize(oper[0]^.val);
+                else
+                  Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' ', oper[0]^.typ);
+              end;
             end;
+          else
+            Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
       end;
 
@@ -486,6 +506,22 @@ implementation
         procedure WriteByte(b: byte);
           begin
             objdata.writebytes(b,1);
+          end;
+
+        procedure WriteSleb(v: tcgint);
+          var
+            b: byte;
+            Done: Boolean=false;
+          begin
+            repeat
+              b:=byte(v) and 127;
+              v:=SarInt64(v,7);
+              if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
+                Done:=true
+              else
+                b:=b or 128;
+              objdata.writebytes(b,1);
+            until Done;
           end;
 
       begin
@@ -771,6 +807,26 @@ implementation
             WriteByte($0B);
           a_catch_all:
             WriteByte($19);
+          a_i32_const,
+          a_i64_const:
+            begin
+              case opcode of
+                a_i32_const:
+                  WriteByte($41);
+                a_i64_const:
+                  WriteByte($42);
+                else
+                  internalerror(2021092002);
+              end;
+              if ops<>1 then
+                internalerror(2021092001);
+              case oper[0]^.typ of
+                top_const:
+                  WriteSleb(oper[0]^.val);
+                else
+                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', oper[0]^.typ);
+              end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass2: ', opcode);
         end;
