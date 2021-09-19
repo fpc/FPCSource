@@ -164,6 +164,8 @@ implementation
         sep     : string[3];
         secname : string;
       begin
+        secname:=secnames[atype];
+
         if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
           begin
             result:=secname+'.'+aname;
