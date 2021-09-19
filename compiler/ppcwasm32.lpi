@@ -63,11 +63,13 @@
       </ConfigFile>
       <CustomOptions Value="-dwasm32
 -dnoopt
--dEXTDEBUG"/>
-      <OtherDefines Count="3">
+-dEXTDEBUG
+-dWASM32_INTERNALASM"/>
+      <OtherDefines Count="4">
         <Define0 Value="wasm32"/>
         <Define1 Value="noopt"/>
         <Define2 Value="EXTDEBUG"/>
+        <Define3 Value="WASM32_INTERNALASM"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
