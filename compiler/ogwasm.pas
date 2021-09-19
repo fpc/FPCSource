@@ -32,6 +32,8 @@ interface
       systems,
       { assembler }
       aasmbase,assemble,
+      { WebAssembly module format definitions }
+      wasmbase,
       { output }
       ogbase,
       owbase;
