@@ -497,12 +497,13 @@ implementation
             begin
               if ops<>1 then
                 internalerror(2021092001);
-              case oper[0]^.typ of
-                top_const:
-                  result:=1+SlebSize(oper[0]^.val);
-                else
-                  Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' ', oper[0]^.typ);
-              end;
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    result:=1+SlebSize(val);
+                  else
+                    Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' ', typ);
+                end;
             end;
           a_local_get,
           a_local_set,
@@ -864,12 +865,13 @@ implementation
               end;
               if ops<>1 then
                 internalerror(2021092001);
-              case oper[0]^.typ of
-                top_const:
-                  WriteSleb(oper[0]^.val);
-                else
-                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', oper[0]^.typ);
-              end;
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    WriteSleb(val);
+                  else
+                    Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                end;
             end;
           a_local_get,
           a_local_set,
