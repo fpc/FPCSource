@@ -723,6 +723,8 @@ unit TypInfo;
 {$endif}
       end;
 
+      PRecordMethodTable = ^TRecordMethodTable;
+      TRecordMethodTable = TVMTMethodExTable;
 
       { TRecordData }
       PRecordData = ^TRecordData;
@@ -732,9 +734,13 @@ unit TypInfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
+        function GetExtendedFieldCount: Longint;
         Function GetExtendedFields : PExtendedFieldTable;
+        Function GetMethodTable : PRecordMethodTable;
       Public
         Property ExtendedFields : PExtendedFieldTable Read GetExtendedFields;
+        Property ExtendedFieldCount : Longint Read GetExtendedFieldCount;
+        property MethodTable: PRecordMethodTable read GetMethodTable;
       public
         {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
@@ -752,6 +758,7 @@ unit TypInfo;
           {ManagedFields: array[1..TotalFieldCount] of TManagedField}
           { ExtendedFieldsCount : Longint }
           { ExtendedFields: Array[0..ExtendedFieldsCount-1] of PExtendedFieldEntry }
+          { MethodTable : TRecordMethodTable }
         );
       end;
 
@@ -1080,13 +1087,17 @@ Function GetRecordFieldList(aRecord: PRecordData; Out FieldList: PExtendedFieldI
 function GetFieldList(AClass: TClass; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 function GetFieldList(Instance: TObject; out FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 
+// Infos require initialized memory or nil to count
 Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 Function GetMethodInfos(aRecord: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 Function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+function GetRecordMethodInfos(aRecordData: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+// List will initialize the memory
 Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
-Function GetRecordMethodList(aRecord: PRecordData; Out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
 function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
 function GetMethodList(Instance: TObject; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): Integer;
+Function GetRecordMethodList(aRecord: PRecordData; Out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
 
 
 // Property information routines.
@@ -1327,7 +1338,7 @@ begin
 {$endif}
 end;
 
-Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+function GetEnumName(TypeInfo: PTypeInfo; Value: Integer): string;
 
   Var PS : PShortString;
       PT : PTypeData;
@@ -1357,7 +1368,7 @@ begin
 end;
 
 
-Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+function GetEnumValue(TypeInfo: PTypeInfo; const Name: string): Integer;
 
   Var PS : PShortString;
       PT : PTypeData;
@@ -1421,13 +1432,13 @@ begin
 end;
 
 
-Function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean): String;
 
 begin
   Result:=SetToString(PropInfo^.PropType, Value, Brackets);
 end;
 
-Function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean): String;
 begin
 {$if defined(FPC_BIG_ENDIAN)}
   { correctly adjust packed sets that are smaller than 32-bit }
@@ -1526,10 +1537,11 @@ begin
   Result:=SetToArray(PropInfo^.PropType,Value);
 end;
 
-function SetToArray(TypeInfo: PTypeInfo; Value: LongInt) : TBytes;
+ function SetToArray(TypeInfo: PTypeInfo; Value: LongInt) : TBytes;
 begin
   Result:=SetToArray(TypeInfo,@Value);
 end;
+
 
 function SetToArray(PropInfo: PPropInfo; Value: LongInt) : TBytes;
 begin
@@ -1554,13 +1566,13 @@ begin
     end;
 end;
 
-Function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
+function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 
 begin
   Result:=StringToSet(PropInfo^.PropType,Value);
 end;
 
-Function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
+function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 begin
   StringToSet(TypeInfo, Value, @Result);
 {$if defined(FPC_BIG_ENDIAN)}
@@ -1683,7 +1695,7 @@ begin
 end;
 
 
-Function AlignTParamFlags(p : Pointer) : Pointer; inline;
+function AlignTParamFlags(p: Pointer): Pointer;
 {$packrecords c}
   type
     TAlignCheck = record
@@ -1700,7 +1712,7 @@ begin
 end;
 
 
-Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
+function AlignPTypeInfo(p: Pointer): Pointer;
 {$packrecords c}
   type
     TAlignCheck = record
@@ -1803,7 +1815,7 @@ end;
   Basic Type information functions.
   ---------------------------------------------------------------------}
 
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
+function GetPropInfo(TypeInfo: PTypeInfo; const PropName: string): PPropInfo;
 var
   hp : PTypeData;
   i : longint;
@@ -1833,7 +1845,7 @@ begin
 end;
 
 
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string; Akinds : TTypeKinds) : PPropInfo;
+function GetPropInfo(TypeInfo: PTypeInfo; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
   Result:=GetPropInfo(TypeInfo,PropName);
   If (Akinds<>[]) then
@@ -1843,31 +1855,31 @@ begin
 end;
 
 
-Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
   Result:=GetPropInfo(PTypeInfo(AClass.ClassInfo),PropName,AKinds);
 end;
 
 
-Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
   Result:=GetPropInfo(Instance.ClassType,PropName,AKinds);
 end;
 
 
-Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 begin
   Result:=GetPropInfo(Instance,PropName,[]);
 end;
 
 
-Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 begin
   Result:=GetPropInfo(AClass,PropName,[]);
 end;
 
 
-Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 begin
   result:=GetPropInfo(Instance, PropName);
   if Result=nil then
@@ -1875,7 +1887,7 @@ begin
 end;
 
 
-Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
   result:=GetPropInfo(Instance, PropName, AKinds);
   if Result=nil then
@@ -1883,7 +1895,7 @@ begin
 end;
 
 
-Function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 begin
   result:=GetPropInfo(AClass, PropName);
   if result=nil then
@@ -1891,7 +1903,7 @@ begin
 end;
 
 
-Function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
   result:=GetPropInfo(AClass, PropName, AKinds);
   if result=nil then
@@ -1928,7 +1940,7 @@ begin
   Result:=IsWriteableProp(FindPropInfo(AClass,PropName));
 end;
 
-Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+function IsStoredProp(Instance: TObject; PropInfo: PPropInfo): Boolean;
 
 type
   TBooleanIndexFunc=function(Index:integer):boolean of object;
@@ -1960,7 +1972,7 @@ begin
 end;
 
 
-Function GetPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities : TVisibilityClasses = []) : Integer;
+function GetPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities: TVisibilityClasses): Integer;
 
 Var
   TD : PPropDataEx;
@@ -2016,7 +2028,8 @@ begin
 end;
 
 
-Function GetPropListEx(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropListEx; Sorted: boolean = true; Visibilities : TVisibilityClasses = []): longint;
+function GetPropListEx(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropListEx; Sorted: boolean;
+  Visibilities: TVisibilityClasses): longint;
 
 Type
    TInsertPropEx = Procedure (PL : PProplistEx;PI : PPropInfoex; Count : longint);
@@ -2056,7 +2069,7 @@ begin
 end;
 
 
-Function GetPropListEx(TypeInfo: PTypeInfo; out PropList: PPropListEx; Visibilities : TVisibilityClasses = []): SizeInt;
+function GetPropListEx(TypeInfo: PTypeInfo; out PropList: PPropListEx; Visibilities: TVisibilityClasses): SizeInt;
 
 begin
   // When passing nil, we get the count
@@ -2085,7 +2098,7 @@ begin
 end;
 
 
-Function GetFieldInfos(aRecord: PRecordData; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+function GetFieldInfos(aRecord: PRecordData; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 Var
    FieldTable: PExtendedFieldTable;
@@ -2112,7 +2125,7 @@ begin
 end;
 
 
-Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 var
   vmt: PVmt;
@@ -2181,7 +2194,8 @@ begin
   PL^[Count]:=PI;
 end;
 
-function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; Out FieldList : PExtendedFieldInfoTable; Sorted: boolean; Visibilities: TVisibilityClasses): longint;
+function GetFieldList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; out FieldList: PExtendedFieldInfoTable; Sorted: boolean;
+  Visibilities: TVisibilityClasses): longint;
 
 Type
    TInsertField = Procedure (PL : PExtendedFieldInfoTable;PI : PExtendedVmtFieldEntry; Count : longint);
@@ -2221,7 +2235,8 @@ begin
 end;
 
 
-function GetRecordFieldList(ARecord: PRecordData; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
+function GetRecordFieldList(aRecord: PRecordData; out FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses
+  ): Integer;
 
 Var
   aCount : Integer;
@@ -2277,32 +2292,10 @@ end;
 
 { -- Methods -- }
 
-Function GetMethodInfos(aRecord: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
-
-Var
-   MethodTable: PVmtMethodExTable;
-   MethodEntry: PVmtMethodExEntry;
-   I : Integer;
+function GetMethodInfos(aRecord: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 begin
-  Result:=0;
-{
-  if aRecord=Nil then exit;
-  MethodTable:=aRecord^.ExtendedMethods;
-  if MethodTable=Nil then exit;
-  if MethodList<>Nil then
-    FillChar(MethodList^[Result],MethodTable^.MethodCount*sizeof(Pointer),0);
-  For I:=0 to MethodTable^.MethodCount-1 do
-    begin
-    MethodEntry:=MethodTable^.Method[i];
-    if ([]=Visibilities) or (MethodEntry^.MethodVisibility in Visibilities) then
-      begin
-      if Assigned(MethodList) then
-        MethodList^[Result]:=MethodEntry;
-      Inc(Result);
-      end;
-    end;
-}
+  Result:=GetRecordMethodInfos(aRecord,MethodList,Visibilities)
 end;
 
 function GetClassMethodInfos(aClassData: PClassData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
@@ -2340,17 +2333,12 @@ begin
 
 end;
 
-Function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []) : Integer;
+function GetMethodInfos(aClass: TClass; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 begin
   Result:=GetMethodInfos(PTypeInfo(aClass.ClassInfo),MethodList,Visibilities);
 end;
 
-function GetRecordMethodInfos(aRecordData: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
-
-begin
-  Result:=0;
-end;
 
 function GetMethodInfos(TypeInfo: PTypeInfo; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 
@@ -2385,14 +2373,14 @@ begin
   PL^[Count]:=PI;
 end;
 
-function GetMethodList(TypeInfo: PTypeInfo; Out MethodList : PExtendedMethodInfoTable; Sorted: boolean; Visibilities: TVisibilityClasses): longint;
+function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Sorted: boolean;
+  Visibilities: TVisibilityClasses): longint;
 
 Type
    TInsertMethod = Procedure (PL : PExtendedMethodInfoTable;PI : PVmtMethodExEntry; Count : longint);
 {
-  Store Pointers to property information OF A CERTAIN KIND in the list pointed
-  to by proplist. PRopList must contain enough space to hold ALL
-  properties.
+  Store Pointers to method information OF A CERTAIN visibility in the list pointed
+  to by methodlist. MethodList must contain enough space to hold ALL methods.
 }
 
 Var
@@ -2402,7 +2390,7 @@ Var
   DoInsertMethod : TInsertMethod;
 
 begin
-  Count:=GetMethodInfos(TypeInfo,TempList,Visibilities);
+  Count:=GetMethodList(TypeInfo,TempList,Visibilities);
   if sorted then
     DoInsertMethod:=@InsertMethodEntry
   else
@@ -2422,35 +2410,69 @@ begin
 end;
 
 
-function GetRecordMethodList(ARecord: PRecordData; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+function GetRecordMethodInfos(aRecordData: PRecordData; MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
+
+
+var
+  MethodTable: PRecordMethodTable;
+  MethodEntry: PVmtMethodExEntry;
+  i: longint;
+
+begin
+  Result:=0;
+  if aRecordData=Nil then
+    Exit;
+  MethodTable:=aRecordData^.GetMethodTable;
+  if MethodTable=Nil then
+    Exit;
+  For I:=0 to MethodTable^.Count-1 do
+    begin
+    MethodEntry:=MethodTable^.Method[i];
+    if ([]=Visibilities) or (MethodEntry^.MethodVisibility in Visibilities) then
+      begin
+      if Assigned(MethodList) then
+        MethodList^[Result]:=MethodEntry;
+      Inc(Result);
+      end;
+    end;
+end;
+
+function GetRecordMethodList(aRecord: PRecordData; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses
+  ): Integer;
 
 Var
   aCount : Integer;
 
 begin
   Result:=0;
-  aCount:=GetMethodInfos(aRecord,Nil,Visibilities);
+  aCount:=GetRecordMethodInfos(aRecord,Nil,Visibilities);
+  if aCount=0 then
+    exit;
   MethodList:=Getmem(aCount*SizeOf(Pointer));
   try
-    Result:=GetMethodInfos(aRecord,MethodList,Visibilities);
+    Result:=GetRecordMethodInfos(aRecord,MethodList,Visibilities);
   except
     FreeMem(MethodList);
     Raise;
   end;
 end;
 
+Function GetMethodList(TypeInfo: PTypeInfo; out MethodList: PExtendedMethodInfoTable; Visibilities : TVisibilityClasses = []): longint;
 
-function GetMethodList(TypeInfo: PTypeInfo; out MethodList : PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): SizeInt;
+Var
+  aCount : Integer;
 
 begin
-  if TypeInfo^.Kind=tkRecord then
-    Result:=GetRecordMethodList(PRecordData(GetTypeData(TypeInfo)),MethodList,Visibilities)
-  else if TypeInfo^.Kind=tkObject then
-    Result:=GetMethodInfos((PClassData(GetTypeData(TypeInfo))^.ClassType),MethodList,Visibilities)
-  else
-    Result:=0
+  Result:=0;
+  aCount:=GetMethodInfos(TypeInfo,Nil,[]);
+  MethodList:=Getmem(aCount*SizeOf(Pointer));
+  try
+    Result:=GetMethodInfos(TypeInfo,MethodList,Visibilities);
+  except
+    FreeMem(MethodList);
+    Raise;
+  end;
 end;
-
 
 function GetMethodList(AClass: TClass; out MethodList: PExtendedMethodInfoTable; Visibilities: TVisibilityClasses): Integer;
 
@@ -2479,7 +2501,7 @@ end;
 
 { -- Properties -- }
 
-Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+procedure GetPropInfos(TypeInfo: PTypeInfo; PropList: PPropList);
 {
         Store Pointers to property information in the list pointed
         to by proplist. PRopList must contain enough space to hold ALL
@@ -2537,7 +2559,7 @@ Type TInsertProp = Procedure (PL : PProplist;PI : PPropInfo; Count : longint);
 
 //Const InsertProps : array[false..boolean] of TInsertProp = (InsertPropNoSort,InsertProp);
 
-Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+function GetPropList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropList; Sorted: boolean): longint;
 
 {
   Store Pointers to property information OF A CERTAIN KIND in the list pointed
@@ -2579,7 +2601,7 @@ begin
 end;
 
 
-Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
 begin
   result:=GetTypeData(TypeInfo)^.Propcount;
   if result>0 then
@@ -2609,7 +2631,7 @@ end;
   Ordinal properties
   ---------------------------------------------------------------------}
 
-Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Int64;
+function GetOrdProp(Instance: TObject; PropInfo: PPropInfo): Int64;
 
 type
   TGetInt64ProcIndex=function(index:longint):Int64 of object;
@@ -2721,7 +2743,7 @@ begin
 end;
 
 
-Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Int64);
+procedure SetOrdProp(Instance: TObject; PropInfo: PPropInfo; Value: Int64);
 
 type
   TSetInt64ProcIndex=procedure(index:longint;i:Int64) of object;
@@ -2797,37 +2819,37 @@ begin
 end;
 
 
-Function GetOrdProp(Instance: TObject; const PropName: string): Int64;
+function GetOrdProp(Instance: TObject; const PropName: string): Int64;
 begin
   Result:=GetOrdProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetOrdProp(Instance: TObject; const PropName: string;  Value: Int64);
+procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Int64);
 begin
   SetOrdProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
-Function GetEnumProp(Instance: TObject; Const PropInfo: PPropInfo): string;
+function GetEnumProp(Instance: TObject; const PropInfo: PPropInfo): string;
 begin
   Result:=GetEnumName(PropInfo^.PropType, GetOrdProp(Instance, PropInfo));
 end;
 
 
-Function GetEnumProp(Instance: TObject; const PropName: string): string;
+function GetEnumProp(Instance: TObject; const PropName: string): string;
 begin
   Result:=GetEnumProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetEnumProp(Instance: TObject; const PropName: string;  const Value: string);
+procedure SetEnumProp(Instance: TObject; const PropName: string; const Value: string);
 begin
   SetEnumProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
-Procedure SetEnumProp(Instance: TObject; Const PropInfo : PPropInfo; const Value: string);
+procedure SetEnumProp(Instance: TObject; const PropInfo: PPropInfo; const Value: string);
 Var
   PV : Longint;
 begin
@@ -2845,7 +2867,7 @@ end;
   Int64 wrappers
   ---------------------------------------------------------------------}
 
-Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
 begin
   Result:=GetOrdProp(Instance,PropInfo);
 end;
@@ -2857,13 +2879,13 @@ begin
 end;
 
 
-Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
+function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
 begin
   Result:=GetInt64Prop(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
+procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
 begin
   SetInt64Prop(Instance,FindPropInfo(Instance,PropName),Value);
 end;
@@ -2873,31 +2895,31 @@ end;
   Set properties
   ---------------------------------------------------------------------}
 
-Function GetSetProp(Instance: TObject; const PropName: string): string;
+function GetSetProp(Instance: TObject; const PropName: string): string;
 begin
   Result:=GetSetProp(Instance,PropName,False);
 end;
 
 
-Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;
+function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;
 begin
   Result:=GetSetProp(Instance,FindPropInfo(Instance,PropName),Brackets);
 end;
 
 
-Function GetSetProp(Instance: TObject; const PropInfo: PPropInfo; Brackets: Boolean): string;
+function GetSetProp(Instance: TObject; const PropInfo: PPropInfo; Brackets: Boolean): string;
 begin
   Result:=SetToString(PropInfo,GetOrdProp(Instance,PropInfo),Brackets);
 end;
 
 
-Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string);
+procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string);
 begin
   SetSetProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
-Procedure SetSetProp(Instance: TObject; const PropInfo: PPropInfo; const Value: string);
+procedure SetSetProp(Instance: TObject; const PropInfo: PPropInfo; const Value: string);
 begin
   SetOrdProp(Instance,PropInfo,StringToSet(PropInfo,Value));
 end;
@@ -2973,25 +2995,25 @@ end;
   Object properties
   ---------------------------------------------------------------------}
 
-Function GetObjectProp(Instance: TObject; const PropName: string): TObject;
+function GetObjectProp(Instance: TObject; const PropName: string): TObject;
 begin
   Result:=GetObjectProp(Instance,PropName,Nil);
 end;
 
 
-Function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
+function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
 begin
   Result:=GetObjectProp(Instance,FindPropInfo(Instance,PropName),MinClass);
 end;
 
 
-Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo): TObject;
+function GetObjectProp(Instance: TObject; PropInfo: PPropInfo): TObject;
 begin
   Result:=GetObjectProp(Instance,PropInfo,Nil);
 end;
 
 
-Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo; MinClass: TClass): TObject;
+function GetObjectProp(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass): TObject;
 begin
   Result:=TObject(GetPointerProp(Instance,PropInfo));
   If (MinClass<>Nil) and (Result<>Nil) Then
@@ -3000,26 +3022,26 @@ begin
 end;
 
 
-Procedure SetObjectProp(Instance: TObject; const PropName: string;  Value: TObject);
+procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject);
 begin
   SetObjectProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
-Procedure SetObjectProp(Instance: TObject; PropInfo : PPropInfo;  Value: TObject);
+procedure SetObjectProp(Instance: TObject; PropInfo: PPropInfo; Value: TObject);
 
 begin
   SetPointerProp(Instance,PropInfo,Pointer(Value));
 end;
 
 
-Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
+function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
 begin
   Result:=GetTypeData(FindPropInfo(Instance,PropName,[tkClass])^.PropType)^.ClassType;
 end;
 
 
-Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
+function GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
 begin
   Result:=GetTypeData(FindPropInfo(AClass,PropName,[tkClass])^.PropType)^.ClassType;
 end;
@@ -3230,7 +3252,7 @@ end;
   String properties
   ---------------------------------------------------------------------}
 
-Function GetStrProp(Instance: TObject; PropInfo: PPropInfo): AnsiString;
+function GetStrProp(Instance: TObject; PropInfo: PPropInfo): Ansistring;
 
 type
   TGetShortStrProcIndex=function(index:longint):ShortString of object;
@@ -3296,7 +3318,7 @@ begin
 end;
 
 
-Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo; const Value : AnsiString);
+procedure SetStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: Ansistring);
 
 type
   TSetShortStrProcIndex=procedure(index:longint;const s:ShortString) of object;
@@ -3361,19 +3383,19 @@ begin
 end;
 
 
-Function GetStrProp(Instance: TObject; const PropName: string): string;
+function GetStrProp(Instance: TObject; const PropName: string): string;
 begin
   Result:=GetStrProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: AnsiString);
+procedure SetStrProp(Instance: TObject; const PropName: string; const Value: AnsiString);
 begin
   SetStrProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
-Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
+function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
 begin
   Result:=GetWideStrProp(Instance, FindPropInfo(Instance, PropName));
 end;
@@ -3385,7 +3407,7 @@ begin
 end;
 
 
-Function GetWideStrProp(Instance: TObject; PropInfo: PPropInfo): WideString;
+function GetWideStrProp(Instance: TObject; PropInfo: PPropInfo): WideString;
 type
   TGetWideStrProcIndex=function(index:longint):WideString of object;
   TGetWideStrProc=function():WideString of object;
@@ -3424,7 +3446,7 @@ begin
 end;
 
 
-Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
+procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
 type
   TSetWideStrProcIndex=procedure(index:longint;s:WideString) of object;
   TSetWideStrProc=procedure(s:WideString) of object;
@@ -3461,7 +3483,7 @@ begin
   end;
 end;
 
-Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
+function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
 
 begin
   Result:=GetUnicodeStrProp(Instance, FindPropInfo(Instance, PropName));
@@ -3475,7 +3497,7 @@ begin
 end;
 
 
-Function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeString;
+function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeString;
 
 type
   TGetUnicodeStrProcIndex=function(index:longint):UnicodeString of object;
@@ -3517,7 +3539,7 @@ begin
 end;
 
 
-Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
+procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
 
 type
   TSetUnicodeStrProcIndex=procedure(index:longint;s:UnicodeString) of object;
@@ -3729,7 +3751,7 @@ begin
 end;
 
 
-Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo; Value : Extended);
+procedure SetFloatProp(Instance: TObject; PropInfo: PPropInfo; Value: Extended);
 
 type
   TSetExtendedProc = procedure(const AValue: Extended) of object;
@@ -3807,7 +3829,7 @@ begin
 end;
 
 
-Procedure SetFloatProp(Instance: TObject; const PropName: string;  Value: Extended);
+procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended);
 begin
   SetFloatProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
@@ -3819,7 +3841,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+function GetMethodProp(Instance: TObject; PropInfo: PPropInfo): TMethod;
 
 type
   TGetMethodProcIndex=function(Index: Longint): TMethod of object;
@@ -3858,7 +3880,7 @@ begin
 end;
 
 
-Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo; const Value : TMethod);
+procedure SetMethodProp(Instance: TObject; PropInfo: PPropInfo; const Value: TMethod);
 
 type
   TSetMethodProcIndex=procedure(index:longint;p:TMethod) of object;
@@ -3890,13 +3912,13 @@ begin
 end;
 
 
-Function GetMethodProp(Instance: TObject; const PropName: string): TMethod;
+function GetMethodProp(Instance: TObject; const PropName: string): TMethod;
 begin
   Result:=GetMethodProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetMethodProp(Instance: TObject; const PropName: string;  const Value: TMethod);
+procedure SetMethodProp(Instance: TObject; const PropName: string; const Value: TMethod);
 begin
   SetMethodProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
@@ -3913,27 +3935,27 @@ begin
     Raise Exception.Create(SErrNoVariantSupport);
 end;
 
-Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+function GetVariantProp(Instance: TObject; PropInfo: PPropInfo): Variant;
 begin
   CheckVariantEvent(CodePointer(OnGetVariantProp));
   Result:=OnGetVariantProp(Instance,PropInfo);
 end;
 
 
-Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
+procedure SetVariantProp(Instance: TObject; PropInfo: PPropInfo; const Value: Variant);
 begin
   CheckVariantEvent(CodePointer(OnSetVariantProp));
   OnSetVariantProp(Instance,PropInfo,Value);
 end;
 
 
-Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
+function GetVariantProp(Instance: TObject; const PropName: string): Variant;
 begin
   Result:=GetVariantProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetVariantProp(Instance: TObject; const PropName: string;  const Value: Variant);
+procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
 begin
   SetVariantprop(instance,FindpropInfo(Instance,PropName),Value);
 end;
@@ -3943,36 +3965,36 @@ end;
   All properties through variant.
   ---------------------------------------------------------------------}
 
-Function GetPropValue(Instance: TObject; const PropName: string): Variant;
+function GetPropValue(Instance: TObject; const PropName: string): Variant;
 begin
   Result := GetPropValue(Instance,FindPropInfo(Instance, PropName));
 end;
 
-Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 
 begin
   Result := GetPropValue(Instance,FindPropInfo(Instance, PropName),PreferStrings);
 end;
 
-Function GetPropValue(Instance: TObject; PropInfo: PPropInfo): Variant;
+function GetPropValue(Instance: TObject; PropInfo: PPropInfo): Variant;
 begin
   Result := GetPropValue(Instance, PropInfo, True);
 end;
 
-Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
+function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
 
 begin
   CheckVariantEvent(CodePointer(OnGetPropValue));
   Result:=OnGetPropValue(Instance,PropInfo,PreferStrings);
 end;
 
-Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
+procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
 
 begin
   SetPropValue(Instance, FindPropInfo(Instance, PropName), Value);
 end;
 
-Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo;  const Value: Variant);
+procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant);
 
 begin
   CheckVariantEvent(CodePointer(OnSetPropValue));
@@ -3984,37 +4006,37 @@ end;
   Easy access methods that appeared in Delphi 5
   ---------------------------------------------------------------------}
 
-Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
+function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
 begin
   Result:=GetPropInfo(Instance,PropName)<>Nil;
 end;
 
-Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;
+function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;
 begin
   Result:=GetPropInfo(AClass,PropName)<>Nil;
 end;
 
-Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
+function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
 begin
   Result:=PropType(Instance,PropName)=TypeKind
 end;
 
-Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
+function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
 begin
   Result:=PropType(AClass,PropName)=TypeKind
 end;
 
-Function PropType(Instance: TObject; const PropName: string): TTypeKind;
+function PropType(Instance: TObject; const PropName: string): TTypeKind;
 begin
   Result:=FindPropInfo(Instance,PropName)^.PropType^.Kind;
 end;
 
-Function PropType(AClass: TClass; const PropName: string): TTypeKind;
+function PropType(AClass: TClass; const PropName: string): TTypeKind;
 begin
   Result:=FindPropInfo(AClass,PropName)^.PropType^.Kind;
 end;
 
-Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
+function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 begin
   Result:=IsStoredProp(instance,FindPropInfo(Instance,PropName));
 end;
@@ -4040,9 +4062,19 @@ end;
 
 { TRecordData }
 
+function TRecordData.GetExtendedFieldCount: Longint;
+begin
+  Result:= PLongint(PByte(@TotalFieldCount)+(TotalFieldCount*SizeOf(TManagedField)))^
+end;
+
 function TRecordData.GetExtendedFields: PExtendedFieldTable;
 begin
   Result:=PExtendedFieldTable(PByte(@TotalFieldCount)+SizeOf(Longint)+(TotalFieldCount*SizeOf(TManagedField)))
+end;
+
+function TRecordData.GetMethodTable: PRecordMethodTable;
+begin
+  Result:=PRecordMethodTable(PByte(GetExtendedFields)+ExtendedFieldCount*SizeOf(Pointer));
 end;
 
 { TVmtExtendedFieldTable }

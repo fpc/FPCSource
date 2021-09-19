@@ -53,6 +53,19 @@ Type
       Property RPublicB : Integer Read FRPublicA Write FRPublicB;
    end;
 
+  // Use different names, so we can distinguish RTTI in asm file...
+
+  { TRecordMethodRTTI }
+
+  TRecordMethodRTTI = record
+  private
+    Procedure PrivateMethodA;
+    Procedure PrivateMethodB;
+  Public
+    Procedure PublicMethodA;
+    Procedure PublicMethodB;
+   end;
+
   { TMethodClassRTTI }
 
   TMethodClassRTTI = Class (TObject)
@@ -301,6 +314,63 @@ begin
   FreeMem(A);
 end;
 
+procedure TestRecordMethods;
+
+Var
+  A : PExtendedMethodInfoTable;
+  aCount : Integer;
+
+begin
+  aCount:=GetMethodList(PTypeInfo(TypeInfo(TRecordMethodRTTI)),A,True,[]);
+  AssertEquals('Full Count',4,aCount);
+  CheckMethod('Full',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Full',1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod('Full',2, A^[2],'PublicMethodA',vcPublic);
+  CheckMethod('Full',3, A^[3],'PublicMethodB',vcPublic);
+  FreeMem(A);
+  aCount:=GetMethodList(PTypeInfo(TypeInfo(TRecordMethodRTTI)),A,False,[vcPrivate]);
+  AssertEquals('Private Count',2,aCount);
+  CheckMethod('Priv',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Priv',1, A^[1],'PrivateMethodB',vcPrivate);
+  FreeMem(A);
+  aCount:=GetMethodList(PTypeInfo(TypeInfo(TRecordMethodRTTI)),A,False,[vcProtected]);
+  AssertEquals('Protected Count',0,aCount);
+  if A<>Nil then
+   FreeMem(A);
+  aCount:=GetMethodList(PTypeInfo(TypeInfo(TRecordMethodRTTI)),A,False,[vcPublic]);
+  AssertEquals('Public Count',2,aCount);
+  CheckMethod('Publ',0, A^[0],'PublicMethodA',vcPublic);
+  CheckMethod('Publ',1, A^[1],'PublicMethodB',vcPublic);
+  FreeMem(A);
+  aCount:=GetMethodList(PTypeInfo(TypeInfo(TRecordMethodRTTI)),A,False,[vcPublished]);
+  AssertEquals('Published Count',0,aCount);
+  if A<>Nil then
+    FreeMem(A);
+end;
+
+
+{ TRecordMethodRTTI }
+
+procedure TRecordMethodRTTI.PrivateMethodA;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PrivateMethodB;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PublicMethodA;
+begin
+  //
+end;
+
+procedure TRecordMethodRTTI.PublicMethodB;
+begin
+  //
+end;
+
 { TMethodClassRTTI }
 
 procedure TMethodClassRTTI.PrivateMethodA;
@@ -344,9 +414,10 @@ begin
 end;
 
 begin
-  TestProperties;
+  // TestProperties;
   // TestClassFields;
   // TestRecordFields;
   // TestClassMethods;
+  TestRecordMethods;
 end.
 
