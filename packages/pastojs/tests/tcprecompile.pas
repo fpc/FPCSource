@@ -24,9 +24,8 @@ unit TCPrecompile;
 interface
 
 uses
-  Classes, SysUtils,
-  fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler, Pas2jsCompiler,
-  TCUnitSearch, TCModules;
+  Classes, SysUtils, fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler,
+  Pas2jsCompiler, Pas2JSUtils, TCUnitSearch, TCModules;
 
 type
 
