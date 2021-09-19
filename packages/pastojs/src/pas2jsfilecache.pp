@@ -65,7 +65,7 @@ type
   private
     FChangeStamp: TChangeStamp;
     FPath: string;
-    FEntries: TFPList; // list of TPas2jsCachedDirectoryEntry
+    FEntries: TFPList; // list of TPas2jsCachedDirectoryEntry, sorted first case insensitive then sensitive
     FPool: TPas2jsCachedDirectories;
     FRefCount: integer;
     FSorted: boolean;
@@ -78,6 +78,7 @@ type
     destructor Destroy; override;
     function Count: integer;
     procedure Clear;
+    procedure Invalidate; inline;
     property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;// set on Update to Pool.ChangeStamp
     function NeedsUpdate: boolean;
     procedure Update;
@@ -132,6 +133,7 @@ type
     destructor Destroy; override;
     property ChangeStamp: TChangeStamp read FChangeStamp;
     procedure Invalidate; inline;
+    procedure InvalidateDirectory(const aDirectory: string); virtual;
     procedure Clear;
     function DirectoryExists(Filename: string): boolean;
     function FileExists(Filename: string): boolean;
@@ -290,10 +292,9 @@ type
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
     function TryCreateRelativePath(const Filename, BaseDirectory: String;
       UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
-  Protected
-    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
   public
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
+    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property ForeignUnitPaths: TStringList read FForeignUnitPaths;
     property ResourcePaths : TStringList read FResourcePaths;
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
@@ -593,6 +594,11 @@ begin
   FSorted:=true;
 end;
 
+procedure TPas2jsCachedDirectory.Invalidate;
+begin
+  FChangeStamp:=InvalidChangeStamp;
+end;
+
 procedure TPas2jsCachedDirectory.Update;
 begin
   if not NeedsUpdate then exit;
@@ -890,7 +896,22 @@ end;
 
 procedure TPas2jsCachedDirectories.Invalidate;
 begin
-  IncreaseChangeStamp(FChangeStamp);
+  FChangeStamp:=IncreaseChangeStamp(FChangeStamp);
+end;
+
+procedure TPas2jsCachedDirectories.InvalidateDirectory(const aDirectory: string
+  );
+var
+  Dir: String;
+  CacheDir: TPas2jsCachedDirectory;
+begin
+  Dir:=ResolveDots(aDirectory);
+  if not FilenameIsAbsolute(Dir) then
+    Dir:=WorkingDirectory+Dir;
+  Dir:=IncludeTrailingPathDelimiter(Dir);
+  CacheDir:=TPas2jsCachedDirectory(FDirectories.FindKey(Pointer(Dir)));
+  if CacheDir=nil then exit;
+  CacheDir.Invalidate;
 end;
 
 procedure TPas2jsCachedDirectories.Clear;

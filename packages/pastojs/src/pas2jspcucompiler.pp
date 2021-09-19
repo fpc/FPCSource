@@ -240,7 +240,7 @@ function TFilerPCUSupport.FindPCU(const UseUnitName: string;
   end;
 
 var
-  L: TstringList;
+  L: TStringList;
   i: Integer;
 
 begin

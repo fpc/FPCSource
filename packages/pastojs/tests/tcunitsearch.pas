@@ -466,7 +466,7 @@ begin
   try
     try
       //writeln('TCustomTestCLI.Compile WorkDir=',WorkDir);
-      Compiler.Run(CompilerExe,WorkDir,Params,false);
+      Compiler.Run(CompilerExe,WorkDir,Params,true);
     except
       on E: ECompilerTerminate do
       begin
