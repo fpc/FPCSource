@@ -359,7 +359,7 @@ implementation
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
-        imports_count: Integer = 2;
+        imports_count: Integer;
       begin
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
@@ -393,6 +393,7 @@ implementation
 
         WriteUleb(FWasmSections[wsiDataCount],segment_count);
 
+        imports_count:=3;
         WriteUleb(FWasmSections[wsiImport],imports_count);
         { import[0] }
         WriteName(FWasmSections[wsiImport],'env');
@@ -406,6 +407,13 @@ implementation
         WriteByte(FWasmSections[wsiImport],$03);  { global }
         WriteByte(FWasmSections[wsiImport],$7F);  { i32 }
         WriteByte(FWasmSections[wsiImport],$01);  { var }
+        { import[imports_count-1] }
+        WriteName(FWasmSections[wsiImport],'env');
+        WriteName(FWasmSections[wsiImport],'__indirect_function_table');
+        WriteByte(FWasmSections[wsiImport],$01);  { table }
+        WriteByte(FWasmSections[wsiImport],$70);  { funcref }
+        WriteByte(FWasmSections[wsiImport],$00);  { min }
+        WriteUleb(FWasmSections[wsiImport],1);    { 1 }
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
