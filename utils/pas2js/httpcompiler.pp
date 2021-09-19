@@ -583,7 +583,9 @@ begin
     exit;
   Msg:=Format('(Proxy redirect) location: %s, Method: %s, From: %s, to: %s',[aLocation,aMethod,aFromURl,atoURL]);
   if IsConsole then
+    {AllowWriteln}
     Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',etInfo,'] ',Msg)
+    {AllowWriteln-}
   else
     inherited DoLog(etInfo, Msg);
 end;
