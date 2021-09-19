@@ -2406,6 +2406,9 @@ Var
 
 begin
   Handled:=true;
+  if aLibOptions<>'' then
+    ParamFatal('[20210919141030] linklib options not supported');
+
   Imp:=CreateImportStatement;
   Imp.NameSpaceImport:=aLibAlias;
   LibModuleName:=aLibName;
@@ -2420,10 +2423,10 @@ begin
   dmImp.Name:='$libimports';
   dmImp.MExpr:=pePas;
   dmAlias:=TJSDotMemberExpression.Create(0,0,'');
-  dmAlias.Name:=alibAlias;
+  dmAlias.Name:=TJSString(alibAlias);
   dmAlias.MExpr:=dmImp;
   peAlias:=TJSPrimaryExpressionIdent.Create(0,0,'');
-  peAlias.Name:=aLibAlias;
+  peAlias.Name:=TJSString(aLibAlias);
   // Put all together
   PasLib:=TJSSimpleAssignStatement.Create(0,0,'');
   PasLib.LHS:=dmAlias;
