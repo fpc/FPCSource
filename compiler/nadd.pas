@@ -992,83 +992,128 @@ implementation
              exit;
           end;
 
-        { optimize operations with real constants, but only if fast math is switched on as
-          the operations could change e.g. the sign of 0 so they cannot be optimized always
-        }
-        if (cs_opt_fastmath in current_settings.optimizerswitches) and
-          is_real(resultdef) then
+        if is_real(resultdef) then
           begin
-            if lt=realconstn then
+            if (nodetype=addn) then
               begin
-                if (trealconstnode(left).value_real=0) and (nodetype in [addn,muln,subn,slashn]) then
+                { -left+right => right-left,
+                  this operation is always valid }
+                if (left.nodetype=unaryminusn) then
+                  begin
+                    result:=caddnode.create(subn,right.getcopy,tunaryminusnode(left).left.getcopy);
+                    exit;
+                  end;
+
+                { left+(-right) => left-right,
+                  this operation is always valid }
+                if (right.nodetype=unaryminusn) then
+                  begin
+                    result:=caddnode.create(subn,left.getcopy,tunaryminusnode(right).left.getcopy);
+                    exit;
+                  end;
+              end;
+
+            { left-(-right) => left+right,
+              this operation is always valid }
+            if (nodetype=subn) and (right.nodetype=unaryminusn) then
+              begin
+                result:=caddnode.create(addn,left.getcopy,tunaryminusnode(right).left.getcopy);
+                exit;
+              end;
+
+            { (-left)*(-right) => left*right,
+              this operation is always valid }
+            if (nodetype=muln) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
+              begin
+                result:=caddnode.create(muln,tunaryminusnode(left).left.getcopy,tunaryminusnode(right).left.getcopy);
+                exit;
+              end;
+
+            { (-left)/(-right) => left/right,
+              this operation is always valid }
+            if (nodetype=slashn) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
+              begin
+                result:=caddnode.create(slashn,tunaryminusnode(left).left.getcopy,tunaryminusnode(right).left.getcopy);
+                exit;
+              end;
+
+            { optimize operations with real constants, but only if fast math is switched on as
+              the operations could change e.g. the sign of 0 so they cannot be optimized always
+            }
+            if is_real(resultdef) then
+              begin
+                if lt=realconstn then
+                  begin
+                    if (trealconstnode(left).value_real=0) and (nodetype in [addn,muln,subn,slashn]) then
+                      begin
+                        case nodetype of
+                          addn:
+                            begin
+                              result:=right.getcopy;
+                              exit;
+                            end;
+                          slashn,
+                          muln:
+                            if not(might_have_sideeffects(right,[mhs_exceptions])) then
+                              begin
+                                result:=left.getcopy;
+                                exit;
+                              end;
+                          subn:
+                            begin
+                              result:=ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
+                              exit;
+                            end;
+                          else
+                            Internalerror(2020060801);
+                        end;
+                      end
+                    else if (trealconstnode(left).value_real=1) and (nodetype=muln) then
+                      begin
+                        result:=right.getcopy;
+                        exit;
+                      end;
+                  end
+                else if rt=realconstn then
+                  begin
+                    if (trealconstnode(right).value_real=0) and (nodetype in [addn,muln,subn]) then
+                      begin
+                        case nodetype of
+                          subn,
+                          addn:
+                            begin
+                              result:=left.getcopy;
+                              exit;
+                            end;
+                          muln:
+                            if not(might_have_sideeffects(left,[mhs_exceptions])) then
+                              begin
+                                result:=right.getcopy;
+                                exit;
+                              end;
+                          else
+                            Internalerror(2020060802);
+                        end;
+                      end
+                    else if (trealconstnode(right).value_real=1) and (nodetype in [muln,slashn]) then
+                      begin
+                        result:=left.getcopy;
+                        exit;
+                      end;
+                  end
+                { optimize a/a and a-a }
+                else if (cs_opt_level2 in current_settings.optimizerswitches) and  (nodetype in [slashn,subn]) and
+                  left.isequal(right) and not(might_have_sideeffects(left,[mhs_exceptions])) then
                   begin
                     case nodetype of
-                      addn:
-                        begin
-                          result:=right.getcopy;
-                          exit;
-                        end;
-                      slashn,
-                      muln:
-                        if not(might_have_sideeffects(right,[mhs_exceptions])) then
-                          begin
-                            result:=left.getcopy;
-                            exit;
-                          end;
                       subn:
-                        begin
-                          result:=ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
-                          exit;
-                        end;
+                        result:=crealconstnode.create(0,left.resultdef);
+                      slashn:
+                        result:=crealconstnode.create(1,left.resultdef);
                       else
-                        Internalerror(2020060801);
+                        Internalerror(2020060901);
                     end;
-                  end
-                else if (trealconstnode(left).value_real=1) and (nodetype=muln) then
-                  begin
-                    result:=right.getcopy;
-                    exit;
                   end;
-              end
-            else if rt=realconstn then
-              begin
-                if (trealconstnode(right).value_real=0) and (nodetype in [addn,muln,subn]) then
-                  begin
-                    case nodetype of
-                      subn,
-                      addn:
-                        begin
-                          result:=left.getcopy;
-                          exit;
-                        end;
-                      muln:
-                        if not(might_have_sideeffects(left,[mhs_exceptions])) then
-                          begin
-                            result:=right.getcopy;
-                            exit;
-                          end;
-                      else
-                        Internalerror(2020060802);
-                    end;
-                  end
-                else if (trealconstnode(right).value_real=1) and (nodetype in [muln,slashn]) then
-                  begin
-                    result:=left.getcopy;
-                    exit;
-                  end;
-              end
-            { optimize a/a and a-a }
-            else if (cs_opt_level2 in current_settings.optimizerswitches) and  (nodetype in [slashn,subn]) and
-              left.isequal(right) and not(might_have_sideeffects(left,[mhs_exceptions])) then
-              begin
-                case nodetype of
-                  subn:
-                    result:=crealconstnode.create(0,left.resultdef);
-                  slashn:
-                    result:=crealconstnode.create(1,left.resultdef);
-                  else
-                    Internalerror(2020060901);
-                end;
               end;
           end;
 
