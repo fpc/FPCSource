@@ -45,6 +45,7 @@ interface
       TWasmObjSection = class(TObjSection)
       public
         SegIdx: Integer;
+        SegOfs: qword;
         function IsCode: Boolean;
         function IsData: Boolean;
       end;
@@ -68,7 +69,11 @@ interface
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
+        procedure WriteSleb(d: tdynamicarray; v: int64);
+        procedure WriteByte(d: tdynamicarray; b: byte);
+        procedure WriteName(d: tdynamicarray; const s: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
+        procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -294,6 +299,33 @@ implementation
         until v=0;
       end;
 
+    procedure TWasmObjOutput.WriteSleb(d: tdynamicarray; v: int64);
+      var
+        b: byte;
+        Done: Boolean=false;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=SarInt64(v,7);
+          if ((v=0) and ((b and 64)=0)) or ((v=-1) and ((b and 64)<>0)) then
+            Done:=true
+          else
+            b:=b or 128;
+          d.write(b,1);
+        until Done;
+      end;
+
+    procedure TWasmObjOutput.WriteByte(d: tdynamicarray; b: byte);
+      begin
+        d.write(b,1);
+      end;
+
+    procedure TWasmObjOutput.WriteName(d: tdynamicarray; const s: string);
+      begin
+        WriteUleb(d,Length(s));
+        d.writestr(s);
+      end;
+
     procedure TWasmObjOutput.WriteWasmSection(wsid: TWasmSectionID);
       var
         b: byte;
@@ -304,11 +336,30 @@ implementation
         Writer.writearray(FWasmSections[wsid]);
       end;
 
+    procedure TWasmObjOutput.CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
+      var
+        buf: array [0..4095] of byte;
+        bs: Integer;
+      begin
+        while size>0 do
+          begin
+            if size<SizeOf(buf) then
+              bs:=Integer(size)
+            else
+              bs:=SizeOf(buf);
+            src.read(buf,bs);
+            dest.write(buf,bs);
+            dec(size,bs);
+          end;
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
+        cur_seg_ofs: qword = 0;
+        imports_count: Integer = 1;
       begin
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
@@ -318,16 +369,43 @@ implementation
             else
               begin
                 objsec.SegIdx:=segment_count;
+                objsec.SegOfs:=cur_seg_ofs;
                 Inc(segment_count);
+                Inc(cur_seg_ofs,objsec.Size);
+              end;
+          end;
+
+        WriteUleb(FWasmSections[wsiData],segment_count);
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+            if objsec.IsData then
+              begin
+                WriteByte(FWasmSections[wsiData],0);
+                WriteByte(FWasmSections[wsiData],$41);
+                WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
+                WriteByte(FWasmSections[wsiData],$0b);
+                WriteUleb(FWasmSections[wsiData],objsec.Size);
+                objsec.Data.seek(0);
+                CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
               end;
           end;
 
         WriteUleb(FWasmSections[wsiDataCount],segment_count);
 
+        WriteUleb(FWasmSections[wsiImport],imports_count);
+        WriteName(FWasmSections[wsiImport],'env');
+        WriteName(FWasmSections[wsiImport],'__linear_memory');
+        WriteByte(FWasmSections[wsiImport],$02);
+        WriteByte(FWasmSections[wsiImport],$00);
+        WriteUleb(FWasmSections[wsiImport],1);
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
+        WriteWasmSection(wsiImport);
         WriteWasmSection(wsiDataCount);
+        WriteWasmSection(wsiData);
 
         Writeln('ObjSectionList:');
         for i:=0 to Data.ObjSectionList.Count-1 do
