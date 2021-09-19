@@ -821,7 +821,11 @@ unit i_embed;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
+{$ifdef WASM32_INTERNALASM}
+            assem        : as_wasm32_wasm;
+{$else WASM32_INTERNALASM}
             assem        : as_wasm32_llvm_mc;
+{$endif WASM32_INTERNALASM}
             assemextern  : as_wasm32_llvm_mc;
             link         : ld_none;
             linkextern   : ld_embedded;

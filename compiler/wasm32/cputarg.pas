@@ -48,6 +48,7 @@ implementation
       ,agwat
       ,agbinaryen
       ,agllvmmc
+      ,ogwasm
 
 {**************************************
         Assembler Readers
