@@ -2232,7 +2232,7 @@ type
                                         begin
                                           result.free;
                                           result:=nil;
-                                          // TODO: better error?
+                                          // TODO(ryan): better error?
                                           Message(scan_e_error_in_preproc_expr);
                                         end;
                                     if result<>nil then
@@ -2250,7 +2250,7 @@ type
                                         begin
                                           result.free;
                                           result:=nil;
-                                          // TODO: better error?
+                                          // TODO(ryan): better error?
                                           Message(scan_e_error_in_preproc_expr);
                                         end;
                                     if result<>nil then
@@ -2268,7 +2268,7 @@ type
                           begin
                             result.free;
                             result:=nil;
-                            // TODO: better error?
+                            // TODO(ryan): better error?
                             Message(scan_e_error_in_preproc_expr);
                           end;
                       end
@@ -2307,6 +2307,13 @@ type
                    (conform_to.typ=setdef) and 
                    (exprvalue.consttyp=constnone) then
                    begin
+                     result:=texprvalue.create_error;
+                     break;
+                   end;
+                 { reject duplicate enums in the set }
+                 if exprvalue.asInt in ns then
+                   begin
+                     Message1(sym_e_duplicate_id,current_scanner.preproc_pattern);
                      result:=texprvalue.create_error;
                      break;
                    end;

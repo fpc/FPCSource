@@ -1067,7 +1067,6 @@ implementation
                     { write visiblity flags for extended RTTI }
                     maybe_add_comment(tcb,#9'visibility flags');
                     tcb.emit_ord_const(byte(visibility_to_rtti(sym.visibility)),u8inttype);
-                    // TODO: for published properties write a label to the existing legacy table
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
                     tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
@@ -1080,7 +1079,6 @@ implementation
                     { write the pointer to the prop info }
                     maybe_add_comment(tcb,#9'property info reference');
                     tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
-                    // TODO: there is supposed to be an attribute table (TAttrData) here?
                     { end record }
                     tcb.end_anonymous_record;
                     maybe_add_comment(tcb,'RTTI: "end property '+sym.prettyname);

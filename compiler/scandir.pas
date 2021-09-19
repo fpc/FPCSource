@@ -1350,18 +1350,7 @@ unit scandir;
           result:=[];
           sym:=search_system_type('TVISIBILITYCLASSES');
           if current_scanner.readpreprocset(tsetdef(sym.typedef),value,'RTTI') then
-            begin
-              result:=prtti_visibilities(@value)^;
-              // TODO: testing the directive, remove later
-              //if rv_private in result then
-              //  writeln('🐟 vcPrivate');
-              //if rv_protected in result then
-              //  writeln('🐟 vcProtected');
-              //if rv_public in result then
-              //  writeln('🐟 vcPublic');
-              //if rv_published in result then
-              //  writeln('🐟 vcPublished');
-            end;
+            result:=prtti_visibilities(@value)^;
         end;
 
       var
