@@ -360,6 +360,7 @@ implementation
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
         imports_count: Integer;
+        objsym: TObjSymbol;
       begin
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
@@ -421,6 +422,13 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiData);
+
+        Writeln('ObjSymbolList:');
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            Writeln(objsym.Name, ' bind=', objsym.Bind);
+          end;
 
         Writeln('ObjSectionList:');
         for i:=0 to Data.ObjSectionList.Count-1 do
