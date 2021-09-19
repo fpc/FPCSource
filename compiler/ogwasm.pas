@@ -27,7 +27,7 @@ interface
 
     uses
       { common }
-      globtype,
+      cclasses,globtype,
       { target }
       systems,
       { assembler }
@@ -64,10 +64,16 @@ interface
       { TWasmObjOutput }
 
       TWasmObjOutput = class(tObjOutput)
+      private
+        FWasmSections: array [TWasmSectionID] of tdynamicarray;
+        procedure WriteUleb(d: tdynamicarray; v: uint64);
+        procedure WriteUleb(w: TObjectWriter; v: uint64);
+        procedure WriteWasmSection(wsid: TWasmSectionID);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
         constructor create(AWriter:TObjectWriter);override;
+        destructor destroy;override;
       end;
 
       { TWasmAssembler }
@@ -262,6 +268,42 @@ implementation
                                TWasmObjOutput
 ****************************************************************************}
 
+    procedure TWasmObjOutput.WriteUleb(d: tdynamicarray; v: uint64);
+      var
+        b: byte;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          d.write(b,1);
+        until v=0;
+      end;
+
+    procedure TWasmObjOutput.WriteUleb(w: TObjectWriter; v: uint64);
+      var
+        b: byte;
+      begin
+        repeat
+          b:=byte(v) and 127;
+          v:=v shr 7;
+          if v<>0 then
+            b:=b or 128;
+          w.write(b,1);
+        until v=0;
+      end;
+
+    procedure TWasmObjOutput.WriteWasmSection(wsid: TWasmSectionID);
+      var
+        b: byte;
+      begin
+        b:=ord(wsid);
+        Writer.write(b,1);
+        WriteUleb(Writer,FWasmSections[wsid].size);
+        Writer.writearray(FWasmSections[wsid]);
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
@@ -280,8 +322,12 @@ implementation
               end;
           end;
 
+        WriteUleb(FWasmSections[wsiDataCount],segment_count);
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
+
+        WriteWasmSection(wsiDataCount);
 
         Writeln('ObjSectionList:');
         for i:=0 to Data.ObjSectionList.Count-1 do
@@ -294,9 +340,22 @@ implementation
       end;
 
     constructor TWasmObjOutput.create(AWriter: TObjectWriter);
+      var
+        i: TWasmSectionID;
       begin
         inherited;
         cobjdata:=TWasmObjData;
+        for i in TWasmSectionID do
+          FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
+      end;
+
+    destructor TWasmObjOutput.destroy;
+      var
+        i: TWasmSectionID;
+      begin
+        for i in TWasmSectionID do
+          FWasmSections[i].Free;
+        inherited destroy;
       end;
 
 {****************************************************************************
