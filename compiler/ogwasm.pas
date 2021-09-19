@@ -359,7 +359,7 @@ implementation
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
-        imports_count: Integer = 1;
+        imports_count: Integer = 2;
       begin
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
@@ -394,11 +394,18 @@ implementation
         WriteUleb(FWasmSections[wsiDataCount],segment_count);
 
         WriteUleb(FWasmSections[wsiImport],imports_count);
+        { import[0] }
         WriteName(FWasmSections[wsiImport],'env');
         WriteName(FWasmSections[wsiImport],'__linear_memory');
-        WriteByte(FWasmSections[wsiImport],$02);
-        WriteByte(FWasmSections[wsiImport],$00);
-        WriteUleb(FWasmSections[wsiImport],1);
+        WriteByte(FWasmSections[wsiImport],$02);  { mem }
+        WriteByte(FWasmSections[wsiImport],$00);  { min }
+        WriteUleb(FWasmSections[wsiImport],1);    { 1 page }
+        { import[1] }
+        WriteName(FWasmSections[wsiImport],'env');
+        WriteName(FWasmSections[wsiImport],'__stack_pointer');
+        WriteByte(FWasmSections[wsiImport],$03);  { global }
+        WriteByte(FWasmSections[wsiImport],$7F);  { i32 }
+        WriteByte(FWasmSections[wsiImport],$01);  { var }
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
