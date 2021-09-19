@@ -527,6 +527,27 @@ implementation
                     internalerror(2021092008);
                 end;
             end;
+          a_global_get,
+          a_global_set:
+            begin
+              if ops<>1 then
+                internalerror(2021092010);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) then
+                        internalerror(2021092012);
+                      if (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092013);
+                      if ref^.symbol.Name<>'__stack_pointer' then
+                        internalerror(2021092014);
+                      result:=1+UlebSize(0);
+                    end;
+                  else
+                    internalerror(2021092011);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -903,6 +924,35 @@ implementation
                     end;
                   else
                     internalerror(2021092008);
+                end;
+            end;
+          a_global_get,
+          a_global_set:
+            begin
+              case opcode of
+                a_global_get:
+                  WriteByte($23);
+                a_global_set:
+                  WriteByte($24);
+                else
+                  internalerror(2021092009);
+              end;
+              if ops<>1 then
+                internalerror(2021092010);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) then
+                        internalerror(2021092012);
+                      if (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092013);
+                      if ref^.symbol.Name<>'__stack_pointer' then
+                        internalerror(2021092014);
+                      WriteUleb(0);
+                    end;
+                  else
+                    internalerror(2021092011);
                 end;
             end;
           else
