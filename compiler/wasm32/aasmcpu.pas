@@ -550,6 +550,17 @@ implementation
             end;
           a_end_function:
             result:=0;
+          a_block:
+            begin
+              if ops=0 then
+                result:=2
+              else
+                begin
+                  if ops<>1 then
+                    internalerror(2021092015);
+                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -959,6 +970,18 @@ implementation
             end;
           a_end_function:
             ;
+          a_block:
+            begin
+              WriteByte($02);
+              if ops=0 then
+                WriteByte($40)
+              else
+                begin
+                  if ops<>1 then
+                    internalerror(2021092015);
+                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass2: ', opcode);
         end;
