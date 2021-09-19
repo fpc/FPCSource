@@ -43,6 +43,9 @@ interface
       { TWasmObjSection }
 
       TWasmObjSection = class(TObjSection)
+      public
+        function IsCode: Boolean;
+        function IsData: Boolean;
       end;
 
       { TWasmObjData }
@@ -73,6 +76,23 @@ interface
       end;
 
 implementation
+
+{****************************************************************************
+                              TWasmObjSection
+****************************************************************************}
+
+    function TWasmObjSection.IsCode: Boolean;
+      const
+        CodePrefix = '.text';
+      begin
+        result:=(Length(Name)>=Length(CodePrefix)) and
+          (Copy(Name,1,Length(CodePrefix))=CodePrefix);
+      end;
+
+    function TWasmObjSection.IsData: Boolean;
+      begin
+        result:=not IsCode;
+      end;
 
 {****************************************************************************
                                 TWasmObjData
@@ -244,7 +264,7 @@ implementation
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
-        objsec: TObjSection;
+        objsec: TWasmObjSection;
       begin
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
@@ -252,8 +272,8 @@ implementation
         Writeln('ObjSectionList:');
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
-            objsec:=TObjSection(Data.ObjSectionList[i]);
-            Writeln(objsec.Name, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos);
+            objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos);
           end;
 
         result:=true;
