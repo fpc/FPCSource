@@ -1009,6 +1009,7 @@ end;
 
 procedure TJSWriter.WriteDebuggerStatement(E: TJSDebuggerStatement);
 begin
+  if E=nil then ;
   Write('debugger');
 end;
 
