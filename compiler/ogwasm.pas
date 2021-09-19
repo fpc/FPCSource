@@ -230,9 +230,20 @@ implementation
 ****************************************************************************}
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
+      var
+        i: Integer;
+        objsec: TObjSection;
       begin
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
+
+        Writeln('ObjSectionList:');
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(Data.ObjSectionList[i]);
+            Writeln(objsec.Name, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos);
+          end;
+
         result:=true;
       end;
 
