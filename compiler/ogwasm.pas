@@ -229,7 +229,9 @@ implementation
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       begin
-        result:=false;
+        Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
+        Writer.write(WasmVersion,SizeOf(WasmVersion));
+        result:=true;
       end;
 
     constructor TWasmObjOutput.create(AWriter: TObjectWriter);
