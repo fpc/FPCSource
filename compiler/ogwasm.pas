@@ -44,6 +44,7 @@ interface
 
       TWasmObjSection = class(TObjSection)
       public
+        SegIdx: Integer;
         function IsCode: Boolean;
         function IsData: Boolean;
       end;
@@ -265,7 +266,20 @@ implementation
       var
         i: Integer;
         objsec: TWasmObjSection;
+        segment_count: Integer = 0;
       begin
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+            if objsec.IsCode then
+              objsec.SegIdx:=-1
+            else
+              begin
+                objsec.SegIdx:=segment_count;
+                Inc(segment_count);
+              end;
+          end;
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
@@ -273,7 +287,7 @@ implementation
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
             objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos);
+            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos, ' SegIdx=', objsec.SegIdx);
           end;
 
         result:=true;
