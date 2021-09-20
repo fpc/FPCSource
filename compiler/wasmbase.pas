@@ -65,6 +65,12 @@ type
     R_WASM_TABLE_INDEX_I64     = 19,
     R_WASM_TABLE_NUMBER_LEB    = 20);
 
+  TWasmLinkingSubsectionType = (
+    WASM_SEGMENT_INFO = 5,
+    WASM_INIT_FUNCS   = 6,
+    WASM_COMDAT_INFO  = 7,
+    WASM_SYMBOL_TABLE = 8);
+
 implementation
 
 end.
