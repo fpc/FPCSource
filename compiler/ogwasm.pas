@@ -29,9 +29,9 @@ interface
       { common }
       cclasses,globtype,
       { target }
-      systems,
+      systems,cpubase,
       { assembler }
-      aasmbase,assemble,
+      aasmbase,assemble,aasmcpu,
       { WebAssembly module format definitions }
       wasmbase,
       { output }
@@ -54,12 +54,16 @@ interface
 
       TWasmObjData = class(TObjData)
       private
+        FFuncTypes: array of TWasmFuncType;
+
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       public
         constructor create(const n:string);override;
+        destructor destroy; override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        procedure DeclareFuncType(ft: tai_functype);
       end;
 
       { TWasmObjOutput }
@@ -75,6 +79,8 @@ interface
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
         procedure WriteZeros(dest: tdynamicarray; size: QWord);
+        procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
+        procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -89,6 +95,9 @@ interface
       end;
 
 implementation
+
+    uses
+      verbose;
 
 {****************************************************************************
                               TWasmObjSection
@@ -257,6 +266,18 @@ implementation
         CObjSection:=TWasmObjSection;
       end;
 
+    destructor TWasmObjData.destroy;
+      var
+        i: Integer;
+      begin
+        for i:=low(FFuncTypes) to high(FFuncTypes) do
+          begin
+            FFuncTypes[i].free;
+            FFuncTypes[i]:=nil;
+          end;
+        inherited destroy;
+      end;
+
     function TWasmObjData.sectionname(atype: TAsmSectiontype;
         const aname: string; aorder: TAsmSectionOrder): string;
       begin
@@ -268,6 +289,14 @@ implementation
     procedure TWasmObjData.writeReloc(Data: TRelocDataInt; len: aword;
         p: TObjSymbol; Reloctype: TObjRelocationType);
       begin
+      end;
+
+    procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
+      begin
+        { todo: check and avoid adding duplicates }
+
+        SetLength(FFuncTypes,Length(FFuncTypes)+1);
+        FFuncTypes[High(FFuncTypes)]:=TWasmFuncType.Create(ft.functype);
       end;
 
 {****************************************************************************
@@ -371,15 +400,51 @@ implementation
           end;
       end;
 
+    procedure TWasmObjOutput.WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
+      var
+        i: Integer;
+      begin
+        WriteUleb(dest,Length(wrt));
+        for i:=low(wrt) to high(wrt) do
+          WriteWasmBasicType(dest,wrt[i]);
+      end;
+
+    procedure TWasmObjOutput.WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
+      begin
+        case wbt of
+          wbt_i32:
+            WriteByte(dest,$7F);
+          wbt_i64:
+            WriteByte(dest,$7E);
+          wbt_f32:
+            WriteByte(dest,$7D);
+          wbt_f64:
+            WriteByte(dest,$7C);
+          else
+            internalerror(2021092020);
+        end;
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
+        types_count,
         imports_count: Integer;
         objsym: TObjSymbol;
       begin
+        types_count:=Length(TWasmObjData(Data).FFuncTypes);
+        WriteUleb(FWasmSections[wsiType],types_count);
+        for i:=0 to types_count-1 do
+          with TWasmObjData(Data).FFuncTypes[i] do
+            begin
+              WriteByte(FWasmSections[wsiType],$60);
+              WriteWasmResultType(FWasmSections[wsiType],params);
+              WriteWasmResultType(FWasmSections[wsiType],results);
+            end;
+
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
             objsec:=TWasmObjSection(Data.ObjSectionList[i]);
@@ -444,6 +509,7 @@ implementation
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
+        WriteWasmSection(wsiType);
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiData);

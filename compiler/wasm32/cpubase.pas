@@ -97,6 +97,7 @@ uses
         params: TWasmResultType;
         results: TWasmResultType;
         constructor Create(aparams, aresults: TWasmResultType);
+        constructor Create(afunctype: TWasmFuncType);
         procedure add_param(param: TWasmBasicType);
         procedure add_result(res: TWasmBasicType);
       end;
@@ -402,6 +403,13 @@ uses
         inherited Create;
         params:=aparams;
         results:=aresults;
+      end;
+
+    constructor TWasmFuncType.Create(afunctype: TWasmFuncType);
+      begin
+        inherited Create;
+        params:=afunctype.params;
+        results:=afunctype.results;
       end;
 
     procedure TWasmFuncType.add_param(param: TWasmBasicType);

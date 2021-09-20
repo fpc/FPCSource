@@ -270,6 +270,9 @@ Implementation
       sfpux80,
 {$endif FPC_SOFT_FPUX80}
 {$endif}
+{$ifdef WASM}
+      ogwasm,
+{$endif WASM}
       cscript,fmodule,verbose,
       cpubase,cpuinfo,triplet,
       aasmcpu;
@@ -1831,6 +1834,10 @@ Implementation
                      Internalerror(2019100701);
                  end;
                end;
+{$ifdef WASM}
+             ait_functype:
+               TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
+{$endif WASM}
              else
                ;
            end;
