@@ -45,6 +45,26 @@ type
     wsiData      = 11,
     wsiDataCount = 12);
 
+  TWasmRelocationType = (
+    R_WASM_FUNCTION_INDEX_LEB  = 0,
+    R_WASM_TABLE_INDEX_SLEB    = 1,
+    R_WASM_TABLE_INDEX_I32     = 2,
+    R_WASM_MEMORY_ADDR_LEB     = 3,
+    R_WASM_MEMORY_ADDR_SLEB    = 4,
+    R_WASM_MEMORY_ADDR_I32     = 5,
+    R_WASM_TYPE_INDEX_LEB      = 6,
+    R_WASM_GLOBAL_INDEX_LEB    = 7,
+    R_WASM_FUNCTION_OFFSET_I32 = 8,
+    R_WASM_SECTION_OFFSET_I32  = 9,
+    R_WASM_EVENT_INDEX_LEB     = 10,
+    R_WASM_GLOBAL_INDEX_I32    = 13,
+    R_WASM_MEMORY_ADDR_LEB64   = 14,
+    R_WASM_MEMORY_ADDR_SLEB64  = 15,
+    R_WASM_MEMORY_ADDR_I64     = 16,
+    R_WASM_TABLE_INDEX_SLEB64  = 18,
+    R_WASM_TABLE_INDEX_I64     = 19,
+    R_WASM_TABLE_NUMBER_LEB    = 20);
+
 implementation
 
 end.
