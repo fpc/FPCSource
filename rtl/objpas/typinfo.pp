@@ -4112,8 +4112,8 @@ Var
 
 begin
   MT:=GetMethodTable;
-  if MT^.Count=0 then
-    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.Count))+SizeOf(Word)))
+  if MT^.Count0=0 then
+    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.Count0))+SizeOf(Word)))
   else
     Result:=PPropDataEx(MT^.Method[MT^.Count-1]^.Tail);
 end;

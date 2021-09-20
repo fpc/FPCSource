@@ -51,7 +51,21 @@ Type
       FRPublicB: Integer;
       Property RPublicA : Integer Read FRPublicA Write FRPublicA;
       Property RPublicB : Integer Read FRPublicA Write FRPublicB;
-    Procedure DoA;
+
+   end;
+
+  TRecordFieldRTTIMixed = record
+    private
+      FRPrivateA: Integer;
+      FRPrivateB: Integer;
+      Property RPrivateA : Integer Read FRPrivateA Write FRPrivateA;
+      Property RPrivateB : Integer Read FRPrivateB Write FRPrivateB;
+    Public
+      FRPublicA: Integer;
+      FRPublicB: Integer;
+      Property RPublicA : Integer Read FRPublicA Write FRPublicA;
+      Property RPublicB : Integer Read FRPublicA Write FRPublicB;
+      Procedure DoA;
    end;
   // Use different names, so we can distinguish RTTI in asm file...
 
@@ -174,6 +188,16 @@ Var
 
 begin
   aCount:=GetPropListEx(TypeInfo(TRecordFieldRTTI),A);
+  try
+    AssertEquals('Count',4,aCount);
+    CheckProperty(0, A^[0]^,'RPrivateA',tkInteger,vcPrivate);
+    CheckProperty(1, A^[1]^,'RPrivateB',tkInteger,vcPrivate);
+    CheckProperty(2, A^[2]^,'RPublicA',tkInteger,vcPublic);
+    CheckProperty(3, A^[3]^,'RPublicB',tkInteger,vcPublic);
+  finally
+    Freemem(A);
+  end;
+  aCount:=GetPropListEx(TypeInfo(TRecordFieldRTTIMixed),A);
   try
     AssertEquals('Count',4,aCount);
     CheckProperty(0, A^[0]^,'RPrivateA',tkInteger,vcPrivate);
@@ -434,7 +458,8 @@ begin
   //
 end;
 
-Procedure TRecordFieldRTTI.DoA;
+
+Procedure TRecordFieldRTTIMixed.DoA;
 
 begin
 //
@@ -442,11 +467,11 @@ end;
 
 
 begin
-  TestProperties;
+{  TestProperties;
   TestClassFields;
   TestClassMethods;
-  TestRecordFields;
+  TestRecordFields;}
   TestRecordProperties;
-  TestRecordMethods;
+//  TestRecordMethods;
 end.
 
