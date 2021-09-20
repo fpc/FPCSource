@@ -420,8 +420,6 @@ implementation
             WriteByte(dest,$7D);
           wbt_f64:
             WriteByte(dest,$7C);
-          else
-            internalerror(2021092020);
         end;
       end;
 
