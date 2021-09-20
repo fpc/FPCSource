@@ -585,6 +585,22 @@ implementation
                     internalerror(2021092017);
                 end;
             end;
+          a_call:
+            begin
+              if ops<>1 then
+                internalerror(2021092021);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092023);
+                      result:=6;
+                    end;
+                  else
+                    internalerror(2021092022);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -1035,6 +1051,23 @@ implementation
                     end;
                   else
                     internalerror(2021092017);
+                end;
+            end;
+          a_call:
+            begin
+              if ops<>1 then
+                internalerror(2021092021);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092023);
+                      WriteByte($10);
+                      objdata.writeReloc(0,5,ObjData.symbolref(ref^.symbol),RELOC_FUNCTION_INDEX_LEB);
+                    end;
+                  else
+                    internalerror(2021092022);
                 end;
             end;
           else
