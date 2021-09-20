@@ -292,8 +292,12 @@ implementation
       end;
 
     procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
+      var
+        i: Integer;
       begin
-        { todo: check and avoid adding duplicates }
+        for i:=low(FFuncTypes) to high(FFuncTypes) do
+          if ft.functype.Equals(FFuncTypes[i]) then
+            exit;
 
         SetLength(FFuncTypes,Length(FFuncTypes)+1);
         FFuncTypes[High(FFuncTypes)]:=TWasmFuncType.Create(ft.functype);
