@@ -518,7 +518,12 @@ implementation
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
-            Writeln(objsym.Name, ' bind=', objsym.Bind);
+            Write(objsym.Name, ' bind=', objsym.Bind, ' typ=', objsym.typ, ' address=', objsym.address, ' objsection=');
+            if assigned(objsym.objsection) then
+              Write(objsym.objsection.Name)
+            else
+              Write('nil');
+            Writeln;
           end;
 
         Writeln('ObjSectionList:');
