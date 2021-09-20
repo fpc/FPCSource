@@ -561,6 +561,30 @@ implementation
                   Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
                 end;
             end;
+          a_i32_store,
+          a_i32_load:
+            begin
+              if ops<>1 then
+                internalerror(2021092016);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' symbol ', ref^.symbol.Name, '+', ref^.offset)
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          Result:=1+
+                            UlebSize(2)+  { alignment: 1 shl 2 }
+                            UlebSize(ref^.offset);
+                        end;
+                    end;
+                  else
+                    internalerror(2021092017);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -980,6 +1004,37 @@ implementation
                   if ops<>1 then
                     internalerror(2021092015);
                   Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                end;
+            end;
+          a_i32_store,
+          a_i32_load:
+            begin
+              case opcode of
+                a_i32_store:
+                  WriteByte($36);
+                a_i32_load:
+                  WriteByte($28);
+                else
+                  internalerror(2021092019);
+              end;
+              if ops<>1 then
+                internalerror(2021092016);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' symbol ', ref^.symbol.Name, '+', ref^.offset)
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          WriteUleb(2);  { alignment: 1 shl 2 }
+                          WriteUleb(ref^.offset);
+                        end;
+                    end;
+                  else
+                    internalerror(2021092017);
                 end;
             end;
           else
