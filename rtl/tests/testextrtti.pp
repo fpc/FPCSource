@@ -51,8 +51,8 @@ Type
       FRPublicB: Integer;
       Property RPublicA : Integer Read FRPublicA Write FRPublicA;
       Property RPublicB : Integer Read FRPublicA Write FRPublicB;
+    Procedure DoA;
    end;
-
   // Use different names, so we can distinguish RTTI in asm file...
 
   { TRecordMethodRTTI }
@@ -165,6 +165,26 @@ begin
     Freemem(A);
   end;
 end;
+
+Procedure TestRecordProperties;
+
+Var
+  A : PPropListEx;
+  aCount : Integer;
+
+begin
+  aCount:=GetPropListEx(TypeInfo(TRecordFieldRTTI),A);
+  try
+    AssertEquals('Count',4,aCount);
+    CheckProperty(0, A^[0]^,'RPrivateA',tkInteger,vcPrivate);
+    CheckProperty(1, A^[1]^,'RPrivateB',tkInteger,vcPrivate);
+    CheckProperty(2, A^[2]^,'RPublicA',tkInteger,vcPublic);
+    CheckProperty(3, A^[3]^,'RPublicB',tkInteger,vcPublic);
+  finally
+    Freemem(A);
+  end;
+end;
+
 
 Procedure CheckField(aIdx : Integer; aData: PExtendedVmtFieldEntry; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass);
 
@@ -393,6 +413,7 @@ begin
   //
 end;
 
+
 procedure TMethodClassRTTI.PublicMethodA;
 begin
   //
@@ -413,11 +434,19 @@ begin
   //
 end;
 
+Procedure TRecordFieldRTTI.DoA;
+
 begin
-  // TestProperties;
-  // TestClassFields;
-  // TestRecordFields;
-  // TestClassMethods;
+//
+end;
+
+
+begin
+  TestProperties;
+  TestClassFields;
+  TestClassMethods;
+  TestRecordFields;
+  TestRecordProperties;
   TestRecordMethods;
 end.
 

@@ -711,6 +711,7 @@ unit TypInfo;
             PropCount : SmallInt;
             UnitNameField : ShortString;
             { PropertyTable: TPropData }
+            { ExRTTITable: TPropDataex }
           );
           { include for proper alignment }
           tkInt64: (
@@ -734,6 +735,7 @@ unit TypInfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
+        function GetExPropertyTable: PPropDataEx;
         function GetExtendedFieldCount: Longint;
         Function GetExtendedFields : PExtendedFieldTable;
         Function GetMethodTable : PRecordMethodTable;
@@ -741,6 +743,7 @@ unit TypInfo;
         Property ExtendedFields : PExtendedFieldTable Read GetExtendedFields;
         Property ExtendedFieldCount : Longint Read GetExtendedFieldCount;
         property MethodTable: PRecordMethodTable read GetMethodTable;
+        property ExRTTITable: PPropDataEx read GetExPropertyTable;
       public
         {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
@@ -759,6 +762,7 @@ unit TypInfo;
           { ExtendedFieldsCount : Longint }
           { ExtendedFields: Array[0..ExtendedFieldsCount-1] of PExtendedFieldEntry }
           { MethodTable : TRecordMethodTable }
+          { Properties }
         );
       end;
 
@@ -1971,8 +1975,7 @@ begin
   end;
 end;
 
-
-function GetPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities: TVisibilityClasses): Integer;
+function GetClassPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities: TVisibilityClasses): Integer;
 
 Var
   TD : PPropDataEx;
@@ -2005,6 +2008,43 @@ begin
   until TypeInfo=nil;
 end;
 
+
+function GetRecordPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities: TVisibilityClasses): Integer;
+
+Var
+  TD : PPropDataEx;
+  TP : PPropListEx;
+  Offset,I,Count : Longint;
+
+begin
+  Result:=0;
+  // Clear list
+  TD:=PRecordData(GetTypeData(TypeInfo))^.ExRTTITable;
+  Count:=TD^.PropCount;
+  // Now point TP to first propinfo record.
+  Inc(Pointer(TP),SizeOF(Word));
+  tp:=aligntoptr(tp);
+  For I:=0 to Count-1 do
+    if ([]=Visibilities) or (TVisibilityClass(PropList^[Result]^.Flags) in Visibilities) then
+      begin
+      // When passing nil, we just need the count
+      if Assigned(PropList) then
+        PropList^[Result]:=TD^.Prop[i];
+      Inc(Result);
+      end;
+end;
+
+
+function GetPropInfosEx(TypeInfo: PTypeInfo; PropList: PPropListEx; Visibilities: TVisibilityClasses): Integer;
+
+begin
+  if TypeInfo^.Kind=tkClass then
+    Result:=GetClassPropInfosEx(TypeInfo,PropList,Visibilities)
+  else if TypeInfo^.Kind=tkRecord then
+    Result:=GetRecordPropInfosEx(TypeInfo,PropList,Visibilities)
+  else
+    Result:=0;
+end;
 
 Procedure InsertPropEx (PL : PProplistEx;PI : PPropInfoEx; Count : longint);
 
@@ -4065,9 +4105,22 @@ end;
 
 { TRecordData }
 
+function TRecordData.GetExPropertyTable: PPropDataEx;
+
+Var
+  MT : PRecordMethodTable;
+
+begin
+  MT:=GetMethodTable;
+  if MT^.Count=0 then
+    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.Count))+SizeOf(Word)))
+  else
+    Result:=PPropDataEx(MT^.Method[MT^.Count-1]^.Tail);
+end;
+
 function TRecordData.GetExtendedFieldCount: Longint;
 begin
-  Result:= PLongint(PByte(@TotalFieldCount)+(TotalFieldCount*SizeOf(TManagedField)))^
+  Result:= PLongint(PByte(@TotalFieldCount)+SizeOf(Longint)+(TotalFieldCount*SizeOf(TManagedField)))^
 end;
 
 function TRecordData.GetExtendedFields: PExtendedFieldTable;
@@ -4077,7 +4130,8 @@ end;
 
 function TRecordData.GetMethodTable: PRecordMethodTable;
 begin
-  Result:=PRecordMethodTable(PByte(GetExtendedFields)+SizeOf(Word)+ExtendedFieldCount*SizeOf(Pointer));
+//  Result:=PRecordMethodTable(PByte(GetExtendedFields)+SizeOf(Word)+ExtendedFieldCount*SizeOf(Pointer));
+  Result:=PRecordMethodTable(GetExtendedFields^.Tail);
 end;
 
 { TVmtExtendedFieldTable }
@@ -4091,7 +4145,10 @@ end;
 
 function TVmtExtendedFieldTable.GetTail: Pointer;
 begin
-  Result:=GetField(FieldCount-1)^.Tail;
+  if FieldCount=0 then
+    Result:=@FieldCount+SizeOf(Word)
+  else
+    Result:=GetField(FieldCount-1)^.Tail;
 end;
 
 { TExtendedVmtFieldEntry }
