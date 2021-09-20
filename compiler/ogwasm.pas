@@ -74,6 +74,7 @@ interface
         procedure WriteName(d: tdynamicarray; const s: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
         procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
+        procedure WriteZeros(dest: tdynamicarray; size: QWord);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -353,6 +354,23 @@ implementation
           end;
       end;
 
+    procedure TWasmObjOutput.WriteZeros(dest: tdynamicarray; size: QWord);
+      var
+        buf : array[0..1023] of byte;
+        bs: Integer;
+      begin
+        fillchar(buf,sizeof(buf),0);
+        while size>0 do
+          begin
+            if size<SizeOf(buf) then
+              bs:=Integer(size)
+            else
+              bs:=SizeOf(buf);
+            dest.write(buf,bs);
+            dec(size,bs);
+          end;
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
@@ -387,8 +405,15 @@ implementation
                 WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
                 WriteByte(FWasmSections[wsiData],$0b);
                 WriteUleb(FWasmSections[wsiData],objsec.Size);
-                objsec.Data.seek(0);
-                CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
+                if oso_Data in objsec.SecOptions then
+                  begin
+                    objsec.Data.seek(0);
+                    CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
+                  end
+                else
+                  begin
+                    WriteZeros(FWasmSections[wsiData],objsec.Size);
+                  end;
               end;
           end;
 
@@ -434,7 +459,7 @@ implementation
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
             objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' Data.Size=', objsec.Data.size, ' DataPos=', objsec.DataPos, ' SegIdx=', objsec.SegIdx);
+            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' DataPos=', objsec.DataPos, ' SegIdx=', objsec.SegIdx);
           end;
 
         result:=true;
