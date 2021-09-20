@@ -959,6 +959,29 @@ implementation
              left:=nil;
              exit;
           end;
+        if is_real(left.resultdef) then
+          begin
+            {
+              -(left-right) => right-left
+
+              As this result in -(1.0-1.0)=0.0 instead of 0.0, this is only valid in fastmath mode
+            }
+            if (cs_opt_fastmath in current_settings.optimizerswitches) and (left.nodetype=subn) then
+              begin
+                result:=caddnode.create(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy);
+                exit;
+              end;
+
+            { --node => node
+              this operation is always valid as reals do not use a two's complement representation for negative
+              numbers, -real means just flip the sign bit
+            }
+            if left.nodetype=unaryminusn then
+              begin
+                result:=tunarynode(left).left.getcopy;
+                exit;
+              end;
+          end;
       end;
 
 
