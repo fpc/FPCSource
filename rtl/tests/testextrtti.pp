@@ -467,11 +467,11 @@ end;
 
 
 begin
-{  TestProperties;
+  TestProperties;
   TestClassFields;
   TestClassMethods;
-  TestRecordFields;}
+  TestRecordFields;
   TestRecordProperties;
-//  TestRecordMethods;
+  TestRecordMethods;
 end.
 

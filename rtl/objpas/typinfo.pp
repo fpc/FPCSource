@@ -139,6 +139,9 @@ unit TypInfo;
       ptVirtual = 2;
       ptConst = 3;
 
+      RTTIFlagVisibilityMask   = 3;
+      RTTIFlagStrictVisibility = 1 shl 2;
+
    type
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
@@ -219,6 +222,7 @@ unit TypInfo;
       TExtendedVmtFieldEntry = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} packed{$endif FPC_REQUIRES_PROPER_ALIGNMENT} record
       Private
         function GetNext: PVmtFieldEntry;
+        function GetStrictVisibility: Boolean;
         function GetTail: Pointer;
         function GetVisibility: TVisibilityClass;
       Public
@@ -227,6 +231,7 @@ unit TypInfo;
         Flags : Byte;
         Name: PShortString;
         Property FieldVisibility: TVisibilityClass Read GetVisibility;
+        Property StrictVisibility : Boolean Read GetStrictVisibility;
         property Tail: Pointer read GetTail;
         property Next: PVmtFieldEntry read GetNext;
       end;
@@ -507,6 +512,7 @@ unit TypInfo;
         function GetMethodVisibility: TVisibilityClass;
         function GetParam(Index: Word): PVmtMethodParam;
         function GetResultLocs: PParameterLocations; inline;
+        function GetStrictVisibility: Boolean;
         function GetTail: Pointer; inline;
         function GetNext: PVmtMethodExEntry; inline;
         function GetName: ShortString; inline;
@@ -527,6 +533,7 @@ unit TypInfo;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodExEntry read GetNext;
         Property MethodVisibility: TVisibilityClass Read GetMethodVisibility;
+        Property StrictVisibility : Boolean Read GetStrictVisibility;
       end;
 
 
@@ -993,12 +1000,16 @@ unit TypInfo;
 
       TPropInfoEx = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed {$ENDIF} record
       private
+        function GetStrictVisibility: Boolean;
         function GetTail: Pointer;
+        function GetVisiblity: TVisibilityClass;
       public
         Flags: Byte;
         Info: PPropInfo;
         // AttrData: TAttrData
         Property Tail : Pointer Read GetTail;
+        Property Visibility : TVisibilityClass Read GetVisiblity;
+        Property StrictVisibility : Boolean Read GetStrictVisibility;
       end;
 
       PPropListEx = ^TPropListEx;
@@ -1994,7 +2005,7 @@ begin
     Inc(Pointer(TP),SizeOF(Word));
     tp:=aligntoptr(tp);
     For I:=0 to Count-1 do
-      if ([]=Visibilities) or (TVisibilityClass(PropList^[Result]^.Flags) in Visibilities) then
+      if ([]=Visibilities) or (PropList^[Result]^.Visibility in Visibilities) then
         begin
         // When passing nil, we just need the count
         if Assigned(PropList) then
@@ -2025,7 +2036,7 @@ begin
   Inc(Pointer(TP),SizeOF(Word));
   tp:=aligntoptr(tp);
   For I:=0 to Count-1 do
-    if ([]=Visibilities) or (TVisibilityClass(PropList^[Result]^.Flags) in Visibilities) then
+    if ([]=Visibilities) or (PropList^[Result]^.Visibility in Visibilities) then
       begin
       // When passing nil, we just need the count
       if Assigned(PropList) then
@@ -4158,6 +4169,11 @@ begin
   Result := aligntoptr(Tail);
 end;
 
+function TExtendedVmtFieldEntry.GetStrictVisibility: Boolean;
+begin
+  Result:=(Flags and RTTIFlagStrictVisibility)<>0;
+end;
+
 function TExtendedVmtFieldEntry.GetTail: Pointer;
 begin
   Result := PByte(@Name) + SizeOf(Pointer);
@@ -4165,14 +4181,25 @@ end;
 
 function TExtendedVmtFieldEntry.GetVisibility: TVisibilityClass;
 begin
-  Result:=TVisibilityClass(Flags); // For the time being, maybe we need a AND $07 or so later on.
+  Result:=TVisibilityClass(Flags and RTTIFlagVisibilityMask); // For the time being, maybe we need a AND $07 or so later on.
 end;
 
 { TPropInfoEx }
 
+function TPropInfoEx.GetStrictVisibility: Boolean;
+begin
+  Result:=(Flags and RTTIFlagStrictVisibility)<>0;
+end;
+
 function TPropInfoEx.GetTail: Pointer;
 begin
   Result := PByte(@Flags) + SizeOf(Self);
+end;
+
+function TPropInfoEx.GetVisiblity: TVisibilityClass;
+
+begin
+  Result:=TVisibilityClass(Flags and RTTIFlagVisibilityMask);
 end;
 
 
@@ -4366,7 +4393,7 @@ end;
 
 function TVmtMethodExEntry.GetMethodVisibility: TVisibilityClass;
 begin
-  Result:=TVisibilityClass(Flags);
+  Result:=TVisibilityClass(Flags and RTTIFlagVisibilityMask);
 end;
 
 function TVMTMethodExEntry.GetParam(Index: Word): PVmtMethodParam;
@@ -4383,6 +4410,11 @@ begin
     Result := Nil
   else
     Result := PParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+end;
+
+function TVmtMethodExEntry.GetStrictVisibility: Boolean;
+begin
+  Result:=(Flags and RTTIFlagStrictVisibility)<>0;
 end;
 
 function TVMTMethodExEntry.GetTail: Pointer;

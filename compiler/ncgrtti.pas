@@ -118,20 +118,29 @@ implementation
        end;
 
 
-    function visibility_to_rtti(vis: tvisibility): trtti_visibility;
+    function visibility_to_rtti_flags(vis: tvisibility): byte;
       begin
-        // TODO(ryan): make an extra "strict" bit in the rtti visibility field
         case vis of
-          vis_private,
+          vis_private:
+            result:=byte(rv_private);
           vis_strictprivate:
-            result:=rv_private;
-          vis_protected,
+            begin
+              result:=byte(rv_private);
+              // add bit to indicate "strict"
+              result:=result or (1 shl 2);
+            end;
+          vis_protected:
+            result:=byte(rv_protected);
           vis_strictprotected:
-            result:=rv_protected;
+            begin
+              result:=byte(rv_protected);
+              // add bit to indicate "strict"
+              result:=result or (1 shl 2);
+            end;
           vis_public:
-            result:=rv_public;
+            result:=byte(rv_public);
           vis_published:
-            result:=rv_published;
+            result:=byte(rv_published);
           otherwise
             internalerror(2021061301);
         end;
@@ -294,7 +303,7 @@ implementation
 
                       { write visibility section for extended RTTI }
                       if extended_rtti then
-                        tcb.emit_ord_const(byte(visibility_to_rtti(def.visibility)),u8inttype);
+                        tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),u8inttype);
  
                       for k:=0 to def.paras.count-1 do
                         begin
@@ -813,7 +822,7 @@ implementation
             { FieldType: PPTypeInfo }
             tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(tfieldvarsym(sym).vardef,fullrtti,true)),voidpointertype);
             { FieldVisibility }
-            tcb.emit_ord_const(byte(visibility_to_rtti(tfieldvarsym(sym).visibility)),u8inttype);
+            tcb.emit_ord_const(visibility_to_rtti_flags(tfieldvarsym(sym).visibility),u8inttype);
             { Name }
             tcb.emit_pooled_shortstring_const_ref(sym.realname);
             tcb.end_anonymous_record;
