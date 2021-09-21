@@ -1268,7 +1268,7 @@ var rtl = {
     if (rtl.debug_rtti) rtl.debug('initRTTI');
 
     // base types
-    rtl.tTypeInfo = { name: "tTypeInfo" };
+    rtl.tTypeInfo = { name: "tTypeInfo", kind: 0, $module: null, attr: null };
     function newBaseTI(name,kind,ancestor){
       if (!ancestor) ancestor = rtl.tTypeInfo;
       if (rtl.debug_rtti) rtl.debug('initRTTI.newBaseTI "'+name+'" '+kind+' ("'+ancestor.name+'")');
@@ -1311,7 +1311,7 @@ var rtl = {
     newBaseTI("tTypeInfoRefToProcVar",17 /* tkRefToProcVar */,rtl.tTypeInfoProcVar);
 
     // member kinds
-    rtl.tTypeMember = {};
+    rtl.tTypeMember = { attr: null };
     function newMember(name,kind){
       var m = Object.create(rtl.tTypeMember);
       m.name = name;
@@ -1320,7 +1320,8 @@ var rtl = {
     };
     newMember("tTypeMemberField",1); // tmkField
     newMember("tTypeMemberMethod",2); // tmkMethod
-    newMember("tTypeMemberProperty",3); // tmkProperty
+    t = newMember("tTypeMemberProperty",3); // tmkProperty
+    t.params = null;
 
     // base object for storing members: a simple object
     rtl.tTypeMembers = {};
