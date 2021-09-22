@@ -1320,8 +1320,7 @@ var rtl = {
     };
     newMember("tTypeMemberField",1); // tmkField
     newMember("tTypeMemberMethod",2); // tmkMethod
-    t = newMember("tTypeMemberProperty",3); // tmkProperty
-    t.params = null;
+    newMember("tTypeMemberProperty",3); // tmkProperty
 
     // base object for storing members: a simple object
     rtl.tTypeMembers = {};
@@ -1378,7 +1377,7 @@ var rtl = {
       t.getter = getter;
       t.setter = setter;
       // Note: in options: params, stored, defaultvalue
-      if (rtl.isArray(t.params)) t.params = rtl.newTIParams(t.params);
+      t.params = rtl.isArray(t.params) ? rtl.newTIParams(t.params) : null;
       this.properties.push(name);
       if (!rtl.isString(t.stored)) t.stored = "";
       return t;
