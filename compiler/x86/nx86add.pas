@@ -1170,6 +1170,10 @@ unit nx86add;
             make_not_regable(right,[ra_addr_regable]);
           end;
         Result:=inherited pass_1;
+        { correct expectloc, it does not matter of Result is set as another pass_1 is run on it
+          which will fix that one }
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER;
       end;
 
 

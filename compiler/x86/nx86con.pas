@@ -53,12 +53,14 @@ implementation
          result:=nil;
          if is_number_float(value_real) and not(use_vectorfpu(resultdef)) and ((value_real=1.0) or ((value_real=0.0) and (get_real_sign(value_real)=1))) then
            expectloc:=LOC_FPUREGISTER
+         else if (value_real=0.0) and (get_real_sign(value_real)=1) and use_vectorfpu(resultdef) then
+           expectloc:=LOC_MMREGISTER
          else
            expectloc:=LOC_CREFERENCE;
       end;
 
-    procedure tx86realconstnode.pass_generate_code;
 
+    procedure tx86realconstnode.pass_generate_code;
       begin
          if is_number_float(value_real) then
            begin
