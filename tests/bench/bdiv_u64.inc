@@ -59,9 +59,9 @@ type
       function TestTitle: shortstring; override;
   end;
 
-  { TUInt64Bit5Test }
+  { TUInt64Bit7Test }
 
-  TUInt64Bit5Test = class(TUInt64DivTest)
+  TUInt64Bit7Test = class(TUInt64DivTest)
     protected
       function GetDivisor: QWord; override;
       procedure DoTestIteration(Iteration: Integer); override;
@@ -69,9 +69,9 @@ type
       function TestTitle: shortstring; override;
   end;
 
-  { TUInt64Bit5ModTest }
+  { TUInt64Bit7ModTest }
 
-  TUInt64Bit5ModTest = class(TUInt64ModTest)
+  TUInt64Bit7ModTest = class(TUInt64ModTest)
     protected
       function GetDivisor: QWord; override;
       procedure DoTestIteration(Iteration: Integer); override;
@@ -356,25 +356,27 @@ procedure TUInt64Bit3ModTest.DoTestIteration(Iteration: Integer);
     FResultArray[Index] := Answer;
   end;
 
-{ TUInt64Bit5Test }
+{ TUInt64Bit7Test }
 
-function TUInt64Bit5Test.TestTitle: shortstring;
+function TUInt64Bit7Test.TestTitle: shortstring;
   begin
-    Result := 'Unsigned 64-bit division by 5';
+    Result := 'Unsigned 64-bit division by 7';
   end;
 
-function TUInt64Bit5Test.GetDivisor: QWord;
+function TUInt64Bit7Test.GetDivisor: QWord;
   begin
-    Result := 5;
+    Result := 7;
   end;
 
-procedure TUInt64Bit5Test.DoTestIteration(Iteration: Integer);
+procedure TUInt64Bit7Test.DoTestIteration(Iteration: Integer);
   var
     Numerator, Answer: QWord;
     Index, X: Integer;
   begin
     Index := Iteration and $FF;
     case Index of
+      253:
+        Numerator := QWord($FFFFFFFFFFFFFFFD);
       254:
         Numerator := QWord($FFFFFFFFFFFFFFFE);
       255:
@@ -385,30 +387,32 @@ procedure TUInt64Bit5Test.DoTestIteration(Iteration: Integer);
 
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
-      Answer := Numerator div 5;
+      Answer := Numerator div 7;
       
     FResultArray[Index] := Answer;
   end;
 
-{ TUInt64Bit5ModTest }
+{ TUInt64Bit7ModTest }
 
-function TUInt64Bit5ModTest.TestTitle: shortstring;
+function TUInt64Bit7ModTest.TestTitle: shortstring;
   begin
-    Result := 'Unsigned 64-bit modulus by 5';
+    Result := 'Unsigned 64-bit modulus by 7';
   end;
 
-function TUInt64Bit5ModTest.GetDivisor: QWord;
+function TUInt64Bit7ModTest.GetDivisor: QWord;
   begin
-    Result := 5;
+    Result := 7;
   end;
 
-procedure TUInt64Bit5ModTest.DoTestIteration(Iteration: Integer);
+procedure TUInt64Bit7ModTest.DoTestIteration(Iteration: Integer);
   var
     Numerator, Answer: QWord;
     Index, X: Integer;
   begin
     Index := Iteration and $FF;
     case Index of
+      253:
+        Numerator := QWord($FFFFFFFFFFFFFFFD);
       254:
         Numerator := QWord($FFFFFFFFFFFFFFFE);
       255:
@@ -419,7 +423,7 @@ procedure TUInt64Bit5ModTest.DoTestIteration(Iteration: Integer);
 
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
-      Answer := Numerator mod 5;
+      Answer := Numerator mod 7;
       
     FResultArray[Index] := Answer;
   end;
@@ -479,10 +483,12 @@ procedure TUInt64Bit10ModTest.DoTestIteration(Iteration: Integer);
   begin
     Index := Iteration and $FF;
     case Index of
+      252:
+        Numerator := QWord($FFFFFFFFFFFFFFEF);
       253:
-        Numerator := QWord($FFFFFFFFFFFFFFF9);
+        Numerator := QWord($FFFFFFFFFFFFFFF0);
       254:
-        Numerator := QWord($FFFFFFFFFFFFFFFA);
+        Numerator := QWord($FFFFFFFFFFFFFFF1);
       255:
         Numerator := QWord($FFFFFFFFFFFFFFFF);
       else
@@ -515,10 +521,12 @@ procedure TUInt64Bit100Test.DoTestIteration(Iteration: Integer);
   begin
     Index := Iteration and $FF;
     case Index of
-      253:
+      252:
         Numerator := QWord($FFFFFFFFFFFFFFEF);
-      254:
+      253:
         Numerator := QWord($FFFFFFFFFFFFFFF0);
+      254:
+        Numerator := QWord($FFFFFFFFFFFFFFF1);
       255:
         Numerator := QWord($FFFFFFFFFFFFFFFF);
       else
@@ -551,10 +559,12 @@ procedure TUInt64Bit100ModTest.DoTestIteration(Iteration: Integer);
   begin
     Index := Iteration and $FF;
     case Index of
-      253:
+      252:
         Numerator := QWord($FFFFFFFFFFFFFFEF);
-      254:
+      253:
         Numerator := QWord($FFFFFFFFFFFFFFF0);
+      254:
+        Numerator := QWord($FFFFFFFFFFFFFFF1);
       255:
         Numerator := QWord($FFFFFFFFFFFFFFFF);
       else

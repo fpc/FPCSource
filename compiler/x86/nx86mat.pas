@@ -414,6 +414,156 @@ interface
         s: byte;
       label
         DefaultDiv;
+
+        procedure DoUnsignedReciprocalDivision;
+          var
+            exp_rega,exp_regd:Tregister;
+            exp_opsize:topsize;
+            DoMod: Boolean;
+          begin
+            DoMod := (nodetype = modn);
+            { Extend 32-bit divides to 64-bit registers and 16-bit
+              divides to 32-bit registers.  Because the domain of
+              the left input is only up to 2^(X/2 - 1) - 1, (i.e.
+              2^31 - 1 for 64-bit and 2^15 - 1 for 32-bit), a much
+              larger error in the reciprocal is permitted. }
+            if (resultdef.size <= {$ifdef x86_64}4{$else x86_64}2{$endif x86_64}) then
+              begin
+                calc_divconst_magic_unsigned(resultdef.size * 2 * 8,d,m,m_add,s);
+
+                { Should never have a zero shift and a magic add together }
+                if (s = 0) and m_add then
+                  InternalError(2021090201);
+
+                { Extend the input register (the peephole optimizer should
+                  help clean up unnecessary MOVZX instructions }
+                hreg3 := hreg1;
+                case resultdef.size of
+{$ifdef x86_64}
+                  4:
+                    begin
+                      setsubreg(hreg3, R_SUBQ);
+                      { Make sure the upper 32 bits are zero; the peephole
+                        optimizer will remove this instruction via MovAnd2Mov
+                        if it's not needed }
+                      emit_const_reg(A_AND, S_L, $FFFFFFFF, hreg1);
+                      exp_rega := NR_RAX;
+                      exp_regd := NR_RDX;
+                      exp_opsize := S_Q;
+
+                      if m_add then
+                        { Append 1 to the tail end of the result }
+                        m := (m shr s) or ($8000000000000000 shr (s - 1))
+                      else
+                        m := m shr s;
+                    end;
+{$endif x86_64}
+                  2:
+                    begin
+                      setsubreg(hreg3, R_SUBD);
+                      emit_reg_reg(A_MOVZX, S_WL, hreg1, hreg3);
+                      exp_rega := NR_EAX;
+                      exp_regd := NR_EDX;
+                      exp_opsize := S_L;
+
+                      if m_add then
+                        { Append 1 to the tail end of the result }
+                        m := (m shr s) or ($80000000 shr (s - 1))
+                      else
+                        m := m shr s;
+                    end;
+                  1:
+                    begin
+                      setsubreg(hreg3, R_SUBW);
+                      emit_reg_reg(A_MOVZX, S_BW, hreg1, hreg3);
+                      exp_rega := NR_AX;
+                      exp_regd := NR_DX;
+                      regd := NR_DL; { We need to change this from AH }
+                      exp_opsize := S_W;
+
+                      if m_add then
+                        { Append 1 to the tail end of the result }
+                        m := (m shr s) or ($8000 shr (s - 1))
+                      else
+                        m := m shr s;
+                    end;
+                  else
+                    InternalError(2021090210);
+                end;
+
+                Inc(m);
+
+                cg.getcpuregister(current_asmdata.CurrAsmList,exp_rega);
+                emit_const_reg(A_MOV,exp_opsize,aint(m),exp_rega);
+                cg.getcpuregister(current_asmdata.CurrAsmList,exp_regd);
+                emit_reg(A_MUL,exp_opsize,hreg3);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,exp_rega);
+                if DoMod then
+                  begin
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                  end;
+              end
+            else
+              begin
+                calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
+
+                { Should never have a zero shift and a magic add together }
+                if (s = 0) and m_add then
+                  InternalError(2021090202);
+
+                cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                emit_const_reg(A_MOV,opsize,aint(m),rega);
+                cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                emit_reg(A_MUL,opsize,hreg1);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                if DoMod then
+                  begin
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                  end;
+
+                if m_add then
+                  begin
+                    { addition can overflow, shift first bit considering carry,
+                      then shift remaining bits in regular way. }
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                    emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                    emit_const_reg(A_RCR,opsize,1,regd);
+                    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                    dec(s);
+                  end;
+                if s<>0 then
+                  emit_const_reg(A_SHR,opsize,aint(s),regd);
+              end;
+
+            if DoMod then
+              begin
+                { Now multiply the quotient by the original denominator and
+                  subtract the product from the original numerator to get
+                  the remainder. }
+                if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
+                  begin
+                    hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_const_reg(A_MOV,opsize,aint(d),hreg3);
+                    emit_reg_reg(A_IMUL,opsize,hreg3,regd);
+                  end
+                else
+                  emit_const_reg(A_IMUL,opsize,aint(d),regd);
+
+                emit_reg_reg(A_SUB,opsize,regd,hreg2);
+              end;
+
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+            if not DoMod then
+              begin
+                hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,hreg2);
+              end;
+
+            location.register:=hreg2;
+          end;
+
       begin
         secondpass(left);
         if codegenerror then
@@ -540,27 +690,8 @@ interface
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
-                      begin
-                        calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
-                        cg.getcpuregister(current_asmdata.CurrAsmList,rega);
-                        emit_const_reg(A_MOV,opsize,aint(m),rega);
-                        cg.getcpuregister(current_asmdata.CurrAsmList,regd);
-                        emit_reg(A_MUL,opsize,hreg1);
-                        cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
-                        if m_add then
-                          begin
-                            { addition can overflow, shift first bit considering carry,
-                              then shift remaining bits in regular way. }
-                            emit_reg_reg(A_ADD,opsize,hreg1,regd);
-                            emit_const_reg(A_RCR,opsize,1,regd);
-                            dec(s);
-                          end;
-                        if s<>0 then
-                          emit_const_reg(A_SHR,opsize,aint(s),regd);
-                        cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
-                      end;
+                      DoUnsignedReciprocalDivision;
+
                   end;
               end;
           end
@@ -614,45 +745,9 @@ interface
                     emit_reg_reg(A_ADD,opsize,hreg1,location.register);
                   end
                 else
-                  begin
-                    { Convert the division to a multiplication }
-                    calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
-                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
-                    emit_const_reg(A_MOV,opsize,aint(m),rega);
-                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
-                    emit_reg(A_MUL,opsize,hreg1);
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
-                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
-                    if m_add then
-                      begin
-                        { addition can overflow, shift first bit considering carry,
-                          then shift remaining bits in regular way. }
-                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                        emit_reg_reg(A_ADD,opsize,hreg1,regd);
-                        emit_const_reg(A_RCR,opsize,1,regd);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                        dec(s);
-                      end;
-                    if s<>0 then
-                      emit_const_reg(A_SHR,opsize,aint(s),regd); { R/EDX now contains the quotient }
+                  { Convert the division to a multiplication }
+                  DoUnsignedReciprocalDivision;
 
-                    { Now multiply the quotient by the original denominator and
-                      subtract the product from the original numerator to get
-                      the remainder. }
-                    if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
-                      begin
-                        hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                        emit_const_reg(A_MOV,opsize,aint(d),hreg3);
-                        emit_reg_reg(A_IMUL,opsize,hreg3,regd);
-                      end
-                    else
-                      emit_const_reg(A_IMUL,opsize,aint(d),regd);
-
-                    emit_reg_reg(A_SUB,opsize,regd,hreg2);
-                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-                    location.register:=hreg2;
-                  end;
               end;
           end
         else if (nodetype=modn) and (right.nodetype=ordconstn) and (is_signed(left.resultdef)) and isabspowerof2(tordconstnode(right).value,power) then
