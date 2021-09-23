@@ -980,12 +980,29 @@ implementation
             }
             if (left.nodetype=muln) and ((taddnode(left).left.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(muln,taddnode(left).right.getcopy,tunaryminusnode(taddnode(left).left).left.getcopy);
+                result:=caddnode.create(muln,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
                 exit;
               end;
             if (left.nodetype=muln) and ((taddnode(left).right.nodetype=unaryminusn)) then
               begin
                 result:=caddnode.create(muln,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
+                exit;
+              end;
+
+            {
+              -(-left/right) or -(left/-right) => right/left
+
+              this operation is always valid as reals do not use a two's complement representation for negative
+              numbers, -real means just flip the sign bit
+            }
+            if (left.nodetype=slashn) and ((taddnode(left).left.nodetype=unaryminusn)) then
+              begin
+                result:=caddnode.create(slashn,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
+                exit;
+              end;
+            if (left.nodetype=slashn) and ((taddnode(left).right.nodetype=unaryminusn)) then
+              begin
+                result:=caddnode.create(slashn,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
                 exit;
               end;
 
