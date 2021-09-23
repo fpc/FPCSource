@@ -2007,7 +2007,7 @@ end;
 
 Class function TJSAssignStatement.OperatorToken: tjsToken;
 begin
-  Result:=tjsUNknown;
+  Result:=tjsUnknown;
 end;
 
 Class function TJSAssignStatement.OperatorString: String;
@@ -2016,7 +2016,7 @@ Var
   t :  TJSToken;
 begin
   T:=OperatorToken;
-  if (tjsUNknown<>t) then
+  if (tjsUnknown<>t) then
     Result:=TokenInfos[t]
   else
     Result:='';
