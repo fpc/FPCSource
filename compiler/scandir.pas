@@ -1350,7 +1350,15 @@ unit scandir;
           result:=[];
           sym:=search_system_type('TVISIBILITYCLASSES');
           if current_scanner.readpreprocset(tsetdef(sym.typedef),value,'RTTI') then
-            result:=prtti_visibilities(@value)^;
+            begin
+              result:=prtti_visibilities(@value)^;
+              // if the set was empty we need to read the next id
+              if result=[] then
+                begin
+                  current_scanner.skipspace;
+                  current_scanner.readid
+                end;
+            end;
         end;
 
       var
