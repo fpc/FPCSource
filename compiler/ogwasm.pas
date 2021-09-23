@@ -55,6 +55,7 @@ interface
       TWasmObjData = class(TObjData)
       private
         FFuncTypes: array of TWasmFuncType;
+        FFuncTypeNames: TFPHashList;
 
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
@@ -63,6 +64,7 @@ interface
         destructor destroy; override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        function AddFuncType(wft: TWasmFuncType): integer;
         procedure DeclareFuncType(ft: tai_functype);
       end;
 
@@ -264,12 +266,14 @@ implementation
       begin
         inherited;
         CObjSection:=TWasmObjSection;
+        FFuncTypeNames:=TFPHashList.Create;
       end;
 
     destructor TWasmObjData.destroy;
       var
         i: Integer;
       begin
+        FFuncTypeNames.free;
         for i:=low(FFuncTypes) to high(FFuncTypes) do
           begin
             FFuncTypes[i].free;
@@ -291,16 +295,25 @@ implementation
       begin
       end;
 
-    procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
+    function TWasmObjData.AddFuncType(wft: TWasmFuncType): integer;
       var
         i: Integer;
       begin
         for i:=low(FFuncTypes) to high(FFuncTypes) do
-          if ft.functype.Equals(FFuncTypes[i]) then
-            exit;
+          if wft.Equals(FFuncTypes[i]) then
+            exit(i);
 
-        SetLength(FFuncTypes,Length(FFuncTypes)+1);
-        FFuncTypes[High(FFuncTypes)]:=TWasmFuncType.Create(ft.functype);
+        result:=Length(FFuncTypes);
+        SetLength(FFuncTypes,result+1);
+        FFuncTypes[result]:=TWasmFuncType.Create(wft);
+      end;
+
+    procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
+      var
+        i: Integer;
+      begin
+        i:=AddFuncType(ft.functype);
+        FFuncTypeNames.Add(ft.funcname, @(FFuncTypes[i]));
       end;
 
 {****************************************************************************
