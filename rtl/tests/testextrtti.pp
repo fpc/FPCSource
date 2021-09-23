@@ -19,13 +19,15 @@ Type
   TFieldRTTI = Class
   private
     FPrivateA: Integer;
-    FPrivateB: Integer;
     Property PrivateA : Integer Read FPrivateA Write FPrivateA;
+  strict private
+    FPrivateB: Integer;
     Property PrivateB : Integer Read FPrivateB Write FPrivateB;
   Protected
     FProtectedA: Integer;
-    FProtectedB: Integer;
     Property ProtectedA : Integer Read FProtectedA Write FProtectedA;
+  Strict Protected
+    FProtectedB: Integer;
     Property ProtectedB : Integer Read FProtectedB Write FProtectedB;
   Public
     FPublicA: Integer;
@@ -145,7 +147,19 @@ begin
     end;
 end;
 
-Procedure CheckProperty(aIdx : Integer; aData: TPropInfoEx; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass);
+Procedure AssertEquals(Msg : String; aExpected,aActual : Boolean);
+
+begin
+  If AExpected<>aActual then
+    begin
+    Msg:=Msg+': expected: '+BoolToStr(aExpected,True)+' got: '+BoolToStr(aActual,True);
+    Writeln(Msg);
+    Halt(1);
+    end;
+end;
+
+
+Procedure CheckProperty(aIdx : Integer; aData: TPropInfoEx; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass; isStrict : Boolean = False);
 
 Var
   Msg : String;
@@ -154,7 +168,8 @@ begin
   Msg:='Checking prop '+IntToStr(aIdx)+' ('+aName+') ';
   AssertEquals(Msg+'name',aData.Info^.Name,aName);
   AssertEquals(Msg+'kind',aData.Info^.PropType^.Kind,aKind);
-  AssertEquals(Msg+'visibility',TVisibilityClass(aData.Flags),aVisibility);
+  AssertEquals(Msg+'visibility',aData.Visibility,aVisibility);
+  AssertEquals(Msg+'strict',aData.StrictVisibility,isStrict);
 end;
 
 Procedure TestProperties;
@@ -168,9 +183,9 @@ begin
   try
     AssertEquals('Count',8,aCount);
     CheckProperty(0, A^[0]^,'PrivateA',tkInteger,vcPrivate);
-    CheckProperty(1, A^[1]^,'PrivateB',tkInteger,vcPrivate);
+    CheckProperty(1, A^[1]^,'PrivateB',tkInteger,vcPrivate,True);
     CheckProperty(2, A^[2]^,'ProtectedA',tkInteger,vcProtected);
-    CheckProperty(3, A^[3]^,'ProtectedB',tkInteger,vcProtected);
+    CheckProperty(3, A^[3]^,'ProtectedB',tkInteger,vcProtected,True);
     CheckProperty(4, A^[4]^,'PublicA',tkInteger,vcPublic);
     CheckProperty(5, A^[5]^,'PublicB',tkInteger,vcPublic);
     CheckProperty(6, A^[6]^,'PublishedA',tkInteger,vcPublished);
@@ -210,7 +225,7 @@ begin
 end;
 
 
-Procedure CheckField(aIdx : Integer; aData: PExtendedVmtFieldEntry; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass);
+Procedure CheckField(aIdx : Integer; aData: PExtendedVmtFieldEntry; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass; aStrict : Boolean = False);
 
 Var
   Msg : String;
@@ -220,6 +235,7 @@ begin
   AssertEquals(Msg+'name',aData^.Name^,aName);
   AssertEquals(Msg+'kind',PPTypeInfo(aData^.FieldType)^^.Kind, aKind);
   AssertEquals(Msg+'visibility',aData^.FieldVisibility,aVisibility);
+  AssertEquals(Msg+'strict',aData^.StrictVisibility,aStrict);
 end;
 
 
@@ -236,9 +252,9 @@ begin
   aCount:=GetFieldList(TFieldRTTI,A);
   AssertEquals('Count',8,aCount);
   CheckField(0, A^[0],'FPrivateA',tkInteger,vcPrivate);
-  CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate);
+  CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate,True);
   CheckField(2, A^[2],'FProtectedA',tkInteger,vcProtected);
-  CheckField(3, A^[3],'FProtectedB',tkInteger,vcProtected);
+  CheckField(3, A^[3],'FProtectedB',tkInteger,vcProtected,True);
   CheckField(4, A^[4],'FPublicA',tkInteger,vcPublic);
   CheckField(5, A^[5],'FPublicB',tkInteger,vcPublic);
   CheckField(6, A^[6],'FPublishedA',tkInteger,vcPublished);
@@ -247,12 +263,12 @@ begin
   aCount:=GetFieldList(TFieldRTTI,A,[vcPrivate]);
   AssertEquals('Count',2,aCount);
   CheckField(0, A^[0],'FPrivateA',tkInteger,vcPrivate);
-  CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate);
+  CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate,True);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcProtected]);
   AssertEquals('Count',2,aCount);
   CheckField(2, A^[0],'FProtectedA',tkInteger,vcProtected);
-  CheckField(3, A^[1],'FProtectedB',tkInteger,vcProtected);
+  CheckField(3, A^[1],'FProtectedB',tkInteger,vcProtected,True);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPublic]);
   AssertEquals('Count',2,aCount);
