@@ -5121,9 +5121,15 @@ implementation
       begin
         result:=[];
         if rv_private in rtti.options[option] then
-          include(result,vis_private);
+          begin
+            include(result,vis_private);
+            include(result,vis_strictprivate);
+          end;
         if rv_protected in rtti.options[option] then
-          include(result,vis_protected);
+          begin
+            include(result,vis_protected);
+            include(result,vis_strictprotected);
+          end;
         if rv_public in rtti.options[option] then
           include(result,vis_public);
         if rv_published in rtti.options[option] then
