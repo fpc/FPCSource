@@ -93,6 +93,7 @@ uses
 
       { TWasmFuncType }
 
+      PWasmFuncType = ^TWasmFuncType;
       TWasmFuncType = class
         params: TWasmResultType;
         results: TWasmResultType;

@@ -83,6 +83,7 @@ interface
         procedure WriteZeros(dest: tdynamicarray; size: QWord);
         procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
         procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
+        function IsExternalFunction(sym: TObjSymbol): Boolean;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -440,6 +441,11 @@ implementation
         end;
       end;
 
+    function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
+      begin
+        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FFuncTypeNames.Find(sym.Name)<>nil);
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
@@ -448,8 +454,16 @@ implementation
         cur_seg_ofs: qword = 0;
         types_count,
         imports_count: Integer;
+        import_functions_count: Integer = 0;
         objsym: TObjSymbol;
       begin
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if IsExternalFunction(objsym) then
+              Inc(import_functions_count);
+          end;
+
         types_count:=Length(TWasmObjData(Data).FFuncTypes);
         WriteUleb(FWasmSections[wsiType],types_count);
         for i:=0 to types_count-1 do
@@ -499,7 +513,7 @@ implementation
 
         WriteUleb(FWasmSections[wsiDataCount],segment_count);
 
-        imports_count:=3;
+        imports_count:=3+import_functions_count;
         WriteUleb(FWasmSections[wsiImport],imports_count);
         { import[0] }
         WriteName(FWasmSections[wsiImport],'env');
@@ -513,6 +527,18 @@ implementation
         WriteByte(FWasmSections[wsiImport],$03);  { global }
         WriteByte(FWasmSections[wsiImport],$7F);  { i32 }
         WriteByte(FWasmSections[wsiImport],$01);  { var }
+        { import[2]..import[imports_count-2] }
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if IsExternalFunction(objsym) then
+              begin
+                WriteName(FWasmSections[wsiImport],'env');
+                WriteName(FWasmSections[wsiImport],objsym.Name);
+                WriteByte(FWasmSections[wsiImport],$00);  { func }
+                WriteUleb(FWasmSections[wsiImport],PWasmFuncType(TWasmObjData(Data).FFuncTypeNames.Find(objsym.Name))-PWasmFuncType(TWasmObjData(Data).FFuncTypes[0]));
+              end;
+          end;
         { import[imports_count-1] }
         WriteName(FWasmSections[wsiImport],'env');
         WriteName(FWasmSections[wsiImport],'__indirect_function_table');
