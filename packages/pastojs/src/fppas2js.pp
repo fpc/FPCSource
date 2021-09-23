@@ -6880,17 +6880,25 @@ var
   ElType: TPasType;
 begin
   l:=length(Arr.Ranges);
-  if l=0 then exit(false);
-  if l>1 then exit(false ); // ToDo: return true when cloning multi dims is implemented
-  ElType:=ResolveAliasType(Arr.ElType);
-  if ElType is TPasArrayType then
-    Result:=length(TPasArrayType(ElType).Ranges)>0
-  else if ElType is TPasRecordType then
-    Result:=true
-  else if ElType is TPasSetType then
-    Result:=true
+  case l of
+  0:
+    Result:=false; // dyn array
+  1:
+    begin
+    // 1-dim static array
+    ElType:=ResolveAliasType(Arr.ElType);
+    if ElType is TPasArrayType then
+      Result:=length(TPasArrayType(ElType).Ranges)>0
+    else if ElType is TPasRecordType then
+      Result:=true
+    else if ElType is TPasSetType then
+      Result:=true
+    else
+      Result:=false; // can use  arr.slice(0)
+    end
   else
-    Result:=false;
+    Result:=true; // multi dim static array
+  end;
 end;
 
 function TPas2JSResolver.IsTGUID(TypeEl: TPasRecordType): boolean;
@@ -16645,13 +16653,13 @@ function TPasToJSConverter.ConvertArrayType(El: TPasArrayType;
 //    eltype: module.$rtti["ElTypeName"]
 //  };
 //
-const
-  CloneArrName = 'a';
-  CloneResultName = 'r';
-  CloneRunName = 'i';
 var
+  VarIndex: integer;
   ProcScope: TPas2JSProcedureScope;
   Src: TJSSourceElements;
+  Index: Integer;
+  BodySrc: TJSSourceElements;
+  ForLoop: TJSForStatement;
 
   procedure StorePrecompiledJS(JS: TJSElement);
   begin
@@ -16662,26 +16670,63 @@ var
       ProcScope.AddGlobalJS(CreatePrecompiledJS(JS));
   end;
 
+  function GetNextVarName: string;
+  var
+    i: integer;
+  begin
+    i:=VarIndex mod 52;
+    if i<26 then
+      Result:=chr(ord('a')+i)
+    else
+      Result:=chr(ord('A')+i);
+    if VarIndex>=52 then
+      Result:=Result+IntToStr(VarIndex div 52);
+    inc(VarIndex);
+  end;
+
+  procedure AddLoopSt(JS: TJSElement);
+  var
+    List: TJSStatementList;
+  begin
+    if Index=0 then
+      AddToSourceElements(BodySrc,JS)
+    else
+      begin
+      if ForLoop.Body=nil then
+        ForLoop.Body:=JS
+      else
+        begin
+        List:=TJSStatementList(CreateElement(TJSStatementList,El));
+        List.A:=ForLoop.Body;
+        List.B:=JS;
+        ForLoop.Body:=List;
+        end;
+      end;
+  end;
+
 var
   aResolver: TPas2JSResolver;
   AssignSt: TJSSimpleAssignStatement;
   ArrName: String;
-  Index: Integer;
   ElTypeLo: TPasType;
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
   RangeEnd: TMaxPrecInt;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
-  BodySrc: TJSSourceElements;
   VarSt: TJSVariableStatement;
-  ForLoop: TJSForStatement;
   ExprLT: TJSRelationalExpressionLT;
   PlusPlus: TJSUnaryPostPlusPlusExpression;
-  BracketEx: TJSBracketMemberExpression;
+  BracketLeftEx, BracketRightEx: TJSBracketMemberExpression;
   ArraySt, CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
   FuncContext: TFunctionContext;
+  SrcArrName, ResultName, LoopVarName, NewArrName,
+    ParentNewArrName, ParentSrcArrName: string;
+  VarDecl: TJSVarDeclaration;
+  MaxIndex: SizeInt;
+  UseSlice: boolean;
+  NewLoop: TJSForStatement;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -16700,72 +16745,172 @@ begin
 
   if aResolver.HasStaticArrayCloneFunc(El) then
     begin
-    // For example: type TArr = array[1..2] of array[1..2] of longint;
+    // Example1: type TStaticArray = array[1..2] of array[1..2] of longint;
     //  this.TStaticArray$clone = function(a){
-    //    var r = [];
-    //    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
-    //    return r;
+    //    var b = [];
+    //    b.length = Dim1;
+    //    for (var c=0; c<Dim1; c++) b[c] = a[c].slice(0);
+    //    return b;
     //  };
-    BracketEx:=nil;
+    // Example2: type TDim3 = array[1..3,2..4,3..5] of longint;
+    //  this.TDim3$clone = function(a){
+    //    var b = [];
+    //    b.length = Dim1;
+    //    for (var c=0; c<Dim1; c++){
+    //      var d = b[c] = [];
+    //      d.length = Dim2;
+    //      var e = a[c];
+    //      for (var f=0; f<Dim2; f++) d[f] = e[f].slice(0);
+    //    }
+    //    return b;
+    //  };
+    BracketLeftEx:=nil;
     AssignSt:=nil;
     Func:=nil;
     FuncContext:=nil;
     try
-      Index:=0;
-      RangeEl:=El.Ranges[Index];
+      VarIndex:=0;
+      SrcArrName:=GetNextVarName;
+      ResultName:=GetNextVarName;
+      LoopVarName:='';
+
+      ElTypeLo:=aResolver.ResolveAliasType(El.ElType);
+
       // function(a){...
       Func:=CreateFunctionSt(El,true,true);
-      Func.AFunction.Params.Add(CloneArrName);
+      Func.AFunction.Params.Add(SrcArrName);
       BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       FuncContext:=TFunctionContext.Create(El,BodySrc,AContext);
       FuncContext.IsGlobal:=true;
-      // var r = [];
-      VarSt:=CreateVarStatement(CloneResultName,TJSArrayLiteral(CreateElement(TJSArrayLiteral,El)),El);
-      AddToSourceElements(BodySrc,VarSt);
-      // for (
-      ForLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
-      AddToSourceElements(BodySrc,ForLoop);
-      // var i=0;
-      ForLoop.Init:=CreateVarStatement(CloneRunName,CreateLiteralNumber(El,0),El);
-      // i<high(a)
-      ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
-      ForLoop.Cond:=ExprLT;
-      ExprLT.A:=CreatePrimitiveDotExpr(CloneRunName,El);
-      RangeEnd:=aResolver.GetRangeLength(RangeEl);
-      ExprLT.B:=CreateLiteralNumber(RangeEl,RangeEnd);
-      // i++
-      PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
-      ForLoop.Incr:=PlusPlus;
-      PlusPlus.A:=CreatePrimitiveDotExpr(CloneRunName,El);
-      // r.push(...
-      Call:=CreateCallExpression(El);
-      ForLoop.Body:=Call;
-      Call.Expr:=CreatePrimitiveDotExpr(CloneResultName+'.push',El);
-      // a[i]
-      BracketEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-      BracketEx.MExpr:=CreatePrimitiveDotExpr(CloneArrName,El);
-      BracketEx.Name:=CreatePrimitiveDotExpr(CloneRunName,El);
-      // clone a[i]
-      ElTypeLo:=aResolver.ResolveAliasType(El.ElType);
-      CloneEl:=nil;
-      if ElTypeLo is TPasArrayType then
+
+      MaxIndex:=length(El.Ranges)-1;
+
+      UseSlice:=(ElTypeLo is TPasUnresolvedSymbolRef)
+             or (ElTypeLo is TPasRangeType);
+      ForLoop:=nil;
+      if UseSlice then
+        // static array of a base type -> inner loop is replaced with slice(0)
+        dec(MaxIndex);
+
+      for Index:=0 to MaxIndex do
         begin
-        if length(TPasArrayType(ElTypeLo).Ranges)=0 then
-          RaiseNotSupported(El,FuncContext,20180218223414,GetObjName(ElTypeLo));
-        CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElTypeLo),BracketEx,FuncContext);
-        end
-      else if ElTypeLo is TPasRecordType then
-        CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElTypeLo),BracketEx,FuncContext)
-      else if ElTypeLo is TPasSetType then
-        CloneEl:=CreateReferencedSet(El,BracketEx)
-      else
-        RaiseNotSupported(El,FuncContext,20180218223618,GetObjName(ElTypeLo));
-      Call.AddArg(CloneEl);
-      BracketEx:=nil;
-      // return r;
+        RangeEl:=El.Ranges[Index];
+        RangeEnd:=aResolver.GetRangeLength(RangeEl);
+
+        if Index=0 then
+          NewArrName:=ResultName
+        else
+          begin
+          ParentNewArrName:=NewArrName;
+          NewArrName:=GetNextVarName;
+          end;
+
+        // var NewArr = [];
+        VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
+        VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+        VarSt.A:=VarDecl;
+        VarDecl.Name:=NewArrName;
+        VarDecl.Init:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        AddLoopSt(VarSt);
+        if Index>0 then
+          begin
+          // var NewArr = ParentNewArrName[LoopVar] = [];
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          AssignSt.Expr:=VarDecl.Init; // ... = []
+          VarDecl.Init:=AssignSt;
+          // ... = ParentNewArrName[LoopVar] = ...
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          AssignSt.LHS:=BracketLeftEx;
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(ParentNewArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          end;
+
+        // NewArr.length = Dim;
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreatePrimitiveDotExpr(NewArrName+'.length',El);
+        AssignSt.Expr:=CreateLiteralNumber(El,RangeEnd);
+        AddLoopSt(AssignSt);
+
+        if Index>0 then
+          begin
+          // var SrcArrName = ParentSrcArrName[LoopVar];
+          ParentSrcArrName:=SrcArrName;
+          SrcArrName:=GetNextVarName;
+
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          VarSt:=CreateVarStatement(SrcArrName,BracketLeftEx,El);
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(ParentSrcArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          AddLoopSt(VarSt);
+          end;
+
+        // for (
+        LoopVarName:=GetNextVarName;
+        NewLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
+        AddLoopSt(NewLoop);
+        ForLoop:=NewLoop;
+        // var LoopVar=0;
+        ForLoop.Init:=CreateVarStatement(LoopVarName,CreateLiteralNumber(El,0),El);
+        // LoopVar<Dim
+        ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
+        ForLoop.Cond:=ExprLT;
+        ExprLT.A:=CreatePrimitiveDotExpr(LoopVarName,El);
+        ExprLT.B:=CreateLiteralNumber(El,RangeEnd);
+        // LoopVar++
+        PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
+        ForLoop.Incr:=PlusPlus;
+        PlusPlus.A:=CreatePrimitiveDotExpr(LoopVarName,El);
+
+        if Index=MaxIndex then
+          begin
+          // NewArr[LoopVar] = ...
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          ForLoop.Body:=AssignSt;
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          AssignSt.LHS:=BracketLeftEx;
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(NewArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          // SrcArr[LoopVar]
+          BracketRightEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          BracketRightEx.MExpr:=CreatePrimitiveDotExpr(SrcArrName,El);
+          BracketRightEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          try
+            // clone array element
+            CloneEl:=nil;
+            if UseSlice then
+              begin
+              // SrcArr[LoopVar].slice(0)
+              Call:=CreateCallExpression(El);
+              CloneEl:=Call;
+              Call.Expr:=CreateDotNameExpr(El,BracketRightEx,'slice');
+              Call.AddArg(CreateLiteralNumber(El,0));
+              end
+            else if ElTypeLo is TPasArrayType then
+              begin
+              if length(TPasArrayType(ElTypeLo).Ranges)=0 then
+                RaiseNotSupported(El,FuncContext,20180218223414,GetObjName(ElTypeLo));
+              CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElTypeLo),BracketRightEx,FuncContext);
+              end
+            else if ElTypeLo is TPasRecordType then
+              CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElTypeLo),BracketRightEx,FuncContext)
+            else if ElTypeLo is TPasSetType then
+              CloneEl:=CreateReferencedSet(El,BracketRightEx)
+            else
+              RaiseNotSupported(El,FuncContext,20180218223618,GetObjName(ElTypeLo));
+            AssignSt.Expr:=CloneEl;
+            BracketRightEx:=nil;
+          finally
+            BracketRightEx.Free;
+          end;
+
+          end;
+
+        end;
+
+      // return ResultName;
       ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
       AddToSourceElements(BodySrc,ReturnSt);
-      ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
+      ReturnSt.Expr:=CreatePrimitiveDotExpr(ResultName,El);
 
       ArrName:=GetOverloadName(El,AContext)+GetBIName(pbifnArray_Static_Clone);
       if El.Parent is TProcedureBody then
@@ -16795,7 +16940,6 @@ begin
 
       ArraySt:=nil;
     finally
-      BracketEx.Free;
       Func.Free;
       ArraySt.Free;
       FuncContext.Free;
@@ -18865,8 +19009,6 @@ begin
     // TArrayType$clone(ArrayExpr);
     if ArrTypeEl.Name='' then
       RaiseNotSupported(El,AContext,20180218230407,'copy anonymous multi dim static array');
-    if length(ArrTypeEl.Ranges)>1 then
-      RaiseNotSupported(El,AContext,20180218231700,'copy multi dim static array');
     FuncContext:=AContext.GetFunctionContext;
     Path:=CreateReferencePath(ArrTypeEl,FuncContext,rpkPathAndName)
           +GetBIName(pbifnArray_Static_Clone);
