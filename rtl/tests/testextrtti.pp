@@ -87,11 +87,15 @@ Type
   TMethodClassRTTI = Class (TObject)
   private
     Procedure PrivateMethodA;
+  strict private
     Procedure PrivateMethodB; virtual;
+  private
     Procedure PrivateMethodC; virtual; abstract;
   protected
     Procedure ProtectedMethodA;
+  strict protected
     Procedure ProtectedMethodB; virtual;
+  protected
     Procedure ProtectedMethodC; virtual; abstract;
   public
     Procedure PublicMethodA;
@@ -166,10 +170,10 @@ Var
 
 begin
   Msg:='Checking prop '+IntToStr(aIdx)+' ('+aName+') ';
-  AssertEquals(Msg+'name',aData.Info^.Name,aName);
-  AssertEquals(Msg+'kind',aData.Info^.PropType^.Kind,aKind);
-  AssertEquals(Msg+'visibility',aData.Visibility,aVisibility);
-  AssertEquals(Msg+'strict',aData.StrictVisibility,isStrict);
+  AssertEquals(Msg+'name',aName, aData.Info^.Name);
+  AssertEquals(Msg+'kind',aKind, aData.Info^.PropType^.Kind);
+  AssertEquals(Msg+'visibility',aVisibility,aData.Visibility);
+  AssertEquals(Msg+'strict',isStrict,aData.StrictVisibility);
 end;
 
 Procedure TestProperties;
@@ -232,10 +236,10 @@ Var
 
 begin
   Msg:='Checking field '+IntToStr(aIdx)+' ('+aName+') ';
-  AssertEquals(Msg+'name',aData^.Name^,aName);
-  AssertEquals(Msg+'kind',PPTypeInfo(aData^.FieldType)^^.Kind, aKind);
-  AssertEquals(Msg+'visibility',aData^.FieldVisibility,aVisibility);
-  AssertEquals(Msg+'strict',aData^.StrictVisibility,aStrict);
+  AssertEquals(Msg+'name',aName,aData^.Name^);
+  AssertEquals(Msg+'kind',aKind,PPTypeInfo(aData^.FieldType)^^.Kind);
+  AssertEquals(Msg+'visibility',aVisibility,aData^.FieldVisibility);
+  AssertEquals(Msg+'strict',aStrict,aData^.StrictVisibility);
 end;
 
 
@@ -315,7 +319,7 @@ begin
 end;
 
 
-Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass);
+Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass; aStrict : Boolean = False);
 
 Var
   Msg : String;
@@ -324,6 +328,7 @@ begin
   Msg:=aPrefix+': Checking method '+IntToStr(aIdx)+' ('+aName+') ';
   AssertEquals(Msg+'name',aData^.Name,aName);
   AssertEquals(Msg+'visibility',aVisibility,aData^.MethodVisibility);
+  AssertEquals(Msg+'strict',aData^.StrictVisibility,aStrict);
 end;
 
 procedure TestClassMethods;
@@ -336,10 +341,10 @@ begin
   aCount:=GetMethodList(TMethodClassRTTI,A,[]);
   AssertEquals('Full Count',12,aCount);
   CheckMethod('Full',0, A^[0],'PrivateMethodA',vcPrivate);
-  CheckMethod('Full',1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod('Full',1, A^[1],'PrivateMethodB',vcPrivate,True);
   CheckMethod('Full',2, A^[2],'PrivateMethodC',vcPrivate);
   CheckMethod('Full',3, A^[3],'ProtectedMethodA',vcProtected);
-  CheckMethod('Full',4, A^[4],'ProtectedMethodB',vcProtected);
+  CheckMethod('Full',4, A^[4],'ProtectedMethodB',vcProtected,True);
   CheckMethod('Full',5, A^[5],'ProtectedMethodC',vcProtected);
   CheckMethod('Full',6, A^[6],'PublicMethodA',vcPublic);
   CheckMethod('Full',7, A^[7],'PublicMethodB',vcPublic);
@@ -351,13 +356,13 @@ begin
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcPrivate]);
   AssertEquals('Private Count',3,aCount);
   CheckMethod('Priv',0, A^[0],'PrivateMethodA',vcPrivate);
-  CheckMethod('Priv',1, A^[1],'PrivateMethodB',vcPrivate);
+  CheckMethod('Priv',1, A^[1],'PrivateMethodB',vcPrivate,True);
   CheckMethod('Priv',2, A^[2],'PrivateMethodC',vcPrivate);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcProtected]);
   AssertEquals('Protected Count',3,aCount);
   CheckMethod('Prot',0, A^[0],'ProtectedMethodA',vcProtected);
-  CheckMethod('Prot',1, A^[1],'ProtectedMethodB',vcProtected);
+  CheckMethod('Prot',1, A^[1],'ProtectedMethodB',vcProtected,True);
   CheckMethod('Prot',2, A^[2],'ProtectedMethodC',vcProtected);
   FreeMem(A);
   aCount:=GetMethodList(TMethodClassRTTI,A,[vcPublic]);
