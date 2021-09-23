@@ -1366,6 +1366,13 @@ unit scandir;
         option: trtti_option;
         options: array[trtti_option] of boolean;
       begin
+        { the system unit has not yet loaded which means the directive is misplaced}
+        if systemunit=nil then
+          begin
+            Message(scan_e_misplaced_rtti_directive);
+            exit;
+          end;
+
         dir:=default(trtti_directive);
 
         options[ro_fields]:=false;
