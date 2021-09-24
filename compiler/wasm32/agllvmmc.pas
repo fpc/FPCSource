@@ -75,16 +75,10 @@ implementation
         begin
           list:=TAsmList.Create;
           thlcgwasm(hlcg).g_procdef(list,proc);
+          list.Concat(tai_import_module.create(proc.mangledname,proc.import_dll^));
+          list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
           WriteTree(list);
           list.free;
-          writer.AsmWrite(#9'.import_module'#9);
-          writer.AsmWrite(proc.mangledname);
-          writer.AsmWrite(', ');
-          writer.AsmWriteLn(proc.import_dll^);
-          writer.AsmWrite(#9'.import_name'#9);
-          writer.AsmWrite(proc.mangledname);
-          writer.AsmWrite(', ');
-          writer.AsmWriteLn(proc.import_name^);
         end;
 
     var

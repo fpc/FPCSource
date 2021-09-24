@@ -1650,6 +1650,20 @@ implementation
              WriteImportExport(tai_impexp(hp));
            ait_tagtype:
              WriteTagType(tai_tagtype(hp));
+           ait_import_module:
+             begin
+               writer.AsmWrite(#9'.import_module'#9);
+               writer.AsmWrite(tai_import_module(hp).symname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_import_module(hp).importmodule);
+             end;
+           ait_import_name:
+             begin
+               writer.AsmWrite(#9'.import_name'#9);
+               writer.AsmWrite(tai_import_name(hp).symname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_import_name(hp).importname);
+             end;
 {$endif WASM}
 
            else

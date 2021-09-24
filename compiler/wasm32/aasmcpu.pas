@@ -125,6 +125,22 @@ uses
         constructor create(const atagname: string; aparams: TWasmResultType);
       end;
 
+      { tai_import_module }
+
+      tai_import_module = class(tai)
+        symname: string;
+        importmodule: string;
+        constructor create(const asymname, aimportmodule: string);
+      end;
+
+      { tai_import_name }
+
+      tai_import_name = class(tai)
+        symname: string;
+        importname: string;
+        constructor create(const asymname, aimportname: string);
+      end;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -132,6 +148,26 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
+
+    { tai_import_name }
+
+    constructor tai_import_name.create(const asymname, aimportname: string);
+      begin
+        inherited Create;
+        typ:=ait_import_name;
+        symname:=asymname;
+        importname:=aimportname;
+      end;
+
+    { tai_import_module }
+
+    constructor tai_import_module.create(const asymname, aimportmodule: string);
+      begin
+        inherited Create;
+        typ:=ait_import_module;
+        symname:=asymname;
+        importmodule:=aimportmodule;
+      end;
 
     { tai_functype }
 
