@@ -33,9 +33,18 @@ interface
     { twasmnodeutils }
 
     twasmnodeutils = class(tnodeutils)
+    public
+      class procedure InsertObjectInfo; override;
     end;
 
 implementation
+
+  { twasmnodeutils }
+
+  class procedure twasmnodeutils.InsertObjectInfo;
+    begin
+      inherited;
+    end;
 
 begin
   cnodeutils:=twasmnodeutils;
