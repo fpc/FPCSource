@@ -314,7 +314,7 @@ implementation
         i: Integer;
       begin
         i:=AddFuncType(ft.functype);
-        FFuncTypeNames.Add(ft.funcname, @(FFuncTypes[i]));
+        FFuncTypeNames.Add(ft.funcname, Pointer(i+1));
       end;
 
 {****************************************************************************
@@ -443,7 +443,7 @@ implementation
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
       begin
-        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FFuncTypeNames.Find(sym.Name)<>nil);
+        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FFuncTypeNames.FindIndexOf(sym.Name)<>-1);
       end;
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
@@ -536,7 +536,7 @@ implementation
                 WriteName(FWasmSections[wsiImport],'env');
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
-                WriteUleb(FWasmSections[wsiImport],PWasmFuncType(TWasmObjData(Data).FFuncTypeNames.Find(objsym.Name))-PWasmFuncType(TWasmObjData(Data).FFuncTypes[0]));
+                WriteUleb(FWasmSections[wsiImport],PtrUInt(TWasmObjData(Data).FFuncTypeNames.Find(objsym.Name))-1);
               end;
           end;
         { import[imports_count-1] }
