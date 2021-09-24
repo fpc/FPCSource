@@ -184,8 +184,8 @@ unit cgcpu;
               begin
                 inc(regsize,sizeof(aint));
                 inc(stackmisalignment,sizeof(aint));
-                push_one_reg(newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE));
                 hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
+                push_one_reg(hreg);
                 if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
                 else
