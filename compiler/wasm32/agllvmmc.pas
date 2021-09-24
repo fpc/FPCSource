@@ -69,16 +69,11 @@ implementation
 
   procedure TLLVMMachineCodePlaygroundAssembler.WriteImports;
 
-      procedure WriteImportDll(proc: tprocdef);
-        var
-          list : TAsmList;
+      procedure WriteImportDll(list: TAsmList; proc: tprocdef);
         begin
-          list:=TAsmList.Create;
           thlcgwasm(hlcg).g_procdef(list,proc);
           list.Concat(tai_import_module.create(proc.mangledname,proc.import_dll^));
           list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
-          WriteTree(list);
-          list.free;
         end;
 
     var
@@ -88,6 +83,7 @@ implementation
       list : TAsmList;
       cur_unit: tused_unit;
     begin
+      list:=TAsmList.Create;
       for i:=0 to current_module.deflist.Count-1 do
         begin
           def:=tdef(current_module.deflist[i]);
@@ -96,10 +92,9 @@ implementation
             begin
               proc := tprocdef(def);
               if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                WriteImportDll(proc);
+                WriteImportDll(list,proc);
             end;
          end;
-      list:=TAsmList.Create;
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
         begin
@@ -117,7 +112,7 @@ implementation
                 begin
                   proc := tprocdef(def);
                   if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                    WriteImportDll(proc)
+                    WriteImportDll(list,proc)
                   else if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
                      ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
                     thlcgwasm(hlcg).g_procdef(list,proc);
