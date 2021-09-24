@@ -40,8 +40,6 @@ interface
 
     TLLVMMachineCodePlaygroundAssembler=class(TGNUassembler)
     protected
-      procedure WriteImports;
-
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
@@ -67,64 +65,6 @@ implementation
   { TLLVMMachineCodePlaygroundAssembler }
 
 
-  procedure TLLVMMachineCodePlaygroundAssembler.WriteImports;
-
-      procedure WriteImportDll(list: TAsmList; proc: tprocdef);
-        begin
-          thlcgwasm(hlcg).g_procdef(list,proc);
-          list.Concat(tai_import_module.create(proc.mangledname,proc.import_dll^));
-          list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
-        end;
-
-    var
-      i    : integer;
-      def  : tdef;
-      proc : tprocdef;
-      list : TAsmList;
-      cur_unit: tused_unit;
-    begin
-      list:=TAsmList.Create;
-      for i:=0 to current_module.deflist.Count-1 do
-        begin
-          def:=tdef(current_module.deflist[i]);
-          { since commit 48986 deflist might have NIL entries }
-          if assigned(def) and (def.typ=procdef) then
-            begin
-              proc := tprocdef(def);
-              if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                WriteImportDll(list,proc);
-            end;
-         end;
-      cur_unit:=tused_unit(usedunits.First);
-      while assigned(cur_unit) do
-        begin
-          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
-            begin
-              if mf_init in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-              if mf_finalize in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-            end;
-          for i:=0 to cur_unit.u.deflist.Count-1 do
-            begin
-              def:=tdef(cur_unit.u.deflist[i]);
-              if assigned(def) and (tdef(def).typ = procdef) then
-                begin
-                  proc := tprocdef(def);
-                  if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                    WriteImportDll(list,proc)
-                  else if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
-                     ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
-                    thlcgwasm(hlcg).g_procdef(list,proc);
-                end;
-            end;
-          cur_unit:=tused_unit(cur_unit.Next);
-        end;
-      WriteTree(list);
-      list.free;
-    end;
-
-
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
       if (atype=sec_fpc) or (atype=sec_threadvar) then
@@ -143,8 +83,6 @@ implementation
   procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
     begin
       writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
-      { print all global procedures/functions }
-      WriteImports;
       if ts_wasm_native_exceptions in current_settings.targetswitches then
         begin
           writer.AsmWriteLn(#9'.tagtype'#9'__FPC_exception');
