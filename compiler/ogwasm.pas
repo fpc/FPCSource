@@ -45,7 +45,9 @@ interface
       TWasmObjSymbol = class(TObjSymbol)
         ImportIndex: Integer;
         FuncIndex: Integer;
+        SymbolIndex: Integer;
         constructor create(AList:TFPHashObjectList;const AName:string);
+        function ImportOrFuncIndex: Integer;
       end;
 
       { TWasmObjRelocation }
@@ -70,6 +72,7 @@ interface
       public
         SegIdx: Integer;
         SegOfs: qword;
+        FileSectionOfs: qword;
         function IsCode: Boolean;
         function IsData: Boolean;
       end;
@@ -113,6 +116,7 @@ interface
         FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
+        procedure WriteUleb5(d: tdynamicarray; v: uint64);
         procedure WriteSleb(d: tdynamicarray; v: int64);
         procedure WriteByte(d: tdynamicarray; b: byte);
         procedure WriteName(d: tdynamicarray; const s: string);
@@ -129,6 +133,8 @@ interface
         procedure WriteRelocationCodeTable(CodeSectionIndex: Integer);
         procedure WriteRelocationDataTable(DataSectionIndex: Integer);
         procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
+        procedure DoRelocations;
+        procedure WriteRelocations;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -156,6 +162,17 @@ implementation
         inherited create(AList,AName);
         ImportIndex:=-1;
         FuncIndex:=-1;
+        SymbolIndex:=-1;
+      end;
+
+    function TWasmObjSymbol.ImportOrFuncIndex: Integer;
+      begin
+        if ImportIndex<>-1 then
+          result:=ImportIndex
+        else if FuncIndex<>-1 then
+          result:=FuncIndex
+        else
+          internalerror(2021092601);
       end;
 
 {****************************************************************************
@@ -483,6 +500,21 @@ implementation
         until v=0;
       end;
 
+    procedure TWasmObjOutput.WriteUleb5(d: tdynamicarray; v: uint64);
+      var
+        b: byte;
+        i: Integer;
+      begin
+        for i:=1 to 5 do
+          begin
+            b:=byte(v) and 127;
+            v:=v shr 7;
+            if i<>5 then
+              b:=b or 128;
+            d.write(b,1);
+          end;
+      end;
+
     procedure TWasmObjOutput.WriteSleb(d: tdynamicarray; v: int64);
       var
         b: byte;
@@ -632,11 +664,11 @@ implementation
         encoded_locals: tdynamicarray;
         ObjSymExtraData: TWasmObjSymbolExtraData;
         codelen: LongWord;
-        ObjSection: TObjSection;
+        ObjSection: TWasmObjSection;
         codeexprlen: QWord;
       begin
         ObjSymExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
-        ObjSection:=objsym.objsection;
+        ObjSection:=TWasmObjSection(objsym.objsection);
         ObjSection.Data.seek(objsym.address);
         codeexprlen:=ObjSection.Size-objsym.address;
 
@@ -646,6 +678,7 @@ implementation
         WriteUleb(dest,codelen);
         encoded_locals.seek(0);
         CopyDynamicArray(encoded_locals,dest,encoded_locals.size);
+        ObjSection.FileSectionOfs:=dest.size-objsym.offset;
         CopyDynamicArray(ObjSection.Data,dest,codeexprlen);
         WriteByte(dest,$0B);
         encoded_locals.Free;
@@ -682,6 +715,74 @@ implementation
             WriteUleb(FWasmCustomSections[wcstLinking],FWasmLinkingSubsections[wlst].size);
             FWasmLinkingSubsections[wlst].seek(0);
             CopyDynamicArray(FWasmLinkingSubsections[wlst],FWasmCustomSections[wcstLinking],FWasmLinkingSubsections[wlst].size);
+          end;
+      end;
+
+    procedure TWasmObjOutput.DoRelocations;
+      var
+        si, ri: Integer;
+        objsec: TWasmObjSection;
+        objrel: TWasmObjRelocation;
+      begin
+        for si:=0 to FData.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(FData.ObjSectionList[si]);
+            for ri:=0 to objsec.ObjRelocations.Count-1 do
+              begin
+                objrel:=TWasmObjRelocation(objsec.ObjRelocations[ri]);
+                case objrel.typ of
+                  RELOC_FUNCTION_INDEX_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092509);
+                      objsec.Data.seek(objrel.DataOffset);
+                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).ImportOrFuncIndex);
+                    end;
+                  else
+                    internalerror(2021092510);
+                end;
+              end;
+          end;
+      end;
+
+    procedure TWasmObjOutput.WriteRelocations;
+      var
+        si, ri: Integer;
+        objsec: TWasmObjSection;
+        objrel: TWasmObjRelocation;
+        relout: tdynamicarray;
+        relcount: PInteger;
+      begin
+        for si:=0 to FData.ObjSectionList.Count-1 do
+          begin
+            objsec:=TWasmObjSection(FData.ObjSectionList[si]);
+            if objsec.IsCode then
+              begin
+                relout:=FWasmRelocationCodeTable;
+                relcount:=@FWasmRelocationCodeTableEntriesCount;
+              end
+            else
+              begin
+                relout:=FWasmRelocationDataTable;
+                relcount:=@FWasmRelocationDataTableEntriesCount;
+              end;
+            for ri:=0 to objsec.ObjRelocations.Count-1 do
+              begin
+                objrel:=TWasmObjRelocation(objsec.ObjRelocations[ri]);
+                case objrel.typ of
+                  RELOC_FUNCTION_INDEX_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092508);
+                      Inc(relcount^);
+                      WriteByte(relout,Ord(R_WASM_FUNCTION_INDEX_LEB));
+                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                      WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                    end;
+                  else
+                    internalerror(2021092507);
+                end;
+              end;
           end;
       end;
 
@@ -756,6 +857,7 @@ implementation
                 WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
                 WriteByte(FWasmSections[wsiData],$0b);
                 WriteUleb(FWasmSections[wsiData],objsec.Size);
+                objsec.FileSectionOfs:=FWasmSections[wsiData].size;
                 if oso_Data in objsec.SecOptions then
                   begin
                     objsec.Data.seek(0);
@@ -806,7 +908,6 @@ implementation
         WriteUleb(FWasmSections[wsiImport],1);    { 1 }
 
         WriteUleb(FWasmSections[wsiFunction],functions_count);
-        WriteUleb(FWasmSections[wsiCode],functions_count);
         NextFunctionIndex:=NextImportFunctionIndex;
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
@@ -816,7 +917,6 @@ implementation
                 objsym.FuncIndex:=NextFunctionIndex;
                 Inc(NextFunctionIndex);
                 WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
-                WriteFunctionCode(FWasmSections[wsiCode],objsym);
               end;
           end;
 
@@ -825,6 +925,7 @@ implementation
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               begin
+                objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
                 WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
@@ -832,6 +933,7 @@ implementation
               end
             else if objsym.typ=AT_FUNCTION then
               begin
+                objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
                 WriteUleb(FWasmSymbolTable,0);
@@ -840,6 +942,7 @@ implementation
               end
             else if objsym.typ=AT_DATA then
               begin
+                objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_DATA));
                 if objsym.bind=AB_GLOBAL then
@@ -859,6 +962,18 @@ implementation
                   end;
               end;
           end;
+
+        DoRelocations;
+
+        WriteUleb(FWasmSections[wsiCode],functions_count);
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.typ=AT_FUNCTION then
+              WriteFunctionCode(FWasmSections[wsiCode],objsym);
+          end;
+
+        WriteRelocations;
 
         WriteSymbolTable;
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
