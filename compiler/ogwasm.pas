@@ -44,6 +44,7 @@ interface
 
       TWasmObjSymbol = class(TObjSymbol)
         ImportIndex: Integer;
+        FuncIndex: Integer;
         constructor create(AList:TFPHashObjectList;const AName:string);
       end;
 
@@ -148,6 +149,7 @@ implementation
       begin
         inherited create(AList,AName);
         ImportIndex:=-1;
+        FuncIndex:=-1;
       end;
 
 {****************************************************************************
@@ -668,7 +670,7 @@ implementation
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
         types_count,
-        imports_count, NextImportFunctionIndex: Integer;
+        imports_count, NextImportFunctionIndex, NextFunctionIndex: Integer;
         import_functions_count: Integer = 0;
         functions_count: Integer = 0;
         objsym: TWasmObjSymbol;
@@ -779,11 +781,14 @@ implementation
 
         WriteUleb(FWasmSections[wsiFunction],functions_count);
         WriteUleb(FWasmSections[wsiCode],functions_count);
+        NextFunctionIndex:=NextImportFunctionIndex;
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if objsym.typ=AT_FUNCTION then
               begin
+                objsym.FuncIndex:=NextFunctionIndex;
+                Inc(NextFunctionIndex);
                 WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
                 WriteFunctionCode(FWasmSections[wsiCode],objsym);
               end;
@@ -801,6 +806,11 @@ implementation
               end
             else if objsym.typ=AT_FUNCTION then
               begin
+                Inc(FWasmSymbolTableEntriesCount);
+                WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
+                WriteUleb(FWasmSymbolTable,0);
+                WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
+                WriteName(FWasmSymbolTable,objsym.Name);
               end;
           end;
 
