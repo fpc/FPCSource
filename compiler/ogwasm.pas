@@ -521,6 +521,7 @@ implementation
         types_count,
         imports_count: Integer;
         import_functions_count: Integer = 0;
+        functions_count: Integer = 0;
         objsym: TObjSymbol;
       begin
         for i:=0 to Data.ObjSymbolList.Count-1 do
@@ -528,6 +529,8 @@ implementation
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
+            if objsym.typ=AT_FUNCTION then
+              Inc(functions_count);
           end;
 
         types_count:=Length(TWasmObjData(Data).FFuncTypes);
@@ -613,11 +616,20 @@ implementation
         WriteByte(FWasmSections[wsiImport],$00);  { min }
         WriteUleb(FWasmSections[wsiImport],1);    { 1 }
 
+        WriteUleb(FWasmSections[wsiFunction],functions_count);
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.typ=AT_FUNCTION then
+              WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+          end;
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
         WriteWasmSection(wsiType);
         WriteWasmSection(wsiImport);
+        WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiData);
 
