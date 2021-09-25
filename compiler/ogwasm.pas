@@ -40,6 +40,11 @@ interface
 
     type
 
+      { TWasmObjRelocation }
+
+      TWasmObjRelocation = class(TObjRelocation)
+      end;
+
       { TWasmObjSymbolExtraData }
 
       TWasmObjSymbolExtraData = class(TFPHashObject)
@@ -330,7 +335,12 @@ implementation
         p: TObjSymbol; Reloctype: TObjRelocationType);
       const
         leb_zero: array[0..4] of byte=($80,$80,$80,$80,$00);
+      var
+        objreloc: TWasmObjRelocation;
       begin
+        if CurrObjSec=nil then
+          internalerror(200403072);
+        objreloc:=nil;
         case Reloctype of
           RELOC_FUNCTION_INDEX_LEB:
             begin
@@ -338,6 +348,12 @@ implementation
                 internalerror(2021092502);
               if len<>5 then
                 internalerror(2021092503);
+              if not assigned(p) then
+                internalerror(2021092504);
+              if p.bind<>AB_EXTERNAL then
+                internalerror(2021092505);
+              objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+              CurrObjSec.ObjRelocations.Add(objreloc);
               writebytes(leb_zero,5);
             end;
           RELOC_ABSOLUTE:
