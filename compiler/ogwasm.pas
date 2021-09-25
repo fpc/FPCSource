@@ -88,6 +88,7 @@ interface
 
       TWasmObjOutput = class(tObjOutput)
       private
+        FData: TWasmObjData;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
@@ -100,6 +101,8 @@ interface
         procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
         procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
         function IsExternalFunction(sym: TObjSymbol): Boolean;
+        procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
+        procedure WriteFunctionCode(dest: tdynamicarray; objsym: TObjSymbol);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -512,6 +515,58 @@ implementation
         result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name)<>nil);
       end;
 
+    procedure TWasmObjOutput.WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
+      var
+        i,
+        rle_entries,
+        cnt: Integer;
+        lasttype: TWasmBasicType;
+      begin
+        if Length(ed.Locals)=0 then
+          begin
+            WriteUleb(dest,0);
+            exit;
+          end;
+
+        rle_entries:=1;
+        for i:=low(ed.Locals)+1 to high(ed.Locals) do
+          if ed.Locals[i]<>ed.Locals[i-1] then
+            inc(rle_entries);
+
+        WriteUleb(dest,rle_entries);
+        lasttype:=ed.Locals[Low(ed.Locals)];
+        cnt:=1;
+        for i:=low(ed.Locals)+1 to high(ed.Locals) do
+          if ed.Locals[i]=ed.Locals[i-1] then
+            inc(cnt)
+          else
+            begin
+              WriteUleb(dest,cnt);
+              WriteWasmBasicType(dest,lasttype);
+              lasttype:=ed.Locals[i];
+              cnt:=1;
+            end;
+        WriteUleb(dest,cnt);
+        WriteWasmBasicType(dest,lasttype);
+      end;
+
+    procedure TWasmObjOutput.WriteFunctionCode(dest: tdynamicarray; objsym: TObjSymbol);
+      var
+        encoded_locals: tdynamicarray;
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+        codelen: LongWord;
+      begin
+        ObjSymExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
+        encoded_locals:=tdynamicarray.Create(64);
+        WriteFunctionLocals(encoded_locals,ObjSymExtraData);
+        codelen:=encoded_locals.size+1;
+        WriteUleb(dest,codelen);
+        encoded_locals.seek(0);
+        CopyDynamicArray(encoded_locals,dest,encoded_locals.size);
+        WriteByte(dest,$0B);
+        encoded_locals.Free;
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
@@ -524,6 +579,7 @@ implementation
         functions_count: Integer = 0;
         objsym: TObjSymbol;
       begin
+        FData:=TWasmObjData(Data);
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
@@ -617,11 +673,15 @@ implementation
         WriteUleb(FWasmSections[wsiImport],1);    { 1 }
 
         WriteUleb(FWasmSections[wsiFunction],functions_count);
+        WriteUleb(FWasmSections[wsiCode],functions_count);
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
             if objsym.typ=AT_FUNCTION then
-              WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+              begin
+                WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+                WriteFunctionCode(FWasmSections[wsiCode],objsym);
+              end;
           end;
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
@@ -631,6 +691,7 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiDataCount);
+        WriteWasmSection(wsiCode);
         WriteWasmSection(wsiData);
 
         Writeln('ObjSymbolList:');
