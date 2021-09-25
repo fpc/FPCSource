@@ -1671,6 +1671,19 @@ override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
 endif
 endif
+ifdef SYSROOTPATH
+override FPCOPT+=-XR$(SYSROOTPATH)
+else
+ifeq ($(OS_TARGET),$(OS_SOURCE))
+ifneq ($(findstring $(OS_TARGET),darwin),)
+ifneq ($(findstring $(CPU_TARGET),aarch64),)
+ifneq ($(wildcard /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk),)
+override FPCOPT+=-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+endif
+endif
+endif
+endif
+endif
 ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
@@ -2504,13 +2517,13 @@ SVN_TESTS_REV_STR=$(shell $(GIT_GET_HASH) .)
 SVN_COMPILER_REV_STR=$(shell $(GIT_GET_HASH) ../compiler)
 SVN_RTL_REV_STR=$(shell $(GIT_GET_HASH) ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(GIT_GET_HASH) ../packages)
+endif
 else
 ifneq ($(SVNVERSION),)
 SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
 SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
 SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
-endif
 endif
 endif
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
