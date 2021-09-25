@@ -71,6 +71,24 @@ type
     WASM_COMDAT_INFO  = 7,
     WASM_SYMBOL_TABLE = 8);
 
+  TWasmSymbolType   = (
+    SYMTAB_FUNCTION = 0,
+    SYMTAB_DATA     = 1,
+    SYMTAB_GLOBAL   = 2,
+    SYMTAB_SECTION  = 3,
+    SYMTAB_EVENT    = 4,
+    SYMTAB_TABLE    = 5);
+
+const
+  { symbol flags }
+  WASM_SYM_BINDING_WEAK      = $01;
+  WASM_SYM_BINDING_LOCAL     = $02;
+  WASM_SYM_VISIBILITY_HIDDEN = $04;
+  WASM_SYM_UNDEFINED         = $10;
+  WASM_SYM_EXPORTED          = $20;
+  WASM_SYM_EXPLICIT_NAME     = $40;
+  WASM_SYM_NO_STRIP          = $80;
+
 implementation
 
 end.
