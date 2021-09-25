@@ -811,6 +811,26 @@ implementation
                 WriteUleb(FWasmSymbolTable,0);
                 WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                 WriteName(FWasmSymbolTable,objsym.Name);
+              end
+            else if objsym.typ=AT_DATA then
+              begin
+                Inc(FWasmSymbolTableEntriesCount);
+                WriteByte(FWasmSymbolTable,Ord(SYMTAB_DATA));
+                if objsym.bind=AB_GLOBAL then
+                  WriteUleb(FWasmSymbolTable,0)
+                else if objsym.bind=AB_LOCAL then
+                  WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL)
+                else if objsym.bind=AB_EXTERNAL then
+                  WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED)
+                else
+                  internalerror(2021092506);
+                WriteName(FWasmSymbolTable,objsym.Name);
+                if objsym.bind<>AB_EXTERNAL then
+                  begin
+                    WriteUleb(FWasmSymbolTable,TWasmObjSection(objsym.objsection).SegIdx);
+                    WriteUleb(FWasmSymbolTable,objsym.offset);
+                    WriteUleb(FWasmSymbolTable,objsym.size);
+                  end;
               end;
           end;
 
