@@ -40,6 +40,13 @@ interface
 
     type
 
+      { TWasmObjSymbol }
+
+      TWasmObjSymbol = class(TObjSymbol)
+        ImportIndex: Integer;
+        constructor create(AList:TFPHashObjectList;const AName:string);
+      end;
+
       { TWasmObjRelocation }
 
       TWasmObjRelocation = class(TObjRelocation)
@@ -94,8 +101,11 @@ interface
       TWasmObjOutput = class(tObjOutput)
       private
         FData: TWasmObjData;
+        FWasmSymbolTable: tdynamicarray;
+        FWasmSymbolTableEntriesCount: Integer;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
+        FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
         procedure WriteSleb(d: tdynamicarray; v: int64);
@@ -110,6 +120,8 @@ interface
         function IsExternalFunction(sym: TObjSymbol): Boolean;
         procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
         procedure WriteFunctionCode(dest: tdynamicarray; objsym: TObjSymbol);
+        procedure WriteSymbolTable;
+        procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -127,6 +139,16 @@ implementation
 
     uses
       verbose;
+
+{****************************************************************************
+                               TWasmObjSymbol
+****************************************************************************}
+
+    constructor TWasmObjSymbol.create(AList: TFPHashObjectList; const AName: string);
+      begin
+        inherited create(AList,AName);
+        ImportIndex:=-1;
+      end;
 
 {****************************************************************************
                               TWasmObjSymbolExtraData
@@ -309,6 +331,7 @@ implementation
       begin
         inherited;
         CObjSection:=TWasmObjSection;
+        CObjSymbol:=TWasmObjSymbol;
         FObjSymbolsExtraDataList:=TFPHashObjectList.Create;
       end;
 
@@ -620,6 +643,24 @@ implementation
         encoded_locals.Free;
       end;
 
+    procedure TWasmObjOutput.WriteSymbolTable;
+      begin
+        WriteUleb(FWasmLinkingSubsections[WASM_SYMBOL_TABLE],FWasmSymbolTableEntriesCount);
+        FWasmSymbolTable.seek(0);
+        CopyDynamicArray(FWasmSymbolTable,FWasmLinkingSubsections[WASM_SYMBOL_TABLE],FWasmSymbolTable.size);
+      end;
+
+    procedure TWasmObjOutput.WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
+      begin
+        if FWasmLinkingSubsections[wlst].size>0 then
+          begin
+            WriteByte(FWasmCustomSections[wcstLinking],Ord(wlst));
+            WriteUleb(FWasmCustomSections[wcstLinking],FWasmLinkingSubsections[wlst].size);
+            FWasmLinkingSubsections[wlst].seek(0);
+            CopyDynamicArray(FWasmLinkingSubsections[wlst],FWasmCustomSections[wcstLinking],FWasmLinkingSubsections[wlst].size);
+          end;
+      end;
+
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
         i: Integer;
@@ -627,10 +668,10 @@ implementation
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
         types_count,
-        imports_count: Integer;
+        imports_count, NextImportFunctionIndex: Integer;
         import_functions_count: Integer = 0;
         functions_count: Integer = 0;
-        objsym: TObjSymbol;
+        objsym: TWasmObjSymbol;
         cust_sec: TWasmCustomSectionType;
       begin
         FData:=TWasmObjData(Data);
@@ -643,7 +684,7 @@ implementation
 
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
-            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
             if objsym.typ=AT_FUNCTION then
@@ -714,11 +755,14 @@ implementation
         WriteByte(FWasmSections[wsiImport],$7F);  { i32 }
         WriteByte(FWasmSections[wsiImport],$01);  { var }
         { import[2]..import[imports_count-2] }
+        NextImportFunctionIndex:=0;
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
-            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               begin
+                objsym.ImportIndex:=NextImportFunctionIndex;
+                Inc(NextImportFunctionIndex);
                 WriteName(FWasmSections[wsiImport],'env');
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
@@ -737,13 +781,31 @@ implementation
         WriteUleb(FWasmSections[wsiCode],functions_count);
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
-            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if objsym.typ=AT_FUNCTION then
               begin
                 WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
                 WriteFunctionCode(FWasmSections[wsiCode],objsym);
               end;
           end;
+
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if IsExternalFunction(objsym) then
+              begin
+                Inc(FWasmSymbolTableEntriesCount);
+                WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
+                WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
+                WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+              end
+            else if objsym.typ=AT_FUNCTION then
+              begin
+              end;
+          end;
+
+        WriteSymbolTable;
+        WriteLinkingSubsection(WASM_SYMBOL_TABLE);
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
@@ -759,7 +821,7 @@ implementation
         Writeln('ObjSymbolList:');
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
-            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             Write(objsym.Name, ' bind=', objsym.Bind, ' typ=', objsym.typ, ' address=', objsym.address, ' objsection=');
             if assigned(objsym.objsection) then
               Write(objsym.objsection.Name)
@@ -782,6 +844,7 @@ implementation
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
+        k: TWasmLinkingSubsectionType;
       begin
         inherited;
         cobjdata:=TWasmObjData;
@@ -789,17 +852,25 @@ implementation
           FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
         for j in TWasmCustomSectionType do
           FWasmCustomSections[j] := tdynamicarray.create(SectionDataMaxGrow);
+        for k:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
+          FWasmLinkingSubsections[k] := tdynamicarray.create(SectionDataMaxGrow);
+        FWasmSymbolTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmSymbolTableEntriesCount:=0;
       end;
 
     destructor TWasmObjOutput.destroy;
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
+        k: TWasmLinkingSubsectionType;
       begin
         for i in TWasmSectionID do
           FWasmSections[i].Free;
         for j in TWasmCustomSectionType do
           FWasmCustomSections[j].Free;
+        for k:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
+          FWasmLinkingSubsections[k].Free;
+        FWasmSymbolTable.Free;
         inherited destroy;
       end;
 
