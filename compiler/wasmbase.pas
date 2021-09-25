@@ -45,6 +45,18 @@ type
     wsiData      = 11,
     wsiDataCount = 12);
 
+  TWasmCustomSectionType = (
+    wcstLinking,
+    wcstRelocCode,
+    wcstRelocData);
+
+const
+  WasmCustomSectionName: array [TWasmCustomSectionType] of string =
+    ('linking',
+     'reloc.CODE',
+     'reloc.DATA');
+
+type
   TWasmRelocationType = (
     R_WASM_FUNCTION_INDEX_LEB  = 0,
     R_WASM_TABLE_INDEX_SLEB    = 1,

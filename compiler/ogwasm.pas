@@ -95,12 +95,14 @@ interface
       private
         FData: TWasmObjData;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
+        FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
         procedure WriteSleb(d: tdynamicarray; v: int64);
         procedure WriteByte(d: tdynamicarray; b: byte);
         procedure WriteName(d: tdynamicarray; const s: string);
         procedure WriteWasmSection(wsid: TWasmSectionID);
+        procedure WriteWasmCustomSection(wcst: TWasmCustomSectionType);
         procedure CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
         procedure WriteZeros(dest: tdynamicarray; size: QWord);
         procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
@@ -487,6 +489,16 @@ implementation
         Writer.writearray(FWasmSections[wsid]);
       end;
 
+    procedure TWasmObjOutput.WriteWasmCustomSection(wcst: TWasmCustomSectionType);
+      var
+        b: byte;
+      begin
+        b:=0;
+        Writer.write(b,1);
+        WriteUleb(Writer,FWasmCustomSections[wcst].size);
+        Writer.writearray(FWasmCustomSections[wcst]);
+      end;
+
     procedure TWasmObjOutput.CopyDynamicArray(src, dest: tdynamicarray; size: QWord);
       var
         buf: array [0..4095] of byte;
@@ -619,8 +631,16 @@ implementation
         import_functions_count: Integer = 0;
         functions_count: Integer = 0;
         objsym: TObjSymbol;
+        cust_sec: TWasmCustomSectionType;
       begin
         FData:=TWasmObjData(Data);
+
+        { each custom sections starts with its name }
+        for cust_sec in TWasmCustomSectionType do
+          WriteName(FWasmCustomSections[cust_sec],WasmCustomSectionName[cust_sec]);
+
+        WriteUleb(FWasmCustomSections[wcstLinking],2);  { linking metadata version }
+
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
@@ -734,6 +754,7 @@ implementation
         WriteWasmSection(wsiDataCount);
         WriteWasmSection(wsiCode);
         WriteWasmSection(wsiData);
+        WriteWasmCustomSection(wcstLinking);
 
         Writeln('ObjSymbolList:');
         for i:=0 to Data.ObjSymbolList.Count-1 do
@@ -760,19 +781,25 @@ implementation
     constructor TWasmObjOutput.create(AWriter: TObjectWriter);
       var
         i: TWasmSectionID;
+        j: TWasmCustomSectionType;
       begin
         inherited;
         cobjdata:=TWasmObjData;
         for i in TWasmSectionID do
           FWasmSections[i] := tdynamicarray.create(SectionDataMaxGrow);
+        for j in TWasmCustomSectionType do
+          FWasmCustomSections[j] := tdynamicarray.create(SectionDataMaxGrow);
       end;
 
     destructor TWasmObjOutput.destroy;
       var
         i: TWasmSectionID;
+        j: TWasmCustomSectionType;
       begin
         for i in TWasmSectionID do
           FWasmSections[i].Free;
+        for j in TWasmCustomSectionType do
+          FWasmCustomSections[j].Free;
         inherited destroy;
       end;
 
