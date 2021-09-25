@@ -328,7 +328,25 @@ implementation
 
     procedure TWasmObjData.writeReloc(Data: TRelocDataInt; len: aword;
         p: TObjSymbol; Reloctype: TObjRelocationType);
+      const
+        leb_zero: array[0..4] of byte=($80,$80,$80,$80,$00);
       begin
+        case Reloctype of
+          RELOC_FUNCTION_INDEX_LEB:
+            begin
+              if Data<>0 then
+                internalerror(2021092502);
+              if len<>5 then
+                internalerror(2021092503);
+              writebytes(leb_zero,5);
+            end;
+          RELOC_ABSOLUTE:
+            begin
+              { todo... }
+            end;
+          else
+            internalerror(2021092501);
+        end;
       end;
 
     function TWasmObjData.AddOrCreateObjSymbolExtraData(const symname: TSymStr): TWasmObjSymbolExtraData;
