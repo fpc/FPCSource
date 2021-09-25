@@ -2125,9 +2125,6 @@ type
            package or not }
          load_packages;
 
-         { global switches are read, so further changes aren't allowed }
-         current_module.in_global:=false;
-
          { set implementation flag }
          current_module.in_interface:=false;
          current_module.interface_compiled:=true;
@@ -2142,7 +2139,10 @@ type
          { consume the semicolon now that the system unit is loaded }
          if consume_semicolon_after_loaded then
            consume(_SEMICOLON);
-           
+
+         { global switches are read, so further changes aren't allowed }
+         current_module.in_global:=false;
+  
          { system unit is loaded, now insert feature defines }
          for feature:=low(tfeature) to high(tfeature) do
            if feature in features then
