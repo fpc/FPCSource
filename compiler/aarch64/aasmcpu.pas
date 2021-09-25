@@ -1094,6 +1094,7 @@ implementation
            A_FNMADD,
            A_FNMSUB,
            A_FRINTX,
+           A_FRINTZ,
            A_FSQRT,
            A_FSUB,
            A_ORR,
@@ -1118,6 +1119,7 @@ implementation
            A_FCVTZS,
            A_SDIV,
            A_SMULL,
+           A_SMULH,
            A_STLXP,
            A_STLXR,
            A_STXP,
@@ -1131,6 +1133,7 @@ implementation
            A_UCVTF,
            A_UDIV,
            A_UMULL,
+           A_UMULH,
            A_UXTB,
            A_UXTH:
              if opnr=0 then
@@ -1138,7 +1141,6 @@ implementation
              else
                result:=operand_read;
            else
-             Internalerror(2019090802);
 {$else EXTDEBUG}
            else
              if opnr=0 then
