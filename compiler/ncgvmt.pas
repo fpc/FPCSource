@@ -538,7 +538,7 @@ implementation
 
          count:=0;
          _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
-         if count>0 then
+         if (count>0) or (_class.rtti.options[ro_methods]<>[]) then
            begin
               { in the list of the published methods (from objpas.inc):
                   tmethodnamerec = packed record
@@ -559,41 +559,21 @@ implementation
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
               lists.pubmethodstcb.emit_tai(Tai_const.Create_32bit(count),u32inttype);
-              { begin entries field (array) }
-              lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsarraydef);
-              { add all entries elements }
-              _class.symtable.SymList.ForEachCall(@do_gen_published_methods,@lists);
-              { end entries field (array) }
-              lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
+              if count>0 then
+                begin
+                  { begin entries field (array) }
+                  lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsarraydef);
+                  { add all entries elements }
+                  _class.symtable.SymList.ForEachCall(@do_gen_published_methods,@lists);
+                  { end entries field (array) }
+                  lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
+                end;
               { end methodnametable }
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
               { write extended method rtti }
-              if _class.rtti.options[ro_methods]<>[] then
-                RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class,packrecords);
+              RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class,packrecords);
               tcb.finish_internal_data_builder(lists.pubmethodstcb,lab,pubmethodsdef,sizeof(pint));
            end
-          else if (count=0) and (_class.rtti.options[ro_methods]<>[]) then
-            begin
-              {
-                for extended RTTI only tables we write a partial method name table which
-                holds the method count (always 0) followed by the extended method table.
-
-                tmethodnametable = packed record
-                  count : dword;
-                end;
-              }
-              tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
-              datatcb.begin_anonymous_record('',packrecords,1,
-                targetinfos[target_info.system]^.alignment.recordalignmin);
-              datatcb.emit_tai(Tai_const.Create_32bit(count),u32inttype);
-              datatcb.end_anonymous_record;
-              { write extended method rtti }
-              RTTIWriter.write_extended_method_table(datatcb,_class,packrecords);
-              tcb.finish_internal_data_builder(datatcb,lab,nil,sizeof(pint));
-              { don't write the method name table }
-              lab:=nil;
-              pubmethodsdef:=nil;
-            end
          else
            begin
              lab:=nil;
@@ -627,6 +607,8 @@ implementation
                (sym.visibility=vis_published) then
              begin
                 { legacy fields can be objectdef only }
+                { TODO(ryan): show the internal error IF the extended RTTI for published fields is not set
+                  because this loop will encounter both legacy and extended RTTI }
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
                   continue;
                 classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
@@ -636,7 +618,7 @@ implementation
              end;
           end;
 
-        if fieldcount>0 then
+        if (fieldcount>0) or (_class.rtti.options[ro_fields]<>[]) then
           begin
             if (tf_requires_proper_alignment in target_info.flags) then
               packrecords:=0
@@ -726,36 +708,9 @@ implementation
                   end;
               end;
             { append the extended rtti table }
-            if _class.rtti.options[ro_fields]<>[] then
-              RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
+            RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
             fieldtabledef:=datatcb.end_anonymous_record;
             tcb.finish_internal_data_builder(datatcb,lab,fieldtabledef,sizeof(pint));
-          end
-        else if (fieldcount=0) and (_class.rtti.options[ro_fields]<>[]) then
-          begin
-            {
-              for extended RTTI only tables we write a partial field table which
-              holds the field count (always 0) followed by the extended field table.
-
-              TFieldTable =
-             $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
-              packed
-             $endif FPC_REQUIRES_PROPER_ALIGNMENT
-              record
-                FieldCount: Word;
-              end;
-            }
-            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
-            datatcb.begin_anonymous_record('',packrecords,1,
-              targetinfos[target_info.system]^.alignment.recordalignmin);
-            datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
-            datatcb.end_anonymous_record;
-            { append the extended rtti table }
-            RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
-            tcb.finish_internal_data_builder(datatcb,lab,nil,sizeof(pint));
-            { don't write the field table }
-            fieldtabledef:=nil;
-            lab:=nil;
           end
         else
           begin
