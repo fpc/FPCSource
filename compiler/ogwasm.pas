@@ -589,10 +589,10 @@ implementation
               Inc(functions_count);
           end;
 
-        types_count:=Length(TWasmObjData(Data).FFuncTypes);
+        types_count:=Length(FData.FFuncTypes);
         WriteUleb(FWasmSections[wsiType],types_count);
         for i:=0 to types_count-1 do
-          with TWasmObjData(Data).FFuncTypes[i] do
+          with FData.FFuncTypes[i] do
             begin
               WriteByte(FWasmSections[wsiType],$60);
               WriteWasmResultType(FWasmSections[wsiType],params);
@@ -661,7 +661,7 @@ implementation
                 WriteName(FWasmSections[wsiImport],'env');
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
-                WriteUleb(FWasmSections[wsiImport],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+                WriteUleb(FWasmSections[wsiImport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
               end;
           end;
         { import[imports_count-1] }
@@ -679,7 +679,7 @@ implementation
             objsym:=TObjSymbol(Data.ObjSymbolList[i]);
             if objsym.typ=AT_FUNCTION then
               begin
-                WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+                WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
                 WriteFunctionCode(FWasmSections[wsiCode],objsym);
               end;
           end;
