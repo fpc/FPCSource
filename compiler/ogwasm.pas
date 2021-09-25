@@ -71,6 +71,7 @@ interface
         destructor destroy; override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
         function AddFuncType(wft: TWasmFuncType): integer;
         procedure DeclareFuncType(ft: tai_functype);
       end;
@@ -313,6 +314,13 @@ implementation
       begin
       end;
 
+    function TWasmObjData.AddOrCreateObjSymbolExtraData(const symname: TSymStr): TWasmObjSymbolExtraData;
+      begin
+        result:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(symname));
+        if not assigned(result) then
+          result:=TWasmObjSymbolExtraData.Create(FObjSymbolsExtraDataList,symname);
+      end;
+
     function TWasmObjData.AddFuncType(wft: TWasmFuncType): integer;
       var
         i: Integer;
@@ -333,9 +341,7 @@ implementation
       begin
         i:=AddFuncType(ft.functype);
 
-        ObjSymExtraData:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(ft.funcname));
-        if not assigned(ObjSymExtraData) then
-          ObjSymExtraData:=TWasmObjSymbolExtraData.Create(FObjSymbolsExtraDataList,ft.funcname);
+        ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ft.funcname);
         ObjSymExtraData.TypeIdx:=i;
       end;
 
