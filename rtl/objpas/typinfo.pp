@@ -549,7 +549,7 @@ unit TypInfo;
       private
         function GetMethod(Index: Word): PVmtMethodExEntry;
       public
-        Count0,Count1: Word;
+        LegacyCount,Count1: Word;
         Count: Word;
         { Entry: array[0..Count - 1] of TVmtMethodExEntry }
         property Method[Index: Word]: PVmtMethodExEntry read GetMethod;
@@ -2362,7 +2362,8 @@ begin
   While aClassData<>Nil do
     begin
     MethodTable:=aClassData^.ExMethodTable;
-    if MethodTable<>Nil then
+    // if LegacyCount=0 then Count1 and Count are not available.
+    if (MethodTable<>Nil) and (MethodTable^.LegacyCount<>0) then
       begin
       For I:=0 to MethodTable^.Count-1 do
         begin
@@ -4123,8 +4124,8 @@ Var
 
 begin
   MT:=GetMethodTable;
-  if MT^.Count0=0 then
-    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.Count0))+SizeOf(Word)))
+  if MT^.LegacyCount=0 then
+    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.LegacyCount))+SizeOf(Word)))
   else
     Result:=PPropDataEx(MT^.Method[MT^.Count-1]^.Tail);
 end;

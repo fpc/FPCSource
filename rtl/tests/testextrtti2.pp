@@ -31,8 +31,13 @@ Type
   Public
     FPublicA: Integer;
     FPublicB: Integer;
+    FPublishedA: Integer;
+    FPublishedB: Integer;
     Property PublicA : Integer Read FPublicA Write FPublicA;
     Property PublicB : Integer Read FPublicA Write FPublicB;
+  Published
+    Property PublishedA : Integer Read FPublishedA Write FPublishedA;
+    Property PublishedB : Integer Read FPublishedA Write FPublishedB;
   end;
 
   { TMethodClassRTTI }
@@ -107,6 +112,7 @@ Procedure TestProperties;
 
 Var
   A : PPropListEx;
+  AL : PPropList;
   aCount : Integer;
 
 begin
@@ -120,6 +126,13 @@ begin
   finally
     Freemem(A);
   end;
+  // Check legacy published property list
+  aCount:=GetPropList(TFieldRTTI,AL);
+  try
+    AssertEquals('Legacy Count',2,aCount);
+  finally
+    Freemem(A);
+  end;
 end;
 
 Procedure TestClassFields;
@@ -130,11 +143,13 @@ Var
 
 begin
   aCount:=GetFieldList(TFieldRTTI,A);
-  AssertEquals('Count',4,aCount);
+  AssertEquals('Count',6,aCount);
   CheckField(0, A^[0],'FPrivateA',tkInteger,vcPrivate);
   CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate,True);
   CheckField(2, A^[2],'FPublicA',tkInteger,vcPublic);
   CheckField(3, A^[3],'FPublicB',tkInteger,vcPublic);
+  CheckField(4, A^[4],'FPublishedA',tkInteger,vcPublic);
+  CheckField(5, A^[5],'FPublishedB',tkInteger,vcPublic);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPrivate]);
   AssertEquals('Count',2,aCount);
@@ -145,9 +160,11 @@ begin
   AssertEquals('Count',0,aCount);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPublic]);
-  AssertEquals('Count',2,aCount);
-  CheckField(4, A^[0],'FPublicA',tkInteger,vcPublic);
-  CheckField(5, A^[1],'FPublicB',tkInteger,vcPublic);
+  AssertEquals('Count',4,aCount);
+  CheckField(0, A^[0],'FPublicA',tkInteger,vcPublic);
+  CheckField(1, A^[1],'FPublicB',tkInteger,vcPublic);
+  CheckField(2, A^[2],'FPublishedA',tkInteger,vcPublic);
+  CheckField(3, A^[3],'FPublishedB',tkInteger,vcPublic);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPublished]);
   AssertEquals('Count',0,aCount);
