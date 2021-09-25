@@ -718,11 +718,17 @@ implementation
           end;
 
         WriteUleb(FWasmSections[wsiData],segment_count);
+        WriteUleb(FWasmSections[wsiDataCount],segment_count);
+        WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],segment_count);
         for i:=0 to Data.ObjSectionList.Count-1 do
           begin
             objsec:=TWasmObjSection(Data.ObjSectionList[i]);
             if objsec.IsData then
               begin
+                WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
+                WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
+                WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],0);  { flags }
+
                 WriteByte(FWasmSections[wsiData],0);
                 WriteByte(FWasmSections[wsiData],$41);
                 WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
@@ -739,8 +745,6 @@ implementation
                   end;
               end;
           end;
-
-        WriteUleb(FWasmSections[wsiDataCount],segment_count);
 
         imports_count:=3+import_functions_count;
         WriteUleb(FWasmSections[wsiImport],imports_count);
@@ -836,6 +840,7 @@ implementation
 
         WriteSymbolTable;
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
+        WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
