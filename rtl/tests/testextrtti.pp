@@ -116,7 +116,7 @@ Var
 begin
   aCount:=GetPropListEx(TFieldRTTI,A);
   try
-    AssertEquals('Count',8,aCount);
+    AssertEquals('Property Count',8,aCount);
     CheckProperty(0, A^[0]^,'PrivateA',tkInteger,vcPrivate);
     CheckProperty(1, A^[1]^,'PrivateB',tkInteger,vcPrivate,True);
     CheckProperty(2, A^[2]^,'ProtectedA',tkInteger,vcProtected);
@@ -141,7 +141,7 @@ begin
   // aCount:=TFieldRTTI.InstanceSize;
   // aCount:=PtrInt(O.FieldAddress('PublField'))-PtrInt(O);
   aCount:=GetFieldList(TFieldRTTI,A);
-  AssertEquals('Count',8,aCount);
+  AssertEquals('Class field Count',8,aCount);
   CheckField(0, A^[0],'FPrivateA',tkInteger,vcPrivate);
   CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate,True);
   CheckField(2, A^[2],'FProtectedA',tkInteger,vcProtected);
