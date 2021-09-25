@@ -40,6 +40,13 @@ interface
 
     type
 
+      { TWasmObjSymbolExtraData }
+
+      TWasmObjSymbolExtraData = class(TFPHashObject)
+        TypeIdx: Integer;
+        constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+      end;
+
       { TWasmObjSection }
 
       TWasmObjSection = class(TObjSection)
@@ -55,7 +62,7 @@ interface
       TWasmObjData = class(TObjData)
       private
         FFuncTypes: array of TWasmFuncType;
-        FFuncTypeNames: TFPHashList;
+        FObjSymbolsExtraDataList: TFPHashObjectList;
 
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
@@ -101,6 +108,16 @@ implementation
 
     uses
       verbose;
+
+{****************************************************************************
+                              TWasmObjSymbolExtraData
+****************************************************************************}
+
+    constructor TWasmObjSymbolExtraData.Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+      begin
+        inherited Create(HashObjectList,s);
+        TypeIdx:=-1;
+      end;
 
 {****************************************************************************
                               TWasmObjSection
@@ -267,14 +284,14 @@ implementation
       begin
         inherited;
         CObjSection:=TWasmObjSection;
-        FFuncTypeNames:=TFPHashList.Create;
+        FObjSymbolsExtraDataList:=TFPHashObjectList.Create;
       end;
 
     destructor TWasmObjData.destroy;
       var
         i: Integer;
       begin
-        FFuncTypeNames.free;
+        FObjSymbolsExtraDataList.Free;
         for i:=low(FFuncTypes) to high(FFuncTypes) do
           begin
             FFuncTypes[i].free;
@@ -312,9 +329,14 @@ implementation
     procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
       var
         i: Integer;
+        ObjSymExtraData: TWasmObjSymbolExtraData;
       begin
         i:=AddFuncType(ft.functype);
-        FFuncTypeNames.Add(ft.funcname, Pointer(i+1));
+
+        ObjSymExtraData:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(ft.funcname));
+        if not assigned(ObjSymExtraData) then
+          ObjSymExtraData:=TWasmObjSymbolExtraData.Create(FObjSymbolsExtraDataList,ft.funcname);
+        ObjSymExtraData.TypeIdx:=i;
       end;
 
 {****************************************************************************
@@ -443,7 +465,7 @@ implementation
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
       begin
-        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FFuncTypeNames.FindIndexOf(sym.Name)<>-1);
+        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name)<>nil);
       end;
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
@@ -536,7 +558,7 @@ implementation
                 WriteName(FWasmSections[wsiImport],'env');
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
-                WriteUleb(FWasmSections[wsiImport],PtrUInt(TWasmObjData(Data).FFuncTypeNames.Find(objsym.Name))-1);
+                WriteUleb(FWasmSections[wsiImport],TWasmObjSymbolExtraData(TWasmObjData(Data).FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
               end;
           end;
         { import[imports_count-1] }
