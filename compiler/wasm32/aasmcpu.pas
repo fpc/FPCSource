@@ -535,6 +535,17 @@ implementation
                 internalerror(2021092001);
               with oper[0]^ do
                 case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        result:=6
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          result:=1+SlebSize(ref^.offset);
+                        end;
+                    end;
                   top_const:
                     result:=1+SlebSize(val);
                   else
@@ -607,7 +618,11 @@ implementation
                   top_ref:
                     begin
                       if assigned(ref^.symbol) then
-                        Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' symbol ', ref^.symbol.Name, '+', ref^.offset)
+                        begin
+                          Result:=1+
+                            UlebSize(2)+  { alignment: 1 shl 2 }
+                            5;  { relocation, fixed size = 5 bytes }
+                        end
                       else
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
@@ -977,6 +992,17 @@ implementation
                 internalerror(2021092001);
               with oper[0]^ do
                 case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_SLEB)
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          WriteSleb(ref^.offset);
+                        end;
+                    end;
                   top_const:
                     WriteSleb(val);
                   else
@@ -1076,7 +1102,10 @@ implementation
                   top_ref:
                     begin
                       if assigned(ref^.symbol) then
-                        Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' symbol ', ref^.symbol.Name, '+', ref^.offset)
+                        begin
+                          WriteUleb(2);  { alignment: 1 shl 2 }
+                          objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_LEB);
+                        end
                       else
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then

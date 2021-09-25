@@ -116,7 +116,6 @@ interface
         FWasmLinkingSubsections: array [low(TWasmLinkingSubsectionType)..high(TWasmLinkingSubsectionType)] of tdynamicarray;
         procedure WriteUleb(d: tdynamicarray; v: uint64);
         procedure WriteUleb(w: TObjectWriter; v: uint64);
-        procedure WriteUleb5(d: tdynamicarray; v: uint64);
         procedure WriteSleb(d: tdynamicarray; v: int64);
         procedure WriteByte(d: tdynamicarray; b: byte);
         procedure WriteName(d: tdynamicarray; const s: string);
@@ -152,6 +151,120 @@ implementation
 
     uses
       verbose;
+
+    procedure WriteUleb5(d: tdynamicarray; v: uint64);
+      var
+        b: byte;
+        i: Integer;
+      begin
+        for i:=1 to 5 do
+          begin
+            b:=byte(v) and 127;
+            v:=v shr 7;
+            if i<>5 then
+              b:=b or 128;
+            d.write(b,1);
+          end;
+      end;
+
+    procedure WriteUleb5(d: tobjsection; v: uint64);
+      var
+        b: byte;
+        i: Integer;
+      begin
+        for i:=1 to 5 do
+          begin
+            b:=byte(v) and 127;
+            v:=v shr 7;
+            if i<>5 then
+              b:=b or 128;
+            d.write(b,1);
+          end;
+      end;
+
+    procedure WriteSleb5(d: tdynamicarray; v: int64);
+      var
+        b: byte;
+        i: Integer;
+      begin
+        for i:=1 to 5 do
+          begin
+            b:=byte(v) and 127;
+            v:=SarInt64(v,7);
+            if i<>5 then
+              b:=b or 128;
+            d.write(b,1);
+          end;
+      end;
+
+    procedure WriteSleb5(d: tobjsection; v: int64);
+      var
+        b: byte;
+        i: Integer;
+      begin
+        for i:=1 to 5 do
+          begin
+            b:=byte(v) and 127;
+            v:=SarInt64(v,7);
+            if i<>5 then
+              b:=b or 128;
+            d.write(b,1);
+          end;
+      end;
+
+    function ReadUleb(d: tdynamicarray): uint64;
+      var
+        b: byte;
+        shift:integer;
+      begin
+        result:=0;
+        shift:=0;
+        repeat
+          d.read(b,1);
+          result:=result or (uint64(b and 127) shl shift);
+          inc(shift,7);
+        until (b and 128)=0;
+      end;
+
+    function ReadSleb(d: tdynamicarray): int64;
+      var
+        b: byte;
+        shift:integer;
+      begin
+        result:=0;
+        shift:=0;
+        repeat
+          d.read(b,1);
+          result:=result or (uint64(b and 127) shl shift);
+          inc(shift,7);
+        until (b and 128)=0;
+        if (b and 64)<>0 then
+          result:=result or (high(uint64) shl shift);
+      end;
+
+    procedure AddSleb5(d: tdynamicarray; v: int64);
+      var
+        q: Int64;
+        p: LongWord;
+      begin
+        p:=d.Pos;
+        q:=ReadSleb(d);
+        q:=q+v;
+        d.seek(p);
+        WriteSleb5(d,q);
+      end;
+
+    procedure AddUleb5(d: tdynamicarray; v: int64);
+      var
+        q: UInt64;
+        p: LongWord;
+      begin
+        p:=d.Pos;
+        q:=ReadUleb(d);
+        q:=q+v;
+        d.seek(p);
+        WriteUleb5(d,q);
+      end;
 
 {****************************************************************************
                                TWasmObjSymbol
@@ -406,6 +519,22 @@ implementation
               CurrObjSec.ObjRelocations.Add(objreloc);
               writebytes(leb_zero,5);
             end;
+          RELOC_MEMORY_ADDR_LEB,
+          RELOC_MEMORY_ADDR_SLEB:
+            begin
+              if (Reloctype=RELOC_MEMORY_ADDR_LEB) and (Data<0) then
+                internalerror(2021092602);
+              if len<>5 then
+                internalerror(2021092503);
+              if not assigned(p) then
+                internalerror(2021092504);
+              objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+              CurrObjSec.ObjRelocations.Add(objreloc);
+              if RelocType=RELOC_MEMORY_ADDR_LEB then
+                WriteUleb5(CurrObjSec,Data)
+              else
+                WriteSleb5(CurrObjSec,Data);
+            end;
           RELOC_ABSOLUTE:
             begin
               { todo... }
@@ -498,21 +627,6 @@ implementation
             b:=b or 128;
           w.write(b,1);
         until v=0;
-      end;
-
-    procedure TWasmObjOutput.WriteUleb5(d: tdynamicarray; v: uint64);
-      var
-        b: byte;
-        i: Integer;
-      begin
-        for i:=1 to 5 do
-          begin
-            b:=byte(v) and 127;
-            v:=v shr 7;
-            if i<>5 then
-              b:=b or 128;
-            d.write(b,1);
-          end;
       end;
 
     procedure TWasmObjOutput.WriteSleb(d: tdynamicarray; v: int64);
@@ -738,6 +852,26 @@ implementation
                       objsec.Data.seek(objrel.DataOffset);
                       WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).ImportOrFuncIndex);
                     end;
+                  RELOC_MEMORY_ADDR_SLEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092605);
+                      if objrel.symbol.bind<>AB_EXTERNAL then
+                        begin
+                          objsec.Data.seek(objrel.DataOffset);
+                          AddSleb5(objsec.Data,objrel.symbol.offset+TWasmObjSection(objrel.symbol.objsection).SegOfs);
+                        end;
+                    end;
+                  RELOC_MEMORY_ADDR_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092606);
+                      if objrel.symbol.bind<>AB_EXTERNAL then
+                        begin
+                          objsec.Data.seek(objrel.DataOffset);
+                          AddUleb5(objsec.Data,objrel.symbol.offset+TWasmObjSection(objrel.symbol.objsection).SegOfs);
+                        end;
+                    end;
                   else
                     internalerror(2021092510);
                 end;
@@ -778,6 +912,26 @@ implementation
                       WriteByte(relout,Ord(R_WASM_FUNCTION_INDEX_LEB));
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                    end;
+                  RELOC_MEMORY_ADDR_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092603);
+                      Inc(relcount^);
+                      WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_LEB));
+                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                      WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                      WriteUleb(relout,0);  { addend to add to the address }
+                    end;
+                  RELOC_MEMORY_ADDR_SLEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092604);
+                      Inc(relcount^);
+                      WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_SLEB));
+                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                      WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                      WriteUleb(relout,0);  { addend to add to the address }
                     end;
                   else
                     internalerror(2021092507);
@@ -940,7 +1094,7 @@ implementation
                 WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                 WriteName(FWasmSymbolTable,objsym.Name);
               end
-            else if objsym.typ=AT_DATA then
+            else if (objsym.typ=AT_DATA) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
               begin
                 objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);

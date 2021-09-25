@@ -114,6 +114,8 @@ interface
 {$endif z80}
 {$ifdef WASM32}
          RELOC_FUNCTION_INDEX_LEB,
+         RELOC_MEMORY_ADDR_LEB,
+         RELOC_MEMORY_ADDR_SLEB,
 {$endif WASM32}
          { Relative relocation }
          RELOC_RELATIVE,
