@@ -636,7 +636,7 @@ implementation
              end;
           end;
 
-        if (fieldcount>0) or (_class.rtti.options[ro_fields]<>[]) then
+        if fieldcount>0 then
           begin
             if (tf_requires_proper_alignment in target_info.flags) then
               packrecords:=0
@@ -726,9 +726,36 @@ implementation
                   end;
               end;
             { append the extended rtti table }
-            RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
+            if _class.rtti.options[ro_fields]<>[] then
+              RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
             fieldtabledef:=datatcb.end_anonymous_record;
             tcb.finish_internal_data_builder(datatcb,lab,fieldtabledef,sizeof(pint));
+          end
+        else if (fieldcount=0) and (_class.rtti.options[ro_fields]<>[]) then
+          begin
+            {
+              for extended RTTI only tables we write a partial field table which
+              holds the field count (always 0) followed by the extended field table.
+
+              TFieldTable =
+             $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
+              packed
+             $endif FPC_REQUIRES_PROPER_ALIGNMENT
+              record
+                FieldCount: Word;
+              end;
+            }
+            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
+            datatcb.begin_anonymous_record('',packrecords,1,
+              targetinfos[target_info.system]^.alignment.recordalignmin);
+            datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
+            datatcb.end_anonymous_record;
+            { append the extended rtti table }
+            RTTIWriter.write_extended_field_table(datatcb,_class,packrecords);
+            tcb.finish_internal_data_builder(datatcb,lab,nil,sizeof(pint));
+            { don't write the field table }
+            fieldtabledef:=nil;
+            lab:=nil;
           end
         else
           begin
