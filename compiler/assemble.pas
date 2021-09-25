@@ -1837,6 +1837,10 @@ Implementation
 {$ifdef WASM}
              ait_functype:
                TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
+             ait_import_module:
+               TWasmObjData(ObjData).DeclareImportModule(tai_import_module(hp));
+             ait_import_name:
+               TWasmObjData(ObjData).DeclareImportName(tai_import_name(hp));
 {$endif WASM}
              else
                ;

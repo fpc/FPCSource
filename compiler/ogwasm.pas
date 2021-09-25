@@ -44,6 +44,8 @@ interface
 
       TWasmObjSymbolExtraData = class(TFPHashObject)
         TypeIdx: Integer;
+        ImportModule: string;
+        ImportName: string;
         constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
       end;
 
@@ -74,6 +76,8 @@ interface
         function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
         function AddFuncType(wft: TWasmFuncType): integer;
         procedure DeclareFuncType(ft: tai_functype);
+        procedure DeclareImportModule(aim: tai_import_module);
+        procedure DeclareImportName(ain: tai_import_name);
       end;
 
       { TWasmObjOutput }
@@ -343,6 +347,22 @@ implementation
 
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ft.funcname);
         ObjSymExtraData.TypeIdx:=i;
+      end;
+
+    procedure TWasmObjData.DeclareImportModule(aim: tai_import_module);
+      var
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+      begin
+        ObjSymExtraData:=AddOrCreateObjSymbolExtraData(aim.symname);
+        ObjSymExtraData.ImportModule:=aim.importmodule;
+      end;
+
+    procedure TWasmObjData.DeclareImportName(ain: tai_import_name);
+      var
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+      begin
+        ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ain.symname);
+        ObjSymExtraData.ImportName:=ain.importname;
       end;
 
 {****************************************************************************
