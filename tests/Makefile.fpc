@@ -628,13 +628,13 @@ SVN_TESTS_REV_STR=$(shell $(GIT_GET_HASH) .)
 SVN_COMPILER_REV_STR=$(shell $(GIT_GET_HASH) ../compiler)
 SVN_RTL_REV_STR=$(shell $(GIT_GET_HASH) ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(GIT_GET_HASH) ../packages)
+endif
 else
 ifneq ($(SVNVERSION),)
 SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
 SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
 SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
-endif
 endif
 endif
 
