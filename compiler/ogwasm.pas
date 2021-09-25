@@ -46,7 +46,9 @@ interface
         TypeIdx: Integer;
         ImportModule: string;
         ImportName: string;
+        Locals: array of TWasmBasicType;
         constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+        procedure AddLocal(bastyp: TWasmBasicType);
       end;
 
       { TWasmObjSection }
@@ -65,6 +67,7 @@ interface
       private
         FFuncTypes: array of TWasmFuncType;
         FObjSymbolsExtraDataList: TFPHashObjectList;
+        FLastFuncName: string;
 
         function is_smart_section(atype:TAsmSectiontype):boolean;
         function sectionname_gas(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
@@ -78,6 +81,7 @@ interface
         procedure DeclareFuncType(ft: tai_functype);
         procedure DeclareImportModule(aim: tai_import_module);
         procedure DeclareImportName(ain: tai_import_name);
+        procedure DeclareLocal(al: tai_local);
       end;
 
       { TWasmObjOutput }
@@ -122,6 +126,12 @@ implementation
       begin
         inherited Create(HashObjectList,s);
         TypeIdx:=-1;
+      end;
+
+    procedure TWasmObjSymbolExtraData.AddLocal(bastyp: TWasmBasicType);
+      begin
+        SetLength(Locals,Length(Locals)+1);
+        Locals[High(Locals)]:=bastyp;
       end;
 
 {****************************************************************************
@@ -343,8 +353,8 @@ implementation
         i: Integer;
         ObjSymExtraData: TWasmObjSymbolExtraData;
       begin
+        FLastFuncName:=ft.funcname;
         i:=AddFuncType(ft.functype);
-
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ft.funcname);
         ObjSymExtraData.TypeIdx:=i;
       end;
@@ -363,6 +373,14 @@ implementation
       begin
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(ain.symname);
         ObjSymExtraData.ImportName:=ain.importname;
+      end;
+
+    procedure TWasmObjData.DeclareLocal(al: tai_local);
+      var
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+      begin
+        ObjSymExtraData:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(FLastFuncName));
+        ObjSymExtraData.AddLocal(al.bastyp);
       end;
 
 {****************************************************************************

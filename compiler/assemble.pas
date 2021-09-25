@@ -1841,6 +1841,8 @@ Implementation
                TWasmObjData(ObjData).DeclareImportModule(tai_import_module(hp));
              ait_import_name:
                TWasmObjData(ObjData).DeclareImportName(tai_import_name(hp));
+             ait_local:
+               TWasmObjData(ObjData).DeclareLocal(tai_local(hp));
 {$endif WASM}
              else
                ;
