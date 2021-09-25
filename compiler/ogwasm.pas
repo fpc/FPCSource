@@ -555,14 +555,21 @@ implementation
         encoded_locals: tdynamicarray;
         ObjSymExtraData: TWasmObjSymbolExtraData;
         codelen: LongWord;
+        ObjSection: TObjSection;
+        codeexprlen: QWord;
       begin
         ObjSymExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
+        ObjSection:=objsym.objsection;
+        ObjSection.Data.seek(objsym.address);
+        codeexprlen:=ObjSection.Size-objsym.address;
+
         encoded_locals:=tdynamicarray.Create(64);
         WriteFunctionLocals(encoded_locals,ObjSymExtraData);
-        codelen:=encoded_locals.size+1;
+        codelen:=encoded_locals.size+codeexprlen+1;
         WriteUleb(dest,codelen);
         encoded_locals.seek(0);
         CopyDynamicArray(encoded_locals,dest,encoded_locals.size);
+        CopyDynamicArray(ObjSection.Data,dest,codeexprlen);
         WriteByte(dest,$0B);
         encoded_locals.Free;
       end;
