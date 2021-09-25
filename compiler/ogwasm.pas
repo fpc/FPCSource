@@ -102,6 +102,10 @@ interface
       TWasmObjOutput = class(tObjOutput)
       private
         FData: TWasmObjData;
+        FWasmRelocationCodeTable: tdynamicarray;
+        FWasmRelocationCodeTableEntriesCount: Integer;
+        FWasmRelocationDataTable: tdynamicarray;
+        FWasmRelocationDataTableEntriesCount: Integer;
         FWasmSymbolTable: tdynamicarray;
         FWasmSymbolTableEntriesCount: Integer;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
@@ -122,6 +126,8 @@ interface
         procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
         procedure WriteFunctionCode(dest: tdynamicarray; objsym: TObjSymbol);
         procedure WriteSymbolTable;
+        procedure WriteRelocationCodeTable(CodeSectionIndex: Integer);
+        procedure WriteRelocationDataTable(DataSectionIndex: Integer);
         procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
       protected
         function writeData(Data:TObjData):boolean;override;
@@ -652,6 +658,22 @@ implementation
         CopyDynamicArray(FWasmSymbolTable,FWasmLinkingSubsections[WASM_SYMBOL_TABLE],FWasmSymbolTable.size);
       end;
 
+    procedure TWasmObjOutput.WriteRelocationCodeTable(CodeSectionIndex: Integer);
+      begin
+        WriteUleb(FWasmCustomSections[wcstRelocCode],CodeSectionIndex);
+        WriteUleb(FWasmCustomSections[wcstRelocCode],FWasmRelocationCodeTableEntriesCount);
+        FWasmRelocationCodeTable.seek(0);
+        CopyDynamicArray(FWasmRelocationCodeTable,FWasmCustomSections[wcstRelocCode],FWasmRelocationCodeTable.size);
+      end;
+
+    procedure TWasmObjOutput.WriteRelocationDataTable(DataSectionIndex: Integer);
+      begin
+        WriteUleb(FWasmCustomSections[wcstRelocData],DataSectionIndex);
+        WriteUleb(FWasmCustomSections[wcstRelocData],FWasmRelocationDataTableEntriesCount);
+        FWasmRelocationDataTable.seek(0);
+        CopyDynamicArray(FWasmRelocationDataTable,FWasmCustomSections[wcstRelocData],FWasmRelocationDataTable.size);
+      end;
+
     procedure TWasmObjOutput.WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
       begin
         if FWasmLinkingSubsections[wlst].size>0 then
@@ -842,16 +864,21 @@ implementation
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
         WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
+        WriteRelocationCodeTable(4);  { code section is section #4 }
+        WriteRelocationDataTable(5);  { code section is section #5 }
+
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
-        WriteWasmSection(wsiType);
-        WriteWasmSection(wsiImport);
-        WriteWasmSection(wsiFunction);
-        WriteWasmSection(wsiDataCount);
-        WriteWasmSection(wsiCode);
-        WriteWasmSection(wsiData);
-        WriteWasmCustomSection(wcstLinking);
+        WriteWasmSection(wsiType);              { section #0 }
+        WriteWasmSection(wsiImport);            { section #1 }
+        WriteWasmSection(wsiFunction);          { section #2 }
+        WriteWasmSection(wsiDataCount);         { section #3 }
+        WriteWasmSection(wsiCode);              { section #4 }
+        WriteWasmSection(wsiData);              { section #5 }
+        WriteWasmCustomSection(wcstLinking);    { section #6 }
+        WriteWasmCustomSection(wcstRelocCode);  { section #7 }
+        WriteWasmCustomSection(wcstRelocData);  { section #8 }
 
         Writeln('ObjSymbolList:');
         for i:=0 to Data.ObjSymbolList.Count-1 do
@@ -891,6 +918,10 @@ implementation
           FWasmLinkingSubsections[k] := tdynamicarray.create(SectionDataMaxGrow);
         FWasmSymbolTable:=tdynamicarray.create(SectionDataMaxGrow);
         FWasmSymbolTableEntriesCount:=0;
+        FWasmRelocationCodeTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationCodeTableEntriesCount:=0;
+        FWasmRelocationDataTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDataTableEntriesCount:=0;
       end;
 
     destructor TWasmObjOutput.destroy;
@@ -906,6 +937,8 @@ implementation
         for k:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
           FWasmLinkingSubsections[k].Free;
         FWasmSymbolTable.Free;
+        FWasmRelocationCodeTable.Free;
+        FWasmRelocationDataTable.Free;
         inherited destroy;
       end;
 
