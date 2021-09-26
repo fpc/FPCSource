@@ -268,7 +268,7 @@ interface
        ThumbFunc : boolean;
 {$endif ARM}
 
-       constructor create(AList:TFPHashObjectList;const AName:string);
+       constructor create(AList:TFPHashObjectList;const AName:string);virtual;
        function  address:qword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;

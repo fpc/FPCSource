@@ -49,7 +49,7 @@ interface
         SymbolIndex: Integer;
         AliasOf: string;
         ExtraData: TWasmObjSymbolExtraData;
-        constructor create(AList:TFPHashObjectList;const AName:string);
+        constructor create(AList:TFPHashObjectList;const AName:string);override;
         function ImportOrFuncIndex: Integer;
         function IsAlias: Boolean;
       end;
