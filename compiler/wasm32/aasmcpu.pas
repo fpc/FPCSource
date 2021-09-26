@@ -1379,6 +1379,8 @@ uses
                   WriteByte($0C);
                 a_br_if:
                   WriteByte($0D);
+                else
+                  internalerror(2021092622);
               end;
               if ops<>1 then
                 internalerror(2021092610);
