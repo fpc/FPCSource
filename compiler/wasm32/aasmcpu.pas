@@ -555,6 +555,10 @@ uses
                     internalerror(2021092615);
                 end;
             end;
+          a_f32_const:
+            result:=5;
+          a_f64_const:
+            result:=9;
           a_local_get,
           a_local_set,
           a_local_tee:
@@ -704,6 +708,36 @@ uses
           begin
             objdata.writebytes(b,1);
           end;
+
+{$ifdef FPC_LITTLE_ENDIAN}
+        procedure WriteSingle(s: single);
+          begin
+            objdata.writebytes(s,4);
+          end;
+
+        procedure WriteDouble(d: double);
+          begin
+            objdata.writebytes(d,8);
+          end;
+{$else FPC_LITTLE_ENDIAN}
+        procedure WriteSingle(s: single);
+          var
+            l: longword;
+          begin
+            Move(s,l,4);
+            l:=SwapEndian(l);
+            objdata.writebytes(l,4);
+          end;
+
+        procedure WriteDouble(d: double);
+          var
+            q: qword;
+          begin
+            Move(d,q,8);
+            q:=SwapEndian(q);
+            objdata.writebytes(q,8);
+          end;
+{$endif FPC_LITTLE_ENDIAN}
 
         procedure WriteSleb(v: tcgint);
           var
@@ -1047,6 +1081,32 @@ uses
                     WriteSleb(val);
                   else
                     internalerror(2021092615);
+                end;
+            end;
+          a_f32_const:
+            begin
+              if ops<>1 then
+                internalerror(2021092619);
+              WriteByte($44);
+              with oper[0]^ do
+                case typ of
+                  top_single:
+                    WriteSingle(sval);
+                  else
+                    internalerror(2021092618);
+                end;
+            end;
+          a_f64_const:
+            begin
+              if ops<>1 then
+                internalerror(2021092616);
+              WriteByte($44);
+              with oper[0]^ do
+                case typ of
+                  top_double:
+                    WriteDouble(dval);
+                  else
+                    internalerror(2021092617);
                 end;
             end;
           a_local_get,
