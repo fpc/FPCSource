@@ -524,8 +524,6 @@ implementation
                 internalerror(2021092503);
               if not assigned(p) then
                 internalerror(2021092504);
-              if p.bind<>AB_EXTERNAL then
-                internalerror(2021092505);
               objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
               CurrObjSec.ObjRelocations.Add(objreloc);
               writebytes(leb_zero,5);
