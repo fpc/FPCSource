@@ -149,6 +149,9 @@ uses
 
 implementation
 
+uses
+  ogwasm;
+
     { tai_import_name }
 
     constructor tai_import_name.create(const asymname, aimportname: string);
@@ -652,6 +655,22 @@ implementation
                     internalerror(2021092022);
                 end;
             end;
+          a_call_indirect:
+            begin
+              if ops<>1 then
+                internalerror(2021092610);
+              with oper[0]^ do
+                case typ of
+                  top_functype:
+                    begin
+                      TWasmObjData(objdata).AddFuncType(functype);
+                      result:=6+
+                        UlebSize(0);
+                    end;
+                  else
+                    internalerror(2021092611);
+                end;
+            end;
           else
             Writeln('Warning! Not implemented opcode, pass1: ', opcode);
         end;
@@ -1133,6 +1152,22 @@ implementation
                     end;
                   else
                     internalerror(2021092022);
+                end;
+            end;
+          a_call_indirect:
+            begin
+              if ops<>1 then
+                internalerror(2021092610);
+              with oper[0]^ do
+                case typ of
+                  top_functype:
+                    begin
+                      WriteByte($11);
+                      objdata.writeReloc(TWasmObjData(objdata).AddFuncType(functype),5,nil,RELOC_TYPE_INDEX_LEB);
+                      WriteUleb(0);
+                    end;
+                  else
+                    internalerror(2021092611);
                 end;
             end;
           else

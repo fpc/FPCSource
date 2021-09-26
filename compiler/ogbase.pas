@@ -116,6 +116,7 @@ interface
          RELOC_FUNCTION_INDEX_LEB,
          RELOC_MEMORY_ADDR_LEB,
          RELOC_MEMORY_ADDR_SLEB,
+         RELOC_TYPE_INDEX_LEB,
 {$endif WASM32}
          { Relative relocation }
          RELOC_RELATIVE,

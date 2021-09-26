@@ -57,6 +57,9 @@ interface
       { TWasmObjRelocation }
 
       TWasmObjRelocation = class(TObjRelocation)
+      public
+        TypeIndex: Integer;
+        constructor CreateTypeIndex(ADataOffset:TObjSectionOfs; ATypeIndex: Integer);
       end;
 
       { TWasmObjSymbolExtraData }
@@ -271,6 +274,21 @@ implementation
         q:=q+v;
         d.seek(p);
         WriteUleb5(d,q);
+      end;
+
+{****************************************************************************
+                             TWasmObjRelocation
+****************************************************************************}
+
+    constructor TWasmObjRelocation.CreateTypeIndex(ADataOffset: TObjSectionOfs; ATypeIndex: Integer);
+      begin
+        DataOffset:=ADataOffset;
+        Symbol:=nil;
+        OrgSize:=0;
+        Group:=nil;
+        ObjSection:=nil;
+        ftype:=ord(RELOC_TYPE_INDEX_LEB);
+        TypeIndex:=ATypeIndex;
       end;
 
 {****************************************************************************
@@ -557,6 +575,16 @@ implementation
               CurrObjSec.ObjRelocations.Add(objreloc);
               Data:=NtoLE(Data);
               writebytes(Data,4);
+            end;
+          RELOC_TYPE_INDEX_LEB:
+            begin
+              if len<>5 then
+                internalerror(2021092612);
+              if assigned(p) then
+                internalerror(2021092613);
+              objreloc:=TWasmObjRelocation.CreateTypeIndex(CurrObjSec.Size,Data);
+              CurrObjSec.ObjRelocations.Add(objreloc);
+              WriteUleb5(CurrObjSec,Data);
             end;
           else
             internalerror(2021092501);
@@ -903,6 +931,8 @@ implementation
                     end;
                   RELOC_ABSOLUTE:
                     ;
+                  RELOC_TYPE_INDEX_LEB:
+                    ;
                   else
                     internalerror(2021092510);
                 end;
@@ -977,6 +1007,13 @@ implementation
                         end
                       else
                         internalerror(2021092609);
+                    end;
+                  RELOC_TYPE_INDEX_LEB:
+                    begin
+                      Inc(relcount^);
+                      WriteByte(relout,Ord(R_WASM_TYPE_INDEX_LEB));
+                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                      WriteUleb(relout,objrel.TypeIndex);
                     end;
                   else
                     internalerror(2021092507);
