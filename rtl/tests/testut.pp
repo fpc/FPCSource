@@ -13,6 +13,8 @@ Procedure AssertEquals(Msg : String; aExpected,aActual : Integer);
 Procedure AssertEquals(Msg : String; aExpected,aActual : String);
 Procedure AssertEquals(Msg : String; aExpected,aActual : TVisibilityClass);
 Procedure AssertEquals(Msg : String; aExpected,aActual : TTypeKind);
+Procedure AssertNotNull(Msg : String; aPointer : Pointer);
+Procedure AssertSame(Msg : String; aExpected,aActual : Pointer);
 
 // Combined tests
 Procedure CheckProperty(aIdx : Integer; aData: TPropInfoEx; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass; isStrict : Boolean = False);
@@ -101,6 +103,26 @@ begin
   If AExpected<>aActual then
     begin
     Msg:=Msg+': expected: '+IntToStr(Ord(aExpected))+' got: '+IntToStr(Ord(aActual));
+    Writeln(Msg);
+    Halt(1);
+    end;
+end;
+
+procedure AssertNotNull(Msg: String; aPointer: Pointer);
+begin
+  if aPointer=Nil then
+    begin
+    Msg:=Msg+': expected not Nil pointer, but got Nil.';
+    Writeln(Msg);
+    Halt(1);
+    end;
+end;
+
+procedure AssertSame(Msg: String; aExpected, aActual: Pointer);
+begin
+  If AExpected<>aActual then
+    begin
+    Msg:=Msg+': expected: '+HexStr(aExpected)+' got: '+HexStr(aActual);
     Writeln(Msg);
     Halt(1);
     end;

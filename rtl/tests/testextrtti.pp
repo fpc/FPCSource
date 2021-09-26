@@ -64,6 +64,27 @@ Type
     Procedure PublishedMethodC; virtual; abstract;
   end;
 
+  // No published section
+  TMethodClassRTTI2 = Class (TObject)
+  private
+    Procedure PrivateMethodA;
+  strict private
+    Procedure PrivateMethodB; virtual;
+  private
+    Procedure PrivateMethodC; virtual; abstract;
+  protected
+    Procedure ProtectedMethodA;
+  strict protected
+    Procedure ProtectedMethodB; virtual;
+  protected
+    Procedure ProtectedMethodC; virtual; abstract;
+  public
+    Procedure PublicMethodA;
+    Procedure PublicMethodB; virtual;
+    Procedure PublicMethodC; virtual; abstract;
+  end;
+
+
 { TMethodClassRTTI }
 
 procedure TMethodClassRTTI.PrivateMethodA;
@@ -179,6 +200,7 @@ procedure TestClassMethods;
 Var
   A : PExtendedMethodInfoTable;
   aCount : Integer;
+  AInstance : TMethodClassRTTI;
 
 begin
   aCount:=GetMethodList(TMethodClassRTTI,A,[]);
@@ -219,14 +241,57 @@ begin
   CheckMethod('Pubs',0, A^[0],'PublishedMethodA',vcPublished);
   CheckMethod('Pubs',1, A^[1],'PublishedMethodB',vcPublished);
   CheckMethod('Pubs',2, A^[2],'PublishedMethodC',vcPublished);
+  AssertSame('Method',@TMethodClassRTTI.PublishedMethodA, AInstance.MethodAddress('PublishedMethodA'));
   FreeMem(A);
 end;
 
+procedure TestClassMethods2;
+
+Var
+  A : PExtendedMethodInfoTable;
+  aCount : Integer;
+
+begin
+  aCount:=GetMethodList(TMethodClassRTTI2,A,[]);
+  AssertEquals('Full Count',9,aCount);
+  CheckMethod('Full',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Full',1, A^[1],'PrivateMethodB',vcPrivate,True);
+  CheckMethod('Full',2, A^[2],'PrivateMethodC',vcPrivate);
+  CheckMethod('Full',3, A^[3],'ProtectedMethodA',vcProtected);
+  CheckMethod('Full',4, A^[4],'ProtectedMethodB',vcProtected,True);
+  CheckMethod('Full',5, A^[5],'ProtectedMethodC',vcProtected);
+  CheckMethod('Full',6, A^[6],'PublicMethodA',vcPublic);
+  CheckMethod('Full',7, A^[7],'PublicMethodB',vcPublic);
+  CheckMethod('Full',8, A^[8],'PublicMethodC',vcPublic);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI2,A,[vcPrivate]);
+  AssertEquals('Private Count',3,aCount);
+  CheckMethod('Priv',0, A^[0],'PrivateMethodA',vcPrivate);
+  CheckMethod('Priv',1, A^[1],'PrivateMethodB',vcPrivate,True);
+  CheckMethod('Priv',2, A^[2],'PrivateMethodC',vcPrivate);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI2,A,[vcProtected]);
+  AssertEquals('Protected Count',3,aCount);
+  CheckMethod('Prot',0, A^[0],'ProtectedMethodA',vcProtected);
+  CheckMethod('Prot',1, A^[1],'ProtectedMethodB',vcProtected,True);
+  CheckMethod('Prot',2, A^[2],'ProtectedMethodC',vcProtected);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI2,A,[vcPublic]);
+  AssertEquals('Public Count',3,aCount);
+  CheckMethod('Publ',0, A^[0],'PublicMethodA',vcPublic);
+  CheckMethod('Publ',1, A^[1],'PublicMethodB',vcPublic);
+  CheckMethod('Publ',2, A^[2],'PublicMethodC',vcPublic);
+  FreeMem(A);
+  aCount:=GetMethodList(TMethodClassRTTI2,A,[vcPublished]);
+  AssertEquals('Published Count',0,aCount);
+  FreeMem(A);
+end;
 
 
 begin
   TestProperties;
   TestClassFields;
   TestClassMethods;
+  TestClassMethods2;
 end.
 
