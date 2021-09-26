@@ -1430,7 +1430,8 @@ Unit AoptObj;
                   { same super register, different sub register? }
                   if SuperRegistersEqual(reg,tai_regalloc(p1).reg) and (tai_regalloc(p1).reg<>reg) then
                     begin
-                      if (getsubreg(tai_regalloc(p1).reg)>getsubreg(reg)) or (getsubreg(reg)=R_SUBH) then
+                      if (getsubreg(reg)<>R_SUBMMWHOLE) and { R_SUBMMWHOLE is below R_SUBMMX, R_SUBMMY and R_SUBMMZ }
+                        ((getsubreg(tai_regalloc(p1).reg)>getsubreg(reg)) or (getsubreg(reg)=R_SUBH)) then
                         internalerror(2016101501);
                       tai_regalloc(p1).reg:=reg;
                     end;

@@ -1036,7 +1036,7 @@ unit aoptx86;
                 Breakout := False;
                 while not Breakout and GetNextInstruction(Currentp, Currentp) and (Currentp <> hp) do
                   begin
-                    case hp.typ of
+                    case Currentp.typ of
                       ait_instruction:
                         begin
                           if RegInInstruction(CurrentReg, Currentp) then
@@ -1052,6 +1052,12 @@ unit aoptx86;
                       ait_marker:
                         { Don't try anything more if a marker is hit }
                         Exit;
+                      ait_regalloc:
+                        if (tai_regalloc(Currentp).ratype <> ra_dealloc) and SuperRegistersEqual(CurrentReg, tai_regalloc(Currentp).reg) then
+                          begin
+                            Breakout := True;
+                            Break;
+                          end;
                       else
                         ;
                     end;
@@ -1093,7 +1099,7 @@ unit aoptx86;
                 Breakout := False;
                 while not Breakout and GetNextInstruction(Currentp, Currentp) and (Currentp <> hp) do
                   begin
-                    case hp.typ of
+                    case Currentp.typ of
                       ait_instruction:
                         begin
                           if RegInInstruction(CurrentReg, Currentp) then
@@ -1109,6 +1115,12 @@ unit aoptx86;
                       ait_marker:
                         { Don't try anything more if a marker is hit }
                         Exit;
+                      ait_regalloc:
+                        if (tai_regalloc(Currentp).ratype <> ra_dealloc) and SuperRegistersEqual(CurrentReg, tai_regalloc(Currentp).reg) then
+                          begin
+                            Breakout := True;
+                            Break;
+                          end;
                       else
                         ;
                     end;
