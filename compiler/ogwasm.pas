@@ -970,6 +970,8 @@ implementation
                       if not assigned(objrel.symbol) then
                         internalerror(2021092603);
                       Inc(relcount^);
+                      if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
+                        internalerror(2021092628);
                       WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_LEB));
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
