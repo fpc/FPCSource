@@ -1014,7 +1014,7 @@ uses
                   top_ref:
                     begin
                       if assigned(ref^.symbol) then
-                        objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_SLEB)
+                        objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB)
                       else
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then

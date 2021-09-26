@@ -550,7 +550,7 @@ implementation
               writebytes(leb_zero,5);
             end;
           RELOC_MEMORY_ADDR_LEB,
-          RELOC_MEMORY_ADDR_SLEB:
+          RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
             begin
               if (Reloctype=RELOC_MEMORY_ADDR_LEB) and (Data<0) then
                 internalerror(2021092602);
@@ -909,7 +909,7 @@ implementation
                       objsec.Data.seek(objrel.DataOffset);
                       WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).ImportOrFuncIndex);
                     end;
-                  RELOC_MEMORY_ADDR_SLEB:
+                  RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
                     begin
                       if not assigned(objrel.symbol) then
                         internalerror(2021092605);
@@ -984,15 +984,24 @@ implementation
                       WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                       WriteUleb(relout,0);  { addend to add to the address }
                     end;
-                  RELOC_MEMORY_ADDR_SLEB:
+                  RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
                     begin
                       if not assigned(objrel.symbol) then
                         internalerror(2021092604);
                       Inc(relcount^);
-                      WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_SLEB));
-                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
-                      WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
-                      WriteUleb(relout,0);  { addend to add to the address }
+                      if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
+                        begin
+                          WriteByte(relout,Ord(R_WASM_TABLE_INDEX_SLEB));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                          WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                        end
+                      else
+                        begin
+                          WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_SLEB));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                          WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                          WriteUleb(relout,0);  { addend to add to the address }
+                        end;
                     end;
                   RELOC_ABSOLUTE:
                     begin
