@@ -1141,6 +1141,7 @@ implementation
              else
                result:=operand_read;
            else
+             Internalerror(2019090802);
 {$else EXTDEBUG}
            else
              if opnr=0 then
