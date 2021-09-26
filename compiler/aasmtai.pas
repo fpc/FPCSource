@@ -92,7 +92,7 @@ interface
           ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
 {$ifdef wasm}
-          ait_importexport,
+          ait_export_name,
           ait_local,
           ait_functype,
           ait_tagtype,
@@ -242,7 +242,7 @@ interface
           'llvmmetadatarefop',
 {$endif}
 {$ifdef wasm}
-          'importexport',
+          'export_name',
           'local',
           'functype',
           'tagtype',
@@ -363,7 +363,7 @@ interface
                      ait_llvmmetadatarefoperand,
 {$endif llvm}
 {$ifdef wasm}
-                     ait_importexport,ait_local,ait_functype,ait_tagtype,ait_import_module,ait_import_name,
+                     ait_export_name,ait_local,ait_functype,ait_tagtype,ait_import_module,ait_import_name,
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,

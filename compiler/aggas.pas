@@ -820,7 +820,7 @@ implementation
         end;
 
 
-      procedure WriteImportExport(hp:tai_impexp);
+      procedure WriteImportExport(hp:tai_export_name);
         var
           symstypestr: string;
         begin
@@ -1645,8 +1645,8 @@ implementation
              end;
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));
-           ait_importexport:
-             WriteImportExport(tai_impexp(hp));
+           ait_export_name:
+             WriteImportExport(tai_export_name(hp));
            ait_tagtype:
              WriteTagType(tai_tagtype(hp));
            ait_import_module:

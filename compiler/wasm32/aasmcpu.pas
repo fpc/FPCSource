@@ -83,11 +83,9 @@ uses
         ie_Global  // global variables
       );
 
-      // the actual use is defined by the assembly section used
+      { tai_export_name }
 
-      { timpexp_ai }
-
-      tai_impexp = class(tai)
+      tai_export_name = class(tai)
         extname : ansistring; // external name
         intname : ansistring; // internal name
         symstype: TImpExpType;
@@ -208,11 +206,11 @@ uses
 
     { timpexp_ai }
 
-      constructor tai_impexp.create(const aextname, aintname: ansistring;
+      constructor tai_export_name.create(const aextname, aintname: ansistring;
           asymtype: timpexptype);
         begin
           inherited create;
-          typ := ait_importexport;
+          typ := ait_export_name;
           extname := aextname;
           intname := aintname;
           symstype:= asymtype;
