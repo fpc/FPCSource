@@ -548,7 +548,14 @@ implementation
             end;
           RELOC_ABSOLUTE:
             begin
-              { todo... }
+              if len<>4 then
+                internalerror(2021092607);
+              if not assigned(p) then
+                internalerror(2021092608);
+              objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+              CurrObjSec.ObjRelocations.Add(objreloc);
+              Data:=NtoLE(Data);
+              writebytes(Data,4);
             end;
           else
             internalerror(2021092501);
@@ -893,6 +900,8 @@ implementation
                           AddUleb5(objsec.Data,objrel.symbol.offset+TWasmObjSection(objrel.symbol.objsection).SegOfs);
                         end;
                     end;
+                  RELOC_ABSOLUTE:
+                    ;
                   else
                     internalerror(2021092510);
                 end;
@@ -953,6 +962,20 @@ implementation
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                       WriteUleb(relout,0);  { addend to add to the address }
+                    end;
+                  RELOC_ABSOLUTE:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092604);
+                      if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
+                        begin
+                          Inc(relcount^);
+                          WriteByte(relout,Ord(R_WASM_TABLE_INDEX_I32));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                          WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                        end
+                      else
+                        internalerror(2021092609);
                     end;
                   else
                     internalerror(2021092507);
