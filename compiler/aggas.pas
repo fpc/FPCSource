@@ -820,16 +820,6 @@ implementation
         end;
 
 
-      procedure WriteImportExport(hp:tai_export_name);
-        var
-          symstypestr: string;
-        begin
-          Str(hp.symstype,symstypestr);
-          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', symstype='+symstypestr+')');
-          writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
-        end;
-
-
       procedure WriteTagType(hp: tai_tagtype);
         var
           wasm_basic_typ: TWasmBasicType;
@@ -1646,7 +1636,12 @@ implementation
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));
            ait_export_name:
-             WriteImportExport(tai_export_name(hp));
+             begin
+               writer.AsmWrite(#9'.export_name'#9);
+               writer.AsmWrite(tai_export_name(hp).intname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_export_name(hp).extname);
+             end;
            ait_tagtype:
              WriteTagType(tai_tagtype(hp));
            ait_import_module:
