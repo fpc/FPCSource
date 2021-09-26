@@ -619,7 +619,8 @@ uses
             result:=0;
           a_block,
           a_loop,
-          a_if:
+          a_if,
+          a_try:
             begin
               if ops=0 then
                 result:=2
@@ -1237,7 +1238,8 @@ uses
             ;
           a_block,
           a_loop,
-          a_if:
+          a_if,
+          a_try:
             begin
               case opcode of
                 a_block:
@@ -1246,6 +1248,8 @@ uses
                   WriteByte($03);
                 a_if:
                   WriteByte($04);
+                a_try:
+                  WriteByte($06);
                 else
                   internalerror(2021092626);
               end;
