@@ -552,7 +552,7 @@ uses
                   top_const:
                     result:=1+SlebSize(val);
                   else
-                    Writeln('Warning! Not implemented opcode, pass1: ', opcode, ' ', typ);
+                    internalerror(2021092615);
                 end;
             end;
           a_local_get,
@@ -1046,7 +1046,7 @@ uses
                   top_const:
                     WriteSleb(val);
                   else
-                    Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                    internalerror(2021092615);
                 end;
             end;
           a_local_get,
