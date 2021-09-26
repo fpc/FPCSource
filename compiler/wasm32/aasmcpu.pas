@@ -731,7 +731,9 @@ uses
                 end;
             end;
           a_br,
-          a_br_if:
+          a_br_if,
+          a_rethrow,
+          a_delegate:
             begin
               if ops<>1 then
                 internalerror(2021092610);
@@ -1417,13 +1419,19 @@ uses
                 end;
             end;
           a_br,
-          a_br_if:
+          a_br_if,
+          a_rethrow,
+          a_delegate:
             begin
               case opcode of
                 a_br:
                   WriteByte($0C);
                 a_br_if:
                   WriteByte($0D);
+                a_rethrow:
+                  WriteByte($09);
+                a_delegate:
+                  WriteByte($18);
                 else
                   internalerror(2021092622);
               end;
