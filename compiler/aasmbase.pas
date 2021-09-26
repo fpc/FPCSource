@@ -70,7 +70,9 @@ interface
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
-         AT_GNU_IFUNC
+         AT_GNU_IFUNC,
+         { WebAssembly global variable }
+         AT_WASM_GLOBAL
          );
 
        { is the label only there for getting an DataOffset (e.g. for i/o
