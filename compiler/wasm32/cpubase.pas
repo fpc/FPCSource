@@ -317,6 +317,8 @@ uses
     }
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    function natural_alignment_for_load_store(op: TAsmOp): shortint;
+
 implementation
 
 uses
@@ -394,6 +396,44 @@ uses
       begin
         result:=C_None;
         internalerror(2015082701);
+      end;
+
+    function natural_alignment_for_load_store(op: TAsmOp): shortint;
+      begin
+        case op of
+          a_i32_load8_s,
+          a_i32_load8_u,
+          a_i64_load8_s,
+          a_i64_load8_u,
+          a_i32_store8,
+          a_i64_store8:
+            result:=0;
+
+          a_i32_load16_s,
+          a_i32_load16_u,
+          a_i64_load16_s,
+          a_i64_load16_u,
+          a_i32_store16,
+          a_i64_store16:
+            result:=1;
+
+          a_i32_load,
+          a_f32_load,
+          a_i64_load32_s,
+          a_i64_load32_u,
+          a_i32_store,
+          a_f32_store,
+          a_i64_store32:
+            result:=2;
+
+          a_i64_load,
+          a_f64_load,
+          a_i64_store,
+          a_f64_store:
+            result:=3;
+          else
+            internalerror(2021092614);
+        end;
       end;
 
 {*****************************************************************************

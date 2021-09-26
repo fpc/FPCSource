@@ -611,8 +611,29 @@ uses
                   Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
                 end;
             end;
+          a_i32_load,
+          a_i64_load,
+          a_f32_load,
+          a_f64_load,
+          a_i32_load8_s,
+          a_i32_load8_u,
+          a_i32_load16_s,
+          a_i32_load16_u,
+          a_i64_load8_s,
+          a_i64_load8_u,
+          a_i64_load16_s,
+          a_i64_load16_u,
+          a_i64_load32_s,
+          a_i64_load32_u,
           a_i32_store,
-          a_i32_load:
+          a_i64_store,
+          a_f32_store,
+          a_f64_store,
+          a_i32_store8,
+          a_i32_store16,
+          a_i64_store8,
+          a_i64_store16,
+          a_i64_store32:
             begin
               if ops<>1 then
                 internalerror(2021092016);
@@ -623,7 +644,7 @@ uses
                       if assigned(ref^.symbol) then
                         begin
                           Result:=1+
-                            UlebSize(2)+  { alignment: 1 shl 2 }
+                            UlebSize(natural_alignment_for_load_store(opcode))+
                             5;  { relocation, fixed size = 5 bytes }
                         end
                       else
@@ -631,7 +652,7 @@ uses
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
                             internalerror(2021092018);
                           Result:=1+
-                            UlebSize(2)+  { alignment: 1 shl 2 }
+                            UlebSize(natural_alignment_for_load_store(opcode))+
                             UlebSize(ref^.offset);
                         end;
                     end;
@@ -1103,14 +1124,77 @@ uses
                   Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
                 end;
             end;
+          a_i32_load,
+          a_i64_load,
+          a_f32_load,
+          a_f64_load,
+          a_i32_load8_s,
+          a_i32_load8_u,
+          a_i32_load16_s,
+          a_i32_load16_u,
+          a_i64_load8_s,
+          a_i64_load8_u,
+          a_i64_load16_s,
+          a_i64_load16_u,
+          a_i64_load32_s,
+          a_i64_load32_u,
           a_i32_store,
-          a_i32_load:
+          a_i64_store,
+          a_f32_store,
+          a_f64_store,
+          a_i32_store8,
+          a_i32_store16,
+          a_i64_store8,
+          a_i64_store16,
+          a_i64_store32:
             begin
               case opcode of
-                a_i32_store:
-                  WriteByte($36);
                 a_i32_load:
                   WriteByte($28);
+                a_i64_load:
+                  WriteByte($29);
+                a_f32_load:
+                  WriteByte($2A);
+                a_f64_load:
+                  WriteByte($2B);
+                a_i32_load8_s:
+                  WriteByte($2C);
+                a_i32_load8_u:
+                  WriteByte($2D);
+                a_i32_load16_s:
+                  WriteByte($2E);
+                a_i32_load16_u:
+                  WriteByte($2F);
+                a_i64_load8_s:
+                  WriteByte($30);
+                a_i64_load8_u:
+                  WriteByte($31);
+                a_i64_load16_s:
+                  WriteByte($32);
+                a_i64_load16_u:
+                  WriteByte($33);
+                a_i64_load32_s:
+                  WriteByte($34);
+                a_i64_load32_u:
+                  WriteByte($35);
+                a_i32_store:
+                  WriteByte($36);
+                a_i64_store:
+                  WriteByte($37);
+                a_f32_store:
+                  WriteByte($38);
+                a_f64_store:
+                  WriteByte($39);
+                a_i32_store8:
+                  WriteByte($3A);
+                a_i32_store16:
+                  WriteByte($3B);
+                a_i64_store8:
+                  WriteByte($3C);
+                a_i64_store16:
+                  WriteByte($3D);
+                a_i64_store32:
+                  WriteByte($3E);
                 else
                   internalerror(2021092019);
               end;
@@ -1122,14 +1206,14 @@ uses
                     begin
                       if assigned(ref^.symbol) then
                         begin
-                          WriteUleb(2);  { alignment: 1 shl 2 }
+                          WriteUleb(natural_alignment_for_load_store(opcode));
                           objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_LEB);
                         end
                       else
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
                             internalerror(2021092018);
-                          WriteUleb(2);  { alignment: 1 shl 2 }
+                          WriteUleb(natural_alignment_for_load_store(opcode));
                           WriteUleb(ref^.offset);
                         end;
                     end;
