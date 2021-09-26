@@ -711,6 +711,20 @@ uses
                     internalerror(2021092611);
                 end;
             end;
+          a_br,
+          a_br_if:
+            begin
+              if ops<>1 then
+                internalerror(2021092610);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    result:=1+
+                      UlebSize(val);
+                  else
+                    internalerror(2021092625);
+                end;
+            end;
           else
             internalerror(2021092623);
         end;
@@ -1355,6 +1369,25 @@ uses
                     end;
                   else
                     internalerror(2021092611);
+                end;
+            end;
+          a_br,
+          a_br_if:
+            begin
+              case opcode of
+                a_br:
+                  WriteByte($0C);
+                a_br_if:
+                  WriteByte($0D);
+              end;
+              if ops<>1 then
+                internalerror(2021092610);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    WriteUleb(val);
+                  else
+                    internalerror(2021092625);
                 end;
             end;
           else
