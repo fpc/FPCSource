@@ -712,7 +712,7 @@ uses
                 end;
             end;
           else
-            Writeln('Warning! Not implemented opcode, pass1: ', opcode);
+            internalerror(2021092623);
         end;
       end;
 
@@ -1358,7 +1358,7 @@ uses
                 end;
             end;
           else
-            Writeln('Warning! Not implemented opcode, pass2: ', opcode);
+            internalerror(2021092624);
         end;
       end;
 
