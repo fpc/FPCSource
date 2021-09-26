@@ -39,6 +39,7 @@ interface
       owbase;
 
     type
+      TWasmObjSymbolExtraData = class;
 
       { TWasmObjSymbol }
 
@@ -47,6 +48,7 @@ interface
         FuncIndex: Integer;
         SymbolIndex: Integer;
         AliasOf: string;
+        ExtraData: TWasmObjSymbolExtraData;
         constructor create(AList:TFPHashObjectList;const AName:string);
         function ImportOrFuncIndex: Integer;
         function IsAlias: Boolean;
@@ -282,6 +284,7 @@ implementation
         FuncIndex:=-1;
         SymbolIndex:=-1;
         AliasOf:='';
+        ExtraData:=nil;
       end;
 
     function TWasmObjSymbol.ImportOrFuncIndex: Integer;
@@ -1089,7 +1092,11 @@ implementation
               begin
                 objsym.ImportIndex:=NextImportFunctionIndex;
                 Inc(NextImportFunctionIndex);
-                WriteName(FWasmSections[wsiImport],'env');
+                objsym.ExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
+                if objsym.ExtraData.ImportModule<>'' then
+                  WriteName(FWasmSections[wsiImport],objsym.ExtraData.ImportModule)
+                else
+                  WriteName(FWasmSections[wsiImport],'env');
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
                 WriteUleb(FWasmSections[wsiImport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
@@ -1124,8 +1131,17 @@ implementation
                 objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
-                WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
-                WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+                if objsym.ExtraData.ImportModule<>'' then
+                  begin
+                    WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED or WASM_SYM_EXPLICIT_NAME);
+                    WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+                    WriteName(FWasmSymbolTable,objsym.Name);
+                  end
+                else
+                  begin
+                    WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
+                    WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+                  end;
               end
             else if objsym.typ=AT_FUNCTION then
               begin
