@@ -69,6 +69,7 @@ interface
         TypeIdx: Integer;
         ImportModule: string;
         ImportName: string;
+        ExportName: string;
         Locals: array of TWasmBasicType;
         constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
         procedure AddLocal(bastyp: TWasmBasicType);
@@ -103,6 +104,7 @@ interface
         function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
         function AddFuncType(wft: TWasmFuncType): integer;
         procedure DeclareFuncType(ft: tai_functype);
+        procedure DeclareExportName(en: tai_export_name);
         procedure DeclareImportModule(aim: tai_import_module);
         procedure DeclareImportName(ain: tai_import_name);
         procedure DeclareLocal(al: tai_local);
@@ -135,6 +137,7 @@ interface
         procedure WriteWasmResultType(dest: tdynamicarray; wrt: TWasmResultType);
         procedure WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
         function IsExternalFunction(sym: TObjSymbol): Boolean;
+        function IsExportedFunction(sym: TWasmObjSymbol): Boolean;
         procedure WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
         procedure WriteFunctionCode(dest: tdynamicarray; objsym: TObjSymbol);
         procedure WriteSymbolTable;
@@ -645,6 +648,14 @@ implementation
         ObjSymExtraData.TypeIdx:=i;
       end;
 
+    procedure TWasmObjData.DeclareExportName(en: tai_export_name);
+      var
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+      begin
+        ObjSymExtraData:=AddOrCreateObjSymbolExtraData(en.intname);
+        ObjSymExtraData.ExportName:=en.extname;
+      end;
+
     procedure TWasmObjData.DeclareImportModule(aim: tai_import_module);
       var
         ObjSymExtraData: TWasmObjSymbolExtraData;
@@ -807,6 +818,19 @@ implementation
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
       begin
         result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name)<>nil);
+      end;
+
+    function TWasmObjOutput.IsExportedFunction(sym: TWasmObjSymbol): Boolean;
+      var
+        ExtraData: TWasmObjSymbolExtraData;
+      begin
+        if (sym.typ=AT_FUNCTION) and not sym.IsAlias then
+          begin
+            ExtraData:=TWasmObjSymbolExtraData(TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name));
+            result:=(ExtraData<>nil) and (ExtraData.ExportName<>'');
+          end
+        else
+          result:=false;
       end;
 
     procedure TWasmObjOutput.WriteFunctionLocals(dest: tdynamicarray; ed: TWasmObjSymbolExtraData);
@@ -1072,6 +1096,7 @@ implementation
         types_count,
         imports_count, NextImportFunctionIndex, NextFunctionIndex: Integer;
         import_functions_count: Integer = 0;
+        export_functions_count: Integer = 0;
         functions_count: Integer = 0;
         objsym, ObjSymAlias: TWasmObjSymbol;
         cust_sec: TWasmCustomSectionType;
@@ -1091,6 +1116,8 @@ implementation
               Inc(import_functions_count);
             if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
               Inc(functions_count);
+            if IsExportedFunction(objsym) then
+              Inc(export_functions_count);
           end;
 
         types_count:=Length(FData.FFuncTypes);
@@ -1201,6 +1228,18 @@ implementation
               end;
           end;
 
+        WriteUleb(FWasmSections[wsiExport],export_functions_count);
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if IsExportedFunction(objsym) then
+              begin
+                WriteName(FWasmSections[wsiExport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).ExportName);
+                WriteByte(FWasmSections[wsiExport],0);  { func }
+                WriteUleb(FWasmSections[wsiExport],objsym.ImportOrFuncIndex);
+              end;
+          end;
+
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
@@ -1235,7 +1274,10 @@ implementation
                   end
                 else
                   begin
-                    WriteUleb(FWasmSymbolTable,0);
+                    if IsExportedFunction(objsym) then
+                      WriteUleb(FWasmSymbolTable,WASM_SYM_EXPORTED)
+                    else
+                      WriteUleb(FWasmSymbolTable,0);
                     WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                   end;
                 WriteName(FWasmSymbolTable,objsym.Name);
@@ -1279,8 +1321,8 @@ implementation
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
         WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
-        WriteRelocationCodeTable(4);  { code section is section #4 }
-        WriteRelocationDataTable(5);  { code section is section #5 }
+        WriteRelocationCodeTable(5);  { code section is section #4 }
+        WriteRelocationDataTable(6);  { code section is section #5 }
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
@@ -1288,12 +1330,13 @@ implementation
         WriteWasmSection(wsiType);              { section #0 }
         WriteWasmSection(wsiImport);            { section #1 }
         WriteWasmSection(wsiFunction);          { section #2 }
-        WriteWasmSection(wsiDataCount);         { section #3 }
-        WriteWasmSection(wsiCode);              { section #4 }
-        WriteWasmSection(wsiData);              { section #5 }
-        WriteWasmCustomSection(wcstLinking);    { section #6 }
-        WriteWasmCustomSection(wcstRelocCode);  { section #7 }
-        WriteWasmCustomSection(wcstRelocData);  { section #8 }
+        WriteWasmSection(wsiExport);            { section #3 }
+        WriteWasmSection(wsiDataCount);         { section #4 }
+        WriteWasmSection(wsiCode);              { section #5 }
+        WriteWasmSection(wsiData);              { section #6 }
+        WriteWasmCustomSection(wcstLinking);    { section #7 }
+        WriteWasmCustomSection(wcstRelocCode);  { section #8 }
+        WriteWasmCustomSection(wcstRelocData);  { section #9 }
 
         Writeln('ObjSymbolList:');
         for i:=0 to Data.ObjSymbolList.Count-1 do
