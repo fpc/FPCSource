@@ -64,6 +64,7 @@ Type
     Procedure PublishedMethodC; virtual; abstract;
   end;
 
+(*
   // No published section
   TMethodClassRTTI2 = Class (TObject)
   private
@@ -83,6 +84,7 @@ Type
     Procedure PublicMethodB; virtual;
     Procedure PublicMethodC; virtual; abstract;
   end;
+*)
 
 
 { TMethodClassRTTI }
@@ -241,10 +243,13 @@ begin
   CheckMethod('Pubs',0, A^[0],'PublishedMethodA',vcPublished);
   CheckMethod('Pubs',1, A^[1],'PublishedMethodB',vcPublished);
   CheckMethod('Pubs',2, A^[2],'PublishedMethodC',vcPublished);
-  AssertSame('Method',@TMethodClassRTTI.PublishedMethodA, AInstance.MethodAddress('PublishedMethodA'));
+  AssertSame('Method',@TMethodClassRTTI.PublishedMethodA, TMethodClassRTTI.MethodAddress('PublishedMethodA'));
+  AssertSame('Method',@TMethodClassRTTI.PublishedMethodB, TMethodClassRTTI.MethodAddress('PublishedMethodB'));
+  AssertNull('Method',TMethodClassRTTI.MethodAddress('PublishedMethodC'));
   FreeMem(A);
 end;
 
+(*
 procedure TestClassMethods2;
 
 Var
@@ -286,12 +291,12 @@ begin
   AssertEquals('Published Count',0,aCount);
   FreeMem(A);
 end;
-
+*)
 
 begin
   TestProperties;
   TestClassFields;
   TestClassMethods;
-  TestClassMethods2;
+//  TestClassMethods2;
 end.
 

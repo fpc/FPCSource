@@ -14,6 +14,7 @@ Procedure AssertEquals(Msg : String; aExpected,aActual : String);
 Procedure AssertEquals(Msg : String; aExpected,aActual : TVisibilityClass);
 Procedure AssertEquals(Msg : String; aExpected,aActual : TTypeKind);
 Procedure AssertNotNull(Msg : String; aPointer : Pointer);
+Procedure AssertNull(Msg : String; aPointer : Pointer);
 Procedure AssertSame(Msg : String; aExpected,aActual : Pointer);
 
 // Combined tests
@@ -113,6 +114,16 @@ begin
   if aPointer=Nil then
     begin
     Msg:=Msg+': expected not Nil pointer, but got Nil.';
+    Writeln(Msg);
+    Halt(1);
+    end;
+end;
+
+procedure AssertNull(Msg: String; aPointer: Pointer);
+begin
+  if aPointer<>Nil then
+    begin
+    Msg:=Msg+': expected Nil pointer, but got '+HexStr(aPointer);
     Writeln(Msg);
     Halt(1);
     end;
