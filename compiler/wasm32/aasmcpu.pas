@@ -1218,6 +1218,8 @@ uses
                   WriteByte($03);
                 a_if:
                   WriteByte($04);
+                else
+                  internalerror(2021092626);
               end;
               if ops=0 then
                 WriteByte($40)
