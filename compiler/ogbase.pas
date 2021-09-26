@@ -435,6 +435,7 @@ interface
        function  symboldefine(const aname:string;abind:TAsmsymbind;atyp:Tasmsymtype):TObjSymbol;
        function  symbolref(asmsym:TAsmSymbol):TObjSymbol;
        function  symbolref(const aname:string):TObjSymbol;
+       procedure symbolpairdefine(akind: TSymbolPairKind;const asym, avalue: string);virtual;
        procedure ResetCachedAsmSymbols;
        { Allocation }
        procedure alloc(len:TObjSectionOfs);
@@ -1543,6 +1544,11 @@ implementation
         if not assigned(CurrObjSec) then
           internalerror(200603052);
         result:=CreateSymbol(aname);
+      end;
+
+
+    procedure TObjData.symbolpairdefine(akind: TSymbolPairKind; const asym, avalue: string);
+      begin
       end;
 
 

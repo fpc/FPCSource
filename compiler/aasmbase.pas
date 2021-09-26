@@ -78,6 +78,8 @@ interface
          info alt_dbgline and alt_dbgfile, etc. }
        TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe,alt_eh_begin,alt_eh_end);
 
+       TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
+
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of string[2] = ('j','a','d','l','f','t','c','eb','ee');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',

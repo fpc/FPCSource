@@ -1790,6 +1790,9 @@ Implementation
                       internalerror(2009090804); ;}
                  ObjData.SymbolDefine(Tai_symbol(hp).sym);
                end;
+             ait_symbolpair :
+               with tai_symbolpair(hp) do
+                 ObjData.SymbolPairDefine(kind,sym^,value^);
              ait_label :
                ObjData.SymbolDefine(Tai_label(hp).labsym);
              ait_string :
@@ -1951,6 +1954,9 @@ Implementation
                  objsym:=ObjData.SymbolRef(Tai_symbol_end(hp).sym);
                  objsym.size:=ObjData.CurrObjSec.Size-objsym.offset;
                end;
+             ait_symbolpair:
+               with tai_symbolpair(hp) do
+                 ObjData.SymbolPairDefine(kind,sym^,value^);
              ait_label :
                ObjData.SymbolDefine(Tai_label(hp).labsym);
              ait_string :

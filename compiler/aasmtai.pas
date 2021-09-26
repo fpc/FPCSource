@@ -432,8 +432,6 @@ interface
           ash_pushnv,ash_savenv
         );
 
-      TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
-
 
     const
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized','used');
