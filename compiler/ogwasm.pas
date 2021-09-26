@@ -1040,7 +1040,7 @@ implementation
         imports_count, NextImportFunctionIndex, NextFunctionIndex: Integer;
         import_functions_count: Integer = 0;
         functions_count: Integer = 0;
-        objsym: TWasmObjSymbol;
+        objsym, ObjSymAlias: TWasmObjSymbol;
         cust_sec: TWasmCustomSectionType;
       begin
         FData:=TWasmObjData(Data);
@@ -1195,8 +1195,10 @@ implementation
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
                 if objsym.IsAlias then
                   begin
+                    ObjSymAlias:=TWasmObjSymbol(Data.ObjSymbolList.Find(objsym.AliasOf));
+                    ObjSym.FuncIndex:=ObjSymAlias.FuncIndex;
                     WriteUleb(FWasmSymbolTable,WASM_SYM_EXPLICIT_NAME or WASM_SYM_NO_STRIP);
-                    WriteUleb(FWasmSymbolTable,TWasmObjSymbol(Data.ObjSymbolList.Find(objsym.AliasOf)).FuncIndex);
+                    WriteUleb(FWasmSymbolTable,ObjSymAlias.FuncIndex);
                   end
                 else
                   begin
