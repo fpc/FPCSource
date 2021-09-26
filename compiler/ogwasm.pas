@@ -778,16 +778,7 @@ implementation
 
     procedure TWasmObjOutput.WriteWasmBasicType(dest: tdynamicarray; wbt: TWasmBasicType);
       begin
-        case wbt of
-          wbt_i32:
-            WriteByte(dest,$7F);
-          wbt_i64:
-            WriteByte(dest,$7E);
-          wbt_f32:
-            WriteByte(dest,$7D);
-          wbt_f64:
-            WriteByte(dest,$7C);
-        end;
+        WriteByte(dest,encode_wasm_basic_type(wbt));
       end;
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;

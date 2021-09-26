@@ -318,6 +318,7 @@ uses
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function natural_alignment_for_load_store(op: TAsmOp): shortint;
+    function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
 
 implementation
 
@@ -433,6 +434,22 @@ uses
             result:=3;
           else
             internalerror(2021092614);
+        end;
+      end;
+
+    function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
+      begin
+        case wbt of
+          wbt_i32:
+            result:=$7F;
+          wbt_i64:
+            result:=$7E;
+          wbt_f32:
+            result:=$7D;
+          wbt_f64:
+            result:=$7C;
+          else
+            internalerror(2021092622);
         end;
       end;
 

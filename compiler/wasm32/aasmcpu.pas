@@ -522,6 +522,7 @@ uses
           a_i64_extend8_s,
           a_i64_extend16_s,
           a_i64_extend32_s,
+          a_else,
           a_end_block,
           a_end_if,
           a_end_loop,
@@ -604,7 +605,9 @@ uses
             end;
           a_end_function:
             result:=0;
-          a_block:
+          a_block,
+          a_loop,
+          a_if:
             begin
               if ops=0 then
                 result:=2
@@ -612,7 +615,19 @@ uses
                 begin
                   if ops<>1 then
                     internalerror(2021092015);
-                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                  with oper[0]^ do
+                    case typ of
+                      top_functype:
+                        begin
+                          if (length(functype.params)=0) and (length(functype.results)<=1) then
+                            result:=2
+                          else
+                            { more complex blocktypes are not yet implemented }
+                            internalerror(2021092621);
+                        end;
+                      else
+                        internalerror(2021092620);
+                    end;
                 end;
             end;
           a_i32_load,
@@ -1172,18 +1187,46 @@ uses
             end;
           a_end_function:
             ;
-          a_block:
+          a_block,
+          a_loop,
+          a_if:
             begin
-              WriteByte($02);
+              case opcode of
+                a_block:
+                  WriteByte($02);
+                a_loop:
+                  WriteByte($03);
+                a_if:
+                  WriteByte($04);
+              end;
               if ops=0 then
                 WriteByte($40)
               else
                 begin
                   if ops<>1 then
                     internalerror(2021092015);
-                  Writeln('Warning! Not implemented opcode, pass2: ', opcode, ' ', typ);
+                  with oper[0]^ do
+                    case typ of
+                      top_functype:
+                        begin
+                          if (length(functype.params)=0) and (length(functype.results)<=1) then
+                            begin
+                              if length(functype.results)=1 then
+                                WriteByte(encode_wasm_basic_type(functype.results[0]))
+                              else
+                                WriteByte($40);
+                            end
+                          else
+                            { more complex blocktypes are not yet implemented }
+                            internalerror(2021092621);
+                        end;
+                      else
+                        internalerror(2021092620);
+                    end;
                 end;
             end;
+          a_else:
+            WriteByte($05);
           a_i32_load,
           a_i64_load,
           a_f32_load,
