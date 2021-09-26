@@ -1015,7 +1015,13 @@ implementation
                           WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                         end
                       else
-                        internalerror(2021092609);
+                        begin
+                          Inc(relcount^);
+                          WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_I32));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                          WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                          WriteUleb(relout,0);  { addend to add to the address }
+                        end;
                     end;
                   RELOC_TYPE_INDEX_LEB:
                     begin
