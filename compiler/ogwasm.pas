@@ -953,8 +953,6 @@ implementation
                         internalerror(2021092605);
                       if not (IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) or (objrel.symbol.bind=AB_EXTERNAL)) then
                         begin
-                          Writeln('!!!', objrel.symbol.Name);
-                          Writeln(assigned(objrel.symbol.objsection));
                           objsec.Data.seek(objrel.DataOffset);
                           AddSleb5(objsec.Data,objrel.symbol.offset+TWasmObjSection(objrel.symbol.objsection).SegOfs);
                         end;
@@ -1337,25 +1335,6 @@ implementation
         WriteWasmCustomSection(wcstLinking);    { section #7 }
         WriteWasmCustomSection(wcstRelocCode);  { section #8 }
         WriteWasmCustomSection(wcstRelocData);  { section #9 }
-
-        Writeln('ObjSymbolList:');
-        for i:=0 to Data.ObjSymbolList.Count-1 do
-          begin
-            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            Write(objsym.Name, ' bind=', objsym.Bind, ' typ=', objsym.typ, ' address=', objsym.address, ' objsection=');
-            if assigned(objsym.objsection) then
-              Write(objsym.objsection.Name)
-            else
-              Write('nil');
-            Writeln;
-          end;
-
-        Writeln('ObjSectionList:');
-        for i:=0 to Data.ObjSectionList.Count-1 do
-          begin
-            objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-            Writeln(objsec.Name, ' IsCode=', objsec.IsCode, ' IsData=', objsec.IsData, ' Size=', objsec.Size, ' MemPos=', objsec.MemPos, ' DataPos=', objsec.DataPos, ' SegIdx=', objsec.SegIdx);
-          end;
 
         result:=true;
       end;
