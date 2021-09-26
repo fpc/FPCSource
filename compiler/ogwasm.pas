@@ -46,8 +46,10 @@ interface
         ImportIndex: Integer;
         FuncIndex: Integer;
         SymbolIndex: Integer;
+        AliasOf: string;
         constructor create(AList:TFPHashObjectList;const AName:string);
         function ImportOrFuncIndex: Integer;
+        function IsAlias: Boolean;
       end;
 
       { TWasmObjRelocation }
@@ -98,6 +100,7 @@ interface
         procedure DeclareImportModule(aim: tai_import_module);
         procedure DeclareImportName(ain: tai_import_name);
         procedure DeclareLocal(al: tai_local);
+        procedure symbolpairdefine(akind: TSymbolPairKind;const asym, avalue: string);override;
       end;
 
       { TWasmObjOutput }
@@ -278,6 +281,7 @@ implementation
         ImportIndex:=-1;
         FuncIndex:=-1;
         SymbolIndex:=-1;
+        AliasOf:='';
       end;
 
     function TWasmObjSymbol.ImportOrFuncIndex: Integer;
@@ -288,6 +292,11 @@ implementation
           result:=FuncIndex
         else
           internalerror(2021092601);
+      end;
+
+    function TWasmObjSymbol.IsAlias: Boolean;
+      begin
+        result:=AliasOf<>'';
       end;
 
 {****************************************************************************
@@ -599,6 +608,16 @@ implementation
       begin
         ObjSymExtraData:=TWasmObjSymbolExtraData(FObjSymbolsExtraDataList.Find(FLastFuncName));
         ObjSymExtraData.AddLocal(al.bastyp);
+      end;
+
+    procedure TWasmObjData.symbolpairdefine(akind: TSymbolPairKind; const asym, avalue: string);
+      var
+        valsym: TObjSymbol;
+        aliassym: TWasmObjSymbol;
+      begin
+        valsym:=CreateSymbol(avalue);
+        aliassym:=TWasmObjSymbol(symboldefine(asym,valsym.bind,valsym.typ));
+        aliassym.AliasOf:=valsym.Name;
       end;
 
 {****************************************************************************
@@ -968,7 +987,7 @@ implementation
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
-            if objsym.typ=AT_FUNCTION then
+            if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
               Inc(functions_count);
           end;
 
@@ -1068,7 +1087,7 @@ implementation
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            if objsym.typ=AT_FUNCTION then
+            if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
               begin
                 objsym.FuncIndex:=NextFunctionIndex;
                 Inc(NextFunctionIndex);
@@ -1092,8 +1111,16 @@ implementation
                 objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_FUNCTION));
-                WriteUleb(FWasmSymbolTable,0);
-                WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
+                if objsym.IsAlias then
+                  begin
+                    WriteUleb(FWasmSymbolTable,WASM_SYM_EXPLICIT_NAME or WASM_SYM_NO_STRIP);
+                    WriteUleb(FWasmSymbolTable,TWasmObjSymbol(Data.ObjSymbolList.Find(objsym.AliasOf)).FuncIndex);
+                  end
+                else
+                  begin
+                    WriteUleb(FWasmSymbolTable,0);
+                    WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
+                  end;
                 WriteName(FWasmSymbolTable,objsym.Name);
               end
             else if (objsym.typ=AT_DATA) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
@@ -1125,7 +1152,7 @@ implementation
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            if objsym.typ=AT_FUNCTION then
+            if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
               WriteFunctionCode(FWasmSections[wsiCode],objsym);
           end;
 
