@@ -675,6 +675,12 @@ uses
                             UlebSize(ref^.offset);
                         end;
                     end;
+                  top_const:
+                    begin
+                      Result:=1+
+                        UlebSize(natural_alignment_for_load_store(opcode))+
+                        UlebSize(val);
+                    end;
                   else
                     internalerror(2021092017);
                 end;
@@ -1333,6 +1339,11 @@ uses
                           WriteUleb(natural_alignment_for_load_store(opcode));
                           WriteUleb(ref^.offset);
                         end;
+                    end;
+                  top_const:
+                    begin
+                      WriteUleb(natural_alignment_for_load_store(opcode));
+                      WriteUleb(val);
                     end;
                   else
                     internalerror(2021092017);
