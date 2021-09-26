@@ -448,8 +448,6 @@ uses
             result:=$7D;
           wbt_f64:
             result:=$7C;
-          else
-            internalerror(2021092622);
         end;
       end;
 
