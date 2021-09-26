@@ -94,6 +94,7 @@ interface
 {$ifdef wasm}
           ait_export_name,
           ait_local,
+          ait_globaltype,
           ait_functype,
           ait_tagtype,
           ait_import_module,
@@ -244,6 +245,7 @@ interface
 {$ifdef wasm}
           'export_name',
           'local',
+          'globaltype',
           'functype',
           'tagtype',
           'import_module',
@@ -363,7 +365,13 @@ interface
                      ait_llvmmetadatarefoperand,
 {$endif llvm}
 {$ifdef wasm}
-                     ait_export_name,ait_local,ait_functype,ait_tagtype,ait_import_module,ait_import_name,
+                     ait_export_name,
+                     ait_local,
+                     ait_globaltype,
+                     ait_functype,
+                     ait_tagtype,
+                     ait_import_module,
+                     ait_import_name,
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,
@@ -3630,9 +3638,11 @@ implementation
 {$endif JVM}
 
 begin
+{$ifndef WASM}
 {$push}{$warnings off}
   { taitype should fit into a 4 byte set for speed reasons }
   if ord(high(taitype))>31 then
     internalerror(201108181);
 {$pop}
+{$endif WASM}
 end.

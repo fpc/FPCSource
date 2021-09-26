@@ -1635,6 +1635,13 @@ implementation
                if tai_local(hp).last then
                  writer.AsmLn;
              end;
+           ait_globaltype:
+             begin
+               writer.AsmWrite(#9'.globaltype'#9);
+               writer.AsmWrite(tai_globaltype(hp).globalname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(gas_wasm_basic_type_str[tai_globaltype(hp).gtype]);
+             end;
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));
            ait_export_name:

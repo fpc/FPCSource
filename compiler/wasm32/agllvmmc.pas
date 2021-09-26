@@ -43,7 +43,6 @@ interface
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-      procedure WriteAsmList;override;
     end;
 
     { TWASM32InstrWriter }
@@ -77,13 +76,6 @@ implementation
     begin
       inherited;
       InstrWriter:=TWASM32InstrWriter.create(self);
-    end;
-
-
-  procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
-    begin
-      writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
-      inherited;
     end;
 
 

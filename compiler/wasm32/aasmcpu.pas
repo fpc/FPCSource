@@ -104,6 +104,14 @@ uses
         constructor create(abasictype: TWasmBasicType; const aname: string = '');
       end;
 
+      { tai_globaltype }
+
+      tai_globaltype = class(tai)
+        globalname: string;
+        gtype: TWasmBasicType;
+        constructor create(const aglobalname:string; atype: TWasmBasicType);
+      end;
+
       { tai_functype }
 
       tai_functype = class(tai)
@@ -147,6 +155,16 @@ implementation
 
 uses
   ogwasm;
+
+    { tai_globaltype }
+
+    constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType);
+      begin
+        inherited Create;
+        typ:=ait_globaltype;
+        globalname:=aglobalname;
+        gtype:=atype;
+      end;
 
     { tai_import_name }
 
