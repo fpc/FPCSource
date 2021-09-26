@@ -1227,15 +1227,18 @@ implementation
               end;
           end;
 
-        WriteUleb(FWasmSections[wsiExport],export_functions_count);
-        for i:=0 to Data.ObjSymbolList.Count-1 do
+        if export_functions_count>0 then
           begin
-            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            if IsExportedFunction(objsym) then
+            WriteUleb(FWasmSections[wsiExport],export_functions_count);
+            for i:=0 to Data.ObjSymbolList.Count-1 do
               begin
-                WriteName(FWasmSections[wsiExport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).ExportName);
-                WriteByte(FWasmSections[wsiExport],0);  { func }
-                WriteUleb(FWasmSections[wsiExport],objsym.ImportOrFuncIndex);
+                objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+                if IsExportedFunction(objsym) then
+                  begin
+                    WriteName(FWasmSections[wsiExport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).ExportName);
+                    WriteByte(FWasmSections[wsiExport],0);  { func }
+                    WriteUleb(FWasmSections[wsiExport],objsym.ImportOrFuncIndex);
+                  end;
               end;
           end;
 
@@ -1333,8 +1336,11 @@ implementation
         Inc(section_nr);
         WriteWasmSection(wsiFunction);
         Inc(section_nr);
-        WriteWasmSection(wsiExport);
-        Inc(section_nr);
+        if export_functions_count>0 then
+          begin
+            WriteWasmSection(wsiExport);
+            Inc(section_nr);
+          end;
         WriteWasmSection(wsiDataCount);
         Inc(section_nr);
         WriteWasmSection(wsiCode);
