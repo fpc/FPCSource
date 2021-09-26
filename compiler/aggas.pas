@@ -825,9 +825,8 @@ implementation
           symstypestr: string;
         begin
           Str(hp.symstype,symstypestr);
-          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', extmodule='''+hp.extmodule+''', symstype='+symstypestr+')');
-          if hp.extmodule='' then
-            writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
+          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', symstype='+symstypestr+')');
+          writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
         end;
 
 
