@@ -879,7 +879,7 @@ implementation
         ObjSymExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
         ObjSection:=TWasmObjSection(objsym.objsection);
         ObjSection.Data.seek(objsym.address);
-        codeexprlen:=ObjSection.Size-objsym.address;
+        codeexprlen:=objsym.size;
 
         encoded_locals:=tdynamicarray.Create(64);
         WriteFunctionLocals(encoded_locals,ObjSymExtraData);
