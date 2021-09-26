@@ -66,6 +66,9 @@ Type
 
 (*
   // No published section
+
+  { TMethodClassRTTI2 }
+
   TMethodClassRTTI2 = Class (TObject)
   private
     Procedure PrivateMethodA;
@@ -84,8 +87,40 @@ Type
     Procedure PublicMethodB; virtual;
     Procedure PublicMethodC; virtual; abstract;
   end;
-*)
 
+{ TMethodClassRTTI2 }
+
+procedure TMethodClassRTTI2.PrivateMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI2.PrivateMethodB;
+begin
+
+end;
+
+procedure TMethodClassRTTI2.ProtectedMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI2.ProtectedMethodB;
+begin
+
+end;
+
+procedure TMethodClassRTTI2.PublicMethodA;
+begin
+
+end;
+
+procedure TMethodClassRTTI2.PublicMethodB;
+begin
+
+end;
+
+*)
 
 { TMethodClassRTTI }
 
@@ -297,6 +332,6 @@ begin
   TestProperties;
   TestClassFields;
   TestClassMethods;
-//  TestClassMethods2;
+  // TestClassMethods2;
 end.
 
