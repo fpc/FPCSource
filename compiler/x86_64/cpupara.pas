@@ -57,7 +57,7 @@ unit cpupara;
        systems,
        globals,defutil,
        symtable,symutil,
-       cpupi,
+       cpupi,cpuinfo,
        cgx86,cgobj,cgcpu;
 
     const
@@ -1359,9 +1359,13 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         if x86_64_use_ms_abi(calloption) then
-          result:=[RS_XMM0..RS_XMM5,RS_XMM16..RS_XMM31]
+          result:=[RS_XMM0..RS_XMM5]
         else
-          result:=[RS_XMM0..RS_XMM15,RS_XMM16..RS_XMM31];
+          result:=[RS_XMM0..RS_XMM15];
+
+        { Don't list registers that aren't available }
+        if FPUX86_HAS_32MMREGS in fpu_capabilities[current_settings.fputype] then
+          result:=result+[RS_XMM16..RS_XMM31];
       end;
 
 
