@@ -1203,7 +1203,7 @@ implementation
                   end;
                 WriteName(FWasmSymbolTable,objsym.Name);
               end
-            else if (objsym.typ=AT_DATA) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
+            else if (objsym.typ in [AT_DATA,AT_TLS]) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
               begin
                 objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
