@@ -75,8 +75,11 @@ implementation
           if assigned(def) and (def.typ=procdef) then
             begin
               proc := tprocdef(def);
-              if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                WriteImportDll(list,proc);
+              if po_external in proc.procoptions then
+                if po_has_importdll in proc.procoptions then
+                  WriteImportDll(list,proc)
+                else
+                  thlcgwasm(hlcg).g_procdef(list,proc);
             end;
          end;
       cur_unit:=tused_unit(usedunits.First);
