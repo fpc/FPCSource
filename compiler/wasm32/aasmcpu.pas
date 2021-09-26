@@ -532,7 +532,29 @@ uses
           a_memory_size,
           a_memory_grow:
             result:=2;
-          a_i32_const,
+          a_i32_const:
+            begin
+              if ops<>1 then
+                internalerror(2021092001);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        result:=6
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          result:=1+SlebSize(longint(ref^.offset));
+                        end;
+                    end;
+                  top_const:
+                    result:=1+SlebSize(longint(val));
+                  else
+                    internalerror(2021092615);
+                end;
+            end;
           a_i64_const:
             begin
               if ops<>1 then
@@ -547,11 +569,11 @@ uses
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
                             internalerror(2021092018);
-                          result:=1+SlebSize(ref^.offset);
+                          result:=1+SlebSize(int64(ref^.offset));
                         end;
                     end;
                   top_const:
-                    result:=1+SlebSize(val);
+                    result:=1+SlebSize(int64(val));
                   else
                     internalerror(2021092615);
                 end;
@@ -1086,17 +1108,9 @@ uses
             WriteByte($0B);
           a_catch_all:
             WriteByte($19);
-          a_i32_const,
-          a_i64_const:
+          a_i32_const:
             begin
-              case opcode of
-                a_i32_const:
-                  WriteByte($41);
-                a_i64_const:
-                  WriteByte($42);
-                else
-                  internalerror(2021092002);
-              end;
+              WriteByte($41);
               if ops<>1 then
                 internalerror(2021092001);
               with oper[0]^ do
@@ -1109,11 +1123,35 @@ uses
                         begin
                           if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
                             internalerror(2021092018);
-                          WriteSleb(ref^.offset);
+                          WriteSleb(longint(ref^.offset));
                         end;
                     end;
                   top_const:
-                    WriteSleb(val);
+                    WriteSleb(longint(val));
+                  else
+                    internalerror(2021092615);
+                end;
+            end;
+          a_i64_const:
+            begin
+              WriteByte($42);
+              if ops<>1 then
+                internalerror(2021092001);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if assigned(ref^.symbol) then
+                        objdata.writeReloc(ref^.offset,5,ObjData.symbolref(ref^.symbol),RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB)
+                      else
+                        begin
+                          if assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) then
+                            internalerror(2021092018);
+                          WriteSleb(int64(ref^.offset));
+                        end;
+                    end;
+                  top_const:
+                    WriteSleb(int64(val));
                   else
                     internalerror(2021092615);
                 end;
