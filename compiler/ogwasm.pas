@@ -1092,7 +1092,8 @@ implementation
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
         types_count,
-        imports_count, NextImportFunctionIndex, NextFunctionIndex: Integer;
+        imports_count, NextImportFunctionIndex, NextFunctionIndex,
+        section_nr, code_section_nr, data_section_nr: Integer;
         import_functions_count: Integer = 0;
         export_functions_count: Integer = 0;
         functions_count: Integer = 0;
@@ -1319,22 +1320,39 @@ implementation
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
         WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
-        WriteRelocationCodeTable(5);  { code section is section #4 }
-        WriteRelocationDataTable(6);  { code section is section #5 }
-
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
-        WriteWasmSection(wsiType);              { section #0 }
-        WriteWasmSection(wsiImport);            { section #1 }
-        WriteWasmSection(wsiFunction);          { section #2 }
-        WriteWasmSection(wsiExport);            { section #3 }
-        WriteWasmSection(wsiDataCount);         { section #4 }
-        WriteWasmSection(wsiCode);              { section #5 }
-        WriteWasmSection(wsiData);              { section #6 }
-        WriteWasmCustomSection(wcstLinking);    { section #7 }
-        WriteWasmCustomSection(wcstRelocCode);  { section #8 }
-        WriteWasmCustomSection(wcstRelocData);  { section #9 }
+        code_section_nr:=-1;
+        data_section_nr:=-1;
+        section_nr:=0;
+
+        WriteWasmSection(wsiType);
+        Inc(section_nr);
+        WriteWasmSection(wsiImport);
+        Inc(section_nr);
+        WriteWasmSection(wsiFunction);
+        Inc(section_nr);
+        WriteWasmSection(wsiExport);
+        Inc(section_nr);
+        WriteWasmSection(wsiDataCount);
+        Inc(section_nr);
+        WriteWasmSection(wsiCode);
+        code_section_nr:=section_nr;
+        Inc(section_nr);
+        WriteWasmSection(wsiData);
+        data_section_nr:=section_nr;
+        Inc(section_nr);
+
+        WriteRelocationCodeTable(code_section_nr);
+        WriteRelocationDataTable(data_section_nr);
+
+        WriteWasmCustomSection(wcstLinking);
+        Inc(section_nr);
+        WriteWasmCustomSection(wcstRelocCode);
+        Inc(section_nr);
+        WriteWasmCustomSection(wcstRelocData);
+        Inc(section_nr);
 
         result:=true;
       end;
