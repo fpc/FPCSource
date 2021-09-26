@@ -232,6 +232,7 @@ implementation
         b: byte;
         shift:integer;
       begin
+        b:=0;
         result:=0;
         shift:=0;
         repeat
