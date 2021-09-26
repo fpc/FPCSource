@@ -840,6 +840,8 @@ implementation
               writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
             end;
           writer.AsmLn;
+          writer.AsmWrite(hp.tagname);
+          writer.AsmWriteLn(':');
         end;
 {$endif WASM}
 

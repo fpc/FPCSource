@@ -40,7 +40,7 @@ interface
 implementation
 
   uses
-    globtype,
+    globtype,globals,
     cpubase,
     aasmdata,aasmcpu,
     hlcgobj,hlcgcpu,
@@ -68,6 +68,10 @@ implementation
       inherited;
 
       list:=current_asmdata.asmlists[al_start];
+
+      if ts_wasm_native_exceptions in current_settings.targetswitches then
+        list.Concat(tai_tagtype.create('__FPC_exception', []));
+
       for i:=0 to current_module.deflist.Count-1 do
         begin
           def:=tdef(current_module.deflist[i]);

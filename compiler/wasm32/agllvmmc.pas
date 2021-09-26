@@ -83,11 +83,6 @@ implementation
   procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
     begin
       writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
-      if ts_wasm_native_exceptions in current_settings.targetswitches then
-        begin
-          writer.AsmWriteLn(#9'.tagtype'#9'__FPC_exception');
-          writer.AsmWriteLn('__FPC_exception:');
-        end;
       inherited;
     end;
 
