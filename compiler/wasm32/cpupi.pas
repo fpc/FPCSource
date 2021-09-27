@@ -151,12 +151,15 @@ implementation
 
     class procedure twasmexceptionstatehandler_nativeexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
     class procedure twasmexceptionstatehandler_nativeexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
       end;
 
     class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
