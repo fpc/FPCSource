@@ -607,6 +607,7 @@ interface
           has_value : boolean;
           constructor Create(_sym:tasmsymbol;siz:longint);
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
+          constructor Create_Weak(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
@@ -1446,6 +1447,19 @@ implementation
          if not(sym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN]) then
            sym.bind:=AB_GLOBAL;
          is_global:=true;
+      end;
+
+
+    constructor tai_symbol.Create_Weak(_sym:tasmsymbol;siz:longint);
+      begin
+        inherited Create;
+        typ:=ait_symbol;
+        sym:=_sym;
+        size:=siz;
+        if not(sym.bind in [AB_NONE,AB_WEAK_EXTERNAL]) then
+          internalerror(2021092801);
+        sym.bind:=AB_WEAK;
+        is_global:=false;
       end;
 
 

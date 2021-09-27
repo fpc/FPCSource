@@ -74,7 +74,7 @@ implementation
       if ts_wasm_native_exceptions in current_settings.targetswitches then
         begin
           list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
-          list.Concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(FPC_EXCEPTION_TAG_SYM,AB_LOCAL,AT_WASM_EXCEPTION_TAG,nil),0));
+          list.Concat(tai_symbol.Create_Weak(current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
         end;
 
       for i:=0 to current_module.deflist.Count-1 do

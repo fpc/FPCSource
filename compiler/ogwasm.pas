@@ -1497,6 +1497,8 @@ implementation
                   WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL)
                 else if objsym.bind=AB_EXTERNAL then
                   WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED)
+                else if objsym.bind=AB_WEAK then
+                  WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_WEAK)
                 else
                   internalerror(2021092715);
                 WriteUleb(FWasmSymbolTable,objsym.TagIndex);
