@@ -72,7 +72,7 @@ implementation
       list.Concat(tai_globaltype.create(STACK_POINTER_SYM,wbt_i32,false));
 
       if ts_wasm_native_exceptions in current_settings.targetswitches then
-        list.Concat(tai_tagtype.create('__FPC_exception', []));
+        list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
 
       for i:=0 to current_module.deflist.Count-1 do
         begin

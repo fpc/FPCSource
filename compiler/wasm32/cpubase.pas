@@ -295,6 +295,8 @@ uses
         implementation's runtime call stack (which includes return addresses and
         function parameters) is not visible in linear memory. }
       STACK_POINTER_SYM = '__stack_pointer';
+      { The exception tag symbol, used for FPC exceptions }
+      FPC_EXCEPTION_TAG_SYM = '__FPC_exception';
 
 {*****************************************************************************
                                   Helpers
