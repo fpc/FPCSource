@@ -1580,6 +1580,7 @@ implementation
         fields: tfplist;
         name: TIDString;
         srsym: tsym;
+        fieldvarsym: tfieldvarsym;
         srsymtable: tsymtable;
       begin
         { already created a message string table with this number of elements
@@ -1588,7 +1589,11 @@ implementation
         if searchsym_type(copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
-            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);
+            if fieldvarsym<>nil then
+              arrdef:=tarraydef(fieldvarsym.vardef)
+            else
+              arrdef:=nil;
             exit
           end;
         { also always search in the current module (symtables are popped for
