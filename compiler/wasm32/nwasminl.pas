@@ -189,6 +189,11 @@ implementation
               CheckParameters(0);
               resultdef:=voidtype;
             end;
+          in_wasm32_throw_fpcexception:
+            begin
+              CheckParameters(0);
+              resultdef:=voidtype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
