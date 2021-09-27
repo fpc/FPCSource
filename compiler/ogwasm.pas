@@ -70,6 +70,7 @@ interface
         ImportName: string;
         ExportName: string;
         GlobalType: TWasmBasicType;
+        GlobalIsImmutable: Boolean;
         Locals: array of TWasmBasicType;
         constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
         procedure AddLocal(bastyp: TWasmBasicType);
@@ -660,6 +661,7 @@ implementation
       begin
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(gt.globalname);
         ObjSymExtraData.GlobalType:=gt.gtype;
+        ObjSymExtraData.GlobalIsImmutable:=gt.immutable;
       end;
 
     procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
@@ -1259,7 +1261,10 @@ implementation
                 WriteName(FWasmSections[wsiImport],objsym.Name);
                 WriteByte(FWasmSections[wsiImport],$03);  { global }
                 WriteWasmBasicType(FWasmSections[wsiImport],objsym.ExtraData.GlobalType);
-                WriteByte(FWasmSections[wsiImport],$01);  { var }
+                if objsym.ExtraData.GlobalIsImmutable then
+                  WriteByte(FWasmSections[wsiImport],$00)   { const }
+                else
+                  WriteByte(FWasmSections[wsiImport],$01);  { var }
               end;
           end;
         { import functions }
@@ -1314,7 +1319,10 @@ implementation
                     Inc(NextGlobalIndex);
                     objsym.ExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
                     WriteWasmBasicType(FWasmSections[wsiGlobal],objsym.ExtraData.GlobalType);
-                    WriteByte(FWasmSections[wsiGlobal],$01);  { 0=const, 1=var }
+                    if objsym.ExtraData.GlobalIsImmutable then
+                      WriteByte(FWasmSections[wsiGlobal],$00)   { const }
+                    else
+                      WriteByte(FWasmSections[wsiGlobal],$01);  { var }
                     { init expr }
                     case objsym.ExtraData.GlobalType of
                       wbt_i32:

@@ -1640,7 +1640,10 @@ implementation
                writer.AsmWrite(#9'.globaltype'#9);
                writer.AsmWrite(tai_globaltype(hp).globalname);
                writer.AsmWrite(', ');
-               writer.AsmWriteLn(gas_wasm_basic_type_str[tai_globaltype(hp).gtype]);
+               writer.AsmWrite(gas_wasm_basic_type_str[tai_globaltype(hp).gtype]);
+               if tai_globaltype(hp).immutable then
+                 writer.AsmWrite(', immutable');
+               writer.AsmLn;
              end;
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));

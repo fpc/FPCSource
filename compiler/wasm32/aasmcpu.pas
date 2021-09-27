@@ -109,7 +109,8 @@ uses
       tai_globaltype = class(tai)
         globalname: string;
         gtype: TWasmBasicType;
-        constructor create(const aglobalname:string; atype: TWasmBasicType);
+        immutable: boolean;
+        constructor create(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean);
       end;
 
       { tai_functype }
@@ -158,12 +159,13 @@ uses
 
     { tai_globaltype }
 
-    constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType);
+    constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean);
       begin
         inherited Create;
         typ:=ait_globaltype;
         globalname:=aglobalname;
         gtype:=atype;
+        immutable:=aimmutable;
       end;
 
     { tai_import_name }
