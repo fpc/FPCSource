@@ -1201,32 +1201,35 @@ implementation
               end;
           end;
 
-        WriteUleb(FWasmSections[wsiData],segment_count);
-        WriteUleb(FWasmSections[wsiDataCount],segment_count);
-        WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],segment_count);
-        for i:=0 to Data.ObjSectionList.Count-1 do
+        if segment_count>0 then
           begin
-            objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-            if objsec.IsData then
+            WriteUleb(FWasmSections[wsiData],segment_count);
+            WriteUleb(FWasmSections[wsiDataCount],segment_count);
+            WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],segment_count);
+            for i:=0 to Data.ObjSectionList.Count-1 do
               begin
-                WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
-                WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
-                WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],0);  { flags }
+                objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+                if objsec.IsData then
+                  begin
+                    WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
+                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
+                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],0);  { flags }
 
-                WriteByte(FWasmSections[wsiData],0);
-                WriteByte(FWasmSections[wsiData],$41);
-                WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
-                WriteByte(FWasmSections[wsiData],$0b);
-                WriteUleb(FWasmSections[wsiData],objsec.Size);
-                objsec.FileSectionOfs:=FWasmSections[wsiData].size;
-                if oso_Data in objsec.SecOptions then
-                  begin
-                    objsec.Data.seek(0);
-                    CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
-                  end
-                else
-                  begin
-                    WriteZeros(FWasmSections[wsiData],objsec.Size);
+                    WriteByte(FWasmSections[wsiData],0);
+                    WriteByte(FWasmSections[wsiData],$41);
+                    WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
+                    WriteByte(FWasmSections[wsiData],$0b);
+                    WriteUleb(FWasmSections[wsiData],objsec.Size);
+                    objsec.FileSectionOfs:=FWasmSections[wsiData].size;
+                    if oso_Data in objsec.SecOptions then
+                      begin
+                        objsec.Data.seek(0);
+                        CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
+                      end
+                    else
+                      begin
+                        WriteZeros(FWasmSections[wsiData],objsec.Size);
+                      end;
                   end;
               end;
           end;
@@ -1461,7 +1464,8 @@ implementation
 
         WriteSymbolTable;
         WriteLinkingSubsection(WASM_SYMBOL_TABLE);
-        WriteLinkingSubsection(WASM_SEGMENT_INFO);
+        if segment_count>0 then
+          WriteLinkingSubsection(WASM_SEGMENT_INFO);
 
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
@@ -1486,24 +1490,34 @@ implementation
             WriteWasmSection(wsiExport);
             Inc(section_nr);
           end;
-        WriteWasmSection(wsiDataCount);
-        Inc(section_nr);
+        if segment_count>0 then
+          begin
+            WriteWasmSection(wsiDataCount);
+            Inc(section_nr);
+          end;
         WriteWasmSection(wsiCode);
         code_section_nr:=section_nr;
         Inc(section_nr);
-        WriteWasmSection(wsiData);
-        data_section_nr:=section_nr;
-        Inc(section_nr);
+        if segment_count>0 then
+          begin
+            WriteWasmSection(wsiData);
+            data_section_nr:=section_nr;
+            Inc(section_nr);
+          end;
 
         WriteRelocationCodeTable(code_section_nr);
-        WriteRelocationDataTable(data_section_nr);
+        if segment_count>0 then
+          WriteRelocationDataTable(data_section_nr);
 
         WriteWasmCustomSection(wcstLinking);
         Inc(section_nr);
         WriteWasmCustomSection(wcstRelocCode);
         Inc(section_nr);
-        WriteWasmCustomSection(wcstRelocData);
-        Inc(section_nr);
+        if segment_count>0 then
+          begin
+            WriteWasmCustomSection(wcstRelocData);
+            Inc(section_nr);
+          end;
 
         result:=true;
       end;
