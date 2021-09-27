@@ -44,14 +44,12 @@ interface
       { TWasmObjSymbol }
 
       TWasmObjSymbol = class(TObjSymbol)
-        ImportIndex: Integer;
         FuncIndex: Integer;
         SymbolIndex: Integer;
         GlobalIndex: Integer;
         AliasOf: string;
         ExtraData: TWasmObjSymbolExtraData;
         constructor create(AList:TFPHashObjectList;const AName:string);override;
-        function ImportOrFuncIndex: Integer;
         function IsAlias: Boolean;
       end;
 
@@ -326,22 +324,11 @@ implementation
     constructor TWasmObjSymbol.create(AList: TFPHashObjectList; const AName: string);
       begin
         inherited create(AList,AName);
-        ImportIndex:=-1;
         FuncIndex:=-1;
         SymbolIndex:=-1;
         GlobalIndex:=-1;
         AliasOf:='';
         ExtraData:=nil;
-      end;
-
-    function TWasmObjSymbol.ImportOrFuncIndex: Integer;
-      begin
-        if ImportIndex<>-1 then
-          result:=ImportIndex
-        else if FuncIndex<>-1 then
-          result:=FuncIndex
-        else
-          internalerror(2021092601);
       end;
 
     function TWasmObjSymbol.IsAlias: Boolean;
@@ -992,7 +979,7 @@ implementation
                       if not assigned(objrel.symbol) then
                         internalerror(2021092509);
                       objsec.Data.seek(objrel.DataOffset);
-                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).ImportOrFuncIndex);
+                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).FuncIndex);
                     end;
                   RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
                     begin
@@ -1279,7 +1266,7 @@ implementation
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
             if IsExternalFunction(objsym) then
               begin
-                objsym.ImportIndex:=NextImportFunctionIndex;
+                objsym.FuncIndex:=NextImportFunctionIndex;
                 Inc(NextImportFunctionIndex);
                 objsym.ExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
                 if objsym.ExtraData.ImportModule<>'' then
@@ -1376,7 +1363,7 @@ implementation
                   begin
                     WriteName(FWasmSections[wsiExport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).ExportName);
                     WriteByte(FWasmSections[wsiExport],0);  { func }
-                    WriteUleb(FWasmSections[wsiExport],objsym.ImportOrFuncIndex);
+                    WriteUleb(FWasmSections[wsiExport],objsym.FuncIndex);
                   end;
               end;
           end;
@@ -1406,13 +1393,13 @@ implementation
                 if objsym.ExtraData.ImportModule<>'' then
                   begin
                     WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED or WASM_SYM_EXPLICIT_NAME);
-                    WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+                    WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                     WriteName(FWasmSymbolTable,objsym.Name);
                   end
                 else
                   begin
                     WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
-                    WriteUleb(FWasmSymbolTable,objsym.ImportIndex);
+                    WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                   end;
               end
             else if objsym.typ=AT_FUNCTION then
