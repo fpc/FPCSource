@@ -72,7 +72,10 @@ interface
          { GNU indirect function (ELF targets) }
          AT_GNU_IFUNC,
          { WebAssembly global variable }
-         AT_WASM_GLOBAL
+         AT_WASM_GLOBAL,
+         { WebAssembly exception tag (used as a parameter for the 'throw' and
+           'catch' instructions) }
+         AT_WASM_EXCEPTION_TAG
          );
 
        { is the label only there for getting an DataOffset (e.g. for i/o

@@ -691,7 +691,7 @@ implementation
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_catch));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.RefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
         thlcgwasm(hlcg).decblock;
         { exceptionreason:=1 (exception) }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);

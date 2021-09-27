@@ -159,7 +159,7 @@ implementation
     procedure twasminlinenode.second_throw_fpcexception;
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_throw));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.RefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
       end;
 
 
