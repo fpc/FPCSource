@@ -70,6 +70,7 @@ interface
         ImportModule: string;
         ImportName: string;
         ExportName: string;
+        GlobalType: TWasmBasicType;
         Locals: array of TWasmBasicType;
         constructor Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
         procedure AddLocal(bastyp: TWasmBasicType);
@@ -103,6 +104,7 @@ interface
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
         function AddFuncType(wft: TWasmFuncType): integer;
+        procedure DeclareGlobalType(gt: tai_globaltype);
         procedure DeclareFuncType(ft: tai_functype);
         procedure DeclareExportName(en: tai_export_name);
         procedure DeclareImportModule(aim: tai_import_module);
@@ -637,6 +639,14 @@ implementation
         FFuncTypes[result]:=TWasmFuncType.Create(wft);
       end;
 
+    procedure TWasmObjData.DeclareGlobalType(gt: tai_globaltype);
+      var
+        ObjSymExtraData: TWasmObjSymbolExtraData;
+      begin
+        ObjSymExtraData:=AddOrCreateObjSymbolExtraData(gt.globalname);
+        ObjSymExtraData.GlobalType:=gt.gtype;
+      end;
+
     procedure TWasmObjData.DeclareFuncType(ft: tai_functype);
       var
         i: Integer;
@@ -816,8 +826,17 @@ implementation
       end;
 
     function TWasmObjOutput.IsExternalFunction(sym: TObjSymbol): Boolean;
+      var
+        ExtraData: TWasmObjSymbolExtraData;
       begin
-        result:=(sym.bind=AB_EXTERNAL) and (TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name)<>nil);
+        if sym.bind=AB_EXTERNAL then
+          begin
+            ExtraData:=TWasmObjSymbolExtraData(TWasmObjData(sym.ObjData).FObjSymbolsExtraDataList.Find(sym.Name));
+            result:=(ExtraData<>nil) and (ExtraData.TypeIdx<>-1);
+          end
+        else
+          result:=false;
+
       end;
 
     function TWasmObjOutput.IsExportedFunction(sym: TWasmObjSymbol): Boolean;

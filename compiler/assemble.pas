@@ -1838,6 +1838,8 @@ Implementation
                  end;
                end;
 {$ifdef WASM}
+             ait_globaltype:
+               TWasmObjData(ObjData).DeclareGlobalType(tai_globaltype(hp));
              ait_functype:
                TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
              ait_export_name:
