@@ -1842,6 +1842,8 @@ Implementation
                TWasmObjData(ObjData).DeclareGlobalType(tai_globaltype(hp));
              ait_functype:
                TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
+             ait_tagtype:
+               TWasmObjData(ObjData).DeclareTagType(tai_tagtype(hp));
              ait_export_name:
                TWasmObjData(ObjData).DeclareExportName(tai_export_name(hp));
              ait_import_module:

@@ -118,6 +118,7 @@ interface
          RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB,
          RELOC_TYPE_INDEX_LEB,
          RELOC_GLOBAL_INDEX_LEB,
+         RELOC_TAG_INDEX_LEB,
 {$endif WASM32}
          { Relative relocation }
          RELOC_RELATIVE,

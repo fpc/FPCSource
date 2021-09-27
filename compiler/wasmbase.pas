@@ -43,7 +43,8 @@ type
     wsiElement   = 9,
     wsiCode      = 10,
     wsiData      = 11,
-    wsiDataCount = 12);
+    wsiDataCount = 12,
+    wsiTag       = 13);
 
   TWasmCustomSectionType = (
     wcstLinking,
@@ -68,7 +69,7 @@ type
     R_WASM_GLOBAL_INDEX_LEB    = 7,
     R_WASM_FUNCTION_OFFSET_I32 = 8,
     R_WASM_SECTION_OFFSET_I32  = 9,
-    R_WASM_EVENT_INDEX_LEB     = 10,
+    R_WASM_TAG_INDEX_LEB       = 10,
     R_WASM_GLOBAL_INDEX_I32    = 13,
     R_WASM_MEMORY_ADDR_LEB64   = 14,
     R_WASM_MEMORY_ADDR_SLEB64  = 15,

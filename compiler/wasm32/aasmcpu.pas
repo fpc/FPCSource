@@ -764,6 +764,23 @@ uses
                     internalerror(2021092625);
                 end;
             end;
+          a_catch,
+          a_throw:
+            begin
+              if ops<>1 then
+                internalerror(2021092709);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092711);
+                      result:=6;
+                    end;
+                  else
+                    internalerror(2021092710);
+                end;
+            end;
           else
             internalerror(2021092623);
         end;
@@ -1459,6 +1476,31 @@ uses
                     WriteUleb(val);
                   else
                     internalerror(2021092625);
+                end;
+            end;
+          a_catch,
+          a_throw:
+            begin
+              case opcode of
+                a_catch:
+                  WriteByte($07);
+                a_throw:
+                  WriteByte($08);
+                else
+                  internalerror(2021092708);
+              end;
+              if ops<>1 then
+                internalerror(2021092709);
+              with oper[0]^ do
+                case typ of
+                  top_ref:
+                    begin
+                      if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                        internalerror(2021092711);
+                      objdata.writeReloc(0,5,TWasmObjData(ObjData).ExceptionTagRef(ref^.symbol),RELOC_TAG_INDEX_LEB);
+                    end;
+                  else
+                    internalerror(2021092710);
                 end;
             end;
           else

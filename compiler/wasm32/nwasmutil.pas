@@ -42,7 +42,7 @@ implementation
   uses
     globtype,globals,
     cpubase,
-    aasmdata,aasmcpu,
+    aasmbase,aasmdata,aasmtai,aasmcpu,
     hlcgobj,hlcgcpu,
     symdef,symtype,symconst,
     fmodule;
@@ -72,7 +72,10 @@ implementation
       list.Concat(tai_globaltype.create(STACK_POINTER_SYM,wbt_i32,false));
 
       if ts_wasm_native_exceptions in current_settings.targetswitches then
-        list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
+        begin
+          list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
+          list.Concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(FPC_EXCEPTION_TAG_SYM,AB_LOCAL,AT_WASM_EXCEPTION_TAG,nil),0));
+        end;
 
       for i:=0 to current_module.deflist.Count-1 do
         begin

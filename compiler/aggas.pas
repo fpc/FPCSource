@@ -840,8 +840,6 @@ implementation
               writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
             end;
           writer.AsmLn;
-          writer.AsmWrite(hp.tagname);
-          writer.AsmWriteLn(':');
         end;
 {$endif WASM}
 
@@ -1391,6 +1389,10 @@ implementation
                      writer.AsmWriteLn('.lglobl .'+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                    { the dotted name is the name of the actual function entry }
                    writer.AsmWrite('.');
+                 end
+               else if tai_symbol(hp).sym.typ=AT_WASM_EXCEPTION_TAG then
+                 begin
+                   { nothing here, to ensure we don' write the .type directive for exception tags }
                  end
                else
                  begin
