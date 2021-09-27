@@ -47,6 +47,7 @@ interface
         ImportIndex: Integer;
         FuncIndex: Integer;
         SymbolIndex: Integer;
+        GlobalIndex: Integer;
         AliasOf: string;
         ExtraData: TWasmObjSymbolExtraData;
         constructor create(AList:TFPHashObjectList;const AName:string);override;
@@ -104,6 +105,7 @@ interface
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
         function AddOrCreateObjSymbolExtraData(const symname:TSymStr): TWasmObjSymbolExtraData;
         function AddFuncType(wft: TWasmFuncType): integer;
+        function globalref(asmsym:TAsmSymbol):TObjSymbol;
         procedure DeclareGlobalType(gt: tai_globaltype);
         procedure DeclareFuncType(ft: tai_functype);
         procedure DeclareExportName(en: tai_export_name);
@@ -327,6 +329,7 @@ implementation
         ImportIndex:=-1;
         FuncIndex:=-1;
         SymbolIndex:=-1;
+        GlobalIndex:=-1;
         AliasOf:='';
         ExtraData:=nil;
       end;
@@ -614,6 +617,18 @@ implementation
               CurrObjSec.ObjRelocations.Add(objreloc);
               WriteUleb5(CurrObjSec,Data);
             end;
+          RELOC_GLOBAL_INDEX_LEB:
+            begin
+              if len<>5 then
+                internalerror(2021092701);
+              if Data<>0 then
+                internalerror(2021092702);
+              if not assigned(p) then
+                internalerror(2021092703);
+              objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+              CurrObjSec.ObjRelocations.Add(objreloc);
+              WriteUleb5(CurrObjSec,0);
+            end;
           else
             internalerror(2021092501);
         end;
@@ -637,6 +652,19 @@ implementation
         result:=Length(FFuncTypes);
         SetLength(FFuncTypes,result+1);
         FFuncTypes[result]:=TWasmFuncType.Create(wft);
+      end;
+
+    function TWasmObjData.globalref(asmsym: TAsmSymbol): TObjSymbol;
+      begin
+        if assigned(asmsym) then
+          begin
+            if asmsym.typ<>AT_WASM_GLOBAL then
+              internalerror(2021092706);
+            result:=symbolref(asmsym);
+            result.typ:=AT_WASM_GLOBAL;
+          end
+        else
+          result:=nil;
       end;
 
     procedure TWasmObjData.DeclareGlobalType(gt: tai_globaltype);
@@ -998,6 +1026,13 @@ implementation
                     end;
                   RELOC_TYPE_INDEX_LEB:
                     ;
+                  RELOC_GLOBAL_INDEX_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092509);
+                      objsec.Data.seek(objrel.DataOffset);
+                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).GlobalIndex);
+                    end;
                   else
                     internalerror(2021092510);
                 end;
@@ -1097,6 +1132,15 @@ implementation
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       WriteUleb(relout,objrel.TypeIndex);
                     end;
+                  RELOC_GLOBAL_INDEX_LEB:
+                    begin
+                      if not assigned(objrel.symbol) then
+                        internalerror(2021092704);
+                      Inc(relcount^);
+                      WriteByte(relout,Ord(R_WASM_GLOBAL_INDEX_LEB));
+                      WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                      WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                    end;
                   else
                     internalerror(2021092507);
                 end;
@@ -1112,7 +1156,10 @@ implementation
         cur_seg_ofs: qword = 0;
         types_count,
         imports_count, NextImportFunctionIndex, NextFunctionIndex,
-        section_nr, code_section_nr, data_section_nr: Integer;
+        section_nr, code_section_nr, data_section_nr,
+        NextGlobalIndex: Integer;
+        import_globals_count: Integer = 0;
+        globals_count: Integer = 0;
         import_functions_count: Integer = 0;
         export_functions_count: Integer = 0;
         functions_count: Integer = 0;
@@ -1130,6 +1177,11 @@ implementation
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.typ=AT_WASM_GLOBAL then
+              if objsym.bind=AB_EXTERNAL then
+                Inc(import_globals_count)
+              else
+                Inc(globals_count);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
             if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
@@ -1192,21 +1244,35 @@ implementation
               end;
           end;
 
-        imports_count:=3+import_functions_count;
+        imports_count:=2+import_globals_count+import_functions_count;
         WriteUleb(FWasmSections[wsiImport],imports_count);
-        { import[0] }
+        { import memories }
         WriteName(FWasmSections[wsiImport],'env');
         WriteName(FWasmSections[wsiImport],'__linear_memory');
         WriteByte(FWasmSections[wsiImport],$02);  { mem }
         WriteByte(FWasmSections[wsiImport],$00);  { min }
         WriteUleb(FWasmSections[wsiImport],1);    { 1 page }
-        { import[1] }
-        WriteName(FWasmSections[wsiImport],'env');
-        WriteName(FWasmSections[wsiImport],'__stack_pointer');
-        WriteByte(FWasmSections[wsiImport],$03);  { global }
-        WriteByte(FWasmSections[wsiImport],$7F);  { i32 }
-        WriteByte(FWasmSections[wsiImport],$01);  { var }
-        { import[2]..import[imports_count-2] }
+        { import globals }
+        NextGlobalIndex:=0;
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if (objsym.bind=AB_EXTERNAL) and (objsym.typ=AT_WASM_GLOBAL) then
+              begin
+                objsym.GlobalIndex:=NextGlobalIndex;
+                Inc(NextGlobalIndex);
+                objsym.ExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
+                if objsym.ExtraData.ImportModule<>'' then
+                  WriteName(FWasmSections[wsiImport],objsym.ExtraData.ImportModule)
+                else
+                  WriteName(FWasmSections[wsiImport],'env');
+                WriteName(FWasmSections[wsiImport],objsym.Name);
+                WriteByte(FWasmSections[wsiImport],$03);  { global }
+                WriteWasmBasicType(FWasmSections[wsiImport],objsym.ExtraData.GlobalType);
+                WriteByte(FWasmSections[wsiImport],$01);  { var }
+              end;
+          end;
+        { import functions }
         NextImportFunctionIndex:=0;
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
@@ -1225,7 +1291,7 @@ implementation
                 WriteUleb(FWasmSections[wsiImport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
               end;
           end;
-        { import[imports_count-1] }
+        { import tables }
         WriteName(FWasmSections[wsiImport],'env');
         WriteName(FWasmSections[wsiImport],'__indirect_function_table');
         WriteByte(FWasmSections[wsiImport],$01);  { table }
@@ -1243,6 +1309,60 @@ implementation
                 objsym.FuncIndex:=NextFunctionIndex;
                 Inc(NextFunctionIndex);
                 WriteUleb(FWasmSections[wsiFunction],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).TypeIdx);
+              end;
+          end;
+
+        if globals_count>0 then
+          begin
+            WriteUleb(FWasmSections[wsiGlobal],globals_count);
+            for i:=0 to Data.ObjSymbolList.Count-1 do
+              begin
+                objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+                if (objsym.typ=AT_WASM_GLOBAL) and (objsym.bind<>AB_EXTERNAL) then
+                  begin
+                    objsym.GlobalIndex:=NextGlobalIndex;
+                    Inc(NextGlobalIndex);
+                    objsym.ExtraData:=TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name));
+                    WriteWasmBasicType(FWasmSections[wsiGlobal],objsym.ExtraData.GlobalType);
+                    WriteByte(FWasmSections[wsiGlobal],$01);  { 0=const, 1=var }
+                    { init expr }
+                    case objsym.ExtraData.GlobalType of
+                      wbt_i32:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$41);  { i32.const }
+                          WriteByte(FWasmSections[wsiGlobal],0);    { 0 (in signed LEB128 format) }
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
+                      wbt_i64:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$42);  { i64.const }
+                          WriteByte(FWasmSections[wsiGlobal],0);    { 0 (in signed LEB128 format) }
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
+                      wbt_f32:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$43);  { f32.const }
+                          WriteByte(FWasmSections[wsiGlobal],$00);  { 0 (in little endian IEEE single precision floating point format) }
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
+                      wbt_f64:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$44);  { f64.const }
+                          WriteByte(FWasmSections[wsiGlobal],$00);  { 0 (in little endian IEEE double precision floating point format) }
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$00);
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
+                    end;
+                  end;
               end;
           end;
 
@@ -1264,7 +1384,21 @@ implementation
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
             objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            if IsExternalFunction(objsym) then
+            if objsym.typ=AT_WASM_GLOBAL then
+              begin
+                objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
+                Inc(FWasmSymbolTableEntriesCount);
+                WriteByte(FWasmSymbolTable,Ord(SYMTAB_GLOBAL));
+                if objsym.bind=AB_EXTERNAL then
+                  begin
+                    WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
+                    WriteUleb(FWasmSymbolTable,objsym.GlobalIndex);
+                  end
+                else
+                  {not implemented yet}
+                  internalerror(2021092705);
+              end
+            else if IsExternalFunction(objsym) then
               begin
                 objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
                 Inc(FWasmSymbolTableEntriesCount);
@@ -1355,6 +1489,11 @@ implementation
         Inc(section_nr);
         WriteWasmSection(wsiFunction);
         Inc(section_nr);
+        if globals_count>0 then
+          begin
+            WriteWasmSection(wsiGlobal);
+            Inc(section_nr);
+          end;
         if export_functions_count>0 then
           begin
             WriteWasmSection(wsiExport);

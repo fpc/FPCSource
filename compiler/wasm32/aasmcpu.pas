@@ -625,9 +625,7 @@ uses
                         internalerror(2021092012);
                       if (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
                         internalerror(2021092013);
-                      if ref^.symbol.Name<>'__stack_pointer' then
-                        internalerror(2021092014);
-                      result:=1+UlebSize(0);
+                      result:=6;
                     end;
                   else
                     internalerror(2021092011);
@@ -1246,9 +1244,7 @@ uses
                         internalerror(2021092012);
                       if (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
                         internalerror(2021092013);
-                      if ref^.symbol.Name<>'__stack_pointer' then
-                        internalerror(2021092014);
-                      WriteUleb(0);
+                      objdata.writeReloc(0,5,TWasmObjData(ObjData).globalref(ref^.symbol),RELOC_GLOBAL_INDEX_LEB);
                     end;
                   else
                     internalerror(2021092011);
