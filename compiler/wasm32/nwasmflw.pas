@@ -328,7 +328,7 @@ implementation
           end
         else
           begin
-            addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
+            //addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
             raisenode:=ccallnode.createintern('fpc_reraise',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);

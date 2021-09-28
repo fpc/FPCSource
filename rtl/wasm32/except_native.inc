@@ -22,7 +22,6 @@ ThreadVar
 {$else FPC_HAS_FEATURE_THREADING}
 Var
 {$endif FPC_HAS_FEATURE_THREADING}
-  ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : ObjpasInt;
 
@@ -63,23 +62,6 @@ begin
     end
   else
     RunError(231);
-end;
-
-
-Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
-var
-  _ExceptAddrstack : ^PExceptAddr;
-begin
-{$ifdef excdebug}
-  writeln ('In PushExceptAddr');
-{$endif}
-  _ExceptAddrstack:=@ExceptAddrstack;
-  PExceptAddr(_newaddr)^.Next:=_ExceptAddrstack^;
-  _ExceptAddrStack^:=PExceptAddr(_newaddr);
-  PExceptAddr(_newaddr)^.Buf:=PJmp_Buf(_buf);
-  PExceptAddr(_newaddr)^.FrameType:=ft;
-  result:=PJmp_Buf(_buf);
 end;
 
 
@@ -187,28 +169,6 @@ end;
 {$endif FPC_SYSTEM_HAS_RAISEEXCEPTION}
 
 
-Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; compilerproc;
-var
-  hp : ^PExceptAddr;
-begin
-{$ifdef excdebug}
-  writeln ('In Popaddrstack');
-{$endif}
-  hp:=@ExceptAddrStack;
-  If hp^=nil then
-    begin
-{$ifdef excdebug}
-      writeln ('At end of ExceptionAddresStack');
-{$endif}
-      halt (255);
-    end
-  else
-    begin
-      hp^:=hp^^.Next;
-    end;
-end;
-
-
 function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; compilerproc;
 var
   hp : PExceptObject;
@@ -281,9 +241,9 @@ begin
 {$ifdef excdebug}
   writeln ('In reraise');
 {$endif}
-  _ExceptAddrStack:=ExceptAddrStack;
-  If _ExceptAddrStack=Nil then
-    DoUnHandledException;
+//  _ExceptAddrStack:=ExceptAddrStack;
+//  If _ExceptAddrStack=Nil then
+//    DoUnHandledException;
   ExceptObjectStack^.refcount := 0;
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
@@ -327,7 +287,6 @@ Procedure SysInitExceptions;
 }
 begin
   ExceptObjectstack:=Nil;
-  ExceptAddrStack:=Nil;
 end;
 
 
