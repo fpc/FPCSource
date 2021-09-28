@@ -374,6 +374,7 @@ implementation
         errorexit;
       begin
         location_reset(location,LOC_VOID,OS_NO);
+        doobjectdestroyandreraisestate:=Default(tcgexceptionstatehandler.texceptionstate);
 
         { Exception temps? We don't need no stinking exception temps! :) }
         fillchar(excepttemps,sizeof(excepttemps),0);
