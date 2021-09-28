@@ -27,7 +27,7 @@ interface
 
   uses
     cutils,globtype,
-    procinfo,cpuinfo, symtype,aasmbase,
+    procinfo,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
   type
@@ -46,13 +46,17 @@ implementation
 
     uses
       systems,verbose,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,cgexcept,
-      tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2;
+      tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
+      fmodule,hlcgobj,hlcgcpu,defutil;
 
 {*****************************************************************************
                      twasmexceptionstatehandler_noexceptions
 *****************************************************************************}
 
     type
+
+      { twasmexceptionstatehandler_noexceptions }
+
       twasmexceptionstatehandler_noexceptions = class(tcgexceptionstatehandler)
         class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
         class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
@@ -143,10 +147,17 @@ implementation
 *****************************************************************************}
 
     type
+
+      { twasmexceptionstatehandler_nativeexceptions }
+
       twasmexceptionstatehandler_nativeexceptions = class(tcgexceptionstatehandler)
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        { start of an "on" (catch) block }
+        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        { end of an "on" (catch) block }
+        class procedure end_catch(list: TAsmList); override;
       end;
 
     class procedure twasmexceptionstatehandler_nativeexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
@@ -165,6 +176,55 @@ implementation
     class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      var
+        pd: tprocdef;
+        href2: treference;
+        fpc_catches_res,
+        paraloc1: tcgpara;
+        exceptloc: tlocation;
+        indirect: boolean;
+        otherunit: boolean;
+      begin
+        paraloc1.init;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        indirect:=(tf_supports_packages in target_info.flags) and
+                    (target_info.system in systems_indirect_var_imports) and
+                    (cs_imported_data in current_settings.localswitches) and
+                    otherunit;
+
+        { send the vmt parameter }
+        pd:=search_system_proc('fpc_catches');
+        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        if otherunit then
+          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
+        hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
+        paramanager.freecgpara(list, paraloc1);
+        fpc_catches_res:=hlcg.g_call_system_proc(list, pd, [@paraloc1], nil);
+        location_reset(exceptloc, LOC_REGISTER, def_cgsize(fpc_catches_res.def));
+        exceptloc.register:=hlcg.getaddressregister(list, fpc_catches_res.def);
+        hlcg.gen_load_cgpara_loc(list, fpc_catches_res.def, fpc_catches_res, exceptloc, true);
+
+        { is it this catch? }
+        thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_EQ, 0, exceptloc.register);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).incblock;
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+        paraloc1.done;
+
+        exceptlocdef:=fpc_catches_res.def;
+        exceptlocreg:=exceptloc.register;
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.end_catch(list: TAsmList);
+      begin
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+        thlcgwasm(hlcg).decblock;
       end;
 
 {*****************************************************************************

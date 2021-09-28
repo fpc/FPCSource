@@ -96,7 +96,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,defcmp,
+      symconst,symdef,symsym,symtype,aasmtai,aasmdata,aasmcpu,defutil,defcmp,
       procinfo,cgbase,cgexcept,pass_1,pass_2,parabase,compinnr,
       cpubase,cpuinfo,
       nbas,nld,ncon,ncnv,ncal,ninl,nmem,nadd,nutils,
@@ -460,6 +460,7 @@ implementation
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+                thlcgwasm(hlcg).decblock;
               end
             else
               begin
@@ -925,9 +926,58 @@ implementation
       end;
 
     procedure twasmonnode.pass_generate_code_native_exceptions;
+      var
+        exceptvarsym : tlocalvarsym;
+        exceptlocdef: tdef;
+        exceptlocreg: tregister;
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        { todo: implement }
+
+        cexceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
+
+        { Retrieve exception variable }
+        if assigned(excepTSymtable) then
+          exceptvarsym:=tlocalvarsym(excepTSymtable.SymList[0])
+        else
+          internalerror(2011020401);
+
+        if assigned(exceptvarsym) then
+          begin
+            location_reset_ref(exceptvarsym.localloc, LOC_REFERENCE, def_cgsize(voidpointertype), voidpointertype.alignment, []);
+            tg.GetLocal(current_asmdata.CurrAsmList, exceptvarsym.vardef.size, exceptvarsym.vardef, exceptvarsym.localloc.reference);
+            hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
+          end;
+
+        { in the case that another exception is risen
+          we've to destroy the old one, so create a new
+          exception frame for the catch-handler }
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
+        thlcgwasm(hlcg).incblock;
+
+        if assigned(right) then
+          secondpass(right);
+
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2));
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+        thlcgwasm(hlcg).decblock;
+
+        { clear some stuff }
+        if assigned(exceptvarsym) then
+          begin
+            tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+            exceptvarsym.localloc.loc:=LOC_INVALID;
+          end;
+        cexceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
+
+        { next on node }
+        if assigned(left) then
+          secondpass(left);
       end;
 
     procedure twasmonnode.pass_generate_code;
