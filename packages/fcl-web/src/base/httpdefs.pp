@@ -366,6 +366,7 @@ type
     function GetFieldByName(const AName: String): String;
     // Variables
     Class Function GetVariableHeaderName(AVariable : THTTPVariableType) : String;
+    Class Function GetVariableHeaderType(Const aName : string) : THTTPVariableType;
     Function  GetHTTPVariable(AVariable : THTTPVariableType) : String;
     Class Function ParseContentType(const AContentType: String; Parameters: TStrings) : String;
     // Get/Set custom headers.
@@ -1760,6 +1761,21 @@ begin
   end;
 end;
 
+class function THTTPHeader.GetVariableHeaderType(Const aName: string): THTTPVariableType;
+
+Var
+   V : THTTPVariableType;
+
+begin
+  Case IndexText(aName,[FieldCookie,FieldSetCookie,FieldXRequestedWith]) of
+    0 : Result:=hvCookie;
+    1 : Result:=hvSetCookie;
+    2 : Result:=hvXRequestedWith;
+  else
+    Result:=hvUnknown;
+  end;
+end;
+
 function THTTPHeader.GetCustomHeader(const Name: String): String;
 begin
   if Assigned(FCustomHeaders) then
@@ -1829,13 +1845,20 @@ procedure THTTPHeader.SetFieldByName(const AName, AValue: String);
 
 var
   H : THeader;
+  V : THTTPVariableType;
 
 begin
   H:=HeaderType(aName);
   If (h<>hhUnknown) then
     SetHeader(H,aValue)
   else
-    SetCustomHeader(AName,AValue);
+    begin
+    V:=GetVariableHeaderType(aName);
+    if V<>hvUnknown then
+      SetHTTPVariable(V,aValue)
+    else
+      SetCustomHeader(AName,AValue);
+    end;
 end;
 
 { ---------------------------------------------------------------------
