@@ -1188,7 +1188,8 @@ type
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used
            to allow indirect loading in case of packages and indirect imports }
-         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT,
+         AB_WEAK);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -1211,7 +1212,12 @@ type
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
-         AT_GNU_IFUNC
+         AT_GNU_IFUNC,
+         { WebAssembly global variable }
+         AT_WASM_GLOBAL,
+         { WebAssembly exception tag (used as a parameter for the 'throw' and
+           'catch' instructions) }
+         AT_WASM_EXCEPTION_TAG
          );
 
 var
@@ -1257,6 +1263,8 @@ begin
          bindstr:='Indirect';
        AB_EXTERNAL_INDIRECT :
          bindstr:='Indirect external';
+       AB_WEAK:
+         bindstr:='Weak';
        else
          begin
            bindstr:='<Error !!>';
@@ -1286,6 +1294,10 @@ begin
          typestr:='TLS';
        AT_GNU_IFUNC :
          typestr:='GNU IFUNC';
+       AT_WASM_GLOBAL:
+         typestr:='WebAssembly global variable';
+       AT_WASM_EXCEPTION_TAG:
+         typestr:='WebAssembly exception tag';
        else
          begin
            typestr:='<Error !!>';
