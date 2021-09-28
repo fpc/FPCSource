@@ -209,7 +209,7 @@ implementation
         hlcg.gen_load_cgpara_loc(list, fpc_catches_res.def, fpc_catches_res, exceptloc, true);
 
         { is it this catch? }
-        thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_EQ, 0, exceptloc.register);
+        thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
         thlcgwasm(hlcg).incblock;
