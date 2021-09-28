@@ -81,6 +81,17 @@ interface
         procedure pass_generate_code;override;
       end;
 
+      { twasmonnode }
+
+      twasmonnode = class(tcgonnode)
+      private
+        procedure pass_generate_code_no_exceptions;
+        procedure pass_generate_code_js_exceptions;
+        procedure pass_generate_code_native_exceptions;
+      public
+        procedure pass_generate_code;override;
+      end;
+
 implementation
 
     uses
@@ -402,8 +413,8 @@ implementation
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
-        //if assigned(right) then
-        //  secondpass(right);
+        if assigned(right) then
+          secondpass(right);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -897,10 +908,45 @@ implementation
           internalerror(2021091704);
       end;
 
+{*****************************************************************************
+                                  twasmonnode
+*****************************************************************************}
+
+    procedure twasmonnode.pass_generate_code_no_exceptions;
+      begin
+        { should not be called }
+        internalerror(2021092803);
+      end;
+
+    procedure twasmonnode.pass_generate_code_js_exceptions;
+      begin
+        { not yet implemented }
+        internalerror(2021092804);
+      end;
+
+    procedure twasmonnode.pass_generate_code_native_exceptions;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+        { todo: implement }
+      end;
+
+    procedure twasmonnode.pass_generate_code;
+      begin
+        if ts_wasm_no_exceptions in current_settings.targetswitches then
+          pass_generate_code_no_exceptions
+        else if ts_wasm_js_exceptions in current_settings.targetswitches then
+          pass_generate_code_js_exceptions
+        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+          pass_generate_code_native_exceptions
+        else
+          internalerror(2021092802);
+      end;
+
 initialization
   cifnode:=twasmifnode;
   cwhilerepeatnode:=twasmwhilerepeatnode;
   craisenode:=twasmraisenode;
   ctryexceptnode:=twasmtryexceptnode;
   ctryfinallynode:=twasmtryfinallynode;
+  connode:=twasmonnode;
 end.
