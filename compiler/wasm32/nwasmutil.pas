@@ -109,8 +109,7 @@ implementation
                   proc := tprocdef(def);
                   if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
                     WriteImportDll(list,proc)
-                  else if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
-                     ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
+                  else if not proc.owner.iscurrentunit or (po_external in proc.procoptions) then
                     thlcgwasm(hlcg).g_procdef(list,proc);
                 end;
             end;
