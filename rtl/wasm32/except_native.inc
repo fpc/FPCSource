@@ -245,7 +245,8 @@ begin
 //  If _ExceptAddrStack=Nil then
 //    DoUnHandledException;
   ExceptObjectStack^.refcount := 0;
-  longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
+//  longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
+  fpc_wasm32_throw_fpcexception;
 end;
 {$endif FPC_SYSTEM_HAS_RERAISE}
 
