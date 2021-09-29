@@ -1027,7 +1027,7 @@ unit aoptx86;
         { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
         RegSet := paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-        for CurrentSuperReg := Low(RegSet) to High(RegSet) do
+        for CurrentSuperReg in RegSet do
           begin
             CurrentReg := newreg(R_INTREGISTER, TSuperRegister(CurrentSuperReg), RegSize);
             if not AUsedRegs[R_INTREGISTER].IsUsed(CurrentReg) then
@@ -1090,7 +1090,7 @@ unit aoptx86;
         { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
         RegSet := paramanager.get_volatile_registers_mm(current_procinfo.procdef.proccalloption);
-        for CurrentSuperReg := Low(RegSet) to High(RegSet) do
+        for CurrentSuperReg in RegSet do
           begin
             CurrentReg := newreg(R_MMREGISTER, TSuperRegister(CurrentSuperReg), RegSize);
             if not AUsedRegs[R_MMREGISTER].IsUsed(CurrentReg) then
