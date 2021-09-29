@@ -34,6 +34,8 @@ interface
 
       twasminlinenode = class(tcginlinenode)
       private
+        function first_sqrt_real:tnode;override;
+        procedure second_sqrt_real;override;
         procedure second_high; override;
         procedure second_memory_size;
         procedure second_memory_grow;
@@ -63,6 +65,35 @@ implementation
 {*****************************************************************************
                                twasminlinenode
 *****************************************************************************}
+
+    function twasminlinenode.first_sqrt_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
+
+
+    procedure twasminlinenode.second_sqrt_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_sqrt));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_sqrt));
+          else
+            internalerror(2021092901);
+        end;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
 
     procedure twasminlinenode.second_high;
       var
