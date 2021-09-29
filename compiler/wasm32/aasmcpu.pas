@@ -1188,7 +1188,7 @@ uses
             begin
               if ops<>1 then
                 internalerror(2021092619);
-              WriteByte($44);
+              WriteByte($43);
               with oper[0]^ do
                 case typ of
                   top_single:
