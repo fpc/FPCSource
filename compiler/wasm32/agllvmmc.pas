@@ -153,7 +153,7 @@ implementation
               end;
           end
         else
-          result:=result+'0x1.'+HexStr(fraction,fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
+          result:=result+'0x1.'+HexStr(fraction shl (fraction_hexdigits*4-fraction_bits),fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
       end;
 
     function constsingle(s: single): ansistring;
