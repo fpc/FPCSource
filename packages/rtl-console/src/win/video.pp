@@ -775,7 +775,7 @@ var
   SecAttr: TSecurityAttributes;
 begin
   NewConsoleHandleAllocated := false;
-  FillChar (VioMode, 0, SizeOf (VioMode));
+  FillChar (VioMode, SizeOf (VioMode), 0);
   ConsoleOutHandle := GetStdHandle (Std_Output_Handle);
 {MSDN: If an application does not have associated standard handles, such as a service running on an
  interactive desktop, and has not redirected them, the return value is NULL.}

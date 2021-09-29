@@ -327,7 +327,7 @@ implementation
         { set new module }
         current_module:=p;
         { restore previous module settings }
-        Fillchar(current_filepos,0,sizeof(current_filepos));
+        Fillchar(current_filepos,sizeof(current_filepos),0);
         if assigned(current_module) then
           begin
             current_asmdata:=tasmdata(current_module.asmdata);

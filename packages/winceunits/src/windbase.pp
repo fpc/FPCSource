@@ -531,7 +531,7 @@ end;
 
 procedure CREATE_SYSTEMGUID(out pguid : CEGUID);
 begin
-  fillchar(pguid,0,sizeof(CEGUID));
+  fillchar(pguid,sizeof(CEGUID),0);
 end;
 
 procedure CREATE_INVALIDGUID(out pguid : CEGUID);
