@@ -18,6 +18,7 @@ const
   TestsuiteBin='testsuite.cgi';
   ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
   ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&amp;revision=';
+  ViewGitHashURL='https://gitlab.com/freepascal.org/fpc/source/-/tree/';
   TestsSubDir='/tests/';
   DataBaseSubDir='/packages/fcl-db/tests/';
 
@@ -142,6 +143,7 @@ Const
   NewTestResultsTableName = 'TESTRESULTS';
   LastOldTestRun = 91178;
   MaxLimit = 1000;
+  UseGit = True;
 
 const
   faction_show_overview = 0;
@@ -217,6 +219,8 @@ type
     ver_3_1_1,
     ver_3_2_0,
     ver_3_2_1,
+    ver_3_2_2,
+    ver_3_2_3,
     ver_3_3_1);
 
 const
@@ -265,6 +269,8 @@ const
    '3.1.1',
    '3.2.0',
    '3.2.1',
+   '3.2.2',
+   '3.2.3',
    '3.3.1'
   );
 
@@ -286,6 +292,7 @@ const
    'branches/fixes_2_2',
    'tags/release_2_2_4',
    'branches/fixes_2_2',
+   'branches/fixes_2_2',
    'tags/release_2_4_0',
    'tags/release_2_4_0',
    'tags/release_2_4_2',
@@ -300,15 +307,16 @@ const
    'tags/release_2_6_4',
    'tags/release_2_6_4',
    'branches/fixes_2_6',
-   'branches/release_3_0_0',
-   'branches/release_3_0_0',
-   'branches/release_3_0_2',
-   'branches/release_3_0_2',
-   'branches/release_3_0_4',
-   'branches/release_3_0_4',
+   'tags/release_3_0_0',
+   'tags/release_3_0_0',
+   'tags/release_3_0_2',
+   'tags/release_3_0_2',
+   'tags/release_3_0_4',
+   'tags/release_3_0_4',
    'branches/fixes_3_0',
-   'branches/fixes_3_2',
-   'branches/fixes_3_2',
+   'tags/release_3_2_0',
+   'tags/release_3_2_0',
+   'tags/release_3_2_2',
    'branches/fixes_3_2',
    'trunk'
   );
@@ -1044,6 +1052,10 @@ begin
             TableColumns.ColumnByName('ID').ActionURL:=A;
             TableColumns.ColumnByNAme('Failed').OnGetCellContents:=@FormatFailedOverview;
             TableColumns.ColumnByNAme('svnrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svncomprev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svnrtlrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svnpackrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svntestsrev').OnGetCellContents:=@FormatSVN;
             CreateTable(Response);
           Finally
             Free;
@@ -1605,7 +1617,7 @@ Var
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
-  i : longint;
+  i,index : longint;
   FieldName,FieldValue,
   LLog,Source : String;
   Res : Boolean;
@@ -1818,7 +1830,17 @@ begin
                       break;
                     end;
               end;
-            FViewVCURL:=ViewURL+Base;
+            if UseGit then
+              begin
+                index:=pos('/',Base);
+                if index>0 then
+                  Base:=Copy(Base,index+1,length(Base));
+                if Base='trunk' then
+                  Base:='main';
+                FViewVCURL:=ViewGitHashURL+Base;
+              end
+            else
+              FViewVCURL:=ViewURL+Base;
             if Category='1' then
               FViewVCUrl:=FViewVCURL+TestsSubDir
             else
@@ -1877,7 +1899,7 @@ Var
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
-  i,run_id,os_id,version_id,cpu_id : longint;
+  i,index,run_id,os_id,version_id,cpu_id : longint;
   run_ind,os_ind,version_ind,cpu_ind,
   ok_ind,skip_ind,result_ind,date_ind : longint;
   os_size, cpu_size, version_size : longint;
@@ -2520,7 +2542,17 @@ begin
                       break;
                     end;
               end;
-            FViewVCURL:=ViewURL+Base;
+            if UseGit then
+              begin
+                index:=pos('/',Base);
+                if index>0 then
+                  Base:=Copy(Base,index+1,length(Base));
+                if Base='trunk' then
+                  Base:='main';
+                FViewVCURL:=ViewGitHashURL+Base;
+              end
+            else
+              FViewVCURL:=ViewURL+Base;
             if Category='1' then
               FViewVCUrl:=FViewVCURL+TestsSubDir
             else
@@ -2812,7 +2844,10 @@ begin
   if pos_sep=0 then
     begin
       pos_colon:=pos(':',CellData);
-      S:=ViewRevURL+copy(CellData,pos_colon+1,length(CellData));
+      if UseGit then
+        S:=ViewGitHashURL+copy(CellData,pos_colon+1,length(CellData))
+      else
+        S:=ViewRevURL+copy(CellData,pos_colon+1,length(CellData));
       CellData:=Format('<A HREF="%s" target="_blank">%s</A>',[S,CellData]);
     end
   else
@@ -2825,9 +2860,12 @@ begin
           pos_colon:=pos(':',SubStr);
           Rev:=copy(SubStr,pos_colon+1,length(SubStr));
           { Remove suffix like M for modified...}
-          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9'])) do
+          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9','a'..'f','A'..'F'])) do
             Rev:=Copy(Rev,1,length(Rev)-1);
-          S:=ViewRevURL+Rev;
+          if UseGit then
+            S:=ViewGitHashURL+Rev
+          else
+            S:=ViewRevURL+Rev;
           CellData:=CellData+Format('<A HREF="%s" target="_blank">%s</A>',[S,SubStr]);
           if Remaining='' then
             SubStr:=''
