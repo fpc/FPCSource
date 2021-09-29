@@ -35,8 +35,10 @@ interface
       twasminlinenode = class(tcginlinenode)
       private
         function first_abs_real:tnode;override;
+        function first_int_real:tnode;override;
         function first_sqrt_real:tnode;override;
         procedure second_abs_real;override;
+        procedure second_int_real;override;
         procedure second_sqrt_real;override;
         procedure second_high; override;
         procedure second_memory_size;
@@ -75,6 +77,13 @@ implementation
       end;
 
 
+    function twasminlinenode.first_int_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
+
+
     function twasminlinenode.first_sqrt_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -96,6 +105,28 @@ implementation
             current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_abs));
           else
             internalerror(2021092902);
+        end;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_int_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_trunc));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_trunc));
+          else
+            internalerror(2021092903);
         end;
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
