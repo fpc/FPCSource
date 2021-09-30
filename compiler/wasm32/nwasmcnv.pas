@@ -133,7 +133,7 @@ implementation
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
         thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
         thlcgwasm(hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,left.resultdef,OC_NE);
-        thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,left.resultdef,resultdef,false);
+        thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
