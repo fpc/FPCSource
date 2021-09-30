@@ -285,7 +285,17 @@ interface
           secondpass(left);
           thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
-          current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+          if is_64bit(left.resultdef) then
+            begin
+              thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_ne));
+              thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            end;
+
+          if is_64bit(left.resultdef) then
+            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
+          else
+            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
           thlcgwasm(hlcg).incblock;
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
@@ -302,14 +312,20 @@ interface
 
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+                   if is_64bit(left.resultdef) then
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
+                   else
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
                    thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                 end;
               orn :
                 begin
                    // inside of IF (the condition evaluated as true)
                    // for "or" must end evalaution immediately - satified!
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
+                   if is_64bit(left.resultdef) then
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 1) )
+                   else
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
                    thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
