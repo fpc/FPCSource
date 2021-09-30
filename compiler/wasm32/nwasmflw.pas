@@ -213,6 +213,13 @@ implementation
         secondpass(left); // condition exprssions
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
+        if is_64bit(left.resultdef) then
+          begin
+            thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_ne));
+            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          end;
+
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
         thlcgwasm(hlcg).incblock;
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
