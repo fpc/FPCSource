@@ -1241,38 +1241,64 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-
-    function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
-    Var
-      pmax : pchar;
-    begin
+// MurmurHash3_32
+function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
+const
+  C1 = uint32($cc9e2d51);
+  C2 = uint32($1b873593);
+var
+  h, tail: uint32;
+  e4: pChar;
+  len4, nTail: SizeUint;
+begin
 {$push}
 {$q-,r-}
-      result:=Tag;
-      pmax:=p+len;
-      while (p<pmax) do
-        begin
-          {DJBHash: result:=result*33 + next_char}
-          result:=LongWord(LongInt(result shl 5) + LongInt(result)) + LongWord(P^);
-          inc(p);
-        end;
+  h := tag;
+
+  len4 := len and not integer(sizeof(uint32) - 1); { len div sizeof(uint32) * sizeof(uint32) }
+  e4 := p + len4;
+  nTail := len - len4;
+  while p < e4 do
+    begin
+      { If independence on endianness is desired, unaligned(pUint32(p)^) can be replaced with LEtoN(unaligned(pUint32(p)^)). }
+      h := RolDWord(h xor (RolDWord(unaligned(pUint32(p)^) * C1, 15) * C2), 13) * 5 + $e6546b64;
+      p := p + sizeof(uint32);
+    end;
+
+  if nTail > 0 then
+    begin
+      { tail is 1 to 3 bytes }
+      case nTail of
+        3: tail := unaligned(pUint16(p)^) or uint32(p[2]) shl 16; { unaligned(pUint16(p^)) can be LEtoNed for portability }
+        2: tail := unaligned(pUint16(p)^); { unaligned(pUint16(p^)) can be LEtoNed for portability }
+        {1:} else tail := uint32(p^);
+      end;
+      h := h xor (RolDWord(tail * C1, 15) * C2);
+    end;
+
+  h := h xor uint32(len);
+  h := (h xor (h shr 16)) * $85ebca6b;
+  h := (h xor (h shr 13)) * $c2b2ae35;
+  result := h xor (h shr 16);
 {$pop}
-    end;
+end;
 
-    function FPHash(P: PChar; Len: Integer): LongWord; inline;
-    begin
-      result:=fphash(P,Len, 5381);
-    end;
+function FPHash(P: PChar; Len: Integer): LongWord; inline;
+begin
+  result:=fphash(P,Len, 0);
+end;
 
-    function FPHash(const s: shortstring): LongWord; inline;
-    begin
-      result:=fphash(pchar(@s[1]),length(s));
-    end;
 
-    function FPHash(const a: ansistring): LongWord; inline;
-    begin
-      result:=fphash(pchar(a),length(a));
-    end;
+function FPHash(const s: shortstring): LongWord; inline;
+begin
+  result:=fphash(pchar(@s[1]),length(s));
+end;
+
+
+function FPHash(const a: ansistring): LongWord; inline;
+begin
+  result:=fphash(pchar(a),length(a));
+end;
 
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
