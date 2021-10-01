@@ -141,20 +141,20 @@ implementation
               current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
             thlcgwasm(hlcg).incblock;
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-            if is_64bit(left.resultdef) then
+            if is_64bit(resultdef) then
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) )
-            else if is_32bit(left.resultdef) then
+            else if is_32bit(resultdef) then
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, -1) )
-            else if is_16bit(left.resultdef) then
+            else if is_16bit(resultdef) then
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 65535) )
-            else if is_8bit(left.resultdef) then
+            else if is_8bit(resultdef) then
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 255) )
             else
               internalerror(2021100101);
             thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
             current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-            if is_64bit(left.resultdef) then
+            if is_64bit(resultdef) then
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
             else
               current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
