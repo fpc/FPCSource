@@ -243,6 +243,8 @@ operator :=(const source : dword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$e
 operator :=(const source : longint) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : qword) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : int64) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : NativeInt) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : NativeUInt) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Boolean }
 operator :=(const source : boolean) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -300,6 +302,8 @@ operator :=(const source : variant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$e
 operator :=(const source : variant) dest : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : NativeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : NativeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Boolean }
 operator :=(const source : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
