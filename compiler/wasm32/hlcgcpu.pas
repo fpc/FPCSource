@@ -571,14 +571,15 @@ implementation
               end
             else if (op=OP_NOT) and is_cbool(size) then
               begin
+                list.concat(taicpu.op_none(a_i64_eqz));
                 current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])));
                 incblock;
                 decstack(current_asmdata.CurrAsmList,1);
-                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) );
+                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) );
                 incstack(current_asmdata.CurrAsmList,1);
                 current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
                 decstack(current_asmdata.CurrAsmList,1);
-                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) );
+                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) );
                 incstack(current_asmdata.CurrAsmList,1);
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
                 thlcgwasm(hlcg).decblock;
