@@ -544,7 +544,10 @@ implementation
             { boolean not: =0? for boolean }
             { todo: should we also do this for cbool? }
             if (op=OP_NOT) and is_pasbool(size) then
-              list.concat(taicpu.op_none(a_i64_eqz))
+              begin
+                list.concat(taicpu.op_none(a_i64_eqz));
+                list.concat(taicpu.op_none(a_i64_extend_i32_u));
+              end
             else
               begin
                 if op=OP_NOT then
