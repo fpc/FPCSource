@@ -512,9 +512,31 @@ implementation
         OS_32,OS_S32:
           begin
             { boolean not: =0? for boolean }
-            { todo: should we also do this for cbool? }
             if (op=OP_NOT) and is_pasbool(size) then
               list.concat(taicpu.op_none(a_i32_eqz))
+            else if (op=OP_NOT) and is_cbool(size) then
+              begin
+                current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
+                incblock;
+                decstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+                incstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+                decstack(current_asmdata.CurrAsmList,1);
+                case def_cgsize(size) of
+                  OS_32,OS_S32:
+                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, -1) );
+                  OS_16,OS_S16:
+                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 65535) );
+                  OS_8,OS_S8:
+                    current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 255) );
+                  else
+                    internalerror(2021100102);
+                end;
+                incstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+                thlcgwasm(hlcg).decblock;
+              end
             else
               begin
                 if op=OP_NOT then
@@ -542,11 +564,24 @@ implementation
             if op=OP_DIV then
               internalerror(2010120530);
             { boolean not: =0? for boolean }
-            { todo: should we also do this for cbool? }
             if (op=OP_NOT) and is_pasbool(size) then
               begin
                 list.concat(taicpu.op_none(a_i64_eqz));
                 list.concat(taicpu.op_none(a_i64_extend_i32_u));
+              end
+            else if (op=OP_NOT) and is_cbool(size) then
+              begin
+                current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])));
+                incblock;
+                decstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) );
+                incstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+                decstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, -1) );
+                incstack(current_asmdata.CurrAsmList,1);
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+                thlcgwasm(hlcg).decblock;
               end
             else
               begin
