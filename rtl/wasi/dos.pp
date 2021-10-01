@@ -45,7 +45,7 @@ Type
 {$i dosh.inc}
 
 {Extra Utils}
-//function weekday(y,m,d : longint) : longint; platform;
+function weekday(y,m,d : longint) : longint; platform;
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime); platform;
 //Function  DTToUnixDate(DT: DateTime): LongInt; platform;
 
@@ -88,7 +88,7 @@ Function DosVersion:Word;
 Begin
 End;
 
-(*function WeekDay (y,m,d:longint):longint;
+function WeekDay (y,m,d:longint):longint;
 {
   Calculates th day of the week. returns -1 on error
 }
@@ -110,11 +110,31 @@ begin
       end;
      WeekDay:=(d+2*u+((3*(u+1)) div 5)+v+(v div 4)-(v div 100)+(v div 400)+1) mod 7;
    end;
-end;*)
+end;
 
 
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
+var
+  NanoSecsPast: __wasi_timestamp_t;
+  DT: DateTime;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,10000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  begin
+    { todo: convert UTC to local time, as soon as we can get the local timezone
+      from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+    WasiDateToDT(NanoSecsPast,DT);
+    Year:=DT.Year;
+    Month:=DT.Month;
+    MDay:=DT.Day;
+    WDay:=weekday(DT.Year,DT.Month,DT.Day);
+  end
+  else
+  begin
+    Year:=0;
+    Month:=0;
+    MDay:=0;
+    WDay:=0;
+  end;
 end;
 
 
@@ -133,7 +153,29 @@ end;
 
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
+var
+  NanoSecsPast: __wasi_timestamp_t;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,10000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  begin
+    { todo: convert UTC to local time, as soon as we can get the local timezone
+      from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+    NanoSecsPast:=NanoSecsPast div 10000000;
+    Sec100:=NanoSecsPast mod 100;
+    NanoSecsPast:=NanoSecsPast div 100;
+    Second:=NanoSecsPast mod 60;
+    NanoSecsPast:=NanoSecsPast div 60;
+    Minute:=NanoSecsPast mod 60;
+    NanoSecsPast:=NanoSecsPast div 60;
+    Hour:=NanoSecsPast mod 24;
+  end
+  else
+  begin
+    Hour:=0;
+    Minute:=0;
+    Second:=0;
+    Sec100:=0;
+  end;
 end;
 
 
