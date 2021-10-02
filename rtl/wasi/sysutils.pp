@@ -132,11 +132,15 @@ end;
 
 Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 begin
+  { not yet implemented }
+  Result := -1;
 end;
 
 
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 begin
+  { not yet implemented }
+  Result := -1;
 end;
 
 
