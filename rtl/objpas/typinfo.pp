@@ -771,7 +771,16 @@ unit TypInfo;
           { MethodTable : TRecordMethodTable }
           { Properties }
         );
-      end;
+         { include for proper alignment }
+        tkInt64: (
+          dummy : Int64
+        );
+{$ifndef FPUNONE}
+        tkFloat:
+          (FloatType : TFloatType
+        );
+{$endif}
+     end;
 
 
 
