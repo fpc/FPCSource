@@ -96,29 +96,16 @@ Implementation
 
       p := taicpu(hp);
       case p.opcode of
-        { These operands do not write into a register at all }
-        A_CMP, A_CMN, A_TST, A_B, A_BL, A_MSR, A_FCMP:
+        { These operations do not write into a register at all
+
+          LDR/STR with post/pre-indexed operations do not need special treatment
+          because post-/preindexed does not mean that a register
+          is loaded with a new value, it is only modified }
+        A_STR, A_CMP, A_CMN, A_TST, A_B, A_BL, A_MSR, A_FCMP:
           exit;
-        {Take care of post/preincremented store and loads, they will change their base register}
-        A_STR, A_LDR:
-          begin
-            Result := false;
-            { actually, this does not apply here because post-/preindexed does not mean that a register
-              is loaded with a new value, it is only modified
-              (taicpu(p).oper[1]^.typ=top_ref) and
-              (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-              (taicpu(p).oper[1]^.ref^.base = reg);
-            }
-            { STR does not load into it's first register }
-            if p.opcode = A_STR then
-              exit;
-          end;
         else
           ;
       end;
-
-      if Result then
-        exit;
 
       case p.oper[0]^.typ of
         top_reg:
