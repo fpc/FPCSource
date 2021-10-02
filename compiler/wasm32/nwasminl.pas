@@ -47,6 +47,7 @@ interface
         procedure second_high; override;
         procedure second_memory_size;
         procedure second_memory_grow;
+        procedure second_memory_fill;
         procedure second_unreachable;
         procedure second_throw_fpcexception;
       protected
@@ -62,7 +63,7 @@ interface
 implementation
 
     uses
-      ninl,compinnr,
+      ninl,ncal,compinnr,
       cpubase,
       aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,
@@ -310,6 +311,42 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_memory_fill;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
+
+        secondpass(tcallparanode(tcallparanode(left).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.location,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.location.register);
+
+        secondpass(tcallparanode(left).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.location,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_fill));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,3);
+      end;
+
+
     procedure twasminlinenode.second_unreachable;
       begin
         location_reset(location,LOC_VOID,OS_NO);
@@ -355,6 +392,11 @@ implementation
               CheckParameters(0);
               resultdef:=voidtype;
             end;
+          in_wasm32_memory_fill:
+            begin
+              CheckParameters(3);
+              resultdef:=voidtype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -368,6 +410,8 @@ implementation
           in_wasm32_memory_size,
           in_wasm32_memory_grow:
             expectloc:=LOC_REGISTER;
+          in_wasm32_memory_fill,
+          in_wasm32_memory_copy,
           in_wasm32_unreachable,
           in_wasm32_throw_fpcexception:
             expectloc:=LOC_VOID;
@@ -384,6 +428,8 @@ implementation
             second_memory_size;
           in_wasm32_memory_grow:
             second_memory_grow;
+          in_wasm32_memory_fill:
+            second_memory_fill;
           in_wasm32_unreachable:
             second_unreachable;
           in_wasm32_throw_fpcexception:

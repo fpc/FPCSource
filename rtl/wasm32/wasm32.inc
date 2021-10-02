@@ -20,6 +20,14 @@ procedure fpc_cpuinit;
   end;
 
 
+{$define FPC_SYSTEM_HAS_FILLCHAR}
+Procedure FillChar(var x;count:SizeInt;value:byte);
+  begin
+    if count>0 then
+      fpc_wasm32_memory_fill(PtrUInt(@x),value,count);
+  end;
+
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
   begin
