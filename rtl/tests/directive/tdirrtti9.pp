@@ -1,5 +1,4 @@
-{%NORUN%}
-{%FAIL%}
+{%FAIL}
 
 {$RTTI EXPLICIT PROPERTIES([])}
 

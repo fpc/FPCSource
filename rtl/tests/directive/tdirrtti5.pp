@@ -1,5 +1,4 @@
-{%NORUN%}
-{%FAIL%}
+{%FAIL}
 {$mode objfpc}
 
 {

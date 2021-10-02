@@ -1,4 +1,4 @@
-{%NORUN%}
+{%NORUN}
 {$mode objfpc}
 
 {
