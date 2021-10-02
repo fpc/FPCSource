@@ -4169,7 +4169,6 @@ end;
 
 Function TRecordData.GetMethodTable: PRecordMethodTable;
 begin
-//  Result:=PRecordMethodTable(PByte(GetExtendedFields)+SizeOf(Word)+ExtendedFieldCount*SizeOf(Pointer));
   Result:=PRecordMethodTable(GetExtendedFields^.Tail);
 end;
 
