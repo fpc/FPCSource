@@ -1075,7 +1075,7 @@ implementation
                       targetinfos[target_info.system]^.alignment.recordalignmin);
                     { write visiblity flags for extended RTTI }
                     maybe_add_comment(tcb,#9'visibility flags');
-                    tcb.emit_ord_const(byte(visibility_to_rtti(sym.visibility)),u8inttype);
+                    tcb.emit_ord_const(byte(visibility_to_rtti_flags(sym.visibility)),u8inttype);
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
                     tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);

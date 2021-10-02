@@ -445,7 +445,7 @@ scan_e_invalid_rtti_clause=02109_E_A Invalid RTTI clause (expected Explicit or I
 scan_e_incomplete_rtti_clause=02110_E_A Explicit clause requires at least one option (Methods, Properties or Fields)
 scan_e_invalid_rtti_option=02111_E_A Invalid RTTI option "$1" (expected Methods, Properties or Fields)
 scan_e_duplicate_rtti_option=02112_E_A Duplicate RTTI option "$1"
-scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive must be declared after the System unit has loaded.
+scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive cannot be used here 
 % \end{description}
 #
 # Parser
