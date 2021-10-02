@@ -5607,7 +5607,11 @@ unit aoptx86;
 
                  Exit;
                end
-             else if (taicpu(p).oper[1]^.typ = top_reg) then
+             else if (taicpu(p).oper[1]^.typ = top_reg)
+{$ifdef x86_64}
+               and (taicpu(p).opsize <> S_Q) { S_Q will never happen: cmp with 64 bit constants is not possible }
+{$endif x86_64}
+               then
                begin
                  { cmp register,$8000                neg register
                    je target                 -->     jo target
@@ -5617,9 +5621,6 @@ unit aoptx86;
                    S_B: v:=$80;
                    S_W: v:=$8000;
                    S_L: v:=qword($80000000);
-                   { S_Q will never happen: cmp with 64 bit constants is not possible }
-                   S_Q:
-                     Exit;
                    else
                      internalerror(2013112905);
                  end;
@@ -5943,12 +5944,15 @@ unit aoptx86;
              begin
                taicpu(p).loadoper(0, taicpu(hp1).oper[1]^);
                RemoveInstruction(hp1);
+               if taicpu(hp1).oper[1]^.typ = top_reg then
+                 AllocRegBetween(taicpu(hp1).oper[1]^.reg, p, hp2, UsedRegs);
              end
            else
              begin
                { Will be a register because the size can't be S_B otherwise }
                ThisReg := newreg(R_INTREGISTER,getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBL);
                taicpu(p).loadreg(0, ThisReg);
+               AllocRegBetween(ThisReg, p, hp2, UsedRegs);
 
                if (cs_opt_size in current_settings.optimizerswitches) and IsMOVZXAcceptable then
                  begin
@@ -9770,6 +9774,18 @@ unit aoptx86;
                   taicpu(p).opcode := A_XOR;
                   taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
                   Result := True;
+{$ifdef x86_64}
+                end
+              else if (taicpu(p).opsize = S_Q) then
+                begin
+                  RegName := debug_regname(taicpu(p).oper[1]^.reg); { 64-bit register name }
+
+                  { The actual optimization }
+                  setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                  taicpu(p).changeopsize(S_L);
+
+                  DebugMsg(SPeepholeOptimization + 'movq $0,' + RegName + ' -> movl $0,' + debug_regname(taicpu(p).oper[1]^.reg) + ' (immediate can be represented with just 32 bits)', p);
+                  Result := True;
                 end;
             $1..$FFFFFFFF:
               begin
@@ -9791,6 +9807,7 @@ unit aoptx86;
                   else
                     { Do nothing };
                 end;
+{$endif x86_64}
               end;
             -1:
               { Don't make this optimisation if the CPU flags are required, since OR scrambles them }
@@ -9807,6 +9824,8 @@ unit aoptx86;
                   taicpu(p).opcode := A_OR;
                   Result := True;
                 end;
+            else
+              { Do nothing };
             end;
           end;
       end;
