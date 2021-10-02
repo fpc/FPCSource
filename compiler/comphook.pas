@@ -66,9 +66,9 @@ const
   warningstr    : string[8] = 'Warning:';
   notestr       : string[5] = 'Note:';
   hintstr       : string[5] = 'Hint:';
-  warningerrorstr    : string[29] = 'Warning: (treated as Error:)';
-  noteerrorstr       : string[27] = 'Note: (treated as Error:)';
-  hinterrorstr       : string[27] = 'Hint: (treated as Error:)';
+  warningerrorstr    : string[29] = 'Warning: (treated as error)';
+  noteerrorstr       : string[27] = 'Note: (treated as error)';
+  hinterrorstr       : string[27] = 'Hint: (treated as error)';
 type
   PCompilerStatus = ^TCompilerStatus;
   TCompilerStatus = record
