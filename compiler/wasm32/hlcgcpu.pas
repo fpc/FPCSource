@@ -2361,7 +2361,11 @@ implementation
                 OS_8:
                   a_op_const_stack(list,OP_AND,s32inttype,255);
                 OS_S8:
-                  list.concat(taicpu.op_none(a_i32_extend8_s));
+                  begin
+                    list.concat(taicpu.op_none(a_i32_extend8_s));
+                    if tocgsize=OS_16 then
+                      a_op_const_stack(list,OP_AND,s32inttype,65535);
+                  end;
                 OS_16:
                   a_op_const_stack(list,OP_AND,s32inttype,65535);
                 OS_S16:
