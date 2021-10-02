@@ -148,9 +148,9 @@ unit TypInfo;
 
       PParameterLocation = ^TParameterLocation;
       TParameterLocation =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         LocType: Byte;
@@ -172,9 +172,9 @@ unit TypInfo;
 
       PParameterLocations = ^TParameterLocations;
       TParameterLocations =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetLocation(aIndex: Byte): PParameterLocation; inline;
@@ -187,9 +187,9 @@ unit TypInfo;
 
       PVmtFieldClassTab = ^TVmtFieldClassTab;
       TVmtFieldClassTab =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         Count: Word;
         ClassRef: array[0..0] of PClass;
@@ -197,9 +197,9 @@ unit TypInfo;
 
       PVmtFieldEntry = ^TVmtFieldEntry;
       TVmtFieldEntry =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetNext: PVmtFieldEntry; inline;
@@ -219,7 +219,11 @@ unit TypInfo;
 
       PExtendedVmtFieldEntry = ^TExtendedVmtFieldEntry;
       PExtendedFieldEntry = PExtendedVmtFieldEntry; // For records, there is no VMT, but currently the layout is identical
-      TExtendedVmtFieldEntry = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} packed{$endif FPC_REQUIRES_PROPER_ALIGNMENT} record
+      TExtendedVmtFieldEntry = 
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT} 
+      record
       Private
         Function GetNext: PVmtFieldEntry;
         Function GetStrictVisibility: Boolean;
@@ -241,7 +245,11 @@ unit TypInfo;
 
       { TVmtExtendedFieldTable }
 
-      TVmtExtendedFieldTable = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} packed {$endif FPC_REQUIRES_PROPER_ALIGNMENT} record
+      TVmtExtendedFieldTable = 
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 
+      packed 
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT} 
+      record
       private
         Function GetField(aIndex: Word): PExtendedVmtFieldEntry;
         Function GetTail: Pointer;
@@ -260,9 +268,9 @@ unit TypInfo;
       { TVmtFieldTable }
 
       TVmtFieldTable =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetField(aIndex: Word): PVmtFieldEntry;
@@ -338,9 +346,9 @@ unit TypInfo;
 
       // members of TTypeData
       TArrayTypeData =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetElType: PTypeInfo; inline;
@@ -786,9 +794,9 @@ unit TypInfo;
 
       PTypeData = ^TTypeData;
       TTypeData =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetBaseType: PTypeInfo; inline;
@@ -975,9 +983,9 @@ unit TypInfo;
       PPropInfo = ^TPropInfo;
 
       TPropData =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
         Function GetProp(Index: Word): PPropInfo;
@@ -992,7 +1000,11 @@ unit TypInfo;
       { TPropDataEx }
       PPropInfoEx = ^TPropInfoEx;
 
-      TPropDataEx = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed {$ENDIF} record
+      TPropDataEx = 
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed 
+      {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}  
+      record
       private
         Function GetPropEx(Index: Word): PPropInfoEx;
         Function GetTail: Pointer; inline;
@@ -1007,7 +1019,11 @@ unit TypInfo;
 
       { TPropInfoEx }
 
-      TPropInfoEx = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed {$ENDIF} record
+      TPropInfoEx = 
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed 
+      {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT} 
+      record
       private
         Function GetStrictVisibility: Boolean;
         Function GetTail: Pointer;
