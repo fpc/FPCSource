@@ -297,11 +297,17 @@ Implementation
 
 
   function TCpuAsmOptimizer.OptPass1LDR(var p: tai): Boolean;
+    var
+      hp1: tai;
     begin
       Result := False;
       if inherited OptPass1LDR(p) or
         LookForPostindexedPattern(p) then
-        Exit(True);
+        Exit(True)
+      else if (taicpu(p).oppostfix in [PF_B,PF_SB,PF_H,PF_SH,PF_None]) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        RemoveSuperfluousMove(p, hp1, 'Ldr<Postfix>Mov2Ldr<Postfix>') then
+        Exit(true);
     end;
 
 
