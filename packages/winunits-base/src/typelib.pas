@@ -734,9 +734,9 @@ begin
           end;
         if bIsFunction then
           if (sConv<>'safecall') then
-            sFunc:=sFunc+':HRESULT'
+            sFunc:=sFunc+': HRESULT'
           else
-            sFunc:=sFunc+format(':%s',[sType]);
+            sFunc:=sFunc+format(': %s',[sType]);
         if bIsDispatch then
           s:=s+sFunc+format(';dispid %d;'#13#10,[FD^.memid])
         else
@@ -774,7 +774,7 @@ begin
               sType:=sType+'  readonly'
             else
               sType:=sType+' writeonly';
-            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s:%s dispid %d;%s'#13#10,
+            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s: %s dispid %d;%s'#13#10,
               [BstrName,BstrDocString,sMethodName,sPropParam,sType,FD^.memid,sl]);
             end
           else //remove readonly or writeonly
@@ -864,7 +864,7 @@ begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
         sType:=TypeToString(TI,VD^.ElemdescVar.tdesc);
-        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s:%s  dispid %d;'#13#10,
+        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s: %s  dispid %d;'#13#10,
           [BstrName,BstrDocString,sMethodName,sType,VD^.memId]);
         end;
       end;
@@ -888,23 +888,23 @@ begin
       if not bget then //setter only
         begin
         if bput then
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,pname,sParam,sptype,pname,sDefault])
         else
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,prname,sParam,sprtype,prname,sDefault]);
         end
       else if not (bput or bputref) then //getter only
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sgtype,name,sDefault])
       else if bput and (sptype=sgtype) then //don't create property if no matching type.
         begin
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sptype,name,pname,sDefault]);
         end
         else if bputref and (sprtype=sgtype) then //don't create property if no matching type.
           begin
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
             [sorgname,sdoc,name,sParam,sprtype,name,prname,sDefault]);
           end;
     result:=s+'  end;'#13#10;
@@ -1129,6 +1129,7 @@ begin
             end;
           end;
         end;
+      AddToInterface('');
       end;
     TI.ReleaseTypeAttr(TA);
     end;
@@ -1790,6 +1791,7 @@ begin
   FUses.Add('Classes');
   //FUses.Add('OleServer');
   FUses.Add('Variants');
+  AddToInterface('');
   AddToInterface('Const');
   AddToInterface('  %sMajorVersion = %d;',[BstrName,LA^.wMajorVerNum]);
   AddToInterface('  %sMinorVersion = %d;',[BstrName,LA^.wMinorVerNum]);
