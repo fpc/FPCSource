@@ -83,6 +83,8 @@ interface
       'i32.store8', 'i32.store16', 'i64.store8', 'i64.store16', 'i64.store32',
       // additional memory
       'memory.grow 0', 'memory.size 0',
+      // bulk memory operations
+      'memory.copy 0,0', 'memory.fill 0',
       // exceptions
       'try','catch','catch_all','delegate','throw','rethrow','end_try'
     );

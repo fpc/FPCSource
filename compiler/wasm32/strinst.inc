@@ -67,6 +67,8 @@
         'i32.store8', 'i32.store16', 'i64.store8', 'i64.store16', 'i64.store32',
         // additional memory
         'grow_memory', 'current_memory',
+        // bulk memory operations
+        'memory.copy', 'memory.fill',
         // exceptions
         'try','catch','catch_all','delegate','throw','rethrow','end'
 

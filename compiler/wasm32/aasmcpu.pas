@@ -542,6 +542,10 @@ uses
           a_memory_size,
           a_memory_grow:
             result:=2;
+          a_memory_copy:
+            result:=4;
+          a_memory_fill:
+            result:=3;
           a_i32_const:
             begin
               if ops<>1 then
@@ -871,6 +875,19 @@ uses
           a_memory_grow:
             begin
               WriteByte($40);
+              WriteByte($00);
+            end;
+          a_memory_copy:
+            begin
+              WriteByte($FC);
+              WriteUleb(10);
+              WriteByte($00);
+              WriteByte($00);
+            end;
+          a_memory_fill:
+            begin
+              WriteByte($FC);
+              WriteUleb(11);
               WriteByte($00);
             end;
           a_i32_eqz:
