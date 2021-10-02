@@ -1552,5 +1552,4 @@ uses
 initialization
   cai_cpu:=taicpu;
   cai_align:=tai_align;
-  casmdata:=TAsmData;
 end.
