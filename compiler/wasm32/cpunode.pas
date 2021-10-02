@@ -37,7 +37,7 @@ implementation
     { these are not really nodes }
     nwasmutil,
     { symtable }
-    symcpu;
-    { no aasmdef, the WebAssembly uses the base TAsmData class (set in init code of aasmcpu) }
+    symcpu,
+    aasmdef;
 
 end.
