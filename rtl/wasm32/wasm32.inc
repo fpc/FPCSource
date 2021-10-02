@@ -28,6 +28,14 @@ Procedure FillChar(var x;count:SizeInt;value:byte);
   end;
 
 
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
+  begin
+    if count>0 then
+      fpc_wasm32_memory_copy(PtrUInt(@dest),PtrUInt(@source),count);
+  end;
+
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
   begin
