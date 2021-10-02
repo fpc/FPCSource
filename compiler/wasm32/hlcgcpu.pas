@@ -41,6 +41,19 @@ uses
      private
       fevalstackheight,
       fmaxevalstackheight: longint;
+
+      { checks whether the type needs special methodptr-like handling, when stored
+        in a LOC_REGISTER location. This applies to the following types:
+          - method pointers
+          - nested proc ptrs
+        When stored in a LOC_REGISTER tlocation, these types use both register
+        and registerhi with the following sizes:
+
+        register   - cgsize = int_cgsize(voidcodepointertype.size)
+        registerhi - cgsize = int_cgsize(voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
+                              (check d.size to determine which one of the two)
+        }
+      function is_methodptr_like_type(d:tdef): boolean;
      public
       br_blocks: integer;
       loopContBr: integer; // the value is different depending of the condition test
@@ -71,6 +84,7 @@ uses
       procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list : TAsmList;fromsize, tosize : tdef;const sref : treference;const dref : treference);override;
+      procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
       procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); override;
       procedure a_load_regconst_subsetref_intern(list : TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sref: tsubsetreference; slopt: tsubsetloadopt); override;
@@ -290,6 +304,19 @@ implementation
       a_i64_rotl,  {OP_ROL,  rotate left              }
       a_i64_rotr   {OP_ROR   rotate right             }
     );
+
+  function thlcgwasm.is_methodptr_like_type(d:tdef): boolean;
+    var
+      is_methodptr, is_nestedprocptr: Boolean;
+    begin
+      is_methodptr:=(d.typ=procvardef)
+        and (po_methodpointer in tprocvardef(d).procoptions)
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      is_nestedprocptr:=(d.typ=procvardef)
+        and is_nested_pd(tprocvardef(d))
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      result:=is_methodptr or is_nestedprocptr;
+    end;
 
   constructor thlcgwasm.create;
     begin
@@ -1216,6 +1243,27 @@ implementation
           a_load_ref_reg(list,fromsize,tosize,sref,tmpreg);
           a_load_reg_ref(list,tosize,tosize,tmpreg,dref);
         end;
+    end;
+
+  procedure thlcgwasm.a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);
+    var
+      tmpref: treference;
+    begin
+      if is_methodptr_like_type(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tmpref:=ref;
+          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
+          inc(tmpref.offset,voidcodepointertype.size);
+          { the second part could be either self or parentfp }
+          if tosize.size=(voidcodepointertype.size+voidpointertype.size) then
+            a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref)
+          else if tosize.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
+          else
+            internalerror(2021100301);
+        end
+      else
+        inherited;
     end;
 
   procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
