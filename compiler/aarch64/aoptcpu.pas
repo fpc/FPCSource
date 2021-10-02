@@ -787,6 +787,16 @@ Implementation
       hp3: taicpu;
     begin
       Result:=false;
+      {
+        and reg1,reg0,<const=power of 2>
+        cmp reg1,#0
+        <reg1 end of life>
+        b.e/b.ne label
+
+        into
+
+        tb(n)z reg0,<power of 2>,label
+      }
       if MatchOpType(taicpu(p),top_reg,top_reg,top_const) and
         (PopCnt(QWord(taicpu(p).oper[2]^.val))=1) and
         GetNextInstruction(p,hp1) and
@@ -824,6 +834,14 @@ Implementation
      hp1,hp2: tai;
     begin
       Result:=false;
+      {
+         cmp reg0,#0
+         b.e/b.ne label
+
+         into
+
+         cb(n)z reg0,label
+      }
       if MatchOpType(taicpu(p),top_reg,top_const) and
         (taicpu(p).oper[1]^.val=0) and
         GetNextInstruction(p,hp1) and
