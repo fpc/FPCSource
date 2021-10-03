@@ -3318,10 +3318,12 @@ implementation
 {$ifndef cpu64bitalu}
         if (ordtype in [s64bit,u64bit]) then
 {$else not cpu64bitalu}
-        if (ordtype = u64bit) or
+        if ((ordtype = u64bit) and
+            (high > system.high(int64))) or
            ((ordtype = s64bit) and
             ((low <= (system.low(int64) div 2)) or
-             (high > (system.high(int64) div 2)))) then
+             ((low < 0) and
+              (high > (system.high(int64) div 2))))) then
 {$endif cpu64bitalu}
           result := 64
         else if (

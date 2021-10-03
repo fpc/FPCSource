@@ -115,8 +115,9 @@ interface
     {# Returns true if abs(value) is a power of 2, the actual
        exponent value is returned in power.
     }
-    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
-    function nextpowerof2(value : int64; out power: longint) : int64;
+    function isabspowerof2(const value : Tconstexprint; out power : longint) : boolean;
+    { # Returns the power of 2 >= value }
+    function nextpowerof2(value : qword; out power: longint) : qword;
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
@@ -985,26 +986,18 @@ implementation
       end;
 
 
-    function nextpowerof2(value : int64; out power: longint) : int64;
-    {
-      returns the power of 2 >= value
-    }
-      var
-        i : longint;
+    function nextpowerof2(value : qword; out power: longint) : qword;
       begin
-        result := 0;
-        power := -1;
-        if ((value <= 0) or
-            (value >= $4000000000000000)) then
+        power:=-1;
+        result:=0;
+        if (value=0) or (value>qword($8000000000000000)) then
           exit;
-        result := 1;
-        for i:=0 to 63 do
+
+        power:=BsrQWord(value);
+        result:=qword(1) shl power;
+        if (value and (value-1))<>0 then
           begin
-            if result>=value then
-              begin
-                power := i;
-                exit;
-              end;
+            inc(power);
             result:=result shl 1;
           end;
       end;
