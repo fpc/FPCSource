@@ -2236,6 +2236,7 @@ const
            update the segment values of the segment that has moved. }
         'Use odd BP for far procs', {ts_x86_far_procs_push_odd_bp}
         'No exception support', {ts_wasm_no_exceptions}
+        'Branchful exceptions support', {ts_wasm_bf_exceptions}
         'JavaScript-based exception support', {ts_wasm_js_exceptions}
         'Native WebAssembly exceptions support' {ts_wasm_native_exceptions}
        );
