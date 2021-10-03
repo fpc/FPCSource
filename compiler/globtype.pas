@@ -313,6 +313,8 @@ interface
          ts_x86_far_procs_push_odd_bp,
          { no exception support. Raising an exception will abort the program. }
          ts_wasm_no_exceptions,
+         { Branchful exceptions support. A global threadvar is checked after each function call. }
+         ts_wasm_bf_exceptions,
          { JavaScript-based exception support }
          ts_wasm_js_exceptions,
          { native WebAssembly exceptions support:
@@ -445,6 +447,7 @@ interface
          (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
          (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP'),
          (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
+         (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
          (name: 'JSEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_JS_EXCEPTIONS'),
          (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS')
        );
