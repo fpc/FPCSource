@@ -26,7 +26,9 @@ Unit aoptarm;
 {$i fpcdefs.inc}
 
 { $define DEBUG_PREREGSCHEDULER}
+{$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
+{$endif EXTDEBUG}
 
 Interface
 
