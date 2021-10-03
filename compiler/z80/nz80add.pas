@@ -151,55 +151,19 @@ interface
 
 
     procedure TZ80AddNode.second_cmpsmallset;
-
-      procedure gencmp(tmpreg1,tmpreg2 : tregister);
-        var
-          i : byte;
-        begin
-          //current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
-          //for i:=2 to tcgsize2size[left.location.size] do
-          //  begin
-          //    tmpreg1:=GetNextReg(tmpreg1);
-          //    tmpreg2:=GetNextReg(tmpreg2);
-          //    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-          //  end;
-        end;
-
-      var
-        tmpreg : tregister;
       begin
-        //pass_left_right;
-        //location_reset(location,LOC_FLAGS,OS_NO);
-        //force_reg_left_right(false,false);
-        //
-        //case nodetype of
-        //  equaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  unequaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_NE;
-        //    end;
-        //  lten,
-        //  gten:
-        //    begin
-        //      if (not(nf_swapped in flags) and
-        //          (nodetype = lten)) or
-        //         ((nf_swapped in flags) and
-        //          (nodetype = gten)) then
-        //        swapleftright;
-        //      tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        //      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
-        //        left.location.register,right.location.register,tmpreg);
-        //      gencmp(tmpreg,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  else
-        //    internalerror(2004012401);
-        //end;
+        case nodetype of
+          equaln,unequaln:
+            begin
+              if left.resultdef.size>=2 then
+                internalerror(2021100302);
+              second_cmp;
+            end;
+          lten,gten:
+            internalerror(2021100303);
+          else
+            internalerror(2021100301);
+        end;
       end;
 
 
