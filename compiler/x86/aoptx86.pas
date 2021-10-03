@@ -3942,6 +3942,29 @@ unit aoptx86;
             exit;
           end;
 
+        {
+          mov ref,reg0
+          <op> reg0,reg1
+          dealloc reg0
+
+          to
+
+          <op> ref,reg1
+        }
+        if MatchOpType(taicpu(p),top_ref,top_reg) and
+          MatchOpType(taicpu(hp1),top_reg,top_reg) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+          MatchInstruction(hp1,[A_AND,A_OR,A_XOR,A_ADD,A_SUB,A_CMP],[Taicpu(p).opsize]) and
+          not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) and
+          RegEndOfLife(taicpu(p).oper[1]^.reg,taicpu(hp1)) then
+          begin
+            taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
+            DebugMsg(SPeepholeOptimization + 'MovOp2Op done',hp1);
+            RemoveCurrentp(p, hp1);
+            Result:=true;
+            exit;
+          end;
+
 {$ifdef x86_64}
         { Convert:
             movq x(ref),%reg64
