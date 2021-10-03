@@ -1072,11 +1072,25 @@ implementation
           incstack(list,1);
           list.Concat(taicpu.op_none(a_i32_add));
           decstack(list,1);
+          if assigned(ref.symbol) then
+            begin
+              list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
+              incstack(list,1);
+              list.Concat(taicpu.op_none(a_i32_add));
+              decstack(list,1);
+            end;
           if ref.offset<0 then
             begin
               list.Concat(taicpu.op_const(a_i32_const,-ref.offset));
               incstack(list,1);
               list.Concat(taicpu.op_none(a_i32_sub));
+              decstack(list,1);
+            end
+          else if ref.offset>0 then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,ref.offset));
+              incstack(list,1);
+              list.Concat(taicpu.op_none(a_i32_add));
               decstack(list,1);
             end;
           if dup then
@@ -1087,18 +1101,32 @@ implementation
               incstack(list,1);
               list.Concat(taicpu.op_none(a_i32_add));
               decstack(list,1);
+              if assigned(ref.symbol) then
+                begin
+                  list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
+                  incstack(list,1);
+                  list.Concat(taicpu.op_none(a_i32_add));
+                  decstack(list,1);
+                end;
               if ref.offset<0 then
                 begin
                   list.Concat(taicpu.op_const(a_i32_const,-ref.offset));
                   incstack(list,1);
                   list.Concat(taicpu.op_none(a_i32_sub));
                   decstack(list,1);
+                end
+              else if ref.offset>0 then
+                begin
+                  list.Concat(taicpu.op_const(a_i32_const,ref.offset));
+                  incstack(list,1);
+                  list.Concat(taicpu.op_none(a_i32_add));
+                  decstack(list,1);
                 end;
             end;
           ref.base:=NR_NO;
           ref.index:=NR_NO;
-          if ref.offset<0 then
-            ref.offset:=0;
+          ref.offset:=0;
+          ref.symbol:=nil;
           result:=1;
         end
       else if (ref.base<>NR_NO) then
@@ -1107,26 +1135,54 @@ implementation
             begin
               { regular field -> load self on the stack }
               a_load_reg_stack(list,voidpointertype,ref.base);
+              if assigned(ref.symbol) then
+                begin
+                  list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
+                  incstack(list,1);
+                  list.Concat(taicpu.op_none(a_i32_add));
+                  decstack(list,1);
+                end;
               if ref.offset<0 then
                 begin
                   list.Concat(taicpu.op_const(a_i32_const,-ref.offset));
                   incstack(list,1);
                   list.Concat(taicpu.op_none(a_i32_sub));
                   decstack(list,1);
+                end
+              else if ref.offset>0 then
+                begin
+                  list.Concat(taicpu.op_const(a_i32_const,ref.offset));
+                  incstack(list,1);
+                  list.Concat(taicpu.op_none(a_i32_add));
+                  decstack(list,1);
                 end;
               if dup then
                 begin
                   a_load_reg_stack(list,voidpointertype,ref.base);
+                  if assigned(ref.symbol) then
+                    begin
+                      list.Concat(taicpu.op_sym(a_i32_const,ref.symbol));
+                      incstack(list,1);
+                      list.Concat(taicpu.op_none(a_i32_add));
+                      decstack(list,1);
+                    end;
                   if ref.offset<0 then
                     begin
                       list.Concat(taicpu.op_const(a_i32_const,-ref.offset));
                       incstack(list,1);
                       list.Concat(taicpu.op_none(a_i32_sub));
                       decstack(list,1);
+                    end
+                  else if ref.offset>0 then
+                    begin
+                      list.Concat(taicpu.op_const(a_i32_const,ref.offset));
+                      incstack(list,1);
+                      list.Concat(taicpu.op_none(a_i32_add));
+                      decstack(list,1);
                     end;
                 end;
-              if ref.offset<0 then
-                ref.offset:=0;
+              ref.offset:=0;
+              ref.symbol:=nil;
               ref.base:=NR_NO;
               result:=1;
             end
