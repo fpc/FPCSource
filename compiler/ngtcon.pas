@@ -1014,9 +1014,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       if tconstsym(srsym).consttyp=constresourcestring then
                         ftcb.queue_emit_const(tconstsym(srsym))
                       else
-                        Message(type_e_variable_id_expected);
+                        Message(type_e_constant_expr_expected);
                     else
-                      Message(type_e_variable_id_expected);
+                      Message(type_e_constant_expr_expected);
                   end;
                 end
               else

@@ -1244,8 +1244,10 @@ implementation
 
    destructor ttai_typedconstbuilder.destroy;
      begin
-       { the queue should have been flushed if it was used }
-       if fqueue_offset<>low(fqueue_offset) then
+       { the queue should have been flushed if it was used
+         (but if there were errors, we may have aborted before that happened) }
+       if (fqueue_offset<>low(fqueue_offset)) and
+          (ErrorCount=0) then
          internalerror(2014062901);
        faggregateinformation.free;
        fasmlist.free;
