@@ -5943,9 +5943,10 @@ unit aoptx86;
            if taicpu(hp1).opsize=S_B then
              begin
                taicpu(p).loadoper(0, taicpu(hp1).oper[1]^);
-               RemoveInstruction(hp1);
                if taicpu(hp1).oper[1]^.typ = top_reg then
                  AllocRegBetween(taicpu(hp1).oper[1]^.reg, p, hp2, UsedRegs);
+
+               RemoveInstruction(hp1);
              end
            else
              begin
