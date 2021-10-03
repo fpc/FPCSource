@@ -268,8 +268,21 @@ interface
           equaln,unequaln:
             second_generic_compare(true);
           lten,gten:
-            { not implemented yet }
-            internalerror(2021060104);
+            begin
+              pass_left_right;
+
+              if (not(nf_swapped in flags) and (nodetype = gten)) or
+                 ((nf_swapped in flags) and (nodetype = lten)) then
+                swapleftright;
+
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,OP_AND,resultdef);
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,resultdef,OC_EQ);
+              set_result_location_reg;
+              thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+            end;
           else
             internalerror(2021060103);
         end;
