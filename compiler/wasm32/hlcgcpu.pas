@@ -61,6 +61,7 @@ uses
                            // if the condition at the end, the jump should done to the end of block (0)
       loopBreakBr: integer;
       exitBr: integer;
+      raiseBr: integer;
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
@@ -2184,6 +2185,7 @@ implementation
       list.concat(taicpu.op_none(a_block));
       incblock;
       exitBr:=br_blocks;
+      raiseBr:=br_blocks;
     end;
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
