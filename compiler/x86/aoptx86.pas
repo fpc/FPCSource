@@ -3935,6 +3935,7 @@ unit aoptx86;
             or  reg1,operand2                      bts reg1,operand1}
           begin
             Taicpu(hp2).opcode:=A_MOV;
+            DebugMsg(SPeepholeOptimization + 'MovBtsOr2MovBts done',hp1);
             asml.remove(hp1);
             insertllitem(hp2,hp2.next,hp1);
             RemoveCurrentp(p, hp1);
@@ -8446,7 +8447,6 @@ unit aoptx86;
                           if (l<=4) and (l>0) then
                             begin
                               condition:=inverse_cond(taicpu(p).condition);
-                              UpdateUsedRegs(tai(p.next));
                               GetNextInstruction(p,hp1);
                               repeat
                                 if not Assigned(hp1) then
@@ -8454,7 +8454,7 @@ unit aoptx86;
 
                                 taicpu(hp1).opcode:=A_CMOVcc;
                                 taicpu(hp1).condition:=condition;
-                                UpdateUsedRegs(tai(hp1.next));
+                                UpdateUsedRegs(hp1);
                                 GetNextInstruction(hp1,hp1);
                               until not(CanBeCMOV(hp1));
 
@@ -8496,7 +8496,6 @@ unit aoptx86;
                               { Remove the original jump }
                               RemoveInstruction(p); { Note, the choice to not use RemoveCurrentp is deliberate }
 
-                              UpdateUsedRegs(tai(hp2.next));
                               GetNextInstruction(hp2, p); { Instruction after the label }
 
                               { Remove the label if this is its final reference }
@@ -8504,7 +8503,10 @@ unit aoptx86;
                                 StripLabelFast(hp1);
 
                               if Assigned(p) then
-                                result:=true;
+                                begin
+                                  UpdateUsedRegs(p);
+                                  result:=true;
+                                end;
                               exit;
                             end;
                         end
@@ -8554,33 +8556,29 @@ unit aoptx86;
                                  FindLabel(tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol),hp1) then
                                  begin
                                     condition:=inverse_cond(taicpu(p).condition);
-                                    UpdateUsedRegs(tai(p.next));
                                     GetNextInstruction(p,hp1);
                                     repeat
                                       taicpu(hp1).opcode:=A_CMOVcc;
                                       taicpu(hp1).condition:=condition;
-                                      UpdateUsedRegs(tai(hp1.next));
+                                      UpdateUsedRegs(hp1);
                                       GetNextInstruction(hp1,hp1);
                                     until not(assigned(hp1)) or
                                       not(CanBeCMOV(hp1));
 
                                     condition:=inverse_cond(condition);
-                                    if GetLastInstruction(hpmov2,hp1) then
-                                      UpdateUsedRegs(tai(hp1.next));
                                     hp1 := hpmov2;
                                     { hp1 is now at <several movs 2> }
                                     while Assigned(hp1) and CanBeCMOV(hp1) do
                                       begin
                                         taicpu(hp1).opcode:=A_CMOVcc;
                                         taicpu(hp1).condition:=condition;
-                                        UpdateUsedRegs(tai(hp1.next));
+                                        UpdateUsedRegs(hp1);
                                         GetNextInstruction(hp1,hp1);
                                       end;
 
                                     hp1 := p;
 
                                     { Get first instruction after label }
-                                    UpdateUsedRegs(tai(hp3.next));
                                     GetNextInstruction(hp3, p);
 
                                     if assigned(p) and (hp3.typ = ait_align) then
@@ -8615,7 +8613,10 @@ unit aoptx86;
                                       StripLabelFast(hp3);
 
                                     if Assigned(p) then
-                                      result:=true;
+                                      begin
+                                        UpdateUsedRegs(p);
+                                        result:=true;
+                                      end;
                                     exit;
                                  end;
                              end;
