@@ -61,7 +61,7 @@ uses
                            // if the condition at the end, the jump should done to the end of block (0)
       loopBreakBr: integer;
       exitBr: integer;
-      raiseBr: integer;
+      raiseBr: integer;  // raiseBr is only used in branchful exceptions mode (ts_wasm_bf_exceptions)
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
