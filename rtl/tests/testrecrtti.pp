@@ -47,6 +47,7 @@ Type
   { TRecordMethodRTTI }
 
   TRecordMethodRTTI = record
+  //  a,b,c : Integer;
   private
     Procedure PrivateMethodA;
     Procedure PrivateMethodB;
@@ -157,7 +158,7 @@ end;
 procedure TestRecordMethods;
 
 Var
-  A : PExtendedMethodInfoTable;
+  A : PRecordMethodInfoTable;
   aCount : Integer;
 
 begin

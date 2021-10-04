@@ -21,8 +21,21 @@ Procedure AssertSame(Msg : String; aExpected,aActual : Pointer);
 Procedure CheckProperty(aIdx : Integer; aData: TPropInfoEx; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass; isStrict : Boolean = False);
 Procedure CheckField(aIdx : Integer; aData: PExtendedVmtFieldEntry; aName : String; aKind : TTypeKind; aVisibility : TVisibilityClass; aStrict : Boolean = False);
 Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass; aStrict : Boolean = False);
+Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PRecMethodExEntry; aName : String; aVisibility : TVisibilityClass; aStrict : Boolean = False);
 
 implementation
+
+Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PRecMethodExEntry; aName : String; aVisibility : TVisibilityClass; aStrict : Boolean = False);
+
+Var
+  Msg : String;
+
+begin
+  Msg:=aPrefix+': Checking method '+IntToStr(aIdx)+' ('+aName+') ';
+  AssertEquals(Msg+'name',aData^.Name,aName);
+  AssertEquals(Msg+'visibility',aVisibility,aData^.MethodVisibility);
+  AssertEquals(Msg+'strict',aData^.StrictVisibility,aStrict);
+end;
 
 
 Procedure CheckMethod(aPrefix : string; aIdx : Integer; aData: PVmtMethodExEntry; aName : String; aVisibility : TVisibilityClass; aStrict : Boolean = False);
