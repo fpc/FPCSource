@@ -1601,7 +1601,11 @@ implementation
         if searchsym_in_module(pointer(current_module),copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
-            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);
+            if fieldvarsym<>nil then
+              arrdef:=tarraydef(fieldvarsym.vardef)
+            else
+              arrdef:=nil;
             exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
