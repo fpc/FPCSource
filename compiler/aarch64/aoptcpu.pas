@@ -787,6 +787,7 @@ Implementation
     var
       hp1, hp2: tai;
       hp3: taicpu;
+      bitval : cardinal;
     begin
       Result:=false;
       {
@@ -811,11 +812,12 @@ Implementation
         MatchInstruction(hp2,A_B,[PF_None]) and
         (taicpu(hp2).condition in [C_EQ,C_NE]) then
         begin
+           bitval:=BsfQWord(qword(taicpu(p).oper[2]^.val));
            case taicpu(hp2).condition of
             C_NE:
-              hp3:=taicpu.op_reg_const_ref(A_TBNZ,taicpu(p).oper[1]^.reg,BsfQWord(taicpu(p).oper[2]^.val),taicpu(hp2).oper[0]^.ref^);
+              hp3:=taicpu.op_reg_const_ref(A_TBNZ,taicpu(p).oper[1]^.reg,bitval,taicpu(hp2).oper[0]^.ref^);
             C_EQ:
-              hp3:=taicpu.op_reg_const_ref(A_TBZ,taicpu(p).oper[1]^.reg,BsfQWord(taicpu(p).oper[2]^.val),taicpu(hp2).oper[0]^.ref^);
+              hp3:=taicpu.op_reg_const_ref(A_TBZ,taicpu(p).oper[1]^.reg,bitval,taicpu(hp2).oper[0]^.ref^);
             else
               Internalerror(2021100201);
           end;
