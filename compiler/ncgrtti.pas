@@ -242,6 +242,7 @@ implementation
         rtticount,
         totalcount,
         i,j,k : longint;
+        vmt_index : integer;
         sym : tprocsym;
         def : tprocdef;
         para : tparavarsym;
@@ -262,86 +263,104 @@ implementation
                   inc(rtticount);
             end;
 
-        maybe_add_comment(tcb,#9'count');
-        tcb.emit_ord_const(totalcount,u16inttype);
-        maybe_add_comment(tcb,#9'RTTI count');
-        if rtticount = 0 then
-          tcb.emit_ord_const($FFFF,u16inttype)
-        else
+        { write the count section for non-extended methods }
+        if not extended_rtti then
           begin
-            tcb.emit_ord_const(rtticount,u16inttype);
-
-            for i:=0 to st.symlist.count-1 do
-              if tsym(st.symlist[i]).typ=procsym then
-                begin
-                  sym:=tprocsym(st.symlist[i]);
-                  for j:=0 to sym.procdeflist.count-1 do
-                    begin
-                      def:=tprocdef(sym.procdeflist[j]);
-
-                      if not (def.visibility in visibilities) then
-                        continue;
-
-                      def.init_paraloc_info(callerside);
-
-                      maybe_add_comment(tcb,'RTTI: begin method '+def.fullprocname(false));
-                      tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-                        targetinfos[target_info.system]^.alignment.recordalignmin);
-
-                      maybe_add_comment(tcb,#9'return type');
-                      write_rtti_reference(tcb,def.returndef,fullrtti);
-                      maybe_add_comment(tcb,#9'calling convention');
-                      write_callconv(tcb,def);
-                      maybe_add_comment(tcb,#9'method kind');
-                      write_methodkind(tcb,def);
-                      maybe_add_comment(tcb,#9'param count');
-                      tcb.emit_ord_const(def.paras.count,u16inttype);
-                      maybe_add_comment(tcb,#9'caller args size');
-                      tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
-                      maybe_add_comment(tcb,#9'name');
-                      tcb.emit_pooled_shortstring_const_ref(sym.realname);
-
-                      { write visibility section for extended RTTI }
-                      if extended_rtti then
-                        tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),u8inttype);
- 
-                      for k:=0 to def.paras.count-1 do
-                        begin
-                          para:=tparavarsym(def.paras[k]);
-                          maybe_add_comment(tcb,'RTTI: begin param '+para.prettyname);
-                          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-                            targetinfos[target_info.system]^.alignment.recordalignmin);
-
-                          maybe_add_comment(tcb,#9'type');
-                          if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
-                            write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
-                          else if para.vardef=cformaltype then
-                            write_rtti_reference(tcb,nil,fullrtti)
-                          else
-                            write_rtti_reference(tcb,para.vardef,fullrtti);
-                          maybe_add_comment(tcb,#9'flags');
-                          write_param_flag(tcb,para);
-
-                          maybe_add_comment(tcb,#9'name');
-                          tcb.emit_pooled_shortstring_const_ref(para.realname);
-
-                          maybe_add_comment(tcb,#9'locs');
-                          write_paralocs(tcb,@para.paraloc[callerside]);
-
-                          tcb.end_anonymous_record;
-                          maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
-                        end;
-
-                      if not is_void(def.returndef) then
-                        begin
-                        maybe_add_comment(tcb,#9'return loc');
-                        write_paralocs(tcb,@def.funcretloc[callerside]);
-                        end;
-
-                      tcb.end_anonymous_record;
-                    end;
-                end;
+            maybe_add_comment(tcb,#9'count');
+            tcb.emit_ord_const(totalcount,u16inttype);
+            maybe_add_comment(tcb,#9'RTTI count');
+            if rtticount=0 then
+              tcb.emit_ord_const($FFFF,u16inttype)
+            else
+              tcb.emit_ord_const(rtticount,u16inttype);
           end;
+
+        if rtticount>0 then
+          for i:=0 to st.symlist.count-1 do
+            if tsym(st.symlist[i]).typ=procsym then
+              begin
+                sym:=tprocsym(st.symlist[i]);
+                for j:=0 to sym.procdeflist.count-1 do
+                  begin
+                    def:=tprocdef(sym.procdeflist[j]);
+
+                    if not (def.visibility in visibilities) then
+                      continue;
+
+                    def.init_paraloc_info(callerside);
+                    maybe_add_comment(tcb,'RTTI: begin method '+def.fullprocname(false));
+                    tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                      targetinfos[target_info.system]^.alignment.recordalignmin);
+                      
+                    maybe_add_comment(tcb,#9'return type');
+                    write_rtti_reference(tcb,def.returndef,fullrtti);
+                    maybe_add_comment(tcb,#9'calling convention');
+                    write_callconv(tcb,def);
+                    maybe_add_comment(tcb,#9'method kind');
+                    write_methodkind(tcb,def);
+                    maybe_add_comment(tcb,#9'param count');
+                    tcb.emit_ord_const(def.paras.count,u16inttype);
+                    maybe_add_comment(tcb,#9'caller args size');
+                    tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
+                    maybe_add_comment(tcb,#9'name');
+                    tcb.emit_pooled_shortstring_const_ref(sym.realname);
+
+                    if extended_rtti then
+                      begin
+                        { write visibility section for extended RTTI }
+                        maybe_add_comment(tcb,#9'visibility');
+                        tcb.emit_ord_const(visibility_to_rtti_flags(def.visibility),u8inttype);
+                        { for classes write a VMT index }
+                        if st.defowner.typ=objectdef then
+                          begin
+                            vmt_index:=-1;
+                            if po_virtualmethod in def.procoptions then
+                              for k:=0 to tobjectdef(st.defowner).vmtentries.count-1 do
+                                if pvmtentry(tobjectdef(st.defowner).vmtentries[k])^.procdef=def then
+                                  begin
+                                    vmt_index:=k;
+                                    break;
+                                  end;
+                            maybe_add_comment(tcb,#9'VMT index');      
+                            tcb.emit_ord_const(vmt_index,s16inttype);
+                          end;
+                      end;
+
+                    for k:=0 to def.paras.count-1 do
+                      begin
+                        para:=tparavarsym(def.paras[k]);
+                        
+                        maybe_add_comment(tcb,'RTTI: begin param '+para.prettyname);
+                        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                          targetinfos[target_info.system]^.alignment.recordalignmin);
+
+                        maybe_add_comment(tcb,#9'type');
+                        if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
+                          write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
+                        else if para.vardef=cformaltype then
+                          write_rtti_reference(tcb,nil,fullrtti)
+                        else
+                          write_rtti_reference(tcb,para.vardef,fullrtti);
+                        maybe_add_comment(tcb,#9'flags');
+                        write_param_flag(tcb,para);
+
+                        maybe_add_comment(tcb,#9'name');
+                        tcb.emit_pooled_shortstring_const_ref(para.realname);
+                        
+                        maybe_add_comment(tcb,#9'locs');
+                        write_paralocs(tcb,@para.paraloc[callerside]);
+
+                        tcb.end_anonymous_record;
+                        maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
+                      end;
+
+                    if not is_void(def.returndef) then
+                      write_paralocs(tcb,@def.funcretloc[callerside]);
+
+                    tcb.end_anonymous_record;
+                    maybe_add_comment(tcb,'RTTI: end method '+def.fullprocname(false));
+                  end;
+              end;
 
         tcb.end_anonymous_record;
         maybe_add_comment(tcb,'RTTI: end methods');
@@ -803,7 +822,7 @@ implementation
             Fields: array[0..0] of TExtendedFieldInfo;
           end;
         }
-        tcb.begin_anonymous_record('',packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+        tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_header],packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
         tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin
@@ -816,7 +835,7 @@ implementation
                 Name: PShortString;
               end;
             }
-            tcb.begin_anonymous_record('$fpc_intern_ext_fieldinfo',packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+            tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_header]+tostr(tfieldvarsym(sym).fieldoffset),packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
             { FieldOffset }
             tcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
