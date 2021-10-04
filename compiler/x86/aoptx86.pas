@@ -278,15 +278,16 @@ unit aoptx86;
         op : TAsmOp;
       begin
         result:=false;
+        if (instr.typ <> ait_instruction) or
+          ((opsize <> []) and not(taicpu(instr).opsize in opsize)) then
+          exit;
         for op in ops do
           begin
-            if (instr.typ = ait_instruction) and
-               (taicpu(instr).opcode = op) and
-               ((opsize = []) or (taicpu(instr).opsize in opsize)) then
-               begin
-                 result:=true;
-                 exit;
-               end;
+            if taicpu(instr).opcode = op then
+              begin
+                result:=true;
+                exit;
+              end;
           end;
       end;
 
