@@ -4337,11 +4337,7 @@ end;
 
 Function TRecordData.GetMethodTable: PRecordMethodTable;
 begin
-  if GetExtendedFieldCount=0 then
-    // cannot use tail
-    Result:=PRecordMethodTable(PByte(@TotalFieldCount)+SizeOf(Longint)+(TotalFieldCount*SizeOf(TManagedField))+SizeOf(Longint))
-  else
-    Result:=PRecordMethodTable(aligntoptr(GetExtendedFields^.Tail));
+    Result:=PRecordMethodTable(GetExtendedFields^.Tail);
 end;
 
 { TVmtExtendedFieldTable }
