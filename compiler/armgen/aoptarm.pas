@@ -346,6 +346,8 @@ Implementation
             ) and
 {$ifdef AARCH64}
             (taicpu(p).oper[1]^.reg<>NR_SP) and
+            { in this case you have to transform it to movk or the like }
+            (getsupreg(taicpu(p).oper[1]^.reg)<>RS_XZR) and
 {$endif AARCH64}
             not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
