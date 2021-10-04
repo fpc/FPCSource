@@ -580,7 +580,7 @@ implementation
              pubmethodsdef:=nil;
            end;
       end;
-      
+
 
     procedure TVMTWriter.generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
       var
@@ -606,9 +606,14 @@ implementation
                not(sp_static in sym.symoptions) and
                (sym.visibility=vis_published) then
              begin
-                { legacy fields can be objectdef only }
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
-                  continue;
+                  begin
+                    if _class.rtti.options[ro_fields]<>[] then
+                      continue
+                    else
+                      { tables with only legacy fields can be objectdef only }
+                      internalerror(200611032);
+                  end;
                 classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                 if classindex=-1 then
                   classtablelist.Add(tfieldvarsym(sym).vardef);
