@@ -517,6 +517,7 @@ unit TypInfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
+        Function GetParamsStart : PByte; inline;
         Function GetMethodVisibility: TVisibilityClass;
         Function GetParam(Index: Word): PVmtMethodParam;
         Function GetResultLocs: PParameterLocations; inline;
@@ -532,7 +533,7 @@ unit TypInfo;
         StackSize: SizeInt;
         NamePtr: PShortString;
         Flags : Byte;
-        // VmtIndex : Smallint;
+        VmtIndex : Smallint;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
         { ResultLocs: PParameterLocations (if ResultType != Nil) }
         property Name: ShortString read GetName;
@@ -557,7 +558,7 @@ unit TypInfo;
       private
         Function GetMethod(Index: Word): PVmtMethodExEntry;
       public
-        LegacyCount,Count1: Word;
+        // LegacyCount,Count1: Word;
         Count: Word;
         { Entry: array[0..Count - 1] of TVmtMethodExEntry }
         property Method[Index: Word]: PVmtMethodExEntry read GetMethod;
@@ -2390,7 +2391,7 @@ begin
     begin
     MethodTable:=aClassData^.ExMethodTable;
     // if LegacyCount=0 then Count1 and Count are not available.
-    if (MethodTable<>Nil) and (MethodTable^.LegacyCount<>0) then
+    if (MethodTable<>Nil) and (MethodTable^.Count<>0) then
       begin
       For I:=0 to MethodTable^.Count-1 do
         begin
@@ -4151,8 +4152,8 @@ Var
 
 begin
   MT:=GetMethodTable;
-  if MT^.LegacyCount=0 then
-    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.LegacyCount))+SizeOf(Word)))
+  if MT^.Count=0 then
+    Result:=PPropDataEx(aligntoptr(PByte(@(MT^.Count))+SizeOf(Word)))
   else
     Result:=PPropDataEx(MT^.Method[MT^.Count-1]^.Tail);
 end;
@@ -4418,6 +4419,11 @@ end;
 
 { TVMTMethodExEntry }
 
+function TVmtMethodExEntry.GetParamsStart: PByte;
+begin
+  Result:=PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)+SizeOf(FLags)+SizeOf(VmtIndex)));
+end;
+
 Function TVmtMethodExEntry.GetMethodVisibility: TVisibilityClass;
 begin
   Result:=TVisibilityClass(Flags and RTTIFlagVisibilityMask);
@@ -4428,7 +4434,7 @@ begin
   if Index >= ParamCount then
     Result := Nil
   else
-    Result := PVmtMethodParam(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+    Result := PVmtMethodParam(GetParamsStart + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 Function TVMTMethodExEntry.GetResultLocs: PParameterLocations;
@@ -4436,7 +4442,7 @@ begin
   if not Assigned(ResultType) then
     Result := Nil
   else
-    Result := PParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+    Result := PParameterLocations(GetParamsStart + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 Function TVmtMethodExEntry.GetStrictVisibility: Boolean;
@@ -4446,8 +4452,8 @@ end;
 
 Function TVMTMethodExEntry.GetTail: Pointer;
 begin
-  Result := PByte(@Flags) + SizeOf(Flags);
-//  Result := PByte(@VmtIndex) + SizeOf(VmtIndex);
+//  Result := PByte(@Flags) + SizeOf(Flags);
+  Result := PByte(@VmtIndex) + SizeOf(VmtIndex);
   if ParamCount > 0 then
     Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam))));
   if Assigned(ResultType) then
