@@ -1088,6 +1088,7 @@ implementation
         oldLoopContBr: integer;
         oldLoopBreakBr: integer;
         oldExitBr: integer;
+        oldRaiseBr: integer;
         finallyexceptionstate: tcgexceptionstatehandler.texceptionstate;
         excepttemps : tcgexceptionstatehandler.texceptiontemps;
         exceptframekind: tcgexceptionstatehandler.texceptframekind;
@@ -1108,7 +1109,7 @@ implementation
           thlcgwasm(hlcg).decblock;
         end;
 
-      procedure generate_exceptreason_throw(reason: tcgint);
+      procedure generate_exceptreason_reraise(reason: tcgint);
         var
           reasonreg : tregister;
         begin
@@ -1118,7 +1119,7 @@ implementation
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(hlcg).incblock;
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-          //current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
           thlcgwasm(hlcg).decblock;
         end;
@@ -1131,6 +1132,7 @@ implementation
         breakfinallylabel:=nil;
         oldLoopBreakBr:=0;
         oldLoopContBr:=0;
+        oldRaiseBr:=0;
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
@@ -1190,8 +1192,10 @@ implementation
           end;
 
         { the inner 'try..end_try' block }
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
-        //thlcgwasm(hlcg).incblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        thlcgwasm(hlcg).incblock;
+        oldRaiseBr:=thlcgwasm(hlcg).raiseBr;
+        thlcgwasm(hlcg).raiseBr:=thlcgwasm(hlcg).br_blocks;
 
         { try code }
         if assigned(left) then
@@ -1210,14 +1214,14 @@ implementation
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
-        { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
-        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
-
         { exit the inner 'try..end_try' block }
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
-        //thlcgwasm(hlcg).decblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
+
+        { exceptionreason:=1 (exception) }
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
@@ -1247,6 +1251,9 @@ implementation
         { end cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
+        { restore previous raiseBr }
+        thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
+
         { finally code (don't unconditionally set fc_inflowcontrol, since the
           finally code is unconditionally executed; we do have to filter out
           flags regarding break/contrinue/etc. because we have to give an
@@ -1269,7 +1276,7 @@ implementation
           generate_exceptreason_check_br(3,thlcgwasm(hlcg).br_blocks-oldLoopBreakBr);
         if fc_continue in finallyexceptionstate.newflowcontrol then
           generate_exceptreason_check_br(4,thlcgwasm(hlcg).br_blocks-oldLoopContBr);
-        generate_exceptreason_throw(1);
+        generate_exceptreason_reraise(1);
 
         cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
 
