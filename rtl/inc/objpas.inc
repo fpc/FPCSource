@@ -1205,6 +1205,8 @@
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   {$if defined(FPC_WASM_NATIVE_EXCEPTIONS)}
     {$I except_native.inc}
+  {$elseif defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+    {$I except_branchful.inc}
   {$else}
     {$i except.inc}
   {$endif}
