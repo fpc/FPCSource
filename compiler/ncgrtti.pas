@@ -822,7 +822,7 @@ implementation
             Fields: array[0..0] of TExtendedFieldInfo;
           end;
         }
-        tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_header],packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+        tcb.begin_anonymous_record('',packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
         tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin

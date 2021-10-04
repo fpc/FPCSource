@@ -47,7 +47,7 @@ Type
   { TRecordMethodRTTI }
 
   TRecordMethodRTTI = record
-  //  a,b,c : Integer;
+    a,b,c : Integer;
   private
     Procedure PrivateMethodA;
     Procedure PrivateMethodB;
