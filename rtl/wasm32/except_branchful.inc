@@ -30,6 +30,16 @@ Var
 {$i psabieh.inc}
 {$endif}
 
+function fpc_raised_exception_flag: Boolean;[public,alias:'FPC_RAISED_EXCEPTION_FLAG']compilerproc;
+begin
+  result:=RaisedException;
+end;
+
+procedure fpc_clear_exception_flag;[public,alias:'FPC_CLEAR_EXCEPTION_FLAG']compilerproc;
+begin
+  RaisedException:=false;
+end;
+
 Function RaiseList : PExceptObject;
 begin
   RaiseList:=ExceptObjectStack;

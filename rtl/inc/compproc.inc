@@ -715,6 +715,10 @@ procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: 
 Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Procedure fpc_PopAddrStack; compilerproc;
 {$endif}
+{$ifdef FPC_WASM_BRANCHFUL_EXCEPTIONS}
+function fpc_raised_exception_flag: Boolean;compilerproc;
+procedure fpc_clear_exception_flag;compilerproc;
+{$endif FPC_WASM_BRANCHFUL_EXCEPTIONS}
 procedure fpc_Raiseexception (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer); compilerproc;
 function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;

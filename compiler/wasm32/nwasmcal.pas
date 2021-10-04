@@ -49,13 +49,15 @@ interface
 implementation
 
     uses
-      globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst, symcpu;
+      globals, globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst, symcpu;
 
       { twasmcallnode }
 
     procedure twasmcallnode.extra_post_call_code;
       begin
         thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
+        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
       end;
 
     procedure twasmcallnode.do_release_unused_return_value;
