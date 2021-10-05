@@ -17,6 +17,10 @@
 
 unit si_prc;
 
+{$ifdef FPC_WASM_BRANCHFUL_EXCEPTIONS}
+  {$MODESWITCH EXCEPTIONS}
+{$endif}
+
 interface
 
 procedure _start;
@@ -25,10 +29,23 @@ implementation
 
 procedure PASCALMAIN; external 'PASCALMAIN';
 
+{$ifdef FPC_WASM_BRANCHFUL_EXCEPTIONS}
+Procedure DoUnHandledException; external name 'FPC_DOUNHANDLEDEXCEPTION';
+
+procedure _start;
+begin
+  try
+    PASCALMAIN;
+  except
+    DoUnhandledException;
+  end;
+end;
+{$else}
 procedure _start;
 begin
   PASCALMAIN;
 end;
+{$endif}
 
 exports
   _start;

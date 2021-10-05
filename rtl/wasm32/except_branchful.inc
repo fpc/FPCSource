@@ -134,7 +134,7 @@ begin
   Result:=NewObj;
 end;
 
-Procedure DoUnHandledException;
+Procedure DoUnHandledException;[Public, Alias : 'FPC_DOUNHANDLEDEXCEPTION'];
 var
   _ExceptObjectStack : PExceptObject;
 begin
