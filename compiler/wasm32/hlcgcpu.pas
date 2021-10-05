@@ -2277,15 +2277,9 @@ implementation
       pd:=search_system_proc('fpc_raised_exception_flag');
       g_call_system_proc(list,pd,[],nil).resetiftemp;
 
-      list.concat(taicpu.op_none(A_IF));
-      incblock;
-
       decstack(current_asmdata.CurrAsmList,1);
 
-      list.concat(taicpu.op_const(a_br,br_blocks-raiseBr));
-
-      list.concat(taicpu.op_none(A_END_IF));
-      decblock;
+      list.concat(taicpu.op_const(a_br_if,br_blocks-raiseBr));
     end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
