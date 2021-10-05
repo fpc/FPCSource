@@ -603,8 +603,8 @@ implementation
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
-        //if assigned(right) then
-        //  secondpass(right);
+        if assigned(right) then
+          secondpass(right);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -1407,7 +1407,9 @@ implementation
         exceptvarsym : tlocalvarsym;
         exceptlocdef: tdef;
         exceptlocreg: tregister;
+        oldRaiseBr: Integer;
       begin
+        oldRaiseBr:=0;
         location_reset(location,LOC_VOID,OS_NO);
 
         cexceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
@@ -1428,21 +1430,29 @@ implementation
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
           exception frame for the catch-handler }
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
-        //thlcgwasm(hlcg).incblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        thlcgwasm(hlcg).incblock;
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        thlcgwasm(hlcg).incblock;
+        oldRaiseBr:=thlcgwasm(hlcg).raiseBr;
+        thlcgwasm(hlcg).raiseBr:=thlcgwasm(hlcg).br_blocks;
 
         if assigned(right) then
           secondpass(right);
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
-        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,2));
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3));
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
+        thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
 
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
-        //thlcgwasm(hlcg).decblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
 
         { clear some stuff }
         if assigned(exceptvarsym) then
