@@ -141,6 +141,9 @@ uses
                 A_VXORPD,
                 A_VPXOR:
                   Result:=OptPass1VPXor(p);
+                A_VMOVDQA,
+                A_VMOVDQU:
+                  Result:=OptPass1VMOVDQ(p);
                 A_XORPS,
                 A_XORPD,
                 A_PXOR:

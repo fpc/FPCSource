@@ -230,6 +230,9 @@ unit aoptcpu;
                 A_SHRX,
                 A_SHLX:
                   Result:=OptPass1SHXX(p);
+                A_VMOVDQA,
+                A_VMOVDQU:
+                  Result:=OptPass1VMOVDQ(p);
                 A_VCVTSS2SD,
                 A_CVTSS2SD:
                   Result:=OptPass1_V_Cvtss2sd(p);

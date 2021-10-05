@@ -160,6 +160,7 @@ unit aoptx86;
         function OptPass1Imul(var p : tai) : boolean;
         function OptPass1Jcc(var p : tai) : boolean;
         function OptPass1SHXX(var p: tai): boolean;
+        function OptPass1VMOVDQ(var p: tai): Boolean;
         function OptPass1_V_Cvtss2sd(var p: tai): boolean;
 
         function OptPass2Movx(var p : tai): Boolean;
@@ -178,7 +179,7 @@ unit aoptx86;
         function PostPeepholeOptMovzx(var p : tai) : Boolean;
 {$ifdef x86_64} { These post-peephole optimisations only affect 64-bit registers. [Kit] }
         function PostPeepholeOptXor(var p : tai) : Boolean;
-{$endif}
+{$endif x86_64}
         function PostPeepholeOptAnd(var p : tai) : boolean;
         function PostPeepholeOptMOVSX(var p : tai) : boolean;
         function PostPeepholeOptCmp(var p : tai) : Boolean;
@@ -3095,7 +3096,7 @@ unit aoptx86;
                                               CurrentReg := GetMMRegisterBetween(R_SUBMMX, UsedRegs, p, hp3);
                                               if CurrentReg <> NR_NO then
                                                 begin
-                                                  { hp2 and hp3 are the starting offsets, so mod 0 this time }
+                                                  { hp2 and hp3 are the starting offsets, so mod = 0 this time }
                                                   if ((SourceRef.offset mod 16) = 0) and
                                                     (
                                                       { Base pointer is always aligned (stack pointer won't be if there's no stack frame) }
@@ -6093,6 +6094,172 @@ unit aoptx86;
          end
      end;
 
+
+  function TX86AsmOptimizer.OptPass1VMOVDQ(var p: tai): Boolean;
+    var
+      hp1, hp2, hp3: tai;
+      SourceRef, TargetRef: TReference;
+      CurrentReg: TRegister;
+    begin
+      { VMOVDQU/CMOVDQA shouldn't have even been generated }
+      if not UseAVX then
+        InternalError(2021100501);
+
+      Result := False;
+
+      { Look for the following to simplify:
+
+          vmovdqa/u x(mem1), %xmmreg
+          vmovdqa/u %xmmreg, y(mem2)
+          vmovdqa/u x+16(mem1), %xmmreg
+          vmovdqa/u %xmmreg, y+16(mem2)
+
+        Change to:
+          vmovdqa/u x(mem1), %ymmreg
+          vmovdqa/u %ymmreg, y(mem2)
+          vpxor     %ymmreg, %ymmreg, %ymmreg
+
+          ( The VPXOR instruction is to zero the upper half, thus removing the
+            need to call the potentially expensive VZEROUPPER instruction. Other
+            peephole optimisations can remove VPXOR if it's unnecessary )
+      }
+      TransferUsedRegs(TmpUsedRegs);
+      UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+
+      { NOTE: In the optimisations below, if the references dictate that an
+        aligned move is possible (i.e. VMOVDQA), the existing instructions
+        should already be VMOVDQA because if (x mod 32) = 0, then (x mod 16) = 0 }
+      if (taicpu(p).opsize = S_XMM) and
+        MatchOpType(taicpu(p), top_ref, top_reg) and
+        GetNextInstruction(p, hp1) and
+        MatchInstruction(hp1, A_VMOVDQA, A_VMOVDQU, [S_XMM]) and
+        MatchOpType(taicpu(hp1), top_reg, top_ref) and
+        not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+        begin
+          SourceRef := taicpu(p).oper[0]^.ref^;
+          TargetRef := taicpu(hp1).oper[1]^.ref^;
+          if GetNextInstruction(hp1, hp2) and
+            MatchInstruction(hp2, A_VMOVDQA, A_VMOVDQU, [S_XMM]) and
+            MatchOpType(taicpu(hp2), top_ref, top_reg) then
+            begin
+              { Delay calling GetNextInstruction(hp2, hp3) for as long as possible }
+              UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+
+              Inc(SourceRef.offset, 16);
+
+              { Reuse the register in the first block move }
+              CurrentReg := newreg(R_MMREGISTER, getsupreg(taicpu(p).oper[1]^.reg), R_SUBMMY);
+
+              if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) then
+                begin
+                  UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                  Inc(TargetRef.offset, 16);
+                  if GetNextInstruction(hp2, hp3) and
+                    MatchInstruction(hp3, A_VMOVDQA, A_VMOVDQU, [S_XMM]) and
+                    MatchOpType(taicpu(hp3), top_reg, top_ref) and
+                    (taicpu(hp2).oper[1]^.reg = taicpu(hp3).oper[0]^.reg) and
+                    RefsEqual(TargetRef, taicpu(hp3).oper[1]^.ref^) and
+                    not RegUsedAfterInstruction(taicpu(hp2).oper[1]^.reg, hp3, TmpUsedRegs) then
+                    begin
+                      { Update the register tracking to the new size }
+                      AllocRegBetween(CurrentReg, p, hp2, UsedRegs);
+
+                      { Remember that the offsets are 16 ahead }
+
+                      { Switch to unaligned if the memory isn't on a 32-byte boundary }
+                      if not (
+                          ((SourceRef.offset mod 32) = 16) and
+                          (SourceRef.alignment >= 32) and ((SourceRef.alignment mod 32) = 0)
+                        ) then
+                        taicpu(p).opcode := A_VMOVDQU;
+
+                      taicpu(p).opsize := S_YMM;
+                      taicpu(p).oper[1]^.reg := CurrentReg;
+
+                      if not (
+                          ((TargetRef.offset mod 32) = 16) and
+                          (TargetRef.alignment >= 32) and ((TargetRef.alignment mod 32) = 0)
+                        ) then
+                        taicpu(hp1).opcode := A_VMOVDQU;
+
+                      taicpu(hp1).opsize := S_YMM;
+                      taicpu(hp1).oper[0]^.reg := CurrentReg;
+
+                      DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 1)', p);
+
+                      taicpu(hp2).opcode := A_VPXOR;
+                      taicpu(hp2).opsize := S_YMM;
+                      taicpu(hp2).loadreg(0, CurrentReg);
+                      taicpu(hp2).loadreg(1, CurrentReg);
+                      taicpu(hp2).loadreg(2, CurrentReg);
+                      taicpu(hp2).ops := 3;
+
+                      RemoveInstruction(hp3);
+                      Result := True;
+                      Exit;
+                    end;
+                end
+              else
+                begin
+                  { See if the next references are 16 less rather than 16 greater }
+
+                  Dec(SourceRef.offset, 32); { -16 the other way }
+                  if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) then
+                    begin
+                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                      Dec(TargetRef.offset, 16); { Only 16, not 32, as it wasn't incremented unlike SourceRef }
+                      if GetNextInstruction(hp2, hp3) and
+                        MatchInstruction(hp3, A_MOV, [taicpu(p).opsize]) and
+                        MatchOpType(taicpu(hp3), top_reg, top_ref) and
+                        (taicpu(hp2).oper[1]^.reg = taicpu(hp3).oper[0]^.reg) and
+                        RefsEqual(TargetRef, taicpu(hp3).oper[1]^.ref^) and
+                        not RegUsedAfterInstruction(taicpu(hp2).oper[1]^.reg, hp3, TmpUsedRegs) then
+                        begin
+                          { Update the register tracking to the new size }
+                          AllocRegBetween(CurrentReg, hp2, hp3, UsedRegs);
+
+                          { hp2 and hp3 are the starting offsets, so mod = 0 this time }
+
+                          { Switch to unaligned if the memory isn't on a 32-byte boundary }
+                          if not(
+                              ((SourceRef.offset mod 32) = 0) and
+                              (SourceRef.alignment >= 32) and ((SourceRef.alignment mod 32) = 0)
+                            ) then
+                            taicpu(hp2).opcode := A_VMOVDQU;
+
+                          taicpu(hp2).opsize := S_YMM;
+                          taicpu(hp2).oper[1]^.reg := CurrentReg;
+
+                          if not (
+                              ((TargetRef.offset mod 32) = 0) and
+                              (TargetRef.alignment >= 32) and ((TargetRef.alignment mod 32) = 0)
+                            ) then
+                            taicpu(hp3).opcode := A_VMOVDQU;
+
+                          taicpu(hp3).opsize := S_YMM;
+                          taicpu(hp3).oper[0]^.reg := CurrentReg;
+
+                          DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 2)', p);
+
+                          taicpu(hp1).opcode := A_VPXOR;
+                          taicpu(hp1).opsize := S_YMM;
+                          taicpu(hp1).loadreg(0, CurrentReg);
+                          taicpu(hp1).loadreg(1, CurrentReg);
+                          taicpu(hp1).loadreg(2, CurrentReg);
+                          taicpu(hp1).ops := 3;
+
+                          Asml.Remove(hp1);
+                          Asml.InsertAfter(hp1, hp3); { Register deallocations will be after hp3 }
+
+                          RemoveCurrentP(p, hp2);
+                          Result := True;
+                          Exit;
+                        end;
+                    end;
+                end;
+            end;
+        end;
+    end;
 
   function TX86AsmOptimizer.CheckJumpMovTransferOpt(var p: tai; hp1: tai; LoopCount: Integer; out Count: Integer): Boolean;
     var
