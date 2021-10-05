@@ -36,10 +36,24 @@ procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
   end;
 
 
-{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+Function Get_pc_addr : CodePointer;
   begin
-    result:=nil;
+    { dummy, produces a small, fake backtrace, otherwise programs terminate
+      with no output at all, in case of a runtime error }
+    result:=CodePointer($eeeeeeef);
+  end;
+
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
+function get_caller_addr(framebp:pointer;addr:codepointer=nil):pointer;
+  begin
+    { dummy, produces a small, fake backtrace, otherwise programs terminate
+      with no output at all, in case of a runtime error }
+    if addr=CodePointer($eeeeeeef) then
+      result:=CodePointer($eeeeeeee)
+    else
+      result:=nil;
   end;
 
 
