@@ -53,7 +53,7 @@ const
 {$endif}
   StackMargin: ptruint = STACK_MARGIN_MAX;
 { Random / Randomize constants }
-  OldRandSeed : Cardinal = 0;
+  OldRandSeed : Cardinal = Cardinal(not Cardinal(0)); // see ReseedGlobalRNG and GlobalXsr128_32 initialization.
 
 { For Error Handling.}
   ErrorBase : Pointer = nil;public name 'FPC_ERRORBASE';
@@ -576,147 +576,123 @@ type
 {$if defined(FPC_HAS_FEATURE_RANDOM)}
 {$ifndef FPC_USE_SIMPLE_RANDOM}
 
-{ Pascal translation of https://github.com/dajobe/libmtwist }
+{$push} // random
+{$r-,q-}
 
-{* -*- Mode: c; c-basic-offset: 2 -*-
- *
- * mt.c - Mersenne Twister functions
- *
- * This is free and unencumbered software released into the public domain.
- *
- * Anyone is free to copy, modify, publish, use, compile, sell, or
- * distribute this software, either in source code form or as a compiled
- * binary, for any purpose, commercial or non-commercial, and by any
- * means.
- *
- * In jurisdictions that recognize copyright laws, the author or authors
- * of this software dedicate any and all copyright interest in the
- * software to the public domain. We make this dedication for the benefit
- * of the public at large and to the detriment of our heirs and
- * successors. We intend this dedication to be an overt act of
- * relinquishment in perpetuity of all present and future rights to this
- * software under copyright law.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * For more information, please refer to <http://unlicense.org/>
- *
- *}
+// SplitMix64, being a generator of fundamentally different nature,
+// is a good (recommended by the author) way to seed Xoshiro.
+//
+// https://xoroshiro.di.unimi.it/splitmix64.c
+//
+// This is a generator with 64-bit state, 64-bit output, and 2^64 period.
 
-{$R-} {range checking off}
-{$Q-} {overflow checking off}
+type
+  SplitMix64 = object
+    procedure Setup(const seed: uint64); inline;
+    function Next: uint64;
+  private
+    state: uint64;
+  end;
 
-const
-  MTWIST_N = 624;
-  MTWIST_M = 397;
+procedure SplitMix64.Setup(const seed: uint64);
+begin
+  state := seed;
+end;
 
-  MT_STATIC_SEED = 5489;
+function SplitMix64.Next: uint64;
+var
+  z: uint64;
+begin
+  z := state + $9e3779b97f4a7c15;
+  state := z;
+  z := (z xor (z shr 30)) * $bf58476d1ce4e5b9;
+  z := (z xor (z shr 27)) * $94d049bb133111eb;
+  result := z xor (z shr 31);
+end;
 
-  MTWIST_UPPER_MASK = cardinal($80000000);
-  MTWIST_LOWER_MASK = cardinal($7FFFFFFF);
+// Xoshiro128** is an all-purpose RNG.
+// http://prng.di.unimi.it/xoshiro128starstar.c
+//
+// State must not be everywhere zero. With SplitMix64 initialization, it won't. :)
+// 128-bit state, 32-bit output, 2^128-1 period.
 
-  MTWIST_MATRIX_A   = cardinal($9908B0DF);
+type
+  Xoshiro128ss_32 = object
+    procedure Setup(const seed: uint64);
+    function Next: uint32; inline; // inlined as it is actually internal and called only through xsr128_32_u32rand
+  private
+    state: array[0 .. 3] of uint32;
+  end;
+
+  procedure Xoshiro128ss_32.Setup(const seed: uint64);
+  var
+    sm: SplitMix64;
+    x: uint64;
+  begin
+    sm.Setup(seed);
+    x := sm.Next;
+    state[0] := Lo(x); state[1] := Hi(x);
+    x := sm.Next;
+    state[2] := Lo(x); state[3] := Hi(x);
+  end;
+
+  function Xoshiro128ss_32.Next: uint32;
+  var
+    s0, s1, s2, s3: uint32;
+  begin
+    s0 := state[0];
+    s1 := state[1];
+    s2 := state[2] xor s0;
+    s3 := state[3] xor s1;
+    result := RolDWord(s1 * 5, 7) * 9;
+
+    state[0] := s0 xor s3;
+    state[1] := s1 xor s2;
+    state[2] := s2 xor (s1 shl 9);
+    state[3] := RolDWord(s3, 11);
+  end;
 
 var
-  mt_state: array[0..MTWIST_N-1] of cardinal;
+  // Just in case user sets RandSeed := not Cardinal(0) (RandSeed := $FFFFFFFF) from the start,
+  // thus bypassing first-time RandSeed <> OldRandSeed check,
+  // there will still be a precomputed initialization for RandSeed = $FFFFFFFF.
+  GlobalXsr128_32: Xoshiro128ss_32 = (state: ($AFF181C0, $73B13BA2, $1340D3B4, $61204305));
 
-const
-  mt_index: cardinal = MTWIST_N+1;
+  procedure ReseedGlobalRNG;
+  begin
+    { Detect resets of randseed
 
-function MTWIST_MIXBITS(u, v: cardinal): cardinal; inline;
-begin
-  result:=(u and MTWIST_UPPER_MASK) or (v and MTWIST_LOWER_MASK);
-end;
+      This will break if someone coincidentally uses not(randseed) as the
+      next randseed, but it's much more common that you will reset randseed
+      to the same value as before to regenerate the same sequence of numbers
+    }
+    GlobalXsr128_32.Setup(RandSeed);
+    RandSeed := not RandSeed;
+    OldRandSeed := RandSeed;
+  end;
 
-function MTWIST_TWIST(u, v: cardinal): cardinal; inline;
-begin
-  { the construct at the end is equivalent to
-    if odd(v) then
-      MTWIST_MATRIX_A
-    else
-      0
-  }
-  result:=(MTWIST_MIXBITS(u,v) shr 1) xor (cardinal(-(v and 1)) and MTWIST_MATRIX_A);
-end;
+  function xsr128_32_u32rand: uint32;
+  begin
+    if RandSeed <> OldRandSeed then ReseedGlobalRNG;
+    result := GlobalXsr128_32.Next;
+  end;
 
-procedure mtwist_init(seed: cardinal);
-var
-  i: longint;
-begin
-  mt_state[0]:=seed;
-  for i:=1 to MTWIST_N-1 do
-    mt_state[i]:=cardinal(1812433253) * (mt_state[i-1] xor (mt_state[i-1] shr 30)) + i;
-   { still need to update the state }
-  mt_index:=MTWIST_N;
-end;
-
-procedure mtwist_update_state;
-var
-  count: longint;
-begin
-  { The original C code uses pointers, doesn't play nice with JVM backend;
-    it counts from N-M+1 downto 0 (0 not included) for the first loop, which
-    should initialise the first N-M+1 elements -- doing so gives the wrong
-    results though (different from the old generator, and it also doesn't
-    match the algorithm description), so we use only N-M iterations. They don't
-    seem to test this one element and its value does not impact subsequent
-    numbers, so it's probably a bug in their implementation.
-  }
-  for count:=0 to MTWIST_N-MTWIST_M-1 do
-    mt_state[count]:=mt_state[count+MTWIST_M] xor MTWIST_TWIST(mt_state[count],mt_state[count+1]);
-  for count:=MTWIST_N-MTWIST_M to MTWIST_N-2 do
-    mt_state[count]:=mt_state[count+(MTWIST_M-MTWIST_N)] xor MTWIST_TWIST(mt_state[count],mt_state[count+1]);
-  mt_state[MTWIST_N-1]:=mt_state[MTWIST_M-1] xor MTWIST_TWIST(mt_state[MTWIST_N-1],mt_state[0]);
-  mt_index:=0;
-end;
-
-
-function mtwist_u32rand: cardinal;
-var
-  l_index :cardinal;
-begin
-  l_index:=mt_index;
-  inc(mt_index);
-  if (RandSeed<>OldRandSeed) or
-     (l_index>=MTWIST_N+1) then
-    begin
-      mtwist_init(RandSeed);
-      { Detect resets of randseed
-
-        This will break if someone coincidentally uses not(randseed) as the
-        next randseed, but it's much more common that you will reset randseed
-        to the same value as before to regenerate the same sequence of numbers
-      }
-      RandSeed:=not(RandSeed);
-      OldRandSeed:=RandSeed;
-      l_index:=MTWIST_N;
-    end;
-  if l_index=MTWIST_N then
-    begin
-      mtwist_update_state;
-      l_index:=0;
-      mt_index:=1;
-    end;
-  result:=mt_state[l_index];
-  result:=result xor (result shr 11);
-  result:=result xor ((result shl 7) and cardinal($9D2C5680));
-  result:=result xor ((result shl 15) and cardinal($EFC60000));
-  result:=result xor (result shr 18);
-end;
-
+  // There's still a flaw: repeated assignments of RandSeed := $FFFFFFFF from the start, i.e.
+  // RandSeed := $FFFFFFFF;
+  // writeln(random(10));
+  // RandSeed := $FFFFFFFF;
+  // writeln(random(10));
+  // won't reset RNG.
+  //
+  // But this is already the case with carefully crafted RandSeeds,
+  // so I doubt an additional check like "if (RandSeed <> OldRandSeed) or not RngInitialized" is justified.
 
 function random(l:longint): longint;
 begin
   { otherwise we can return values = l (JM) }
   if (l < 0) then
     inc(l);
-  random := longint((int64(mtwist_u32rand)*l) shr 32);
+  random := longint((int64(xsr128_32_u32rand)*l) shr 32);
 end;
 
 function random(l:int64): int64;
@@ -733,8 +709,8 @@ begin
   else
     q:=qword(l);
 
-  a:=mtwist_u32rand;
-  b:=mtwist_u32rand;
+  a:=xsr128_32_u32rand;
+  b:=xsr128_32_u32rand;
 
   c:=q shr 32;
   d:=cardinal(q);
@@ -756,9 +732,11 @@ end;
 {$ifndef FPUNONE}
 function random: extended;
 begin
-  random := mtwist_u32rand * (extended(1.0)/(int64(1) shl 32));
+  random := xsr128_32_u32rand * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
+
+{$pop} // random
 
 {$else FPC_USE_SIMPLE_RANDOM}
 
