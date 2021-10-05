@@ -1375,6 +1375,7 @@ implementation
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_iocheck',[],nil).resetiftemp;
+              hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
            end;
       end;
 
