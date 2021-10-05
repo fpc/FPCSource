@@ -175,7 +175,7 @@ implementation
 
     class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
+        internalerror(2021100503);
       end;
 
     class procedure twasmexceptionstatehandler_nativeexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
@@ -260,7 +260,7 @@ implementation
 
     class procedure twasmexceptionstatehandler_bfexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
+        internalerror(2021100502);
       end;
 
     class procedure twasmexceptionstatehandler_bfexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
