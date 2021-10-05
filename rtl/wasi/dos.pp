@@ -227,7 +227,13 @@ End;
 
 
 function GetMsCount: int64;
+var
+  NanoSecsPast: __wasi_timestamp_t;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+    GetMsCount:=NanoSecsPast div 1000000
+  else
+    GetMsCount:=0;
 end;
 
 
