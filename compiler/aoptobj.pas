@@ -87,7 +87,7 @@ Unit AoptObj;
         { is Reg currently in use }
         Function IsUsed(Reg: TRegister): Boolean;
         { get all the currently used registers }
-        Function GetUsedRegs: TRegSet;
+        Function GetUsedRegs: TRegSet; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
         { outputs  the current set }
         Procedure Dump(var t : text);
@@ -549,7 +549,7 @@ Unit AoptObj;
       End;
 
 
-    Function TUsedRegs.GetUsedRegs: TRegSet; inline;
+    Function TUsedRegs.GetUsedRegs: TRegSet; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       Begin
         GetUsedRegs := UsedRegs;
       End;
@@ -1395,6 +1395,7 @@ Unit AoptObj;
     procedure TAOptObj.AllocRegBetween(reg: tregister; p1, p2: tai; var initialusedregs: TAllUsedRegs);
       var
         hp, start: tai;
+        Po: PInteger;
         removedsomething,
         firstRemovedWasAlloc,
         lastRemovedWasDealloc: boolean;
