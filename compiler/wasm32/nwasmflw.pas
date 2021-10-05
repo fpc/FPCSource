@@ -559,9 +559,11 @@ implementation
         destroytemps,
         excepttemps: tcgexceptionstatehandler.texceptiontemps;
         afteronflowcontrol: tflowcontrol;
+        oldRaiseBr: Integer;
       label
         errorexit;
       begin
+        oldRaiseBr:=0;
         location_reset(location,LOC_VOID,OS_NO);
         doobjectdestroyandreraisestate:=Default(tcgexceptionstatehandler.texceptionstate);
 
@@ -575,8 +577,13 @@ implementation
         //flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
-        //thlcgwasm(hlcg).incblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        thlcgwasm(hlcg).incblock;
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        thlcgwasm(hlcg).incblock;
+        oldRaiseBr:=thlcgwasm(hlcg).raiseBr;
+        thlcgwasm(hlcg).raiseBr:=thlcgwasm(hlcg).br_blocks;
 
         { try block }
         secondpass(left);
@@ -587,12 +594,17 @@ implementation
         //flowcontrol:=exceptionstate.oldflowcontrol;
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
+
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+        thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
-        if assigned(right) then
-          secondpass(right);
+        //if assigned(right) then
+        //  secondpass(right);
 
         afteronflowcontrol:=flowcontrol;
 
@@ -626,19 +638,28 @@ implementation
                   flowcontrol+
                   afteronflowcontrol;
 
-                //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
-                //thlcgwasm(hlcg).incblock;
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+                thlcgwasm(hlcg).incblock;
+
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+                thlcgwasm(hlcg).incblock;
+                oldRaiseBr:=thlcgwasm(hlcg).raiseBr;
+                thlcgwasm(hlcg).raiseBr:=thlcgwasm(hlcg).br_blocks;
 
                 secondpass(t1);
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
+                current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
 
-                //current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+                thlcgwasm(hlcg).decblock;
 
+                hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
+                thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-                //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
-                //thlcgwasm(hlcg).decblock;
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+                thlcgwasm(hlcg).decblock;
               end
             else
               begin
@@ -648,17 +669,18 @@ implementation
           end
         else
           begin
-            //current_asmdata.CurrAsmList.concat(taicpu.op_const(a_rethrow,0));
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
-        //thlcgwasm(hlcg).decblock;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
 
       errorexit:
         { return all used control flow statements }
         flowcontrol:=trystate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol +
           trystate.newflowcontrol - [fc_inflowcontrol,fc_catching_exceptions]);
+        thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
       end;
 
     procedure twasmtryexceptnode.pass_generate_code;
