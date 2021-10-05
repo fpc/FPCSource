@@ -823,7 +823,6 @@ implementation
                 thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
-                thlcgwasm(hlcg).raiseBr:=oldRaiseBr;
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
                 thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
 
