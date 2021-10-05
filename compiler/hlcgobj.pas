@@ -438,6 +438,14 @@ unit hlcgobj;
           procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
           {#
+              This routine is called after g_call_system_proc to a system proc,
+              that might raise an exception. It is used on platforms, that need
+              to manually check an 'exception raised' flag, like WebAssembly in
+              branchful exceptions mode.
+          }
+          procedure g_maybe_checkforexceptions(list : TAsmList); virtual;
+
+          {#
               Call when the current location should never be reached
           }
           procedure g_unreachable(list: TAsmList); virtual;
@@ -3341,6 +3349,12 @@ implementation
 
 
   procedure thlcgobj.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      { do nothing by default }
+    end;
+
+
+  procedure thlcgobj.g_maybe_checkforexceptions(list : TAsmList);
     begin
       { do nothing by default }
     end;

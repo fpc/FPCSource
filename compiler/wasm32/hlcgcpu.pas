@@ -148,7 +148,7 @@ uses
       { Wasm-specific routines }
 
       procedure g_procdef(list:TAsmList;pd: tprocdef);
-      procedure g_checkexceptions(list:TasmList);
+      procedure g_maybe_checkforexceptions(list:TasmList); override;
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
       { extra_slots are the slots that are used by the reference, and that
@@ -2267,19 +2267,19 @@ implementation
       list.Concat(tai_functype.create(pd.mangledname,tcpuprocdef(pd).create_functype));
     end;
 
-  procedure thlcgwasm.g_checkexceptions(list: TasmList);
+  procedure thlcgwasm.g_maybe_checkforexceptions(list: TasmList);
     var
       pd: tprocdef;
     begin
-      if not (ts_wasm_bf_exceptions in current_settings.targetswitches) then
-        internalerror(2021100501);
+      if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        begin
+          pd:=search_system_proc('fpc_raised_exception_flag');
+          g_call_system_proc(list,pd,[],nil).resetiftemp;
 
-      pd:=search_system_proc('fpc_raised_exception_flag');
-      g_call_system_proc(list,pd,[],nil).resetiftemp;
+          decstack(current_asmdata.CurrAsmList,1);
 
-      decstack(current_asmdata.CurrAsmList,1);
-
-      list.concat(taicpu.op_const(a_br_if,br_blocks-raiseBr));
+          list.concat(taicpu.op_const(a_br_if,br_blocks-raiseBr));
+      end;
     end;
 
   procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);

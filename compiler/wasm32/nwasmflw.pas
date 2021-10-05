@@ -824,7 +824,7 @@ implementation
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
-                thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
+                hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
                 thlcgwasm(hlcg).decblock;
@@ -838,7 +838,7 @@ implementation
         else
           begin
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-            thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
+            hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
@@ -1311,7 +1311,7 @@ implementation
           thlcgwasm(hlcg).incblock;
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_reraise',[],nil).resetiftemp;
-          thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
+          hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
           thlcgwasm(hlcg).decblock;
         end;
@@ -1817,7 +1817,7 @@ implementation
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_clear_exception_flag',[],nil).resetiftemp;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
-        thlcgwasm(hlcg).g_checkexceptions(current_asmdata.CurrAsmList);
+        hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
         thlcgwasm(hlcg).decblock;
