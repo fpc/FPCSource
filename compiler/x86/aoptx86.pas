@@ -158,6 +158,7 @@ unit aoptx86;
         function OptPass1Imul(var p : tai) : boolean;
         function OptPass1Jcc(var p : tai) : boolean;
         function OptPass1SHXX(var p: tai): boolean;
+        function OptPass1_V_Cvtss2sd(var p: tai): boolean;
 
         function OptPass2Movx(var p : tai): Boolean;
         function OptPass2MOV(var p : tai) : boolean;
@@ -5851,6 +5852,38 @@ unit aoptx86;
                RemoveInstruction(hp1);
                result:=true;
              end;
+         end;
+     end;
+
+
+   function TX86AsmOptimizer.OptPass1_V_Cvtss2sd(var p: tai): boolean;
+     var
+       hp1: tai;
+     begin
+       Result:=false;
+       { get rid of
+
+         (v)cvtss2sd reg0,<reg1,>reg2
+         (v)cvtss2sd reg2,<reg2,>reg0
+       }
+       if GetNextInstruction(p,hp1) and
+         (((taicpu(p).opcode=A_CVTSS2SD) and MatchInstruction(hp1,A_CVTSD2SS,[taicpu(p).opsize]) and
+           MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^)) or
+          ((taicpu(p).opcode=A_VCVTSS2SD) and MatchInstruction(hp1,A_VCVTSD2SS,[taicpu(p).opsize]) and
+           MatchOpType(taicpu(p),top_reg,top_reg,top_reg) and
+           MatchOpType(taicpu(hp1),top_reg,top_reg,top_reg) and
+           (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)) and
+           (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
+           (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg)) and
+           (getsupreg(taicpu(p).oper[2]^.reg)=getsupreg(taicpu(hp1).oper[0]^.reg))
+          )
+         ) then
+         begin
+           DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Nop done',p);
+           RemoveCurrentP(p);
+           RemoveInstruction(hp1);
+           Result:=true;
+           Exit;
          end;
      end;
 
