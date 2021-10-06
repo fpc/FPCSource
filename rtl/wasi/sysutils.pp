@@ -29,6 +29,7 @@ uses
   wasiapi;
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_GETTICKCOUNT64}
 
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
@@ -52,6 +53,17 @@ implementation
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
+
+
+function GetTickCount64: QWord;
+var
+  NanoSecsPast: __wasi_timestamp_t;
+begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_MONOTONIC,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+    Result:=NanoSecsPast div 1000000
+  else
+    Result:=0;
+end;
 
 
 {****************************************************************************
