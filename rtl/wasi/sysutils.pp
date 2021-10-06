@@ -253,15 +253,62 @@ end;
 ****************************************************************************}
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
+var
+  hp : ppchar;
+  hs : string;
+  eqpos : longint;
 begin
+  result:='';
+  hp:=envp;
+  if hp<>nil then
+    while assigned(hp^) do
+      begin
+        hs:=strpas(hp^);
+        eqpos:=pos('=',hs);
+        if copy(hs,1,eqpos-1)=envvar then
+          begin
+            result:=copy(hs,eqpos+1,length(hs)-eqpos);
+            break;
+          end;
+        inc(hp);
+      end;
 end;
 
 Function GetEnvironmentVariableCount : Integer;
+var
+  p: ppchar;
 begin
+  result:=0;
+  p:=envp;      {defined in system}
+  if p<>nil then
+    while p^<>nil do
+      begin
+        inc(result);
+        inc(p);
+      end;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Var
+  i : longint;
+  p : ppchar;
 begin
+  if (Index <= 0) or (envp=nil) then
+    result:=''
+  else
+    begin
+      p:=envp;      {defined in system}
+      i:=1;
+      while (i<Index) and (p^<>nil) do
+        begin
+          inc(i);
+          inc(p);
+        end;
+      if p^=nil then
+        result:=''
+      else
+        result:=strpas(p^)
+    end;
 end;
 
 
