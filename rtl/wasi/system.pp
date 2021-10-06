@@ -48,12 +48,19 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
+type
+  PPreopenedDir = ^TPreopenedDir;
+  TPreopenedDir = record
+    dir_name: PChar;
+    fd: longint;
+  end;
+
 var
   argc: longint;
   argv: PPChar;
   envp: PPChar;
   preopened_dirs_count: longint;
-  preopened_dirs: PPChar;
+  preopened_dirs: PPreopenedDir;
   drives_count: longint;
   current_dirs: PPChar;
   current_dir_fds: Plongint;
@@ -128,7 +135,7 @@ begin
     for I:=0 to preopened_dirs_count-1 do
     begin
       path:=savepath;
-      pdir:=preopened_dirs[I];
+      pdir:=preopened_dirs[I].dir_name;
       if HasDriveLetter(pdir) then
       begin
         pdir_drive:=Ord(UpCase(pdir[0]))-(Ord('A')-1);
@@ -151,7 +158,7 @@ begin
         longest_match:=pdir_length;
         while path^ in ['/','\'] do
           Inc(path);
-        fd:=I+3;
+        fd:=preopened_dirs[I].fd;
         FreeMem(relfd_path);
         relfd_path:=GetMem(StrLen(path)+1);
         Move(path^,relfd_path^,StrLen(path)+1);
@@ -203,10 +210,11 @@ begin
           prestat_dir_name[prestat.u.dir.pr_name_len]:=#0;
           Inc(preopened_dirs_count);
           if preopened_dirs=nil then
-            preopened_dirs:=AllocMem(preopened_dirs_count*SizeOf(PChar))
+            preopened_dirs:=AllocMem(preopened_dirs_count*SizeOf(TPreopenedDir))
           else
-            ReAllocMem(preopened_dirs, preopened_dirs_count*SizeOf(PChar));
-          preopened_dirs[preopened_dirs_count-1]:=prestat_dir_name;
+            ReAllocMem(preopened_dirs, preopened_dirs_count*SizeOf(TPreopenedDir));
+          preopened_dirs[preopened_dirs_count-1].dir_name:=prestat_dir_name;
+          preopened_dirs[preopened_dirs_count-1].fd:=fd;
           if HasDriveLetter(prestat_dir_name) then
             drive_nr:=Ord(UpCase(prestat_dir_name[0]))-(Ord('A')-1)
           else
