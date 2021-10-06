@@ -230,7 +230,7 @@ type
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
     function Find(const AName:TSymStr): Pointer;
-    function FindIndexOf(const AName:TSymStr): Integer;
+    function FindIndexOf(const AName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
     function Rename(const AOldName,ANewName:TSymStr): Integer;
     function Remove(Item: Pointer): Integer;
@@ -284,7 +284,7 @@ type
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer);
+    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetItem(Index: Integer; AObject: TObject);
@@ -305,7 +305,7 @@ type
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Find(const s:TSymStr): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindIndexOf(const s:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
+    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Rename(const AOldName,ANewName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -465,7 +465,7 @@ type
          constructor Create(Ablocksize:longword);
          destructor  Destroy;override;
          procedure reset;
-         function  size:longword;
+         function  size:longword; {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure align(i:longword);
          procedure seek(i:longword);
          function  read(var d;len:longword):longword;
@@ -571,7 +571,7 @@ type
          constructor create(initsize: longint);
          constructor create_bytesize(bytesize: longint);
          destructor destroy; override;
-         procedure clear;
+         procedure clear; {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure grow(nsize: longint);
          { sets a bit }
          procedure include(index: longint);
