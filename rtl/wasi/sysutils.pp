@@ -281,7 +281,18 @@ end;
 *************************************************************************}
 
 procedure Sleep (MilliSeconds: Cardinal);
+var
+  subscription: __wasi_subscription_t;
+  event: __wasi_event_t;
+  nevents: __wasi_size_t;
 begin
+  FillChar(subscription,SizeOf(subscription),0);
+  subscription.u.tag:=__WASI_EVENTTYPE_CLOCK;
+  subscription.u.u.clock.id:=__WASI_CLOCKID_MONOTONIC;
+  subscription.u.u.clock.timeout:=MilliSeconds*1000000;
+  subscription.u.u.clock.precision:=1000000;
+  subscription.u.u.clock.flags:=0;  { timeout value is relative }
+  __wasi_poll_oneoff(@subscription,@event,1,@nevents);
 end;
 
 {****************************************************************************
