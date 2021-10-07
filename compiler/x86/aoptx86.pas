@@ -5874,14 +5874,24 @@ unit aoptx86;
            MatchOpType(taicpu(hp1),top_reg,top_reg,top_reg) and
            (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)) and
            (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
-           (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg)) and
            (getsupreg(taicpu(p).oper[2]^.reg)=getsupreg(taicpu(hp1).oper[0]^.reg))
           )
          ) then
          begin
-           DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Nop done',p);
-           RemoveCurrentP(p);
-           RemoveInstruction(hp1);
+           if getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg) then
+             begin
+               DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Nop done',p);
+               RemoveCurrentP(p);
+               RemoveInstruction(hp1);
+             end
+           else
+             begin
+               DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Vmovss done',p);
+               taicpu(p).loadreg(1,taicpu(hp1).oper[2]^.reg);
+               taicpu(p).ops:=2;
+               taicpu(p).opcode:=A_VMOVSS;
+               RemoveInstruction(hp1);
+             end;
            Result:=true;
            Exit;
          end;

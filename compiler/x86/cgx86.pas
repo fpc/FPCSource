@@ -1501,7 +1501,7 @@ unit cgx86;
 
             { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
             if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
-              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg2,reg2)
+              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg1,reg2)
             else
               instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
 
