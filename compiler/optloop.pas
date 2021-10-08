@@ -350,7 +350,7 @@ unit optloop;
 
 
       var
-        tempnode : ttempcreatenode;
+        tempnode,startvaltemp : ttempcreatenode;
         dummy : longint;
         nn : tnode;
         nt : tnodetype;
@@ -453,10 +453,13 @@ unit optloop;
                 { direct array access? }
                 ((tvecnode(n).left.nodetype=loadn) or
                 { ... or loop invariant expression? }
-                is_loop_invariant(tfornode(arg),tvecnode(n).right)) and
+                is_loop_invariant(tfornode(arg),tvecnode(n).right))
+{$if not (defined(cpu16bitalu) or defined(cpu8bitalu))}
                 { removing the multiplication is only worth the
                   effort if it's not a simple shift }
-                not(ispowerof2(tcgvecnode(n).get_mul_size,dummy)) then
+                and not(ispowerof2(tcgvecnode(n).get_mul_size,dummy))
+{$endif}
+                then
                 begin
                   changedforloop:=true;
                   { did we use the same expression before already? }
@@ -487,6 +490,8 @@ unit optloop;
                           cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
 
                       addstatement(initcodestatements,tempnode);
+
+                      startvaltemp:=maybereplacewithtemp(tfornode(arg).right,initcode,initcodestatements,tfornode(arg).right.resultdef.size,true);
                       nn:=caddrnode.create(
                           cvecnode.create(tvecnode(n).left.getcopy,tfornode(arg).right.getcopy)
                         );
@@ -508,6 +513,8 @@ unit optloop;
                       n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),n.resultdef);
 
                       { ... and add a temp. release node }
+                      if startvaltemp<>nil then
+                        addstatement(deletecodestatements,ctempdeletenode.create(startvaltemp));
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
                     end;
                   { Copy the nf_write,nf_modify flags to the new deref node of the temp.
