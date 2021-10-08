@@ -5886,10 +5886,10 @@ unit aoptx86;
              end
            else
              begin
-               DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Vmovss done',p);
+               DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Vmovaps done',p);
                taicpu(p).loadreg(1,taicpu(hp1).oper[2]^.reg);
                taicpu(p).ops:=2;
-               taicpu(p).opcode:=A_VMOVSS;
+               taicpu(p).opcode:=A_VMOVAPS;
                RemoveInstruction(hp1);
              end;
            Result:=true;
