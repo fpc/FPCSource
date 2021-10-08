@@ -344,8 +344,8 @@ unit optloop;
       procedure CheckCalcAtEnd;
         begin
           if not assigned(initcode) then
-            docalcatend:=not(foreachnodestatic(tfornode(arg).t2,@checkcontinue,nil)) and
-              not(assigned(tfornode(arg).entrylabel));
+            docalcatend:=not(assigned(tfornode(arg).entrylabel)) and
+              not(foreachnodestatic(tfornode(arg).t2,@checkcontinue,nil));
         end;
 
 
