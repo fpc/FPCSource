@@ -3197,7 +3197,7 @@ link_e_undefined_symbol=09222_E_Undefined symbol: $1
 #
 # Unit loading
 #
-# 10064 is the last used one
+# 10068 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3422,6 +3422,8 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both compiled with or without LLVM support
 % Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
 % and vice versa.
+unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU is compiled for another WebAssembly exceptions mode
+% This unit file was compiled for a different WebAssembly exceptions mode.
 % \end{description}
 # EndOfTeX
 

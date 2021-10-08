@@ -402,7 +402,11 @@ interface
          mf_package_deny,             { this unit must not be part of a package }
          mf_package_weak,             { this unit may be completely contained in a package }
          mf_llvm,                     { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
-         mf_symansistr                { symbols are ansistrings (for ppudump) }
+         mf_symansistr,               { symbols are ansistrings (for ppudump) }
+         mf_wasm_no_exceptions,       { unit was compiled in WebAssembly 'no exceptions' mode }
+         mf_wasm_bf_exceptions,       { unit was compiled in WebAssembly 'branchful' exceptions mode }
+         mf_wasm_js_exceptions,       { unit was compiled in WebAssembly JavaScript-based exceptions mode }
+         mf_wasm_native_exceptions    { unit was compiled in WebAssembly native exceptions mode }
        );
        tmoduleflags = set of tmoduleflag;
 
