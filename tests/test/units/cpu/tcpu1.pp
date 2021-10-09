@@ -35,5 +35,15 @@ begin
     end
   else
     writeln('no');
+  write('SHA support: ');
+  if SHASupport then
+    begin
+      writeln('yes');
+      asm
+        sha256rnds2 %xmm0,%xmm0
+      end;
+    end
+  else
+    writeln('no');
 end.
 

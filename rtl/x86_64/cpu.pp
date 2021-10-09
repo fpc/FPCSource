@@ -40,6 +40,7 @@ unit cpu;
     function AVX512CDSupport: boolean;inline;    
     function AVX512BWSupport: boolean;inline;    
     function AVX512VLSupport: boolean;inline;    
+    function SHASupport: boolean;inline;    
     function FMASupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
     function SSE41Support: boolean;inline;
@@ -73,6 +74,7 @@ unit cpu;
       _AVX512CDSupport,
       _AVX512BWSupport,
       _AVX512VLSupport,
+      _SHASupport,
       _FMASupport,
       _POPCNTSupport,
       _SSE41Support,
@@ -215,6 +217,7 @@ unit cpu;
             _AVX512PFSupport:=(_ebx and $4000000)<>0;
             _AVX512ERSupport:=(_ebx and $8000000)<>0;
             _AVX512CDSupport:=(_ebx and $10000000)<>0;
+            _SHASupport:=(_ebx and $20000000)<>0;
             _AVX512BWSupport:=(_ebx and $40000000)<>0;
             _AVX512VLSupport:=(_ebx and $80000000)<>0;
             _BMI1Support:=(_ebx and $8)<>0;
@@ -293,6 +296,12 @@ unit cpu;
     function AVX512VLSupport: boolean;inline;    
       begin
         result:=_AVX512VLSupport;
+      end;
+
+
+    function SHASupport: boolean;inline;    
+      begin
+        result:=_SHASupport;
       end;
 
 
