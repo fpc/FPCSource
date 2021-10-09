@@ -1705,7 +1705,7 @@ unit cgx86;
 
                  { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
                  if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
-                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,hreg,hreg))
+                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,reg,hreg))
                  else
                    list.concat(taicpu.op_reg_reg(op,S_NO,reg,hreg));
 
