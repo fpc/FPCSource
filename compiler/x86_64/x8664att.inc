@@ -1431,5 +1431,12 @@
 'vpshrdvq',
 'vpshrdvw',
 'vpshrdw',
-'vpshufbitqmb'
+'vpshufbitqmb',
+'sha1rnds4',
+'sha1nexte',
+'sha1msg1',
+'sha1msg2',
+'sha256rnds2',
+'sha256msg1',
+'sha256msg2'
 );

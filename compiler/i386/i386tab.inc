@@ -29147,5 +29147,54 @@
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
     code    : #232#233#241#249#1#143#61#80;
     flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_SHA1RNDS4;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_immediate,ot_none);
+    code    : #3#15#58#204#72#22;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA1NEXTE;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#200#72;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA1MSG1;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#201#72;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA1MSG2;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#12#72;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA256RNDS2;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#203#72;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA256MSG1;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#204#72;
+    flags   : [if_sha]
+  ),
+  (
+    opcode  : A_SHA256MSG2;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #3#15#56#205#72;
+    flags   : [if_sha]
   )
 );

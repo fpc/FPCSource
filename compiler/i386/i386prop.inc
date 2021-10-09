@@ -1435,5 +1435,12 @@
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
 (Ch: [Ch_All]),
-(Ch: [Ch_All])
+(Ch: [Ch_All]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Mop2, Ch_Rop1])
 );

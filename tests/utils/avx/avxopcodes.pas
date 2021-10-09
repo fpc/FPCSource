@@ -65,10 +65,25 @@ begin
   inherited;
 end;
 
+{$define TEST_SHA}
+{$define TEST_XSAVE}
+{$define TEST_ALL}
+
 procedure TAVXTestGenerator.Init;
 begin
   // Opcode, i386, x8664, AVX512, Parameter
+{$if defined(TEST_SHA) or defined(TEST_ALL)}
+  { SHA opcodes }
+  FOpCodeList.Add('SHA1RNDS4,1,1,0,XMMREG,XMMRM,IMM8,');
+  FOpCodeList.Add('SHA1NEXTE,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA1MSG1,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA1MSG2,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256RNDS2,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256MSG1,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256MSG2,1,1,0,XMMREG,XMMRM,,');  
+{$endif defined(TEST_SHA) or defined(TEST_ALL)}
 
+{$if defined(TEST_XSAVE) or defined(TEST_ALL)}
   { XSAVE opcodes }
   FOpCodeList.Add('XGETBV,1,1,0,,,,,');
   FOpCodeList.Add('XSETBV,1,1,0,,,,,');
@@ -78,7 +93,9 @@ begin
   FOpCodeList.Add('XRSTOR64,1,1,0,MEM64,,,,');
   FOpCodeList.Add('XSAVEOPT,1,1,0,MEM64,,,,');
   FOpCodeList.Add('XSAVEOPT64,1,1,0,MEM64,,,,');
+{$endif defined(TEST_XSAVE) or defined(TEST_ALL)}
 
+{$ifdef TEST_ALL}
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,MEM32,,,');
 
@@ -3278,6 +3295,7 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,xmmreg,xmmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,ymmreg,ymmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
+{$endif TEST_ALL}  
 end;
 
 function TAVXTestGenerator.SaveFile(aAsmList: TStringList; aOpcode, aDestPath,

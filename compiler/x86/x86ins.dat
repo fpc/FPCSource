@@ -9136,5 +9136,35 @@ kreg_m,xmmreg,xmmrm                       \350\361\371\1\x8F\75\120             
 kreg_m,ymmreg,ymmrm                       \350\361\364\371\1\x8F\75\120             AVX512,TFVM
 kreg_m,zmmreg,zmmrm                       \350\351\361\371\1\x8F\75\120             AVX512,TFVM
 
+;*******************************************************************************
+;********* SHA *****************************************************************
+;*******************************************************************************
 
+[SHA1RNDS4]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm,imm                          \3\x0F\x3A\xCC\110\26                     SHA
 
+[SHA1NEXTE]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC8\110                        SHA
+
+[SHA1MSG1]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC9\110                        SHA
+
+[SHA1MSG2]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC\110                        SHA
+
+[SHA256RNDS2]
+; reads also xmm0 !
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xCB\110                        SHA
+
+[SHA256MSG1]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xCC\110                        SHA
+
+[SHA256MSG2]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xCD\110                        SHA

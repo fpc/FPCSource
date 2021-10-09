@@ -259,6 +259,7 @@ type
       IF_RAND,
       IF_XSAVE,
       IF_PREFETCHWT1,
+      IF_SHA,
 
       { mask for processor level }
       { please keep these in order and in sync with IF_PLEVEL }

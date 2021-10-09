@@ -463,6 +463,7 @@ interface
         IF_RAND,
         IF_XSAVE,
         IF_PREFETCHWT1,
+        IF_SHA,
 
         { mask for processor level }
         { please keep these in order and in sync with IF_PLEVEL }
@@ -3523,8 +3524,6 @@ implementation
        * \370          - VEX 0F-FLAG
        * \371          - VEX 0F38-FLAG
        * \372          - VEX 0F3A-FLAG
-
-
       }
 
       var
