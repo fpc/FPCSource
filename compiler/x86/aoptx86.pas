@@ -10326,28 +10326,6 @@ unit aoptx86;
               end;
 
           end;
-
-{$ifdef x86_64}
-        { Code size reduction by J. Gareth "Kit" Moreton }
-        { Convert MOVZBQ and MOVZWQ to MOVZBL and MOVZWL respectively if it removes the REX prefix }
-        if (taicpu(p).opsize in [S_BQ, S_WQ]) and
-          (getsupreg(taicpu(p).oper[1]^.reg) in [RS_RAX, RS_RCX, RS_RDX, RS_RBX, RS_RSI, RS_RDI, RS_RBP, RS_RSP])
-        then
-          begin
-            { Has 64-bit register name and opcode suffix }
-            PreMessage := 'movz' + debug_opsize2str(taicpu(p).opsize) + ' ' + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' -> movz';
-
-            { The actual optimization }
-            setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-            if taicpu(p).opsize = S_BQ then
-              taicpu(p).changeopsize(S_BL)
-            else
-              taicpu(p).changeopsize(S_WL);
-
-            DebugMsg(SPeepholeOptimization + PreMessage +
-              debug_opsize2str(taicpu(p).opsize) + ' ' + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' (removes REX prefix)', p);
-          end;
-{$endif}
       end;
 
 
@@ -10371,20 +10349,17 @@ unit aoptx86;
         case taicpu(p).opsize of
           S_Q:
             begin
-              if (getsupreg(taicpu(p).oper[0]^.reg) in [RS_RAX, RS_RCX, RS_RDX, RS_RBX, RS_RSI, RS_RDI, RS_RBP, RS_RSP]) then
-                begin
-                  RegName := debug_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
-                  PreMessage := 'xorq ' + RegName + ',' + RegName + ' -> xorl ';
+              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
+              PreMessage := 'xorq ' + RegName + ',' + RegName + ' -> xorl ';
 
-                  { The actual optimization }
-                  setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
-                  setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-                  taicpu(p).changeopsize(S_L);
+              { The actual optimization }
+              setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
+              setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+              taicpu(p).changeopsize(S_L);
 
-                  RegName := debug_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
+              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
 
-                  DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',' + RegName + ' (removes REX prefix)', p);
-                end;
+              DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',' + RegName + ' (32-bit register recommended when zeroing 64-bit counterpart)', p);
             end;
           else
             ;
