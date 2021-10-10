@@ -84,6 +84,11 @@ implementation
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
 
+function HasDriveLetter(const path: rawbytestring): Boolean;
+begin
+  HasDriveLetter:=(path<>'') and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
+end;
+
 {$I system.inc}
 
 var
@@ -107,14 +112,9 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
-function HasDriveLetter(const path: rawbytestring): Boolean;
-begin
-  HasDriveLetter:=(path<>'') and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
-end;
-
 function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
 var
-  drive_nr,I,pdir_drive,longest_match,pdir_length,chridx: longint;
+  drive_nr,I,pdir_drive,longest_match,chridx: longint;
   IsAbsolutePath: Boolean;
   pdir: ansistring;
 begin
@@ -129,7 +129,7 @@ begin
   else
     drive_nr:=current_drive;
   { path is relative to a current directory? }
-  if not (path[1] in ['/','\']) then
+  if (path='') or not (path[1] in ['/','\']) then
   begin
     { if so, convert to absolute }
     if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
@@ -146,7 +146,6 @@ begin
       delete(path,1,2);
   end;
   { path is now absolute. Try to find it in the preopened dirs array }
-  InOutRes:=3;
   ConvertToFdRelativePath:=false;
   longest_match:=0;
   for I:=0 to preopened_dirs_count-1 do
@@ -161,25 +160,28 @@ begin
       pdir_drive:=0;
     if pdir_drive<>drive_nr then
       continue;
-    pdir_length:=Length(pdir);
-    if pdir_length>Length(path) then
+    if Length(pdir)>Length(path) then
       continue;
-    if Copy(path,1,pdir_length)<>Copy(pdir,1,pdir_length) then
+    if Copy(path,1,Length(pdir))<>pdir then
       continue;
-    chridx:=pdir_length+1;
-    if (chridx>Length(path)) or not (path[chridx] in ['/','\']) then
+    chridx:=Length(pdir)+1;
+    if ((pdir<>'/') and (pdir<>'\')) and
+       ((chridx>Length(path)) or not (path[chridx] in ['/','\'])) then
       continue;
-    if pdir_length>longest_match then
+    if Length(pdir)>longest_match then
     begin
-      longest_match:=pdir_length;
+      longest_match:=Length(pdir);
       while (chridx<=Length(path)) and (path[chridx] in ['/','\']) do
         Inc(chridx);
       fd:=preopened_dirs[I].fd;
       relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
-      InOutRes:=0;
       ConvertToFdRelativePath:=true;
     end;
   end;
+  if longest_match>0 then
+    InOutRes:=0
+  else
+    InOutRes:=3;
 end;
 
 procedure Setup_PreopenedDirs;
