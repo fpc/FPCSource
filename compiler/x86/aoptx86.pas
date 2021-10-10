@@ -541,59 +541,74 @@ unit aoptx86;
               end;
             with insprop[p.opcode] do
               begin
-                if getregtype(reg)=R_INTREGISTER then
-                  begin
-                    case getsupreg(reg) of
-                      RS_EAX:
-                        if [Ch_REAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_ECX:
-                        if [Ch_RECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_EDX:
-                        if [Ch_REDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_EBX:
-                        if [Ch_REBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_ESP:
-                        if [Ch_RESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_EBP:
-                        if [Ch_REBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_ESI:
-                        if [Ch_RESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
-                      RS_EDI:
-                        if [Ch_REDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
-                          begin
-                            RegReadByInstruction := true;
-                            exit
-                          end;
+                case getregtype(reg) of
+                  R_INTREGISTER:
+                    begin
+                      case getsupreg(reg) of
+                        RS_EAX:
+                          if [Ch_REAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_ECX:
+                          if [Ch_RECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_EDX:
+                          if [Ch_REDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_EBX:
+                          if [Ch_REBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_ESP:
+                          if [Ch_RESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_EBP:
+                          if [Ch_REBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_ESI:
+                          if [Ch_RESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        RS_EDI:
+                          if [Ch_REDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        end;
                     end;
-                  end;
+                  R_MMREGISTER:
+                    begin
+                      case getsupreg(reg) of
+                        RS_XMM0:
+                          if [Ch_RXMM0,Ch_RWXMM0,Ch_MXMM0]*Ch<>[] then
+                            begin
+                              RegReadByInstruction := true;
+                              exit
+                            end;
+                        end;
+                    end;
+                  else
+                    ;
+                end;
                 if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
                   begin
                     if (Ch_RFLAGScc in Ch) and not(getsubreg(reg) in [R_SUBW,R_SUBD,R_SUBQ]) then
@@ -717,6 +732,17 @@ unit aoptx86;
               result:=([Ch_RESI,Ch_RRSI,Ch_WESI,Ch_WRSI,Ch_RWESI,Ch_RWRSI,Ch_MESI,Ch_MRSI,Ch_RMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
             RS_EDI:
               result:=([Ch_REDI,Ch_RRDI,Ch_WEDI,Ch_WRDI,Ch_RWEDI,Ch_RWRDI,Ch_MEDI,Ch_MRDI,Ch_WMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+            else
+              ;
+          end;
+          if result then
+            exit;
+        end
+      else if getregtype(reg)=R_MMREGISTER then
+        begin
+          case getsupreg(reg) of
+            RS_XMM0:
+              result:=([Ch_RXMM0,Ch_WXMM0,Ch_RWXMM0,Ch_MXMM0]*insprop[taicpu(p1).opcode].Ch)<>[];
             else
               ;
           end;

@@ -9158,7 +9158,7 @@ xmmreg,xmmrm                              \3\x0F\x38\xC\110                     
 
 [SHA256RNDS2]
 ; reads also xmm0 !
-(Ch_Mop2, Ch_Rop1)
+(Ch_Mop2, Ch_Rop1, Ch_RXMM0)
 xmmreg,xmmrm                              \3\x0F\x38\xCB\110                        SHA
 
 [SHA256MSG1]
