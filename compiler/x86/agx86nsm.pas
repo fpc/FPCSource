@@ -86,7 +86,7 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,fpccrc,
+      cutils,globals,systems,fpchash,
       fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
