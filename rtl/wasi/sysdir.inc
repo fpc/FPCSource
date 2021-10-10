@@ -21,33 +21,31 @@
 procedure Do_MkDir(s: rawbytestring);
 var
   fd: __wasi_fd_t;
-  pr: PChar;
+  pr: ansistring;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(PChar(s),fd,pr) then
+  if not ConvertToFdRelativePath(s,fd,pr) then
     exit;
-  res:=__wasi_path_create_directory(fd,pr,StrLen(pr));
+  res:=__wasi_path_create_directory(fd,PChar(pr),Length(pr));
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
   else
     InOutRes:=Errno2InoutRes(res);
-  FreeMem(pr);
 end;
 
 procedure Do_RmDir(s: rawbytestring);
 var
   fd: __wasi_fd_t;
-  pr: PChar;
+  pr: ansistring;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(PChar(s),fd,pr) then
+  if not ConvertToFdRelativePath(s,fd,pr) then
     exit;
-  res:=__wasi_path_remove_directory(fd,pr,StrLen(pr));
+  res:=__wasi_path_remove_directory(fd,PChar(pr),Length(pr));
   if res=__WASI_ERRNO_SUCCESS then
     InOutRes:=0
   else
     InOutRes:=Errno2InoutRes(res);
-  FreeMem(pr);
 end;
 
 procedure do_ChDir(s: rawbytestring);
@@ -59,8 +57,8 @@ procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 begin
   if drivenr=0 then
     drivenr:=current_drive;
-  if (drivenr<=drives_count) and (current_dirs[drivenr]<>nil) then
-    dir:=current_dirs[drivenr]
+  if (drivenr<=drives_count) and (current_dirs[drivenr].dir_name<>'') then
+    dir:=current_dirs[drivenr].dir_name
   else
     InoutRes:=15;
 end;

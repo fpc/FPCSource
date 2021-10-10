@@ -457,23 +457,18 @@ End;
 
 Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
-  s_ansi: ansistring;
   DT   : DateTime;
   Info : RtlInfoType;
   st   : __wasi_filestat_t;
   fd   : __wasi_fd_t;
-  pr   : PChar;
+  pr   : ansistring;
 begin
   FindGetFileInfo:=false;
-  s_ansi:=s;
-  if not ConvertToFdRelativePath(PChar(s_ansi),fd,pr) then
+  if not ConvertToFdRelativePath(s,fd,pr) then
     exit;
   { todo: __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW??? }
-  if __wasi_path_filestat_get(fd,0,pr,StrLen(pr),@st)<>__WASI_ERRNO_SUCCESS then
-    begin
-      FreeMem(pr);
-      exit;
-    end;
+  if __wasi_path_filestat_get(fd,0,PChar(pr),Length(pr),@st)<>__WASI_ERRNO_SUCCESS then
+    exit;
   info.FSize:=st.size;
   info.FMTime:=st.mtim;
   if st.filetype=__WASI_FILETYPE_DIRECTORY then
@@ -495,7 +490,6 @@ begin
      PackTime(DT,f.Time);
      FindGetFileInfo:=true;
    End;
-  FreeMem(pr);
 end;
 
 
@@ -535,9 +529,9 @@ Procedure FindNext(Var f: SearchRec);
 }
 Var
   fd,ourfd: __wasi_fd_t;
-  pr: PChar;
+  pr: ansistring;
   res: __wasi_errno_t;
-  DirName  : Array[0..256] of Char;
+  DirName  : ansistring;
   i,
   ArrayPos : Longint;
   FName,
@@ -559,23 +553,16 @@ Begin
      If ArrayPos=0 Then
       Begin
         If f.NamePos = 0 Then
-         Begin
-           DirName[0] := '.';
-           DirName[1] := '/';
-           DirName[2] := #0;
-         End
+         DirName:='./'
         Else
-         Begin
-           Move(f.SearchSpec[1], DirName[0], f.NamePos);
-           DirName[f.NamePos] := #0;
-         End;
-        if ConvertToFdRelativePath(@DirName[0],fd,pr) then
+         DirName:=Copy(f.SearchSpec,1,f.NamePos);
+        if ConvertToFdRelativePath(DirName,fd,pr) then
          begin
            repeat
              res:=__wasi_path_open(fd,
                                    0,
-                                   pr,
-                                   strlen(pr),
+                                   PChar(pr),
+                                   length(pr),
                                    __WASI_OFLAGS_DIRECTORY,
                                    __WASI_RIGHTS_FD_READDIR,
                                    __WASI_RIGHTS_FD_READDIR,
@@ -595,7 +582,6 @@ Begin
             end
            else
             f.DirFD:=-1;
-           FreeMem(pr);
          end
         else
          f.DirFD:=-1;

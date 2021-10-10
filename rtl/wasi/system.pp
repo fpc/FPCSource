@@ -51,7 +51,12 @@ const
 type
   PPreopenedDir = ^TPreopenedDir;
   TPreopenedDir = record
-    dir_name: PChar;
+    dir_name: ansistring;
+    fd: longint;
+  end;
+  PCurrentDir = ^TCurrentDir;
+  TCurrentDir = record
+    dir_name: ansistring;
     fd: longint;
   end;
 
@@ -62,11 +67,10 @@ var
   preopened_dirs_count: longint;
   preopened_dirs: PPreopenedDir;
   drives_count: longint;
-  current_dirs: PPChar;
-  current_dir_fds: Plongint;
+  current_dirs: PCurrentDir;
   current_drive: longint;
 
-function ConvertToFdRelativePath(path: PChar; out fd: LongInt; out relfd_path: PChar): Boolean;
+function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
 
 procedure DebugWrite(const P: PChar);
 procedure DebugWriteLn(const P: PChar);
@@ -104,64 +108,60 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
-function HasDriveLetter(const path: PChar): Boolean;
+function HasDriveLetter(const path: rawbytestring): Boolean;
 begin
-  HasDriveLetter:=(path<>nil) and (UpCase(path[0]) in ['A'..'Z']) and (path[1] = ':');
+  HasDriveLetter:=(path<>'') and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
 end;
 
-function ConvertToFdRelativePath(path: PChar; out fd: LongInt; out relfd_path: PChar): Boolean;
+function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
 var
-  drive_nr,I,pdir_drive,longest_match,pdir_length: longint;
+  drive_nr,I,pdir_drive,longest_match,pdir_length,chridx: longint;
   IsAbsolutePath: Boolean;
-  pdir, savepath: PChar;
+  pdir: ansistring;
 begin
   fd:=0;
-  relfd_path:=nil;
+  relfd_path:='';
 
   if HasDriveLetter(path) then
   begin
-    drive_nr:=Ord(UpCase(path[0]))-(Ord('A')-1);
-    inc(path,2);
+    drive_nr:=Ord(UpCase(path[1]))-(Ord('A')-1);
+    delete(path,1,2);
   end
   else
     drive_nr:=current_drive;
-  if path[0] in ['/','\'] then
+  if path[1] in ['/','\'] then
   begin
     { path is absolute. Try to find it in the preopened dirs array }
     InOutRes:=3;
     ConvertToFdRelativePath:=false;
     longest_match:=0;
-    savepath:=path;
     for I:=0 to preopened_dirs_count-1 do
     begin
-      path:=savepath;
       pdir:=preopened_dirs[I].dir_name;
       if HasDriveLetter(pdir) then
       begin
-        pdir_drive:=Ord(UpCase(pdir[0]))-(Ord('A')-1);
-        Inc(pdir,2);
+        pdir_drive:=Ord(UpCase(pdir[1]))-(Ord('A')-1);
+        delete(pdir,1,2);
       end
       else
         pdir_drive:=0;
       if pdir_drive<>drive_nr then
         continue;
-      pdir_length:=StrLen(pdir);
-      if pdir_length>StrLen(path) then
+      pdir_length:=Length(pdir);
+      if pdir_length>Length(path) then
         continue;
-      if CompareByte(path^,pdir^,pdir_length)<>0 then
+      if Copy(path,1,pdir_length)<>Copy(pdir,1,pdir_length) then
         continue;
-      Inc(path,pdir_length);
-      if not (path^ in [#0,'/','\']) then
+      chridx:=pdir_length+1;
+      if (chridx>Length(path)) or not (path[chridx] in ['/','\']) then
         continue;
       if pdir_length>longest_match then
       begin
         longest_match:=pdir_length;
-        while path^ in ['/','\'] do
-          Inc(path);
+        while (chridx<=Length(path)) and (path[chridx] in ['/','\']) do
+          Inc(chridx);
         fd:=preopened_dirs[I].fd;
-        FreeMem(relfd_path);
-        relfd_path:=GetMem(StrLen(path)+1);
-        Move(path^,relfd_path^,StrLen(path)+1);
+        relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
         InOutRes:=0;
         ConvertToFdRelativePath:=true;
       end;
@@ -170,15 +170,14 @@ begin
   else
   begin
     { path is relative to a current directory }
-    if (drive_nr>=drives_count) or (current_dirs[drive_nr]=nil) then
+    if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
     begin
       InOutRes:=15;
       ConvertToFdRelativePath:=false;
       exit;
     end;
-    fd:=current_dir_fds[drive_nr];
-    relfd_path:=GetMem(1+StrLen(path));
-    Move(path^,relfd_path^,1+StrLen(path));
+    fd:=current_dirs[drive_nr].fd;
+    relfd_path:=path;
     ConvertToFdRelativePath:=true;
   end;
 end;
@@ -188,14 +187,13 @@ var
   fd: __wasi_fd_t;
   prestat: __wasi_prestat_t;
   res: __wasi_errno_t;
-  prestat_dir_name: PChar;
+  prestat_dir_name: ansistring;
   drive_nr: longint;
 begin
   preopened_dirs_count:=0;
   preopened_dirs:=nil;
   drives_count:=0;
   current_dirs:=nil;
-  current_dir_fds:=nil;
   current_drive:=0;
   fd:=3;
   repeat
@@ -204,10 +202,9 @@ begin
     begin
       if (prestat.tag=__WASI_PREOPENTYPE_DIR) and (prestat.u.dir.pr_name_len>0) then
       begin
-        GetMem(prestat_dir_name,prestat.u.dir.pr_name_len+1);
+        SetLength(prestat_dir_name,prestat.u.dir.pr_name_len);
         if __wasi_fd_prestat_dir_name(fd,PByte(prestat_dir_name),prestat.u.dir.pr_name_len)=__WASI_ERRNO_SUCCESS then
         begin
-          prestat_dir_name[prestat.u.dir.pr_name_len]:=#0;
           Inc(preopened_dirs_count);
           if preopened_dirs=nil then
             preopened_dirs:=AllocMem(preopened_dirs_count*SizeOf(TPreopenedDir))
@@ -216,37 +213,28 @@ begin
           preopened_dirs[preopened_dirs_count-1].dir_name:=prestat_dir_name;
           preopened_dirs[preopened_dirs_count-1].fd:=fd;
           if HasDriveLetter(prestat_dir_name) then
-            drive_nr:=Ord(UpCase(prestat_dir_name[0]))-(Ord('A')-1)
+            drive_nr:=Ord(UpCase(prestat_dir_name[1]))-(Ord('A')-1)
           else
             drive_nr:=0;
           if (drive_nr+1)>drives_count then
           begin
             drives_count:=drive_nr+1;
             if current_dirs=nil then
-            begin
-              current_dirs:=AllocMem(drives_count*SizeOf(PChar));
-              current_dir_fds:=AllocMem(drives_count*SizeOf(longint));
-            end
+              current_dirs:=AllocMem(drives_count*SizeOf(TCurrentDir))
             else
-            begin
-              ReAllocMem(current_dirs,drives_count*SizeOf(PChar));
-              ReAllocMem(current_dir_fds,drives_count*SizeOf(longint));
-            end;
+              ReAllocMem(current_dirs,drives_count*SizeOf(TCurrentDir));
           end;
-          if current_dirs[drive_nr]=nil then
+          if current_dirs[drive_nr].dir_name='' then
           begin
-            current_dirs[drive_nr]:=GetMem(1+StrLen(prestat_dir_name));
-            Move(prestat_dir_name^,current_dirs[drive_nr]^,StrLen(prestat_dir_name)+1);
-            current_dir_fds[drive_nr]:=fd;
+            current_dirs[drive_nr].dir_name:=prestat_dir_name;
+            current_dirs[drive_nr].fd:=fd;
           end;
-        end
-        else
-          FreeMem(prestat_dir_name,prestat.u.dir.pr_name_len+1);
+        end;
       end;
     end;
     Inc(fd);
   until res<>__WASI_ERRNO_SUCCESS;
-  while (current_drive<drives_count) and (current_dirs[current_drive]=nil) do
+  while (current_drive<drives_count) and (current_dirs[current_drive].dir_name='') do
     Inc(current_drive);
 end;
 
