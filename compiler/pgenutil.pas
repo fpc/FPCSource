@@ -63,7 +63,7 @@ implementation
 
 uses
   { common }
-  cutils,fpccrc,
+  cutils,fpchash,
   { global }
   globals,tokens,verbose,finput,constexp,
   { symtable }

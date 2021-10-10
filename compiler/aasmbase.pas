@@ -265,7 +265,7 @@ interface
 implementation
 
     uses
-      verbose,fpccrc;
+      verbose,fpchash;
 
 
     function create_smartlink_sections:boolean;inline;

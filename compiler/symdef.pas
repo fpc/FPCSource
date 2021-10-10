@@ -1363,7 +1363,7 @@ implementation
       { other }
       aasmbase,
       gendef,
-      fpccrc,
+      fpchash,
       entfile
       ;
 
@@ -1533,7 +1533,7 @@ implementation
       var
         s,
         prefix : TSymStr;
-        crc : dword;
+        hash : qword;
       begin
         prefix:='';
         if not assigned(st) then
@@ -1555,9 +1555,9 @@ implementation
                prefix:=s;
              if length(prefix)>100 then
                begin
-                 crc:=0;
-                 crc:=UpdateCrc32(crc,prefix[1],length(prefix));
-                 prefix:='$CRC'+hexstr(crc,8);
+                 hash:=0;
+                 hash:=UpdateFnv64(hash,prefix[1],length(prefix));
+                 prefix:='$H'+Base64Mangle(hash);
                end;
              st:=st.defowner.owner;
            end;
@@ -5454,7 +5454,7 @@ implementation
 
     function tabstractprocdef.mangledprocparanames(oldlen : longint) : string;
       var
-        crc  : dword;
+        hash  : qword;
         hp   : TParavarsym;
         hs   : TSymStr;
         newlen,
@@ -5474,27 +5474,27 @@ implementation
         if not is_void(returndef) then
           result:=result+'$$'+returndef.mangledparaname;
         newlen:=length(result)+oldlen;
-        { Replace with CRC if the parameter line is very long }
+        { Replace with hash if the parameter line is very long }
         if (newlen-oldlen>12) and
            ((newlen>100) or (newlen-oldlen>64)) then
           begin
-            crc:=0;
+            hash:=0;
             for i:=0 to paras.count-1 do
               begin
                 hp:=tparavarsym(paras[i]);
                 if not(vo_is_hidden_para in hp.varoptions) then
                   begin
                     hs:=hp.vardef.mangledparaname;
-                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                    hash:=UpdateFnv64(hash,hs[1],length(hs));
                   end;
               end;
             if not is_void(returndef) then
               begin
                 { add a little prefix so that x(integer; integer) is different from x(integer):integer }
                 hs:='$$'+returndef.mangledparaname;
-                crc:=UpdateCrc32(crc,hs[1],length(hs));
+                hash:=UpdateFnv64(hash,hs[1],length(hs));
               end;
-            result:='$crc'+hexstr(crc,8);
+            result:='$h'+Base64Mangle(hash);
           end;
       end;
 

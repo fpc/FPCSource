@@ -99,7 +99,7 @@ implementation
 
     uses
       cutils,cclasses,
-      fpccrc,
+      fpchash,
       globtype,globals,verbose,constexp,
       systems,fmodule,
       symsym,symtable,symcreat,

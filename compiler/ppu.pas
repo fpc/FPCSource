@@ -175,7 +175,7 @@ implementation
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
-    fpccrc;
+    fpchash;
 
 {$ifdef Test_Double_checksum}
 {$ifdef TEST_CRC_ERROR}
