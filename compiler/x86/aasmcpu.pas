@@ -585,7 +585,7 @@ interface
          constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
          constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
-         procedure changeopsize(siz:topsize);
+         procedure changeopsize(siz:topsize); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
          function  GetString:string;
 
@@ -610,7 +610,7 @@ interface
          { the next will reset all instructions that can change in pass 2 }
          procedure ResetPass1;override;
          procedure ResetPass2;override;
-         function  CheckIfValid:boolean;
+         function  CheckIfValid:boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
          function  Pass1(objdata:TObjData):longint;override;
          procedure Pass2(objdata:TObjData);override;
          procedure SetOperandOrder(order:TOperandOrder);
@@ -1000,7 +1000,7 @@ implementation
                                  Taicpu Constructors
 *****************************************************************************}
 
-    procedure taicpu.changeopsize(siz:topsize);
+    procedure taicpu.changeopsize(siz:topsize); {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         opsize:=siz;
       end;
@@ -1930,7 +1930,7 @@ implementation
       end;
 
 
-    function taicpu.CheckIfValid:boolean;
+    function taicpu.CheckIfValid:boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=FindInsEntry(nil);
       end;
