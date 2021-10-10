@@ -23,7 +23,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;[Public, alias : 'FPC_SETJMP'];co
 procedure fpc_longjmp(var S : jmp_buf;value : longint);[Public, alias : 'FPC_LONGJMP'];compilerproc;
   begin
 {$ifndef embedded}
-    DebugWriteLn('LONGJMP not supported in WebAssembly!!!');
+    WriteLn(StdErr,'LONGJMP not supported in WebAssembly!!!');
 {$endif embedded}
     fpc_wasm32_unreachable;
   end;

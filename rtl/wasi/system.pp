@@ -71,14 +71,6 @@ var
 
 function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
 
-procedure DebugWrite(const P: PChar);
-procedure DebugWriteLn(const P: PChar);
-procedure DebugWriteChar(Ch: Char);
-procedure DebugWriteHexDigit(d: Byte);
-procedure DebugWriteHexByte(b: Byte);
-procedure DebugWriteHexWord(w: Word);
-procedure DebugWriteHexLongWord(lw: LongWord);
-
 implementation
 
 {$I wasitypes.inc}
@@ -308,56 +300,6 @@ end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
-end;
-
-procedure DebugWrite(const P: PChar);
-var
-  our_iov: __wasi_ciovec_t;
-  our_nwritten: longint;
-begin
-  our_iov.buf := PByte(P);
-  our_iov.buf_len := StrLen(P);
-  __wasi_fd_write(1, @our_iov, 1, @our_nwritten);
-end;
-
-procedure DebugWriteLn(const P: PChar);
-begin
-  DebugWrite(P);
-  DebugWriteChar(#10);
-end;
-
-procedure DebugWriteChar(Ch: Char);
-var
-  CharArr: array [0..1] of Char;
-begin
-  CharArr[0] := Ch;
-  CharArr[1] := #0;
-  DebugWrite(@CharArr);
-end;
-
-procedure DebugWriteHexDigit(d: Byte);
-const
-  HexDigits: array [0..15] of Char = '0123456789ABCDEF';
-begin
-  DebugWriteChar(HexDigits[d]);
-end;
-
-procedure DebugWriteHexByte(b: Byte);
-begin
-  DebugWriteHexDigit(b shr 4);
-  DebugWriteHexDigit(b and 15);
-end;
-
-procedure DebugWriteHexWord(w: Word);
-begin
-  DebugWriteHexByte(w shr 8);
-  DebugWriteHexByte(Byte(w));
-end;
-
-procedure DebugWriteHexLongWord(lw: LongWord);
-begin
-  DebugWriteHexWord(lw shr 16);
-  DebugWriteHexWord(Word(lw));
 end;
 
 begin
