@@ -48,26 +48,10 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-type
-  PPreopenedDir = ^TPreopenedDir;
-  TPreopenedDir = record
-    dir_name: ansistring;
-    fd: longint;
-  end;
-  PCurrentDir = ^TCurrentDir;
-  TCurrentDir = record
-    dir_name: ansistring;
-  end;
-
 var
   argc: longint;
   argv: PPChar;
   envp: PPChar;
-  preopened_dirs_count: longint;
-  preopened_dirs: PPreopenedDir;
-  drives_count: longint;
-  current_dirs: PCurrentDir;
-  current_drive: longint;
 
 function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
 
@@ -80,6 +64,24 @@ function HasDriveLetter(const path: rawbytestring): Boolean;
 begin
   HasDriveLetter:=(path<>'') and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
 end;
+
+type
+  PPreopenedDir = ^TPreopenedDir;
+  TPreopenedDir = record
+    dir_name: ansistring;
+    fd: longint;
+  end;
+  PCurrentDir = ^TCurrentDir;
+  TCurrentDir = record
+    dir_name: ansistring;
+  end;
+
+var
+  preopened_dirs_count: longint;
+  preopened_dirs: PPreopenedDir;
+  drives_count: longint;
+  current_dirs: PCurrentDir;
+  current_drive: longint;
 
 {$I system.inc}
 
