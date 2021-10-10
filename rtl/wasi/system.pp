@@ -57,7 +57,6 @@ type
   PCurrentDir = ^TCurrentDir;
   TCurrentDir = record
     dir_name: ansistring;
-    fd: longint;
   end;
 
 var
@@ -129,56 +128,57 @@ begin
   end
   else
     drive_nr:=current_drive;
-  if path[1] in ['/','\'] then
+  { path is relative to a current directory? }
+  if not (path[1] in ['/','\']) then
   begin
-    { path is absolute. Try to find it in the preopened dirs array }
-    InOutRes:=3;
-    ConvertToFdRelativePath:=false;
-    longest_match:=0;
-    for I:=0 to preopened_dirs_count-1 do
-    begin
-      pdir:=preopened_dirs[I].dir_name;
-      if HasDriveLetter(pdir) then
-      begin
-        pdir_drive:=Ord(UpCase(pdir[1]))-(Ord('A')-1);
-        delete(pdir,1,2);
-      end
-      else
-        pdir_drive:=0;
-      if pdir_drive<>drive_nr then
-        continue;
-      pdir_length:=Length(pdir);
-      if pdir_length>Length(path) then
-        continue;
-      if Copy(path,1,pdir_length)<>Copy(pdir,1,pdir_length) then
-        continue;
-      chridx:=pdir_length+1;
-      if (chridx>Length(path)) or not (path[chridx] in ['/','\']) then
-        continue;
-      if pdir_length>longest_match then
-      begin
-        longest_match:=pdir_length;
-        while (chridx<=Length(path)) and (path[chridx] in ['/','\']) do
-          Inc(chridx);
-        fd:=preopened_dirs[I].fd;
-        relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
-        InOutRes:=0;
-        ConvertToFdRelativePath:=true;
-      end;
-    end;
-  end
-  else
-  begin
-    { path is relative to a current directory }
+    { if so, convert to absolute }
     if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
     begin
       InOutRes:=15;
       ConvertToFdRelativePath:=false;
       exit;
     end;
-    fd:=current_dirs[drive_nr].fd;
-    relfd_path:=path;
-    ConvertToFdRelativePath:=true;
+    if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in ['/','\'] then
+      path:=current_dirs[drive_nr].dir_name+path
+    else
+      path:=current_dirs[drive_nr].dir_name+'/'+path;
+    if HasDriveLetter(path) then
+      delete(path,1,2);
+  end;
+  { path is now absolute. Try to find it in the preopened dirs array }
+  InOutRes:=3;
+  ConvertToFdRelativePath:=false;
+  longest_match:=0;
+  for I:=0 to preopened_dirs_count-1 do
+  begin
+    pdir:=preopened_dirs[I].dir_name;
+    if HasDriveLetter(pdir) then
+    begin
+      pdir_drive:=Ord(UpCase(pdir[1]))-(Ord('A')-1);
+      delete(pdir,1,2);
+    end
+    else
+      pdir_drive:=0;
+    if pdir_drive<>drive_nr then
+      continue;
+    pdir_length:=Length(pdir);
+    if pdir_length>Length(path) then
+      continue;
+    if Copy(path,1,pdir_length)<>Copy(pdir,1,pdir_length) then
+      continue;
+    chridx:=pdir_length+1;
+    if (chridx>Length(path)) or not (path[chridx] in ['/','\']) then
+      continue;
+    if pdir_length>longest_match then
+    begin
+      longest_match:=pdir_length;
+      while (chridx<=Length(path)) and (path[chridx] in ['/','\']) do
+        Inc(chridx);
+      fd:=preopened_dirs[I].fd;
+      relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
+      InOutRes:=0;
+      ConvertToFdRelativePath:=true;
+    end;
   end;
 end;
 
@@ -225,10 +225,7 @@ begin
               ReAllocMem(current_dirs,drives_count*SizeOf(TCurrentDir));
           end;
           if current_dirs[drive_nr].dir_name='' then
-          begin
             current_dirs[drive_nr].dir_name:=prestat_dir_name;
-            current_dirs[drive_nr].fd:=fd;
-          end;
         end;
       end;
     end;
