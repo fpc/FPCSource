@@ -188,6 +188,7 @@ unit aoptx86;
         function PostPeepholeOptLea(var p : tai) : Boolean;
         function PostPeepholeOptPush(var p: tai): Boolean;
         function PostPeepholeOptShr(var p : tai) : boolean;
+        function PostPeepholeOptVPXOR(var p: tai): Boolean;
 
         procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
 
@@ -6187,12 +6188,18 @@ unit aoptx86;
 
                       DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 1)', p);
 
-                      taicpu(hp2).opcode := A_VPXOR;
-                      taicpu(hp2).opsize := S_YMM;
-                      taicpu(hp2).loadreg(0, CurrentReg);
-                      taicpu(hp2).loadreg(1, CurrentReg);
-                      taicpu(hp2).loadreg(2, CurrentReg);
-                      taicpu(hp2).ops := 3;
+                      { If pi_uses_ymm is set, VZEROUPPER is present to do this for us }
+                      if (pi_uses_ymm in current_procinfo.flags) then
+                        RemoveInstruction(hp2)
+                      else
+                        begin
+                          taicpu(hp2).opcode := A_VPXOR;
+                          taicpu(hp2).opsize := S_YMM;
+                          taicpu(hp2).loadreg(0, CurrentReg);
+                          taicpu(hp2).loadreg(1, CurrentReg);
+                          taicpu(hp2).loadreg(2, CurrentReg);
+                          taicpu(hp2).ops := 3;
+                        end;
 
                       RemoveInstruction(hp3);
                       Result := True;
@@ -6241,15 +6248,21 @@ unit aoptx86;
 
                           DebugMsg(SPeepholeOptimization + 'Used ' + debug_regname(CurrentReg) + ' to merge a pair of memory moves (VmovdqxVmovdqxVmovdqxVmovdqx2VmovdqyVmovdqy 2)', p);
 
-                          taicpu(hp1).opcode := A_VPXOR;
-                          taicpu(hp1).opsize := S_YMM;
-                          taicpu(hp1).loadreg(0, CurrentReg);
-                          taicpu(hp1).loadreg(1, CurrentReg);
-                          taicpu(hp1).loadreg(2, CurrentReg);
-                          taicpu(hp1).ops := 3;
+                          { If pi_uses_ymm is set, VZEROUPPER is present to do this for us }
+                          if (pi_uses_ymm in current_procinfo.flags) then
+                            RemoveInstruction(hp1)
+                          else
+                            begin
+                              taicpu(hp1).opcode := A_VPXOR;
+                              taicpu(hp1).opsize := S_YMM;
+                              taicpu(hp1).loadreg(0, CurrentReg);
+                              taicpu(hp1).loadreg(1, CurrentReg);
+                              taicpu(hp1).loadreg(2, CurrentReg);
+                              taicpu(hp1).ops := 3;
 
-                          Asml.Remove(hp1);
-                          Asml.InsertAfter(hp1, hp3); { Register deallocations will be after hp3 }
+                              Asml.Remove(hp1);
+                              Asml.InsertAfter(hp1, hp3); { Register deallocations will be after hp3 }
+                            end;
 
                           RemoveCurrentP(p, hp2);
                           Result := True;
@@ -10568,6 +10581,42 @@ unit aoptx86;
         end;
       end;
 {$endif}
+
+    function TX86AsmOptimizer.PostPeepholeOptVPXOR(var p : tai) : Boolean;
+      var
+        XReg: TRegister;
+      begin
+        Result := False;
+        { Turn "vpxor %ymmreg2,%ymmreg2,%ymmreg1" to "vpxor %xmmreg2,%xmmreg2,%xmmreg1"
+          Smaller encoding and slightly faster on some platforms (also works for
+          ZMM-sized registers) }
+        if (taicpu(p).opsize in [S_YMM, S_ZMM]) and
+          MatchOpType(taicpu(p), top_reg, top_reg, top_reg) then
+          begin
+            XReg := taicpu(p).oper[0]^.reg;
+            if (taicpu(p).oper[1]^.reg = XReg) then
+              begin
+                taicpu(p).changeopsize(S_XMM);
+                setsubreg(taicpu(p).oper[2]^.reg, R_SUBMMX);
+                if (cs_opt_size in current_settings.optimizerswitches) then
+                  begin
+                    { Change input registers to %xmm0 to reduce size.  Note that
+                      there's a risk of a false dependency doing this, so only
+                      optimise for size here }
+                    XReg := NR_XMM0;
+                    DebugMsg(SPeepholeOptimization + 'Changed zero-setting vpxor from Y/ZMM to XMM and changed input registers to %xmm0 to reduce size', p);
+                  end
+                else
+                  begin
+                    setsubreg(XReg, R_SUBMMX);
+                    DebugMsg(SPeepholeOptimization + 'Changed zero-setting vpxor from Y/ZMM to XMM to reduce size and increase efficiency', p);
+                  end;
+                taicpu(p).oper[0]^.reg := XReg;
+                taicpu(p).oper[1]^.reg := XReg;
+                Result := True;
+              end;
+          end;
+      end;
 
 
     class procedure TX86AsmOptimizer.OptimizeRefs(var p: taicpu);
