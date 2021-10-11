@@ -72,7 +72,74 @@ end;
 
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
+Var
+  SystemFileName: RawByteString;
+  oflags : __wasi_oflags_t = 0;
+  fs_rights_base: __wasi_rights_t = 0;
+  fdflags: __wasi_fdflags_t = 0;
+  ourfd: __wasi_fd_t;
+  res: __wasi_errno_t;
+  pr: RawByteString;
+  fd: __wasi_fd_t;
 Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
+   fmOpenRead:
+     fs_rights_base :=__WASI_RIGHTS_FD_READ or
+                      __WASI_RIGHTS_FD_FILESTAT_GET or
+                      __WASI_RIGHTS_FD_SEEK or
+                      __WASI_RIGHTS_FD_TELL or
+                      __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                      __WASI_RIGHTS_FD_ADVISE or
+                      __WASI_RIGHTS_POLL_FD_READWRITE;
+   fmOpenWrite:
+     fs_rights_base :=__WASI_RIGHTS_FD_WRITE or
+                      __WASI_RIGHTS_FD_FILESTAT_GET or
+                      __WASI_RIGHTS_FD_SEEK or
+                      __WASI_RIGHTS_FD_TELL or
+                      __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                      __WASI_RIGHTS_FD_ADVISE or
+                      __WASI_RIGHTS_POLL_FD_READWRITE or
+                      __WASI_RIGHTS_FD_FILESTAT_SET_SIZE or
+                      __WASI_RIGHTS_FD_FILESTAT_SET_TIMES or
+                      __WASI_RIGHTS_FD_ALLOCATE or
+                      __WASI_RIGHTS_FD_DATASYNC or
+                      __WASI_RIGHTS_FD_SYNC;
+   fmOpenReadWrite:
+     fs_rights_base :=__WASI_RIGHTS_FD_READ or
+                      __WASI_RIGHTS_FD_WRITE or
+                      __WASI_RIGHTS_FD_FILESTAT_GET or
+                      __WASI_RIGHTS_FD_SEEK or
+                      __WASI_RIGHTS_FD_TELL or
+                      __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+                      __WASI_RIGHTS_FD_ADVISE or
+                      __WASI_RIGHTS_POLL_FD_READWRITE or
+                      __WASI_RIGHTS_FD_FILESTAT_SET_SIZE or
+                      __WASI_RIGHTS_FD_FILESTAT_SET_TIMES or
+                      __WASI_RIGHTS_FD_ALLOCATE or
+                      __WASI_RIGHTS_FD_DATASYNC or
+                      __WASI_RIGHTS_FD_SYNC;
+  end;
+  if not ConvertToFdRelativePath(SystemFileName,fd,pr) then
+    begin
+      result:=-1;
+      exit;
+    end;
+  repeat
+    res:=__wasi_path_open(fd,
+                          0,
+                          PChar(pr),
+                          length(pr),
+                          oflags,
+                          fs_rights_base,
+                          fs_rights_base,
+                          fdflags,
+                          @ourfd);
+  until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  If res=__WASI_ERRNO_SUCCESS Then
+    Result:=ourfd
+  else
+    Result:=-1;
 end;
 
 
