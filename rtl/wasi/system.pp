@@ -137,7 +137,7 @@ begin
     if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in AllowDirectorySeparators then
       path:=current_dirs[drive_nr].dir_name+path
     else
-      path:=current_dirs[drive_nr].dir_name+'/'+path;
+      path:=current_dirs[drive_nr].dir_name+DirectorySeparator+path;
   end;
   { path is now absolute. Try to find it in the preopened dirs array }
   ConvertToFdRelativePath:=false;

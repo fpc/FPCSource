@@ -110,7 +110,7 @@ begin
     if s[1] in ['/','\'] then
     begin
       delete(s,1,1);
-      new_dir:='/';
+      new_dir:=DirectorySeparator;
     end;
     while s<>'' do
     begin
@@ -126,7 +126,7 @@ begin
           while (new_dir<>'') and (new_dir[Length(new_dir)] in AllowDirectorySeparators) do
             delete(new_dir,Length(new_dir),1);
           if (Pos('/',new_dir)=0) and (Pos('\',new_dir)=0) then
-            new_dir:=new_dir+'/';
+            new_dir:=new_dir+DirectorySeparator;
         end;
       end
       else
@@ -135,7 +135,7 @@ begin
         if (new_dir<>'') and (new_dir[Length(new_dir)] in AllowDirectorySeparators) then
           new_dir:=new_dir+next_dir_part
         else
-          new_dir:=new_dir+'/'+next_dir_part;
+          new_dir:=new_dir+DirectorySeparator+next_dir_part;
         if not ConvertToFdRelativePath(current_dirs[new_drive_nr].drive_str+new_dir,fd,pr) then
         begin
           {...}
@@ -166,7 +166,7 @@ begin
           else if (new_dir_save<>'') and (new_dir_save[length(new_dir_save)] in AllowDirectorySeparators) then
             do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+symlink,SymLinkFollowCount-1)
           else
-            do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+'/'+symlink,SymLinkFollowCount-1);
+            do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+DirectorySeparator+symlink,SymLinkFollowCount-1);
           exit;
         end
         else if st.filetype<>__WASI_FILETYPE_DIRECTORY then
