@@ -238,11 +238,34 @@ end;
 
 Function FileSeek (Handle : THandle; FOffset, Origin : Longint) : Longint;
 begin
+  result:=longint(FileSeek(Handle,int64(FOffset),Origin));
 end;
 
 
-Function FileSeek (Handle : THandle; FOffset: Int64; Origin: {Integer}Longint) : Int64;
+Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
+var
+  res: __wasi_errno_t;
+  newoffset: __wasi_filesize_t;
+  whence: __wasi_whence_t;
 begin
+  case Origin of
+    fsFromBeginning:
+      whence:=__WASI_WHENCE_SET;
+    fsFromCurrent:
+      whence:=__WASI_WHENCE_CUR;
+    fsFromEnd:
+      whence:=__WASI_WHENCE_END;
+    else
+      begin
+        Result:=-1;
+        exit;
+      end;
+  end;
+  res:=__wasi_fd_seek(Handle,FOffset,whence,@newoffset);
+  if res=__WASI_ERRNO_SUCCESS then
+    Result:=newoffset
+  else
+    Result:=-1;
 end;
 
 
@@ -257,7 +280,10 @@ end;
 
 
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
+var
+  res: __wasi_errno_t;
 begin
+  Result:=__wasi_fd_filestat_set_size(handle,Size)=__WASI_ERRNO_SUCCESS;
 end;
 
 
