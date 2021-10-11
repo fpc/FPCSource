@@ -353,7 +353,17 @@ end;
 
 
 Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
+var
+  fd1,fd2: __wasi_fd_t;
+  pr1,pr2: RawByteString;
+  res: __wasi_errno_t;
 begin
+  result:=false;
+  if not ConvertToFdRelativePath(OldName,fd1,pr1) then
+    exit;
+  if not ConvertToFdRelativePath(NewName,fd2,pr2) then
+    exit;
+  result:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2))=__WASI_ERRNO_SUCCESS;
 end;
 
 
