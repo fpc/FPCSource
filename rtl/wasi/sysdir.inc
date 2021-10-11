@@ -21,7 +21,7 @@
 procedure Do_MkDir(s: rawbytestring);
 var
   fd: __wasi_fd_t;
-  pr: ansistring;
+  pr: RawByteString;
   res: __wasi_errno_t;
 begin
   if not ConvertToFdRelativePath(s,fd,pr) then
@@ -36,7 +36,7 @@ end;
 procedure Do_RmDir(s: rawbytestring);
 var
   fd: __wasi_fd_t;
-  pr: ansistring;
+  pr: RawByteString;
   res: __wasi_errno_t;
 begin
   if not ConvertToFdRelativePath(s,fd,pr) then
@@ -50,7 +50,7 @@ end;
 
 procedure do_ChDir_internal(s: rawbytestring; SymLinkFollowCount: longint);
 
-  function GetNextPart: ansistring;
+  function GetNextPart: RawByteString;
     var
       slashpos,backslashpos: longint;
     begin
@@ -79,12 +79,12 @@ const
   MaxSymLinkSize = 4096;
 var
   new_drive_nr: longint;
-  new_dir,new_dir_save,next_dir_part: ansistring;
+  new_dir,new_dir_save,next_dir_part: RawByteString;
   fd: __wasi_fd_t;
-  pr: ansistring;
+  pr: RawByteString;
   st: __wasi_filestat_t;
   res: __wasi_errno_t;
-  symlink: ansistring;
+  symlink: RawByteString;
   symlink_len: __wasi_size_t;
 begin
   if SymLinkFollowCount<0 then

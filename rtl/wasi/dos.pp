@@ -461,7 +461,7 @@ var
   Info : RtlInfoType;
   st   : __wasi_filestat_t;
   fd   : __wasi_fd_t;
-  pr   : ansistring;
+  pr   : RawByteString;
 begin
   FindGetFileInfo:=false;
   if not ConvertToFdRelativePath(s,fd,pr) then
@@ -529,9 +529,9 @@ Procedure FindNext(Var f: SearchRec);
 }
 Var
   fd,ourfd: __wasi_fd_t;
-  pr: ansistring;
+  pr: RawByteString;
   res: __wasi_errno_t;
-  DirName  : ansistring;
+  DirName  : RawByteString;
   i,
   ArrayPos : Longint;
   FName,

@@ -53,7 +53,7 @@ var
   argv: PPChar;
   envp: PPChar;
 
-function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
 
 implementation
 
@@ -68,14 +68,14 @@ end;
 type
   PPreopenedDir = ^TPreopenedDir;
   TPreopenedDir = record
-    dir_name: ansistring;
-    drive_str: ansistring;
+    dir_name: RawByteString;
+    drive_str: RawByteString;
     fd: longint;
   end;
   PCurrentDir = ^TCurrentDir;
   TCurrentDir = record
-    dir_name: ansistring;
-    drive_str: ansistring;
+    dir_name: RawByteString;
+    drive_str: RawByteString;
   end;
 
 var
@@ -108,11 +108,11 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
-function ConvertToFdRelativePath(path: ansistring; out fd: LongInt; out relfd_path: ansistring): Boolean;
+function Do_ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
 var
   drive_nr,I,pdir_drive,longest_match,chridx: longint;
   IsAbsolutePath: Boolean;
-  pdir: ansistring;
+  pdir: RawByteString;
 begin
   fd:=0;
   relfd_path:='';
@@ -131,7 +131,7 @@ begin
     if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
     begin
       InOutRes:=15;
-      ConvertToFdRelativePath:=false;
+      Do_ConvertToFdRelativePath:=false;
       exit;
     end;
     if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in AllowDirectorySeparators then
@@ -140,7 +140,7 @@ begin
       path:=current_dirs[drive_nr].dir_name+DirectorySeparator+path;
   end;
   { path is now absolute. Try to find it in the preopened dirs array }
-  ConvertToFdRelativePath:=false;
+  Do_ConvertToFdRelativePath:=false;
   longest_match:=0;
   for I:=0 to preopened_dirs_count-1 do
   begin
@@ -166,7 +166,7 @@ begin
         Inc(chridx);
       fd:=preopened_dirs[I].fd;
       relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
-      ConvertToFdRelativePath:=true;
+      Do_ConvertToFdRelativePath:=true;
     end;
   end;
   if longest_match>0 then
@@ -175,12 +175,18 @@ begin
     InOutRes:=3;
 end;
 
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
+begin
+  ConvertToFdRelativePath:=Do_ConvertToFdRelativePath(ToSingleByteFileSystemEncodedFileName(path),fd,relfd_path);
+  setcodepage(relfd_path,DefaultRTLFileSystemCodePage,true);
+end;
+
 procedure Setup_PreopenedDirs;
 var
   fd: __wasi_fd_t;
   prestat: __wasi_prestat_t;
   res: __wasi_errno_t;
-  prestat_dir_name: ansistring;
+  prestat_dir_name: RawByteString;
   drive_nr: longint;
 begin
   preopened_dirs_count:=0;
@@ -198,6 +204,7 @@ begin
         SetLength(prestat_dir_name,prestat.u.dir.pr_name_len);
         if __wasi_fd_prestat_dir_name(fd,PByte(prestat_dir_name),prestat.u.dir.pr_name_len)=__WASI_ERRNO_SUCCESS then
         begin
+          setcodepage(prestat_dir_name,DefaultRTLFileSystemCodePage,true);
           Inc(preopened_dirs_count);
           if preopened_dirs=nil then
             preopened_dirs:=AllocMem(preopened_dirs_count*SizeOf(TPreopenedDir))

@@ -29,7 +29,7 @@ end;
 procedure Do_Erase(p: pchar; pchangeable: boolean);
 var
   fd: __wasi_fd_t;
-  pr: ansistring;
+  pr: RawByteString;
   res: __wasi_errno_t;
 begin
   if not ConvertToFdRelativePath(p,fd,pr) then
@@ -55,7 +55,7 @@ end;
 procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
 var
   fd1,fd2: __wasi_fd_t;
-  pr1,pr2: ansistring;
+  pr1,pr2: RawByteString;
   res: __wasi_errno_t;
 begin
   if not ConvertToFdRelativePath(p1,fd1,pr1) then
@@ -195,7 +195,7 @@ var
   fdflags: __wasi_fdflags_t = 0;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
-  pr: ansistring;
+  pr: RawByteString;
   fd: __wasi_fd_t;
 Begin
 { close first if opened }
