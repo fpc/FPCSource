@@ -1258,7 +1258,7 @@ Var YY,MM,DD,H,m,s,msec : Word;
 begin
   Decodedate (DateTime,YY,MM,DD);
   DecodeTime (DateTime,h,m,s,msec);
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
   If (YY<1980) or (YY>2099) then
     Result:=0
   else
@@ -1266,24 +1266,24 @@ begin
     Result:=(s shr 1) or (m shl 5) or (h shl 11);
     Result:=Result or longint(DD shl 16 or (MM shl 21) or (word(YY-1980) shl 25));
     end;
-{$else unix}
+{$else unix or wasi}
   Result:=LocalToEpoch(yy,mm,dd,h,m,s);
-{$endif unix}
+{$endif unix or wasi}
 end;
 
 Function UniversalToFileDate(DateTime : TDateTime) : int64;
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
 begin
   Result := DateTimeToFileDate(UniversalTimeToLocal(DateTime));
 end;
-{$else unix}
+{$else unix or wasi}
 Var YY,MM,DD,H,m,s,msec : Word;
 begin
   Decodedate (DateTime,YY,MM,DD);
   DecodeTime (DateTime,h,m,s,msec);
   Result:=UniversalToEpoch(yy,mm,dd,h,m,s);
 end;
-{$endif unix}
+{$endif unix or wasi}
 
 function CurrentYear: Word;
 var
@@ -1295,7 +1295,7 @@ end;
 
 Function FileDateToDateTime (Filedate : Int64) : TDateTime;
 
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
 Var Date,Time : Word;
 
 begin
@@ -1304,29 +1304,29 @@ begin
   Result:=ComposeDateTime(EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31),
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0));
 end;
-{$else unix}
+{$else unix or wasi}
 var
   y, mon, d, h, min, s: word;
 begin
   EpochToLocal(FileDate,y,mon,d,h,min,s);
   Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
 end;
-{$endif unix}
+{$endif unix or wasi}
 
 Function FileDateToUniversal (Filedate : Int64) : TDateTime;
 
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
 begin
   Result := LocalTimeToUniversal(FileDateToDateTime(Filedate));
 end;
-{$else unix}
+{$else unix or wasi}
 var
   y, mon, d, h, min, s: word;
 begin
   EpochToUniversal(FileDate,y,mon,d,h,min,s);
   Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
 end;
-{$endif unix}
+{$endif unix or wasi}
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;
 begin
