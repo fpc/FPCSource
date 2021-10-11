@@ -473,6 +473,11 @@ end;
 
 Function FileSetDate (Handle : THandle; Age : Int64) : Longint;
 begin
+  if __wasi_fd_filestat_set_times(Handle,Age*1000000000,Age*1000000000,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
+    result:=0
+  else
+    result:=-1;
 end;
 
 
