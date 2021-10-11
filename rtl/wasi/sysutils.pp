@@ -201,7 +201,20 @@ end;
 
 
 Function FileRead (Handle : THandle; Out Buffer; Count : longint) : Longint;
+var
+  our_iov: __wasi_iovec_t;
+  our_nread: __wasi_size_t;
+  res: __wasi_errno_t;
 begin
+  repeat
+    our_iov.buf:=@Buffer;
+    our_iov.buf_len:=Count;
+    res:=__wasi_fd_read(Handle,@our_iov,1,@our_nread);
+  until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  if res=__WASI_ERRNO_SUCCESS then
+    Result:=our_nread
+  else
+    Result:=-1;
 end;
 
 
