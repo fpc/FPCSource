@@ -28,6 +28,7 @@ interface
 uses
   wasiapi;
 
+{$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_GETTICKCOUNT64}
 
@@ -474,6 +475,24 @@ end;
 Function FileSetDate (Handle : THandle; Age : Int64) : Longint;
 begin
   if __wasi_fd_filestat_set_times(Handle,Age*1000000000,Age*1000000000,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
+    result:=0
+  else
+    result:=-1;
+end;
+
+
+Function FileSetDate (Const FileName : RawByteString; Age : Int64) : Longint;
+var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+begin
+  if not ConvertToFdRelativePath(FileName,fd,pr) then
+    begin
+      result:=-1;
+      exit;
+    end;
+  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),Age*1000000000,Age*1000000000,
      __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM)=__WASI_ERRNO_SUCCESS then
     result:=0
   else
