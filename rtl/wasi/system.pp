@@ -238,7 +238,7 @@ begin
     end;
     Inc(fd);
   until res<>__WASI_ERRNO_SUCCESS;
-  while (current_drive<drives_count) and (current_dirs[current_drive].dir_name='') do
+  while (current_drive<(drives_count-1)) and (current_dirs[current_drive].dir_name='') do
     Inc(current_drive);
   for drive_nr:=0 to drives_count-1 do
   begin
