@@ -651,7 +651,7 @@ Begin
   f.SearchAttr := Attr or archive or readonly;
   f.SearchPos  := 0;
   f.NamePos := Length(f.SearchSpec);
-  while (f.NamePos>0) and not (f.SearchSpec[f.NamePos] in ['/','\']) do
+  while (f.NamePos>0) and not (f.SearchSpec[f.NamePos] in AllowDirectorySeparators) do
    dec(f.NamePos);
 {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then

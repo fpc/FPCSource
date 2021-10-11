@@ -71,7 +71,7 @@ procedure do_ChDir_internal(s: rawbytestring; SymLinkFollowCount: longint);
         result:=s;
         s:='';
       end;
-      while (s<>'') and (s[1] in ['/','\']) do
+      while (s<>'') and (s[1] in AllowDirectorySeparators) do
         delete(s,1,1);
     end;
 
@@ -119,11 +119,11 @@ begin
         {nothing to do}
       else if next_dir_part='..' then
       begin
-        if (new_dir<>'') and not (new_dir[Length(new_dir)] in ['/','\']) then
+        if (new_dir<>'') and not (new_dir[Length(new_dir)] in AllowDirectorySeparators) then
         begin
-          while (new_dir<>'') and not (new_dir[Length(new_dir)] in ['/','\']) do
+          while (new_dir<>'') and not (new_dir[Length(new_dir)] in AllowDirectorySeparators) do
             delete(new_dir,Length(new_dir),1);
-          while (new_dir<>'') and (new_dir[Length(new_dir)] in ['/','\']) do
+          while (new_dir<>'') and (new_dir[Length(new_dir)] in AllowDirectorySeparators) do
             delete(new_dir,Length(new_dir),1);
           if (Pos('/',new_dir)=0) and (Pos('\',new_dir)=0) then
             new_dir:=new_dir+'/';
@@ -132,7 +132,7 @@ begin
       else
       begin
         new_dir_save:=new_dir;
-        if (new_dir<>'') and (new_dir[Length(new_dir)] in ['/','\']) then
+        if (new_dir<>'') and (new_dir[Length(new_dir)] in AllowDirectorySeparators) then
           new_dir:=new_dir+next_dir_part
         else
           new_dir:=new_dir+'/'+next_dir_part;
@@ -161,9 +161,9 @@ begin
             exit;
           end;
           SetLength(symlink,symlink_len);
-          if (symlink<>'') and (symlink[1] in ['/', '\']) then
+          if (symlink<>'') and (symlink[1] in AllowDirectorySeparators) then
             do_ChDir_internal(symlink,SymLinkFollowCount-1)
-          else if (new_dir_save<>'') and (new_dir_save[length(new_dir_save)] in ['/', '\']) then
+          else if (new_dir_save<>'') and (new_dir_save[length(new_dir_save)] in AllowDirectorySeparators) then
             do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+symlink,SymLinkFollowCount-1)
           else
             do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+'/'+symlink,SymLinkFollowCount-1);

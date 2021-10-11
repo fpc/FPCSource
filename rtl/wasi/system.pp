@@ -125,7 +125,7 @@ begin
   else
     drive_nr:=current_drive;
   { path is relative to a current directory? }
-  if (path='') or not (path[1] in ['/','\']) then
+  if (path='') or not (path[1] in AllowDirectorySeparators) then
   begin
     { if so, convert to absolute }
     if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
@@ -134,7 +134,7 @@ begin
       ConvertToFdRelativePath:=false;
       exit;
     end;
-    if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in ['/','\'] then
+    if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in AllowDirectorySeparators then
       path:=current_dirs[drive_nr].dir_name+path
     else
       path:=current_dirs[drive_nr].dir_name+'/'+path;
@@ -157,12 +157,12 @@ begin
       continue;
     chridx:=Length(pdir)+1;
     if ((pdir<>'/') and (pdir<>'\')) and
-       ((chridx>Length(path)) or not (path[chridx] in ['/','\'])) then
+       ((chridx>Length(path)) or not (path[chridx] in AllowDirectorySeparators)) then
       continue;
     if Length(pdir)>longest_match then
     begin
       longest_match:=Length(pdir);
-      while (chridx<=Length(path)) and (path[chridx] in ['/','\']) do
+      while (chridx<=Length(path)) and (path[chridx] in AllowDirectorySeparators) do
         Inc(chridx);
       fd:=preopened_dirs[I].fd;
       relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
