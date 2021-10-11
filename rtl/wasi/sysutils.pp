@@ -404,7 +404,22 @@ end;
 
 
 Function FileAge (Const FileName : RawByteString): Int64;
+var
+  res: __wasi_errno_t;
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
 begin
+  if not ConvertToFdRelativePath(FileName,fd,pr) then
+    begin
+      result:=-1;
+      exit;
+    end;
+  res:=__wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info);
+  if res=__WASI_ERRNO_SUCCESS then
+    result:=Info.mtim div 1000000000
+  else
+    result:=-1;
 end;
 
 
