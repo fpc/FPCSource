@@ -219,7 +219,20 @@ end;
 
 
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
+var
+  our_iov: __wasi_ciovec_t;
+  our_nwritten: longint;
+  res: __wasi_errno_t;
 begin
+  repeat
+    our_iov.buf:=@Buffer;
+    our_iov.buf_len:=Count;
+    res:=__wasi_fd_write(Handle,@our_iov,1,@our_nwritten);
+  until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
+  if res=__WASI_ERRNO_SUCCESS then
+    Result:=our_nwritten
+  else
+    Result:=-1;
 end;
 
 
