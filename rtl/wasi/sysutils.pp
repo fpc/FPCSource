@@ -344,7 +344,17 @@ end;
 
 
 Function DeleteFile (Const FileName : RawByteString) : Boolean;
+var
+  fd: __wasi_fd_t;
+  pr: RawByteString;
+  res: __wasi_errno_t;
 begin
+  if not ConvertToFdRelativePath(FileName,fd,pr) then
+    begin
+      result:=false;
+      exit;
+    end;
+  result:=__wasi_path_unlink_file(fd,PChar(pr),Length(pr))=__WASI_ERRNO_SUCCESS;
 end;
 
 
