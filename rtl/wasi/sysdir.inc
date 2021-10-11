@@ -107,7 +107,7 @@ begin
   new_dir:=current_dirs[new_drive_nr].dir_name;
   if s<>'' then
   begin
-    if s[1] in ['/','\'] then
+    if s[1] in AllowDirectorySeparators then
     begin
       delete(s,1,1);
       new_dir:=DirectorySeparator;
