@@ -112,7 +112,12 @@ end;
 
 
 Procedure FileClose (Handle : THandle);
+var
+  res: __wasi_errno_t;
 begin
+  repeat
+    res:=__wasi_fd_close(Handle);
+  until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
 end;
 
 
