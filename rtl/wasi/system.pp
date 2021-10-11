@@ -156,7 +156,7 @@ begin
     if Copy(path,1,Length(pdir))<>pdir then
       continue;
     chridx:=Length(pdir)+1;
-    if ((pdir<>'/') and (pdir<>'\')) and
+    if ((Length(pdir)<>1) or ((Length(pdir)=1) and not (pdir[1] in AllowDirectorySeparators))) and
        ((chridx>Length(path)) or not (path[chridx] in AllowDirectorySeparators)) then
       continue;
     if Length(pdir)>longest_match then
