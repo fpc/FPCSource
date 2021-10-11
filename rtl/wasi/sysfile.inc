@@ -101,7 +101,7 @@ begin
   repeat
     our_iov.buf:=Addr;
     our_iov.buf_len:=Len;
-    __wasi_fd_read(Handle,@our_iov,1,@our_nread);
+    res:=__wasi_fd_read(Handle,@our_iov,1,@our_nread);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
   if res=__WASI_ERRNO_SUCCESS then
     begin
