@@ -62,7 +62,7 @@ implementation
 
 function HasDriveLetter(const path: rawbytestring): Boolean;
 begin
-  HasDriveLetter:=(path<>'') and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
+  HasDriveLetter:=(Length(path)>=2) and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');
 end;
 
 type
