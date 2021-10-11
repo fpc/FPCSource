@@ -73,14 +73,12 @@ end;
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Var
-  SystemFileName: RawByteString;
   fs_rights_base: __wasi_rights_t = 0;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
   pr: RawByteString;
   fd: __wasi_fd_t;
 Begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
    fmOpenRead:
      fs_rights_base :=__WASI_RIGHTS_FD_READ or
@@ -118,7 +116,7 @@ Begin
                       __WASI_RIGHTS_FD_DATASYNC or
                       __WASI_RIGHTS_FD_SYNC;
   end;
-  if not ConvertToFdRelativePath(SystemFileName,fd,pr) then
+  if not ConvertToFdRelativePath(FileName,fd,pr) then
     begin
       result:=-1;
       exit;
@@ -158,14 +156,12 @@ Const
     __WASI_RIGHTS_FD_DATASYNC or
     __WASI_RIGHTS_FD_SYNC;
 Var
-  SystemFileName: RawByteString;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
   pr: RawByteString;
   fd: __wasi_fd_t;
 Begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  if not ConvertToFdRelativePath(SystemFileName,fd,pr) then
+  if not ConvertToFdRelativePath(FileName,fd,pr) then
     begin
       result:=-1;
       exit;
