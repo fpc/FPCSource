@@ -74,9 +74,7 @@ end;
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Var
   SystemFileName: RawByteString;
-  oflags : __wasi_oflags_t = 0;
   fs_rights_base: __wasi_rights_t = 0;
-  fdflags: __wasi_fdflags_t = 0;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
   pr: RawByteString;
@@ -130,10 +128,10 @@ Begin
                           0,
                           PChar(pr),
                           length(pr),
-                          oflags,
+                          0,
                           fs_rights_base,
                           fs_rights_base,
-                          fdflags,
+                          0,
                           @ourfd);
   until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
   If res=__WASI_ERRNO_SUCCESS Then
