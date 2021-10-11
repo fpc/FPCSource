@@ -69,11 +69,13 @@ type
   PPreopenedDir = ^TPreopenedDir;
   TPreopenedDir = record
     dir_name: ansistring;
+    drive_str: ansistring;
     fd: longint;
   end;
   PCurrentDir = ^TCurrentDir;
   TCurrentDir = record
     dir_name: ansistring;
+    drive_str: ansistring;
   end;
 
 var
@@ -136,8 +138,6 @@ begin
       path:=current_dirs[drive_nr].dir_name+path
     else
       path:=current_dirs[drive_nr].dir_name+'/'+path;
-    if HasDriveLetter(path) then
-      delete(path,1,2);
   end;
   { path is now absolute. Try to find it in the preopened dirs array }
   ConvertToFdRelativePath:=false;
@@ -145,11 +145,8 @@ begin
   for I:=0 to preopened_dirs_count-1 do
   begin
     pdir:=preopened_dirs[I].dir_name;
-    if HasDriveLetter(pdir) then
-    begin
-      pdir_drive:=Ord(UpCase(pdir[1]))-(Ord('A')-1);
-      delete(pdir,1,2);
-    end
+    if preopened_dirs[I].drive_str<>'' then
+      pdir_drive:=Ord(UpCase(preopened_dirs[I].drive_str[1]))-(Ord('A')-1)
     else
       pdir_drive:=0;
     if pdir_drive<>drive_nr then
@@ -206,12 +203,19 @@ begin
             preopened_dirs:=AllocMem(preopened_dirs_count*SizeOf(TPreopenedDir))
           else
             ReAllocMem(preopened_dirs, preopened_dirs_count*SizeOf(TPreopenedDir));
-          preopened_dirs[preopened_dirs_count-1].dir_name:=prestat_dir_name;
           preopened_dirs[preopened_dirs_count-1].fd:=fd;
           if HasDriveLetter(prestat_dir_name) then
-            drive_nr:=Ord(UpCase(prestat_dir_name[1]))-(Ord('A')-1)
+          begin
+            drive_nr:=Ord(UpCase(prestat_dir_name[1]))-(Ord('A')-1);
+            preopened_dirs[preopened_dirs_count-1].drive_str:=Copy(prestat_dir_name,1,2);
+            preopened_dirs[preopened_dirs_count-1].dir_name:=Copy(prestat_dir_name,2,Length(prestat_dir_name)-2);
+          end
           else
+          begin
             drive_nr:=0;
+            preopened_dirs[preopened_dirs_count-1].drive_str:='';
+            preopened_dirs[preopened_dirs_count-1].dir_name:=prestat_dir_name;
+          end;
           if (drive_nr+1)>drives_count then
           begin
             drives_count:=drive_nr+1;
@@ -229,6 +233,13 @@ begin
   until res<>__WASI_ERRNO_SUCCESS;
   while (current_drive<drives_count) and (current_dirs[current_drive].dir_name='') do
     Inc(current_drive);
+  for drive_nr:=0 to drives_count-1 do
+  begin
+    if drive_nr>0 then
+      current_dirs[drive_nr].drive_str:=Chr(Ord('A')+drive_nr-1)+':';
+    if current_dirs[drive_nr].dir_name='' then
+      current_dirs[drive_nr].dir_name:=DirectorySeparator;
+  end;
 end;
 
 procedure Setup_Environment;

@@ -99,7 +99,7 @@ begin
   end
   else
     new_drive_nr:=current_drive;
-  if (new_drive_nr>drives_count) or (current_dirs[new_drive_nr].dir_name='') then
+  if (new_drive_nr>=drives_count) or (current_dirs[new_drive_nr].dir_name='') then
   begin
     InoutRes:=15;
     exit;
@@ -110,10 +110,7 @@ begin
     if s[1] in ['/','\'] then
     begin
       delete(s,1,1);
-      if new_drive_nr>0 then
-        new_dir:=Copy(new_dir,1,2)+'/'
-      else
-        new_dir:='/';
+      new_dir:='/';
     end;
     while s<>'' do
     begin
@@ -139,7 +136,7 @@ begin
           new_dir:=new_dir+next_dir_part
         else
           new_dir:=new_dir+'/'+next_dir_part;
-        if not ConvertToFdRelativePath(new_dir,fd,pr) then
+        if not ConvertToFdRelativePath(current_dirs[new_drive_nr].drive_str+new_dir,fd,pr) then
         begin
           {...}
           InOutRes:=3;
@@ -166,10 +163,10 @@ begin
           SetLength(symlink,symlink_len);
           if (symlink<>'') and (symlink[1] in ['/', '\']) then
             do_ChDir_internal(symlink,SymLinkFollowCount-1)
-          else if (new_dir_save<>'') and (new_dir_save[1] in ['/', '\']) then
-            do_ChDir_internal(new_dir_save+symlink,SymLinkFollowCount-1)
+          else if (new_dir_save<>'') and (new_dir_save[length(new_dir_save)] in ['/', '\']) then
+            do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+symlink,SymLinkFollowCount-1)
           else
-            do_ChDir_internal(new_dir_save+'/'+symlink,SymLinkFollowCount-1);
+            do_ChDir_internal(current_dirs[new_drive_nr].drive_str+new_dir_save+'/'+symlink,SymLinkFollowCount-1);
           exit;
         end
         else if st.filetype<>__WASI_FILETYPE_DIRECTORY then
@@ -194,8 +191,11 @@ procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 begin
   if drivenr=0 then
     drivenr:=current_drive;
-  if (drivenr<=drives_count) and (current_dirs[drivenr].dir_name<>'') then
-    dir:=current_dirs[drivenr].dir_name
+  if (drivenr<drives_count) and (current_dirs[drivenr].dir_name<>'') then
+  begin
+    dir:=current_dirs[drivenr].drive_str+current_dirs[drivenr].dir_name;
+    InOutRes:=0;
+  end
   else
     InoutRes:=15;
 end;
