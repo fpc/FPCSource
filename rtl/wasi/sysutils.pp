@@ -144,17 +144,61 @@ end;
 
 
 Function FileCreate (Const FileName : RawByteString) : THandle;
-begin
+Const
+  fs_rights_base: __wasi_rights_t =
+    __WASI_RIGHTS_FD_READ or
+    __WASI_RIGHTS_FD_WRITE or
+    __WASI_RIGHTS_FD_FILESTAT_GET or
+    __WASI_RIGHTS_FD_SEEK or
+    __WASI_RIGHTS_FD_TELL or
+    __WASI_RIGHTS_FD_FDSTAT_SET_FLAGS or
+    __WASI_RIGHTS_FD_ADVISE or
+    __WASI_RIGHTS_POLL_FD_READWRITE or
+    __WASI_RIGHTS_FD_FILESTAT_SET_SIZE or
+    __WASI_RIGHTS_FD_FILESTAT_SET_TIMES or
+    __WASI_RIGHTS_FD_ALLOCATE or
+    __WASI_RIGHTS_FD_DATASYNC or
+    __WASI_RIGHTS_FD_SYNC;
+Var
+  SystemFileName: RawByteString;
+  ourfd: __wasi_fd_t;
+  res: __wasi_errno_t;
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+Begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if not ConvertToFdRelativePath(SystemFileName,fd,pr) then
+    begin
+      result:=-1;
+      exit;
+    end;
+  repeat
+    res:=__wasi_path_open(fd,
+                          0,
+                          PChar(pr),
+                          length(pr),
+                          __WASI_OFLAGS_CREAT or __WASI_OFLAGS_TRUNC,
+                          fs_rights_base,
+                          fs_rights_base,
+                          0,
+                          @ourfd);
+  until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
+  If res=__WASI_ERRNO_SUCCESS Then
+    Result:=ourfd
+  else
+    Result:=-1;
 end;
 
 
 Function FileCreate (Const FileName : RawByteString; ShareMode:integer; Rights : integer) : THandle;
 begin
+  FileCreate:=FileCreate(FileName);
 end;
 
 
 Function FileCreate (Const FileName : RawByteString; Rights:integer) : THandle;
 begin
+  FileCreate:=FileCreate(FileName);
 end;
 
 
