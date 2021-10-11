@@ -2307,6 +2307,9 @@ implementation
            not assigned(def.procstarttai) then
           exit;
 
+        if df_generic in def.defoptions then
+          exit;
+
         { Procdefs are not handled by the regular def writing code, so
           dbg_state is not set/checked for them. Do it here.  }
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
