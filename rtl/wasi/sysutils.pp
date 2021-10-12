@@ -592,7 +592,20 @@ end;
 
 
 Function FileGetAttr (Const FileName : RawByteString) : Longint;
+var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
 begin
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
+    begin
+      result:=-1;
+      exit;
+    end;
+  if __wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+    result:=WasiToWinAttr(FileName,fd,PChar(pr),length(pr),Info)
+  else
+    result:=-1;
 end;
 
 
