@@ -1467,6 +1467,7 @@ var
   usecs : Word;
 begin
   DoGetLocalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
+  SystemTime.DayOfWeek:=DayOfWeek(EncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day))-1;
 end ;
 {$endif}
 
