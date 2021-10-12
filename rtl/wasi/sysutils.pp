@@ -453,7 +453,24 @@ end;
 
 
 Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
+var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
+  flags: __wasi_lookupflags_t;
 begin
+  if Directory='' then
+    exit(false);
+  if ConvertToFdRelativePath(Directory,fd,pr)<>0 then
+    exit(false);
+  if FollowLink then
+    flags:=__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW
+  else
+    flags:=0;
+  if __wasi_path_filestat_get(fd,flags,PChar(pr),length(pr),@Info)=__WASI_ERRNO_SUCCESS then
+    result:=Info.filetype=__WASI_FILETYPE_DIRECTORY
+  else
+    result:=false;
 end;
 
 
