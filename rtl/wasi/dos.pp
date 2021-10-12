@@ -799,38 +799,23 @@ Begin
 End;
 
 Procedure setftime(var f; time : longint);
-(*
 Var
-  utim: utimbuf;
   DT: DateTime;
-  p : pchar;
-{$ifndef FPC_ANSI_TEXTFILEREC}
-  r : Rawbytestring;
-{$endif not FPC_ANSI_TEXTFILEREC}*)
+  modtime: UInt64;
+  pr: RawByteString;
+  fd: __wasi_fd_t;
 Begin
-(*  doserror:=0;
-  with utim do
+  doserror:=0;
+  UnPackTime(Time,DT);
+  modtime:=DTToWasiDate(DT);
+  if ConvertToFdRelativePath(textrec(f).name,fd,pr)<>0 then
     begin
-      actime:=fptime;
-      UnPackTime(Time,DT);
-      modtime:=DTToUnixDate(DT);
-    end;
-{$ifdef FPC_ANSI_TEXTFILEREC}
-  { encoding is already correct }
-  p:=@textrec(f).name;
-{$else}
-  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
-{$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
-    a second time whether the string needs to be converted to the right code
-    page
-  }
-  if fputime(p,@utim)<0 then
-    begin
-      Time:=0;
       doserror:=3;
-    end;*)
+      exit;
+    end;
+  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),0,modtime,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM_NOW)<>__WASI_ERRNO_SUCCESS then
+    doserror:=3;
 End;
 
 {******************************************************************************
