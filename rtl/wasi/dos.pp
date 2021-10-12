@@ -184,7 +184,7 @@ const
   days_in_month: array [boolean, 1..12] of Byte =
     ((31,28,31,30,31,30,31,31,30,31,30,31),
      (31,29,31,30,31,30,31,31,30,31,30,31));
-  days_before_month: array [boolean, 1..12] of Byte =
+  days_before_month: array [boolean, 1..12] of Word =
     ((0,
       0+31,
       0+31+28,
