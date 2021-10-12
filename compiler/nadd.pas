@@ -788,8 +788,6 @@ implementation
                else
                  internalerror(2008022101);
              end;
-             if not forinline then
-               include(t.flags,nf_internal);
              result:=t;
              exit;
           end
