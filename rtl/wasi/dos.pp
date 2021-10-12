@@ -47,7 +47,7 @@ Type
 {Extra Utils}
 function weekday(y,m,d : longint) : longint; platform;
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime); platform;
-//Function  DTToUnixDate(DT: DateTime): LongInt; platform;
+Function DTToWasiDate(DT: DateTime): UInt64; platform;
 
 {Disk}
 //Function AddDisk(const path:string) : byte; platform;
@@ -179,6 +179,65 @@ begin
 end;
 
 
+Function DTToWasiDate(DT: DateTime): UInt64;
+const
+  days_in_month: array [boolean, 1..12] of Byte =
+    ((31,28,31,30,31,30,31,31,30,31,30,31),
+     (31,29,31,30,31,30,31,31,30,31,30,31));
+  days_before_month: array [boolean, 1..12] of Byte =
+    ((0,
+      0+31,
+      0+31+28,
+      0+31+28+31,
+      0+31+28+31+30,
+      0+31+28+31+30+31,
+      0+31+28+31+30+31+30,
+      0+31+28+31+30+31+30+31,
+      0+31+28+31+30+31+30+31+31,
+      0+31+28+31+30+31+30+31+31+30,
+      0+31+28+31+30+31+30+31+31+30+31,
+      0+31+28+31+30+31+30+31+31+30+31+30),
+     (0,
+      0+31,
+      0+31+29,
+      0+31+29+31,
+      0+31+29+31+30,
+      0+31+29+31+30+31,
+      0+31+29+31+30+31+30,
+      0+31+29+31+30+31+30+31,
+      0+31+29+31+30+31+30+31+31,
+      0+31+29+31+30+31+30+31+31+30,
+      0+31+29+31+30+31+30+31+31+30+31,
+      0+31+29+31+30+31+30+31+31+30+31+30));
+var
+  leap: Boolean;
+  days_in_year: LongInt;
+  y,m: LongInt;
+begin
+  if (DT.year<1970) or (DT.month<1) or (DT.month>12) or (DT.day<1) or (DT.day>31) or
+     (DT.hour>=24) or (DT.min>=60) or (DT.sec>=60) then
+  begin
+    DTToWasiDate:=-1;
+    exit;
+  end;
+  leap:=((DT.year mod 4)=0) and (((DT.year mod 100)<>0) or ((DT.year mod 400)=0));
+  if DT.day>days_in_month[leap,DT.month] then
+  begin
+    DTToWasiDate:=-1;
+    exit;
+  end;
+  DTToWasiDate:=0;
+  for y:=1970 to DT.year-1 do
+    if ((y mod 4)=0) and (((y mod 100)<>0) or ((y mod 400)=0)) then
+      Inc(DTToWasiDate,366)
+    else
+      Inc(DTToWasiDate,365);
+  Inc(DTToWasiDate,days_before_month[leap,DT.month]);
+  Inc(DTToWasiDate,DT.day-1);
+  DTToWasiDate:=((((DTToWasiDate*24+DT.hour)*60+DT.min)*60)+DT.sec)*1000000000;
+end;
+
+
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime);
 const
   days_in_month: array [boolean, 1..12] of Byte =
@@ -218,11 +277,6 @@ Begin
     Inc(Dt.Month);
   end;
   Dt.Day:=Word(NanoSecsPast);
-End;
-
-
-Function DTToUnixDate(DT: DateTime): LongInt;
-Begin
 End;
 
 
