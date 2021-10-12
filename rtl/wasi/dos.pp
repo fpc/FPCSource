@@ -864,10 +864,10 @@ End;
 
 Procedure setfattr (var f;attr : word);
 Begin
-(*  {! No Unix equivalent !}
+  {! No WASI equivalent !}
   { Fail for setting VolumeId }
   if (attr and VolumeID)<>0 then
-   doserror:=5;*)
+   doserror:=5;
 End;
 
 
