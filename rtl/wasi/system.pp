@@ -53,7 +53,7 @@ var
   argv: PPChar;
   envp: PPChar;
 
-function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
 
 implementation
 
@@ -108,7 +108,7 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
-function Do_ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
+function Do_ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
 var
   drive_nr,I,pdir_drive,longest_match,chridx: longint;
   IsAbsolutePath: Boolean;
@@ -130,8 +130,7 @@ begin
     { if so, convert to absolute }
     if (drive_nr>=drives_count) or (current_dirs[drive_nr].dir_name='') then
     begin
-      InOutRes:=15;
-      Do_ConvertToFdRelativePath:=false;
+      Do_ConvertToFdRelativePath:=15;
       exit;
     end;
     if current_dirs[drive_nr].dir_name[Length(current_dirs[drive_nr].dir_name)] in AllowDirectorySeparators then
@@ -140,7 +139,6 @@ begin
       path:=current_dirs[drive_nr].dir_name+DirectorySeparator+path;
   end;
   { path is now absolute. Try to find it in the preopened dirs array }
-  Do_ConvertToFdRelativePath:=false;
   longest_match:=0;
   for I:=0 to preopened_dirs_count-1 do
   begin
@@ -166,16 +164,15 @@ begin
         Inc(chridx);
       fd:=preopened_dirs[I].fd;
       relfd_path:=Copy(path,chridx,Length(path)-chridx+1);
-      Do_ConvertToFdRelativePath:=true;
     end;
   end;
   if longest_match>0 then
-    InOutRes:=0
+    Do_ConvertToFdRelativePath:=0
   else
-    InOutRes:=3;
+    Do_ConvertToFdRelativePath:=3;
 end;
 
-function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Boolean;
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
 begin
   ConvertToFdRelativePath:=Do_ConvertToFdRelativePath(ToSingleByteFileSystemEncodedFileName(path),fd,relfd_path);
   setcodepage(relfd_path,DefaultRTLFileSystemCodePage,true);

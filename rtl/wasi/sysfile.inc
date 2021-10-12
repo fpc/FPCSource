@@ -32,12 +32,11 @@ var
   pr: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(p,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(p,fd,pr);
+  if InOutRes<>0 then
     exit;
   res:=__wasi_path_unlink_file(fd,PChar(pr),Length(pr));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
 
@@ -58,14 +57,14 @@ var
   pr1,pr2: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(p1,fd1,pr1) then
+  InOutRes:=ConvertToFdRelativePath(p1,fd1,pr1);
+  if InOutRes<>0 then
     exit;
-  if not ConvertToFdRelativePath(p2,fd2,pr2) then
+  InOutRes:=ConvertToFdRelativePath(p2,fd2,pr2);
+  if InOutRes<>0 then
     exit;
   res:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
 
@@ -279,7 +278,8 @@ Begin
      end;
      exit;
    end;
-  if not ConvertToFdRelativePath(p,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(p,fd,pr);
+  if InOutRes<>0 then
     exit;
 { real open call }
   repeat

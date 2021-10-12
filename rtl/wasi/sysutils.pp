@@ -237,7 +237,7 @@ Begin
                       __WASI_RIGHTS_FD_DATASYNC or
                       __WASI_RIGHTS_FD_SYNC;
   end;
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     begin
       result:=-1;
       exit;
@@ -282,7 +282,7 @@ Var
   pr: RawByteString;
   fd: __wasi_fd_t;
 Begin
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     begin
       result:=-1;
       exit;
@@ -411,7 +411,7 @@ var
   fd: __wasi_fd_t;
   Info: __wasi_filestat_t;
 begin
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     begin
       result:=-1;
       exit;
@@ -439,7 +439,7 @@ var
 begin
   if FileName='' then
     exit(false);
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     exit(false);
   if FollowLink then
     flags:=__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW
@@ -504,7 +504,7 @@ var
   pr: RawByteString;
   fd: __wasi_fd_t;
 begin
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     begin
       result:=-1;
       exit;
@@ -533,7 +533,7 @@ var
   pr: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(FileName,fd,pr) then
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
     begin
       result:=false;
       exit;
@@ -549,9 +549,9 @@ var
   res: __wasi_errno_t;
 begin
   result:=false;
-  if not ConvertToFdRelativePath(OldName,fd1,pr1) then
+  if ConvertToFdRelativePath(OldName,fd1,pr1)<>0 then
     exit;
-  if not ConvertToFdRelativePath(NewName,fd2,pr2) then
+  if ConvertToFdRelativePath(NewName,fd2,pr2)<>0 then
     exit;
   result:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2))=__WASI_ERRNO_SUCCESS;
 end;

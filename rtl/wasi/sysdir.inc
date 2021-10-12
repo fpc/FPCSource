@@ -24,12 +24,11 @@ var
   pr: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(s,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(s,fd,pr);
+  if InOutRes<>0 then
     exit;
   res:=__wasi_path_create_directory(fd,PChar(pr),Length(pr));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
 
@@ -39,12 +38,11 @@ var
   pr: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(s,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(s,fd,pr);
+  if InOutRes<>0 then
     exit;
   res:=__wasi_path_remove_directory(fd,PChar(pr),Length(pr));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
 
@@ -136,7 +134,7 @@ begin
           new_dir:=new_dir+next_dir_part
         else
           new_dir:=new_dir+DirectorySeparator+next_dir_part;
-        if not ConvertToFdRelativePath(current_dirs[new_drive_nr].drive_str+new_dir,fd,pr) then
+        if ConvertToFdRelativePath(current_dirs[new_drive_nr].drive_str+new_dir,fd,pr)<>0 then
         begin
           {...}
           InOutRes:=3;

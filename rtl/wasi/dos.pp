@@ -464,7 +464,7 @@ var
   pr   : RawByteString;
 begin
   FindGetFileInfo:=false;
-  if not ConvertToFdRelativePath(s,fd,pr) then
+  if ConvertToFdRelativePath(s,fd,pr)<>0 then
     exit;
   { todo: __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW??? }
   if __wasi_path_filestat_get(fd,0,PChar(pr),Length(pr),@st)<>__WASI_ERRNO_SUCCESS then
@@ -556,7 +556,7 @@ Begin
          DirName:='./'
         Else
          DirName:=Copy(f.SearchSpec,1,f.NamePos);
-        if ConvertToFdRelativePath(DirName,fd,pr) then
+        if ConvertToFdRelativePath(DirName,fd,pr)=0 then
          begin
            repeat
              res:=__wasi_path_open(fd,
