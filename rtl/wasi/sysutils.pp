@@ -191,6 +191,34 @@ end;
                               File Functions
 ****************************************************************************}
 
+Function WasiToWinAttr (const FN : RawByteString; fd: __wasi_fd_t; pr: PChar; pr_len: size_t; Const Info : __wasi_filestat_t) : Longint;
+Var
+  LinkInfo : __wasi_filestat_t;
+  nm : RawByteString;
+begin
+  Result:=faArchive;
+  if Info.filetype=__WASI_FILETYPE_DIRECTORY then
+    Result:=Result or faDirectory;
+  nm:=ExtractFileName(FN);
+  If (Length(nm)>=2) and
+     (nm[1]='.') and
+     (nm[2]<>'.')  then
+    Result:=Result or faHidden;
+  If (Info.filetype=__WASI_FILETYPE_BLOCK_DEVICE) or
+     (Info.filetype=__WASI_FILETYPE_CHARACTER_DEVICE) or
+     (Info.filetype=__WASI_FILETYPE_SOCKET_DGRAM) or
+     (Info.filetype=__WASI_FILETYPE_SOCKET_STREAM) then
+    Result:=Result or faSysFile;
+  if Info.filetype=__WASI_FILETYPE_SYMBOLIC_LINK then
+    begin
+      Result:=Result or faSymLink;
+      // Windows reports if the link points to a directory.
+      if (__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,pr,pr_len,@LinkInfo)=__WASI_ERRNO_SUCCESS) and
+         (LinkInfo.filetype=__WASI_FILETYPE_DIRECTORY) then
+        Result := Result or faDirectory;
+    end;
+end;
+
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Var
@@ -425,8 +453,37 @@ end;
 
 
 function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+const
+  MaxSymLinkSize=4096;
+var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
+  symlink: RawByteString;
+  symlink_len: __wasi_size_t;
+  res: __wasi_errno_t;
 begin
-  Result := False;
+  FillChar(SymLinkRec, SizeOf(SymLinkRec), 0);
+  result:=false;
+  if ConvertToFdRelativePath(FileName,fd,pr)<>0 then
+    exit;
+  if __wasi_path_filestat_get(fd,0,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+    exit;
+  if Info.filetype<>__WASI_FILETYPE_SYMBOLIC_LINK then
+    exit;
+  SetLength(symlink,MaxSymLinkSize);
+  if __wasi_path_readlink(fd,PChar(pr),Length(pr),@symlink[1],Length(symlink),@symlink_len)<>__WASI_ERRNO_SUCCESS then
+    exit;
+  SetLength(symlink,symlink_len);
+  setcodepage(symlink,DefaultRTLFileSystemCodePage,true);
+  SymLinkRec.TargetName:=symlink;
+
+  res:=__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info);
+  if res<>__WASI_ERRNO_SUCCESS then
+    raise EDirectoryNotFoundException.Create('Error ' + IntToStr(res){todo: SysErrorMessage SysErrorMessage(GetLastOSError)});
+  SymLinkRec.Attr := WasiToWinAttr(FileName,fd,PChar(pr),length(pr),Info);
+  SymLinkRec.Size := Info.size;
+  result:=true;
 end;
 
 
