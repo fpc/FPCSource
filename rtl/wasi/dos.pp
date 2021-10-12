@@ -696,42 +696,27 @@ Begin
 End;
 
 Procedure GetFAttr(var f; var attr : word);
-(*Var
-  info    : baseunix.stat;
-  LinAttr : longint;
-  p       : pchar;
-{$ifndef FPC_ANSI_TEXTFILEREC}
-  r       : RawByteString;
-{$endif not FPC_ANSI_TEXTFILEREC}*)
+Var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
 Begin
-(*  DosError:=0;
-{$ifdef FPC_ANSI_TEXTFILEREC}
-  { encoding is already correct }
-  p:=@textrec(f).name;
-{$else}
-  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
-{$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
-    a second time whether the string needs to be converted to the right code
-    page
-  }
-  if FPStat(p,info)<0 then
-   begin
-     Attr:=0;
-     DosError:=3;
-     exit;
-   end
-  else
-   LinAttr:=Info.st_Mode;
-  if fpS_ISDIR(LinAttr) then
-   Attr:=$10
-  else
-   Attr:=$0;
-  if fpAccess(p,W_OK)<0 then
-   Attr:=Attr or $1;
+  DosError:=0;
+  Attr:=0;
+  if ConvertToFdRelativePath(textrec(f).name,fd,pr)<>0 then
+    begin
+      DosError:=3;
+      exit;
+    end;
+  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+    begin
+      DosError:=3;
+      exit;
+    end;
+  if Info.filetype=__WASI_FILETYPE_DIRECTORY then
+    Attr:=$10;
   if filerec(f).name[0]='.' then
-   Attr:=Attr or $2;*)
+    Attr:=Attr or $2;
 end;
 
 Procedure getftime (var f; var time : longint);
