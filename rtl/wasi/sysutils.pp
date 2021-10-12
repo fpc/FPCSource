@@ -598,6 +598,7 @@ end;
 
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
+  Result:=-1;
 end;
 
 
