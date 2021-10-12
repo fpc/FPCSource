@@ -667,8 +667,20 @@ end;
 {$I tzenv.inc}
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
+var
+  NanoSecsPast: __wasi_timestamp_t;
 begin
-end ;
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+    begin
+      EpochToLocal(NanoSecsPast div 1000000000,
+        SystemTime.Year,SystemTime.Month,SystemTime.Day,
+        SystemTime.Hour,SystemTime.Minute,SystemTime.Second);
+      SystemTime.MilliSecond := (NanoSecsPast div 1000000) mod 1000;
+      SystemTime.DayOfWeek := DayOfWeek(EncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day))-1;
+    end
+  else
+    FillChar(SystemTime,SizeOf(SystemTime),0);
+end;
 
 
 {****************************************************************************
