@@ -698,7 +698,25 @@ end;
 
 
 procedure InitAnsi;
+Var
+  i : longint;
 begin
+  {  Fill table entries 0 to 127  }
+  for i := 0 to 96 do
+    UpperCaseTable[i] := chr(i);
+  for i := 97 to 122 do
+    UpperCaseTable[i] := chr(i - 32);
+  for i := 123 to 191 do
+    UpperCaseTable[i] := chr(i);
+  Move (CPISO88591UCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+
+  for i := 0 to 64 do
+    LowerCaseTable[i] := chr(i);
+  for i := 65 to 90 do
+    LowerCaseTable[i] := chr(i + 32);
+  for i := 91 to 191 do
+    LowerCaseTable[i] := chr(i);
+  Move (CPISO88591LCT,LowerCaseTable[192],SizeOf(CPISO88591UCT));
 end;
 
 
