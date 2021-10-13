@@ -1046,7 +1046,7 @@ implementation
         delete(printnodeindention,1,length(printnodespacing));
       end;
 
-    {$ifdef DEBUG_NODE_XML}
+{$ifdef DEBUG_NODE_XML}
     function WritePointer(const P: Pointer): ansistring;
       begin
         case PtrUInt(P) of
@@ -1054,10 +1054,10 @@ implementation
             WritePointer := 'nil';
           1..$FFFF:
             WritePointer := '$' + hexstr(PtrUInt(P), 4);
-    {$if sizeof(Pointer) > 4}
+    {$if sizeof(Pointer) >= 4}
           $10000..$FFFFFFFF:
             WritePointer := '$' + hexstr(PtrUInt(P), 8);
-    {$ifend sizeof(Pointer) > 4}
+    {$ifend sizeof(Pointer) >= 4}
           else
             WritePointer := '$' + hexstr(PtrUInt(P), 2*sizeof(Pointer));
         end;
@@ -1071,12 +1071,14 @@ implementation
             WriteConstPUInt := 'nil';
           1..$FFFF:
             WriteConstPUInt := '$' + hexstr(P, 4);
-    {$if sizeof(TConstPtrUInt) > 4}
+    {$if sizeof(TConstPtrUInt) >= 4}
           $10000..$FFFFFFFF:
             WriteConstPUInt := '$' + hexstr(P, 8);
     {$ifend sizeof(TConstPtrUInt) >= 4}
+    {$if sizeof(TConstPtrUInt) > 4}
           else
             WriteConstPUInt := '$' + hexstr(P, 2*sizeof(TConstPtrUInt));
+    {$endif sizeof(TConstPtrUInt) > 4}
         end;
       end;
 
@@ -1379,7 +1381,7 @@ implementation
               Result := Result + '''';
           end;
       end;
-    {$endif DEBUG_NODE_XML}
+{$endif DEBUG_NODE_XML}
 
 
 initialization
