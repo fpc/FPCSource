@@ -73,7 +73,9 @@ Const
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
-     pocall_internproc
+     pocall_internproc,
+     pocall_stdcall,
+     pocall_cdecl
    ];
 
    cputypestr : array[tcputype] of string[9] = ('',
