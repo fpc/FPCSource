@@ -59,7 +59,7 @@ implementation
 
     uses
       cutils,verbose,systems,
-      defutil,wasmdef,
+      defutil,wasmdef,tgcpu,
       aasmcpu,
       hlcgobj;
 
@@ -241,6 +241,7 @@ implementation
         paracgsize   : tcgsize;
         paraofs      : longint;
         paradef      : tdef;
+        wbt          : TWasmBasicType;
       begin
         paraofs:=0;
         for i:=0 to paras.count-1 do
@@ -260,7 +261,21 @@ implementation
               end
             else
               begin
-                paracgsize:=def_cgsize(hp.vardef);
+                if (hp.vardef.typ=recorddef) and
+                   (trecorddef(hp.vardef).contains_float_field) and
+                   defToWasmBasic(hp.vardef,wbt) then
+                  begin
+                    case wbt of
+                      wbt_f32:
+                        paracgsize:=OS_F32;
+                      wbt_f64:
+                        paracgsize:=OS_F64;
+                      else
+                        internalerror(2021101401);
+                    end;
+                  end
+                else
+                  paracgsize:=def_cgsize(hp.vardef);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
                 paradef:=hp.vardef;

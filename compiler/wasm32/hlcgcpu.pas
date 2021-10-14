@@ -73,6 +73,8 @@ uses
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
 
+      class function def2regtyp(def: tdef): tregistertype; override;
+
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
@@ -379,6 +381,16 @@ implementation
       if cs_asm_regalloc in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
+
+
+  class function thlcgwasm.def2regtyp(def: tdef): tregistertype;
+    begin
+      if (def.typ=recorddef) and (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
+        result:=R_FPUREGISTER
+      else
+        result:=inherited;
+    end;
+
 
   procedure thlcgwasm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
@@ -2364,11 +2376,11 @@ implementation
             1: result := getputmem8[isload, is_signed(def)];
             2: result := getputmem16[isload, is_signed(def)];
             4:
-              if is_single(def) then
+              if is_single(def) or ((def.typ=recorddef) and (trecorddef(def).contains_float_field)) then
                 result := getputmemf32[isload]
               else
                 result := getputmem32[isload, is_signed(def)];
-            8: if is_double(def) then
+            8: if is_double(def) or ((def.typ=recorddef) and (trecorddef(def).contains_float_field)) then
                  result := getputmemf64[isload]
                else
                 result := getputmem64[isload, is_signed(def)];
