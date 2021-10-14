@@ -893,12 +893,8 @@ implementation
             reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
             hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
             thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-            thlcgwasm(hlcg).incblock;
+            current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,br+1));
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-            thlcgwasm(hlcg).decblock;
           end;
 
       begin
@@ -1080,12 +1076,8 @@ implementation
           reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
           hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
           thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
-          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-          thlcgwasm(hlcg).incblock;
+          current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-          current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,br+1));
-          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-          thlcgwasm(hlcg).decblock;
         end;
 
       procedure generate_exceptreason_throw(reason: tcgint);
@@ -1292,12 +1284,8 @@ implementation
           reasonreg:=hlcg.getintregister(current_asmdata.CurrAsmList,exceptionreasontype);
           hlcg.g_exception_reason_load(current_asmdata.CurrAsmList,exceptionreasontype,exceptionreasontype,excepttemps.reasonbuf,reasonreg);
           thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
-          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-          thlcgwasm(hlcg).incblock;
+          current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-          current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,br+1));
-          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-          thlcgwasm(hlcg).decblock;
         end;
 
       procedure generate_exceptreason_reraise(reason: tcgint);
