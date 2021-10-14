@@ -328,7 +328,7 @@ implementation
                   exit(false);
               end;
           end;
-        result:=true;
+        result:=(fields=1);
       end;
 
 
