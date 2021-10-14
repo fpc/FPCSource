@@ -99,19 +99,28 @@ unit tgcpu;
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
     begin
       Result := assigned(def);
-      if not Result then Exit;
+      if not Result then
+        Exit;
 
       if is_pointer(def) then
         wbt := wbt_i32 // wasm32
       else if is_currency(def) then
         wbt := wbt_i64
-      else if is_ordinal(def) then begin
-        if is_64bit(def) then wbt := wbt_i64
-        else wbt := wbt_i32;
-      end else if is_real(def) then begin
-        if is_single(def) then wbt := wbt_f32
-        else wbt := wbt_f64; // real/double/extended
-      end else
+      else if is_ordinal(def) then
+        begin
+          if is_64bit(def) then
+            wbt := wbt_i64
+          else
+            wbt := wbt_i32;
+        end
+      else if is_real(def) then
+        begin
+          if is_single(def) then
+            wbt := wbt_f32
+          else
+            wbt := wbt_f64; // real/double/extended
+        end
+      else
         Result := false;
     end;
 
