@@ -38,6 +38,7 @@ interface
         function  get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
@@ -48,6 +49,10 @@ interface
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var parasize:longint);
+        { true if the record recursively (including through nested records and
+          arrays) contains just a single scalar value }
+        function is_singleton_scalar_record(def:trecorddef):boolean;
+        function is_singleton_scalar_array(def:tarraydef):boolean;
       end;
 
 implementation
@@ -97,10 +102,7 @@ implementation
           formaldef :
             result:=true;
           recorddef :
-            begin
-              { Delphi stdcall passes records on the stack for call by value }
-              result:=(varspez=vs_const) or (not (def.size in [1,2,4{,8}]));
-            end;
+            result:=(varspez=vs_const) or not is_singleton_scalar_record(trecorddef(def));
           arraydef :
             begin
               result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
@@ -120,6 +122,18 @@ implementation
             ;
         end;
 
+      end;
+
+
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+      begin
+        { This handles all managed types, including COM interfaces and Variants }
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
+        if (def.typ=recorddef) and is_singleton_scalar_record(trecorddef(def)) then
+          result:=false
+        else
+          result:=inherited;
       end;
 
 
@@ -285,6 +299,42 @@ implementation
             inc(paraofs);
           end;
         parasize:=paraofs;
+      end;
+
+
+    function tcpuparamanager.is_singleton_scalar_record(def: trecorddef): boolean;
+      var
+        i,fields: Integer;
+      begin
+        if not (def.size in [1,2,4,8]) then
+          exit(false);
+        fields:=0;
+        for i:=0 to def.symtable.symlist.count-1 do
+          begin
+            if (tsym(def.symtable.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(def.symtable.symlist[i]).symoptions) then
+              continue;
+            if assigned(tfieldvarsym(def.symtable.symlist[i]).vardef) then
+              begin
+                Inc(fields);
+                if fields>1 then
+                  exit(false);
+                { search recursively }
+                if (tstoreddef(tfieldvarsym(def.symtable.symlist[i]).vardef).typ=recorddef) and
+                  not is_singleton_scalar_record(trecorddef(tfieldvarsym(def.symtable.symlist[i]).vardef)) then
+                  exit(false);
+                if (tstoreddef(tfieldvarsym(def.symtable.symlist[i]).vardef).typ=arraydef) and
+                  not is_singleton_scalar_array(tarraydef(tfieldvarsym(def.symtable.symlist[i]).vardef)) then
+                  exit(false);
+              end;
+          end;
+        result:=true;
+      end;
+
+
+    function tcpuparamanager.is_singleton_scalar_array(def:tarraydef):boolean;
+      begin
+        result:=(def.size in [1,2,4,8]) and (def.elecount=1);
       end;
 
 
