@@ -4054,49 +4054,51 @@ unit aoptx86;
         Result:=false;
         if taicpu(p).ops <> 2 then
           exit;
-        if GetNextInstruction(p,hp1) and
-          MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
-          (taicpu(hp1).ops = 2) then
+        if GetNextInstruction(p,hp1) then
           begin
-            if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
-               (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
-                {  movXX reg1, mem1     or     movXX mem1, reg1
-                   movXX mem2, reg2            movXX reg2, mem2}
-              begin
-                if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
-                  { movXX reg1, mem1     or     movXX mem1, reg1
-                    movXX mem2, reg1            movXX reg2, mem1}
-                  begin
-                    if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
-                      begin
-                        { Removes the second statement from
-                          movXX reg1, mem1/reg2
-                          movXX mem1/reg2, reg1
-                        }
-                        if taicpu(p).oper[0]^.typ=top_reg then
-                          AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
-                        { Removes the second statement from
-                          movXX mem1/reg1, reg2
-                          movXX reg2, mem1/reg1
-                        }
-                        if (taicpu(p).oper[1]^.typ=top_reg) and
-                          not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)) then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'MovXXMovXX2Nop 1 done',p);
-                            RemoveInstruction(hp1);
-                            RemoveCurrentp(p); { p will now be equal to the instruction that follows what was hp1 }
-                          end
-                        else
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'MovXXMovXX2MoVXX 1 done',p);
-                            RemoveInstruction(hp1);
-                          end;
-                        Result:=true;
-                        exit;
-                      end
-                end;
+            if MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
+            (taicpu(hp1).ops = 2) then
+            begin
+              if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
+                 (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
+                  {  movXX reg1, mem1     or     movXX mem1, reg1
+                     movXX mem2, reg2            movXX reg2, mem2}
+                begin
+                  if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
+                    { movXX reg1, mem1     or     movXX mem1, reg1
+                      movXX mem2, reg1            movXX reg2, mem1}
+                    begin
+                      if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                        begin
+                          { Removes the second statement from
+                            movXX reg1, mem1/reg2
+                            movXX mem1/reg2, reg1
+                          }
+                          if taicpu(p).oper[0]^.typ=top_reg then
+                            AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
+                          { Removes the second statement from
+                            movXX mem1/reg1, reg2
+                            movXX reg2, mem1/reg1
+                          }
+                          if (taicpu(p).oper[1]^.typ=top_reg) and
+                            not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)) then
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'MovXXMovXX2Nop 1 done',p);
+                              RemoveInstruction(hp1);
+                              RemoveCurrentp(p); { p will now be equal to the instruction that follows what was hp1 }
+                            end
+                          else
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'MovXXMovXX2MoVXX 1 done',p);
+                              RemoveInstruction(hp1);
+                            end;
+                          Result:=true;
+                          exit;
+                        end
+                  end;
+              end;
             end;
-        end;
+          end;
       end;
 
 
@@ -8820,7 +8822,14 @@ unit aoptx86;
               end;
           end
         else if reg_and_hp1_is_instr and
-          (taicpu(hp1).opcode = A_MOV) and
+          ((taicpu(hp1).opcode=A_MOV) or
+           (taicpu(hp1).opcode=A_ADD) or
+           (taicpu(hp1).opcode=A_SUB) or
+           (taicpu(hp1).opcode=A_CMP) or
+           (taicpu(hp1).opcode=A_OR) or
+           (taicpu(hp1).opcode=A_XOR) or
+           (taicpu(hp1).opcode=A_AND)
+          ) and
           MatchOpType(taicpu(hp1),top_reg,top_reg) and
           (((taicpu(p).opsize in [S_BW,S_BL,S_WL{$ifdef x86_64},S_BQ,S_WQ,S_LQ{$endif x86_64}]) and
            (taicpu(hp1).opsize=S_B)) or
@@ -8848,7 +8857,7 @@ unit aoptx86;
             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
             if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
               begin
-                DebugMsg(SPeepholeOptimization + 'MovxMov2Mov',p);
+                DebugMsg(SPeepholeOptimization + 'MovxOp2Op',p);
                 if taicpu(p).oper[0]^.typ=top_reg then
                   begin
                     case taicpu(hp1).opsize of
