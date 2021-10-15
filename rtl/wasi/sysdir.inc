@@ -73,8 +73,6 @@ procedure do_ChDir_internal(s: rawbytestring; SymLinkFollowCount: longint);
         delete(s,1,1);
     end;
 
-const
-  MaxSymLinkSize = 4096;
 var
   new_drive_nr: longint;
   new_dir,new_dir_save,next_dir_part: RawByteString;
@@ -83,7 +81,6 @@ var
   st: __wasi_filestat_t;
   res: __wasi_errno_t;
   symlink: RawByteString;
-  symlink_len: __wasi_size_t;
 begin
   if SymLinkFollowCount<0 then
   begin
@@ -151,14 +148,12 @@ begin
         end;
         if st.filetype=__WASI_FILETYPE_SYMBOLIC_LINK then
         begin
-          SetLength(symlink,MaxSymLinkSize);
-          res:=__wasi_path_readlink(fd,PChar(pr),Length(pr),@symlink[1],Length(symlink),@symlink_len);
+          res:=fpc_wasi_path_readlink_ansistring(fd,PChar(pr),Length(pr),symlink);
           if res<>__WASI_ERRNO_SUCCESS then
           begin
             InOutRes:=Errno2InoutRes(res);
             exit;
           end;
-          SetLength(symlink,symlink_len);
           if (symlink<>'') and (symlink[1] in AllowDirectorySeparators) then
             do_ChDir_internal(symlink,SymLinkFollowCount-1)
           else if (new_dir_save<>'') and (new_dir_save[length(new_dir_save)] in AllowDirectorySeparators) then

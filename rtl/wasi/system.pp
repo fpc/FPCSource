@@ -60,6 +60,33 @@ implementation
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
 
+function fpc_wasi_path_readlink_ansistring(
+                 fd: __wasi_fd_t;
+                 const path: PChar;
+                 path_len: size_t;
+                 out link: rawbytestring): __wasi_errno_t;[Public, Alias : 'FPC_WASI_PATH_READLINK_ANSISTRING'];
+const
+  InitialBufLen=64;
+  MaximumBufLen=16384;
+var
+  CurrentBufLen: __wasi_size_t;
+  BufUsed: __wasi_size_t;
+begin
+  CurrentBufLen:=InitialBufLen div 2;
+  repeat
+    CurrentBufLen:=CurrentBufLen*2;
+    SetLength(link,CurrentBufLen);
+    result:=__wasi_path_readlink(fd,path,path_len,@(link[1]),CurrentBufLen,@BufUsed);
+  until (result<>__WASI_ERRNO_SUCCESS) or ((result=__WASI_ERRNO_SUCCESS) and (BufUsed<CurrentBufLen)) or (CurrentBufLen>MaximumBufLen);
+  if result=__WASI_ERRNO_SUCCESS then
+  begin
+    SetLength(link,BufUsed);
+    setcodepage(link,DefaultRTLFileSystemCodePage,true);
+  end
+  else
+    link:='';
+end;
+
 function HasDriveLetter(const path: rawbytestring): Boolean;
 begin
   HasDriveLetter:=(Length(path)>=2) and (UpCase(path[1]) in ['A'..'Z']) and (path[2] = ':');

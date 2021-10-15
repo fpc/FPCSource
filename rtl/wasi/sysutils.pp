@@ -52,6 +52,12 @@ implementation
 
 {$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
 
+function fpc_wasi_path_readlink_ansistring(
+                 fd: __wasi_fd_t;
+                 const path: PChar;
+                 path_len: size_t;
+                 out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
+
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
 const
   days_in_month: array [boolean, 1..12] of Byte =
@@ -453,14 +459,11 @@ end;
 
 
 function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
-const
-  MaxSymLinkSize=4096;
 var
   pr: RawByteString;
   fd: __wasi_fd_t;
   Info: __wasi_filestat_t;
   symlink: RawByteString;
-  symlink_len: __wasi_size_t;
   res: __wasi_errno_t;
 begin
   FillChar(SymLinkRec, SizeOf(SymLinkRec), 0);
@@ -471,11 +474,8 @@ begin
     exit;
   if Info.filetype<>__WASI_FILETYPE_SYMBOLIC_LINK then
     exit;
-  SetLength(symlink,MaxSymLinkSize);
-  if __wasi_path_readlink(fd,PChar(pr),Length(pr),@symlink[1],Length(symlink),@symlink_len)<>__WASI_ERRNO_SUCCESS then
+  if fpc_wasi_path_readlink_ansistring(fd,PChar(pr),Length(pr),symlink)<>__WASI_ERRNO_SUCCESS then
     exit;
-  SetLength(symlink,symlink_len);
-  setcodepage(symlink,DefaultRTLFileSystemCodePage,true);
   SymLinkRec.TargetName:=symlink;
 
   res:=__wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info);
