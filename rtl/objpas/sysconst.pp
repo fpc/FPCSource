@@ -41,6 +41,7 @@ const
   SDispatchError         = 'No variant method call dispatch';
   SDivByZero             = 'Division by zero';
   SEndOfFile             = 'Read past end of file';
+  SErrPosToBigForLongint = 'File position %d too big to fit in 32-bit integer; Use Int64 overload instead';
   SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
   SerrInvalidHourMinuteSecMsec = '%d:%d:%d.%d is not a valid time specification';
   SErrInvalidDateWeek    = '%d %d %d is not a valid dateweek';
