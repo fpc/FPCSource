@@ -827,7 +827,10 @@ implementation
               end
 
             else if (tordconstnode(right).value = 1) and (nodetype=muln) then
-              result := left.getcopy
+              { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
+                the type conversion does not hurt because it is normally removed later on
+              }
+              result := ctypeconvnode.create_internal(left.getcopy,resultdef)
 
             else if (tordconstnode(right).value = -1) and (nodetype=muln) then
               result := ctypeconvnode.create_internal(cunaryminusnode.create(left.getcopy),left.resultdef)
@@ -895,7 +898,10 @@ implementation
               end
 
             else if (tordconstnode(left).value = 1) and (nodetype=muln) then
-              result := right.getcopy
+              { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
+                the type conversion does not hurt because it is normally removed later on
+              }
+              result :=  ctypeconvnode.create_internal(right.getcopy,resultdef)
 
             else if (tordconstnode(left).value = -1) and (nodetype=muln) then
               result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef)
