@@ -2286,8 +2286,6 @@ begin
     if vmt^.vFieldTable<>Nil then
       begin
       FieldTable := PVmtExtendedFieldTable(PVmtFieldTable(vmt^.vFieldTable)^.Next);
-      if FieldList<>Nil then
-        FillChar(FieldList^[Result],FieldTable^.FieldCount*sizeof(Pointer),0);
       For I:=0 to FieldTable^.FieldCount-1 do
         begin
         FieldEntry:=FieldTable^.Field[i];

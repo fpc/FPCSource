@@ -32,9 +32,10 @@ Type
     FPublicB: Integer;
     Property PublicA : Integer Read FPublicA Write FPublicA;
     Property PublicB : Integer Read FPublicA Write FPublicB;
-  Published
+  Private
     FPublishedA: Integer;
     FPublishedB: Integer;
+  Published
     Property PublishedA : Integer Read FPublishedA Write FPublishedA;
     Property PublishedB : Integer Read FPublishedA Write FPublishedB;
   end;
@@ -206,13 +207,15 @@ begin
   CheckField(3, A^[3],'FProtectedB',tkInteger,vcProtected,True);
   CheckField(4, A^[4],'FPublicA',tkInteger,vcPublic);
   CheckField(5, A^[5],'FPublicB',tkInteger,vcPublic);
-  CheckField(6, A^[6],'FPublishedA',tkInteger,vcPublished);
-  CheckField(7, A^[7],'FPublishedB',tkInteger,vcPublished);
+  CheckField(6, A^[6],'FPublishedA',tkInteger,vcPrivate);
+  CheckField(7, A^[7],'FPublishedB',tkInteger,vcPrivate);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPrivate]);
-  AssertEquals('Count',2,aCount);
+  AssertEquals('Count',4,aCount);
   CheckField(0, A^[0],'FPrivateA',tkInteger,vcPrivate);
   CheckField(1, A^[1],'FPrivateB',tkInteger,vcPrivate,True);
+  CheckField(2, A^[2],'FPublishedA',tkInteger,vcPrivate);
+  CheckField(3, A^[3],'FPublishedB',tkInteger,vcPrivate);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcProtected]);
   AssertEquals('Count',2,aCount);
@@ -225,10 +228,8 @@ begin
   CheckField(5, A^[1],'FPublicB',tkInteger,vcPublic);
   FreeMem(A);
   aCount:=GetFieldList(TFieldRTTI,A,[vcPublished]);
-  AssertEquals('Count',2,aCount);
-  CheckField(6, A^[0],'FPublishedA',tkInteger,vcPublished);
-  CheckField(7, A^[1],'FPublishedB',tkInteger,vcPublished);
-  FreeMem(A);
+  AssertEquals('Count',0,aCount);
+  //FreeMem(A);
 end;
 
 
