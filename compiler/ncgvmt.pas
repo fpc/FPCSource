@@ -607,13 +607,7 @@ implementation
                (sym.visibility=vis_published) then
              begin
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
-                  begin
-                    if _class.rtti.options[ro_fields]<>[] then
-                      continue
-                    else
-                      { tables with only legacy fields can be objectdef only }
-                      internalerror(200611032);
-                  end;
+                  internalerror(200611032);
                 classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                 if classindex=-1 then
                   classtablelist.Add(tfieldvarsym(sym).vardef);
