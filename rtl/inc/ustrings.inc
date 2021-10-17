@@ -21,9 +21,9 @@
   This file contains the implementation of the UnicodeString type,
   and all things that are needed for it.
   UnicodeString is defined as a 'silent' punicodechar :
-  a punicodechar that points to (S = SizeOf(SizeInt)) :
+  a punicodechar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
 
-  @-2*S : SizeInt for reference count;
+  @-S-R : Reference count (R bytes)
   @-S   : SizeInt for size; size=number of chars. Multiply with
           sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
   @      : String + Terminating #0;
@@ -39,11 +39,19 @@ Type
   TUnicodeRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
-{$ifdef CPU64}	
+{$if not defined(VER3_0) and not defined(VER3_2)}
+  {$ifdef CPU64}	
+    Ref         : Longint;
+  {$else}
+    Ref         : SizeInt;
+  {$endif}
+{$else}
+  {$ifdef CPU64}	
     { align fields  }
 	Dummy       : DWord;
-{$endif CPU64}
+  {$endif CPU64}
     Ref         : SizeInt;
+{$endif}
     Len         : SizeInt;
   end;
 

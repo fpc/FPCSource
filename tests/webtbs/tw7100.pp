@@ -52,22 +52,15 @@ end;
 procedure DumpString(const s: string);
 var
   i: sizeint;
-  pi: psizeint;
   pb: pbyte;
 begin
-  pi := psizeint(s);
-  pb := pbyte(pi);
+  pb := pbyte(s);
 
-  // Printing reference counter and string length
-  dec(pi, 2);
-  for i:=1 to 2 do
-  begin
-    { refcount has to be 1, length 2 -> happens to be the same as i }
-    if (pi^ <> i) then
-      halt(1);
-    write(IntToHex(pi^, sizeof(sizeint)*2),' ');
-    inc(pi);
-  end;
+  write(IntToHex(StringRefCount(s), sizeof(sizeint)*2),' ',IntToHex(Length(s), sizeof(sizeint)*2),' ');
+  if StringRefCount(s)<>1 then
+    halt(1);
+  if Length(s)<>2 then
+    halt(1);
 
   // Printing string bytes
   for i:=1 to length(s) do

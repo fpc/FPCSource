@@ -24,11 +24,11 @@
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
   AnsiString is defined as a 'silent' pchar :
-  a pchar that points to (S= SizeOf(SizeInt)):
+  a pchar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
 
-  @-3*S   : Code page indicator.
-  @-3*S+2 : Character size (2 bytes)
-  @-2*S   : SizeInt for reference count;
+  @-S-R-4 : Code page indicator.
+  @-S-R-2 : Character size (2 bytes)
+  @-S-R   : Reference count (R bytes)
   @-S  : SizeInt for size;
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
@@ -43,11 +43,19 @@ Type
   TAnsiRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
-{$ifdef CPU64}	
+{$if not defined(VER3_0) and not defined(VER3_2)}
+  {$ifdef CPU64}	
+    Ref         : Longint;
+  {$else}
+    Ref         : SizeInt;
+  {$endif}
+{$else}
+  {$ifdef CPU64}	
     { align fields  }
 	Dummy       : DWord;
-{$endif CPU64}
+  {$endif CPU64}
     Ref         : SizeInt;
+{$endif}
     Len         : SizeInt;
   end;
 
