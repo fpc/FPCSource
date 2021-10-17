@@ -960,10 +960,14 @@ begin
 end;
 
 function TryStrToInt(const s: string; out i : Longint) : boolean;
-var Error : word;
+var
+  Error : word;
+  li : Int64;
 begin
-  Val(s, i, Error);
-  TryStrToInt:=Error=0
+  Val(s, li, Error);
+  TryStrToInt:=(Error=0) and (li<=High(Longint)) and (li>=Low(Longint));
+  if TryStrToInt then
+    i:=li;
 end;
 
 {   StrToInt converts the string S to an integer value,
