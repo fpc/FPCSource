@@ -525,8 +525,14 @@ end;
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
+Var
+  I : Int64;
+
 begin
-  result:=longint(FileSeek(Handle,int64(FOffset),Origin));
+  I:=FileSeek(Handle,int64(FOffset),Origin);
+  if I>High(Longint) then
+     Raise EInOutError.CreateFmt(SErrPosToBigForLongint,[I]);
+  result:=I;
 end;
 
 
