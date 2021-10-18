@@ -285,10 +285,10 @@ Type
 
   TJSMemberExpression = Class(TJSElement)
   private
-    FMexpr: TJSElement;
+    FMExpr: TJSElement;
   Public
     Destructor Destroy; override;
-    Property MExpr : TJSElement Read FMexpr Write FMexpr;
+    Property MExpr : TJSElement Read FMExpr Write FMExpr;
   end;
 
   { TJSNewMemberExpression - e.g. 'new MExpr(Args)' }
@@ -358,7 +358,7 @@ Type
   private
     FVarType: TJSVarType;
   Public
-    Property varType : TJSVarType Read FVarType Write FVarType;
+    Property VarType : TJSVarType Read FVarType Write FVarType;
   end;
 
   { TJSExpressionStatement - A; }
@@ -1421,7 +1421,7 @@ end;
 
 Destructor TJSLabeledStatement.Destroy;
 begin
-  FreeAndNil(Flabel);
+  FreeAndNil(FLabel);
   inherited Destroy;
 end;
 
@@ -1843,7 +1843,7 @@ end;
 
 destructor TJSObjectLiteralElement.Destroy;
 begin
-  FreeAndNil(Fexpr);
+  FreeAndNil(FExpr);
   inherited Destroy;
 end;
 
@@ -1951,16 +1951,14 @@ end;
 { TJSBinary }
 
 destructor TJSBinary.Destroy;
-var
-  El: TJSElement;
-  BinCnt: Integer;
-  Bins: TJSElementArray;
-  SubBin: TJSBinary;
-begin
-  if FA is TJSBinary then
-    begin
-    // free El binary chains without stack
-    El:=FA;
+
+  procedure FreeListOfBins(El: TJSElement; ListA: boolean);
+  var
+    BinCnt: Integer;
+    SubBin: TJSBinary;
+    Bins: TJSElementArray;
+  begin
+    // free El binary chain without stack
     SetLength(Bins{%H-},8);
     BinCnt:=0;
     while El is TJSBinary do
@@ -1970,7 +1968,10 @@ begin
         SetLength(Bins,BinCnt*2);
       Bins[BinCnt]:=SubBin;
       inc(BinCnt);
-      El:=SubBin.FA;
+      if ListA then
+        El:=SubBin.FA
+      else
+        El:=SubBin.FB;
       end;
     while BinCnt>0 do
       begin
@@ -1979,7 +1980,13 @@ begin
       FreeAndNil(SubBin.FA);
       FreeAndNil(SubBin.FB);
       end;
-    end;
+  end;
+
+begin
+  if FA is TJSBinary then
+    FreeListOfBins(FA,true);
+  if FB is TJSBinary then
+    FreeListOfBins(FB,false);
 
   FreeAndNil(FA);
   FreeAndNil(FB);
