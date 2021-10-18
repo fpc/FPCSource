@@ -949,6 +949,7 @@ interface
            constructor Create(b:byte);virtual;
            constructor Create_op(b: byte; _op: byte);virtual;
            constructor create_max(b: byte; max: byte);virtual;
+           constructor create_op_max(b: byte; _op: byte; max: byte);virtual;
            constructor Create_zeros(b:byte);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -3346,6 +3347,21 @@ implementation
           fillsize:=0;
           fillop:=0;
           use_op:=false;
+       end;
+
+
+     constructor tai_align_abstract.create_op_max(b: byte; _op: byte; max: byte);
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          fillop:=_op;
+          use_op:=true;
+          maxbytes:=max;
+          fillsize:=0;
        end;
 
 

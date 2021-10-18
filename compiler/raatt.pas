@@ -1071,6 +1071,8 @@ unit raatt;
        lasTSec    : TAsmSectiontype;
        l1,
        l2,
+       l3,
+       l4,
        symofs     : tcgint;
        symtyp     : TAsmsymtype;
        section    : tai_section;
@@ -1255,7 +1257,35 @@ unit raatt;
                       dec(l1);
                    end;
                l1:=l2;
-               ConcatAlign(curlist,l1);
+               if actasmtoken=AS_COMMA then
+                 begin
+                   Consume(AS_COMMA);
+                   if not(actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+                     begin
+                       l3:=BuildConstExpression(false,false);
+                       if (l3<0) or (l3>255) then
+                         Message(asmr_e_invalid_constant_expression);
+                       if actasmtoken=AS_COMMA then
+                         begin
+                           Consume(AS_COMMA);
+                           l4:=BuildConstExpression(false,false);
+                           if (l4<0) or (l4>l1) then
+                             Message(asmr_e_invalid_constant_expression);
+                           curlist.concat(Tai_align.create_op_max(l1,l3,l4));
+                         end
+                     end
+                   else if actasmtoken=AS_COMMA then
+                     begin
+                       Consume(AS_COMMA);
+                       l4:=BuildConstExpression(false,false);
+                       if (l4<0) or (l4>l1) then
+                         Message(asmr_e_invalid_constant_expression);
+                       curlist.concat(Tai_align.create_max(l1,l4));
+                     end
+                 end
+               else
+                 ConcatAlign(curlist,l1);
+
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
