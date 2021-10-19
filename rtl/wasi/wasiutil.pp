@@ -30,7 +30,6 @@ type
     DirFD      : __wasi_fd_t;        {directory fd handle for reading directory}
     SearchType : Byte;               {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;               {attribute we are searching for}
-    Mode       : Word;
     Attr       : Byte;               {attribute of found file}
     Time       : __wasi_timestamp_t; {last modify date of found file}
     Size       : __wasi_filesize_t;  {file size of found file}

@@ -385,7 +385,6 @@ begin
   o.DirFD:=i.DirFD;
   o.SearchType:=i.SearchType;
   o.SearchAttr:=i.SearchAttr;
-  o.Mode:=i.Mode;
   o.Attr:=i.Attr;
   UnpackTime(i.Time,DT);
   o.Time:=DTToWasiDate(DT);
@@ -406,7 +405,6 @@ begin
   o.DirFD:=i.DirFD;
   o.SearchType:=i.SearchType;
   o.SearchAttr:=i.SearchAttr;
-  o.Mode:=i.Mode;
   o.Attr:=i.Attr;
   WasiDateToDt(i.Time,DT);
   PackTime(DT,o.Time);
