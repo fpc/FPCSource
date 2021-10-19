@@ -693,7 +693,9 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
      decl       (%rcx)
      setzb      %al
      ret
-// not supported yet by the internal assembler:   .p2align 4,,10
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
     .p2align 3
 .Ldeclockednolock:
      decl       (%rcx)
@@ -720,7 +722,9 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
      decq       (%rcx)
      setzb      %al
      ret
-// not supported yet by the internal assembler:    .p2align 4,,10
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
     .p2align 3
 .Ldeclockednolock:
      decq       (%rcx)
@@ -747,7 +751,9 @@ procedure inclocked(var l : longint);assembler; nostackframe;
      lock
      incl       (%rcx)
      ret
-// not supported yet by the internal assembler:    .p2align 4,,10
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
     .p2align 3
 .Linclockednolock:
      incl       (%rcx)
@@ -773,7 +779,9 @@ procedure inclocked(var l : int64);assembler; nostackframe;
      lock
      incq       (%rcx)
      ret
-// not supported yet by the internal assembler:    .p2align 4,,10
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
     .p2align 3
 .Linclockednolock:
      incq       (%rcx)
