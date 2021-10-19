@@ -26,7 +26,7 @@ interface
 {$modeswitch advancedrecords}
 
 uses
-  wasiapi;
+  wasiapi, wasiutil;
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
@@ -37,6 +37,9 @@ uses
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
+type
+  TWasiFindData = TWasiSearchRec;
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -44,7 +47,7 @@ uses
 implementation
 
   uses
-    sysconst, wasiutil;
+    sysconst;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -526,21 +529,49 @@ end;
 
 
 Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
+var
+  derror: longint;
 begin
-  { not yet implemented }
-  Result := -1;
+  Result:=-1;
+  { this is safe even though Rslt actually contains a refcounted field, because
+    it is declared as "out" and hence has already been initialised }
+  fillchar(Rslt,sizeof(Rslt),0);
+  if Path='' then
+    exit;
+
+  derror:=WasiFindFirst(Path, Attr, Rslt.FindData);
+  if derror=0 then
+    result:=0
+  else
+    result:=-1;
+
+  Name:=Rslt.FindData.Name;
+  Rslt.Attr:=Rslt.FindData.Attr;
+  Rslt.Size:=Rslt.FindData.Size;
+  Rslt.Time:=Rslt.FindData.Time div 1000000000;
 end;
 
 
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
+var
+  derror: longint;
 begin
-  { not yet implemented }
-  Result := -1;
+  derror:=WasiFindNext(Rslt.FindData);
+  if derror=0 then
+    result:=0
+  else
+    result:=-1;
+
+  Name:=Rslt.FindData.Name;
+  Rslt.Attr:=Rslt.FindData.Attr;
+  Rslt.Size:=Rslt.FindData.Size;
+  Rslt.Time:=Rslt.FindData.Time div 1000000000;
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: THandle; var FindData: TFindData);
 begin
+  WasiFindClose(FindData);
 end;
 
 

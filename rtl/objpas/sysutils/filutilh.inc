@@ -43,6 +43,10 @@ Type
     TFindData = TNativeNTFindData;
     {$define SEARCHREC_USEFINDDATA}
 {$endif}
+{$ifdef wasi}
+    TFindData = TWasiFindData;
+    {$define SEARCHREC_USEFINDDATA}
+{$endif}
 
   // The actual unicode search record
   TUnicodeSearchRec = Record
