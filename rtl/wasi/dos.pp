@@ -69,13 +69,6 @@ Uses
                            --- Link C Lib if set ---
 ******************************************************************************}
 
-type
-  RtlInfoType = Record
-    FMode: LongInt;
-    FSize: __wasi_filesize_t;
-    FMTime: __wasi_timestamp_t;
-  End;
-
 
 {******************************************************************************
                         --- Info / Date / Time ---
@@ -427,10 +420,14 @@ End;
 Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
   DT   : DateTime;
-  Info : RtlInfoType;
   st   : __wasi_filestat_t;
   fd   : __wasi_fd_t;
   pr   : RawByteString;
+  Info : record
+    FMode: LongInt;
+    FSize: __wasi_filesize_t;
+    FMTime: __wasi_timestamp_t;
+  end;
 begin
   FindGetFileInfo:=false;
   if ConvertToFdRelativePath(s,fd,pr)<>0 then
