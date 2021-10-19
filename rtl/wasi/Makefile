@@ -2665,7 +2665,7 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $< -Fiwasiinc
-wasiutil$(PPUEXT) : wasiutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+wasiutil$(PPUEXT) : wasiutil.pp wasiapi$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

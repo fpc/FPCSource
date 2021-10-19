@@ -19,7 +19,11 @@ unit wasiutil;
 
 interface
 
+uses
+  wasiapi;
+
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; external name 'FPC_WASI_CONVERTTOFDRELATIVEPATH';
+function fpc_wasi_path_readlink_ansistring(fd: __wasi_fd_t; const path: PChar; path_len: size_t; out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
 
 implementation
 

@@ -52,12 +52,6 @@ implementation
 
 {$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
 
-function fpc_wasi_path_readlink_ansistring(
-                 fd: __wasi_fd_t;
-                 const path: PChar;
-                 path_len: size_t;
-                 out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
-
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
 const
   days_in_month: array [boolean, 1..12] of Byte =
