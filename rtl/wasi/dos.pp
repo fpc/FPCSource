@@ -72,9 +72,6 @@ Uses
 type
   RtlInfoType = Record
     FMode: LongInt;
-    {FInode,
-    FUid,
-    FGid,}
     FSize: __wasi_filesize_t;
     FMTime: __wasi_timestamp_t;
   End;
