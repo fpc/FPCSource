@@ -55,7 +55,7 @@ Function DTToWasiDate(DT: DateTime): UInt64; platform;
 Implementation
 
 Uses
-  WasiAPI;
+  WasiAPI, WasiUtil;
 
 {$DEFINE HAS_GETMSCOUNT}
 

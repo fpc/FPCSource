@@ -8,7 +8,7 @@ loaders=
 units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils \
       sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts \
       charset cpall character unicodedata unicodenumtable fpwidestring \
-      classes uuchar dos extpas fpintres heaptrc
+      classes uuchar dos extpas fpintres heaptrc wasiutil
 
 [require]
 nortl=y
@@ -90,20 +90,23 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $< -Fiwasiinc
 
+wasiutil$(PPUEXT) : wasiutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
 # TP7 Compatible RTL Units
 #
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc wasiapi$(PPUEXT) system$(PPUEXT)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc wasiapi$(PPUEXT) wasiutil$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $<
 
 #
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) wasiapi$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+                    objpas$(PPUEXT) wasiapi$(PPUEXT) sysconst$(PPUEXT) wasiutil$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $< -Fi$(OBJPASDIR)/sysutils
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

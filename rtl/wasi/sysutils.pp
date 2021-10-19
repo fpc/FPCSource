@@ -44,7 +44,7 @@ uses
 implementation
 
   uses
-    sysconst;
+    sysconst, wasiutil;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)

@@ -53,12 +53,12 @@ var
   argv: PPChar;
   envp: PPChar;
 
-function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
-
 implementation
 
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
+
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; forward;
 
 function fpc_wasi_path_readlink_ansistring(
                  fd: __wasi_fd_t;
@@ -199,7 +199,7 @@ begin
     Do_ConvertToFdRelativePath:=3;
 end;
 
-function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
+function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;[Public, Alias : 'FPC_WASI_CONVERTTOFDRELATIVEPATH'];
 begin
   ConvertToFdRelativePath:=Do_ConvertToFdRelativePath(ToSingleByteFileSystemEncodedFileName(path),fd,relfd_path);
   setcodepage(relfd_path,DefaultRTLFileSystemCodePage,true);
