@@ -135,6 +135,8 @@ type
   { TTestCLI_UnitSearch }
 
   TTestCLI_UnitSearch = class(TCustomTestCLI)
+  protected
+    procedure CheckLinklibProgramSrc(Msg,Header: string);
   published
     procedure TestUS_CreateRelativePath;
 
@@ -168,6 +170,7 @@ type
 
     // linklib
     procedure TestUS_ProgramLinklib;
+    procedure TestUS_UnitLinklib;
   end;
 
 function LinesToStr(const Lines: array of string): string;
@@ -617,6 +620,26 @@ end;
 
 { TTestCLI_UnitSearch }
 
+procedure TTestCLI_UnitSearch.CheckLinklibProgramSrc(Msg, Header: string);
+var
+  aFile: TCLIFile;
+begin
+  aFile:=FindFile('test1.js');
+  CheckDiff(Msg,
+    LinesToStr([
+    #$EF#$BB#$BF+Header,
+    'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run();',
+    '//# sourceMappingURL=test1.js.map',
+    '']),
+    aFile.Source);
+end;
+
 procedure TTestCLI_UnitSearch.TestUS_CreateRelativePath;
 
   procedure DoTest(Filename, BaseDirectory, Expected: string;
@@ -998,34 +1021,35 @@ begin
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_ProgramLinklib;
-var
-  aFile: TCLIFile;
 begin
   AddUnit('system.pp',[''],['']);
-  AddFile('Bird.js',[
-    'var wings = true;',
-    '']);
   AddFile('test1.pas',[
     '{$linklib Bird}',
     'begin',
     'end.']);
   Compile(['-Tnodejs','-va','test1.pas']);
-  aFile:=FindFile('test1.js');
-  writeln('TTestCLI_UnitSearch.TestUS_ProgramLinklib ',aFile.Source);
-  CheckDiff('TestUS_ProgramLinklib',
+  CheckLinklibProgramSrc('TestUS_ProgramLinklib',
     LinesToStr([
-    #$EF#$BB#$BF'import * as bird from "Bird.js";',
-    'pas.$libimports.bird = bird;',
-    'rtl.module("program",["system"],function () {',
-    '  "use strict";',
-    '  var $mod = this;',
-    '  $mod.$main = function () {',
-    '  };',
-    '});',
-    'rtl.run();',
-    '//# sourceMappingURL=test1.js.map',
-    '']),
-    aFile.Source);
+    'import * as bird from "Bird.js";',
+    'pas.$libimports.bird = bird;']));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_UnitLinklib;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('UnitB.pas',
+    ['{$linklib Bird Thunderbird}',
+     ''],
+    ['']);
+  AddFile('test1.pas',[
+    'uses UnitB;',
+    'begin',
+    'end.']);
+  Compile(['-Tnodejs','-va','test1.pas']);
+  CheckLinklibProgramSrc('TestUS_UnitLinklib',
+    LinesToStr([
+    'import * as Thunderbird from "Bird.js";',
+    'pas.$libimports.Thunderbird = Thunderbird;']));
 end;
 
 Initialization
