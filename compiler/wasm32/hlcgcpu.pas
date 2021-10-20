@@ -56,7 +56,6 @@ uses
       function is_methodptr_like_type(d:tdef): boolean;
      public
       br_blocks: integer;
-      exitBr: integer;
       raiseBr: integer;  // raiseBr is only used in branchful exceptions mode (ts_wasm_bf_exceptions)
       fntypelookup : TWasmProcTypeLookup;
 
@@ -1802,7 +1801,7 @@ implementation
       else if l=current_procinfo.CurrContinueLabel then
         list.concat(taicpu.op_sym(a_br,l))
       else if l=current_procinfo.CurrExitLabel then
-        list.concat(taicpu.op_const(a_br,br_blocks-exitBr))
+        list.concat(taicpu.op_sym(a_br,l))
       else
         Internalerror(2019091806); // unexpected jump
     end;
@@ -2193,7 +2192,6 @@ implementation
       inherited;
       list.concat(taicpu.op_none(a_block));
       incblock;
-      exitBr:=br_blocks;
       raiseBr:=br_blocks;
     end;
 
