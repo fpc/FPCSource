@@ -986,6 +986,7 @@ type
     Procedure TestLibrary_ExportFunc_NameIntFail;
     Procedure TestLibrary_ExportFunc_IndexStringFail;
     Procedure TestLibrary_ExportVar; // ToDo
+    Procedure TestLibrary_ExportLocFuncFail;
     Procedure TestLibrary_Initialization_Finalization;
     Procedure TestLibrary_ExportFuncOverloadFail;
     Procedure TestLibrary_UnitExports;
@@ -18850,6 +18851,20 @@ begin
   'begin',
   '']);
   ParseLibrary;
+end;
+
+procedure TTestResolver.TestLibrary_ExportLocFuncFail;
+begin
+  StartLibrary(false);
+  Add([
+  'procedure Run;',
+  'exports',
+  '  Run;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckParserException('Expected "begin"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestLibrary_Initialization_Finalization;

@@ -3618,7 +3618,10 @@ begin
     tkConst:
       SetBlock(declConst);
     tkexports:
-      SetBlock(declExports);
+      if Declarations is TPasSection then
+        SetBlock(declExports)
+      else
+        ParseExcTokenError(TokenInfos[tkbegin]);
     tkResourcestring:
       if Declarations is TPasSection then
         SetBlock(declResourcestring)
