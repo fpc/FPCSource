@@ -102,6 +102,7 @@ type
     Function OnReadFile(aFilename: string; var aSource: string): boolean; virtual;
     procedure OnWriteFile(aFilename: string; Source: string); virtual;
     procedure WriteSources;
+    procedure CheckDiff(Msg, Expected, Actual: string); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -160,10 +161,13 @@ type
     procedure TestUS_UseUnitTwiceViaNameSpace;
 
     // namespace
-    Procedure TestDefaultNameSpaceLast;
-    Procedure TestDefaultNameSpaceAfterNameSpace;
-    Procedure TestNoNameSpaceBeforeDefaultNameSpace;
-    Procedure TestNoNameSpaceAndDefaultNameSpace;
+    Procedure TestUS_DefaultNameSpaceLast;
+    Procedure TestUS_DefaultNameSpaceAfterNameSpace;
+    Procedure TestUS_NoNameSpaceBeforeDefaultNameSpace;
+    Procedure TestUS_NoNameSpaceAndDefaultNameSpace;
+
+    // linklib
+    procedure TestUS_ProgramLinklib;
   end;
 
 function LinesToStr(const Lines: array of string): string;
@@ -436,6 +440,15 @@ begin
   finally
     SrcLines.Free;
   end;
+end;
+
+procedure TCustomTestCLI.CheckDiff(Msg, Expected, Actual: string);
+// search diff, ignore changes in spaces
+var
+  s: string;
+begin
+  if CheckSrcDiff(Expected,Actual,s) then exit;
+  Fail(Msg+': '+s);
 end;
 
 constructor TCustomTestCLI.Create;
@@ -902,7 +915,7 @@ begin
   Compile(['test1.pas','-FNsub','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestDefaultNameSpaceLast;
+procedure TTestCLI_UnitSearch.TestUS_DefaultNameSpaceLast;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('Unit2.pas',
@@ -921,7 +934,7 @@ begin
   Compile(['test1.pas','','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestDefaultNameSpaceAfterNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_DefaultNameSpaceAfterNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('prg.Unit2.pas',
@@ -940,7 +953,7 @@ begin
   Compile(['prg.test1.pas','-FNsub','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestNoNameSpaceBeforeDefaultNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_NoNameSpaceBeforeDefaultNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('prg.Unit2.pas',
@@ -959,7 +972,7 @@ begin
   Compile(['prg.test1.pas','','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestNoNameSpaceAndDefaultNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_NoNameSpaceAndDefaultNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('UnitA.pas',
@@ -982,6 +995,37 @@ begin
     '  b:=a;',
     'end.']);
   Compile(['MyProject.Main.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_ProgramLinklib;
+var
+  aFile: TCLIFile;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('Bird.js',[
+    'var wings = true;',
+    '']);
+  AddFile('test1.pas',[
+    '{$linklib Bird}',
+    'begin',
+    'end.']);
+  Compile(['-Tnodejs','-va','test1.pas']);
+  aFile:=FindFile('test1.js');
+  writeln('TTestCLI_UnitSearch.TestUS_ProgramLinklib ',aFile.Source);
+  CheckDiff('TestUS_ProgramLinklib',
+    LinesToStr([
+    #$EF#$BB#$BF'import * as bird from "Bird.js";',
+    'pas.$libimports.bird = bird;',
+    'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run();',
+    '//# sourceMappingURL=test1.js.map',
+    '']),
+    aFile.Source);
 end;
 
 Initialization

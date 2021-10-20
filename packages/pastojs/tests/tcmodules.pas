@@ -912,7 +912,7 @@ type
     Procedure TestLibrary_Empty;
     Procedure TestLibrary_ExportFunc; // ToDo
     // ToDo: test delayed specialization init
-    // ToDO: analyzer
+    // ToDo: analyzer
   end;
 
 function LinesToStr(Args: array of const): string;
