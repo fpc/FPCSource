@@ -926,7 +926,8 @@ Type
 
   TJSExportNameElement = Class(TJSAliasElement);
 
-  { TJSExportNameElements - NamedExports property of TJSExportStatement }
+  { TJSExportNameElements - NamedExports property of TJSExportStatement
+    e.g. 'Name' or 'Name as Alias'}
 
   TJSExportNameElements = Class(TJSAliasElements)
   private
@@ -936,7 +937,9 @@ Type
     Property ExportedNames[AIndex : Integer] : TJSExportNameElement Read GetE ;default;
   end;
 
-  { TJSExportStatement }
+  { TJSExportStatement - e.g. 'export Declaration' }
+  // 'export * as NameSpaceExport from ModuleName' NameSpaceExport and ModuleName are optional
+  // 'export { ExportNames[1], ExportNames[2], ... } from ModuleName' ModuleName is optional
 
   TJSExportStatement = class(TJSElement)
   Private
