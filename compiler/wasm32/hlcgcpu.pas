@@ -56,9 +56,6 @@ uses
       function is_methodptr_like_type(d:tdef): boolean;
      public
       br_blocks: integer;
-      loopContBr: integer; // the value is different depending of the condition test
-                           // if it's in the beggning the jump should be done to the loop (1)
-                           // if the condition at the end, the jump should done to the end of block (0)
       loopBreakBr: integer;
       exitBr: integer;
       raiseBr: integer;  // raiseBr is only used in branchful exceptions mode (ts_wasm_bf_exceptions)
@@ -1804,7 +1801,7 @@ implementation
       if l=current_procinfo.CurrBreakLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-loopBreakBr))
       else if l=current_procinfo.CurrContinueLabel then
-        list.concat(taicpu.op_const(a_br,br_blocks-loopContBr))
+        list.concat(taicpu.op_sym(a_br,l))
       else if l=current_procinfo.CurrExitLabel then
         list.concat(taicpu.op_const(a_br,br_blocks-exitBr))
       else
