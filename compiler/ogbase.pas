@@ -3523,6 +3523,8 @@ implementation
           while ObjSectionWorkList.Count>0 do
             begin
               objsec:=TObjSection(ObjSectionWorkList.Last);
+              if not assigned(objsec.exesection) then
+                internalerror(202102001);
               if assigned(exemap) then
                 exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjRelocations.Count)+' references');
               ObjSectionWorkList.Delete(ObjSectionWorkList.Count-1);
