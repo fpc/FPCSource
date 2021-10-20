@@ -986,7 +986,7 @@ type
     Procedure TestLibrary_ExportFunc_NameIntFail;
     Procedure TestLibrary_ExportFunc_IndexStringFail;
     Procedure TestLibrary_ExportVar; // ToDo
-    Procedure TestLibrary_ExportLocFuncFail;
+    Procedure TestLibrary_ExportLocalFuncFail;
     Procedure TestLibrary_Initialization_Finalization;
     Procedure TestLibrary_ExportFuncOverloadFail;
     Procedure TestLibrary_UnitExports;
@@ -18853,7 +18853,7 @@ begin
   ParseLibrary;
 end;
 
-procedure TTestResolver.TestLibrary_ExportLocFuncFail;
+procedure TTestResolver.TestLibrary_ExportLocalFuncFail;
 begin
   StartLibrary(false);
   Add([

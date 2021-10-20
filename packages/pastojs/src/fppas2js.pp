@@ -2098,6 +2098,7 @@ type
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Procedure CreateExportsSection(El: TPasLibrary; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
@@ -8312,8 +8313,8 @@ begin
       if Assigned(Lib.LibrarySection) then
         AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
       HasImplCode:=AddDelayedInits(Lib,Src,IntfContext);
+      CreateExportsSection(Lib,Src,IntfContext);
       CreateInitSection(Lib,Src,IntfContext);
-      // ToDo: append exports
       end
     else
       begin // unit
@@ -17997,6 +17998,74 @@ begin
   // finalization: not supported
   if Assigned(El.FinalizationSection) then
     raise Exception.Create('TPasToJSConverter.ConvertInitializationSection: finalization section is not supported');
+end;
+
+procedure TPasToJSConverter.CreateExportsSection(El: TPasLibrary;
+  Src: TJSSourceElements; AContext: TConvertContext);
+var
+  ExportSymbols: TFPList;
+  aResolver: TPas2JSResolver;
+  ExpSt: TJSExportStatement;
+  i: Integer;
+  Symb: TPasExportSymbol;
+  Ref: TResolvedReference;
+  NamePath: String;
+  EvalValue: TResEvalValue;
+  ExpNameJS: TJSExportNameElement;
+  Decl: TPasElement;
+begin
+  ExportSymbols:=El.LibrarySection.ExportSymbols;
+  if ExportSymbols.Count=0 then exit;
+  aResolver:=AContext.Resolver;
+
+  ExpSt:=TJSExportStatement(CreateElement(TJSExportStatement,El));
+  AddToSourceElements(Src,ExpSt);
+  for i:=0 to ExportSymbols.Count-1 do
+    begin
+    ExpNameJS:=ExpSt.ExportNames.AddElement;
+    Symb:=TObject(ExportSymbols[i]) as TPasExportSymbol;
+
+    // name
+    if Symb.NameExpr<>nil then
+      begin
+      RaiseNotSupported(Symb.NameExpr,AContext,20211020142210);
+      Decl:=nil;
+      end
+    else
+      begin
+      if not (Symb.CustomData is TResolvedReference) then
+        RaiseNotSupported(Symb,AContext,20211020142506,GetObjName(Symb.CustomData));
+      Ref:=TResolvedReference(Symb.CustomData);
+      Decl:=Ref.Declaration;
+      end;
+    NamePath:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
+    ExpNameJS.Name:=NamePath;
+
+    // alias
+    if Symb.ExportName<>nil then
+      begin
+      EvalValue:=aResolver.Eval(Symb.ExportName,[refConst]);
+      if EvalValue=nil then
+        RaiseNotSupported(Symb.ExportName,AContext,20211020144200);
+      case EvalValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
+      revkString:
+        ExpNameJS.Alias:=TResEvalString(EvalValue).S;
+      {$endif}
+      revkUnicodeString:
+        ExpNameJS.Alias:=String(TResEvalUTF16(EvalValue).S);
+      else
+        RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
+      end;
+
+      end
+    else
+      begin
+      if Decl.Name='' then
+        RaiseNotSupported(Symb,AContext,20211020144730);
+      ExpNameJS.Alias:=Decl.Name;
+      end;
+    end;
 end;
 
 procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;

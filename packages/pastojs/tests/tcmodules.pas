@@ -911,6 +911,9 @@ type
     // Library
     Procedure TestLibrary_Empty;
     Procedure TestLibrary_ExportFunc; // ToDo
+    // ToDo: export let as let fail
+    // ToDo: Procedure TestLibrary_ExportVar;
+    // ToDo: Procedure TestLibrary_Export_Index_Fail;
     // ToDo: test delayed specialization init
     // ToDo: analyzer
   end;
@@ -33802,14 +33805,16 @@ begin
   'begin',
   'end;',
   'exports',
-  '  Run,',
-  '  run name ''Foo'';',
+  '  Run;',
+  //'  run name ''Foo'';',
+  //'  test1.run name ''Test1Run'';',
   '']);
   ConvertLibrary;
   CheckSource('TestLibrary_ExportFunc',
     LinesToStr([ // statements
     'this.Run = function (w) {',
     '};',
+    'export { this.Run as Run };',
     '']),
     LinesToStr([
     '']));
