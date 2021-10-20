@@ -1750,11 +1750,11 @@ begin
       N:=El.ExportNames[i];
       if I>0 then
         Write(', ');
-      Write(N.Name+' ');
+      Write(N.Name);
       if N.Alias<>'' then
-        Write('as '+N.Alias+' ');
+        Write(' as '+N.Alias);
       end;
-    Write('}');
+    Write(' }');
     if El.ModuleName<>'' then
       Write(' from "'+El.ModuleName+'"');
     end;
