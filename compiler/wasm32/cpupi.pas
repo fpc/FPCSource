@@ -411,6 +411,9 @@ implementation
                           if cur_nesting_depth<0 then
                             internalerror(2021102001);
                         end;
+
+                      else
+                        ;
                     end;
                   end;
                 ait_label:
@@ -425,6 +428,8 @@ implementation
                           lbl.labsym.nestingdepth:=cur_nesting_depth+1;
                       end;
                   end;
+                else
+                  ;
               end;
               hp:=tai(hp.Next);
             end;
@@ -480,6 +485,9 @@ implementation
                             instr.loadconst(0,cur_nesting_depth-instr.oper[0]^.ref^.symbol.nestingdepth);
                           end;
                       end;
+
+                    else
+                      ;
                   end;
                 end;
               hp:=tai(hp.Next);
