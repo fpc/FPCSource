@@ -379,10 +379,22 @@ implementation
             end;
         end;
 
+      function FindNextInstruction(hp: tai): taicpu;
+        begin
+          result:=nil;
+          if not assigned(hp) then
+            exit;
+          repeat
+            hp:=tai(hp.next);
+          until not assigned(hp) or (hp.typ=ait_instruction);
+          if assigned(hp) then
+            result:=taicpu(hp);
+        end;
+
       procedure resolve_labels_pass1(asmlist: TAsmList);
         var
           hp: tai;
-          lastinstr: taicpu;
+          lastinstr, nextinstr: taicpu;
           cur_nesting_depth: longint;
           lbl: tai_label;
         begin
@@ -420,12 +432,22 @@ implementation
                   begin
                     lbl:=tai_label(hp);
                     lbl.labsym.nestingdepth:=-1;
+                    { first, try to match label to the previous instruction }
                     if assigned(lastinstr) then
                       begin
                         if lastinstr.opcode=a_loop then
                           lbl.labsym.nestingdepth:=cur_nesting_depth
                         else if lastinstr.opcode in [a_end_block,a_end_try,a_end_if] then
                           lbl.labsym.nestingdepth:=cur_nesting_depth+1;
+                      end;
+                    { if not matched, try to match it to the next instruction }
+                    if lbl.labsym.nestingdepth=-1 then
+                      begin
+                        nextinstr:=FindNextInstruction(hp);
+                        if nextinstr.opcode=a_loop then
+                          lbl.labsym.nestingdepth:=cur_nesting_depth+1
+                        else if nextinstr.opcode in [a_end_block,a_end_try,a_end_if] then
+                          lbl.labsym.nestingdepth:=cur_nesting_depth;
                       end;
                   end;
                 else
