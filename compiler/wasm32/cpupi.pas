@@ -36,6 +36,10 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     public
+      { label to the nearest local exception handler }
+      CurrRaiseLabel : tasmlabel;
+
+      constructor create(aparent: tprocinfo); override;
       function calc_stackframe_size : longint;override;
       procedure setup_eh; override;
       procedure generate_exit_label(list: tasmlist); override;
@@ -317,6 +321,13 @@ implementation
                            tcpuprocinfo
 *****************************************************************************}
 
+    constructor tcpuprocinfo.create(aparent: tprocinfo);
+      begin
+        inherited create(aparent);
+        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          current_asmdata.getjumplabel(CurrRaiseLabel);
+      end;
+
     function tcpuprocinfo.calc_stackframe_size: longint;
       begin
         { the stack frame in WebAssembly should always have a 16-byte alignment }
@@ -342,6 +353,8 @@ implementation
         list.concat(taicpu.op_none(a_end_block));
         thlcgwasm(hlcg).decblock;
         inherited generate_exit_label(list);
+        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          hlcg.a_label(list,CurrRaiseLabel);
       end;
 
     procedure tcpuprocinfo.postprocess_code;

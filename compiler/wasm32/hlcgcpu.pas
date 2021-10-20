@@ -56,7 +56,6 @@ uses
       function is_methodptr_like_type(d:tdef): boolean;
      public
       br_blocks: integer;
-      raiseBr: integer;  // raiseBr is only used in branchful exceptions mode (ts_wasm_bf_exceptions)
       fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
@@ -257,7 +256,7 @@ implementation
 
   uses
     verbose,cutils,globals,fmodule,constexp,
-    defutil,
+    defutil,cpupi,
     aasmtai,aasmcpu,
     symtable,symcpu,
     procinfo,cpuinfo,cgcpu,tgobj,tgcpu,paramgr;
@@ -2192,7 +2191,6 @@ implementation
       inherited;
       list.concat(taicpu.op_none(a_block));
       incblock;
-      raiseBr:=br_blocks;
     end;
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
@@ -2282,7 +2280,7 @@ implementation
 
           decstack(current_asmdata.CurrAsmList,1);
 
-          list.concat(taicpu.op_const(a_br_if,br_blocks-raiseBr));
+          list.concat(taicpu.op_sym(a_br_if,tcpuprocinfo(current_procinfo).CurrRaiseLabel));
       end;
     end;
 
