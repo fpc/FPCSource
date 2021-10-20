@@ -2197,8 +2197,6 @@ implementation
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
-      list.concat(taicpu.op_none(a_end_block));
-      decblock;
       if fevalstackheight<>0 then
 {$ifdef DEBUG_WASMSTACK}
         list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));

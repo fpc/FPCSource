@@ -26,7 +26,7 @@ unit cpupi;
 interface
 
   uses
-    cutils,globtype,
+    cutils,globtype,aasmdata,
     procinfo,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
@@ -38,6 +38,7 @@ interface
     public
       function calc_stackframe_size : longint;override;
       procedure setup_eh; override;
+      procedure generate_exit_label(list: tasmlist); override;
       procedure postprocess_code; override;
       procedure set_first_temp_offset;override;
     end;
@@ -45,7 +46,7 @@ interface
 implementation
 
     uses
-      systems,verbose,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,cgexcept,
+      systems,verbose,globals,cpubase,tgcpu,aasmcpu,aasmtai,cgexcept,
       tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
       fmodule,hlcgobj,hlcgcpu,defutil;
 
@@ -334,6 +335,13 @@ implementation
           cexceptionstatehandler:=twasmexceptionstatehandler_bfexceptions
         else
           internalerror(2021091701);
+      end;
+
+    procedure tcpuprocinfo.generate_exit_label(list: tasmlist);
+      begin
+        list.concat(taicpu.op_none(a_end_block));
+        thlcgwasm(hlcg).decblock;
+        inherited generate_exit_label(list);
       end;
 
     procedure tcpuprocinfo.postprocess_code;
