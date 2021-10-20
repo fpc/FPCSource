@@ -136,9 +136,9 @@ var rtl = {
       if (!module) rtl.error('rtl.run module "'+module_name+'" missing');
       rtl.loadintf(module);
       rtl.loadimpl(module);
-      if (module_name=='program'){
+      if ((module_name=='program') || (module_name=='library')){
         if (rtl.debug_load_units) rtl.debug('running $main');
-        var r = pas.program.$main();
+        var r = pas[module_name].$main();
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
     } catch(re) {

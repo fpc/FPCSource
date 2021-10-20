@@ -17991,6 +17991,7 @@ begin
   RootContext:=AContext.GetRootContext as TRootContext;
   // add initialization section
   if Assigned(El.InitializationSection)
+      or (El is TPasLibrary) // the begin..end is optional in a library, but the js it always needed
       or (length(RootContext.GlobalClassMethods)>0) then
     AddToSourceElements(Src,ConvertInitializationSection(El,AContext));
   // finalization: not supported
