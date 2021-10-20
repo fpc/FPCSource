@@ -18013,6 +18013,7 @@ var
   EvalValue: TResEvalValue;
   ExpNameJS: TJSExportNameElement;
   Decl: TPasElement;
+  ResolvedEl: TPasResolverResult;
 begin
   ExportSymbols:=El.LibrarySection.ExportSymbols;
   if ExportSymbols.Count=0 then exit;
@@ -18028,8 +18029,8 @@ begin
     // name
     if Symb.NameExpr<>nil then
       begin
-      RaiseNotSupported(Symb.NameExpr,AContext,20211020142210);
-      Decl:=nil;
+      aResolver.ComputeElement(Symb.NameExpr,ResolvedEl,[rcConstant]);
+      Decl:=ResolvedEl.IdentEl;
       end
     else
       begin

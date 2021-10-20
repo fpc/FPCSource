@@ -33806,15 +33806,15 @@ begin
   'end;',
   'exports',
   '  Run;',
-  //'  run name ''Foo'';',
-  //'  test1.run name ''Test1Run'';',
+  '  run name ''Foo'';',
+  '  test1.run name ''Test1Run'';',
   '']);
   ConvertLibrary;
   CheckSource('TestLibrary_ExportFunc',
     LinesToStr([ // statements
     'this.Run = function (w) {',
     '};',
-    'export { this.Run as Run };',
+    'export { this.Run as Run, this.Run as Foo, this.Run as Test1Run };',
     '']),
     LinesToStr([
     '']));
