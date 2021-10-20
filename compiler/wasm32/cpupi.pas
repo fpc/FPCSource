@@ -440,23 +440,16 @@ implementation
                   begin
                     lbl:=tai_label(hp);
                     lbl.labsym.nestingdepth:=-1;
-                    { first, try to match label to the previous instruction }
-                    if assigned(lastinstr) then
-                      begin
-                        if lastinstr.opcode=a_loop then
-                          lbl.labsym.nestingdepth:=cur_nesting_depth
-                        else if lastinstr.opcode in [a_end_block,a_end_try,a_end_if] then
-                          lbl.labsym.nestingdepth:=cur_nesting_depth+1;
-                      end;
-                    { if not matched, try to match it to the next instruction }
-                    if lbl.labsym.nestingdepth=-1 then
-                      begin
-                        nextinstr:=FindNextInstruction(hp);
-                        if nextinstr.opcode=a_loop then
-                          lbl.labsym.nestingdepth:=cur_nesting_depth+1
-                        else if nextinstr.opcode in [a_end_block,a_end_try,a_end_if] then
-                          lbl.labsym.nestingdepth:=cur_nesting_depth;
-                      end;
+                    nextinstr:=FindNextInstruction(hp);
+
+                    if assigned(nextinstr) and (nextinstr.opcode in [a_end_block,a_end_try,a_end_if]) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth
+                    else if assigned(lastinstr) and (lastinstr.opcode=a_loop) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth
+                    else if assigned(lastinstr) and (lastinstr.opcode in [a_end_block,a_end_try,a_end_if]) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth+1
+                    else if assigned(nextinstr) and (nextinstr.opcode=a_loop) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth+1;
                   end;
                 else
                   ;
