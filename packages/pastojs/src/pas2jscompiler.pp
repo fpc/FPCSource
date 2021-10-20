@@ -2367,11 +2367,9 @@ end;
 
 function TPas2jsCompiler.CreateFileWriter(aFile: TPas2jsCompilerFile;
   const aFilename: string): TPas2JSMapper;
-
 var
   SrcMap: TPas2JSSrcMap;
   DestFileName : String;
-
 begin
   DestFileName:=AFileName;
   if DestFileName='' then
@@ -2395,15 +2393,12 @@ end;
 
 procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String;
   var Handled: boolean);
-
 Var
   Imp : TJSImportStatement;
   PasLib : TJSSimpleAssignStatement;
   dmAlias,dmimp : TJSDotMemberExpression;
   pePas,peAlias :  TJSPrimaryExpressionIdent;
   LibModuleName : String;
-
-
 begin
   Handled:=true;
   if aLibOptions<>'' then
@@ -2433,13 +2428,11 @@ begin
   pasLib.Expr:=peAlias;
   // Add to statements
   FImports.Statements.AddNode.Node:=Imp;
-  FImports.Statements.AddNode.Node:=pasLib;
+  FImports.Statements.AddNode.Node:=PasLib;
 end;
-
 
 procedure TPas2jsCompiler.EmitJavaScript(aFile: TPas2jsCompilerFile;
   aFileWriter: TPas2JSMapper);
-
 var
   aJSWriter: TJSWriter;
 begin
