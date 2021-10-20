@@ -458,6 +458,8 @@ implementation
         oldContinueLabel:=nil;
         oldBreakLabel:=nil;
         oldExitBr:=0;
+        NewContinueLabel:=nil;
+        NewBreakLabel:=nil;
         location_reset(location,LOC_VOID,OS_NO);
         doobjectdestroyandreraisestate:=Default(tcgexceptionstatehandler.texceptionstate);
 
@@ -648,6 +650,8 @@ implementation
         oldBreakLabel:=nil;
         oldExitBr:=0;
         oldRaiseBr:=0;
+        NewContinueLabel:=nil;
+        NewBreakLabel:=nil;
         location_reset(location,LOC_VOID,OS_NO);
         doobjectdestroyandreraisestate:=Default(tcgexceptionstatehandler.texceptionstate);
 
@@ -1524,6 +1528,8 @@ implementation
         oldContinueLabel:=nil;
         oldBreakLabel:=nil;
         oldExitBr:=0;
+        NewBreakLabel:=nil;
+        NewContinueLabel:=nil;
         location_reset(location,LOC_VOID,OS_NO);
 
         { Exception temps? We don't need no stinking exception temps! :) }
@@ -1677,6 +1683,8 @@ implementation
         oldBreakLabel:=nil;
         oldExitBr:=0;
         oldRaiseBr:=0;
+        NewBreakLabel:=nil;
+        NewContinueLabel:=nil;
         location_reset(location,LOC_VOID,OS_NO);
 
         { Exception temps? We don't need no stinking exception temps! :) }
