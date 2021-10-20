@@ -207,13 +207,13 @@ begin
   if (DT.year<1970) or (DT.month<1) or (DT.month>12) or (DT.day<1) or (DT.day>31) or
      (DT.hour>=24) or (DT.min>=60) or (DT.sec>=60) then
   begin
-    DTToWasiDate:=-1;
+    DTToWasiDate:=0;
     exit;
   end;
   leap:=((DT.year mod 4)=0) and (((DT.year mod 100)<>0) or ((DT.year mod 400)=0));
   if DT.day>days_in_month[leap,DT.month] then
   begin
-    DTToWasiDate:=-1;
+    DTToWasiDate:=0;
     exit;
   end;
   DTToWasiDate:=0;
