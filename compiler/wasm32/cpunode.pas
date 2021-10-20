@@ -33,7 +33,7 @@ implementation
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
     
-    nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,nwasminl,
+    nwasmbas,nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,nwasminl,
     { these are not really nodes }
     nwasmutil,
     { symtable }
