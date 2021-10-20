@@ -33,7 +33,7 @@ var
   a : array of byte;
   u1, u2: ptruint;
 begin
-  randomize();
+  randseed:=1634752820;
   writeln('randseed: ',randseed);
   GetStats(u1);
   for i := 0 to 50 do begin
