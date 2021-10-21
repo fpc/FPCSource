@@ -128,7 +128,7 @@ function paramstr(l: longint) : string;
      begin
        paramstr := execpathstr;
      end
-   else (l > 0) and ( l < argc ) then
+   else if (l > 0) and ( l < argc ) then
      paramstr:=strpas(argv[l])
    else
      paramstr:='';
