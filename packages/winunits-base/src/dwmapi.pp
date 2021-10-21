@@ -66,7 +66,33 @@ const
   DWMWA_HAS_ICONIC_BITMAP           = 10; // [set] Indicates an available bitmap when there is no better thumbnail representation.
   DWMWA_DISALLOW_PEEK               = 11; // [set] Don't invoke Peek on the window.
   DWMWA_EXCLUDED_FROM_PEEK          = 12; // [set] LivePreview exclusion information
-  DWMWA_LAST                        = 13;
+  DWMWA_CLOAK                           = 13; // [set] Cloak or uncloak the window
+  DWMWA_CLOAKED                         = 14; // [get] Gets the cloaked state of the window
+  DWMWA_FREEZE_REPRESENTATION           = 15; // [set] BOOL, Force this window to freeze the thumbnail without live update
+  DWMWA_PASSIVE_UPDATE_MODE             = 16; // [set] BOOL, Updates the window only when desktop composition runs for other reasons
+  DWMWA_USE_HOSTBACKDROPBRUSH           = 17; // [set] BOOL, Allows the use of host backdrop brushes for the window.
+  DWMWA_USE_IMMERSIVE_DARK_MODE         = 20; // [set] BOOL, Allows a window to either use the accent color, or dark, according to the user Color Mode preferences.
+  DWMWA_WINDOW_CORNER_PREFERENCE        = 33; // [set] WINDOW_CORNER_PREFERENCE, Controls the policy that rounds top-level window corners
+  DWMWA_BORDER_COLOR                    = 34; // [set] COLORREF, The color of the thin border around a top-level window
+  DWMWA_CAPTION_COLOR                   = 35; // [set] COLORREF, The color of the caption
+  DWMWA_TEXT_COLOR                      = 36; // [set] COLORREF, The color of the caption text
+  DWMWA_VISIBLE_FRAME_BORDER_THICKNESS  = 37; // [get] UINT, width of the visible border around a thick frame window
+  DWMWA_LAST                            = 38;
+ 
+// Apply rounded corners in desktop apps for Windows 11
+// DWM_WINDOW_CORNER_PREFERENCE
+
+   DWMWCP_DEFAULT                                 = 0; // Let the system decide whether or not to round window corners
+   DWMWCP_DONOTROUND                              = 1; // Never round window corners
+   DWMWCP_ROUND                                   = 2; // Round the corners if appropriate
+   DWMWCP_ROUNDSMALL                              = 3; // Round the corners if appropriate, with a small radius
+
+
+// Use this constant to reset any window part colors to the system default behavior
+   DWMWA_COLOR_DEFAULT = $FFFFFFFF;
+
+// Use this constant to specify that a window part should not be rendered
+   DWMWA_COLOR_NONE    = $FFFFFFFE;
 
 // Non-client rendering policy attribute values
 const
@@ -81,6 +107,12 @@ const
   DWMFLIP3D_EXCLUDEBELOW = 1; // Display the window under Flip3D and disabled.
   DWMFLIP3D_EXCLUDEABOVE = 2; // Display the window above Flip3D and enabled.
   DWMFLIP3D_LAST         = 3;
+
+// Cloaked flags describing why a window is cloaked.
+const
+  DWM_CLOAKED_APP         = $00000001;
+  DWM_CLOAKED_SHELL       = $00000002;
+  DWM_CLOAKED_INHERITED   = $00000004;
 
 // Thumbnails
 type
