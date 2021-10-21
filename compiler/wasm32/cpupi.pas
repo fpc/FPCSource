@@ -516,7 +516,8 @@ implementation
                                (instr.oper[0]^.ref^.index<>NR_NO) or
                                (instr.oper[0]^.ref^.offset<>0) then
                               internalerror(2021102006);
-                            if instr.oper[0]^.ref^.symbol.nestingdepth<>-1 then
+                            if (instr.oper[0]^.ref^.symbol.nestingdepth<>-1) and
+                               (cur_nesting_depth>=instr.oper[0]^.ref^.symbol.nestingdepth) then
                               instr.loadconst(0,cur_nesting_depth-instr.oper[0]^.ref^.symbol.nestingdepth)
                             else
                               begin
