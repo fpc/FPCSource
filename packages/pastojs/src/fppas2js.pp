@@ -19175,6 +19175,9 @@ var
   Func: TJSFunctionDeclarationStatement;
   VarType: TPasType;
   AssignSt: TJSSimpleAssignStatement;
+  C: TClass;
+  ElClass: TPasClassType;
+  Call: TJSCallExpression;
 begin
   // add instance members
   AncestorIsExternal:=(Ancestor is TPasClassType) and TPasClassType(Ancestor).IsExternal;
@@ -19204,13 +19207,29 @@ begin
           // mfFinalize: clear reference
           if vmExternal in TPasVariable(P).VarModifiers then continue;
           VarType:=ClassContext.Resolver.ResolveAliasType(TPasVariable(P).VarType);
-          if (VarType.ClassType=TPasRecordType)
-              or (VarType.ClassType=TPasClassType)
-              or (VarType.ClassType=TPasClassOfType)
-              or (VarType.ClassType=TPasSetType)
-              or (VarType.ClassType=TPasProcedureType)
-              or (VarType.ClassType=TPasFunctionType)
-              or (VarType.ClassType=TPasArrayType) then
+          C:=VarType.ClassType;
+          if (C=TPasClassType) then
+            begin
+            ElClass:=TPasClassType(VarType);
+            if (ElClass.ObjKind=okInterface) and (ElClass.InterfaceType=citCom) then
+              begin
+              // rtl.setIntfP(this,"FieldName",null)
+              Call:=CreateCallExpression(El);
+              NewEl:=Call;
+              Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
+              Call.AddArg(CreatePrimitiveDotExpr('this',El));
+              Call.AddArg(CreateLiteralString(El,TransformElToJSName(P,New_FuncContext)));
+              Call.AddArg(CreateLiteralNull(El));
+              end;
+            end;
+          if (NewEl=nil)
+              and ((C=TPasRecordType)
+                or (C=TPasClassType)
+                or (C=TPasClassOfType)
+                or (C=TPasSetType)
+                or (C=TPasProcedureType)
+                or (C=TPasFunctionType)
+                or (C=TPasArrayType)) then
             begin
             // add 'this.FieldName = undefined;'
             AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
@@ -21123,7 +21142,7 @@ begin
     Result:=Call;
     if LHS is TJSDotMemberExpression then
       begin
-      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS})
+      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
       Call.AddArg(TJSDotMemberExpression(LHS).MExpr);
       TJSDotMemberExpression(LHS).MExpr:=nil;
@@ -21136,7 +21155,7 @@ begin
       end
     else if LHS is TJSBracketMemberExpression then
       begin
-      // path[index] = RHS  ->  rtl.setIntfP(path,index,RHS})
+      // path[index] = RHS  ->  rtl.setIntfP(path,index,RHS)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
       Call.AddArg(TJSBracketMemberExpression(LHS).MExpr);
       TJSBracketMemberExpression(LHS).MExpr:=nil;

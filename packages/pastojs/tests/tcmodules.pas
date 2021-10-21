@@ -20,7 +20,7 @@
 unit TCModules;
 
 {$mode objfpc}{$H+}
-
+{$Optimization }
 interface
 
 uses
@@ -910,10 +910,9 @@ type
 
     // Library
     Procedure TestLibrary_Empty;
-    Procedure TestLibrary_ExportFunc; // ToDo
-    // ToDo: export let as let fail
-    // ToDo: Procedure TestLibrary_ExportVar;
-    // ToDo: Procedure TestLibrary_Export_Index_Fail;
+    Procedure TestLibrary_ExportFunc;
+    Procedure TestLibrary_Export_Index_Fail;
+    Procedure TestLibrary_ExportVar; // ToDo
     // ToDo: test delayed specialization init
     // ToDo: analyzer
   end;
@@ -20885,7 +20884,7 @@ begin
     '    this.FAnt = null;',
     '  };',
     '  this.$final = function () {',
-    '    this.FAnt = undefined;',
+    '    rtl.setIntfP(this, "FAnt", null);',
     '  };',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
@@ -21063,7 +21062,7 @@ begin
     '    this.FDoveObj = null;',
     '  };',
     '  this.$final = function () {',
-    '    this.FBirdIntf = undefined;',
+    '    rtl.setIntfP(this, "FBirdIntf", null);',
     '    this.FDoveObj = undefined;',
     '    $mod.TObject.$final.call(this);',
     '  };',
@@ -33815,6 +33814,41 @@ begin
     'this.Run = function (w) {',
     '};',
     'export { this.Run as Run, this.Run as Foo, this.Run as Test1Run };',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestLibrary_Export_Index_Fail;
+begin
+  StartLibrary(false);
+  Add([
+  'procedure Run(w: word);',
+  'begin',
+  'end;',
+  'exports',
+  '  Run index 3;',
+  '']);
+  SetExpectedPasResolverError('Not supported: export index',nNotSupportedX);
+  ConvertLibrary;
+end;
+
+procedure TTestModule.TestLibrary_ExportVar;
+begin
+  exit;
+
+  StartLibrary(false);
+  Add([
+  'var Wing: word;',
+  'exports',
+  '  Wing;',
+  '']);
+  ConvertLibrary;
+  CheckSource('TestLibrary_ExportVar',
+    LinesToStr([ // statements
+    'this.Wing = 0;',
+    'export { this.Wing as Wing };',
     '']),
     LinesToStr([
     '']));
