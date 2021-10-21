@@ -913,6 +913,7 @@ type
     Procedure TestLibrary_ExportFunc;
     Procedure TestLibrary_Export_Index_Fail;
     Procedure TestLibrary_ExportVar; // ToDo
+    Procedure TestLibrary_ExportUnitFunc;
     // ToDo: test delayed specialization init
     // ToDo: analyzer
   end;
@@ -33836,8 +33837,6 @@ end;
 
 procedure TTestModule.TestLibrary_ExportVar;
 begin
-  exit;
-
   StartLibrary(false);
   Add([
   'var Wing: word;',
@@ -33853,6 +33852,11 @@ begin
     LinesToStr([
     '']));
   CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestLibrary_ExportUnitFunc;
+begin
+
 end;
 
 Initialization

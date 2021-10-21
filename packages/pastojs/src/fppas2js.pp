@@ -4915,6 +4915,7 @@ var
   ResolvedEl: TPasResolverResult;
   DeclEl: TPasElement;
   Proc: TPasProcedure;
+  V: TPasVariable;
 begin
   if El.Parent is TLibrarySection then
     // ok
@@ -4930,14 +4931,22 @@ begin
   DeclEl:=ResolvedEl.IdentEl;
   if DeclEl=nil then
     RaiseMsg(20210106223620,nSymbolCannotBeExportedFromALibrary,
-      sSymbolCannotBeExportedFromALibrary,[],El)
-  else if DeclEl is TPasProcedure then
+      sSymbolCannotBeExportedFromALibrary,[],El);
+  if not (DeclEl.Parent is TPasSection) then
+    RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
+      sSymbolCannotBeExportedFromALibrary,[],El);
+  if DeclEl is TPasProcedure then
     begin
     Proc:=TPasProcedure(DeclEl);
-    if Proc.Parent is TPasSection then
-      // ok
-    else
-      RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
+    if Proc.IsExternal or Proc.IsAbstract then
+      RaiseMsg(20211021225630,nSymbolCannotBeExportedFromALibrary,
+        sSymbolCannotBeExportedFromALibrary,[],El);
+    end
+  else if DeclEl is TPasVariable then
+    begin
+    V:=TPasVariable(DeclEl);
+    if vmExternal in V.VarModifiers then
+      RaiseMsg(20211021225634,nSymbolCannotBeExportedFromALibrary,
         sSymbolCannotBeExportedFromALibrary,[],El);
     end
   else
