@@ -26,6 +26,7 @@ type
   published
     procedure TestHookUp;
     procedure TestBytesToString;
+    procedure TestPointerLengthToString;
     procedure TestBytesToBytes;
     procedure TestStringToString;
   end;
@@ -208,6 +209,12 @@ end;
 procedure TTestBase64Encoding.TestBytesToBytes;
 begin
   AssertBytes(EncDefBytes,Enc.Encode(DefBytes));
+end;
+
+procedure  TTestBase64Encoding.TestPointerLengthToString;
+
+begin
+ AssertEquals('Encoding',SDefBytes,Enc.EncodeBytesToString(Pointer(DefBytes),Length(DefBytes)));
 end;
 
 procedure TTestBase64Encoding.TestStringToString;
