@@ -1770,27 +1770,37 @@ implementation
 
   procedure thlcgwasm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     begin
-      internalerror(2021011802);
+      a_cmp_const_ref_stack(list,size,cmp_op,a,ref);
+      current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
-      internalerror(2021011802);
+      a_cmp_const_reg_stack(list,size,cmp_op,a,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
     begin
-      internalerror(2021011802);
+      a_cmp_ref_reg_stack(list,size,cmp_op,ref,reg);
+      current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
     begin
-      internalerror(2021011802);
+      a_cmp_reg_ref_stack(list,size,cmp_op,reg,ref);
+      current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
     begin
-      internalerror(2021011802);
+      a_cmp_reg_reg_stack(list,size,cmp_op,reg1,reg2);
+      current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
+      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
