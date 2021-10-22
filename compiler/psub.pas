@@ -1218,11 +1218,7 @@ implementation
              end;
 
            if RedoDFA then
-             begin
-               dfabuilder.resetdfainfo(code);
-               dfabuilder.createdfainfo(code);
-               include(flags,pi_dfaavailable);
-             end;
+             dfabuilder.redodfainfo(code);
 
            if cs_opt_forloop in current_settings.optimizerswitches then
              RedoDFA:=OptimizeForLoop(code);
@@ -1230,11 +1226,7 @@ implementation
            RedoDFA:=ConvertForLoops(code) or RedoDFA;
 
            if RedoDFA then
-             begin
-               dfabuilder.resetdfainfo(code);
-               dfabuilder.createdfainfo(code);
-               include(flags,pi_dfaavailable);
-             end;
+             dfabuilder.redodfainfo(code);
 
            { when life info is available, we can give more sophisticated warning about uninitialized
              variables ...
