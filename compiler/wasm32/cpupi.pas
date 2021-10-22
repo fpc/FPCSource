@@ -217,7 +217,6 @@ implementation
         thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).incblock;
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
         paraloc1.done;
@@ -229,7 +228,6 @@ implementation
     class procedure twasmexceptionstatehandler_nativeexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-        thlcgwasm(hlcg).decblock;
       end;
 
 {*****************************************************************************
@@ -302,7 +300,6 @@ implementation
         thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-        thlcgwasm(hlcg).incblock;
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
         paraloc1.done;
@@ -314,7 +311,6 @@ implementation
     class procedure twasmexceptionstatehandler_bfexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-        thlcgwasm(hlcg).decblock;
       end;
 
 {*****************************************************************************
@@ -351,7 +347,6 @@ implementation
     procedure tcpuprocinfo.generate_exit_label(list: tasmlist);
       begin
         list.concat(taicpu.op_none(a_end_block));
-        thlcgwasm(hlcg).decblock;
         inherited generate_exit_label(list);
       end;
 

@@ -94,7 +94,6 @@ implementation
             Result := False;
             current_asmdata.getjumplabel(_Label);
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
-            thlcgwasm(hlcg).incblock;
             Exit;
           end;
 
@@ -135,7 +134,6 @@ implementation
         { Create unique label }
         Result := False;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
-        thlcgwasm(hlcg).incblock;
         current_asmdata.getjumplabel(_Label);
       end;
 
@@ -309,7 +307,6 @@ implementation
         current_asmdata.getjumplabel(endlabel);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
-        thlcgwasm(hlcg).incblock;
 
         { Do some optimisation to deal with empty else blocks }
         ShortcutElse := GetBranchLabel(elseblock, elselabel);
@@ -455,7 +452,6 @@ implementation
             if not shortcut then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-                thlcgwasm(hlcg).decblock;
                 hlcg.a_label(current_asmdata.CurrAsmList,blocklabel);
 
                 secondpass(statement);
@@ -472,7 +468,6 @@ implementation
         if not ShortcutElse then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-            thlcgwasm(hlcg).decblock;
             hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
           end;
 
@@ -486,7 +481,6 @@ implementation
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-        thlcgwasm(hlcg).decblock;
         hlcg.a_label(current_asmdata.CurrAsmList,endlabel);
 
         flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);

@@ -250,7 +250,6 @@ implementation
           end;
         { if not nil }
         current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[hightype])));
-        thlcgwasm(hlcg).incblock;
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
@@ -269,7 +268,6 @@ implementation
         thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,-1,R_INTREGISTER);
         { endif }
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_end_if));
-        thlcgwasm(hlcg).decblock;
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
@@ -504,7 +502,6 @@ implementation
             thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register);
 
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-            thlcgwasm(hlcg).incblock;
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
             current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_const,0));
@@ -537,7 +534,6 @@ implementation
               thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_ADD,resultdef,1);
 
             current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-            thlcgwasm(hlcg).decblock;
 
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);

@@ -52,7 +52,6 @@ implementation
         if nf_block_with_exit in flags then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
-            thlcgwasm(hlcg).incblock;
           end;
 
         inherited pass_generate_code;
@@ -60,7 +59,6 @@ implementation
         if nf_block_with_exit in flags then
           begin
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
-            thlcgwasm(hlcg).decblock;
           end;
       end;
 

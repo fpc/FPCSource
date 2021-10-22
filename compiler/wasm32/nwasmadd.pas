@@ -309,7 +309,6 @@ interface
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
           else
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-          thlcgwasm(hlcg).incblock;
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
           case nodetype of
@@ -354,7 +353,6 @@ interface
                 Internalerror(2019091902);
               end;
           current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-          thlcgwasm(hlcg).decblock;
           set_result_location_reg;
           thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
         end else
