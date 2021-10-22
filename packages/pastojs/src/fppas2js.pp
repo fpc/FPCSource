@@ -4935,6 +4935,12 @@ begin
   if not (DeclEl.Parent is TPasSection) then
     RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
+
+  if not (DeclEl.Parent is TLibrarySection) then
+    // disable exports in units
+    RaiseMsg(20211022224239,nSymbolCannotBeExportedFromALibrary,
+      sSymbolCannotBeExportedFromALibrary,[],El);
+
   if DeclEl is TPasProcedure then
     begin
     Proc:=TPasProcedure(DeclEl);
