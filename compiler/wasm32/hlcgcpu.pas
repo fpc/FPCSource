@@ -2191,10 +2191,16 @@ implementation
       inherited;
       list.concat(taicpu.op_none(a_block));
       incblock;
+      list.concat(taicpu.op_none(a_block));
+      incblock;
     end;
 
   procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
+      list.concat(taicpu.op_none(a_end_block));
+      thlcgwasm(hlcg).decblock;
+      if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        a_label(list,tcpuprocinfo(current_procinfo).CurrRaiseLabel);
       if fevalstackheight<>0 then
 {$ifdef DEBUG_WASMSTACK}
         list.concat(tai_comment.Create(strpnew('!!! values remaining on stack at end of block !!!')));

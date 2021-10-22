@@ -353,8 +353,6 @@ implementation
         list.concat(taicpu.op_none(a_end_block));
         thlcgwasm(hlcg).decblock;
         inherited generate_exit_label(list);
-        if ts_wasm_bf_exceptions in current_settings.targetswitches then
-          hlcg.a_label(list,CurrRaiseLabel);
       end;
 
     procedure tcpuprocinfo.postprocess_code;
