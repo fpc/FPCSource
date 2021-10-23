@@ -4126,14 +4126,16 @@ unit aoptx86;
                               DebugMsg(SPeepholeOptimization + 'MovXXMovXX2Nop 1 done',p);
                               RemoveInstruction(hp1);
                               RemoveCurrentp(p); { p will now be equal to the instruction that follows what was hp1 }
+                              Result:=true;
+                              exit;
                             end
-                          else
+                          else if (taicpu(hp1).oper[1]^.typ<>top_ref) or (not(vol_write in taicpu(hp1).oper[1]^.ref^.volatility)) then
                             begin
                               DebugMsg(SPeepholeOptimization + 'MovXXMovXX2MoVXX 1 done',p);
                               RemoveInstruction(hp1);
+                              Result:=true;
+                              exit;
                             end;
-                          Result:=true;
-                          exit;
                         end
                   end;
               end;
