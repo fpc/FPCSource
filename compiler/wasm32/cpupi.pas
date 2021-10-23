@@ -323,6 +323,7 @@ implementation
 
       twasmblockitem = class(TLinkedListItem)
         blockstart: taicpu;
+        elseinstr: taicpu;
         constructor Create(ablockstart: taicpu);
       end;
 
@@ -462,6 +463,16 @@ implementation
                         begin
                           blockstack.Concat(twasmblockitem.create(lastinstr));
                           inc(cur_nesting_depth);
+                        end;
+
+                      a_else:
+                        begin
+                          cblock:=twasmblockitem(blockstack.Last);
+                          if (cblock=nil) or
+                             (cblock.blockstart.opcode<>a_if) or
+                             assigned(cblock.elseinstr) then
+                            internalerror(2021102302);
+                          cblock.elseinstr:=lastinstr;
                         end;
 
                       a_end_block,
