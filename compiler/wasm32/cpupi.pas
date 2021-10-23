@@ -314,6 +314,36 @@ implementation
       end;
 
 {*****************************************************************************
+                             twasmblockitem
+*****************************************************************************}
+
+    type
+
+      { twasmblockitem }
+
+      twasmblockitem = class(TLinkedListItem)
+        blockstart: taicpu;
+        constructor Create(ablockstart: taicpu);
+      end;
+
+      constructor twasmblockitem.Create(ablockstart: taicpu);
+        begin
+          blockstart:=ablockstart;
+        end;
+
+{*****************************************************************************
+                             twasmblockstack
+*****************************************************************************}
+
+    type
+
+      { twasmblockstack }
+
+      twasmblockstack = class(tlinkedlist)
+
+      end;
+
+{*****************************************************************************
                            tcpuprocinfo
 *****************************************************************************}
 
@@ -411,7 +441,10 @@ implementation
           lastinstr, nextinstr: taicpu;
           cur_nesting_depth: longint;
           lbl: tai_label;
+          blockstack: twasmblockstack;
+          cblock: twasmblockitem;
         begin
+          blockstack:=twasmblockstack.create;
           cur_nesting_depth:=0;
           lastinstr:=nil;
           hp:=tai(asmlist.first);
@@ -426,7 +459,10 @@ implementation
                       a_loop,
                       a_if,
                       a_try:
-                        inc(cur_nesting_depth);
+                        begin
+                          blockstack.Concat(twasmblockitem.create(lastinstr));
+                          inc(cur_nesting_depth);
+                        end;
 
                       a_end_block,
                       a_end_loop,
@@ -436,6 +472,14 @@ implementation
                           dec(cur_nesting_depth);
                           if cur_nesting_depth<0 then
                             internalerror(2021102001);
+                          cblock:=twasmblockitem(blockstack.GetLast);
+                          if (cblock=nil) or
+                             ((cblock.blockstart.opcode=a_block) and (lastinstr.opcode<>a_end_block)) or
+                             ((cblock.blockstart.opcode=a_loop) and (lastinstr.opcode<>a_end_loop)) or
+                             ((cblock.blockstart.opcode=a_if) and (lastinstr.opcode<>a_end_if)) or
+                             ((cblock.blockstart.opcode=a_try) and (lastinstr.opcode<>a_end_try)) then
+                            internalerror(2021102301);
+                          cblock.free;
                         end;
 
                       else
@@ -464,6 +508,7 @@ implementation
             end;
           if cur_nesting_depth<>0 then
             internalerror(2021102002);
+          blockstack.free;
         end;
 
       procedure resolve_labels_pass2(asmlist: TAsmList);
