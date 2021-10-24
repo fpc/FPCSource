@@ -1947,11 +1947,14 @@ implementation
     procedure tcg.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
         if assigned(ref.symbol)
           { for avrtiny, the code generator generates a ref which is Z relative and while using it,
             Z is changed, so the following code breaks }
-          {$ifdef avr}and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]){$endif avr} then
+          {$ifdef avr}
+            and not((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) or (tcgsize2size[size]=1))
+          {$endif avr} then
           begin
             tmpreg:=getaddressregister(list);
             a_loadaddr_ref_reg(list,ref,tmpreg);
@@ -1960,9 +1963,9 @@ implementation
         else
           tmpref:=ref;
         tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
       end;
 
 
@@ -1982,11 +1985,14 @@ implementation
     procedure tcg.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
         if assigned(ref.symbol)
           { for avrtiny, the code generator generates a ref which is Z relative and while using it,
             Z is changed, so the following code breaks }
-          {$ifdef avr}and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]){$endif avr} then
+          {$ifdef avr}
+            and not((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) or (tcgsize2size[size]=1))
+          {$endif avr} then
           begin
             tmpreg:=getaddressregister(list);
             a_loadaddr_ref_reg(list,ref,tmpreg);
