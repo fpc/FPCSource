@@ -1243,42 +1243,37 @@ unit cgcpu;
 
 
     procedure tcg8086.a_op_ref(list: TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference);
+      var
+        tmpref  : treference;
+        op1, op2: TAsmOp;
       begin
-        var
-          tmpref: treference;
-        begin
-          tmpref:=ref;
-          make_simple_ref(list,tmpref);
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+        check_register_size(size,reg);
 
-          if size in [OS_64, OS_S64] then
-            internalerror(2013050803);
+        if size in [OS_64, OS_S64] then
+          internalerror(2013030906);
 
-          if size in [OS_32, OS_S32] then
-            begin
-              case op of
-                OP_NEG:
-                  begin
-                    inc(tmpref.offset, 2);
-                    list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
-                    dec(tmpref.offset, 2);
+        if size in [OS_32, OS_S32] then
+          begin
+            case op of
+              OP_ADD,OP_SUB,OP_XOR,OP_OR,OP_AND:
+                begin
+                  get_32bit_ops(op, op1, op2);
+                  if op in [OP_ADD,OP_SUB] then
                     cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                    list.concat(taicpu.op_ref(A_NEG, S_W, tmpref));
-                    inc(tmpref.offset, 2);
-                    list.concat(taicpu.op_const_ref(A_SBB, S_W,-1, tmpref));
+                  list.concat(taicpu.op_ref_reg(op1, S_W, tmpref, reg));
+                  inc(tmpref.offset, 2);
+                  list.concat(taicpu.op_ref_reg(op2, S_W, tmpref, GetNextReg(reg)));
+                  if op in [OP_ADD,OP_SUB] then
                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-                  end;
-                OP_NOT:
-                  begin
-                    list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
-                    inc(tmpref.offset, 2);
-                    list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
-                  end;
-                else
-                  internalerror(2020050709);
-              end;
-            end
-          else
-            inherited a_op_reg_ref(list,Op,size,reg,tmpref);
+                end;
+              else
+                internalerror(2013050701);
+            end;
+          end
+        else
+          inherited a_op_ref_reg(list,Op,size,tmpref,reg);
       end;
 
 
