@@ -525,9 +525,10 @@ type
     Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar_Assign;
     Procedure TestClass_CallClassMethod;
-    Procedure TestClass_CallClassMethodStatic; // ToDo
+    Procedure TestClass_CallClassMethodStatic;
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
+    Procedure TestClass_Property_ClassMethodStatic;
     Procedure TestClass_Property_Indexed;
     Procedure TestClass_Property_IndexSpec;
     Procedure TestClass_PropertyOfTypeArray;
@@ -912,7 +913,7 @@ type
     Procedure TestLibrary_Empty;
     Procedure TestLibrary_ExportFunc;
     Procedure TestLibrary_Export_Index_Fail;
-    Procedure TestLibrary_ExportVar; // ToDo
+    Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
     // ToDo: test delayed specialization init
     // ToDo: analyzer
@@ -14030,6 +14031,111 @@ begin
     '$mod.TObject.Fx = $with1.Fy + 1;',
     '$mod.TObject.Fy = $with1.Fx + 2;',
     '$with1.$class.SetInt($with1.$class.GetInt() + 3);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_Property_ClassMethodStatic;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetInt: longint; static;',
+  '    class procedure SetInt(Value: longint); static;',
+  '    class function GetItems(Index: word): longint; static;',
+  '    class procedure SetItems(Index: word; const Value: longint); static;',
+  '  end;',
+  '  TBird = class',
+  '    class procedure Fly;',
+  '    class property IntA: longint read GetInt write SetInt;',
+  '    class property Items[Index: word]: longint read GetItems write SetItems;',
+  '  end;',
+  'class function tobject.getint: longint;',
+  'begin',
+  'end;',
+  'class procedure tobject.setint(value: longint);',
+  'begin',
+  'end;',
+  'class function tobject.GetItems(Index: word): longint;',
+  'begin',
+  'end;',
+  'class procedure TObject.SetItems(Index: word; const Value: longint);',
+  'begin',
+  'end;',
+  'class procedure tbird.fly;',
+  'var w: longint;',
+  'begin',
+  '  inta:=inta+51;',
+  '  w:=items[52];',
+  '  items[53]:=54;',
+  'end;',
+  'var Obj: tbird;',
+  '  i: longint;',
+  'begin',
+  '  tbird.inta:=tbird.inta+1;',
+  '  i:=tbird.items[2];',
+  '  tbird.items[3]:=4;',
+  '  obj.inta:=obj.inta+11;',
+  '  i:=obj.items[12];',
+  '  obj.items[13]:=14;',
+  '  with Tbird do begin',
+  '    inta:=inta+21;',
+  '    i:=items[22];',
+  '    items[23]:=24;',
+  '  end;',
+  '  with Obj do begin',
+  '    inta:=inta+31;',
+  '    i:=items[32];',
+  '    items[33]:=34;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_Property_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetInt = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetInt = function (Value) {',
+    '  };',
+    '  this.GetItems = function (Index) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Index, Value) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Fly = function () {',
+    '    var w = 0;',
+    '    this.SetInt(this.GetInt() + 51);',
+    '    w = this.GetItems(52);',
+    '    this.SetItems(53, 54);',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TObject.SetInt($mod.TObject.GetInt() + 1);',
+    '$mod.i = $mod.TObject.GetItems(2);',
+    '$mod.TObject.SetItems(3, 4);',
+    '$mod.TObject.SetInt($mod.TObject.GetInt() + 11);',
+    '$mod.i = $mod.TObject.GetItems(12);',
+    '$mod.TObject.SetItems(13, 14);',
+    'var $with = $mod.TBird;',
+    '$with.SetInt($with.GetInt() + 21);',
+    '$mod.i = $with.GetItems(22);',
+    '$with.SetItems(23, 24);',
+    'var $with1 = $mod.Obj;',
+    '$with1.SetInt($with1.GetInt() + 31);',
+    '$mod.i = $with1.GetItems(32);',
+    '$with1.SetItems(33, 34);',
     '']));
 end;
 

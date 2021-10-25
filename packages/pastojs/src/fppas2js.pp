@@ -9955,7 +9955,10 @@ begin
       begin
       // a.StaticProc  ->  pas.unit1.aclass.StaticProc(defaultargs)
       // ToDo: check if left side has only types (no call nor field)
-      Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,aContext);
+      if Assigned(OnConvertRight) then
+        Result:=OnConvertRight(RightEl,AContext,Data)
+      else
+        Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
       exit;
       end;
     end;

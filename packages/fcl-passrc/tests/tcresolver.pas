@@ -985,7 +985,7 @@ type
     Procedure TestLibrary_ExportFunc;
     Procedure TestLibrary_ExportFunc_NameIntFail;
     Procedure TestLibrary_ExportFunc_IndexStringFail;
-    Procedure TestLibrary_ExportVar; // ToDo
+    Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportLocalFuncFail;
     Procedure TestLibrary_Initialization_Finalization;
     Procedure TestLibrary_ExportFuncOverloadFail;
@@ -18839,15 +18839,15 @@ end;
 
 procedure TTestResolver.TestLibrary_ExportVar;
 begin
-  exit;
-
   StartLibrary(false);
   Add([
   'var',
   '  Size: word; export name ''size'';',
+  '  Fly: string;',
+  '  Run: word;',
   'exports',
   '  Size,',
-  '  Fly as ''FlyHi'',',
+  '  Fly name ''FlyHi'',',
   '  Run index 3+4;',
   'begin',
   '']);
