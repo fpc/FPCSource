@@ -234,6 +234,9 @@ uses
                   Result:=PostPeepholeOptPush(p);
                 A_SHR:
                   Result:=PostPeepholeOptShr(p);
+                A_ADD,
+                A_SUB:
+                  Result:=PostPeepholeOptADDSUB(p);
                 A_VPXOR:
                   Result:=PostPeepholeOptVPXOR(p);
                 else

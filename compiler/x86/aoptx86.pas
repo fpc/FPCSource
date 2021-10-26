@@ -188,6 +188,7 @@ unit aoptx86;
         function PostPeepholeOptLea(var p : tai) : Boolean;
         function PostPeepholeOptPush(var p: tai): Boolean;
         function PostPeepholeOptShr(var p : tai) : boolean;
+        function PostPeepholeOptADDSUB(var p : tai) : Boolean;
         function PostPeepholeOptVPXOR(var p: tai): Boolean;
 
         procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
@@ -4260,9 +4261,21 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1Add(var p : tai) : boolean;
       var
-        hp1 : tai;
+        hp1, hp2: tai;
+        ActiveReg: TRegister;
+        OldOffset: asizeint;
+        ThisConst: TCGInt;
+
+      function RegDeallocated: Boolean;
+        begin
+          TransferUsedRegs(TmpUsedRegs);
+          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+          Result := not(RegUsedAfterInstruction(ActiveReg,hp1,TmpUsedRegs))
+        end;
+
       begin
         result:=false;
+        hp1 := nil;
         { replace
             addX     const,%reg1
             leaX     (%reg1,%reg1,Y),%reg2   // Base or index might not be equal to reg1
@@ -4272,23 +4285,130 @@ unit aoptx86;
 
             leaX     const+const*Y(%reg1,%reg1,Y),%reg2
         }
-        if MatchOpType(taicpu(p),top_const,top_reg) and
-          GetNextInstruction(p,hp1) and
-          MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
-          ((taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.base) or
-           (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index)) then
+
+        if MatchOpType(taicpu(p),top_const,top_reg) then
           begin
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+            ActiveReg := taicpu(p).oper[1]^.reg;
+            { Ensures the entire register was updated }
+            if (taicpu(p).opsize >= S_L) and
+              GetNextInstructionUsingReg(p,hp1, ActiveReg) and
+              MatchInstruction(hp1,A_LEA,[]) and
+              (SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.base) or
+               SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.index)) and
+              (
+                { Cover the case where the register in the reference is also the destination register }
+                Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ActiveReg) or
+                (
+                  { Try to avoid the expensive check of RegUsedAfterInstruction if we know it will return False }
+                  not SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ActiveReg) and
+                  RegDeallocated
+                )
+              ) then
               begin
-                DebugMsg(SPeepholeOptimization + 'AddLea2Lea done',p);
-                if taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.base then
+                OldOffset := taicpu(hp1).oper[0]^.ref^.offset;
+
+                if ActiveReg=taicpu(hp1).oper[0]^.ref^.base then
                   inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val);
-                if taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index then
+                if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
                   inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
-                RemoveCurrentP(p);
-                result:=true;
+
+                if (taicpu(hp1).oper[0]^.ref^.offset > $7FFFFFFF) or (taicpu(hp1).oper[0]^.ref^.offset < -2147483648) then
+                  begin
+                    { Overflow; abort }
+                    taicpu(hp1).oper[0]^.ref^.offset := OldOffset;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'AddLea2Lea done',p);
+                    if not (cs_opt_level3 in current_settings.optimizerswitches) then
+                      { hp1 is the immediate next instruction for sure - good for a quick speed boost }
+                      RemoveCurrentP(p, hp1)
+                    else
+                      RemoveCurrentP(p);
+
+                    result:=true;
+                    Exit;
+                  end;
+              end;
+
+            if (
+                { Save calling GetNextInstructionUsingReg again }
+                Assigned(hp1) or
+                GetNextInstructionUsingReg(p,hp1, ActiveReg)
+              ) and
+              MatchInstruction(hp1,A_ADD,A_SUB,[taicpu(p).opsize]) and
+              (taicpu(hp1).oper[1]^.reg = ActiveReg) then
+              begin
+                if taicpu(hp1).oper[0]^.typ = top_const then
+                  begin
+                    { Merge add const1,%reg; add/sub const2,%reg to add const1+/-const2,%reg }
+                    if taicpu(hp1).opcode = A_ADD then
+                      ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val
+                    else
+                      ThisConst := taicpu(p).oper[0]^.val - taicpu(hp1).oper[0]^.val;
+
+                    Result := True;
+
+                    { Handle any overflows }
+                    case taicpu(p).opsize of
+                      S_B:
+                        taicpu(p).oper[0]^.val := ThisConst and $FF;
+                      S_W:
+                        taicpu(p).oper[0]^.val := ThisConst and $FFFF;
+                      S_L:
+                        taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
+{$ifdef x86_64}
+                      S_Q:
+                        if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
+                          { Overflow; abort }
+                          Result := False
+                        else
+                          taicpu(p).oper[0]^.val := ThisConst;
+{$endif x86_64}
+                      else
+                        InternalError(2021102610);
+                    end;
+
+                    { Result may get set to False again if the combined immediate overflows for S_Q sizes }
+                    if Result then
+                      begin
+                        if (taicpu(p).oper[0]^.val < 0) and
+                          (
+                            ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
+                            ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
+                            ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
+                          ) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> SUB',p);
+                            taicpu(p).opcode := A_SUB;
+                            taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
+                          end
+                        else
+                          DebugMsg(SPeepholeOptimization + 'ADD; ADD/SUB -> ADD',p);
+                        RemoveInstruction(hp1);
+                      end;
+                  end
+                else
+                  begin
+                    { Make doubly sure the flags aren't in use because the order of additions may affect them }
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                    hp2 := p;
+
+                    while not (cs_opt_level3 in current_settings.optimizerswitches) and
+                      GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
+                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+
+                    if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                      begin
+                        { Move the constant addition to after the reg/ref addition to improve optimisation }
+                        DebugMsg(SPeepholeOptimization + 'Add/sub swap 1a done',p);
+                        Asml.Remove(p);
+                        Asml.InsertAfter(p, hp1);
+                        p := hp1;
+                        Result := True;
+                      end;
+                  end;
               end;
           end;
       end;
@@ -4720,19 +4840,23 @@ unit aoptx86;
         hp1 : tai;
       begin
         DoSubAddOpt := False;
+
+        if taicpu(p).oper[0]^.typ <> top_const then
+          { Should have been confirmed before calling }
+          InternalError(2021102601);
+
         if GetLastInstruction(p, hp1) and
            (hp1.typ = ait_instruction) and
            (taicpu(hp1).opsize = taicpu(p).opsize) then
           case taicpu(hp1).opcode Of
             A_DEC:
-              if (taicpu(hp1).oper[0]^.typ = top_reg) and
-                MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+              if MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
                 begin
                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
                   RemoveInstruction(hp1);
                 end;
              A_SUB:
-               if MatchOpType(taicpu(hp1),top_const,top_reg) and
+               if (taicpu(hp1).oper[0]^.typ = top_const) and
                  MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
                  begin
                    taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
@@ -4740,7 +4864,7 @@ unit aoptx86;
                  end;
              A_ADD:
                begin
-                 if MatchOpType(taicpu(hp1),top_const,top_reg) and
+                 if (taicpu(hp1).oper[0]^.typ = top_const) and
                    MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
                    begin
                      taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
@@ -4762,20 +4886,160 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass1Sub(var p : tai) : boolean;
-{$ifdef i386}
       var
-        hp1 : tai;
-{$endif i386}
+        hp1, hp2: tai;
+        ActiveReg: TRegister;
+        OldOffset: asizeint;
+        ThisConst: TCGInt;
+
+      function RegDeallocated: Boolean;
+        begin
+          TransferUsedRegs(TmpUsedRegs);
+          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+          Result := not(RegUsedAfterInstruction(ActiveReg,hp1,TmpUsedRegs))
+        end;
+
       begin
         Result:=false;
+        hp1 := nil;
+        { replace
+            subX     const,%reg1
+            leaX     (%reg1,%reg1,Y),%reg2   // Base or index might not be equal to reg1
+            dealloc  %reg1
+
+            by
+
+            leaX     -const-const*Y(%reg1,%reg1,Y),%reg2
+        }
+        if MatchOpType(taicpu(p),top_const,top_reg) then
+          begin
+            ActiveReg := taicpu(p).oper[1]^.reg;
+            { Ensures the entire register was updated }
+            if (taicpu(p).opsize >= S_L) and
+              GetNextInstructionUsingReg(p,hp1, ActiveReg) and
+              MatchInstruction(hp1,A_LEA,[]) and
+              (SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.base) or
+               SuperRegistersEqual(ActiveReg, taicpu(hp1).oper[0]^.ref^.index)) and
+              (
+                { Cover the case where the register in the reference is also the destination register }
+                Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ActiveReg) or
+                (
+                  { Try to avoid the expensive check of RegUsedAfterInstruction if we know it will return False }
+                  not SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ActiveReg) and
+                  RegDeallocated
+                )
+              ) then
+              begin
+                OldOffset := taicpu(hp1).oper[0]^.ref^.offset;
+
+                if ActiveReg=taicpu(hp1).oper[0]^.ref^.base then
+                  Dec(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val);
+                if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
+                  Dec(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
+
+                if (taicpu(hp1).oper[0]^.ref^.offset > $7FFFFFFF) or (taicpu(hp1).oper[0]^.ref^.offset < -2147483648) then
+                  begin
+                    { Overflow; abort }
+                    taicpu(hp1).oper[0]^.ref^.offset := OldOffset;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'SubLea2Lea done',p);
+
+                    if not (cs_opt_level3 in current_settings.optimizerswitches) then
+                      { hp1 is the immediate next instruction for sure - good for a quick speed boost }
+                      RemoveCurrentP(p, hp1)
+                    else
+                      RemoveCurrentP(p);
+
+                    result:=true;
+                    Exit;
+                  end;
+              end;
+
+            if (
+                { Save calling GetNextInstructionUsingReg again }
+                Assigned(hp1) or
+                GetNextInstructionUsingReg(p,hp1, ActiveReg)
+              ) and
+              MatchInstruction(hp1,A_SUB,[taicpu(p).opsize]) and
+              (taicpu(hp1).oper[1]^.reg = ActiveReg) then
+              begin
+                if taicpu(hp1).oper[0]^.typ = top_const then
+                  begin
+                    { Merge add const1,%reg; add const2,%reg to add const1+const2,%reg }
+                    ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val;
+                    Result := True;
+
+                    { Handle any overflows }
+                    case taicpu(p).opsize of
+                      S_B:
+                        taicpu(p).oper[0]^.val := ThisConst and $FF;
+                      S_W:
+                        taicpu(p).oper[0]^.val := ThisConst and $FFFF;
+                      S_L:
+                        taicpu(p).oper[0]^.val := ThisConst and $FFFFFFFF;
+{$ifdef x86_64}
+                      S_Q:
+                        if (ThisConst > $7FFFFFFF) or (ThisConst < -2147483648) then
+                          { Overflow; abort }
+                          Result := False
+                        else
+                          taicpu(p).oper[0]^.val := ThisConst;
+{$endif x86_64}
+                      else
+                        InternalError(2021102610);
+                    end;
+
+                    { Result may get set to False again if the combined immediate overflows for S_Q sizes }
+                    if Result then
+                      begin
+                        if (taicpu(p).oper[0]^.val < 0) and
+                          (
+                            ((taicpu(p).opsize = S_B) and (taicpu(p).oper[0]^.val <> -128)) or
+                            ((taicpu(p).opsize = S_W) and (taicpu(p).oper[0]^.val <> -32768)) or
+                            ((taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and (taicpu(p).oper[0]^.val <> -2147483648))
+                          ) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> ADD',p);
+                            taicpu(p).opcode := A_SUB;
+                            taicpu(p).oper[0]^.val := -taicpu(p).oper[0]^.val;
+                          end
+                        else
+                          DebugMsg(SPeepholeOptimization + 'SUB; ADD/SUB -> SUB',p);
+                        RemoveInstruction(hp1);
+                      end;
+                  end
+                else
+                  begin
+                    { Make doubly sure the flags aren't in use because the order of subtractions may affect them }
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                    hp2 := p;
+
+                    while not (cs_opt_level3 in current_settings.optimizerswitches) and
+                      GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
+                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+
+                    if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                      begin
+                        { Move the constant subtraction to after the reg/ref addition to improve optimisation }
+                        DebugMsg(SPeepholeOptimization + 'Add/sub swap 1b done',p);
+                        Asml.Remove(p);
+                        Asml.InsertAfter(p, hp1);
+                        p := hp1;
+                        Result := True;
+                        Exit;
+                      end;
+                  end;
+              end;
+
         { * change "subl $2, %esp; pushw x" to "pushl x"}
         { * change "sub/add const1, reg" or "dec reg" followed by
             "sub const2, reg" to one "sub ..., reg" }
-        if MatchOpType(taicpu(p),top_const,top_reg) then
-          begin
 {$ifdef i386}
             if (taicpu(p).oper[0]^.val = 2) and
-               (taicpu(p).oper[1]^.reg = NR_ESP) and
+               (ActiveReg = NR_ESP) and
                { Don't do the sub/push optimization if the sub }
                { comes from setting up the stack frame (JM)    }
                (not(GetLastInstruction(p,hp1)) or
@@ -6635,6 +6899,46 @@ unit aoptx86;
         NewInstr : Taicpu;
         NewAligh : Tai_align;
         DestLabel: TAsmLabel;
+
+        function TryMovArith2Lea(InputInstr: tai): Boolean;
+          var
+            NextInstr: tai;
+          begin
+            Result := False;
+            UpdateUsedRegs(TmpUsedRegs, tai(InputInstr.Next));
+
+            if not GetNextInstruction(InputInstr, NextInstr) or
+              (
+              { The FLAGS register isn't always tracked properly, so do not
+                perform this optimisation if a conditional statement follows }
+                not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
+                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
+              ) then
+              begin
+                reference_reset(NewRef, 1, []);
+                NewRef.base := taicpu(p).oper[0]^.reg;
+                NewRef.scalefactor := 1;
+
+                if taicpu(InputInstr).opcode = A_ADD then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
+                    NewRef.offset := taicpu(InputInstr).oper[0]^.val;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
+                    NewRef.offset := -taicpu(InputInstr).oper[0]^.val;
+                  end;
+
+                taicpu(p).opcode := A_LEA;
+                taicpu(p).loadref(0, NewRef);
+
+                RemoveInstruction(InputInstr);
+
+                Result := True;
+              end;
+          end;
+
      begin
         Result:=false;
 
@@ -6801,10 +7105,8 @@ unit aoptx86;
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
           (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
           MatchInstruction(hp1,A_ADD,A_SUB,[taicpu(p).opsize]) and
-          MatchOpType(taicpu(hp1),top_const,top_reg) and
-          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
-          { be lazy, checking separately for sub would be slightly better }
-          (abs(taicpu(hp1).oper[0]^.val)<=$7fffffff) then
+          (taicpu(hp1).oper[1]^.typ = top_reg) and
+          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
           begin
             { Change:
                 movl/q %reg1,%reg2      movl/q %reg1,%reg2
@@ -6812,39 +7114,36 @@ unit aoptx86;
               To:
                 leal/q x(%reg1),%reg2   leal/q -x(%reg1),%reg2
             }
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-            if not GetNextInstruction(hp1, hp2) or
-              (
-              { The FLAGS register isn't always tracked properly, so do not
-                perform this optimisation if a conditional statement follows }
-                not RegReadByInstruction(NR_DEFAULTFLAGS, hp2) and
-                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp2, TmpUsedRegs)
-              ) then
+            if (taicpu(hp1).oper[0]^.typ = top_const) and
+              { be lazy, checking separately for sub would be slightly better }
+              (abs(taicpu(hp1).oper[0]^.val)<=$7fffffff) then
               begin
-                reference_reset(NewRef, 1, []);
-                NewRef.base := taicpu(p).oper[0]^.reg;
-                NewRef.scalefactor := 1;
-
-                if taicpu(hp1).opcode = A_ADD then
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                if TryMovArith2Lea(hp1) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
-                    NewRef.offset := taicpu(hp1).oper[0]^.val;
+                    Result := True;
+                    Exit;
                   end
-                else
+              end
+            else if not RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^) and
+              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
+              { Same as above, but also adds or subtracts to %reg2 in between.
+                It's still valid as long as the flags aren't in use }
+              MatchInstruction(hp2,A_ADD,A_SUB,[taicpu(p).opsize]) and
+              MatchOpType(taicpu(hp2), top_const, top_reg) and
+              (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+              { be lazy, checking separately for sub would be slightly better }
+              (abs(taicpu(hp2).oper[0]^.val)<=$7fffffff) then
+              begin
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                if TryMovArith2Lea(hp2) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
-                    NewRef.offset := -taicpu(hp1).oper[0]^.val;
+                    Result := True;
+                    Exit;
                   end;
-
-                taicpu(p).opcode := A_LEA;
-                taicpu(p).loadref(0, NewRef);
-
-                RemoveInstruction(hp1);
-
-                Result := True;
-                Exit;
               end;
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
@@ -9870,10 +10169,12 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass2Lea(var p : tai) : Boolean;
       begin
         Result:=false;
-        if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+        if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
+          (taicpu(p).oper[0]^.ref^.offset = 0) then
           begin
-            if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
-              (taicpu(p).oper[0]^.ref^.index<>NR_NO) then
+            if (taicpu(p).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
+              (taicpu(p).oper[0]^.ref^.index <> NR_NO) and
+              (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
               begin
                 taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.base);
                 taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.index);
@@ -9882,14 +10183,29 @@ unit aoptx86;
                 result:=true;
               end
 
-            else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) and
-              (taicpu(p).oper[0]^.ref^.base<>NR_NO) then
+            else if (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) then
               begin
-                taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
-                taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.base);
-                taicpu(p).opcode:=A_ADD;
-                DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
-                result:=true;
+                if (taicpu(p).oper[0]^.ref^.base <> NR_NO) then
+                  begin
+                    if (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
+                      begin
+                        taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
+                        taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.base);
+                        taicpu(p).opcode:=A_ADD;
+                        DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
+                        result:=true;
+                      end;
+                  end
+                else
+                  if (taicpu(p).oper[0]^.ref^.scalefactor in [2, 4, 8]) then
+                    begin
+                      { BsrByte is, in essence, the base-2 logarithm of the scale factor }
+                      taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
+                      taicpu(p).loadconst(0, BsrByte(taicpu(p).oper[0]^.ref^.scalefactor));
+                      taicpu(p).opcode:=A_SHL;
+                      DebugMsg(SPeepholeOptimization + 'Lea2Shl done',p);
+                      result:=true;
+                    end;
               end;
           end;
       end;
@@ -10299,6 +10615,61 @@ unit aoptx86;
             { A change was made, but not with p, so move forward 1 }
             p := tai(p.Next);
             Result := True;
+          end;
+
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptADDSUB(var p : tai) : boolean;
+      var
+        hp1, hp2: tai;
+      begin
+        { Detect:
+            add/sub %reg2,(dest)
+            add/sub x,    (dest)
+
+          (dest can be a register or a reference)
+
+          Swap the instructions to minimise a pipeline stall.  This reverses the
+          "Add swap" and "Sub swap" optimisations done in pass 1 if no new
+          optimisations could be made.
+        }
+
+        Result := False;
+        if (taicpu(p).oper[0]^.typ = top_reg) and
+          not RegInOp(taicpu(p).oper[0]^.reg, taicpu(p).oper[1]^) and
+          (
+            (
+              (taicpu(p).oper[1]^.typ = top_reg) and
+              { We can try searching further ahead if we're writing to a register }
+              GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.reg)
+            ) or
+            (
+              (taicpu(p).oper[1]^.typ = top_ref) and
+              GetNextInstruction(p, hp1)
+            )
+          ) and
+          MatchInstruction(hp1, A_ADD, A_SUB, [taicpu(p).opsize]) and
+          (taicpu(hp1).oper[0]^.typ = top_const) and
+          MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[1]^) then
+          begin
+            { Make doubly sure the flags aren't in use because the order of additions may affect them }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            hp2 := p;
+
+            while not (cs_opt_level3 in current_settings.optimizerswitches) and
+              GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
+              UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+
+            if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+              begin
+                asml.remove(hp1);
+                asml.InsertBefore(hp1, p);
+
+                DebugMsg(SPeepholeOptimization + 'Add/Sub swap 2 done', hp1);
+                Result := True;
+              end;
           end;
 
       end;
