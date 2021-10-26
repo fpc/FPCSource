@@ -365,11 +365,6 @@ begin
             MsgLocStr:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+':'+tostr(status.currentcolumn)+':'
           else
             MsgLocStr:=status.currentsource+'('+tostr(status.currentline)+','+tostr(status.currentcolumn)+')';
-          if status.print_source_path then
-            if status.sources_avail then
-              MsgLocStr:=status.currentsourcepath+MsgLocStr
-            else
-              MsgLocStr:=status.currentsourceppufilename+':'+MsgLocStr;
         end
       else
         begin
@@ -378,6 +373,11 @@ begin
           else
             MsgLocStr:=status.currentsource+'('+tostr(status.currentline)+')';
         end;
+      if status.print_source_path then
+        if status.sources_avail then
+          MsgLocStr:=status.currentsourcepath+MsgLocStr
+        else
+          MsgLocStr:=status.currentsourceppufilename+':'+MsgLocStr;
  {$else macos}
       { MPW style error }
       if status.currentcolumn>0 then
