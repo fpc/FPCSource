@@ -352,7 +352,10 @@ implementation
           end
         else if iPhoneOSVersionMin<>'' then
           begin
-            result:='-iphoneos_version_min '+iPhoneOSVersionMin;
+            if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim] then
+              result:='-ios_simulator_version_min '+iPhoneOSVersionMin
+            else
+              result:='-iphoneos_version_min '+iPhoneOSVersionMin;
           end
         else
           begin
