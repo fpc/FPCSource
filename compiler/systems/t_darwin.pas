@@ -365,7 +365,10 @@ implementation
         end
       else if iPhoneOSVersionMin<>'' then
         begin
-          LinkRes.Add('-iphoneos_version_min');
+          if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim] then
+            LinkRes.Add('-ios_simulator_version_min')
+          else
+            LinkRes.Add('-iphoneos_version_min');
           LinkRes.Add(iPhoneOSVersionMin);
         end;
 
