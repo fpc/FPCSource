@@ -187,7 +187,7 @@ const
         name         : 'Darwin/iPhoneSim for i386';
         shortname    : 'iPhoneSim';
         flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,
-                        tf_pic_uses_got,tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile];
+                        tf_pic_uses_got,tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile,tf_requires_proper_alignment];
         cpu          : cpu_i386;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
@@ -384,7 +384,7 @@ const
         name         : 'Darwin/iPhoneSim for x86_64';
         shortname    : 'iPhoneSim';
         flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,
-                        tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile];
+                        tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile,tf_requires_proper_alignment];
         cpu          : cpu_x86_64;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
