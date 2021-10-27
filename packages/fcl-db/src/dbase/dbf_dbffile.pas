@@ -2341,7 +2341,8 @@ begin
     TempFieldDef := FFieldDefs.Items[I];
     // binary (non-text) field? (foxpro memo fields are binary, but dbase not)
     if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'W', 'Y'])
-        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4) {Visual FoxPro?}) then
+        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4) {Visual FoxPro?})
+        or ((TempFieldDef.NativeFieldType = 'B') and (FDbfVersion in [xFoxPro, xVisualFoxPro])) then
       FillChar(PChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
     // copy default value?
     if TempFieldDef.HasDefault then
