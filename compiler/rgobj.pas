@@ -1129,14 +1129,13 @@ unit rgobj;
           for i:=0 to movelist^.header.count-1 do
             begin
               m:=movelist^.data[i];
-              if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
-                if Tmoveins(m).moveset=ms_active_moves then
-                  begin
-                    {Move m from the set active_moves to the set worklist_moves.}
-                    active_moves.remove(m);
-                    Tmoveins(m).moveset:=ms_worklist_moves;
-                    worklist_moves.concat(m);
-                  end;
+              if Tmoveins(m).moveset=ms_active_moves then
+                begin
+                  {Move m from the set active_moves to the set worklist_moves.}
+                  active_moves.remove(m);
+                  Tmoveins(m).moveset:=ms_worklist_moves;
+                  worklist_moves.concat(m);
+                end;
           end;
     end;
 
@@ -1235,8 +1234,6 @@ unit rgobj;
 
       begin
         ok:=(t<first_imaginary) or
-            // disabled for now, see issue #22405
-            // ((r<first_imaginary) and (r in usable_register_set)) or
             (reginfo[t].degree<usable_registers_cnt) or
             ibitmap[r,t];
       end;
@@ -1254,7 +1251,7 @@ unit rgobj;
             for i:=1 to adj^.length do
               begin
                 n:=adj^.buf^[i-1];
-                if (flags*[ri_coalesced,ri_selected]=[]) and not ok(n,u) then
+                if (reginfo[n].flags*[ri_coalesced,ri_selected]=[]) and not ok(n,u) then
                   begin
                     adjacent_ok:=false;
                     break;
@@ -1419,9 +1416,17 @@ unit rgobj;
                    need to connect t to u. However, beware if t was already
                    connected to u...}
                   if (ibitmap[t,u]) and not (ri_selected in flags) then
-                    {... because in that case, we are actually removing an edge
-                     and the degree of t decreases.}
-                    decrement_degree(t)
+                    begin
+                      {... because in that case, we are actually removing an edge
+                       and the degree of t decreases.}
+                      decrement_degree(t);
+                      { if v is combined with a real register, retry
+                        coalescing of interfering nodes since it may succeed now. }
+                      if (u<first_imaginary) and
+                         (adj^.length>=usable_registers_cnt) and
+                         (reginfo[t].degree>usable_registers_cnt) then
+                        enable_moves(t);
+                    end
                   else
                     begin
                       add_edge(t,u);
@@ -2269,7 +2274,15 @@ unit rgobj;
                           begin
                             u:=reginfo[getsupreg(reg)].colour;
                             include(used_in_proc,u);
-
+{$ifdef DEBUG_SPILLCOALESCE}
+                            if (ratype=ra_alloc) and (ri_coalesced in reginfo[getsupreg(reg)].flags) then
+                              begin
+                                hp:=Tai_comment.Create(strpnew('Coalesced '+std_regname(reg)+'->'+
+                                                       std_regname(newreg(regtype,reginfo[getsupreg(reg)].alias,reginfo[getsupreg(reg)].subreg))+
+                                                       ' ('+std_regname(newreg(regtype,u,reginfo[getsupreg(reg)].subreg))+')'));
+                                list.insertafter(hp,p);
+                              end;
+{$endif DEBUG_SPILLCOALESCE}
 {$ifdef EXTDEBUG}
                             if u>=maxreginfo then
                               internalerror(2015040501);
