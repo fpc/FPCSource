@@ -4312,12 +4312,14 @@ unit aoptx86;
                 if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
                   inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
 
+{$ifdef x86_64}
                 if (taicpu(hp1).oper[0]^.ref^.offset > $7FFFFFFF) or (taicpu(hp1).oper[0]^.ref^.offset < -2147483648) then
                   begin
                     { Overflow; abort }
                     taicpu(hp1).oper[0]^.ref^.offset := OldOffset;
                   end
                 else
+{$endif x86_64}
                   begin
                     DebugMsg(SPeepholeOptimization + 'AddLea2Lea done',p);
                     if not (cs_opt_level3 in current_settings.optimizerswitches) then
@@ -4937,12 +4939,14 @@ unit aoptx86;
                 if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
                   Dec(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
 
+{$ifdef x86_64}
                 if (taicpu(hp1).oper[0]^.ref^.offset > $7FFFFFFF) or (taicpu(hp1).oper[0]^.ref^.offset < -2147483648) then
                   begin
                     { Overflow; abort }
                     taicpu(hp1).oper[0]^.ref^.offset := OldOffset;
                   end
                 else
+{$endif x86_64}
                   begin
                     DebugMsg(SPeepholeOptimization + 'SubLea2Lea done',p);
 
