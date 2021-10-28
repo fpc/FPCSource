@@ -1914,6 +1914,8 @@ unit scandir;
 
     procedure dir_region;
       begin
+        current_scanner.skipspace;
+        current_scanner.readquotedstring;
       end;
 
     procedure dir_endregion;
