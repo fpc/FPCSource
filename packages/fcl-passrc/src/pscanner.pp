@@ -754,6 +754,7 @@ type
     FNonTokens: TTokens;
     FOnComment: TPScannerCommentEvent;
     FOnDirective: TPScannerDirectiveEvent;
+    FOnDirectiveForConditionals: Boolean;
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
     FOnFormatPath: TPScannerFormatPathEvent;
@@ -932,6 +933,7 @@ type
     property ForceCaret : Boolean read GetForceCaret;
     Property MultilineLineFeedStyle : TEOLStyle Read FMultilineLineFeedStyle Write FMultilineLineFeedStyle;
     Property MultilineLineTrimLeft : Integer Read FMultilineLineTrimLeft Write FMultilineLineTrimLeft;
+    Property OnDirectiveForConditionals : Boolean Read FOnDirectiveForConditionals Write FOnDirectiveForConditionals;
     property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
     property OnLog : TPScannerLogHandler read FOnLog write FOnLog;
     property OnFormatPath: TPScannerFormatPathEvent read FOnFormatPath write FOnFormatPath;
@@ -4542,7 +4544,8 @@ begin
       end;
       end;
   end;
-  DoHandleDirective(Self,Directive,Param,Handled);
+  if (Not IsFlowControl) or OnDirectiveForConditionals then
+    DoHandleDirective(Self,Directive,Param,Handled);
   if not (Handled or IsFlowControl) then // in case of flowcontrol, it is definitely handled
     if LogEvent(sleDirective) then
       DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
