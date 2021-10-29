@@ -31,7 +31,7 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="tcbarcodes.pp"/>
+        <Filename Value="tcbarcodes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
