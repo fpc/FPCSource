@@ -34,7 +34,9 @@ begin
     T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
     T:=P.Targets.AddUnit('src/sha1.pp');
     T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes-[darwin]);
+    T:=P.Targets.AddUnit('src/ecc.pp');
     T:=P.Targets.AddUnit('src/hashutils.pp');
+    T.Dependencies.AddUnit('ecc');
     T:=P.Targets.AddUnit('src/sha256.pp');
     T.Dependencies.AddUnit('hashutils');
     T:=P.Targets.AddUnit('src/onetimepass.pp');
