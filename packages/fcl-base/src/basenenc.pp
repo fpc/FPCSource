@@ -37,7 +37,7 @@ Type
         '0123456789ABCDEF',
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
         '0123456789ABCDEFGHIJKLMNOPQRSTUV',
-        '0123456789ABCDEFGHJKMNPQRSTVWZYZ',
+        '0123456789ABCDEFGHJKMNPQRSTVWXYZ',
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_');
   Private
@@ -49,7 +49,7 @@ Type
     class function GetStdEncoder(AIndex: Integer): TAlphabetEncoder; static;
   public
     // Construct an encoder with alphabet, bits per letter, padding size in bits
-    Constructor Create(aAlphabet : AnsiString; aBits : Byte; aPadding : Integer); virtual;
+    Constructor Create(Const aAlphabet : AnsiString; aBits : Byte; aPadding : Integer); virtual;
     // Destroy all standard encoders
     Class Destructor Done;
     // Create a standard encoder. You must free the result
@@ -59,7 +59,7 @@ Type
     // Encode data in buffer aBuffer. If doPad is true, add padding if needed.
     Function Encode(aBuffer : TBytes; doPad : Boolean = True) : AnsiString; overload;
     // Encode data in string aBuffer. If doPad is true, add padding if needed.
-    Function Encode(aBuffer : AnsiString; doPad : Boolean = True) : AnsiString; overload;
+    Function Encode(const aBuffer : AnsiString; doPad : Boolean = True) : AnsiString; overload;
     // Decode aSrcBuffer with length aLen.
     // Buffer must have enough room. Calculate maximum needed room with GetDecodeLen
     Function Decode(const aSrcBuffer : PByte; aLen : Integer; ABuffer : PByte) : Integer; virtual; overload;
@@ -107,14 +107,14 @@ begin
 end;
 
 
-function TAlphabetEncoder.Encode(aBuffer: AnsiString; doPad : Boolean = True): AnsiString;
+function TAlphabetEncoder.Encode(Const aBuffer: AnsiString; doPad : Boolean = True): AnsiString;
 
 begin
   Result:=Encode(TEncoding.UTF8.GetAnsiBytes(aBuffer),DoPad);
 end;
 
 
-Constructor TAlphabetEncoder.Create(aAlphabet: AnsiString; aBits: Byte; aPadding: Integer);
+Constructor TAlphabetEncoder.Create(const aAlphabet: AnsiString; aBits: Byte; aPadding: Integer);
 
 Var
   I : Integer;
