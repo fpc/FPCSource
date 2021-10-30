@@ -37,6 +37,7 @@ begin
     T:=P.Targets.AddUnit('src/hashutils.pp');
     T:=P.Targets.AddUnit('src/sha256.pp');
     T.Dependencies.AddUnit('hashutils');
+    T:=P.Targets.AddUnit('src/onetimepass.pp');
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
