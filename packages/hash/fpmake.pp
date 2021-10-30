@@ -28,6 +28,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('fcl-base');
 
     P.Version:='3.2.3';
     T:=P.Targets.AddUnit('src/md5.pp');
