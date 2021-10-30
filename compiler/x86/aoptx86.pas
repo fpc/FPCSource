@@ -10171,47 +10171,46 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass2Lea(var p : tai) : Boolean;
+      var
+        SubReg: TSubRegister;
       begin
         Result:=false;
-        if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
-          (taicpu(p).oper[0]^.ref^.offset = 0) then
-          begin
-            if (taicpu(p).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
-              (taicpu(p).oper[0]^.ref^.index <> NR_NO) and
-              (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
+        SubReg := getsubreg(taicpu(p).oper[1]^.reg);
+        if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+          with taicpu(p).oper[0]^.ref^ do
+            if (offset = 0) and not Assigned(symbol) and not Assigned(relsymbol) and (index <> NR_NO) then
               begin
-                taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.base);
-                taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.index);
-                taicpu(p).opcode:=A_ADD;
-                DebugMsg(SPeepholeOptimization + 'Lea2AddBase done',p);
-                result:=true;
-              end
-
-            else if (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) then
-              begin
-                if (taicpu(p).oper[0]^.ref^.base <> NR_NO) then
+                if (scalefactor <= 1) and SuperRegistersEqual(base, taicpu(p).oper[1]^.reg) then
                   begin
-                    if (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
-                      begin
-                        taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
-                        taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.base);
-                        taicpu(p).opcode:=A_ADD;
-                        DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
-                        result:=true;
-                      end;
+                    taicpu(p).loadreg(0, newreg(R_INTREGISTER, getsupreg(index), SubReg));
+                    taicpu(p).opcode := A_ADD;
+                    DebugMsg(SPeepholeOptimization + 'Lea2AddBase done',p);
+                    Result := True;
                   end
-                else
-                  if (taicpu(p).oper[0]^.ref^.scalefactor in [2, 4, 8]) then
-                    begin
-                      { BsrByte is, in essence, the base-2 logarithm of the scale factor }
-                      taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
-                      taicpu(p).loadconst(0, BsrByte(taicpu(p).oper[0]^.ref^.scalefactor));
-                      taicpu(p).opcode:=A_SHL;
-                      DebugMsg(SPeepholeOptimization + 'Lea2Shl done',p);
-                      result:=true;
-                    end;
+                else if SuperRegistersEqual(index, taicpu(p).oper[1]^.reg) then
+                  begin
+                    if (base <> NR_NO) then
+                      begin
+                        if (scalefactor <= 1) then
+                          begin
+                            taicpu(p).loadreg(0, newreg(R_INTREGISTER, getsupreg(base), SubReg));
+                            taicpu(p).opcode := A_ADD;
+                            DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
+                            Result := True;
+                          end;
+                      end
+                    else
+                      { Convert lea (%reg,2^x),%reg to shl x,%reg }
+                      if (scalefactor in [2, 4, 8]) then
+                        begin
+                          { BsrByte is, in essence, the base-2 logarithm of the scale factor }
+                          taicpu(p).loadconst(0, BsrByte(scalefactor));
+                          taicpu(p).opcode := A_SHL;
+                          DebugMsg(SPeepholeOptimization + 'Lea2Shl done',p);
+                          Result := True;
+                        end;
+                  end;
               end;
-          end;
       end;
 
 
