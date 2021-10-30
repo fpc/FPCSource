@@ -424,5 +424,10 @@
 'cas',
 'casa',
 'casal',
-'casl'
+'casl',
+'sdot',
+'sha512h',
+'sha512h2',
+'sha512su0',
+'sha512su1'
 );
