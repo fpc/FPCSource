@@ -1074,7 +1074,7 @@ Procedure TTypeLibImporter.ImportEnums(Const TL : ITypeLib; TICount : Integer);
 
 Var
   i,j : integer;
-  sl ,senum: string;
+  sl ,senum, stype: string;
   BstrName, BstrDocString, BstrHelpFile : WideString;
   dwHelpContext: DWORD;
   TI:ITypeInfo;
@@ -1099,14 +1099,18 @@ begin
       bDuplicate:=false;
       if not MakeValidId(BstrName,senum) then
         AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,senum],True);
-      if (InterfaceSection.IndexOf(Format('  %s =LongWord;',[senum]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
+      if TA^.cbSizeInstance > 2 then
+        stype:='Integer' // https://docs.microsoft.com/en-us/windows/win32/midl/enum
+      else
+        stype:='Word';
+      if (InterfaceSection.IndexOf(Format('  %s = %s;',[senum,stype]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
         begin
         senum:=senum+IntToStr(i); // index is unique in this typelib
         AddToHeader('//  Warning: duplicate enum ''%s''. Renamed to ''%s''. consts appended with %d',[BstrName,senum,i]);
         bDuplicate:=true;
         end;
       AddToInterface('Type');
-      AddToInterface('  %s =LongWord;',[senum]);
+      AddToInterface('  %s = %s;',[senum,stype]);
       FTypes.Add(senum);
       FDeclared.Add(senum);
       AddToInterface('Const');
