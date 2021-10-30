@@ -1,8 +1,4 @@
-{-------------------------------------------------------------------------------
-  XMLRAD LTD (Long Term Development) - http://xmlrad.sourceforge.net
-  License: ISC (equivalent to the 2-clause BSD license)
--------------------------------------------------------------------------------}
-
+{$mode delphi}
 unit ECC;
 
 interface
