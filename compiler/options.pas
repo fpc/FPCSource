@@ -95,7 +95,7 @@ implementation
 
 uses
   widestr,
-  {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif},
+  charset,
   SysUtils,
   version,
   cutils,cmsgs,

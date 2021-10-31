@@ -291,11 +291,7 @@ implementation
       cpuinfo,
       fmodule,fppu,
       { this is needed for $I %CURRENTROUTINE%}
-      procinfo
-{$if FPC_FULLVERSION<20700}
-      ,ccharset
-{$endif}
-      ;
+      procinfo;
 
     var
       { dictionaries with the supported directives }

@@ -1121,7 +1121,7 @@ implementation
               end;
           end;
 
-{$if (FPC_FULLVERSION>20700) and not defined(FPC_SOFT_FPUX80)}
+{$if not defined(FPC_SOFT_FPUX80)}
         { bestrealrec is 2.7.1+ only }
 
         { replace .../const by a multiplication, but only if fastmath is enabled or
@@ -1170,7 +1170,7 @@ implementation
             else
               ;
           end;
-{$endif FPC_FULLVERSION>20700}
+{$endif not defined(FPC_SOFT_FPUX80)}
 
         { first, we handle widestrings, so we can check later for }
         { stringconstn only                                       }
