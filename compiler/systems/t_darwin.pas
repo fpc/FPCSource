@@ -67,6 +67,7 @@ implementation
       function  MakeSharedLibrary:boolean;override;
       procedure LoadPredefinedLibraryOrder; override;
       procedure InitSysInitUnitName; override;
+      function postprocessexecutable(const fn : string;isdll:boolean):boolean;
     end;
 
 {*****************************************************************************
@@ -564,7 +565,7 @@ implementation
          (extdbgbinstr<>'') then
         success:=DoExec(extdbgbinstr,extdbgcmdstr,false,false);
 
-    { Remove ReponseFile }
+      { Remove ReponseFile }
       if (success) and not(cs_link_nolink in current_settings.globalswitches) then
        begin
          DeleteFile(outputexedir+Info.ResName);
@@ -572,6 +573,10 @@ implementation
            DeleteFile(ordersymfile);
          DeleteFile(linkfiles);
        end;
+
+     { Post process }
+     if success then
+       success:=PostProcessExecutable(current_module.exefilename,false);
 
       MakeExecutable:=success;   { otherwise a recursive call to link method }
     end;
@@ -703,6 +708,10 @@ implementation
     end;
 
 
+  function TLinkerDarwin.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+    begin
+      Result:=PostProcessMachExecutable(fn,isdll);
+    end;
 
 {*****************************************************************************
                                      Initialize

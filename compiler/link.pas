@@ -24,6 +24,8 @@ unit link;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_MACHO_INFO}
+
 interface
 
     uses
@@ -93,6 +95,7 @@ interface
          Function UniqueName(const str:TCmdStr): TCmdStr;
 
          function PostProcessELFExecutable(const fn: string; isdll: boolean): boolean;
+         function PostProcessMachExecutable(const fn: string; isdll: boolean): boolean;
        end;
 
       TBooleanArray = array [1..1024] of boolean;
@@ -1282,6 +1285,113 @@ Implementation
           ;
         Result:=true;
       end;
+
+
+    function TExternalLinker.PostProcessMachExecutable(const fn : string;isdll:boolean):boolean;
+      type
+        TMachHeader=record
+          magic       : longword;
+          cputype     : integer;
+          cpusubtype  : integer;
+          filetype    : longword;
+          ncmds       : longword;
+          sizeofcmds  : longword;
+          flags       : longword;
+          reserved    : longword;
+        end;
+
+        TMachLoadCommand = record
+          cmd : longword;
+          cmdsize : longword;
+        end;
+
+        TMachSegmentCommand64 = record
+          segname  : array[0..15] of char;
+          vmaddr   : qword;
+          vmsize   : qword;
+          fileoff  : qword;
+          filesize : qword;
+          maxprot  : integer;
+          initprot : integer;
+          nsects   : dword;
+          flags    : dword;
+        end;
+
+      var
+        f : file;
+        machheader : TMachHeader;
+        machloadcmd : TMachLoadCommand;
+        machsegmentcommand64 :TMachSegmentCommand64;
+        i : longint;
+      begin
+        Result:=false;
+        { open file }
+        assign(f,fn);
+        {$push}{$I-}
+        reset(f,1);
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_open_executable,fn);
+
+{$ifdef DEBUG_MACHO_INFO}
+        writeln('Start reading Mach-O file');
+{$endif DEBUG_MACHO_INFO}
+        blockread(f,machheader,sizeof(TMachHeader));
+        if machheader.magic<>$feedfacf then
+          Exit;
+
+{$ifdef DEBUG_MACHO_INFO}
+        writeln('Magic header recognized (64 Bit, Little Endian)');
+        writeln('Reading ',machheader.ncmds,' commands');
+{$endif DEBUG_MACHO_INFO}
+
+        for i:=1 to machheader.ncmds do
+          begin
+            blockread(f,machloadcmd,sizeof(machloadcmd));
+            case machloadcmd.cmd of
+              $19:
+                begin
+                  blockread(f,machsegmentcommand64,sizeof(machsegmentcommand64));
+{$ifdef DEBUG_MACHO_INFO}
+                  writeln('Found SegmentCommand64: Name = ',StrPas(@machsegmentcommand64.segname),
+                    '; VMSize = $',hexstr(machsegmentcommand64.vmsize,8),
+                    '; FileSize = $',hexstr(machsegmentcommand64.filesize,8));
+{$endif DEBUG_MACHO_INFO}
+                  case StrPas(@machsegmentcommand64.segname) of
+                    '__TEXT':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(machsegmentcommand64.vmsize));
+                        status.codesize:=machsegmentcommand64.vmsize;
+                      end;
+                    '__DATA_CONST':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(machsegmentcommand64.vmsize));
+                        inc(status.datasize,machsegmentcommand64.vmsize);
+                      end;
+                    '__DATA':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(machsegmentcommand64.vmsize));
+                        inc(status.datasize,machsegmentcommand64.vmsize);
+                      end;
+                  end;
+                  Seek(f,FilePos(f)+machloadcmd.cmdsize-sizeof(machloadcmd)-sizeof(machsegmentcommand64));
+                end;
+              else
+                begin
+{$ifdef DEBUG_MACHO_INFO}
+                  writeln('Found Load Command: $',hexstr(machloadcmd.cmd,4),', skipping');
+{$endif DEBUG_MACHO_INFO}
+                  Seek(f,FilePos(f)+machloadcmd.cmdsize-sizeof(machloadcmd));
+                end;
+            end;
+          end;
+        close(f);
+        {$pop}
+        if ioresult<>0 then
+          ;
+        Result:=true;
+      end;
+
+
 {*****************************************************************************
                               TINTERNALLINKER
 *****************************************************************************}
