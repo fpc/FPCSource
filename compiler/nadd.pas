@@ -1122,8 +1122,6 @@ implementation
           end;
 
 {$if not defined(FPC_SOFT_FPUX80)}
-        { bestrealrec is 2.7.1+ only }
-
         { replace .../const by a multiplication, but only if fastmath is enabled or
           the division is done by a power of 2, do not mess with special floating point values like Inf etc.
 
@@ -1450,7 +1448,7 @@ implementation
         { slow simplifications and/or more sophisticated transformations which might make debugging harder }
         if cs_opt_level2 in current_settings.optimizerswitches then
           begin
-            if nodetype=addn then
+            if nodetype in [addn,muln] then
               begin
                 { try to fold
                             op
@@ -1459,10 +1457,13 @@ implementation
                         /  \
                       val const2
 
-                  while operating on strings
+                  while operating on strings or reals
                 }
-                if ((rt=stringconstn) or is_constcharnode(right)) and (left.nodetype=nodetype) and
-                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) and ((taddnode(left).right.nodetype=stringconstn) or is_constcharnode(taddnode(left).right)) then
+                if (left.nodetype=nodetype) and
+                  (((nodetype=addn) and ((rt=stringconstn) or is_constcharnode(right)) and ((taddnode(left).right.nodetype=stringconstn) or is_constcharnode(taddnode(left).right))) or
+                   ((nodetype in [addn,muln]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
+                  ) and
+                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
                   begin
                     Result:=SwapRightWithLeftLeft;
                     exit;
@@ -1475,10 +1476,13 @@ implementation
                                 /  \
                             const2 val
 
-                  while operating on strings
+                  while operating on strings or reals
                 }
-                if ((lt=stringconstn) or is_constcharnode(left)) and (right.nodetype=nodetype) and
-                  (compare_defs(resultdef,right.resultdef,nothingn)=te_exact) and ((taddnode(right).left.nodetype=stringconstn) or is_constcharnode(taddnode(right).left)) then
+                if (right.nodetype=nodetype) and
+                  (((nodetype=addn) and ((lt=stringconstn) or is_constcharnode(left)) and ((taddnode(right).left.nodetype=stringconstn) or is_constcharnode(taddnode(right).left))) or
+                   ((nodetype in [addn,muln]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (lt=realconstn) and (taddnode(right).left.nodetype=realconstn))
+                  ) and
+                  (compare_defs(resultdef,right.resultdef,nothingn)=te_exact) then
                   begin
                     Result:=SwapLeftWithRightRight;
                     exit;
