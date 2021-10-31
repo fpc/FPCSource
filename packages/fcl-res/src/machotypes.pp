@@ -36,10 +36,10 @@ type
 
   TMachOSubMachineType = record
     case TMachOMachineType of
-      msmppc_all: (fPpcSubType: TMachOSubMachineTypePowerPC);
-      msmppc64_all: (fPpc64SubType: TMachOSubMachineTypePowerPC64);
-      msm386_all: (f386SubType: TMachOSubMachineType386);
-      msmx64_all: (fX64SubType: TMachOSubMachineTypex64);
+      mmtpowerpc: (fPpcSubType: TMachOSubMachineTypePowerPC);
+      mmtpowerpc64: (fPpc64SubType: TMachOSubMachineTypePowerPC64);
+      mmti386: (f386SubType: TMachOSubMachineType386);
+      mmtx86_64: (fX64SubType: TMachOSubMachineTypex64);
       mmtarm: (fArmSubType: TMachOSubMachineTypeArm);
       mmtarm64: (fArm64SubType: TMachOSubMachineTypeAarch64);
   end;
