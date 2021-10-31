@@ -1940,6 +1940,7 @@ implementation
                   pt:=comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
+                  inserttypeconv(pt,casetype);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
                     pt:=crangenode.create(pt,comp_expr([ef_accept_equal]))
