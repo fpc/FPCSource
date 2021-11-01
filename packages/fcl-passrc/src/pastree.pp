@@ -738,7 +738,7 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    Values: TFPList; // list of TPasElement
+    Values: TFPList; // list of TPasExpr
     Members: TPasRecordType;
   end;
 
