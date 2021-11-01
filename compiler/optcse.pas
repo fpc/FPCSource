@@ -652,7 +652,7 @@ unit optcse;
               (vo_is_thread_var in tstaticvarsym(tloadnode(pconstentry(arg)^.valuenode).symtableentry).varoptions) then
               begin
                 hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
-                tderefnode(hp).left.fileinfo:=n.fileinfo;
+                ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
               end
             else
               hp:=ctemprefnode.create(pconstentry(arg)^.temp);
