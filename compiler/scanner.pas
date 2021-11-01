@@ -46,7 +46,10 @@ interface
        preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else,pp_elseif);
 
        tpreprocstack = class
-          typ     : preproctyp;
+          typ,
+          { stores the preproctyp of the last (else)if(ndef) directive
+            so we can check properly for ifend when legacyifend is on }
+          iftyp   : preproctyp;
           accept  : boolean;
           next    : tpreprocstack;
           name    : TIDString;
@@ -783,9 +786,21 @@ implementation
         current_scanner.elsepreprocstack;
       end;
 
-
     procedure dir_endif;
       begin
+        if (cs_legacyifend in current_settings.localswitches) and
+          (current_scanner.preprocstack.typ<>pp_ifdef) and (current_scanner.preprocstack.typ<>pp_ifndef) and
+            not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_ifdef,pp_ifndef])) then
+          Message(scan_e_unexpected_endif);
+        current_scanner.poppreprocstack;
+      end;
+
+    procedure dir_ifend;
+      begin
+        if (cs_legacyifend in current_settings.localswitches) and
+          (current_scanner.preprocstack.typ<>pp_elseif) and (current_scanner.preprocstack.typ<>pp_if) and
+            not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_if,pp_elseif])) then
+          Message(scan_e_unexpected_ifend);
         current_scanner.poppreprocstack;
       end;
 
@@ -3906,6 +3921,7 @@ type
            else
              if (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) then
                preprocstack.accept:=not preprocstack.accept;
+           preprocstack.iftyp:=preprocstack.typ;
            preprocstack.typ:=pp_else;
            preprocstack.line_nb:=line_no;
            preprocstack.fileindex:=current_filepos.fileindex;
@@ -5862,7 +5878,7 @@ exit_label:
         AddDirective('LIBSUFFIX',directive_turbo, @dir_libsuffix);
         AddDirective('EXTENSION',directive_turbo, @dir_extension);
 
-        AddConditional('IFEND',directive_turbo, @dir_endif);
+        AddConditional('IFEND',directive_turbo, @dir_ifend);
         AddConditional('IFOPT',directive_turbo, @dir_ifopt);
 
         { Directives and conditionals for mode macpas: }

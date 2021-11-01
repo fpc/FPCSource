@@ -146,7 +146,7 @@ general_t_unitscope=01027_T_Using unit scope: $1
 #
 # Scanner
 #
-# 02105 is the last used one
+# 02107 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -433,6 +433,14 @@ scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supporte
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified controller
 scan_e_emptymacroname=02106_E_A macro/compiler variable name cannot be empty
+scan_e_unexpected_ifend=02107_E_$IFEND directive found without a matching $IF directive
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)DEF directive
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
 % \end{description}
 #
 # Parser
