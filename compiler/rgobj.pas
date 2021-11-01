@@ -3013,7 +3013,7 @@ unit rgobj;
             Higher value is better.
       }
       var
-        i,spillingcounter,max_weight:longint;
+        i,j,spillingcounter,max_weight:longint;
         all_weight,spill_weight,d: double;
       begin
         max_weight:=1;
@@ -3027,17 +3027,22 @@ unit rgobj;
         all_weight:=0;
         for i:=first_imaginary to maxreg-1 do
           with reginfo[i] do
-            begin
-              d:=weight/max_weight;
-              all_weight:=all_weight+d;
-              if (weight>100) and
-                 (i<=high(spillinfo)) and
-                 spillinfo[i].spilled then
-                begin
-                  inc(spillingcounter);
-                  spill_weight:=spill_weight+d;
-                end;
-            end;
+            if not (ri_spill_helper in flags) then
+              begin
+                d:=weight/max_weight;
+                all_weight:=all_weight+d;
+                if (ri_coalesced in flags) and (alias>=first_imaginary) then
+                  j:=alias
+                else
+                  j:=i;
+                if (reginfo[j].weight>100) and
+                   (j<=high(spillinfo)) and
+                   spillinfo[j].spilled then
+                  begin
+                    inc(spillingcounter);
+                    spill_weight:=spill_weight+d;
+                  end;
+              end;
         if spillingcounter>0 then
           begin
             d:=(1.0-spill_weight/all_weight)*100.0;
