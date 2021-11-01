@@ -869,7 +869,7 @@ begin
   result:=IntTostr(Value);
 end;
 
-function UIntToStr(Value: Cardinal): string; 
+function UIntToStr(Value: Cardinal): string;
 
 begin
   System.Str(Value, result);
@@ -972,22 +972,17 @@ end;
 
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
-
 function StrToInt(const S: string): Longint;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
-end ;
-
-
-function StrToInt64(const S: string): int64;
-var Error: word;
-begin
-  Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+  if not(TryStrToInt(s,Result)) then
+    raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
+function StrToInt64(const S: string): int64;
+begin
+  if not(TryStrToInt64(s,Result)) then
+    raise EConvertError.createfmt(SInvalidInteger,[S]);
+end;
 
 function TryStrToInt64(const s: string; Out i : int64) : boolean;
 var Error : word;
@@ -996,12 +991,10 @@ begin
   TryStrToInt64:=Error=0
 end;
 
-
 function StrToQWord(const s: string): QWord;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+  if not(TryStrToQWord(s,Result)) then
+    raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
 function StrToUInt64(const s: string): UInt64;
@@ -1010,10 +1003,9 @@ begin
 end;
 
 function StrToDWord(const s: string): DWord;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+  if not(TryStrToDWord(s,Result)) then
+    raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
 function TryStrToDWord(const s: string; Out D: DWord): boolean;
@@ -1047,22 +1039,18 @@ end;
 
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
-
 function StrToIntDef(const S: string; Default: Longint): Longint;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then result := Default;
-end ;
+  if not(TryStrToInt(s,Result)) then
+    result := Default;
+end;
 
 {   StrToDWordDef converts the string S to an DWord value,
     Default is returned in case S does not represent a valid DWord value  }
-
 function StrToDWordDef(const S: string; Default: DWord): DWord;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then result := Default;
+  if not(TryStrToDWord(s,Result)) then
+    result := Default;
 end;
 
 function StrToUIntDef(const S: string; Default: Cardinal): Cardinal;
@@ -1072,22 +1060,18 @@ end;
 
 {   StrToInt64Def converts the string S to an int64 value,
     Default is returned in case S does not represent a valid int64 value  }
-
 function StrToInt64Def(const S: string; Default: int64): int64;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then result := Default;
-end ;
+  if not(TryStrToInt64(s,Result)) then
+    result := Default;
+end;
 
 {   StrToQWordDef converts the string S to an QWord value,
     Default is returned in case S does not represent a valid QWord value  }
-
 function StrToQWordDef(const S: string; Default: QWord): QWord;
-var Error: word;
 begin
-  Val(S, result, Error);
-  if Error <> 0 then result := Default;
+  if not(TryStrToQWord(s,Result)) then
+    result := Default;
 end;
 
 function StrToUInt64Def(const S: string; Default: UInt64): UInt64;
@@ -1100,7 +1084,7 @@ end;
 function LoadStr(Ident: integer): string;
 begin
   result:='';
-end ;
+end;
 
 {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
 
