@@ -109,6 +109,9 @@ Implementation
           ;
       end;
 
+      if p.ops=0 then
+        exit;
+
       case p.oper[0]^.typ of
         top_reg:
           Result := (p.oper[0]^.reg = reg);
