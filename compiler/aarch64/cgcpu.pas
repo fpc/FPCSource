@@ -2500,7 +2500,8 @@ implementation
         if cs_opt_size in current_settings.optimizerswitches then
           maxlenunrolled:=maxlenunrolled div 2;
         if (len>maxlenunrolled) and
-           (len>totalalign*8) then
+           (len>totalalign*8) and
+           (pi_do_call in current_procinfo.flags) then
           begin
             g_concatcopy_move(list,source,dest,len);
             exit;
@@ -2585,7 +2586,7 @@ implementation
             current_asmdata.getjumplabel(hl);
             countreg:=getintregister(list,OS_32);
             if loadop=A_LDP then
-              a_load_const_reg(list,OS_32,len div tcgsize2size[opsize]*2,countreg)
+              a_load_const_reg(list,OS_32,len div (tcgsize2size[opsize]*2),countreg)
             else
               a_load_const_reg(list,OS_32,len div tcgsize2size[opsize],countreg);
             a_label(list,hl);
@@ -2604,7 +2605,10 @@ implementation
                 genloadstore(list,storeop,regs[1],tmpdest,postfix,opsize);
               end;
             list.concat(taicpu.op_reg_sym_ofs(A_CBNZ,countreg,hl,0));
-            len:=len mod tcgsize2size[opsize];
+            if loadop=A_LDP then
+              len:=len mod (tcgsize2size[opsize]*2)
+            else
+              len:=len mod tcgsize2size[opsize];
           end;
         gencopyleftovers(list,tmpsource,tmpdest,len);
       end;
