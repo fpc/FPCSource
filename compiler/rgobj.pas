@@ -762,7 +762,7 @@ unit rgobj;
     var f:text;
         i,j:cardinal;
     begin
-      assign(f,current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
+      assign(f,outputunitdir+current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
       rewrite(f);
       writeln(f,'Interference graph of ',current_procinfo.procdef.fullprocname(true));
       writeln(f,'Register type: ',regtype,', First imaginary register is ',first_imaginary,' ($',hexstr(first_imaginary,2),')');
