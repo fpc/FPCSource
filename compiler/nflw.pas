@@ -2484,7 +2484,8 @@ implementation
         result:=nil;
         expectloc:=LOC_VOID;
 
-        include(current_procinfo.flags,pi_has_label);
+        if not (nf_internal in flags) then
+          include(current_procinfo.flags,pi_has_label);
 
         if assigned(left) then
           firstpass(left);
@@ -2583,6 +2584,7 @@ implementation
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
                 current_addr:=clabelnode.create(cnothingnode.create,clabelsym.create('$raiseaddr'));
+                current_addr.toggleflag(nf_internal);
                 addstatement(statements,current_addr);
                 right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
 
