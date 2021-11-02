@@ -1710,7 +1710,7 @@ unit rgobj;
             supregset_include(colourednodes,n);
         end;
 
-    function colour_regitser(n : Tsuperregister) : boolean;
+    function colour_register(n : Tsuperregister) : boolean;
       var
         j,k : cardinal;
         adj : Psuperregisterworklist;
@@ -1767,7 +1767,7 @@ unit rgobj;
       for i:=selectstack.length downto 1 do
         begin
           n:=selectstack.buf^[i-1];
-          if not colour_regitser(n) and
+          if not colour_register(n) and
             (ri_spill_helper in reginfo[n].flags) then
             begin
               { Register n is a helper register which holds the value
@@ -1788,7 +1788,7 @@ unit rgobj;
             begin
               n:=selectstack.buf^[i-1];
               if ri_spill_helper in reginfo[n].flags then
-                if not colour_regitser(n) then
+                if not colour_register(n) then
                   { Can't colour the spill helper register n.
                     This can happen only when the code generator produces invalid code. }
                   internalerror(2021091001);
@@ -1798,7 +1798,7 @@ unit rgobj;
             begin
               n:=selectstack.buf^[i-1];
               if not (ri_spill_helper in reginfo[n].flags) then
-                colour_regitser(n);
+                colour_register(n);
             end;
         end;
 
