@@ -244,9 +244,6 @@ interface
            oldnodetype : tnodetype;
 
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:

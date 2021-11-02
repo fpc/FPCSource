@@ -4770,10 +4770,6 @@ implementation
       { initialises temp. ansi/wide string data }
       if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
         inittempvariables(list);
-
-{$ifdef OLDREGVARS}
-      load_regvars(list,nil);
-{$endif OLDREGVARS}
     end;
 
   procedure thlcgobj.gen_finalize_code(list: TAsmList);
@@ -4787,10 +4783,6 @@ implementation
             exit;
           current_procinfo:=current_procinfo.parent;
         end;
-
-{$ifdef OLDREGVARS}
-      cleanup_regvars(list);
-{$endif OLDREGVARS}
 
       { finalize paras data }
       if assigned(current_procinfo.procdef.parast) and
@@ -4862,10 +4854,6 @@ implementation
        end;
 
       list.concat(Tai_force_line.Create);
-
-{$ifdef OLDREGVARS}
-      load_regvars(list,nil);
-{$endif OLDREGVARS}
     end;
 
   procedure thlcgobj.gen_exit_code(list: TAsmList);

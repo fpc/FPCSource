@@ -1991,9 +1991,6 @@ implementation
               body is generated because the localloc is updated.
               Note: The generated code will be inserted after the code generation of
               the body is finished, because only then the position is known }
-{$ifdef oldregvars}
-            assign_regvars(code);
-{$endif oldreg}
             current_filepos:=entrypos;
 
             hlcg.gen_load_para_value(templist);
@@ -2068,19 +2065,6 @@ implementation
 
             { reset switches }
             current_settings.localswitches:=oldswitches;
-
-{$ifdef OLDREGVARS}
-            { note: this must be done only after as much code as possible has  }
-            {   been generated. The result is that when you ungetregister() a  }
-            {   regvar, it will actually free the regvar (and alse free the    }
-            {   the regvars at the same time). Doing this too early will       }
-            {   confuse the register allocator, as the regvars will still be   }
-            {   used. It should be done before loading the result regs (so     }
-            {   they don't conflict with the regvars) and before               }
-            {   gen_entry_code (that one has to be able to allocate the        }
-            {   regvars again) (JM)                                            }
-            free_regvars(aktproccode);
-{$endif OLDREGVARS}
 
             { generate symbol and save end of header position }
             current_filepos:=entrypos;

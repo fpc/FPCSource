@@ -352,9 +352,6 @@ implementation
         min_label:=case_get_min(labels);
 
         { Generate the jumps }
-{$ifdef OLDREGVARS}
-        load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
 {$if not defined(cpu64bitalu)}
         if def_cgsize(opsize) in [OS_64,OS_S64] then
           genlinearcmplist(labels)
@@ -457,9 +454,6 @@ implementation
                 secondpass(statement);
                 { don't come back to case line }
                 current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
-{$ifdef OLDREGVARS}
-                load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
                 current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,endlabel));
               end;
           end;
@@ -475,9 +469,6 @@ implementation
           begin
 
             secondpass(elseblock);
-{$ifdef OLDREGVARS}
-            load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
           end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));

@@ -764,20 +764,6 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
-{$ifdef oldregvars}
-       { register variables }
-       pregvarinfo = ^tregvarinfo;
-       tregvarinfo = record
-          regvars : array[1..maxvarregs] of tsym;
-          regvars_para : array[1..maxvarregs] of boolean;
-          regvars_refs : array[1..maxvarregs] of longint;
-
-          fpuregvars : array[1..maxfpuvarregs] of tsym;
-          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
-          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
-       end;
-{$endif oldregvars}
-
        timplprocdefinfo = record
           resultname : pshortstring;
           parentfpstruct: tsym;
@@ -871,9 +857,6 @@ interface
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
-{$ifdef oldregvars}
-          regvarinfo: pregvarinfo;
-{$endif oldregvars}
           import_nr    : word;
           extnumber    : word;
           { set to a value different from tsk_none in case this procdef is for
