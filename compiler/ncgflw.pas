@@ -512,8 +512,8 @@ implementation
     procedure tcglabelnode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
-
-         include(flowcontrol,fc_gotolabel);
+         if not (nf_internal in flags) then
+           include(flowcontrol,fc_gotolabel);
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
