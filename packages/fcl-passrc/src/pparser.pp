@@ -5989,7 +5989,11 @@ begin
 end;
 
 // Next token is start of (compound) statement
-// After parsing CurToken is on last token of statement
+// After parsing CurToken is on last token of statement, which might be the semicolon
+// For example:
+//  try..finally..end|
+//  DoSomething| else
+//  DoSomething;| NextStatement
 procedure TPasParser.ParseStatement(Parent: TPasImplBlock;
   out NewImplElement: TPasImplElement);
 var
@@ -6087,6 +6091,7 @@ var
   ImplRaise: TPasImplRaise;
   VarEl: TPasVariable;
   ImplExceptOn: TPasImplExceptOn;
+  ImplGoto: TPasImplGoto;
 
 begin
   NewImplElement:=nil;
@@ -6223,8 +6228,9 @@ begin
         CheckStatementCanStart;
         SrcPos:=CurTokenPos;
         ExpectTokens([tkIdentifier,tkNumber]);
-        El:=TPasImplGoto(CreateElement(TPasImplGoto,'',CurBlock,SrcPos));
-        TPasImplGoto(El).LabelName:=CurTokenString;
+        ImplGoto:=TPasImplGoto(CreateElement(TPasImplGoto,'',CurBlock,SrcPos));
+        CreateBlock(ImplGoto);
+        ImplGoto.LabelName:=CurTokenString;
         end;
       tkfor:
         begin
@@ -6431,12 +6437,15 @@ begin
         CreateBlock(ImplRaise);
         NextToken;
         If Curtoken in [tkElse,tkEnd,tkSemicolon,tkotherwise] then
+          // raise without object
           UnGetToken
         else
           begin
+          // raise with object
           ImplRaise.ExceptObject:=DoParseExpression(ImplRaise);
           if (CurToken=tkIdentifier) and (Uppercase(CurtokenString)='AT') then
             begin
+            // raise object at expr
             NextToken;
             ImplRaise.ExceptAddr:=DoParseExpression(ImplRaise);
             end;
