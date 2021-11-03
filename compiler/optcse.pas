@@ -727,22 +727,28 @@ unit optcse;
         createblock:=nil;
         deleteblock:=nil;
         rootblock:=nil;
-        { estimate how many registers can be used for constants }
+        { estimate how many int registers can be used }
         if pi_do_call in current_procinfo.flags then
-          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption)) div 4
+          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption))
+          { we store only addresses, so take care of the relation between address sizes and register sizes }
+            div (sizeof(PtrUInt) div sizeof(ALUUInt))
+          { heuristics, just use a quarter of all registers at maximum }
+            div 4
         else
           max_int_regs_assigned:=max(first_int_imreg div 4,1);
 {$if defined(x86) or defined(aarch64) or defined(arm)}
         { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
         if pi_do_call in current_procinfo.flags then
+          { heuristics, just use a fifth of all registers at maximum }
           max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 5
         else
           max_fpu_regs_assigned:=max(first_mm_imreg div 5,1);
 {$else defined(x86) or defined(aarch64) or defined(arm)}
         if pi_do_call in current_procinfo.flags then
-          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 4
+          { heuristics, just use a fifth of all registers at maximum }
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 5
         else
-          max_fpu_regs_assigned:=max(first_fpu_imreg div 4,1);
+          max_fpu_regs_assigned:=max(first_fpu_imreg div 5,1);
 {$endif defined(x86) or defined(aarch64) or defined(arm)}
         fpu_regs_assigned:=0;
         int_regs_assigned:=0;
