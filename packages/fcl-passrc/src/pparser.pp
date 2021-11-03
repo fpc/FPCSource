@@ -6194,6 +6194,7 @@ begin
               or (CurBlock is TPasImplForLoop)
               or (CurBlock is TPasImplWithDo)
               or (CurBlock is TPasImplRaise)
+              or (CurBlock is TPasImplGoto)
               or (CurBlock is TPasImplExceptOn) then
             // simply close block
           else
@@ -6220,9 +6221,10 @@ begin
       tkgoto:
         begin
         CheckStatementCanStart;
-        NextToken;
-        CurBlock.AddCommand('goto '+curtokenstring);
-        // expecttoken(tkSemiColon);
+        SrcPos:=CurTokenPos;
+        ExpectTokens([tkIdentifier,tkNumber]);
+        El:=TPasImplGoto(CreateElement(TPasImplGoto,'',CurBlock,SrcPos));
+        TPasImplGoto(El).LabelName:=CurTokenString;
         end;
       tkfor:
         begin
@@ -6623,7 +6625,7 @@ var
 begin
   Labels:=TPasLabels(CreateElement(TPasLabels, '', AParent));
   repeat
-    expectTokens([tkIdentifier,tkNumber]);
+    ExpectTokens([tkIdentifier,tkNumber]);
     Labels.Labels.Add(CurTokenString);
     NextToken;
     if not (CurToken in [tkSemicolon, tkComma]) then

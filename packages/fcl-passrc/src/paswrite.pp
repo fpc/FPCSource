@@ -130,6 +130,7 @@ type
     procedure WriteImplRepeatUntil(aRepeatUntil : TPasImplRepeatUntil); virtual;
     procedure WriteImplTryFinallyExcept(aTry: TPasImplTry); virtual;
     Procedure WriteImplRaise(aRaise : TPasImplRaise); virtual;
+    Procedure WriteImplGoto(aGoto : TPasImplGoto); virtual;
     Procedure WriteImplAssign(aAssign : TPasImplAssign); virtual;
     Procedure WriteImplSimple(aSimple: TPasImplSimple); virtual;
     Procedure WriteImplExceptOn(aOn : TPasImplExceptOn); virtual;
@@ -1220,6 +1221,8 @@ begin
     WriteImplTryFinallyExcept(TPasImplTry(aElement))
   else if AElement.InheritsFrom(TPasImplRaise) then
     WriteImplRaise(TPasImplRaise(aElement))
+  else if AElement.InheritsFrom(TPasImplGoto) then
+    WriteImplGoto(TPasImplGoto(aElement))
   else if AElement.InheritsFrom(TPasImplAssign) then
     WriteImplAssign(TPasImplAssign(aElement))
   else if AElement.InheritsFrom(TPasImplSimple) then
@@ -1426,6 +1429,11 @@ begin
   else
     Add('raise');
   Addln(';');
+end;
+
+procedure TPasWriter.WriteImplGoto(aGoto: TPasImplGoto);
+begin
+  Addln('goto '+aGoto.LabelName+';');
 end;
 
 procedure TPasWriter.WriteImplAssign(aAssign: TPasImplAssign);

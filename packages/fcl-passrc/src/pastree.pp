@@ -1689,6 +1689,13 @@ type
     LabelId: String;
   end;
 
+  { TPasImplGoto }
+
+  TPasImplGoto = class(TPasImplStatement)
+  public
+    LabelName: string;
+  end;
+
   { TPassTreeVisitor }
 
   TPassTreeVisitor = class
