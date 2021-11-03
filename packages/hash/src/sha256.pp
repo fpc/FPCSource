@@ -30,7 +30,7 @@ Type
     Digest: TSHA256Digest;
     HashBuffer: array[0..63] of Byte;
     Index: UInt32;
-    Length: Int64;
+    TotalLength: Int64;
     procedure Compress;
     procedure Final;
     procedure Init;
@@ -38,39 +38,33 @@ Type
     procedure OutputHexa(out Result: AnsiString);
     procedure Update(PBuf: PByte; Size: UInt32); overload;
     procedure Update(const Value: TBytes); overload;
+
+    // Calculate SHA256, return digest as bytes.
+    class procedure DigestBytes(const Value: TBytes; out Result: TBytes) ; static;
+    // Calculate  SHA256, return digest as base64(url) string
+    class procedure DigestBase64(const Value: TBytes; const IsURL: Boolean; out Result: AnsiString); static;
+    // Calculate  SHA256, return digest as HEX encoded string
+    class procedure DigestHexa(const Value: TBytes; out Result: AnsiString); static;
+    // HMAC using SHA256 as hash
+    Class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA256Digest): Boolean; overload; static;
+    class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA256Digest): Boolean; overload; static;
+    // Calculate HMacSHA256, return digest as hex string.
+    class function HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload; static;
+    // Calculate SHA256 from a stream, return digest.
+    class procedure Stream(aStream: TStream; out aDigest: TSHA256Digest); static; overload;
+    class function Stream(aStream: TStream): TSHA256Digest; static; overload;
+    // Digest Stream, result as HexaDecimal string.
+    class procedure StreamHexa(aStream: TStream; out Result: AnsiString); static; overload;
+    class Function StreamHexa(aStream: TStream): AnsiString; static overload;
+    // Digest Stream, result as Base64-encoded string
+    class procedure StreamBase64(aStream: TStream; isURL : Boolean; out Result: AnsiString); static; overload;
+    class Function StreamBase64(aStream: TStream; isURL : Boolean): AnsiString; static; overload;
+    // HKDF : Derive key of desired length from a salt,input key and info  (RF5869, using HMACSHA256) .
+    class function HKDF(const Salt, IKM, Info: TBytes; var Output: TBytes; const DesiredLen: Integer): Boolean; static;
   end;
 
 Const
   SHA256_DIGEST_SIZE = SizeOf(TSHA256Digest); // 32
-
-// Calculate SHA256, return digest as bytes.
-procedure SHA256(const Value: TBytes; out Result: TBytes);
-// Calculate  SHA256, return digest as base64(url) string
-procedure SHA256Base64(const Value: TBytes; const IsURL: Boolean; out Result: AnsiString);
-// Calculate  SHA256, return digest as HEX encoded string
-procedure SHA256Hexa(const Value: TBytes; out Result: AnsiString);
-
-// Calculate HMacSHA256, return digest as bytes.
-function HMACSHA256(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var Digest: TSHA256Digest): Boolean; overload;
-function HMACSHA256(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var Digest: TSHA256Digest): Boolean; overload;
-// Calculate HMacSHA256, return digest as hex string.
-function HMACSHA256Hexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
-
-// Calculate HMacSHA256 from a stream, return digest.
-procedure StreamSHA256(aStream: TStream; out Digest: TSHA256Digest);
-function StreamSHA256(aStream: TStream): TSHA256Digest;
-
-// Calculate HMacSHA256 from a stream, return digest as HEX-Encoded string.
-procedure StreamSHA256Hexa(aStream: TStream; out Result: AnsiString);
-Function StreamSHA256Hexa(aStream: TStream): AnsiString;
-
-// Calculate HMacSHA256 from a stream, return digest as base64-encoded string.
-procedure StreamSHA256Base64(aStream: TStream; isURL : Boolean; out Result: AnsiString);
-Function StreamSHA256Base64(aStream: TStream; isURL : Boolean): AnsiString;
-
-// HKDF : Derive key of desired length from a salt,input key and info  (RF5869, using HMACSHA256) .
-function HKDF_SHA256(const Salt, IKM, Info: TBytes; var Output: TBytes; const DesiredLen: Integer): Boolean;
-
 
 implementation
 
@@ -83,7 +77,7 @@ uses hashutils;
 procedure TSHA256.Init;
 begin
   Self.Index := 0;
-  Self.Length := 0;
+  Self.TotalLength := 0;
   FillChar(Self.HashBuffer, Sizeof(Self.HashBuffer), 0);
   Self.Context[0] := $6a09e667;
   Self.Context[1] := $bb67ae85;
@@ -167,8 +161,8 @@ begin
   end;
   // Write 64 bit Buffer length into the last bits of the last block
   // (in big endian format) and do a final compress
-  PUInt32(@HashBuffer[56])^ := SwapEndian(TInt64Rec(Self.Length).Hi);
-  PUInt32(@HashBuffer[60])^ := SwapEndian(TInt64Rec(Self.Length).Lo);
+  PUInt32(@HashBuffer[56])^ := SwapEndian(TInt64Rec(TotalLength).Hi);
+  PUInt32(@HashBuffer[60])^ := SwapEndian(TInt64Rec(TotalLength).Lo);
   Compress;
   Context[0] := SwapEndian(Context[0]);
   Context[1] := SwapEndian(Context[1]);
@@ -189,14 +183,14 @@ var
 begin
   Left:=BytesFromVar(@ADigest, SizeOf(ADigest));
   Right:=BytesFromVar(@Self.Digest, SizeOf(Self.Digest));
-  Result:=CompareMem(Pointer(Left), Pointer(Right),System.Length(Left));
+  Result:=CompareMem(Pointer(Left), Pointer(Right),Length(Left));
 end;
 
 procedure TSHA256.Update(PBuf: PByte; Size: UInt32);
 var
   Len: UInt32;
 begin
-  Inc(Self.Length, Int64(UInt32(Size)) shl 3);
+  Inc(TotalLength, Int64(UInt32(Size)) * 8);
   while Size > 0 do
   begin
     if (Sizeof(HashBuffer)-Self.Index) <= UInt32(Size) then
@@ -216,12 +210,6 @@ begin
   end;
 end;
 
-(*
-procedure TSHA256.Update(const Buffer: TXBuffer);
-begin
-  Update(PByte(Buffer.Buf), Buffer.Size);
-end;
-*)
 
 procedure TSHA256.Update(const Value: TBytes);
 begin
@@ -237,7 +225,7 @@ begin
 end;
 
 // @Result[32]
-procedure SHA256(const Value: TBytes; out Result: TBytes);
+class procedure TSHA256.DigestBytes(const Value: TBytes; out Result: TBytes);
 var
   lSHA256: TSHA256;
 begin
@@ -247,7 +235,7 @@ begin
   BytesFromVar(Result, @lSHA256.Digest[0], SizeOf(lSHA256.Digest));
 end;
 
-procedure SHA256Base64(const Value: TBytes; const IsURL: Boolean; out Result: AnsiString);
+class procedure TSHA256.DigestBase64(const Value: TBytes; const IsURL: Boolean; out Result: AnsiString);
 var
   S : TBytes;
   lSHA256: TSHA256;
@@ -260,7 +248,7 @@ begin
 end;
 
 // @Result[64]
-procedure SHA256Hexa(const Value: TBytes; out Result: AnsiString);
+Class procedure TSHA256.DigestHexa(const Value: TBytes; out Result: AnsiString);
 var
   SHA256: TSHA256;
 begin
@@ -270,9 +258,9 @@ begin
   SHA256.OutputHexa(Result);
 end;
 
-function HMACSHA256(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var Digest: TSHA256Digest): Boolean;
+class function TSHA256.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA256Digest): Boolean;
 begin
-  Result := HMACSHA256(Key, KeySize, Data, DataSize, nil, 0, nil, 0, Digest);
+  Result := HMAC(Key, KeySize, Data, DataSize, nil, 0, nil, 0, aDigest);
 end;
 
 {Generate a SHA256 HMAC (Hashed Message Authentication Code) using the Key and Data
@@ -282,7 +270,7 @@ The SHA256 HMAC algorithm is:
        oPad is the byte $5c repeated 64 times
  If Key is more than 64 bytes it will be hashed to Key = SHA256(Key) instead
  If Key is less than 64 bytes it will be padded with zeros }
-function HMACSHA256(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var Digest: TSHA256Digest): Boolean;
+ class function TSHA256.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA256Digest): Boolean;
 
 Type
   TBuf64 = array[0..63] of Byte;
@@ -325,27 +313,25 @@ begin
   SHA256_.Update(@PadBuffer, SizeOf(PadBuffer));
   SHA256_.Update(@SHA256.Digest, SizeOf(SHA256.Digest));
   SHA256_.Final;
-  System.Move(SHA256_.Digest, Digest, SizeOf(Digest));
-// FillChar(KeyDigest, SizeOf(TSHA1Digest),0);
-// FillChar(KeyBuffer, SizeOf(TSHA1ByteBuffer),0);
-// FillChar(PadBuffer, SizeOf(TSHA1ByteBuffer),0);
+  System.Move(SHA256_.Digest, aDigest, SizeOf(aDigest));
   Result:=True;
 end;
 
 // @Result[64]
-function HMACSHA256Hexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
+class function TSHA256.HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
+
 var
-  Digest: TSHA256Digest;
+  aDigest: TSHA256Digest;
   S: TBytes;
 begin
-  Digest:=Default(TSHA256Digest);
-  Result := HMACSHA256(PByte(Key),Length(Key), PByte(Data), Length(Data), Digest);
-  BytesFromVar(S, @Digest[0], SizeOf(Digest));
+  aDigest:=Default(TSHA256Digest);
+  Result := HMAC(PByte(Key),Length(Key), PByte(Data), Length(Data), aDigest);
+  BytesFromVar(S, @aDigest[0], SizeOf(aDigest));
   BytesToHexStr(SignatureHexa,S);
 end;
 
 
-procedure StreamSHA256(aStream: TStream; out Digest: TSHA256Digest);
+class procedure TSHA256.Stream(aStream: TStream; out aDigest: TSHA256Digest);
 
 const
   BUFFER_SIZE = 64*1024;
@@ -366,56 +352,56 @@ begin
      SHA256.Update(PByte(Buffer),aLen);
   until aLen=0;
   SHA256.Final;
-  Digest:=SHA256.Digest;
+  aDigest:=SHA256.Digest;
 end;
 
-function StreamSHA256(aStream: TStream): TSHA256Digest;
+class function TSHA256.Stream(aStream: TStream): TSHA256Digest;
 
 begin
-  StreamSHA256(aStream,Result);
+  Stream(aStream,Result);
 end;
 
 
-procedure StreamSHA256Hexa(aStream: TStream; out Result: AnsiString);
+class procedure TSHA256.StreamHexa(aStream: TStream; out Result: AnsiString);
 
 Var
   B : TBytes;
-  Digest : TSHA256Digest;
+  aDigest : TSHA256Digest;
 
 begin
-  StreamSHA256(aStream,Digest);
-  BytesFromVar(B,@Digest,SizeOf(TSHA256Digest));
+  Stream(aStream,aDigest);
+  BytesFromVar(B,@aDigest,SizeOf(TSHA256Digest));
   BytesToHexStr(Result,B);
 end;
 
-function StreamSHA256Hexa(aStream: TStream): AnsiString;
+class function TSHA256.StreamHexa(aStream: TStream): AnsiString;
 
 begin
   Result:='';
-  StreamSHA256Hexa(aStream,Result);
+  StreamHexa(aStream,Result);
 end;
 
 
-procedure StreamSHA256Base64(aStream: TStream; isURL : Boolean; out Result: AnsiString);
+class procedure TSHA256.StreamBase64(aStream: TStream; isURL : Boolean; out Result: AnsiString);
 
 Var
   B : TBytes;
-  Digest : TSHA256Digest;
+  aDigest : TSHA256Digest;
 
 begin
-  StreamSHA256(aStream,Digest);
-  BytesFromVar(B,@Digest,SizeOf(TSHA256Digest));
+  Stream(aStream,aDigest);
+  BytesFromVar(B,@aDigest,SizeOf(TSHA256Digest));
   BytesEncodeBase64(B,Result,isUrl,False,False);
 end;
 
-Function StreamSHA256Base64(aStream: TStream; isURL : Boolean): AnsiString;
+class Function TSHA256.StreamBase64(aStream: TStream; isURL : Boolean): AnsiString;
 
 begin
   Result:='';
-  StreamSHA256Base64(aStream,isURL,Result);
+  StreamBase64(aStream,isURL,Result);
 end;
 
-function HKDF_SHA256(const Salt, IKM, Info: TBytes; var Output: TBytes; const DesiredLen: Integer): Boolean;
+class function TSHA256.HKDF(const Salt, IKM, Info: TBytes; var Output: TBytes; const DesiredLen: Integer): Boolean;
 
 var
   PRK, T: TSHA256Digest;
@@ -424,16 +410,16 @@ var
 begin
   PRK:=Default(TSHA256Digest);
   T:=Default(TSHA256Digest);
-  Result := HMACSHA256(PByte(Salt), Length(Salt), PByte(IKM), Length(IKM), PRK);
+  Result := HMAC(PByte(Salt), Length(Salt), PByte(IKM), Length(IKM), PRK);
   if not Result then
     Exit;
   Round := 1;
   while Length(Output) < DesiredLen do
   begin
     if Length(Output) = 0 then
-      Result := HMACSHA256(@PRK, SizeOf(PRK), PByte(Info), Length(Info), @Round, SizeOf(Round), nil, 0, T)
+      Result := HMAC(@PRK, SizeOf(PRK), PByte(Info), Length(Info), @Round, SizeOf(Round), nil, 0, T)
     else
-      Result := HMACSHA256(@PRK, SizeOf(PRK), @T, SizeOf(T), PByte(Info), Length(Info), @Round, SizeOf(Round), T);
+      Result := HMAC(@PRK, SizeOf(PRK), @T, SizeOf(T), PByte(Info), Length(Info), @Round, SizeOf(Round), T);
     if not Result then
       Exit;
     Inc(Round);

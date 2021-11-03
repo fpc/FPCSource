@@ -14,13 +14,35 @@
 unit fpjwt;
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedrecords}
 
 interface
 
 uses
-  TypInfo, Classes, SysUtils, fpjson, base64;
+  TypInfo, Classes, SysUtils, fpjson, basenenc;
 
 Type
+  EJWT = Class(EJSON);
+
+  { TJWTKey }
+
+  TJWTKey = Record
+  private
+    function GetAsPByte: PByte;
+    function GetAsString: UTF8String;
+    function GetLength: Integer;
+    procedure SetAsString(AValue: UTF8String);
+    procedure SetLength(AValue: Integer);
+  public
+    Bytes : TBytes;
+    Class Function Create(aBytes : TBytes) : TJWTKey; static;
+    Class Function Create(aString : UTF8String) : TJWTKey; static;
+    Class Function Empty : TJWTKey; static;
+    Property AsPointer : PByte Read GetAsPByte;
+    Property Length : Integer Read GetLength Write SetLength;
+    Property AsBytes : TBytes Read Bytes Write Bytes;
+    Property AsString : UTF8String Read GetAsString Write SetAsString;
+  end;
 
   { TBaseJWT }
 
@@ -40,8 +62,8 @@ Type
     Procedure LoadFromJSON(JSON : TJSONObject);
     Procedure SaveToJSON(JSON : TJSONObject; All : Boolean);
     // Base64url conversion functions (RFC7515)
-    class function Base64ToBase64URL(AValue: string): string;
-    class function Base64URLToBase64(AValue: string): string;
+    class function Base64ToBase64URL(AValue: string): string; deprecated 'Use basenenc functions instead';
+    class function Base64URLToBase64(AValue: string): string; deprecated 'Use basenenc functions instead';
     // Decode Base64url string.
     Class Function DecodeString(S : String) : String;
     // Decode Base64url string and return a JSON Object.
@@ -107,6 +129,9 @@ Type
   TClaimsClass = Class of TClaims;
 
   { TJWT }
+  TJWT = Class;
+
+  TJWTClass = Class of TJWT;
 
   TJWT = Class(TBaseJWT)
   private
@@ -126,6 +151,8 @@ Type
   Public
     Constructor Create; override;
     Destructor Destroy; override;
+    Function Sign(aKey : TJWTKey) : String;
+    Class Function ValidateJWT(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT;
     // Owned by the JWT. The JSON header.
     Property JOSE : TJOSE Read FJOSE Write SetJOSE;
     // Owned by the JWT. The set of claims. The actual class will depend on the descendant.
@@ -133,9 +160,253 @@ Type
     Property Signature : String Read FSignature Write FSignature;
   end;
 
+
+  { TJWTSigner }
+  TJWTSigner = Class;
+  TJWTSignerClass = Class of TJWTSigner;
+
+  TJWTSigner = Class
+  Private
+    class var FAlgorithms : TStringList;
+    Class Procedure RegisterAlgorithm(const aName : String; aClass : TJWTSignerClass);
+    Class Procedure UnRegisterAlgorithm(const aName : String);
+  Public
+    class Destructor done;
+    Class function AlgorithmName : String; virtual; abstract;
+    Class Function GetParts(const aJWT : String; out aJOSE,aClaims,aSign : String) : Boolean;
+    Class Function CreateSigner(aAlgorithm : String): TJWTSigner;
+    Constructor Create; virtual;
+    Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; virtual; abstract;
+    Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; virtual; abstract;
+    Function AppendSignature(aJWT : TJWT; aKey : TJWTKey) : String;
+    Function GetSignInputString(aJWT : TJWT) : UTF8String;
+    Function GetSignInput(aJWT : TJWT) : TBytes;
+    Class Function ParseAndVerify(const aJWT : String; aKey : TJWTKey; aClass : TJWTClass = Nil) : TJWT;
+    Class Procedure Register;
+    Class Procedure UnRegister;
+  end;
+
+  { TJWTSignerNone }
+
+  TJWTSignerNone = Class(TJWTSigner)
+  Public
+    Class function AlgorithmName : String; override;
+    Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; override;
+    Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; override;
+  end;
+
 implementation
 
 uses strutils;
+
+Resourcestring
+  SErrMissingAlgorithmName = 'Missing JWA algorithm name';
+  SErrUnSupportedAlgorithmName = 'Unsupported JWA algorithm: "%s"';
+
+type
+
+  { TJWTSignerReg }
+
+  TJWTSignerReg = Class
+  private
+    FName : String;
+    FClass : TJWTSignerClass;
+  Public
+    Constructor Create(Const aName: String; aClass: TJWTSignerClass);
+    Property Name : String Read FName;
+    Property SignerClass : TJWTSignerClass Read FClass;
+  end;
+
+{ TJWTKey }
+
+function TJWTKey.GetAsPByte: PByte;
+begin
+  Result:=PByte(Bytes);
+end;
+
+function TJWTKey.GetAsString: UTF8String;
+begin
+  Result:=TEncoding.UTF8.GetAnsiString(Bytes);
+end;
+
+function TJWTKey.GetLength: Integer;
+begin
+  Result:=System.Length(Bytes)
+end;
+
+procedure TJWTKey.SetAsString(AValue: UTF8String);
+begin
+  Bytes:=TEncoding.UTF8.GetAnsiBytes(aValue);
+end;
+
+procedure TJWTKey.SetLength(AValue: Integer);
+begin
+  System.SetLength(Bytes,aValue)
+end;
+
+class function TJWTKey.Create(aBytes: TBytes): TJWTKey;
+begin
+  Result.AsBytes:=aBytes;
+end;
+
+class function TJWTKey.Create(aString: UTF8String): TJWTKey;
+begin
+  Result.AsString:=aString;
+end;
+
+class function TJWTKey.Empty: TJWTKey;
+begin
+  Result:=Default(TJWTKey);
+end;
+
+{ TJWTSignerNone }
+
+class function TJWTSignerNone.AlgorithmName: String;
+begin
+  Result:='none'
+end;
+
+function TJWTSignerNone.CreateSignature(aJWT: TJWT; aKey : TJWTKey): String;
+begin
+  Result:='';
+end;
+
+function TJWTSignerNone.Verify(const aJWT: String; aKey : TJWTKey): Boolean;
+
+Var
+  J,C,S : String;
+
+begin
+  Result:=GetParts(aJWT,J,C,S) and (S='');
+end;
+
+{ TJWTSignerReg }
+
+constructor TJWTSignerReg.Create(Const aName: String; aClass: TJWTSignerClass);
+begin
+  FName:=aName;
+  FClass:=aClass;
+end;
+
+{ TJWTSigner }
+
+class procedure TJWTSigner.RegisterAlgorithm(const aName: String; aClass: TJWTSignerClass);
+
+begin
+  if (aName='') then
+    Raise EJWT.Create(SErrMissingAlgorithmName);
+  if (FAlgorithms=Nil) then
+    begin
+    FAlgorithms:=TStringList.Create;
+    FAlgorithms.OwnsObjects:=True;
+    end
+  else
+    UnregisterAlgorithm(aName);
+  FAlgorithms.AddObject(aName,TJWTSignerReg.Create(aName,aClass));
+end;
+
+class procedure TJWTSigner.UnRegisterAlgorithm(Const aName: String);
+
+Var
+  Idx : Integer;
+
+begin
+  if (aName='') then
+    Raise EJWT.Create(SErrMissingAlgorithmName);
+  Idx:=FAlgorithms.indexOf(aName);
+  if Idx<>-1 then
+    FAlgorithms.Delete(Idx);
+end;
+
+constructor TJWTSigner.Create;
+begin
+  // Do nothing
+end;
+
+class destructor TJWTSigner.done;
+begin
+  FreeAndNil(FAlgorithms);
+end;
+
+class function TJWTSigner.GetParts(const aJWT : String; out aJOSE, aClaims, aSign: String): Boolean;
+
+begin
+  aJOSE:=ExtractWord(1,AJWT,['.']);
+  aClaims:=ExtractWord(2,AJWT,['.']);
+  aSign:=ExtractWord(3,AJWT,['.']);
+  Result:=(aJOSE<>'') and (aClaims<>'');
+end;
+
+class function TJWTSigner.CreateSigner(aAlgorithm: String): TJWTSigner;
+
+Var
+  Idx : Integer;
+  aClass : TJWTSignerClass;
+
+begin
+  if (aAlgorithm='') then
+    Raise EJWT.Create(SErrMissingAlgorithmName);
+  Idx:=-1;
+  if Assigned(FAlgorithms) then
+    Idx:=FAlgorithms.IndexOf(aAlgorithm);
+  if Idx=-1 then
+    Raise EJWT.CreateFmt(SErrUnSupportedAlgorithmName,[aAlgorithm]);
+  aClass:=TJWTSignerReg(FAlgorithms.Objects[Idx]).SignerClass;
+  Result:=aClass.Create;
+end;
+
+Function TJWTSigner.AppendSignature(aJWT: TJWT;aKey : TJWTKey) : String;
+
+begin
+  aJWT.Signature:=CreateSignature(aJWT,aKey);
+  Result:=aJWT.AsEncodedString;
+end;
+
+function TJWTSigner.GetSignInputString(aJWT: TJWT): UTF8String;
+begin
+  Result:=aJWT.JOSE.AsEncodedString+'.'+aJWT.Claims.AsEncodedString
+end;
+
+function TJWTSigner.GetSignInput(aJWT: TJWT): TBytes;
+begin
+  Result:=TEncoding.UTF8.GetAnsiBytes(GetSignInputString(aJWT));
+end;
+
+Class function TJWTSigner.ParseAndVerify(const aJWT: String; aKey : TJWTKey; aClass : TJWTClass = Nil): TJWT;
+
+Var
+  S : TJWTSigner;
+  Ok : Boolean;
+
+
+begin
+  if (aClass=Nil) then
+    aClass:=TJWT;
+  Ok:=False;
+  S:=Nil;
+  Result:=aClass.Create;
+  try
+    Result.AsEncodedString:=aJWT;
+    S:=CreateSigner(Result.JOSE.alg);
+    if not S.Verify(aJWT,aKey) then
+      FreeAndNil(Result);
+    OK:=true;
+  finally
+    S.Free;
+    if not OK then
+      Result.Free;
+  end;
+end;
+
+class procedure TJWTSigner.Register;
+begin
+  RegisterAlgorithm(AlgorithmName,Self);
+end;
+
+class procedure TJWTSigner.UnRegister;
+begin
+  UnRegisterAlgorithm(AlgorithmName);
+end;
 
 { TJWT }
 
@@ -163,8 +434,8 @@ end;
 
 function TJWT.GetAsString: TJSONStringType;
 begin
-  Result:=Base64ToBase64URL(EncodeStringBase64(JOSE.AsString));
-  Result:=Result+'.'+Base64ToBase64URL(EncodeStringBase64(Claims.AsString));
+  Result:=Base64URL.Encode(JOSE.AsString,False);
+  Result:=Result+'.'+Base64URL.Encode(Claims.AsString,False);
   // Dot must always be present, even if signature is empty.
   // https://tools.ietf.org/html/rfc7519#section-6.1
   // (See also Bug ID 37830)
@@ -196,6 +467,29 @@ begin
   Inherited;
 end;
 
+function TJWT.Sign(aKey : TJWTKey): String;
+
+Var
+  S: TJWTSigner;
+
+begin
+  S:=TJWTSigner.CreateSigner(JOSE.alg);
+  try
+    Result:=S.AppendSignature(Self,aKey);
+  finally
+    S.Free;
+  end;
+end;
+
+class function TJWT.ValidateJWT(const aJWT: String; aKey : TJWTKey; aClass: TJWTClass): TJWT;
+
+
+begin
+  if aClass=Nil then
+    aClass:=Self;
+  Result:=TJWTSigner.ParseAndVerify(aJWT,aKey,aClass);
+end;
+
 procedure TJWT.SetAsString(AValue: TJSONStringType);
 
 Var
@@ -214,7 +508,7 @@ end;
 
 function TBaseJWT.GetAsEncodedString: String;
 begin
-  Result:=Base64ToBase64URL(EncodeStringBase64(AsString));
+  Result:=Base64URL.Encode(AsString,False);
 end;
 
 procedure TBaseJWT.SetAsEncodedString(AValue: String);
@@ -412,7 +706,7 @@ end;
 
 class function TBaseJWT.DecodeString(S: String): String;
 begin
-  Result:=DecodeStringBase64(Base64URLToBase64(S), True);
+  Result:=TEncoding.UTF8.GetAnsiString(Base64URL.Decode(S));
 end;
 
 class function TBaseJWT.DecodeStringToJSON(S: String): TJSONObject;
@@ -426,5 +720,7 @@ begin
   Result:=TJSONObject(D);
 end;
 
+initialization
+  TJWTSignerNone.Register;
 end.
 
