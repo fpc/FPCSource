@@ -5,7 +5,7 @@ unit testsha256;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, sha256, hashutils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, sha256, sha512, hashutils;
 
 type
 
@@ -27,6 +27,9 @@ type
 
 implementation
 
+uses
+  basenenc;
+
 Procedure TTestSHA256.TestHexString(Const aString,aDigest : String);
 
 var
@@ -37,7 +40,7 @@ begin
   S:=[];
   Digest:='';
   S:=TEncoding.UTF8.GetAnsiBytes(aString);
-  SHA256Hexa(S, Digest);
+  TSHA256.DigestHexa(S, Digest);
   AssertEquals('Correct hex digest',aDigest, Digest);
 end;
 
@@ -49,7 +52,7 @@ var
 begin
   S:=TEncoding.UTF8.GetAnsiBytes(aString);
   Digest:='';
-  SHA256Base64(S,False,Digest);
+  TSHA256.DigestBase64(S,False,Digest);
   AssertEquals('Correct base64 digest',aDigest, Digest);
 end;
 
@@ -61,8 +64,8 @@ var
 begin
   S:=TEncoding.UTF8.GetAnsiBytes(aString);
   K:=TEncoding.UTF8.GetAnsiBytes(aKey);
-  HMACSHA256Hexa(K,S,Digest);
-  AssertEquals('Correct base64 digest',aDigest, Digest);
+  TSHA256.HMACHexa(K,S,Digest);
+  AssertEquals('Correct digest',aDigest, Digest);
 end;
 
 procedure TTestSHA256.TestEmpty;
@@ -104,7 +107,7 @@ Var
 begin
   S:=TStringStream.Create('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
   try
-    AssertEquals('Correct hash','3964294B664613798D1A477EB8AD02118B48D0C5738C427613202F2ED123B5F1',StreamSHA256Hexa(S));
+    AssertEquals('Correct hash','3964294B664613798D1A477EB8AD02118B48D0C5738C427613202F2ED123B5F1',TSHA256.StreamHexa(S));
   finally
     S.Free;
   end;

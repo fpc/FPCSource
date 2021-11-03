@@ -50,6 +50,7 @@ begin
 
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/webdata');
+    P.SourcePath.Add('src/jwt');
     P.SourcePath.Add('src/jsonrpc');
     P.SourcePath.Add('src/hpack');
     P.SourcePath.Add('src/restbridge');
@@ -327,6 +328,12 @@ begin
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpoauth2ini.pp');
     T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fpjwasha256.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha512.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha384.pp');
+    T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fphttpwebclient.pp');
     T.Dependencies.AddUnit('fpwebclient');
     T:=P.Targets.AddUnit('restbase.pp');
