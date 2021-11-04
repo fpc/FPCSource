@@ -207,6 +207,11 @@ endif
 endif
 endif
 
+INSTALLERTARGETS=emx go32v2 msdos os2
+ifneq ($(findstring $(OS_TARGET),$(INSTALLERTARGETS)),)
+INSTALLER=1
+endif
+
 [rules]
 .NOTPARALLEL:
 
@@ -301,11 +306,17 @@ endif
 ifdef UTILS
         $(MAKE) utils_clean $(CLEANOPTS)
 endif
+ifdef INSTALLER
+        $(MAKE) installer_clean $(CLEANOPTS)
+endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
 ifdef UTILS
         $(MAKE) utils_all $(BUILDOPTS)
+endif
+ifdef INSTALLER
+        $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
         $(ECHOREDIR) Build > base.$(BUILDSTAMP)
