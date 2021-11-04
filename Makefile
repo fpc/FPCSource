@@ -514,6 +514,10 @@ UTILS=1
 endif
 endif
 endif
+INSTALLERTARGETS=emx go32v2 msdos os2
+ifneq ($(findstring $(OS_TARGET),$(INSTALLERTARGETS)),)
+INSTALLER=1
+endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=compiler rtl utils packages installer
 endif
@@ -3174,10 +3178,16 @@ endif
 ifdef UTILS
 	$(MAKE) utils_clean $(CLEANOPTS)
 endif
+ifdef INSTALLER
+	$(MAKE) installer_clean $(CLEANOPTS)
+endif
 	$(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
 	$(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
 ifdef UTILS
 	$(MAKE) utils_all $(BUILDOPTS)
+endif
+ifdef INSTALLER
+	$(MAKE) installer_all $(BUILDOPTS)
 endif
 	$(ECHOREDIR) Build > $(BUILDSTAMP)
 	$(ECHOREDIR) Build > base.$(BUILDSTAMP)
