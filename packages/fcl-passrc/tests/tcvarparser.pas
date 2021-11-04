@@ -56,6 +56,7 @@ Type
     procedure TestVarExternalLibNoName;
     Procedure TestVarCVar;
     Procedure TestVarCVarExternal;
+    Procedure TestVarCVarExport;
     Procedure TestVarPublic;
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
@@ -393,6 +394,12 @@ procedure TTestVarParser.TestVarCVarExternal;
 begin
   ParseVar('integer; cvar;external','');
   AssertEquals('Variable modifiers',[vmcvar,vmexternal],TheVar.VarModifiers);
+end;
+
+procedure TTestVarParser.TestVarCVarExport;
+begin
+  ParseVar('integer; cvar; export','');
+  AssertEquals('Variable modifiers',[vmCVar,vmExport],TheVar.VarModifiers);
 end;
 
 procedure TTestVarParser.TestVarPublic;

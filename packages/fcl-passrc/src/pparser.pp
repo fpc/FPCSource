@@ -4677,7 +4677,7 @@ begin
   NextToken;
   if not (CurToken in [tkString,tkIdentifier]) then
     begin
-    if (CurToken=tkSemicolon) and (ExtMod in [vmExternal,vmPublic]) then
+    if (CurToken=tkSemicolon) and (ExtMod in [vmExternal,vmPublic,vmExport]) then
       exit;
     ParseExcSyntaxError;
     end;
