@@ -6650,6 +6650,14 @@ begin
     if not (CurToken in [tkSemicolon, tkComma]) then
       ParseExcTokenError(TokenInfos[tkSemicolon]);
   until CurToken=tkSemicolon;
+  if not (aParent is TPasDeclarations) then
+    FreeAndNil(Labels)
+  else
+    begin
+    TPasDeclarations(aParent).Declarations.Add(Labels);
+    TPasDeclarations(aParent).Labels.Add(Labels);
+    end;
+
 end;
 
 // Starts after the "procedure" or "function" token

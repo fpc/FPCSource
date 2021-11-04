@@ -114,8 +114,64 @@ Type
     Procedure TestSum2Platform;
   end;
 
+  { TTestLabelParser }
+
+  TTestLabelParser = Class(TTestParser)
+  private
+    FExpr: TPasExpr;
+    FHint : string;
+    FTheStr: TPasResString;
+  Protected
+    Function ParseLabel(ASource : String) : TPasLabels;
+    Property Hint : string Read FHint Write FHint;
+  Published
+    Procedure TestSimple;
+    Procedure TestSimpleNumber;
+  end;
 
 implementation
+
+{ TTestLabelParser }
+
+function TTestLabelParser.ParseLabel(ASource: String): TPasLabels;
+Var
+  D : String;
+begin
+  UseImplementation:=True;
+  Add('label');
+  D:=ASource;
+  If Hint<>'' then
+    D:=D+' '+Hint;
+  Add('  '+D+';');
+  Add('end.');
+  //Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One labels section',1,Declarations.Labels.Count);
+  AssertEquals('First declaration is label section.',TPasLabels,TObject(Declarations.Labels[0]).ClassType);
+  Result:=TPasLabels(Declarations.Labels[0]);
+end;
+
+procedure TTestLabelParser.TestSimple;
+
+Var
+  Res : TPasLabels;
+
+begin
+   Res:=ParseLabel('a');
+   AssertEquals('One label definition',1,Res.Labels.Count);
+   AssertEquals('One label definition','a',Res.Labels[0]);
+end;
+
+procedure TTestLabelParser.TestSimpleNumber;
+Var
+  Res : TPasLabels;
+
+begin
+   Res:=ParseLabel('100');
+   AssertEquals('One label definition',1,Res.Labels.Count);
+   AssertEquals('One label definition','100',Res.Labels[0]);
+end;
+
 { TTestConstParser }
 
 function TTestConstParser.ParseConst(ASource: String): TPasConst;
@@ -708,7 +764,7 @@ begin
 end;
 
 initialization
-  RegisterTests([TTestConstParser,TTestResourcestringParser]);
+  RegisterTests([TTestConstParser,TTestResourcestringParser,TTestLabelParser]);
 
 
 end.
