@@ -2921,55 +2921,65 @@ begin
     else
       begin
       NextToken;
-      x:=DoParseConstValueExpression(AParent);
-      case CurToken of
-        tkComma: // array of values (a,b,c);
-          ReadArrayValues(x);
-
-        tkColon: // record field (a:xxx;b:yyy;c:zzz);
-          begin
-          if not (x is TPrimitiveExpr) then
-            CheckToken(tkBraceClose);
-          r:=nil;
-          try
-            n:=GetExprIdent(x);
-            r:=CreateRecordValues(AParent);
-            NextToken;
-            v:=DoParseConstValueExpression(r);
-            r.AddField(TPrimitiveExpr(x), v);
-            x:=nil;
-            if not lastfield then
-              repeat
-                n:=ExpectIdentifier;
-                x:=CreatePrimitiveExpr(r,pekIdent,n);
-                ExpectToken(tkColon);
-                NextToken;
-                v:=DoParseConstValueExpression(AParent);
-                r.AddField(TPrimitiveExpr(x), v);
-                x:=nil;
-              until lastfield; // CurToken<>tkSemicolon;
-            Result:=r;
-          finally
-            if Result=nil then
-              begin
-              r.Free;
-              x.Free;
-              end;
-          end;
-          end;
-      else
-        // Binary expression!  ((128 div sizeof(longint)) - 3);
-        Result:=DoParseExpression(AParent,x);
-        if CurToken<>tkBraceClose then
-          begin
-          ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
-          ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
-          end;
+      // Empty record constant: a: Record .. end = ();
+      if (CurToken=tkBraceClose) then
+        begin
+        Result:=CreateRecordValues(AParent);
         NextToken;
-        if CurToken <> tkSemicolon then // the continue of expression
-          Result:=DoParseExpression(AParent,Result);
         Exit;
-      end;
+        end
+      else
+        begin
+        x:=DoParseConstValueExpression(AParent);
+        case CurToken of
+          tkComma: // array of values (a,b,c);
+            ReadArrayValues(x);
+
+          tkColon: // record field (a:xxx;b:yyy;c:zzz);
+            begin
+            if not (x is TPrimitiveExpr) then
+              CheckToken(tkBraceClose);
+            r:=nil;
+            try
+              n:=GetExprIdent(x);
+              r:=CreateRecordValues(AParent);
+              NextToken;
+              v:=DoParseConstValueExpression(r);
+              r.AddField(TPrimitiveExpr(x), v);
+              x:=nil;
+              if not lastfield then
+                repeat
+                  n:=ExpectIdentifier;
+                  x:=CreatePrimitiveExpr(r,pekIdent,n);
+                  ExpectToken(tkColon);
+                  NextToken;
+                  v:=DoParseConstValueExpression(AParent);
+                  r.AddField(TPrimitiveExpr(x), v);
+                  x:=nil;
+                until lastfield; // CurToken<>tkSemicolon;
+              Result:=r;
+            finally
+              if Result=nil then
+                begin
+                r.Free;
+                x.Free;
+                end;
+            end;
+            end;
+        else
+          // Binary expression!  ((128 div sizeof(longint)) - 3);
+          Result:=DoParseExpression(AParent,x);
+          if CurToken<>tkBraceClose then
+            begin
+            ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+            ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
+            end;
+          NextToken;
+          if CurToken <> tkSemicolon then // the continue of expression
+            Result:=DoParseExpression(AParent,Result);
+          Exit;
+        end;
+        end;
       end;
     if CurToken<>tkBraceClose then
       begin

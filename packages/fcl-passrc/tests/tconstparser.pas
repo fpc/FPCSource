@@ -78,6 +78,7 @@ Type
     Procedure TestTypedSetConst;
     Procedure TestTypedExprConst;
     Procedure TestRecordConst;
+    Procedure TestRecordConstEmpty;
     Procedure TestArrayConst;
     Procedure TestRangeConst;
     Procedure TestRangeConstUnTyped;
@@ -509,6 +510,27 @@ begin
   FI:=R.Fields[1];
   AssertEquals('Name field 2','y',Fi.Name);
   AssertExpression('Field 2 value',Fi.ValueExp,pekNumber,'2');
+end;
+
+procedure TTestConstParser.TestRecordConstEmpty;
+Var
+  R : TRecordValues;
+  Fi : TRecordValuesItem;
+begin
+  Typed := 'TPoint';
+  ParseConst('()');
+  AssertEquals('Record Values',TRecordValues,TheExpr.ClassType);
+  R:=TheExpr as TRecordValues;
+  AssertEquals('Expression list of ',pekListOfExp,TheExpr.Kind);
+  AssertEquals('0 elements',0,Length(R.Fields));
+(*
+FI:=R.Fields[0];
+  AssertEquals('Name field 1','x',Fi.Name);
+  AssertExpression('Field 1 value',Fi.ValueExp,pekNumber,'1');
+  FI:=R.Fields[1];
+  AssertEquals('Name field 2','y',Fi.Name);
+  AssertExpression('Field 2 value',Fi.ValueExp,pekNumber,'2');
+  *)
 end;
 
 procedure TTestConstParser.TestArrayConst;
