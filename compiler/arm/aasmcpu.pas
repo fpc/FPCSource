@@ -2245,7 +2245,9 @@ implementation
             { fpu_fpv4_s16   } IF_NONE,
             { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
             { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
-            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON
+            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON,
+            { fpu_fpv5_d16   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
+            { fpu_fpv5_sp_d16} IF_VFPv2 or IF_VFPv3 or IF_VFPv4
           );
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
