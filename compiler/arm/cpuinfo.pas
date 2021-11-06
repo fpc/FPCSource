@@ -76,7 +76,8 @@ Type
       fpu_fpv4_sp_d16,  { 32 registers single precision, for load/store/move they can be accessed as 16 double registers }
       fpu_neon_vfpv4,
       fpu_fpv5_d16,
-      fpu_fpv5_sp_d16
+      fpu_fpv5_sp_d16,
+      fpu_fp_armv8
       { when new elements added afterwards, update
         class procedure tarmnodeutils.InsertObjectInfo; in narmutil.pas }
      );
@@ -97,7 +98,8 @@ Const
     'fpu=fpv4-sp-d16',
     'fpu=neon-vfpv4',
     'fpu=fpv5-sp-d16',
-    'fpu=fpv5-d16'
+    'fpu=fpv5-d16',
+    'fpu=fp-armv8'
   );
 
 Type
@@ -592,7 +594,8 @@ Const
      'FPV4_SP_D16',
      'NEON_VFPV4',
      'FPV5_D16',
-     'FPV5_SP_D16'
+     'FPV5_SP_D16',
+     'FP_ARMV8'
    );
 
 
@@ -1137,7 +1140,8 @@ Const
          { fpu_fpv4_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
          { fpu_neon_vfpv4   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON,FPUARM_HAS_FMA],
          { fpu_fpv5_d16     } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
-         { fpu_fpv5_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA]
+         { fpu_fpv5_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
+         { fpu_fp_armv8     } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA]
        );
 
    { contains all CPU supporting any kind of thumb instruction set }
