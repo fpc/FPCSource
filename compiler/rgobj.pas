@@ -1251,7 +1251,7 @@ unit rgobj;
             for i:=1 to adj^.length do
               begin
                 n:=adj^.buf^[i-1];
-                if (reginfo[n].flags*[ri_coalesced,ri_selected]=[]) and not ok(n,u) then
+                if (reginfo[n].flags*[ri_coalesced]=[]) and not ok(n,u) then
                   begin
                     adjacent_ok:=false;
                     break;
@@ -1790,7 +1790,8 @@ unit rgobj;
               if ri_spill_helper in reginfo[n].flags then
                 if not colour_register(n) then
                   { Can't colour the spill helper register n.
-                    This can happen only when the code generator produces invalid code. }
+                    This can happen only when the code generator produces invalid code
+                    or sue to incorrect node coalescing. }
                   internalerror(2021091001);
             end;
           { Assign colours for the rest of the registers }
