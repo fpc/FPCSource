@@ -148,13 +148,17 @@ unit cpubase;
       TOpPostfixes = set of TOpPostfix;
 
     const
-      tcgsizep2size: array[OS_NO..OS_F128] of byte =
+      tcgsizep2size: array[tcgsize] of byte =
         {OS_NO }
         (0,
         {OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128}
             0,    1,    2,    3,     4,    0,     1,     2,     3,      4,
         {OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,}
-             2,      3,     0,     3,      4);
+             2,      3,     0,     3,      4,
+
+         {OS_M8,   OS_M16,  OS_M32,  OS_M64,  OS_M128, OS_M256, OS_M512}
+              0,        1,       2,       3,        4,       5,       6);
+
       oppostfix2str: array[TOpPostfix] of string[2] = ('',
         's',
         'b','sb','h','sh','w','sw');
