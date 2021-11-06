@@ -135,7 +135,8 @@ Const
 
 type
    tcpuflags =
-     (CPUAARCH64_HAS_LSE       { CPU supports Large System Extensions }
+     (CPUAARCH64_HAS_LSE,     { CPU supports Large System Extensions }
+      CPUAARCH64_HAS_SHA2     { CPU supports SHA2 extension }
      );
 
    tfpuflags =

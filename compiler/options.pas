@@ -1252,6 +1252,11 @@ procedure TOption.interpret_option(const opt:TCmdStr;ispara:boolean);
 var
   code : integer;
   c    : char;
+{$ifdef cpucapabilities}
+  cf   : tcpuflags;
+  cpuflagsstr,
+  extrasettings,
+{$endif cpucapabilities}
   more : TCmdStr;
   major,minor : longint;
   error : integer;
@@ -1588,8 +1593,48 @@ begin
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
+{$ifdef cpucapabilities}
+                        if pos('+',s)<>0 then
+                          begin
+                            extrasettings:=Copy(s,Pos('+',s),Length(s));
+                            Delete(s,Pos('+',s),Length(s));
+                          end
+                        else
+                          extrasettings:='';
+{$endif cpucapabilities}
                         if not(Setcputype(s,init_settings)) then
                           IllegalPara(opt);
+{$ifdef cpucapabilities}
+                        while extrasettings<>'' do
+                          begin
+                            Delete(extrasettings,1,1);
+                            if Pos('+',extrasettings)<>0 then
+                              begin
+                                s:=Copy(extrasettings,1,Pos('+',extrasettings)-1);
+                                Delete(extrasettings,1,Pos('+',extrasettings)-1);
+                              end
+                            else
+                              begin
+                                s:=extrasettings;
+                                extrasettings:='';
+                              end;
+                            for cf in tcpuflags do
+                              begin
+                                Str(cf,cpuflagsstr);
+                                { expect that the cpuflagsstr i.e. the enum as well contains _HAS_ }
+                                if Pos('_HAS_',cpuflagsstr)<>0 then
+                                { get rid of prefix include _HAS_ }
+                                  Delete(cpuflagsstr,1,Pos('_HAS_',cpuflagsstr)+4)
+                                else
+                                  Internalerror(2021110601);
+                                if s=cpuflagsstr then
+                                  begin
+                                    Include(cpu_capabilities[init_settings.cputype],cf);
+                                    break;
+                                  end;
+                              end;
+                          end;
+{$endif cpucapabilities}
                         CPUSetExplicitly:=true;
                         break;
                       end;
