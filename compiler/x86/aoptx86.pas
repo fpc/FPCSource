@@ -6183,7 +6183,7 @@ unit aoptx86;
            else
              begin
                DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Vmovaps done',p);
-               if taicpu(hp1).opcode=A_VCVTSD2SS then
+               if taicpu(hp1).opcode=A_CVTSD2SS then
                  begin
                    taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
                    taicpu(p).opcode:=A_MOVAPS;
