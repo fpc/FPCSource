@@ -2832,7 +2832,8 @@ implementation
             which typechecks the arguments, possibly inserting conversion to valreal.
             To handle smaller types without excess precision, we need to remove
             these extra typecasts. }
-          if (p.nodetype=typeconvn) and
+          if not(cs_excessprecision in current_settings.localswitches) and
+             (p.nodetype=typeconvn) and
              (ttypeconvnode(p).left.resultdef.typ=floatdef) and
              (p.flags*[nf_explicit,nf_internal]=[]) and
              (tfloatdef(ttypeconvnode(p).left.resultdef).floattype in (floattypes*[s32real,s64real,s80real,sc80real,s128real])) then

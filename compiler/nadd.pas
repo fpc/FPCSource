@@ -1682,6 +1682,7 @@ implementation
                not(might_have_sideeffects(left)) then
               begin
                 result:=cinlinenode.create(in_sqr_real,false,left);
+                inserttypeconv(result,resultdef);
                 left:=nil;
                 exit;
               end;
