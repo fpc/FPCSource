@@ -1623,7 +1623,7 @@ begin
                                 Str(cf,cpuflagsstr);
                                 { expect that the cpuflagsstr i.e. the enum as well contains _HAS_ }
                                 if Pos('_HAS_',cpuflagsstr)<>0 then
-                                { get rid of prefix include _HAS_ }
+                                { get rid of prefix including _HAS_ }
                                   Delete(cpuflagsstr,1,Pos('_HAS_',cpuflagsstr)+4)
                                 else
                                   Internalerror(2021110601);
