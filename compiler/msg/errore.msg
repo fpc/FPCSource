@@ -2590,7 +2590,7 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 #
 # Assembler reader
 #
-# 07146 is the last used one
+# 07147 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2935,6 +2935,7 @@ asmr_e_a64_invalid_regset=07144_E_Registers in a register set must be consecutiv
 asmr_e_unknown_field=07145_E_Unknown field identifier
 % The internal assembler read cannot find the passed field identifier.
 asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146_E_Not supported combination opcode: $1 - att-suffix-type {$2} and memrefsize-type {$3}
+asmr_e_a64_regset_too_large=07147_E_Too many registers in register set.
 #
 # Assembler/binary writers
 #
