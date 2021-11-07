@@ -23,6 +23,8 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_AOPTCPU}
+
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
 {$endif EXTDEBUG}
@@ -6171,7 +6173,8 @@ unit aoptx86;
           )
          ) then
          begin
-           if getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg) then
+           if ((taicpu(p).opcode=A_CVTSS2SD) and (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg))) or
+             ((taicpu(p).opcode=A_VCVTSS2SD) and (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg))) then
              begin
                DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Nop done',p);
                RemoveCurrentP(p);
@@ -6180,9 +6183,17 @@ unit aoptx86;
            else
              begin
                DebugMsg(SPeepholeOptimization + '(V)Cvtss2CvtSd(V)Cvtsd2ss2Vmovaps done',p);
-               taicpu(p).loadreg(1,taicpu(hp1).oper[2]^.reg);
+               if taicpu(hp1).opcode=A_VCVTSD2SS then
+                 begin
+                   taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+                   taicpu(p).opcode:=A_MOVAPS;
+                 end
+               else
+                 begin
+                   taicpu(p).loadreg(1,taicpu(hp1).oper[2]^.reg);
+                   taicpu(p).opcode:=A_VMOVAPS;
+                 end;
                taicpu(p).ops:=2;
-               taicpu(p).opcode:=A_VMOVAPS;
                RemoveInstruction(hp1);
              end;
            Result:=true;
