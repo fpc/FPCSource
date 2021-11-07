@@ -107,8 +107,16 @@ unit agcpugas;
         for cf in cpu_capabilities[current_settings.cputype] do
           begin
             case cf of
+              CPUAARCH64_HAS_DOTPROD:
+                Result:=Result+'+dotprod';
+              CPUAARCH64_HAS_AES:
+                Result:=Result+'+aes';
               CPUAARCH64_HAS_SHA2:
                 Result:=Result+'+sha2';
+              CPUAARCH64_HAS_SHA3:
+                Result:=Result+'+sha3';
+              CPUAARCH64_HAS_SM4:
+                Result:=Result+'+sm4';
               else
                 ;
             end
