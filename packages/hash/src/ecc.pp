@@ -28,36 +28,50 @@ type
     Int32 = LongInt;
   {$ENDIF}
   UInt64 = QWord;
+
   TByteBuffer = array[0..MaxInt-1] of Byte;
   PByteBuffer = ^TByteBuffer;
-  TPublicKey = array[0..ECC_BYTES] of Byte;                                
-  TPrivateKey = array[0..ECC_BYTES-1] of Byte;
-  PPrivateKey = ^TPrivateKey;
+
+  TEccPublicKey = array[0..ECC_BYTES] of Byte;
+  TEccPrivateKey = array[0..ECC_BYTES-1] of Byte;
+  PEccPrivateKey = ^TEccPrivateKey;
   TEccHash = array[0..ECC_BYTES-1] of Byte;
   PEccHash = ^TEccHash;
   TEccSecretKey = array[0..ECC_BYTES-1] of Byte;
-  TSignature = array[0..2*ECC_BYTES-1] of Byte;
+  TEccSignature = array[0..2*ECC_BYTES-1] of Byte;
+
   TVLI = array[0..NUM_ECC_DIGITS-1] of UInt64;
   PVLI = ^TVLI;
   TVLI2 = array[0..(2*NUM_ECC_DIGITS)-1] of UInt64;
+
   TEccGetRandomNumber = function(out VLI: TVLI): Boolean;
 
+  TPublicKey = TECCPublicKey;
+  TPrivateKey = TECCPrivateKey;
+  TSignature = TEccSignature;
+  PPrivateKey = PEccPrivateKey;
+
+
 // Util function to work with ASN.1  
-procedure EccPublicKeyFromPrivateKey(out PublicKey: TPublicKey; const PrivateKey: TPrivateKey);
-function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TPublicKey): Boolean;
-function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TPublicKey): Boolean;
-function EccExportX963(const PublicKey: TPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean; 
+procedure EccPublicKeyFromPrivateKey(out PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey);
+function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TEccPublicKey): Boolean;
+function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
+function EccExportX963(const PublicKey: TEccPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean; 
+procedure EccPublicKeyFromHexa(out PublicKey: TEccPublicKey; const Hexa: String); overload;
+Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey; overload;
 
 // Major functions
-function EccMakeKey(out PublicKey: TPublicKey; out PrivateKey: TPrivateKey): Boolean;
-function EcdhSharedSecret(const PublicKey: TPublicKey; const PrivateKey: TPrivateKey; out Secret: TEccSecretKey): Boolean;
-function EcdsaSign(const PrivateKey: TPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
-function EcdsaVerify(const PublicKey: TPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
+function EccMakeKey(out PublicKey: TEccPublicKey; out PrivateKey: TEccPrivateKey): Boolean;
+function EcdhSharedSecret(const PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey; out Secret: TEccSecretKey): Boolean;
+function EcdsaSign(const PrivateKey: TEccPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
+function EcdsaVerify(const PublicKey: TEccPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
 
 var
   EccGetRandomNumber: TEccGetRandomNumber;
 
 implementation
+
+uses sysutils, hashutils;
 
 type
   UInt128 = record
@@ -259,7 +273,7 @@ begin
   Result := Borrow;
 end;
 
-procedure mul_64_64(const Left, Right: UInt64; var Result: UInt128);
+procedure mul_64_64(const Left, Right: UInt64; out Result: UInt128);
 var
   a0, a1, b0, b1, m0, m1, m2, m3: UInt64;
 begin
@@ -820,7 +834,7 @@ begin
     vli_sub(Point.y, Curve_P_32, Point.y);
 end;
 
-function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TPublicKey): Boolean; //TLS_1_2
+function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TEccPublicKey): Boolean; //TLS_1_2
 begin
   Result := False;
   if Input = nil then
@@ -835,7 +849,7 @@ begin
   Result := True;
 end;
 
-function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TPublicKey): Boolean;
+function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
 var
   Compressed: PByteBuffer;
   I: Integer;
@@ -848,7 +862,7 @@ begin
 end;
 
 // @Output[65] in case secp256r1
-function EccExportX963(const PublicKey: TPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean; //TLS_1_2
+function EccExportX963(const PublicKey: TEccPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean; //TLS_1_2
 var
   PublicPoint: TEccPoint;
 begin
@@ -864,7 +878,7 @@ begin
   Result := True;
 end;
 
-procedure EccPublicKeyFromPrivateKey(out PublicKey: TPublicKey; const PrivateKey: TPrivateKey);
+procedure EccPublicKeyFromPrivateKey(out PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey);
 
 var
   PrivateK: TVLI;
@@ -877,7 +891,7 @@ begin
   PublicKey[0] := 2 + (PublicPoint.y[0] and $01);
 end;
 
-function EccMakeKey(out PublicKey: TPublicKey; out PrivateKey: TPrivateKey): Boolean;
+function EccMakeKey(out PublicKey: TEccPublicKey; out PrivateKey: TEccPrivateKey): Boolean;
 
 var
   PrivateK: TVLI;
@@ -905,7 +919,7 @@ begin
   Result := True;
 end;
 
-function EcdhSharedSecret(const PublicKey: TPublicKey; const PrivateKey: TPrivateKey; out Secret: TEccSecretKey): Boolean;
+function EcdhSharedSecret(const PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey; out Secret: TEccSecretKey): Boolean;
 
 var
   PublicPoint: TEccPoint;
@@ -999,7 +1013,7 @@ begin
     Result := B;
 end;
 
-function EcdsaSign(const PrivateKey: TPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
+function EcdsaSign(const PrivateKey: TEccPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
 
 var
   K, Temp, S: TVLI;
@@ -1037,7 +1051,7 @@ end;
 type
   TEccPoints4 = array[0..3] of PEccPoint;
 
-function EcdsaVerify(const PublicKey: TPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
+function EcdsaVerify(const PublicKey: TEccPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
 
 var
   I, Index, NumBits: Integer;
@@ -1129,6 +1143,45 @@ begin
     end;
   Result:=True;
 end;
+
+Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey;
+
+begin
+  EccPublicKeyFromHexa(Result,Hexa);
+end;
+
+procedure EccPublicKeyFromHexa(out PublicKey: TEccPublicKey; const Hexa: String);
+
+var
+  B: Byte;
+  HLength: Integer;
+  SHexa: String;
+  Buf : TBytes;
+
+begin
+  hLength:=Length(Hexa);
+  if hLength= 66 then
+  begin
+    // _XString(S, @PublicKey, SizeOf(PublicKey));
+    Buf:=HexStrToBytes(Hexa);
+    if Length(Buf)<SizeOf(PublicKey) then
+      raise Exception.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [Length(buf)]);
+    Move(Buf[0],PublicKey,Sizeof(PublicKey)) // Compressed public key
+  end else
+  begin // uncompressed public key as stored in PEM ASN.1
+    if hLength = 2+2*(2*ECC_BYTES) then
+      SHexa:=Copy(Hexa, 3, ECC_BYTES*2) // skip the leading $04 for uncompressed publickey
+    else if hLength <> 2*(2*ECC_BYTES) then
+      raise Exception.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [hLength])
+    else
+      SHexa:=Hexa;
+    Buf:=HexStrToBytes(SHexa);
+    B:=StrToInt('$'+Copy(Hexa,hLength-1,2));
+    PublicKey[0] := 2 + (B and $01);
+    Move(Buf[0],PublicKey[1],SizeOf(TEccPublicKey)-1);
+  end;
+end;
+
 
 initialization
   EccGetRandomNumber:=@IntEccGetRandomNumber;
