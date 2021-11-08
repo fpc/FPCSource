@@ -5,7 +5,7 @@ program tests;
 {$mode objfpc}
 
 uses
-  consoletestrunner, TestsHMAC, testsha256, testonetimepass, sha512, testsha512;
+  consoletestrunner, TestsHMAC, testsha256, testonetimepass, sha512, testsha512, asn, ecc, pem, testpem, ecdsa;
 
 var
   Application: TTestRunner;
