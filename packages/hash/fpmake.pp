@@ -42,6 +42,15 @@ begin
     T.Dependencies.AddUnit('hashutils');
     T:=P.Targets.AddUnit('src/sha512.pp');
     T.Dependencies.AddUnit('hashutils');
+    T:=P.Targets.AddUnit('src/asn.pp');
+    T.Dependencies.AddUnit('hashutils');
+    T:=P.Targets.AddUnit('src/pem.pp');
+    T.Dependencies.AddUnit('hashutils');
+    T.Dependencies.AddUnit('asn');
+    T:=P.Targets.AddUnit('src/ecdsa.pp');
+    T.Dependencies.AddUnit('hashutils');
+    T.Dependencies.AddUnit('ecc');
+    T.Dependencies.AddUnit('sha256');
     T:=P.Targets.AddUnit('src/onetimepass.pp');
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
