@@ -4308,12 +4308,15 @@ unit aoptx86;
               ) then
               begin
                 OldOffset := taicpu(hp1).oper[0]^.ref^.offset;
-
+{$push}
+{$R-}{$Q-}
+                { Explicitly disable overflow checking for these offset calculation
+                  as those do not matter for the final result }
                 if ActiveReg=taicpu(hp1).oper[0]^.ref^.base then
                   inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val);
                 if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
                   inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
-
+{$pop}
 {$ifdef x86_64}
                 if (taicpu(hp1).oper[0]^.ref^.offset > $7FFFFFFF) or (taicpu(hp1).oper[0]^.ref^.offset < -2147483648) then
                   begin
