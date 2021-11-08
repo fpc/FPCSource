@@ -19,13 +19,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestJWT"/>
+        <CommandLineParams Value="--suite=TTestJWT.TestVerifyES256"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestJWT"/>
+            <CommandLineParams Value="--suite=TTestJWT.TestVerifyES256"/>
           </local>
         </Mode0>
       </Modes>
@@ -35,7 +35,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -64,6 +64,10 @@
         <Filename Value="../src/jwt/fpjwasha384.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="../src/jwt/fpjwaes256.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
