@@ -19,7 +19,7 @@ unit System.UITypes;
 interface
 
 Type  
-    TColor      = Longint;
+    TColor      = -$7FFFFFFF-1..$7FFFFFFF;
     PColor      = ^TColor;
     TColorRef   = Cardinal;
     PColorRef   = ^TColorRef;
