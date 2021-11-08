@@ -331,6 +331,8 @@ begin
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpjwasha384.pp');
     T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwaes256.pp');
+    T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fphttpwebclient.pp');
     T.Dependencies.AddUnit('fpwebclient');
     T:=P.Targets.AddUnit('restbase.pp');

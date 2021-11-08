@@ -35,6 +35,7 @@ Type
     procedure SetLength(AValue: Integer);
   public
     Bytes : TBytes;
+    Class Function Create(aData : PByte; aSize : Word) : TJWTKey; static;
     Class Function Create(aBytes : TBytes) : TJWTKey; static;
     Class Function Create(aString : UTF8String) : TJWTKey; static;
     Class Function Empty : TJWTKey; static;
@@ -242,6 +243,18 @@ end;
 procedure TJWTKey.SetLength(AValue: Integer);
 begin
   System.SetLength(Bytes,aValue)
+end;
+
+class function TJWTKey.Create(aData: PByte; aSize : Word): TJWTKey;
+
+Var
+  B : TBytes;
+
+begin
+  B:=[];
+  System.SetLength(B,aSize);
+  Move(aData^,B[0],aSize);
+  Result:=Create(B);
 end;
 
 class function TJWTKey.Create(aBytes: TBytes): TJWTKey;
