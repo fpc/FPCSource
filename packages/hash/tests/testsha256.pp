@@ -5,7 +5,7 @@ unit testsha256;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, sha256, sha512, hashutils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, ecc, sha256, hashutils;
 
 type
 
@@ -25,10 +25,100 @@ type
     procedure TestHMACStream;
   end;
 
+  { TTestECDSASHA256 }
+
+  TTestECDSASHA256 = Class(TTestCase)
+    // base64url encoded
+    Const
+    aInput =
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.' +
+      'eyJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjI0OTAyMiwiaXNzIjoiRGVscGhpIEpPU0UgYW5kIEpXVCBMaWJyYXJ5In0';
+    aOutput =
+      '4QDMKAvHwb6pA5fN0oQjlzuKmPIlNpmIQ8vPH7zy4fjZdtcPVJMtfiVhztwQldQL9A5yzBKI8q2puVygm-2Adw';
+    // Private key in PEM format
+    Const APrivateKeyPem =
+        '-----BEGIN EC PRIVATE KEY-----'+ #10+
+        'MHcCAQEEIFzS3/5bCnrlpa4902/zkYzURF6E2D8pazgnJu4smhpQoAoGCCqGSM49'+ #10+
+        'AwEHoUQDQgAEqTjyg2z65i+zbyUZW8BQ+K87DNsICRaEH7Fy7Rm3MseXy9ItSCQU'+ #10+
+        'VeJbtO6kYUA00mx7bKoC1sx5sbtFExnYPQ=='+ #10+
+        '-----END EC PRIVATE KEY-----';
+   Published
+     Procedure TestSignVerify;
+     Procedure TestVerify;
+     Procedure TestVerifyFromKey;
+   end;
+
 implementation
 
 uses
-  basenenc;
+   pem, ecdsa,  basenenc, rsa;
+
+{ TTestECDSASHA256 }
+
+procedure TTestECDSASHA256.TestSignVerify;
+
+var
+  aPrivateKey : TEccPrivateKey;
+  aPublicKey : TEccPublicKey;
+  aSignature : TECCSignature;
+  X,Y : Ansistring;
+  S : TStringStream;
+
+begin
+  S:=TStringStream.Create(APrivateKeyPem);
+  try
+    AssertTrue('Loaded key',PemLoadECDSA(S,aPrivateKey,aPublicKey,X,Y));
+    AssertTrue('Encrypted',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+    EccPublicKeyFromPrivateKey(aPublicKey,aPrivateKey);
+    AssertTrue('Verified our own',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestECDSASHA256.TestVerify;
+
+var
+  aPrivateKey : TEccPrivateKey;
+  aPublicKey : TEccPublicKey;
+  aSignature : TECCSignature;
+  X,Y : Ansistring;
+  S : TStringStream;
+
+begin
+  S:=TStringStream.Create(APrivateKeyPem);
+  try
+    AssertTrue('Loaded key',PemLoadECDSA(S,aPrivateKey,aPublicKey,X,Y));
+    AssertTrue('Encrypted',TECDSA.SignSHA256(aInput,aPrivateKey,aSignature));
+    // Now verify with result of someone else (random elements)
+    BytesToVar(Base64URL.Decode(aOutput),aSignature,SizeOf(aSignature));
+    AssertTrue('Verified other',TECDSA.VerifySHA256(aInput,aPrivateKey,aSignature));
+  finally
+    S.Free;
+  end;
+
+end;
+
+procedure TTestECDSASHA256.TestVerifyFromKey;
+
+Const
+  // from JWT.IO
+  aInput2 = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0';
+  aOutput2 = 'tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA';
+
+  aPrivateKey2: TEccPrivateKey = ($7a,$f6,$73,$2f,$58,$1d,$00,$5a,$fc,$f2,$16,$f6,$38,$5f,$f6,
+                $37,$10,$29,$24,$2c,$c6,$08,$40,$dd,$7d,$2a,$7a,$55,$03,$b7,
+                $d2,$1c);
+
+var
+  aSignature : TECCSignature;
+
+begin
+  BytesToVar(Base64URL.Decode(aOutput2),aSignature,SizeOf(aSignature));
+  AssertTrue('Verified other',TECDSA.VerifySHA256(aInput2,aPrivateKey2,aSignature));
+end;
+
+{ TTestSHA256 }
 
 Procedure TTestSHA256.TestHexString(Const aString,aDigest : String);
 
@@ -114,6 +204,6 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestSHA256);
+  RegisterTests([TTestSHA256,TTestECDSASHA256]);
 end.
 
