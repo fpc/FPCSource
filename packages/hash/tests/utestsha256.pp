@@ -1,4 +1,4 @@
-unit testsha256;
+unit utestsha256;
 
 {$mode objfpc}{$H+}
 

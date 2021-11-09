@@ -1,4 +1,4 @@
-unit testonetimepass;
+unit utestonetimepass;
 
 {$mode ObjFPC}{$H+}
 

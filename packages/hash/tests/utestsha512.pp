@@ -1,4 +1,4 @@
-unit testsha512;
+unit utestsha512;
 
 {$mode objfpc}{$H+}
 

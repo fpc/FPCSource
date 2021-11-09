@@ -1,6 +1,6 @@
 // See all test cases in: http://tools.ietf.org/html/rfc2202
 
-unit TestsHMAC;
+unit UTestsHMAC;
 
 {$mode objfpc}{$H+}
 
