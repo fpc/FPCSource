@@ -36,18 +36,18 @@ uses
   { symtable }
   symtype,symdef,symbase;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);inline;
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);inline;
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);inline;
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;const _prettyname:string);inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef):tdef;inline;
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;symname:string;symtable:tsymtable):tdef;inline;
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
-    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;_prettyname:ansistring):tdef;
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;const symname:string;symtable:tsymtable):tdef;inline;
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
+    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
     function check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
     function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
     function parse_generic_specialization_types(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
-    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
+    function generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:string):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
     procedure add_generic_dummysym(sym:tsym);
     function resolve_generic_dummysym(const name:tidstring):tsym;
@@ -601,7 +601,7 @@ uses
       end;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;const _prettyname:string);
       var
         dummypos : tfileposinfo;
       begin
@@ -621,7 +621,7 @@ uses
 {$pop}
 
 
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;symname:string;symtable:tsymtable):tdef;
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;const symname:string;symtable:tsymtable):tdef;
       var
         dummypos : tfileposinfo;
 {$push}
@@ -632,7 +632,7 @@ uses
 {$pop}
 
 
-    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
+    function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
       var
         found,
         err : boolean;
@@ -809,7 +809,7 @@ uses
           consume(_RSHARPBRACKET);
       end;
 
-    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;_prettyname:ansistring):tdef;
+    function generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
 
         procedure unset_forwarddef(def: tdef);
           var
@@ -1357,7 +1357,7 @@ uses
       end;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string;parsedpos:tfileposinfo);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);
       var
         context : tspecializationcontext;
         genericdef : tstoreddef;
@@ -1730,7 +1730,7 @@ uses
           end;
       end;
 
-    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
+    function generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:string):tidstring;
     var
       crc : cardinal;
     begin

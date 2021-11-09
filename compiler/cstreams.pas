@@ -95,7 +95,7 @@ type
     procedure WriteByte(b : Byte); {$ifdef USEINLINE}inline;{$endif}
     procedure WriteWord(w : Word); {$ifdef USEINLINE}inline;{$endif}
     procedure WriteDWord(d : Cardinal); {$ifdef USEINLINE}inline;{$endif}
-    Procedure WriteAnsiString (S : AnsiString);
+    Procedure WriteAnsiString (const S : AnsiString);
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
   end;
@@ -345,7 +345,7 @@ implementation
      end;
    end;
 
-  Procedure TCStream.WriteAnsiString (S : AnsiString);
+  Procedure TCStream.WriteAnsiString (const S : AnsiString);
 
   Var L : Longint;
 

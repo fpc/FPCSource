@@ -968,11 +968,11 @@ type
     constructor create_int(v: int64);
     constructor create_uint(v: qword);
     constructor create_bool(b: boolean);
-    constructor create_str(s: string);
+    constructor create_str(const s: string);
     constructor create_set(ns: tnormalset);
     constructor create_real(r: bestreal);
-    class function try_parse_number(s:string):texprvalue; static;
-    class function try_parse_real(s:string):texprvalue; static;
+    class function try_parse_number(const s:string):texprvalue; static;
+    class function try_parse_real(const s:string):texprvalue; static;
     function evaluate(v:texprvalue;op:ttoken):texprvalue;
     procedure error(expecteddef, place: string);
     function isBoolean: Boolean;
@@ -1087,7 +1087,7 @@ type
       def:=booldef;
     end;
 
-  constructor texprvalue.create_str(s: string);
+  constructor texprvalue.create_str(const s: string);
     var
       sp: pansichar;
       len: integer;
@@ -1120,7 +1120,7 @@ type
       def:=realdef;
     end;
 
-  class function texprvalue.try_parse_number(s:string):texprvalue;
+  class function texprvalue.try_parse_number(const s:string):texprvalue;
     var
       ic: int64;
       qc: qword;
@@ -1141,7 +1141,7 @@ type
         end;
     end;
 
-  class function texprvalue.try_parse_real(s:string):texprvalue;
+  class function texprvalue.try_parse_real(const s:string):texprvalue;
     var
       d: bestreal;
       code: integer;
@@ -1648,7 +1648,7 @@ type
                end;
           end;
 
-        function preproc_substitutedtoken(searchstr:string;eval:Boolean):texprvalue;
+        function preproc_substitutedtoken(const basesearchstr:string;eval:Boolean):texprvalue;
         { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
@@ -1661,20 +1661,23 @@ type
           macrocount,
           len: integer;
           foundmacro: boolean;
+          searchstr: pshortstring;
+          searchstr2store: string;
         begin
           if not eval then
             begin
-              result:=texprvalue.create_str(searchstr);
+              result:=texprvalue.create_str(basesearchstr);
               exit;
             end;
 
+          searchstr := @basesearchstr;
           mac:=nil;
           foundmacro:=false;
           { Substitue macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
-            mac:=tmacro(search_macro(searchstr));
+            mac:=tmacro(search_macro(searchstr^));
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -1695,13 +1698,14 @@ type
                     len:=mac.buflen;
                   hs[0]:=char(len);
                   move(mac.buftext^,hs[1],len);
-                  searchstr:=upcase(hs);
+                  searchstr2store:=upcase(hs);
+                  searchstr:=@searchstr2store;
                   mac.is_used:=true;
                   foundmacro:=true;
                 end
               else
                 begin
-                  Message1(scan_e_error_macro_lacks_value,searchstr);
+                  Message1(scan_e_error_macro_lacks_value,searchstr^);
                   break;
                 end
             else
@@ -1713,12 +1717,12 @@ type
 
           { At this point, result do contain the value. Do some decoding and
             determine the type.}
-          result:=texprvalue.try_parse_number(searchstr);
+          result:=texprvalue.try_parse_number(searchstr^);
           if not assigned(result) then
             begin
-              if foundmacro and (searchstr='FALSE') then
+              if foundmacro and (searchstr^='FALSE') then
                 result:=texprvalue.create_bool(false)
-              else if foundmacro and (searchstr='TRUE') then
+              else if foundmacro and (searchstr^='TRUE') then
                 result:=texprvalue.create_bool(true)
               else if (m_mac in current_settings.modeswitches) and
                       (not assigned(mac) or not mac.defined) and
@@ -1726,11 +1730,11 @@ type
                 begin
                   {Errors in mode mac is issued here. For non macpas modes there is
                    more liberty, but the error will eventually be caught at a later stage.}
-                  Message1(scan_e_error_macro_undefined,searchstr);
-                  result:=texprvalue.create_str(searchstr); { just to have something }
+                  Message1(scan_e_error_macro_undefined,searchstr^);
+                  result:=texprvalue.create_str(searchstr^); { just to have something }
                 end
               else
-                result:=texprvalue.create_str(searchstr);
+                result:=texprvalue.create_str(searchstr^);
             end;
         end;
 

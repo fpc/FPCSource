@@ -660,7 +660,7 @@ implementation
       end;
 
 
-    function inline_copy_insert_delete(nr:tinlinenumber;name:string;checkempty:boolean) : tnode;
+    function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }

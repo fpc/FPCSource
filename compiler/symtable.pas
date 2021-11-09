@@ -322,7 +322,7 @@ interface
 
 {*** Misc ***}
     function  FullTypeName(def,otherdef:tdef):string;
-    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    function generate_nested_name(symtable:tsymtable;const delimiter:string):string;
     { def is the extended type of a helper }
     function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
@@ -2931,7 +2931,7 @@ implementation
         FullTypeName:=s1;
       end;
 
-    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    function generate_nested_name(symtable:tsymtable;const delimiter:string):string;
       begin
         result:='';
         while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do

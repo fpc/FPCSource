@@ -280,7 +280,7 @@ Implementation
     var
       CAssembler : array[tasm] of TAssemblerClass;
 
-    function fixline(s:string):string;
+    function fixline(const s:string):string;
      {
        return s with all leading and ending spaces and tabs removed
      }
@@ -293,10 +293,10 @@ Implementation
         j:=1;
         while (j<i) and (s[j] in [#9,' ']) do
           inc(j);
-        for k:=j to i do
-          if s[k] in [#0..#31,#127..#255] then
-            s[k]:='.';
-        fixline:=Copy(s,j,i-j+1);
+        result := Copy(s, j, i - j + 1);
+        for k:=1 to length(result) do
+          if result[k] in [#0..#31,#127..#255] then
+            result[k]:='.';
       end;
 
 {*****************************************************************************

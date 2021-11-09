@@ -1772,7 +1772,7 @@ implementation
 ****************************************************************************}
 
 
-    function real_const_node_from_pattern(s:string):tnode;
+    function real_const_node_from_pattern(const s:string):tnode;
       var
         d : bestreal;
         code : integer;
