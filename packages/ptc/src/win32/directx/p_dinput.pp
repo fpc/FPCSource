@@ -3142,7 +3142,7 @@ const
   DIERR_NOINTERFACE               = E_NOINTERFACE;
 
 (*
- * An undetermined error occured inside the DInput subsystem
+ * An undetermined error occurred inside the DInput subsystem
  *)
   DIERR_GENERIC                   = E_FAIL;
 

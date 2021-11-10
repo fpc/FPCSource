@@ -49,7 +49,7 @@ begin
           Tcl_AppendResult(interp, ['bad # arg: ', ArgvItem(argv,0), ' num1 num2 [..numN]', nil]);
           {* Under Win32 calling of this function can cause crash *}
 
-          Test_max:=TCL_ERROR;         {* Error was occured *}
+          Test_max:=TCL_ERROR;         {* Error has occurred *}
           exit;                        {* Leave *}
      end;
 
@@ -61,7 +61,7 @@ begin
           if (not is_num(arg)) then    {* Is right number? *}
           begin
                Tcl_AppendResult(interp,[' "', arg, '" is not a valid integer value']);
-               Test_max:=TCL_ERROR;    {* Error was occured *}
+               Test_max:=TCL_ERROR;    {* Error has occurred *}
                exit;                   {* leave *}
           end;
           Value:=StrToInt(arg);        {* Convert PChar->Integer *}

@@ -784,7 +784,7 @@ type
    Events are divided into numerous categories:
    
    1. (0x0000xxxx) The core XTI events have identifiers of the form
-      T_XXXX.  These signal that an XTI event has occured on a stream.
+      T_XXXX.  These signal that an XTI event has occurred on a stream.
    2. (0x1000xxxx) Private events are reserved for protocol specific
       events.  Each protocol stack defines them as appropriate for
       its own usage.

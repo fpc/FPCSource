@@ -1254,7 +1254,7 @@ type
 	@param relativeToURL If non-NULL, the created bookmark will be relative to the given url.  If kCFURLBookmarkCreationWithSecurityScope is given as
                 an option and relativeToURL is non-NULL, then a collection-scoped bookmark is created which enables future access to url provided the caller has
                 access to relativeURL.
-	@param error	If non-NULL, on exit will be filled in with a CFErrorRef representing any error which occured during creation of the bookmark data
+	@param error	If non-NULL, on exit will be filled in with a CFErrorRef representing any error which occurred during creation of the bookmark data
 	@result	A CFDataRef containing an data, which can be later be passed to CFURLCreateByResolvingBookmarkData() or to CFURLCopyPropertiesForKeysFromBookmarkData() / CFURLCopyPropertyForKeyFromBookmarkData() }
 function CFURLCreateBookmarkData( allocator: CFAllocatorRef; url: CFURLRef; options: CFURLBookmarkCreationOptions; resourcePropertiesToInclude: CFArrayRef; relativeToURL: CFURLRef; error: CFErrorRefPtr ): CFDataRef; external name '_CFURLCreateBookmarkData';
 (* CF_AVAILABLE_STARTING(10_6, 4_0) *)
@@ -1278,7 +1278,7 @@ function CFURLCreateBookmarkData( allocator: CFAllocatorRef; url: CFURLRef; opti
 	@param isStale If non-NULL, on exit will be set to true if during resolution any of the properties in the bookmark no longer seemed to match the
 		corresponding properties on the returned file.  Clients, upon seeing a stale representation, may want to replace whatever stored bookmark data they
 		have saved and create a new one.
-	@param error	If non-NULL, on exit will be filled in with a CFErrorRef representing any error which occured during resolution of the bookmark data
+	@param error	If non-NULL, on exit will be filled in with a CFErrorRef representing any error which occurred during resolution of the bookmark data
 	@result A CFURLRef of a file which is the closest match to the file the bookmark data }
 function CFURLCreateByResolvingBookmarkData( allocator: CFAllocatorRef; bookmark: CFDataRef; options: CFURLBookmarkResolutionOptions; relativeToURL: CFURLRef; resourcePropertiesToInclude: CFArrayRef; isStale: BooleanPtr; error: CFErrorRefPtr ): CFURLRef; external name '_CFURLCreateByResolvingBookmarkData';
 (* CF_AVAILABLE_STARTING(10_6, 4_0) *)

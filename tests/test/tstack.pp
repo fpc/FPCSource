@@ -35,7 +35,7 @@ begin
   exitproc:=saveexit;
   if errorcode<>0 then
     begin
-      Writeln('An error occured at level ',level);
+      Writeln('An error occurred at level ',level);
       if errorcode=202 then
         begin
           Writeln('Stack overflow correctly handled');

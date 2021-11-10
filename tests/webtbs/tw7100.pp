@@ -44,7 +44,7 @@ begin
       result := 1;
     except
       result := -1;
-      write('(exception occured) ');
+      write('(exception occurred) ');
     end;
   end;
 end;

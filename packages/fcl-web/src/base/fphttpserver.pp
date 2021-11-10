@@ -98,7 +98,7 @@ Type
     procedure DoHandleRequest; virtual;
     // Read request headers
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
-    // Check if we have keep-alive and no errors occured
+    // Check if we have keep-alive and no errors occurred
     Function AllowNewRequest : Boolean;
     // Check if there is a new request pending, i.e. there is data.
     Function RequestPending : Boolean;

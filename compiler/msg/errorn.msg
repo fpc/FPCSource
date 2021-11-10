@@ -2511,7 +2511,7 @@ asmr_d_finish_reading=07001_DL_Gedaan met verwerken van $1 assembler
 asmr_e_none_label_contain_at=07002_E_Symbool dat geen label is bevat "@"
 % A identifier which isn't a label can't contain a @.
 asmr_e_building_record_offset=07004_E_Fout bij berekenen offset in record
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_OFFSET gebruikt zonder symbool

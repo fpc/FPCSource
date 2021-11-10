@@ -242,12 +242,12 @@ type
 	CFNetDiagnosticStatusValues = SInt32;
 const
 {
-   * There is no status, but no error has occured
+   * There is no status, but no error has occurred
    }
 	kCFNetDiagnosticNoErr = 0;
 
   {
-   * An error occured that prevented the call from completing
+   * An error occurred that prevented the call from completing
    }
 	kCFNetDiagnosticErr = -66560;
 
