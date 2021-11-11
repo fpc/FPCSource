@@ -1104,8 +1104,15 @@ begin
 end;
 
 function TFPGObjectList.GetFirst: T;
+
+Var
+  P: Pointer;
+
 begin
-  Result := T(inherited GetFirst^);
+  if FCount<>0 then
+    Result := T(inherited GetFirst^)
+  else
+    Result := Default(T)
 end;
 
 procedure TFPGObjectList.SetFirst(const Value: T);
@@ -1135,7 +1142,10 @@ end;
 
 function TFPGObjectList.GetLast: T;
 begin
-  Result := T(inherited GetLast^);
+  if FCount<>0 then
+    Result := T(inherited GetLast^)
+  else
+    Result :=Default(T);
 end;
 
 procedure TFPGObjectList.SetLast(const Value: T);
