@@ -107,6 +107,10 @@ interface
       name further according to platform conventions (we already did that) }
     function llvmmangledname(const s: TSymStr): TSymStr;
 
+    { convert a parameter attribute to a string. Depending on the target
+      LLVM version, we may have to add the dereferenced parameter type as well }
+    function llvmparatypeattr(const attr: TSymStr; paradef: tdef; strippointer: boolean): TSymStr;
+
     function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
 
     function llvmfloatintrinsicsuffix(def: tfloatdef): TIDString;
@@ -121,7 +125,7 @@ implementation
     symtable,symsym,
     llvmsym,hlcgobj,
     defutil,blockutl,cgbase,paramgr,
-    cpubase;
+    llvminfo,cpubase;
 
 
 {******************************************************************
@@ -280,6 +284,21 @@ implementation
         result:='@'+s
     end;
 
+  function llvmparatypeattr(const attr: TSymStr; paradef: tdef; strippointer: boolean): TSymStr;
+    begin
+      result:=attr;
+      if llvmflag_para_attr_type in llvmversion_properties[current_settings.llvmversion] then
+        begin
+          if not strippointer then
+            result:=result+'('+llvmencodetypename(paradef)+')'
+          else
+            begin
+              if paradef.typ<>pointerdef then
+                internalerror(2022060310);
+              result:=result+'('+llvmencodetypename(tpointerdef(paradef).pointeddef)+')'
+            end;
+        end;
+    end;
 
   function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
     begin
@@ -743,29 +762,30 @@ implementation
                 internalerror(2015101404);
 {$endif aarch64}
               if withattributes then
-                 if first
+                begin
+                  if first
 {$ifdef aarch64}
-                    and not is_managed_type(hp.vardef)
+                     and not is_managed_type(hp.vardef)
 {$endif aarch64}
                     then
-                   encodedstr:=encodedstr+' sret noalias nocapture'
-                 else
-                   encodedstr:=encodedstr+' noalias nocapture';
+                      encodedstr:=encodedstr+llvmparatypeattr(' sret',hp.vardef,false)+' noalias nocapture'
+                    else
+                      encodedstr:=encodedstr+' noalias nocapture';
+                end;
             end
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
             begin
+              encodedstr:=encodedstr+'*';
               if withattributes then
                 begin
-                  encodedstr:=encodedstr+'* byval';
+                  encodedstr:=encodedstr+llvmparatypeattr(' byval',hp.vardef,false);
                   if firstloc and
                      (para^.alignment<>std_param_align) then
                     begin
                       encodedstr:=encodedstr+' align '+tostr(para^.alignment);
                     end;
                 end
-              else
-                encodedstr:=encodedstr+'*';
             end
           else if withattributes and
              paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) then

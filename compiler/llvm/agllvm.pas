@@ -330,6 +330,7 @@ implementation
 
 
    procedure TLLVMInstrWriter.writeparas(const paras: tfplist);
+
      var
        hp: tai;
        para: pllvmcallpara;
@@ -350,9 +351,9 @@ implementation
            if para^.valueext<>lve_none then
              owner.writer.AsmWrite(llvmvalueextension2str[para^.valueext]);
            if para^.byval then
-             owner.writer.AsmWrite(' byval');
+             owner.writer.AsmWrite(llvmparatypeattr(' byval',para^.def,true));
            if para^.sret then
-             owner.writer.AsmWrite(' sret');
+             owner.writer.AsmWrite(llvmparatypeattr(' sret',para^.def,true));
            { For byval, this means "alignment on the stack" and of the passed source data.
              For other pointer parameters, this means "alignment of the passed source data" }
            if (para^.alignment<>std_param_align) or
