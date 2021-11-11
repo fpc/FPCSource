@@ -920,7 +920,6 @@ const
   exec_t_using_util=09017;
   exec_e_exe_not_supported=09018;
   exec_e_dll_not_supported=09019;
-  exec_e_static_lib_not_supported=09035;
   exec_i_closing_script=09020;
   exec_e_res_not_found=09021;
   exec_i_compilingresource=09022;
@@ -936,6 +935,8 @@ const
   exec_e_cant_write_resource_file=09032;
   exec_n_backquote_cat_file_not_found=09033;
   exec_w_init_file_not_found=09034;
+  exec_e_static_lib_not_supported=09035;
+  exec_f_controllertype_expected=09036;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -1146,7 +1147,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 88875;
+  MsgTxtSize = 88971;
 
   MsgIdxMax : array[1..20] of longint=(
     28,109,361,131,99,63,148,37,223,69,

@@ -1169,7 +1169,9 @@ begin
   {$pop}
 
   binstr:='gcc';
-  if (current_settings.controllertype = ct_esp32) then
+  if current_settings.controllertype = ct_none then
+    Message(exec_f_controllertype_expected)
+  else if current_settings.controllertype = ct_esp32 then
     cmdstr:='-C -P -x c -E -o esp32_out.ld -I . $IDF_PATH/components/esp32/ld/esp32.ld'
   else
     cmdstr:='-C -P -x c -E -o esp8266_out.ld -I . $IDF_PATH/components/esp8266/ld/esp8266.ld';
