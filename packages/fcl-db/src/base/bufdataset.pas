@@ -1575,6 +1575,7 @@ Var
   N : String;
   OriginalPosition: TBookMark;
   S : TMemoryStream;
+  cp: TSystemCodePage;
   
 begin
   Close;
@@ -1583,7 +1584,11 @@ begin
   For I:=0 to Dataset.FieldCount-1 do
     begin
     F:=Dataset.Fields[I];
-    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo);
+    if (F is TStringField) then
+      cp := TStringField(F).CodePage
+    else
+      cp := CP_ACP;    
+    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo,cp);
     end;
   CreateDataset;
   L1:=Nil;
