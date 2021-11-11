@@ -1386,8 +1386,16 @@ begin
 end;
 
 function SplitString(const S, Delimiters: string): TStringDynArray;
+
+Var
+  a : Array of char;
+  I : Integer;
+  
 begin
-  Result := S.Split(Delimiters);
+  SetLength(A,Length(Delimiters));
+  For I:=1 to Length(Delimiters) do
+    A[I-1]:=Delimiters[i];
+  Result := S.Split(A);
 end;
 
 function NaturalCompareText (const S1 , S2 : string ): Integer ;
