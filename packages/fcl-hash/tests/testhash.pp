@@ -1,11 +1,11 @@
 { %CONFIGFILE=fpcunit-console-defaults.ini testdefaults.ini }
 
-program tests;
+program testhash;
 
 {$mode objfpc}
 
 uses
-  consoletestrunner, UTestsHMAC, utestsha256, utestonetimepass, sha512, utestsha512, asn, ecc, pem, utestpem, ecdsa;
+  consoletestrunner, utestsha256, utestonetimepass, utestsha512, utestpem;
 
 var
   Application: TTestRunner;

@@ -51,7 +51,7 @@ type
 implementation
 
 uses
-   pem, ecdsa,  basenenc, rsa;
+   pem, ecdsa,  basenenc;
 
 { TTestECDSASHA256 }
 
