@@ -29,6 +29,7 @@ begin
 
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('rtl-extra');
+    P.Dependencies.Add('fcl-base');
 
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/fpecc.pp');
