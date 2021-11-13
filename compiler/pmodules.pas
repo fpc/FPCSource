@@ -413,6 +413,10 @@ implementation
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$pop}
+{$ifdef XTENSA}
+        if not(current_module.is_unit) and (target_info.system=system_xtensa_freertos) then
+          AddUnit('espidf_'+tostr(idf_version));
+{$endif XTENSA}
       end;
 
 

@@ -227,7 +227,7 @@ endif
 ifeq ($(ARCH),xtensa)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),lx6)
-CPU_UNITS=esp32
+CPU_UNITS=esp32 espidf_40200
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),lx106)
@@ -445,7 +445,7 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
 fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) fpcylix.pp
-	
+
 intrinsics$(PPUEXT) : $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/intrinsics.pp
 
