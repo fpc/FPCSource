@@ -19,9 +19,10 @@ unit basenenc;
 
 interface
 
-uses Types, SysUtils;
+uses SysUtils;
 
 Type
+  TBytes = Array of Byte;
 
   { TAlphabetEncoder }
   TReverseAlphabet = Array[0..255] of Byte;
@@ -42,7 +43,7 @@ Type
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_');
   Private
     FBits : Byte;
-    FAlphabet : TByteDynArray;
+    FAlphabet : TBytes;
     FReverse : TReverseAlphabet;
     FPadding : Integer;
     class var StdEncoders : Array[TStandardEncoder] of TAlphabetEncoder;
@@ -74,7 +75,7 @@ Type
     // Bits per characters
     Property Bits : Byte Read FBits;
     // ASCII value of characters
-    Property Alphabet : TByteDynArray Read FAlphabet;
+    Property Alphabet : TBytes Read FAlphabet;
     // Reverse byte->character map
     Property Reverse : TReverseAlphabet Read FReverse;
     // Bits of padding
