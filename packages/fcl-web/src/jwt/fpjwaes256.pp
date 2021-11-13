@@ -5,7 +5,7 @@ unit fpjwaes256;
 interface
 
 uses
-  Classes, SysUtils, fpjwt, Ecc;
+  Classes, SysUtils, fpjwt, fpEcc;
 
 Type
   { TJWTSignerES256 }
@@ -22,7 +22,7 @@ Type
 
 implementation
 
-uses hashutils, basenenc, ecdsa;
+uses fphashutils, basenenc, fpecdsa;
 
 { TJWTSignerES256 }
 
