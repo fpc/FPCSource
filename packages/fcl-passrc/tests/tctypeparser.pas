@@ -93,6 +93,11 @@ type
     Procedure TestSimpleTypeStringSizeWrong;
     Procedure TestSimpleTypeStringSizeDeprecated;
     Procedure TestSimpleTypeStringSizePlatform;
+    procedure TestSimpleTypeStringCodePage;
+    procedure TestSimpleTypeStringCodePageIncomplete;
+    procedure TestSimpleTypeStringCodePageWrong;
+    procedure TestSimpleTypeStringCodePageDeprecated;
+    procedure TestSimpleTypeStringCodePagePlatform;
     Procedure TestSimpleTypeWord;
     Procedure TestSimpleTypeWordDeprecated;
     Procedure TestSimpleTypeWordPlatform;
@@ -3221,7 +3226,36 @@ end;
 procedure TTestTypeParser.TestSimpleTypeStringSize;
 begin
   DoTestStringType('String[10]','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).LengthExpr);
 end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePage;
+
+begin
+  DoTestStringType('String(10)','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).CodePageExpr);
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageIncomplete;
+begin
+  DoTypeError('Incomplete string: missing )','string(10');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageWrong;
+begin
+  DoTypeError('Incomplete string, ] instead of (','string(10]');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageDeprecated;
+begin
+  DoTestStringType('String(10)','deprecated');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePagePlatform;
+begin
+  DoTestStringType('String(10)','Platform');
+end;
+
 
 procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
 begin

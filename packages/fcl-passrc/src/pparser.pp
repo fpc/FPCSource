@@ -1505,10 +1505,10 @@ function TPasParser.ParseStringType(Parent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String): TPasAliasType;
 
 Var
-  LengthAsText : String;
+  CodePageAsText,LengthAsText : String;
   ok: Boolean;
   Params: TParamsExpr;
-  LengthExpr: TPasExpr;
+  CodePageExpr,LengthExpr: TPasExpr;
 
 begin
   Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
@@ -1532,10 +1532,19 @@ begin
       CheckToken(tkSquaredBraceClose);
       LengthAsText:=ExprToText(LengthExpr);
       end
+    else if CurToken=tkBraceOpen then
+      begin
+      CodePageAsText:='';
+      NextToken;
+      CodePageExpr:=DoParseExpression(Result,nil,false);
+      CheckToken(tkBraceClose);
+      CodePageAsText:=ExprToText(CodePageExpr);
+      end
     else
       UngetToken;
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Result));
     TPasStringType(Result.DestType).LengthExpr:=LengthAsText;
+    TPasStringType(Result.DestType).CodePageExpr:=CodePageAsText;
     ok:=true;
   finally
     if not ok then
@@ -1608,9 +1617,12 @@ begin
       ok:=true;
       exit;
       end
-    else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
+    else if (CurToken in [tkBraceOpen,tkDotDot])  then // A: B..C or A: string(CP);
       begin
-      K:=stkRange;
+      if not (LowerCase(Name)='string') then
+        K:=stkRange
+      else
+        K:=stkString;
       UnGetToken;
       end
     else

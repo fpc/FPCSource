@@ -538,6 +538,7 @@ type
     DestType: TPasType;
     SubType: TPasType;
     Expr: TPasExpr;
+    CodepageExpr: TPasExpr;
   end;
 
   { TPasPointerType - todo: change it TPasAliasType }
@@ -935,6 +936,7 @@ type
   TPasStringType = class(TPasUnresolvedTypeRef)
   public
     LengthExpr : String;
+    CodePageExpr : String;
     function ElementTypeName: string; override;
   end;
 
@@ -3396,6 +3398,7 @@ begin
   ReleaseAndNil(TPasElement(SubType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.SubType'{$ENDIF});
   ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
   ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'TPasAliasType.Expr'{$ENDIF});
+  ReleaseAndNil(TPasElement(CodepageExpr){$IFDEF CheckPasTreeRefCount},'TPasAliasType.Expr'{$ENDIF});
   inherited Destroy;
 end;
 
