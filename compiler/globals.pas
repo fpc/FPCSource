@@ -265,6 +265,8 @@ interface
 {$ifdef XTENSA}
        { specified with -Ff }
        idfpath           : TPathStr;
+       { specified with }
+       idf_version       : longint;
 {$endif XTENSA}
        { external assembler extra option }
        asmextraopt       : string;

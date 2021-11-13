@@ -78,9 +78,14 @@ Type
     procedure ForceStaticLinking;
    protected
     MacVersionSet: boolean;
+    IdfVersionSet: boolean;
     processorstr: TCmdStr;
     function ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
     procedure MaybeSetDefaultMacVersionMacro;
+{$ifdef XTENSA}
+    function ParseVersionStr(out ver: longint; const compvarname, value: string): boolean;
+    procedure MaybeSetIdfVersionMacro;
+{$endif}
     procedure VerifyTargetProcessor;
   end;
 
@@ -1146,6 +1151,85 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     result:=true;
   end;
 
+{$ifdef XTENSA}
+function TOption.ParseVersionStr(out ver: longint;
+  const compvarname, value: string): boolean;
+
+  function subval(start,maxlen: longint; out stop: longint): string;
+    var
+      i: longint;
+    begin
+      result:='';
+      i:=start;
+      while (i<=length(value)) and
+            (value[i] in ['0'..'9']) do
+        inc(i);
+      { sufficient amount of digits? }
+      if (i=start) or
+         (i-start>maxlen) then
+        exit;
+      result:=copy(value,start,i-start);
+      stop:=i;
+    end;
+
+  var
+    temp,
+    compvarvalue: string[15];
+    i: longint;
+  begin
+    IdfVersionSet:=false;
+    emptystr:='';
+    { check whether the value is a valid version number }
+    if value='' then
+      begin
+        undef_system_macro(compvarname);
+        exit(true);
+      end;
+    { major version number }
+    compvarvalue:=subval(1,2,i);
+    { not enough digits -> invalid }
+    if compvarvalue='' then
+      exit(false);
+    { already end of string -> invalid }
+    if (i>=length(value)) or
+       (value[i]<>'.') then
+      exit(false);
+    { minor version number }
+    temp:=subval(i+1,2,i);
+    if temp='' then
+      exit(false);
+    if length(temp)=1 then
+      temp:='0'+temp;
+    compvarvalue:=compvarvalue+temp;
+    { patch level }
+    if i<=length(value) then
+      begin
+        if value[i]<>'.' then
+          exit(false);
+        temp:=subval(i+1,2,i);
+        if temp='' then
+          exit(false);
+
+        if length(temp)=1 then
+          temp:='0'+temp;
+        compvarvalue:=compvarvalue+temp;
+        { must be the end }
+        if i<=length(value) then
+          exit(false);
+      end
+    else
+      begin
+        compvarvalue:=compvarvalue+'00';
+      end;
+    val(compvarvalue,idf_version,i);
+    if i=0 then
+      begin
+        set_system_compvar(compvarname,compvarvalue);
+        IdfVersionSet:=true;
+        result:=true;
+      end;
+end;
+{$endif XTENSA}
 
 procedure TOption.MaybeSetDefaultMacVersionMacro;
 var
@@ -1220,6 +1304,29 @@ begin
       internalerror(2012031001);
   end;
 end;
+
+{$ifdef XTENSA}
+procedure TOption.MaybeSetIdfVersionMacro;
+begin
+  if not(target_info.system=system_xtensa_freertos) then
+    exit;
+  if IdfVersionSet then
+    exit;
+  { nothing specified -> defaults }
+  case current_settings.controllertype of
+    ct_esp8266:
+      begin
+        set_system_compvar('IDF_VERSION','30300');
+        idf_version:=30300;
+      end;
+    else
+      begin
+        set_system_compvar('IDF_VERSION','40200');
+        idf_version:=40200;
+      end;
+  end;
+end;
+{$endif XTENSA}
 
 procedure TOption.VerifyTargetProcessor;
   begin
@@ -2812,6 +2919,13 @@ begin
                           begin
                             break;
                           end
+{$ifdef XTENSA}
+                        else if (target_info.system in [system_xtensa_freertos]) and
+                           ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2,255)) then
+                          begin
+                            break;
+                          end
+{$endif XTENSA}
                         else
                           IllegalPara(opt);
                       end;
@@ -4572,6 +4686,11 @@ begin
 
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
+
+{$ifdef XTENSA}
+  { set ESP32 or ESP8266 default SDK versions }
+  option.MaybeSetIdfVersionMacro;
+{$endif XTENSA}
 
 {$ifdef cpufpemu}
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds

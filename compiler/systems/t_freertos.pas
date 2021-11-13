@@ -963,6 +963,7 @@ begin
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
   if idfpath='' then
     idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
+  idfpath:=ExcludeTrailingBackslash(idfpath);
 {$endif XTENSA}
 
   { for future use }
@@ -977,7 +978,7 @@ begin
 {$ifdef XTENSA}
   { generate a sdkconfig.h if none is provided,
     only a few fields are provided to far }
-  Assign(t,'sdkconfig.h');
+  Assign(t,inputfilepath+'/sdkconfig.h');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1013,9 +1014,9 @@ begin
 
   { generate an sdkconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('sdkconfig')) then
+  if not(Sysutils.FileExists(inputfilepath+'/sdkconfig')) then
     begin
-      Assign(t,'sdkconfig');
+      Assign(t,inputfilepath+'/sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1031,9 +1032,9 @@ begin
 
   { generate an Kconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('Kconfig')) then
+  if not(Sysutils.FileExists(inputfilepath+'/Kconfig')) then
     begin
-      Assign(t,'Kconfig');
+      Assign(t,inputfilepath+'/Kconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1049,9 +1050,9 @@ begin
 
   { generate an Kconfig.projbuild if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('Kconfig.projbuild')) then
+  if not(Sysutils.FileExists(inputfilepath+'/Kconfig.projbuild')) then
     begin
-      Assign(t,'Kconfig.projbuild');
+      Assign(t,inputfilepath+'/Kconfig.projbuild');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1067,9 +1068,9 @@ begin
 
   { generate an kconfigs.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('kconfigs.in')) then
+  if not(Sysutils.FileExists(inputfilepath+'/kconfigs.in')) then
     begin
-      Assign(t,'kconfigs.in');
+      Assign(t,inputfilepath+'/kconfigs.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1085,9 +1086,9 @@ begin
 
   { generate an kconfigs_projbuild.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('kconfigs_projbuild.in')) then
+  if not(Sysutils.FileExists(inputfilepath+'/kconfigs_projbuild.in')) then
     begin
-      Assign(t,'kconfigs_projbuild.in');
+      Assign(t,inputfilepath+'/kconfigs_projbuild.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1104,7 +1105,7 @@ begin
   { generate a config.env if none is provided,
     COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
     be needed to be filed properly }
-  Assign(t,'config.env');
+  Assign(t,inputfilepath+'/config.env');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1135,7 +1136,7 @@ begin
   {$pop}
 
   { generate ldgen_libraries }
-  Assign(t,'ldgen_libraries');
+  Assign(t,inputfilepath+'/ldgen_libraries');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1172,10 +1173,11 @@ begin
   if current_settings.controllertype = ct_none then
     Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32 then
-    cmdstr:='-C -P -x c -E -o esp32_out.ld -I . $IDF_PATH/components/esp32/ld/esp32.ld'
+    cmdstr:='-C -P -x c -E -o $OUTPUT/esp32_out.ld -I $OUTPUT/ $IDF_PATH/components/esp32/ld/esp32.ld'
   else
-    cmdstr:='-C -P -x c -E -o esp8266_out.ld -I . $IDF_PATH/components/esp8266/ld/esp8266.ld';
+    cmdstr:='-C -P -x c -E -o $OUTPUT/esp8266_out.ld -I $OUTPUT/ $IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$OUTPUT',inputfilepath);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
@@ -1189,21 +1191,21 @@ begin
   S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
     cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-            '--config sdkconfig '+
+            '--config $OUTPUT/sdkconfig '+
             '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
             '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
             '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
             '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
             '$IDF_PATH/components/esp_gdbstub/linker.lf '+
             '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in '+
-            '--output ./esp32.project.ld '+
+            '--output $OUTPUT/esp32.project.ld '+
             '--kconfig $IDF_PATH/Kconfig '+
-            '--env-file config.env '+
-            '--libraries-file ldgen_libraries '+
+            '--env-file $OUTPUT/config.env '+
+            '--libraries-file $OUTPUT/ldgen_libraries '+
             '--objdump '+S
   else
     cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-            '--config sdkconfig '+
+            '--config $OUTPUT/sdkconfig '+
             '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
             '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
             '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
@@ -1214,29 +1216,39 @@ begin
             '$IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig '+
             '$IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig" '+
             '--input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in '+
-            '--output ./esp8266.project.ld '+
+            '--output $OUTPUT/esp8266.project.ld '+
             '--kconfig $IDF_PATH/Kconfig '+
-            '--env-file config.env '+
-            '--libraries-file ldgen_libraries '+
+            '--env-file $OUTPUT/config.env '+
+            '--libraries-file $OUTPUT/ldgen_libraries '+
             '--objdump '+S;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  Replace(cmdstr,'$OUTPUT',inputfilepath);
+  if success and not(cs_link_nolink in current_settings.globalswitches) and
+    { Newer version doesn't need to build linker script via ldgen.py }
+    ((current_settings.controllertype = ct_esp32) and (idf_version < 40300)) then
     success:=DoExec(binstr,cmdstr,true,false);
 
   if (current_settings.controllertype = ct_esp32) then
-    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
+    begin
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
        '-L $IDF_PATH/components/esp_rom/esp32/ld '+
        '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
-       '-L . -T esp32_out.ld -T esp32.project.ld '+
-       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
+       '-L $OUTPUT -T esp32_out.ld -T esp32.project.ld '+
+       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld';
+      if idf_version>=40300 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32_rom/esp32/ld -T esp32.rom.api.ld';
+    end
   else
-    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
-      '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
-      '-L . -T esp8266_out.ld -T esp8266.project.ld'; { Project scripts }
+    begin
+      Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
+        '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
+        '-L $OUTPUT -T esp8266_out.ld -T esp8266.project.ld'; { Project scripts }
+    end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
+  Replace(Info.ExeCmd[1],'$OUTPUT',inputfilepath);
 {$endif XTENSA}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
@@ -1462,19 +1474,14 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
         if pos('.text',secname)<>0 then
           begin
             Message1(execinfo_x_codesize,tostr(secheader.sh_size));
-            inc(status.codesize,secheader.sh_size);
+            status.codesize:=secheader.sh_size;
           end
-        else if pos('.data',secname)<>0 then
+        else if secname='.data' then
           begin
             Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
             inc(status.datasize,secheader.sh_size);
           end
-        else if pos('.rodata',secname)<>0 then
-          begin
-            Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
-            inc(status.datasize,secheader.sh_size);
-          end
-        else if pos('.bss',secname)<>0 then
+        else if secname='.bss' then
           begin
             Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
             inc(status.datasize,secheader.sh_size);
