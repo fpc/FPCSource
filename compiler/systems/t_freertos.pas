@@ -1240,7 +1240,7 @@ begin
        '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
        '-L $OUTPUT -T esp32_out.ld -T esp32.project.ld '+
        '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld';
-      if idf_version>=40300 then
+      if idf_version>=40200 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32_rom/esp32/ld -T esp32.rom.api.ld';
     end
   else
