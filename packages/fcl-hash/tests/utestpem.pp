@@ -5,7 +5,7 @@ unit utestpem;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, asn, pem;
+  Classes, SysUtils, fpcunit, testregistry, fpasn, fppem;
 
 Type
 
@@ -18,7 +18,7 @@ Type
 
 implementation
 
-uses basenenc, hashutils, ecc;
+uses basenenc, fphashutils, fpecc;
 
 
 { TTestPEM }

@@ -5,7 +5,7 @@ unit utestsha512;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, sha512, hashutils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, fpsha512, fphashutils;
 
 type
 
