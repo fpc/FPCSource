@@ -117,7 +117,6 @@ begin
       end;
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
-    T:=P.Targets.AddUnit('basenenc.pp');
 
     T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
     T.Dependencies.AddInclude('printerh.inc',PrinterOSes);

@@ -139,6 +139,7 @@ begin
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
     P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes,'$(unitinstalldir)');
+    T:=P.Targets.addUnit('basenenc.pp');
 
     // Examples
     P.ExamplePath.Add('examples');
