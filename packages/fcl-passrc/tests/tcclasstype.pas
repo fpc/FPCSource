@@ -77,6 +77,7 @@ type
     procedure TestOneSpecializedClassInterface;
     Procedure TestOneField;
     Procedure TestOneFieldComment;
+    Procedure TestOneClassOfField;
     procedure TestOneFieldStatic;
     Procedure TestOneHelperField;
     Procedure TestOneVarField;
@@ -672,6 +673,15 @@ begin
   ParseClass;
   AssertNotNull('Have 1 field',Field1);
   AssertEquals('field comment','c'+sLineBreak,Field1.DocComment);
+  AssertVisibility;
+end;
+
+procedure TTestClassType.TestOneClassOfField;
+begin
+  AddMember('a : class of MyClass');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('a');
   AssertVisibility;
 end;
 

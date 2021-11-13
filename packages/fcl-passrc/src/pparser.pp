@@ -1901,7 +1901,7 @@ Type
 
 Const
   // These types are allowed only when full type declarations
-  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkObjCClass,tkInterface,tkObjcProtocol,tkDispInterface,tkType];
+  FullTypeTokens = [tkGeneric,{tkSpecialize,tkClass,}tkObjCClass,tkInterface,tkObjcProtocol,tkDispInterface,tkType];
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
   InterfaceKindTypes : Array[Boolean] of TPasObjKind = (okInterface,okObjcProtocol);
@@ -1951,6 +1951,10 @@ begin
           begin
           lClassType:=lctClass;
           NextToken;
+          if not (Full or (CurToken=tkOf)) then
+             ParseExc(nParserTypeNotAllowedHere,SParserTypeNotAllowedHere,[CurtokenText]);
+           //  Parser.CurrentModeswitches:=Parser.CurrentModeswitches+[msClass];
+
           if CurTokenIsIdentifier('Helper') then
             begin
             // class helper: atype end;
