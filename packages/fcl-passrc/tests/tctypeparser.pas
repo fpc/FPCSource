@@ -170,6 +170,7 @@ type
     procedure TestPointerReference;
     Procedure TestPointerKeyWord;
     Procedure TestPointerFile;
+    Procedure TestAbstractObject;
   end;
 
   { TTestRecordTypeParser }
@@ -3812,6 +3813,19 @@ begin
   Add('  pfile = ^file;');
   ParseDeclarations;
   AssertEquals('object definition count',1,Declarations.Types.Count);
+end;
+
+procedure TTestTypeParser.TestAbstractObject;
+
+begin
+  Add('Type');
+  Add('  Reference = object abstract');
+  Add('   x : integer;');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+  AssertEquals('object is abstract',True,TPasClassType(Declarations.Classes[0]).IsAbstract);
+  AssertEquals('object is object',True,TPasClassType(Declarations.Classes[0]).ObjKind=okObject);
 end;
 
 

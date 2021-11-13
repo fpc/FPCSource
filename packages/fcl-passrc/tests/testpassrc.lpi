@@ -24,13 +24,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestLabelParser"/>
+        <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestLabelParser"/>
+            <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
           </local>
         </Mode0>
       </Modes>
@@ -94,7 +94,7 @@
         <IsPartOfProject Value="True"/>
       </Unit12>
       <Unit13>
-        <Filename Value="tcgenerics.pp"/>
+        <Filename Value="tcgenerics.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
       <Unit14>

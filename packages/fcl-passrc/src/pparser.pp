@@ -7641,7 +7641,7 @@ var
   s: String;
   Expr: TPasExpr;
 begin
-  if (CurToken=tkIdentifier) and (AType.ObjKind=okClass) then
+  if (CurToken=tkIdentifier) and (AType.ObjKind in [okClass,okObject]) then
     begin
     s := LowerCase(CurTokenString);
     if (s = 'sealed') or (s = 'abstract') then
