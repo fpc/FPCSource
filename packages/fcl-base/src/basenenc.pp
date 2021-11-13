@@ -22,8 +22,6 @@ interface
 uses SysUtils;
 
 Type
-  TBytes = Array of Byte;
-
   { TAlphabetEncoder }
   TReverseAlphabet = Array[0..255] of Byte;
   TStandardEncoder = (seBase16,
