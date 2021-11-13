@@ -975,6 +975,9 @@ begin
   success:=true;
   Result:=false;
 
+  if inputfilepath='' then
+    inputfilepath:='.';
+
 {$ifdef XTENSA}
   { generate a sdkconfig.h if none is provided,
     only a few fields are provided to far }
