@@ -597,6 +597,7 @@ implementation
       begin
         classtable:=nil;
         classtablelist:=TFPList.Create;
+        classtabledef:=nil;
         { retrieve field info fields }
         fieldcount:=0;
         for i:=0 to _class.symtable.SymList.Count-1 do
