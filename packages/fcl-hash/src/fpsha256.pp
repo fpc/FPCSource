@@ -11,7 +11,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit sha256;
+unit fpsha256;
 
 {$mode ObjFPC}{$H+}
 {$MODESWITCH advancedrecords}
@@ -68,7 +68,7 @@ Const
 
 implementation
 
-uses hashutils;
+uses fphashutils;
 
 //------------------------------------------------------------------------------
 // SHA256

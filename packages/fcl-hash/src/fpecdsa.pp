@@ -1,11 +1,11 @@
-unit ecdsa;
+unit fpecdsa;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
 interface
 
 uses
-  sysutils, ecc, sha256;
+  sysutils, fpecc, fpsha256;
 
 Type
   { TECDSA }

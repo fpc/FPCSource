@@ -11,7 +11,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit sha512;
+unit fpsha512;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
@@ -20,7 +20,7 @@ unit sha512;
 interface
 
 uses
-  Classes, SysUtils, hashutils;
+  Classes, SysUtils, fphashutils;
 
 Type
   THashBuffer = array[0..127] of Byte;

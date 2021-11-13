@@ -1,11 +1,11 @@
-unit pem;
+unit fppem;
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, ecc;
+  Classes, SysUtils, fpecc;
 
 const
   _BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
@@ -34,7 +34,7 @@ Function PemLoadECDSA(const aStream : TStream; out PrivateKey: TEccPrivateKey; o
 
 implementation
 
-uses basenenc, sha256, asn, hashutils;
+uses basenenc, fpsha256, fpasn, fphashutils;
 
 procedure PemLoadPublicKey64FromList(List: TStrings; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64, ThumbPrint: AnsiString);
 

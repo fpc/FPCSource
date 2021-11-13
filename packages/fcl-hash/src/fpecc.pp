@@ -10,7 +10,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 {$mode delphi}
-unit ECC;
+unit fpECC;
 
 interface
 
@@ -71,7 +71,7 @@ var
 
 implementation
 
-uses sysutils, hashutils;
+uses sysutils, fphashutils;
 
 type
   UInt128 = record

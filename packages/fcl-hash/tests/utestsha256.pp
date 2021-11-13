@@ -5,7 +5,7 @@ unit utestsha256;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, ecc, sha256, hashutils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, fpecc, fpsha256, fphashutils;
 
 type
 
@@ -51,7 +51,7 @@ type
 implementation
 
 uses
-   pem, ecdsa,  basenenc;
+   fppem, fpecdsa,  basenenc;
 
 { TTestECDSASHA256 }
 

@@ -3,7 +3,7 @@ program demosha256;
 {$mode objfpc}
 {$h+}
 
-uses SysUtils, sha256, hashutils;
+uses SysUtils, fpsha256, fphashutils;
 
 procedure SHA256Test;
 
