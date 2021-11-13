@@ -5,7 +5,7 @@ unit fpasn;
 interface
 
 uses
-  Classes, SysUtils, hashutils;
+  Classes, SysUtils, fphashutils;
 
 const
   ASN1_BOOL       = $01;
