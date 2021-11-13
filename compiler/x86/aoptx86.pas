@@ -10640,7 +10640,41 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptADDSUB(var p : tai) : boolean;
       var
         hp1, hp2: tai;
+        Opposite: TAsmOp;
       begin
+        Result := False;
+
+        { Change:
+            add/sub 128,(dest)
+
+          To:
+            sub/add -128,(dest)
+
+          This generaally takes fewer bytes to encode because -128 can be stored
+          in a signed byte, whereas +128 cannot.
+        }
+        if (taicpu(p).opsize <> S_B) and MatchOperand(taicpu(p).oper[0]^, 128) then
+          begin
+            if taicpu(p).opcode = A_ADD then
+              Opposite := A_SUB
+            else
+              Opposite := A_ADD;
+
+            DebugMsg(SPeepholeOptimization + debug_op2str(taicpu(p).opcode) + ' 128,' + debug_operstr(taicpu(p).oper[1]^) + ' changed to ' +
+              debug_op2str(opposite) + ' -128,' + debug_operstr(taicpu(p).oper[1]^) + ' to reduce instruction size', p);
+
+            taicpu(p).opcode := Opposite;
+            taicpu(p).oper[0]^.val := -128;
+
+            { No further optimisations can be made on this instruction, so move
+              onto the next one to save time }
+            p := tai(p.Next);
+            UpdateUsedRegs(p);
+
+            Result := True;
+            Exit;
+          end;
+
         { Detect:
             add/sub %reg2,(dest)
             add/sub x,    (dest)
@@ -10651,8 +10685,6 @@ unit aoptx86;
           "Add swap" and "Sub swap" optimisations done in pass 1 if no new
           optimisations could be made.
         }
-
-        Result := False;
         if (taicpu(p).oper[0]^.typ = top_reg) and
           not RegInOp(taicpu(p).oper[0]^.reg, taicpu(p).oper[1]^) and
           (
