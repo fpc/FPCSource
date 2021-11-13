@@ -1177,6 +1177,7 @@ function TOption.ParseVersionStr(out ver: longint;
     compvarvalue: string[15];
     i: longint;
   begin
+    Result:=false;
     IdfVersionSet:=false;
     emptystr:='';
     { check whether the value is a valid version number }
