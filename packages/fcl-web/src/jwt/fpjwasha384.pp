@@ -20,7 +20,7 @@ Type
 
 implementation
 
-uses sha512, basenenc;
+uses fpsha512, basenenc;
 
 Const
   SErrHMACFailed = 'HMAC SHA384 of JWT Failed';
