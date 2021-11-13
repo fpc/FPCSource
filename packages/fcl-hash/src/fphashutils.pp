@@ -16,7 +16,7 @@ unit fphashutils;
 interface
 
 uses
-  Classes, SysUtils, ECC;
+  Classes, SysUtils, fpECC;
 
 Procedure BytesFromVar(out aBytes : TBytes; aLocation : Pointer; aSize : Integer);
 Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
