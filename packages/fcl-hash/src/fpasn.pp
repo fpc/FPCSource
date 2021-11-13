@@ -5,7 +5,7 @@ unit fpasn;
 interface
 
 uses
-  Classes, SysUtils, fphashutils;
+ Basenenc, Classes, SysUtils, fphashutils;
 
 const
   ASN1_BOOL       = $01;
@@ -69,8 +69,6 @@ procedure ASNParsePemSection(const PEM: AnsiString; List: TStrings; const BeginT
 
 
 implementation
-
-Uses basenenc;
 
 //------------------------------------------------------------------------------
 // ASN
