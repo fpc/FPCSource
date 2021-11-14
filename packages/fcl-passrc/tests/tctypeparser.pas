@@ -114,6 +114,7 @@ type
     procedure TestPointerSimpleDeprecated;
     procedure TestPointerSimplePlatform;
     Procedure TestStaticArray;
+    procedure TestStaticArrayAsRange;
     Procedure TestStaticArrayComment;
     procedure TestStaticArrayDeprecated;
     procedure TestStaticArrayPlatform;
@@ -3383,6 +3384,15 @@ begin
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
   AssertEquals('Packed',True,TPasArrayType(TheType).IsPacked);
 end;
+
+procedure TTestTypeParser.TestStaticArrayAsRange;
+
+begin
+  Parser.Options:=Parser.Options+[po_arrayrangeexpr];
+  DoParseArray('packed array [0..2] of integer','',Nil);
+  AssertEquals('Array has ranges',1,Length(TPasArrayType(TheType).Ranges));
+end;
+
 
 procedure TTestTypeParser.TestStaticArrayTypedIndex;
 begin
