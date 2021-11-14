@@ -149,7 +149,11 @@ end;
 function TORDINALHELPER.SetBitsCount: byte;
 begin
   {$ifdef TORDINALTYPESIZE1}
+{$ifdef VER3_2_2}
+        Result := PopCnt(Word(byte(Self)));
+{$else VER3_2_2}
         Result := PopCnt(byte(Self));
+{$endif VER3_2_2}
   {$else}
     {$ifdef TORDINALTYPESIZE2}
         Result := PopCnt(word(Self));
