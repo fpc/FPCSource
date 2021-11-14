@@ -415,7 +415,8 @@ implementation
 {$pop}
 {$ifdef XTENSA}
         if not(current_module.is_unit) and (target_info.system=system_xtensa_freertos) then
-          AddUnit('espidf_'+tostr(idf_version));
+          if idf_version>=40200 then
+            AddUnit('espidf_40200');
 {$endif XTENSA}
       end;
 
