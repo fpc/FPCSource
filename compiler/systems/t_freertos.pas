@@ -975,13 +975,13 @@ begin
   success:=true;
   Result:=false;
 
-  if inputfilepath='' then
-    inputfilepath:='.';
+  if outputexedir='' then
+    outputexedir:='.';
 
 {$ifdef XTENSA}
   { generate a sdkconfig.h if none is provided,
     only a few fields are provided to far }
-  Assign(t,inputfilepath+'/sdkconfig.h');
+  Assign(t,outputexedir+'/sdkconfig.h');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1017,9 +1017,9 @@ begin
 
   { generate an sdkconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(inputfilepath+'/sdkconfig')) then
+  if not(Sysutils.FileExists(outputexedir+'/sdkconfig')) then
     begin
-      Assign(t,inputfilepath+'/sdkconfig');
+      Assign(t,outputexedir+'/sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1035,9 +1035,9 @@ begin
 
   { generate an Kconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(inputfilepath+'/Kconfig')) then
+  if not(Sysutils.FileExists(outputexedir+'/Kconfig')) then
     begin
-      Assign(t,inputfilepath+'/Kconfig');
+      Assign(t,outputexedir+'/Kconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1053,9 +1053,9 @@ begin
 
   { generate an Kconfig.projbuild if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(inputfilepath+'/Kconfig.projbuild')) then
+  if not(Sysutils.FileExists(outputexedir+'/Kconfig.projbuild')) then
     begin
-      Assign(t,inputfilepath+'/Kconfig.projbuild');
+      Assign(t,outputexedir+'/Kconfig.projbuild');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1071,9 +1071,9 @@ begin
 
   { generate an kconfigs.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(inputfilepath+'/kconfigs.in')) then
+  if not(Sysutils.FileExists(outputexedir+'/kconfigs.in')) then
     begin
-      Assign(t,inputfilepath+'/kconfigs.in');
+      Assign(t,outputexedir+'/kconfigs.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1089,9 +1089,9 @@ begin
 
   { generate an kconfigs_projbuild.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(inputfilepath+'/kconfigs_projbuild.in')) then
+  if not(Sysutils.FileExists(outputexedir+'/kconfigs_projbuild.in')) then
     begin
-      Assign(t,inputfilepath+'/kconfigs_projbuild.in');
+      Assign(t,outputexedir+'/kconfigs_projbuild.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1108,7 +1108,7 @@ begin
   { generate a config.env if none is provided,
     COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
     be needed to be filed properly }
-  Assign(t,inputfilepath+'/config.env');
+  Assign(t,outputexedir+'/config.env');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1139,7 +1139,7 @@ begin
   {$pop}
 
   { generate ldgen_libraries }
-  Assign(t,inputfilepath+'/ldgen_libraries');
+  Assign(t,outputexedir+'/ldgen_libraries');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1180,7 +1180,7 @@ begin
   else
     cmdstr:='-C -P -x c -E -o $OUTPUT/esp8266_out.ld -I $OUTPUT/ $IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',inputfilepath);
+  Replace(cmdstr,'$OUTPUT',outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
@@ -1226,7 +1226,7 @@ begin
             '--objdump '+S;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',inputfilepath);
+  Replace(cmdstr,'$OUTPUT',outputexedir);
   if success and not(cs_link_nolink in current_settings.globalswitches) and
     { Newer version doesn't need to build linker script via ldgen.py }
     ((current_settings.controllertype = ct_esp32) and (idf_version < 40300)) then
@@ -1251,7 +1251,7 @@ begin
     end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
-  Replace(Info.ExeCmd[1],'$OUTPUT',inputfilepath);
+  Replace(Info.ExeCmd[1],'$OUTPUT',outputexedir);
 {$endif XTENSA}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
