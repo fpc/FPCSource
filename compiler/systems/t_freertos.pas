@@ -975,9 +975,6 @@ begin
   success:=true;
   Result:=false;
 
-  if outputexedir='' then
-    outputexedir:='.';
-
 {$ifdef XTENSA}
   { generate a sdkconfig.h if none is provided,
     only a few fields are provided to far }
@@ -1251,7 +1248,6 @@ begin
     end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
-  Replace(Info.ExeCmd[1],'$OUTPUT',outputexedir);
 {$endif XTENSA}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
