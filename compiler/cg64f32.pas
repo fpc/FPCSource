@@ -970,6 +970,8 @@ unit cg64f32;
                end;
              current_asmdata.getjumplabel(poslabel);
 
+             cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
+
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
 
@@ -983,6 +985,9 @@ unit cg64f32;
                { we do not have dynamic dfa, so avoid a warning below about the unused
                  neglabel }
                neglabel:=nil;
+
+             cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
+
              { For all other values we have a range check error }
              cg.a_call_name(list,'fpc_rangeerror',false);
 
@@ -1022,7 +1027,9 @@ unit cg64f32;
                    end;
                  { get a new neglabel (JM) }
                  current_asmdata.getjumplabel(neglabel);
+                 cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
+                 cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
 
                  cg.a_call_name(list,'fpc_rangeerror',false);
 
@@ -1073,7 +1080,9 @@ unit cg64f32;
                      cg.a_load_ref_reg(list,l.size,OS_32,l.reference,hreg);
                  end;
                current_asmdata.getjumplabel(poslabel);
+               cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
+               cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
 
                cg.a_call_name(list,'fpc_rangeerror',false);
                cg.a_label(list,poslabel);

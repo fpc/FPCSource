@@ -264,6 +264,9 @@ interface
             end;
          end;
 
+        if mboverflow and needoverflowcheck then
+          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
@@ -322,6 +325,7 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
@@ -1038,6 +1042,12 @@ interface
       hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_AX);
       {Also allocate DX, since it is also modified by a mul (JM).}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+
+      if overflowcheck and
+        { 16->32 bit cannot overflow }
+        (not is_32bitint(resultdef)) then
+        cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
       if use_ref then
         emit_ref(asmops[unsigned],S_W,ref)
       else
@@ -1048,6 +1058,7 @@ interface
         begin
           current_asmdata.getjumplabel(hl4);
           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+          cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
           cg.a_label(current_asmdata.CurrAsmList,hl4);
         end;

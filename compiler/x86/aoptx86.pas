@@ -10641,6 +10641,7 @@ unit aoptx86;
       var
         hp1, hp2: tai;
         Opposite: TAsmOp;
+        NewCond: TAsmCond;
       begin
         Result := False;
 
@@ -10659,6 +10660,71 @@ unit aoptx86;
               Opposite := A_SUB
             else
               Opposite := A_ADD;
+
+            { Be careful if the flags are in use, because the CF flag inverts
+              when changing from ADD to SUB and vice versa }
+            if RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
+              GetNextInstruction(p, hp1) then
+              begin
+                TransferUsedRegs(TmpUsedRegs);
+                TmpUsedRegs[R_SPECIALREGISTER].Update(tai(hp1.Next), True);
+
+                hp2 := hp1;
+
+                { Scan ahead to check if everything's safe }
+                while Assigned(hp1) and RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) do
+                  begin
+                    if (hp1.typ <> ait_instruction) then
+                      { Probably unsafe since the flags are still in use }
+                      Exit;
+
+                    if MatchInstruction(hp1, A_CALL, A_JMP, A_RET, []) then
+                      { Stop searching at an unconditional jump }
+                      Break;
+
+                    if (taicpu(hp1).condition = C_None) and RegInInstruction(NR_DEFAULTFLAGS, hp1) then
+                      { Instruction depends on FLAGS; break out }
+                      Exit;
+
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    TmpUsedRegs[R_SPECIALREGISTER].Update(tai(hp1.Next), True);
+
+                    { Move to the next instruction }
+                    GetNextInstruction(hp1, hp1);
+                  end;
+
+                while Assigned(hp2) and (hp2 <> hp1) do
+                  begin
+                    NewCond := C_None;
+
+                    case taicpu(hp2).condition of
+                      C_A, C_NBE:
+                        NewCond := C_BE;
+                      C_B, C_C, C_NAE:
+                        NewCond := C_AE;
+                      C_AE, C_NB, C_NC:
+                        NewCond := C_B;
+                      C_BE, C_NA:
+                        NewCond := C_A;
+                      else
+                        { No change needed };
+                    end;
+
+                    if NewCond <> C_None then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Condition changed from ' + cond2str[taicpu(hp2).condition] + ' to ' + cond2str[NewCond] +
+                          ' to accommodate ' + debug_op2str(taicpu(p).opcode) + ' -> ' + debug_op2str(opposite) + ' above', hp2);
+
+                        taicpu(hp2).condition := NewCond;
+                      end;
+
+                    { Move to the next instruction }
+                    GetNextInstruction(hp2, hp2);
+                  end;
+
+                if (hp2 <> hp1) then
+                  InternalError(2021111501);
+              end;
 
             DebugMsg(SPeepholeOptimization + debug_op2str(taicpu(p).opcode) + ' 128,' + debug_operstr(taicpu(p).oper[1]^) + ' changed to ' +
               debug_op2str(opposite) + ' -128,' + debug_operstr(taicpu(p).oper[1]^) + ' to reduce instruction size', p);

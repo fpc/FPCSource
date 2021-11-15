@@ -3711,6 +3711,7 @@ unit cgx86;
          ai.is_jmp:=true;
          list.concat(ai);
 
+         a_reg_dealloc(list, NR_DEFAULTFLAGS);
          a_call_name(list,'FPC_OVERFLOW',false);
          a_label(list,hl);
       end;

@@ -168,6 +168,9 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
+           if mboverflow and needoverflowcheck then
+             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
            { when swapped another result register }
            if (nodetype=subn) and (nf_swapped in flags) then
             begin
@@ -197,11 +200,18 @@ interface
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
-              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
+              { We need to keep the FLAGS register allocated for overflow checks }
+              if not mboverflow or not needoverflowcheck then
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reghi);
             end
            else
             begin
+              if mboverflow and needoverflowcheck then
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
               cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
                 left.location.register64);
             end;
@@ -221,6 +231,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
+
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
@@ -508,6 +520,10 @@ interface
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
           { Also allocate EDX, since it is also modified by a mul (JM). }
           cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+
+          if needoverflowcheck then
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
           if use_ref then
             emit_ref(asmops[unsigned],S_L,ref)
           else
@@ -518,6 +534,7 @@ interface
             begin
               current_asmdata.getjumplabel(hl4);
               cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
