@@ -661,7 +661,9 @@ unit cpupara;
 
                     { Split into 2 Singles again so they correctly fall into separate XMM registers }
                     classes[0].typ := X86_64_SSESF_CLASS;
-                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the array }
+                    if classes[0].def.typ = arraydef then
+                       { Break up the array }
+                      classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the array }
                     classes[1].typ := X86_64_SSESF_CLASS;
                     classes[1].def := classes[0].def;
                     result := 2;
@@ -676,7 +678,9 @@ unit cpupara;
                     classes[2].typ := X86_64_SSESF_CLASS;
                     classes[2].def := classes[1].def; { Transfer class 1 to class 2 }
                     classes[0].typ := X86_64_SSESF_CLASS;
-                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the array }
+                    if classes[0].def.typ = arraydef then
+                      { Break up the array }
+                      classes[0].def := tdef(tarraydef(classes[0].def).elementdef);
                     classes[1].typ := X86_64_SSESF_CLASS;
                     classes[1].def := classes[0].def;
                     result := 3;
@@ -688,8 +692,13 @@ unit cpupara;
                         { HFA too large (or not a true HFA) }
                         Exit(0);
 
-                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the arrays }
-                    classes[2].def := tdef(tarraydef(classes[1].def).elementdef);
+                    if classes[0].def.typ = arraydef then
+                       { Break up the array }
+                      classes[0].def := tdef(tarraydef(classes[0].def).elementdef);
+                    if classes[1].def.typ = arraydef then
+                       { Break up the array }
+                      classes[2].def := tdef(tarraydef(classes[1].def).elementdef);
+
                     classes[1].def := classes[0].def;
                     classes[3].def := classes[2].def;
 

@@ -705,7 +705,7 @@ interface
               end
             else
               begin
-                d:=tordconstnode(right).value.svalue;
+                d:=tordconstnode(right).value.uvalue;
                 if d>=aword(1) shl (left.resultdef.size*8-1) then
                   begin
 
