@@ -54,7 +54,7 @@ type
 implementation
 
 uses
-  basenenc, sha256, fpjwasha256, sha512, fpjwasha512, fpjwasha384, fpjwaes256, ecc, pem;
+  basenenc, sha256, fpjwasha256, sha512, fpjwasha512, fpjwasha384, fpjwaes256, fpecc, fppem;
 
 { TMyJWT }
 
