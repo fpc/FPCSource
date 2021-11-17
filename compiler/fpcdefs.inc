@@ -58,11 +58,6 @@
 
 {$define USEEXCEPT}
 
-{$ifdef VER3_0}
-  { fix bootstrapping dfa gives warnings on 3.2+ code due to changed case behaviour }
-  {$OPTIMIZATION NODFA}
-{$endif VER3_0}
-
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}

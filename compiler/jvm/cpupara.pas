@@ -75,7 +75,7 @@ implementation
     function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
       const
         { dummy, not used for JVM }
-        saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_NO);
+        saved_regs: tcpuregisterarray = (RS_NO);
       begin
         result:=saved_regs;
       end;

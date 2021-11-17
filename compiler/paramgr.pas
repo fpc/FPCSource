@@ -325,7 +325,7 @@ implementation
 
     function tparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
+        inv: tcpuregisterarray = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -333,7 +333,7 @@ implementation
 
     function tparamanager.get_saved_registers_address(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
+        inv: tcpuregisterarray = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -341,7 +341,7 @@ implementation
 
     function tparamanager.get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
+        inv: tcpuregisterarray = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -349,7 +349,7 @@ implementation
 
     function tparamanager.get_saved_registers_mm(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
+        inv: tcpuregisterarray = (RS_INVALID);
       begin
         result:=inv;
       end;

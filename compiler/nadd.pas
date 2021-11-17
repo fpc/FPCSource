@@ -3209,16 +3209,13 @@ implementation
                     end
                   else
                     begin
-{$ifndef VER3_0}
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       if (left.nodetype=ordconstn) and (is_currency(left.resultdef)) and ((tordconstnode(left).value mod 10000)=0) then
                         tordconstnode(left).value:=tordconstnode(left).value div 10000
                       { or if right is an integer constant, we can get rid of its factor 10000 }
                       else if (right.nodetype=ordconstn) and (is_currency(right.resultdef)) and ((tordconstnode(right).value mod 10000)=0) then
                         tordconstnode(right).value:=tordconstnode(right).value div 10000
-                      else
-{$endif VER3_0}
-                      if (right.nodetype=muln) and is_currency(right.resultdef) and
+                      else if (right.nodetype=muln) and is_currency(right.resultdef) and
                         { do not test swapped here as the internal conversions are only create as "var."*"10000" }
                         is_currency(taddnode(right).right.resultdef)  and (taddnode(right).right.nodetype=ordconstn) and (tordconstnode(taddnode(right).right).value=10000) and
                         is_currency(taddnode(right).left.resultdef) and (taddnode(right).left.nodetype=typeconvn) then

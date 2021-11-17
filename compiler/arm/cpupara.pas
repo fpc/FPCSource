@@ -87,7 +87,7 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        saved_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..6] of tsuperregister{$endif} =
+        saved_regs : tcpuregisterarray =
           (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
       begin
         result:=saved_regs;
