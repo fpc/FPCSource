@@ -118,9 +118,7 @@ Type
 
   TTestLabelParser = Class(TTestParser)
   private
-    FExpr: TPasExpr;
     FHint : string;
-    FTheStr: TPasResString;
   Protected
     Function ParseLabel(ASource : String) : TPasLabels;
     Property Hint : string Read FHint Write FHint;
@@ -571,7 +569,7 @@ end;
 procedure TTestConstParser.TestRecordConstEmpty;
 Var
   R : TRecordValues;
-  Fi : TRecordValuesItem;
+  //Fi : TRecordValuesItem;
 begin
   Typed := 'TPoint';
   ParseConst('()');
