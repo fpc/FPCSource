@@ -457,7 +457,6 @@ procedure TPasWriter.WriteDummyExternalFunctions(aSection : TPasSection);
 Var
   I : Integer;
   E : TPasElement;
-  C : TPasClassType;
 
 begin
   Addln;
