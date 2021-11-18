@@ -14,7 +14,7 @@ uses
     var
       Output: LongWord;
     begin
-	  Result := False;
+      Result := False;
       if Subtract then
         Write('Testing 32-bit subtraction of 128 from ', Initial, '... ')
       else
@@ -26,29 +26,29 @@ uses
         else
           Output := Initial + $80;
       
-		Write('no exception... ');
+        Write('no exception... ');
         
-		if OverflowExpected then
+        if OverflowExpected then
           begin
             WriteLn('FAIL: Overflow not triggered then it should have');
             Exit(True);
           end
-		else if Subtract then
-		  begin
+        else if Subtract then
+          begin
             if Output + $80 <> Initial then
               begin
                 WriteLn('FAIL: Result of ', Output, ' was incorrect');
                 Exit(True);
               end;
-		  end
-		else
-		  begin
+          end
+        else
+          begin
             if Output - $80 <> Initial then
               begin
                 WriteLn('FAIL: Result of ', Output, ' was incorrect');
                 Exit(True);
               end;
-		  end
+          end
           
       except
         on E: ERangeError do
@@ -57,8 +57,8 @@ uses
               WriteLn('FAIL: Range error triggered when it shouldn''t have');
               Exit(True);
             end
-		  else
-		    Write('ERangeError triggered... ');
+          else
+            Write('ERangeError triggered... ');
 
         on E: EIntOverflow do
           if not OverflowExpected then 
@@ -66,8 +66,8 @@ uses
               WriteLn('FAIL: Overflow triggered when it shouldn''t have');
               Exit(True);
             end
-		  else
-		    Write('EIntOverflow triggered... ');
+          else
+            Write('EIntOverflow triggered... ');
 
         on E: Exception do
           begin
@@ -83,7 +83,7 @@ uses
     var
       Output: QWord;
     begin
-	  Result := False;
+      Result := False;
       if Subtract then
         Write('Testing 64-bit subtraction of 128 from ', Initial, '... ')
       else
@@ -94,30 +94,30 @@ uses
           Output := Initial - $80
         else
           Output := Initial + $80;
-		  
-		Write('no exception... ');
+          
+        Write('no exception... ');
       
         if OverflowExpected then
           begin
             WriteLn('FAIL: Overflow not triggered then it should have');
             Exit(True);
           end
-		else if Subtract then
-		  begin
+        else if Subtract then
+          begin
             if Output + $80 <> Initial then
               begin
                 WriteLn('FAIL: Result of ', Output, ' was incorrect');
                 Exit(True);
               end;
-		  end
-		else
-		  begin
+          end
+        else
+          begin
             if Output - $80 <> Initial then
               begin
                 WriteLn('FAIL: Result of ', Output, ' was incorrect');
                 Exit(True);
               end;
-		  end
+          end
           
       except
         on E: ERangeError do
@@ -126,8 +126,8 @@ uses
               WriteLn('FAIL: Range error triggered when it shouldn''t have');
               Exit(True);
             end
-		  else
-		    Write('ERangeError triggered... ');
+          else
+            Write('ERangeError triggered... ');
 
         on E: EIntOverflow do
           if not OverflowExpected then 
@@ -135,8 +135,8 @@ uses
               WriteLn('FAIL: Overflow triggered when it shouldn''t have');
               Exit(True);
             end
-		  else
-		    Write('EIntOverflow triggered... ');
+          else
+            Write('EIntOverflow triggered... ');
 
         on E: Exception do
           begin
