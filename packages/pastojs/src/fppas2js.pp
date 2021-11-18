@@ -21823,8 +21823,6 @@ var
     else
       begin
       ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
-      if ProcScope.ImplProc<>nil then
-        ProcScope:=ProcScope.ImplProc.CustomData as TPas2JSProcedureScope;
       if ProcScope.SelfArg=nil then
         begin
         {$IFDEF VerbosePas2JS}
