@@ -9,6 +9,11 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{
+  Part of this code is based on earlier work by Wolfgang Erhardt.
+}
+
+
 unit fphashutils;
 
 {$mode ObjFPC}{$H+}
