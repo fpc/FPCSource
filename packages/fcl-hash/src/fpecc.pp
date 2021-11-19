@@ -1135,13 +1135,16 @@ Var
   i : Integer;
 
 begin
-  P:=@VLI;
-  For I:=0 to SizeOf(TVLI)-1 do
+  if (Pointer(@GetRandomBytes)=Nil) or not GetRandomBytes(@VLI,Sizeof(VLI)) then
     begin
-    P^:=Random(256);
-    Inc(P);
+    P:=@VLI;
+    For I:=0 to SizeOf(TVLI)-1 do
+      begin
+      P^:=Random(256);
+      Inc(P);
+      end;
+    Result:=True;
     end;
-  Result:=True;
 end;
 
 Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey;
