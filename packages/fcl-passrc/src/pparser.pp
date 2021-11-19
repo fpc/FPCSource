@@ -4398,9 +4398,12 @@ begin
       if CurTokenIsIdentifier('INDEX') then
         begin
         NextToken;
-        E.Exportindex:=DoParseExpression(E,Nil)
-        end
-      else if CurTokenIsIdentifier('NAME') then
+        E.Exportindex:=DoParseExpression(E,Nil);
+        nextToken;
+        if not CurTokenIsIdentifier('NAME') then
+          UngetToken;
+        end;
+      if CurTokenIsIdentifier('NAME') then
         begin
         NextToken;
         E.ExportName:=DoParseExpression(E,Nil)
