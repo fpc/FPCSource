@@ -9,6 +9,11 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{
+  Part of this code is based on earlier work by Wolfgang Erhardt.
+}
+
+
 {$mode delphi}
 unit fpECC;
 
@@ -72,10 +77,6 @@ var
 implementation
 
 uses sysutils, fphashutils;
-
-{
-  This code is based on earlier work by Wolfgang Erhardt.
-}
 
 type
   UInt128 = record
