@@ -1630,9 +1630,12 @@ begin
                                 if s=cpuflagsstr then
                                   begin
                                     Include(cpu_capabilities[init_settings.cputype],cf);
+                                    s:='';
                                     break;
                                   end;
                               end;
+                            if s<>'' then
+                              IllegalPara(opt);
                           end;
 {$endif cpucapabilities}
                         CPUSetExplicitly:=true;
