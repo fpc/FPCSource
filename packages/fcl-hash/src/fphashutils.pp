@@ -16,7 +16,10 @@ unit fphashutils;
 interface
 
 uses
-  SysUtils, fpECC;
+  SysUtils;
+
+Type
+  EHashUtil = Class(Exception);
 
 Procedure BytesFromVar(out aBytes : TBytes; aLocation : Pointer; aSize : Integer);
 Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
@@ -38,6 +41,13 @@ Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boo
 
 function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer): Boolean;
 Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
+
+Type
+  TGetRandomBytes = function(aBytes : PByte; aCount: Integer): Boolean;
+
+var
+  GetRandomBytes : TGetRandomBytes;
+
 
 implementation
 
@@ -319,15 +329,24 @@ type
     function Next: UInt32;
   end;
 
-// TODO: explore Xorshift* instead of CryptoGetRandomNumber
+
 procedure TLecuyer.Seed;
 var
-  VLI: TVLI;
+  VLI: Array[0..2] of byte;
+  I : Integer;
+
 begin
-  EccGetRandomNumber(VLI);
-  rs1 := VLI[0];
-  rs2 := VLI[1];
-  rs3 := VLI[2];
+  I:=0;
+  Repeat
+    Inc(I);
+    if (Pointer(GetRandomBytes)=Nil) or not GetRandomBytes(@VLI,Sizeof(VLI)) then
+       Raise EHashUtil.Create('Cannot seed Lecuyer: no random bytes');
+    rs1 := VLI[0];
+    rs2 := VLI[1];
+    rs3 := VLI[2];
+  Until ((RS1>1) and (rs2>7) and (RS3>15)) or (I>100);
+  if I>100 then
+    Raise EHashUtil.Create('Cannot seed Lecuyer: no suitable random bytes');
   SeedCount := 1;
 end;
 
@@ -384,6 +403,23 @@ begin
 
 end;
 
+function IntGetRandomNumber(aBytes : PByte; aCount: Integer): Boolean;
 
+Var
+  i : Integer;
+  P : PByte;
+
+begin
+  P:=aBytes;
+  For I:=0 to aCount-1 do
+    begin
+    P^:=Random(256);
+    Inc(P);
+    end;
+  Result:=True;
+end;
+
+begin
+  GetRandomBytes:=@IntGetRandomNumber;
 end.
 

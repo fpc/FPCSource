@@ -5,7 +5,7 @@ program testhash;
 {$mode objfpc}
 
 uses
-  consoletestrunner, utestsha256, utestonetimepass, utestsha512, utestpem;
+  consoletestrunner, utestsha256, utestonetimepass, utestsha512, utestpem, fpECC, fphashutils, fpsha256;
 
 var
   Application: TTestRunner;
