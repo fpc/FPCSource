@@ -73,6 +73,10 @@ implementation
 
 uses sysutils, fphashutils;
 
+{
+  This code is based on earlier work by Wolfgang Erhardt.
+}
+
 type
   UInt128 = record
     m_low: UInt64;
