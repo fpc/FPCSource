@@ -3235,6 +3235,7 @@ procedure TTestTypeParser.TestSimpleTypeStringCodePage;
 begin
   DoTestStringType('String(10)','');
   AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).CodePageExpr);
+  AssertNotNull('Have codepage expression', TPasAliasType(TheType).CodePageExpr);
 end;
 
 procedure TTestTypeParser.TestSimpleTypeStringCodePageIncomplete;

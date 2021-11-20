@@ -1537,6 +1537,7 @@ begin
       CodePageAsText:='';
       NextToken;
       CodePageExpr:=DoParseExpression(Result,nil,false);
+      Result.CodePageExpr:=CodePageExpr;
       CheckToken(tkBraceClose);
       CodePageAsText:=ExprToText(CodePageExpr);
       end
