@@ -137,10 +137,15 @@ type
    tcpuflags =
      (CPUAARCH64_HAS_LSE,     { CPU supports Large System Extensions }
       CPUAARCH64_HAS_DOTPROD, { CPU supports dotprod extension }
-      CPUAARCH64_HAS_AES,     { CPU supports AES extension }
-      CPUAARCH64_HAS_SHA2,    { CPU supports SHA2 extension }
-      CPUAARCH64_HAS_SHA3,    { CPU supports SHA3 extension }
-      CPUAARCH64_HAS_SM4      { CPU supports SM3 and SM4 extension }
+      CPUAARCH64_HAS_CRYPTO,  { CPU supports the crypto extension }
+      CPUAARCH64_HAS_AES,     { CPU supports the AES extension }
+      CPUAARCH64_HAS_SHA2,    { CPU supports the SHA2 extension }
+      CPUAARCH64_HAS_SHA3,    { CPU supports the SHA3 extension }
+      CPUAARCH64_HAS_SM4,     { CPU supports the SM3 and SM4 extension }
+      CPUAARCH64_HAS_PROFILE, { CPU supports the profile extension }
+      CPUAARCH64_HAS_MEMTAG,  { CPU supports the memtag extension }
+      CPUAARCH64_HAS_TME,     { CPU supports the tme extension }
+      CPUAARCH64_HAS_PAUTH    { CPU supports the pauth extension }
      );
 
    tfpuflags =
