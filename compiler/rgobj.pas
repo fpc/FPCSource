@@ -1536,11 +1536,15 @@ unit rgobj;
           {        while compiling the compiler. }
           tmpr:=NR_STACK_POINTER_REG;
           { e.g. AVR does not have a stack pointer register }
+{$ifndef AVR}  { 3.2.x does not optimize away the if statement based on the
+                 first condition so the include(...) statement causes an compilation
+                 error }
 {$push}{$warnings off}
           if (RS_STACK_POINTER_REG<>RS_INVALID) and
 {$pop}
             (regtype=getregtype(tmpr)) then
             include(adj_colours,RS_STACK_POINTER_REG);
+{$endif AVR}
           {Assume a spill by default...}
           found:=false;
           {Search for a colour not in this list.}
@@ -2162,7 +2166,7 @@ unit rgobj;
                   begin
                     if (getregtype(reg)=regtype) then
                       begin
-                        {A register allocation of the spilled register (and all coalesced registers) 
+                        {A register allocation of the spilled register (and all coalesced registers)
                          must be removed.}
                         supreg:=get_alias(getsupreg(reg));
                         if supregset_in(regs_to_spill_set,supreg) then
