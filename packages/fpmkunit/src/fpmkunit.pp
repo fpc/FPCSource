@@ -83,13 +83,13 @@ uses
 {$ifdef UNIX}
   BaseUnix,
 {$endif UNIX}
+{$ifdef WINDOWS}
+  windows,
+{$endif WINDOWS}
 {$ifndef NO_THREADING}
 {$ifdef UNIX}
   cthreads,
 {$endif UNIX}
-{$ifdef WINDOWS}
-  windows,
-{$endif WINDOWS}
 {$endif NO_THREADING}
   SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
