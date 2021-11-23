@@ -119,7 +119,9 @@ type
       constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
         AHelpContext: Longint);
-      Function ToString : String; override;  
+      Function ToString : String; override;
+
+      function GetBaseException : Exception;virtual;
 
       property HelpContext : longint read fhelpcontext write fhelpcontext;
       property Message : string read fmessage write fmessage;
@@ -271,7 +273,7 @@ generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inli
 
 Var
    OnShowException : Procedure (Msg : ShortString);
-   
+
 Const
    HexDisplayPrefix : string = '$';
 
@@ -326,7 +328,7 @@ Type
 
   { Type Helpers}
   {$i syshelph.inc}
-  
+
   procedure FreeAndNil(var obj);
   procedure FreeMemAndNil(var p);
 
