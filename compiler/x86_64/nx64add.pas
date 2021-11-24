@@ -30,8 +30,9 @@ interface
 
     type
        tx8664addnode = class(tx86addnode)
-          procedure second_addordinal; override;
-          procedure second_mul;
+         function use_generic_mul64bit: boolean; override;
+         procedure second_addordinal; override;
+         procedure second_mul;
        end;
 
   implementation
@@ -42,6 +43,11 @@ interface
       defutil,
       cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
       tgobj;
+
+    function tx8664addnode.use_generic_mul64bit: boolean;
+    begin
+      result:=false;
+    end;
 
 {*****************************************************************************
                                 Addordinal
