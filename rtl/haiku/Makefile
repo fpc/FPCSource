@@ -3481,7 +3481,7 @@ ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
 ifneq ($(findstring $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64),)
+ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64 powerpc64),)
 override FPCOPT+=-Cg
 endif
 endif
