@@ -2936,8 +2936,7 @@ begin
       SourceCPU:=StringToCPU({$I %FPCTARGETCPU%});
     end;
 
-  if (SourceOS<>OS) then
-    UseBinutilsPrefix:=true;
+  UseBinutilsPrefix:=(SourceOS<>OS);
   if (SourceCPU<>CPU) then
     begin
       { we need to accept 32<->64 conversion }
