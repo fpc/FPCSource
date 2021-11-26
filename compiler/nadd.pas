@@ -4407,7 +4407,7 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$elseif defined(llvm) and cpu32bitalu}
+{$elseif defined(llvm) and defined(cpu32bitalu)}
             { llvm does not support 128 bit math on 32 bit targets, which is
               necessary for overflow checking 64 bit operations }
             else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) and
