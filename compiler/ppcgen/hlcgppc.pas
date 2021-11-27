@@ -183,11 +183,16 @@ implementation
           system_powerpc_darwin,
           system_powerpc64_darwin:
             list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(procdef.mangledname,false)));
-          else if use_dotted_functions then
-            {$note ts:todo add GOT change?? - think not needed :) }
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
           else
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)))
+            begin
+              if use_dotted_functions then
+                {$note ts:todo add GOT change?? - think not needed :) }
+                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
+              else
+                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+              if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+                list.concat(taicpu.op_none(A_NOP));
+            end;
         end;
       List.concat(Tai_symbol_end.Createname(labelname));
     end;

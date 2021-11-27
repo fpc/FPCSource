@@ -1222,14 +1222,22 @@ implementation
         tmps : string;
         pd   : TProcdef;
         ImplIntf : TImplementedInterface;
-{$ifdef cpuhighleveltarget}
         wrapperpd: tprocdef;
         wrapperinfo: pskpara_interface_wrapper;
-{$else}
-       tmplist: tasmlist;
-       oldfileposinfo: tfileposinfo;
-{$endif cpuhighleveltarget}
+        tmplist: tasmlist;
+        oldfileposinfo: tfileposinfo;
+        usehighlevelwrapper: Boolean;
       begin
+{$if defined(cpuhighleveltarget)}
+        usehighlevelwrapper:=true;
+{$else defined(cpuhighleveltarget)}
+{$if defined(powerpc64)}
+        if cs_create_pic in current_settings.moduleswitches then
+          usehighlevelwrapper:=true
+        else
+{$endif defined(powerpc64)}
+          usehighlevelwrapper:=false;
+{$endif defined(cpuhighleveltarget)}
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
@@ -1246,43 +1254,46 @@ implementation
                        not is_objectpascal_helper(tprocdef(pd).struct) then
                       tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
                     tmps:=CreateWrapperName(_Class,ImplIntf,j,pd);
-{$ifdef cpuhighleveltarget}
-                    new(wrapperinfo);
-                    wrapperinfo^.pd:=pd;
-                    wrapperinfo^.offset:=ImplIntf.ioffset;
-                    { insert the wrapper procdef in the current unit's local
-                      symbol table, but set the owning "struct" to the current
-                      class (so self will have the correct type) }
-                    wrapperpd:=create_procdef_alias(pd,tmps,tmps,
-                      current_module.localsymtable,_class,
-                      tsk_interface_wrapper,wrapperinfo);
-                    include(wrapperpd.procoptions,po_noreturn);
-{$else cpuhighleveltarget}
-                    oldfileposinfo:=current_filepos;
-                    if pd.owner.iscurrentunit then
-                      current_filepos:=pd.fileinfo
-                    else
-                      begin
-                        current_filepos.moduleindex:=current_module.unit_index;
-                        current_filepos.fileindex:=1;
-                        current_filepos.line:=1;
-                        current_filepos.column:=1;
-                      end;
-                    { create wrapper code }
-                    tmplist:=tasmlist.create;
-                    new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
-                    tmplist.Concat(tai_function_name.create(tmps));
-                    hlcg.init_register_allocators;
-                    hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
-                    hlcg.done_register_allocators;
-                    if ((cs_debuginfo in current_settings.moduleswitches) or
-                       (cs_use_lineinfo in current_settings.globalswitches)) and
-                       (target_dbg.id<>dbg_stabx) then
-                         current_debuginfo.insertlineinfo(tmplist);
-                    list.concatlist(tmplist);
-                    tmplist.Free;
-                    current_filepos:=oldfileposinfo;
-{$endif cpuhighleveltarget}
+
+                  if usehighlevelwrapper then
+                    begin
+                      new(wrapperinfo);
+                      wrapperinfo^.pd:=pd;
+                      wrapperinfo^.offset:=ImplIntf.ioffset;
+                      { insert the wrapper procdef in the current unit's local
+                        symbol table, but set the owning "struct" to the current
+                        class (so self will have the correct type) }
+                      wrapperpd:=create_procdef_alias(pd,tmps,tmps,
+                        current_module.localsymtable,_class,
+                        tsk_interface_wrapper,wrapperinfo);
+                    end
+                  else
+                    begin
+                      oldfileposinfo:=current_filepos;
+                      if pd.owner.iscurrentunit then
+                        current_filepos:=pd.fileinfo
+                      else
+                        begin
+                          current_filepos.moduleindex:=current_module.unit_index;
+                          current_filepos.fileindex:=1;
+                          current_filepos.line:=1;
+                          current_filepos.column:=1;
+                        end;
+                      { create wrapper code }
+                      tmplist:=tasmlist.create;
+                      new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
+                      tmplist.Concat(tai_function_name.create(tmps));
+                      hlcg.init_register_allocators;
+                      hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
+                      hlcg.done_register_allocators;
+                      if ((cs_debuginfo in current_settings.moduleswitches) or
+                         (cs_use_lineinfo in current_settings.globalswitches)) and
+                         (target_dbg.id<>dbg_stabx) then
+                           current_debuginfo.insertlineinfo(tmplist);
+                      list.concatlist(tmplist);
+                      tmplist.Free;
+                      current_filepos:=oldfileposinfo;
+                    end;
                   end;
               end;
           end;
