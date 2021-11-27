@@ -66,18 +66,6 @@ unit rgobj;
         property bitmap[x,y:tsuperregister]:boolean read getbitmap write setbitmap;default;
       end;
 
-      Tmovelistheader=record
-        count,
-        maxcount,
-        sorted_until : cardinal;
-      end;
-
-      Tmovelist=record
-        header : Tmovelistheader;
-        data : array[tsuperregister] of Tlinkedlistitem;
-      end;
-      Pmovelist=^Tmovelist;
-
       {In the register allocator we keep track of move instructions.
        These instructions are moved between five linked lists. There
        is also a linked list per register to keep track about the moves
@@ -90,7 +78,20 @@ unit rgobj;
       Tmoveins=class(Tlinkedlistitem)
         moveset:Tmoveset;
         x,y:Tsuperregister;
+        id:tsuperregister;
       end;
+
+      Tmovelistheader=record
+        count,
+        maxcount,
+        sorted_until : cardinal;
+      end;
+
+      Tmovelist=record
+        header : Tmovelistheader;
+        data : array[tsuperregister] of Tmoveins;
+      end;
+      Pmovelist=^Tmovelist;
 
       Treginfoflag=(
         ri_coalesced,       { the register is coalesced with other register }
@@ -255,8 +256,8 @@ unit rgobj;
         backwards_was_first : tbitset;
         has_usedmarks: boolean;
         has_directalloc: boolean;
-
         spillinfo : array of tspillinfo;
+        moveins_id_counter: longint;
 
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
@@ -275,7 +276,7 @@ unit rgobj;
         function  spill_registers(list:TAsmList;headertai:tai):boolean;virtual;
         function  getnewreg(subreg:tsubregister):tsuperregister;
         procedure add_edges_used(u:Tsuperregister);
-        procedure add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
+        procedure add_to_movelist(u:Tsuperregister;ins:Tmoveins);
         function move_related(n:Tsuperregister):boolean;
         procedure make_work_list;
         procedure sort_simplify_worklist;
@@ -330,11 +331,8 @@ unit rgobj;
 
     procedure sort_movelist(ml:Pmovelist);
 
-    {Ok, sorting pointers is silly, but it does the job to make Trgobj.combine
-     faster.}
-
     var h,i,p:longword;
-        t:Tlinkedlistitem;
+        t:Tmoveins;
 
     begin
       with ml^ do
@@ -351,7 +349,7 @@ unit rgobj;
                   i:=h;
                   t:=data[i];
                   repeat
-                    if ptruint(data[i-p])<=ptruint(t) then
+                    if data[i-p].id<=t.id then
                       break;
                     data[i]:=data[i-p];
                     dec(i,p);
@@ -456,6 +454,7 @@ unit rgobj;
          { Get reginfo for CPU registers }
          maxreginfo:=first_imaginary;
          maxreginfoinc:=16;
+         moveins_id_counter:=0;
          worklist_moves:=Tlinkedlist.create;
          move_garbage:=TLinkedList.Create;
          reginfo:=allocmem(first_imaginary*sizeof(treginfo));
@@ -795,7 +794,7 @@ unit rgobj;
     end;
 {$endif EXTDEBUG}
 
-    procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
+    procedure trgobj.add_to_movelist(u:Tsuperregister;ins:Tmoveins);
     begin
 {$ifdef EXTDEBUG}
         if (u>=maxreginfo) then
@@ -820,7 +819,7 @@ unit rgobj;
                   reallocmem(movelist,ptruint(@movelist^.data)-ptruint(movelist)+movelist^.header.maxcount*sizeof(pointer));
                 end;
             end;
-          movelist^.data[movelist^.header.count]:=data;
+          movelist^.data[movelist^.header.count]:=ins;
           inc(movelist^.header.count);
         end;
     end;
@@ -953,7 +952,11 @@ unit rgobj;
       { How should we handle m68k move %d0,%a0? }
       if (getregtype(sreg)<>getregtype(dreg)) then
         exit;
+      if moveins_id_counter=high(moveins_id_counter) then
+        internalerror(2021112701);
+      inc(moveins_id_counter);
       i:=Tmoveins.create;
+      i.id:=moveins_id_counter;
       i.moveset:=ms_worklist_moves;
       worklist_moves.insert(i);
       ssupreg:=getsupreg(sreg);
@@ -1333,7 +1336,7 @@ unit rgobj;
     var adj : Psuperregisterworklist;
         i,n,p,q:cardinal;
         t : tsuperregister;
-        searched:Tlinkedlistitem;
+        searched:Tmoveins;
         found : boolean;
 
     begin
@@ -1379,7 +1382,7 @@ unit rgobj;
                   if q<>0 then
                     repeat
                       i:=(p+q) shr 1;
-                      if ptruint(searched)>ptruint(reginfo[u].movelist^.data[i]) then
+                      if searched.id>reginfo[u].movelist^.data[i].id then
                         p:=i+1
                       else
                         q:=i;
@@ -1390,7 +1393,7 @@ unit rgobj;
                         {Linear search the unsorted part of the list.}
                         found:=false;
                         for i:=header.sorted_until+1 to header.count-1 do
-                          if searched=data[i] then
+                          if searched.id=data[i].id then
                             begin
                               found:=true;
                               break;
