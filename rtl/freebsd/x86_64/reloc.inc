@@ -41,12 +41,12 @@ const  R_X86_64_IRELATIVE      = 37;
 
 procedure freebsdIdentTag;nostackframe;assembler;
   asm
-    .section ".note.openbsd.ident", "a"
+    .section ".note.tag", "a"
     .p2align 2
     .long    8
     .long    4
     .long    1
-    .asciz   "OpenBSD"
+    .asciz   "FreeBSD"
     .long    0
 
     .text
@@ -61,27 +61,28 @@ end;
 procedure do_cpuid(funcnr : integer; var p);
 begin
   asm
-    mov  rax,rdi
+    mov rax,funcnr
     cpuid
+    mov rsi,@p
     mov [rsi],eax
     mov [rsi+4],ebx
     mov [rsi+8],ecx
     mov [rsi+12],edx
-  end['rbx']; // rbx is callee saved in sysv
+  end['rax','rbx','rcx','rdx','rsi'];
 end;
 
 procedure cpuid_count(funcnr : integer;count:integer;var p);
 begin
   asm
-    mov  rax,rdi  // funcnr
-    mov  rcx,rsi  // count
-    mov  rsi,rdx  // save pointer since cpuid destroys edx
+    mov rax,funcnr
+    mov rcx,count
+    mov rsi,@p
     cpuid
     mov [rsi],eax
     mov [rsi+4],ebx
     mov [rsi+8],ecx
     mov [rsi+12],edx
-  end['rbx'];
+  end['rax','rbx','rcx','rdx','rsi'];
 end;
 
 procedure crt1_handle_rela(r : pelf_rela);
