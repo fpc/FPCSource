@@ -109,9 +109,7 @@ implementation
       aasmtai,
       wpobase,
       cgbase,parabase,paramgr,
-{$ifndef cpuhighleveltarget}
       hlcgobj,hlcgcpu,dbgbase,
-{$endif not cpuhighleveltarget}
       ncgrtti;
 
 
