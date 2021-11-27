@@ -1320,10 +1320,15 @@ begin
         set_system_compvar('IDF_VERSION','30300');
         idf_version:=30300;
       end;
-    else
+    ct_esp32:
       begin
         set_system_compvar('IDF_VERSION','40200');
         idf_version:=40200;
+      end;
+    else
+      begin
+        set_system_compvar('IDF_VERSION','00000');
+        idf_version:=0;
       end;
   end;
 end;
