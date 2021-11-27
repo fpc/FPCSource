@@ -78,7 +78,7 @@ unit rgobj;
       Tmoveins=class(Tlinkedlistitem)
         moveset:Tmoveset;
         x,y:Tsuperregister;
-        id:tsuperregister;
+        id:longint;
       end;
 
       Tmovelistheader=record
