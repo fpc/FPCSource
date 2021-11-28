@@ -1104,8 +1104,8 @@ begin
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32",');
       writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
-      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "kconfigs.in",');
-      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "kconfigs_projbuild.in"');
+      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+outputexedir+'/kconfigs.in",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+outputexedir+'/kconfigs_projbuild.in"');
     end
   else
     begin
