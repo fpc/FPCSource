@@ -1215,7 +1215,7 @@ begin
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
   Replace(cmdstr,'$OUTPUT',outputexedir);
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  if success then
     success:=DoExec(binstr,cmdstr,true,false);
 end;
 {$endif XTENSA}
