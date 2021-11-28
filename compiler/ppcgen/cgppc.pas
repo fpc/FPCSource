@@ -1055,6 +1055,7 @@ unit cgppc;
            (assigned(ref.symbol) and
             not assigned(ref.relsymbol)) then
           begin
+            include(current_procinfo.flags,pi_needs_got);
             tmpreg := load_got_symbol(list, ref.symbol.name, asmsym2indsymflags(ref.symbol));
             if (ref.base = NR_NO) then
               ref.base := tmpreg
