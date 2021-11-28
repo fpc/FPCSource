@@ -200,7 +200,7 @@ var
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   StaticStr,
   StripStr   : string[40];
 begin
@@ -389,7 +389,7 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
   GCSectionsStr : string;
   ExeName: string;
 begin

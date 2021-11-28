@@ -350,7 +350,7 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
   GCSectionsStr : string;
   MapStr: string;
 begin
@@ -391,7 +391,7 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
   GCSectionsStr : string;
   MapStr: string;
 begin
