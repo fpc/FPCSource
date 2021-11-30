@@ -190,6 +190,10 @@ const
   SLongDayNameSat = 'Saturday';
   SLongDayNameSun = 'Sunday';
 
+const
+   // Do not localize
+   HexDigits: array[0..15] of char = '0123456789ABCDEF';
+
 Function GetRunError(Errno : Word) : String;
 
 Implementation
