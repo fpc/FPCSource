@@ -1373,10 +1373,11 @@ var
   more : TCmdStr;
   major,minor : longint;
   error : integer;
-  j,l   : longint;
+  j,l   , deletepos: longint;
   d,s   : TCmdStr;
   hs    : TCmdStr;
   unicodemapping : punicodemap;
+  includecapability: Boolean;
 {$ifdef llvm}
   disable: boolean;
 {$endif}
@@ -1707,8 +1708,9 @@ begin
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
 {$ifdef cpucapabilities}
-                        if pos('+',s)<>0 then
+                        if (pos('+',s)<>0) or  (pos('-',s)<>0) then
                           begin
+                            deletepos:=min(pos('+',s),pos('-',s));
                             extrasettings:=Copy(s,Pos('+',s),Length(s));
                             Delete(s,Pos('+',s),Length(s));
                           end
@@ -1721,10 +1723,17 @@ begin
                         while extrasettings<>'' do
                           begin
                             Delete(extrasettings,1,1);
+                            includecapability:=true;
                             if Pos('+',extrasettings)<>0 then
                               begin
                                 s:=Copy(extrasettings,1,Pos('+',extrasettings)-1);
                                 Delete(extrasettings,1,Pos('+',extrasettings)-1);
+                              end
+                            else if Pos('-',extrasettings)<>0 then
+                              begin
+                                s:=Copy(extrasettings,1,Pos('+',extrasettings)-1);
+                                Delete(extrasettings,1,Pos('+',extrasettings)-1);
+                                includecapability:=false;
                               end
                             else
                               begin
@@ -1742,7 +1751,10 @@ begin
                                   Internalerror(2021110601);
                                 if s=cpuflagsstr then
                                   begin
-                                    Include(cpu_capabilities[init_settings.cputype],cf);
+                                    if includecapability then
+                                      Include(cpu_capabilities[init_settings.cputype],cf)
+                                    else
+                                      Exclude(cpu_capabilities[init_settings.cputype],cf);
                                     s:='';
                                     break;
                                   end;
