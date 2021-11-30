@@ -10966,7 +10966,7 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptADDSUB(var p : tai) : boolean;
       var
         hp1, hp2: tai;
-        Opposite: TAsmOp;
+        Opposite, SecondOpposite: TAsmOp;
         NewCond: TAsmCond;
       begin
         Result := False;
@@ -10993,7 +10993,7 @@ unit aoptx86;
               GetNextInstruction(p, hp1) then
               begin
                 TransferUsedRegs(TmpUsedRegs);
-                TmpUsedRegs[R_SPECIALREGISTER].Update(tai(hp1.Next), True);
+                TmpUsedRegs[R_SPECIALREGISTER].Update(tai(p.Next), True);
 
                 hp2 := hp1;
 
@@ -11008,8 +11008,13 @@ unit aoptx86;
                       { Stop searching at an unconditional jump }
                       Break;
 
-                    if (taicpu(hp1).condition = C_None) and RegInInstruction(NR_DEFAULTFLAGS, hp1) then
-                      { Instruction depends on FLAGS; break out }
+                    if not
+                      (
+                        MatchInstruction(hp1, A_ADC, A_SBB, []) and
+                        (taicpu(hp1).oper[0]^.typ = top_const) { We need to be able to invert a constant }
+                      ) and
+                      (taicpu(hp1).condition = C_None) and RegInInstruction(NR_DEFAULTFLAGS, hp1) then
+                      { Instruction depends on FLAGS (and is not ADC or SBB); break out }
                       Exit;
 
                     UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
@@ -11042,7 +11047,33 @@ unit aoptx86;
                           ' to accommodate ' + debug_op2str(taicpu(p).opcode) + ' -> ' + debug_op2str(opposite) + ' above', hp2);
 
                         taicpu(hp2).condition := NewCond;
-                      end;
+                      end
+                    else
+                      if MatchInstruction(hp2, A_ADC, A_SBB, []) then
+                        begin
+                          { Because of the flipping of the carry bit, to ensure
+                            the operation remains equivalent, ADC becomes SBB
+                            and vice versa, and the constant is not-inverted.
+
+                            If multiple ADCs or SBBs appear in a row, each one
+                            changed causes the carry bit to invert, so they all
+                            need to be flipped }
+                          if taicpu(hp2).opcode = A_ADC then
+                            SecondOpposite := A_SBB
+                          else
+                            SecondOpposite := A_ADC;
+
+                          if taicpu(hp2).oper[0]^.typ <> top_const then
+                            { Should have broken out of this optimisation already }
+                            InternalError(2021112901);
+
+                          DebugMsg(SPeepholeOptimization + debug_op2str(taicpu(hp2).opcode) + debug_opsize2str(taicpu(hp2).opsize) + ' $' + debug_tostr(taicpu(hp2).oper[0]^.val) + ',' + debug_operstr(taicpu(hp2).oper[1]^) + ' -> ' +
+                            debug_op2str(SecondOpposite) + debug_opsize2str(taicpu(hp2).opsize) + ' $' + debug_tostr(not taicpu(hp2).oper[0]^.val) + ',' + debug_operstr(taicpu(hp2).oper[1]^) + ' to accommodate inverted carry bit', hp2);
+
+                          { Bit-invert the constant (effectively equivalent to "-1 - val") }
+                          taicpu(hp2).opcode := SecondOpposite;
+                          taicpu(hp2).oper[0]^.val := not taicpu(hp2).oper[0]^.val;
+                        end;
 
                     { Move to the next instruction }
                     GetNextInstruction(hp2, hp2);
@@ -11052,8 +11083,8 @@ unit aoptx86;
                   InternalError(2021111501);
               end;
 
-            DebugMsg(SPeepholeOptimization + debug_op2str(taicpu(p).opcode) + ' 128,' + debug_operstr(taicpu(p).oper[1]^) + ' changed to ' +
-              debug_op2str(opposite) + ' -128,' + debug_operstr(taicpu(p).oper[1]^) + ' to reduce instruction size', p);
+            DebugMsg(SPeepholeOptimization + debug_op2str(taicpu(p).opcode) + debug_opsize2str(taicpu(p).opsize) + ' $128,' + debug_operstr(taicpu(p).oper[1]^) + ' changed to ' +
+              debug_op2str(opposite) + debug_opsize2str(taicpu(p).opsize) + ' $-128,' + debug_operstr(taicpu(p).oper[1]^) + ' to reduce instruction size', p);
 
             taicpu(p).opcode := Opposite;
             taicpu(p).oper[0]^.val := -128;
