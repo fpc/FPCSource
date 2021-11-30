@@ -1058,8 +1058,10 @@ implementation
           $10000..$FFFFFFFF:
             WritePointer := '$' + hexstr(PtrUInt(P), 8);
     {$ifend sizeof(Pointer) >= 4}
+    {$if sizeof(Pointer) > 4}
           else
             WritePointer := '$' + hexstr(PtrUInt(P), 2*sizeof(Pointer));
+    {$ifend sizeof(Pointer) > 4}
         end;
       end;
 
