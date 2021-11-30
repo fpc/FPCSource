@@ -1,3 +1,4 @@
+
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -875,9 +876,6 @@ begin
 end;
 
 {   IntToHex returns a string representing the hexadecimal value of Value   }
-
-const
-   HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
 function IntToHex(Value: Longint; Digits: integer): string;
 var i: integer;
