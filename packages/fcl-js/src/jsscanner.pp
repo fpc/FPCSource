@@ -22,7 +22,7 @@ interface
 uses SysUtils, Classes, jstoken;
 
 Type
-  TECMAVersion = (ecma5,ecma2021);
+  TECMAVersion = (ecma5,ecma2015,ecma2021);
 
 Const
   // TJSToken is the maximum known set of keywords.
@@ -30,6 +30,7 @@ Const
   NonJSKeywords : Array [TECMAVersion] of TJSTokens
     = (
         [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsLet, tjsSUPER, tjsYield], //ecma5
+        [], // ecma2015
         [] // ecma2022
       );
 
@@ -84,6 +85,7 @@ Type
   TJSScanner = class
   private
     FECMAVersion: TECMAVersion;
+    FIsTypeScript: Boolean;
     FReturnComments: Boolean;
     FReturnWhiteSpace: Boolean;
     FSourceFile: TLineReader;
@@ -109,6 +111,7 @@ Type
     function ReadUnicodeEscape: WideChar;
     Function ReadRegex : TJSToken;
     procedure SetECMAVersion(AValue: TECMAVersion);
+    procedure SetIsTypeScript(AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
@@ -131,6 +134,7 @@ Type
     property CurToken: TJSToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
     property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
+    Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
   end;
 
 
@@ -167,6 +171,7 @@ begin
   inherited Create;
   FSourceFile := ALineReader;
   ECMAVersion:=aECMAVersion;
+  FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
 constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion);
@@ -393,6 +398,14 @@ begin
   if FECMAVersion=AValue then Exit;
   FECMAVersion:=AValue;
   FNonKeyWords:=NonJSKeywords[aValue];
+end;
+
+procedure TJSScanner.SetIsTypeScript(AValue: Boolean);
+begin
+  if FIsTypeScript=AValue then Exit;
+  FIsTypeScript:=AValue;
+  if True then
+    ecmaversion:=ecma2021;
 end;
 
 function TJSScanner.DoStringLiteral: TJSToken;
@@ -751,6 +764,11 @@ begin
           end
         else
           Result:=tjsEQ;
+        end
+      else if (TokenStr[0]='>') then
+        begin
+        Inc(TokenStr);
+        Result:=tjsArrow;
         end
       else
         Result := tjsAssign;

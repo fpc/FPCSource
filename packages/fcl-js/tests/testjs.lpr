@@ -6,8 +6,9 @@ uses
   {$IFDEF Unix}
   cwstring,
   {$ENDIF}
-  Classes, consoletestrunner, tcscanner, jsparser, jsscanner, jstree, jsbase,
-  tcparser, jswriter, tcwriter, jstoken, JSSrcMap, TCSrcMap;
+  Classes, consoletestrunner,
+  // tests
+  tcscanner, tcparser, tcwriter, TCSrcMap, tctsparser, tctstopas;
 
 var
   Application: TTestRunner;

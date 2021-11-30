@@ -101,6 +101,7 @@ type
     procedure TestStarEq;
     procedure TestURShift;
     procedure TestURShiftEq;
+    procedure TestArrow;
     procedure TestAwaitECMA5;
     procedure TestAwaitECMA2021;
     procedure TestBreak;
@@ -181,6 +182,7 @@ begin
   FStream:=TStringStream.Create(AInput);
   FLineReader:=TStreamLineReader.Create(Fstream);
   FScanner:=TJSScanner.Create(FLineReader,aVersion);
+  FScanner.IsTypeScript:=False;
   Result:=FScanner;
 end;
 
@@ -484,6 +486,11 @@ begin
   CheckToken(tjsURSHIFTEQ,'>>>=');
 end;
 
+procedure TTestJSScanner.TestArrow;
+begin
+  CheckToken(tjsArrow,'=>');
+end;
+
 procedure TTestJSScanner.TestAwaitECMA5;
 begin
   CheckToken(tjsIdentifier,'await');
@@ -685,7 +692,7 @@ end;
 
 procedure TTestJSScanner.TestLetECMA2021;
 begin
-  CheckToken(tjsLet,'let');
+  CheckToken(tjsLet,'let',ecma2021);
 end;
 
 procedure TTestJSScanner.TestNew;

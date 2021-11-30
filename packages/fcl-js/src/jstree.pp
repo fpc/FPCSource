@@ -81,7 +81,7 @@ Type
   TJSElementFlags = set of TJSElementFlag;
 
   TJSFunctionBody = Class;
-  TJSClassDeclaration = Class;
+
 
   { TJSElement }
 
@@ -109,10 +109,10 @@ Type
     FLocationLine: Integer;
     FLocationPos: Integer;
     FLocationSource: String;
-    FName: String;
+    FName: jsBase.TJSString;
     FNext: TJSLabel;
   Public
-    Property Name : String Read FName Write FName;
+    Property Name : jsBase.TJSString Read FName Write FName;
     Property LabelSet : TJSLabelSet Read FLabelSet Write FLabelSet;
     Property LocationSource : String Read FLocationSource Write FLocationSource;
     Property LocationLine : Integer Read FLocationLine Write FLocationLine;
@@ -123,6 +123,9 @@ Type
   TJSString = jsbase.TJSString; // beware of jstoken.tjsString
 
   { TJSFuncDef - part of TJSFunctionDeclarationStatement, e.g. 'function Name(Params)Body' }
+  TJSTypedParams = Class;
+  TJSTypeDef = Class;
+  TJSEnumTypeDef = Class;
 
   TJSFuncDef = Class(TJSObject)
   private
@@ -131,11 +134,16 @@ Type
     FIsEmpty: Boolean;
     FName: TJSString;
     FParams: TStrings;
+    FResultType: TJSTypeDef;
+    FTypedParams: TJSTypedParams;
     procedure SetParams(const AValue: TStrings);
   Public
     Constructor Create;
     Destructor Destroy; override;
-    Property Params : TStrings Read FParams Write SetParams;
+    Procedure UpdateParams;
+    Property TypedParams : TJSTypedParams Read FTypedParams;
+    Property ResultType : TJSTypeDef Read FResultType Write FResultType;
+    Property Params : TStrings Read FParams; deprecated;
     Property Body : TJSFunctionBody Read FBody Write FBody; // can be nil
     Property Name : TJSString Read FName Write FName;
     Property IsEmpty : Boolean Read FIsEmpty Write FIsEmpty;
@@ -146,6 +154,7 @@ Type
 
   TJSElement = Class(TJSObject)
   private
+    FData: TObject;
     FFlags: TJSElementFlags;
     FLine: Integer;
     FColumn: Integer;
@@ -157,6 +166,7 @@ Type
     Property Line : Integer Read FLine Write FLine;
     Property Column : Integer Read FColumn Write FColumn;
     Property Flags : TJSElementFlags Read FFlags Write FFlags;
+    Property Data : TObject Read FData write FData;
   end;
   TJSElementClass = Class of TJSElement;
   TJSElementArray = array of TJSElement;
@@ -360,6 +370,7 @@ Type
   Public
     Property VarType : TJSVarType Read FVarType Write FVarType;
   end;
+
 
   { TJSExpressionStatement - A; }
 
@@ -703,6 +714,15 @@ Type
     Class function OperatorToken : tjsToken; override;
   end;
 
+  { LHS => Expr }
+
+  { TJSArrowFunction }
+
+  TJSArrowFunction = Class(TJSAssignStatement)
+  Public
+    Class function OperatorToken : tjsToken; override;
+  end;
+
   { TJSMulEqAssignStatement - e.g. LHS*=Expr }
 
   TJSMulEqAssignStatement = Class(TJSAssignStatement)
@@ -785,13 +805,21 @@ Type
   TJSVarDeclaration = Class(TJSElement)
   private
     FInit: TJSElement;
-    FName: String;
+    FName: TJSString;
+    FOwnsType: Boolean;
+    FTyped: TJSTypeDef;
     FVarType: TJSVarType;
+    procedure SetTyped(AValue: TJSTypeDef);
   Public
     Destructor Destroy; override;
-    Property Name : String Read FName Write FName;
+    procedure SetForeignType(AValue: TJSTypeDef);
+    Property Name : TJSString Read FName Write FName;
     Property Init : TJSElement Read FInit Write FInit;
+    // let, var, const
     Property VarType : TJSVarType Read FVarType Write FVarType;
+    // Typescript type. Setting to non-nil value will set OwnsType
+    Property Typed : TJSTypeDef Read FTyped Write SetTyped;
+    Property OwnsType : Boolean Read FOwnsType;
   end;
 
   { TJSIfStatement - e.g. if (Cond) btrue else bfalse }
@@ -1053,9 +1081,11 @@ Type
   TJSFunctionDeclarationStatement = Class(TJSElement)
   private
     FFuncDef: TJSFuncDef;
+    FIsGenerator: Boolean;
   Public
     Destructor Destroy; override;
     Property AFunction : TJSFuncDef Read FFuncDef Write FFuncDef;
+    Property IsGenerator : Boolean Read FIsGenerator Write FIsGenerator;
   end;
 
   { TJSFunctionBody - the statement block of a function }
@@ -1067,30 +1097,62 @@ Type
     Property isProgram : Boolean Read FIsProgram Write FIsProgram;
   end;
 
-  TJSClassDeclaration = Class(TJSElement)
-  end;
-
 
   { TJSElementNode - element of TJSElementNodes }
 
   TJSElementNode = Class(TCollectionItem)
   private
+    FIsAmbient: Boolean;
+    FIsExport: Boolean;
     FNode: TJSElement;
   Public
     Destructor Destroy; override;
     Property Node : TJSElement Read FNode Write FNode;
+    Property IsAmbient : Boolean Read FIsAmbient Write FIsAmbient;
+    Property IsExport : Boolean Read FIsExport Write FIsExport;
   end;
 
   { TJSElementNodes - see TJSSourceElements }
 
   TJSElementNodes = Class(TCollection)
   private
+    FClearNodes: Boolean;
+    FNodeType: String;
     function GetN(AIndex : Integer): TJSElementNode;
   Public
-    Function AddNode : TJSElementNode;
+    Destructor Destroy; override;
+    Procedure ClearNodes;
+    Function AddNode(aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
+    Function AddNode(aEl : TJSElement; aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
     Function InsertNode(Index: integer) : TJSElementNode;
     Property Nodes[AIndex : Integer] : TJSElementNode Read GetN ; default;
+    Property NodeType : String Read FNodeType Write FNodeType;
+    Property DoClearNodes : Boolean Read FClearNodes Write FClearNodes;
   end;
+
+  { TJSTypedParam }
+
+  TJSTypedParam = Class(TJSElementNode)
+  private
+    FName: jsbase.TJSString;
+  Public
+    Property Name : jsbase.TJSString Read FName Write FName;
+  end;
+
+  { TJSTypedParams }
+
+  TJSTypedParams = class(TJSElementNodes)
+  private
+    function GetNames(aIndex : Integer): String;
+    function GetParams(aIndex : Integer): TJSTypedParam;
+    function GetTypes(aIndex : Integer): TJSElement;
+  Public
+    function AddParam(aName : jsBase.TJSString) : TJSTypedParam;
+    Property Params[aIndex : Integer] : TJSTypedParam Read GetParams;
+    Property Types[aIndex : Integer] : TJSElement Read GetTypes;
+    Property Names[aIndex : Integer] : String Read GetNames; default;
+  end;
+
 
   { TJSSourceElements - a list of elements, every element ends in semicolon,
     first Vars, then Functions, finally Statements }
@@ -1098,17 +1160,563 @@ Type
   TJSSourceElements = Class(TJSElement)
   private
     FFunctions: TJSElementNodes;
+    FModules: TJSElementNodes;
+    FNamespaces: TJSElementNodes;
     FStatements: TJSElementNodes;
+    FInterfaces : TJSElementNodes;
+    FTypes: TJSElementNodes;
+    FEnums: TJSElementNodes;
     FVars: TJSElementNodes;
+    FClasses: TJSElementNodes;
   Public
     Constructor Create(ALine,AColumn : Integer; const ASource : String = ''); override;
     Destructor Destroy; override;
     Property Vars : TJSElementNodes Read FVars;
     Property Functions : TJSElementNodes Read FFunctions;
     Property Statements : TJSElementNodes Read FStatements;
+    Property Classes : TJSElementNodes Read FClasses;
+    Property Modules : TJSElementNodes Read FModules;
+    Property Types : TJSElementNodes Read FTypes;
+    Property Interfaces : TJSElementNodes Read FInterfaces;
+    Property Enums : TJSElementNodes Read FEnums;
+    Property Namespaces : TJSElementNodes Read FNamespaces;
+  end;
+
+  { TJSFunctionBody - the statement block of a function }
+
+  TJSNamedElement = class(TJSElement)
+  Private
+    FName: TJSString;
+  Public
+    Property Name : TJSString Read FName Write FName;
+  end;
+
+  TJSTypeDef = class(TJSElement);
+
+
+  { TJSTypeReference }
+
+  TJSTypeReference = class(TJSTypeDef)
+  Private
+    FIsTypeOf: Boolean;
+    FName: TJSString;
+  Public
+    Property Name : TJSString Read FName Write FName;
+    Property IsTypeOf : Boolean Read FIsTypeOf Write FIsTypeOf;
+  end;
+
+
+  { TJSStructuredTypeDef }
+
+  TJSStructuredTypeDef = class(TJSTypeDef)
+  Private
+    FValues: TJSElementNodes;
+  Public
+    Constructor Create(ALine, AColumn: Integer; const ASource: String=''); override;
+    Destructor destroy; override;
+    procedure AddValue(aElement : TJSElement); virtual;
+    Property Values : TJSElementNodes Read FValues;
+  end;
+
+  { TJSEnumTypeDef }
+
+  TJSEnumTypeDef = class(TJSStructuredTypeDef)
+  private
+    function GetName(aIndex : Integer): jsBase.TJSString;
+    function GetNameCount: Integer;
+  Public
+    // names are TJSliteral
+    Procedure AddName(aName : String);
+    Property NameCount : Integer Read GetNameCount;
+    Property Names[aIndex : Integer] : jsBase.TJSString Read GetName;
+  end;
+  { TJSArrowFunctionTypeDef }
+
+  { TJSNamedTypedElement }
+
+  TJSNamedTypedElement = class(TJSNamedElement)
+  private
+    FElementType: TJSTypeDef;
+  Public
+    Destructor Destroy; override;
+    Property ElementType : TJSTypeDef Read FElementType Write FElementType;
+  end;
+
+  { TJSFunctionParamDef }
+
+
+
+  TJSFunctionParamDef = class(TJSNamedTypedElement)
+  private
+    function GetParamType: TJSTypeDef;
+    procedure SetParamType(AValue: TJSTypeDef);
+  Public
+    Property ParamType : TJSTypeDef Read GetParamType Write SetParamType;
+  end;
+
+  TJSArrowFunctionTypeDef = class(TJSTypeDef) // Params are in values.
+  private
+    FFunction: TJSFuncDef;
+  Public
+    Constructor Create(ALine,AColumn : Integer; Const ASource : String = ''); override;
+    Destructor Destroy; override;
+    Property aFunction : TJSFuncDef Read FFunction Write FFunction;
+  end;
+
+  { TJSUnionTypeDef }
+
+  TJSUnionOrTupleTypeDef = Class(TJSStructuredTypeDef)
+  private
+    function GetType(aIndex : Integer): TJSTypeDef;
+    function GetTypeCount: Integer;
+  Public
+    Property Types[aIndex : Integer] : TJSTypeDef Read GetType;
+    property TypeCount : Integer Read GetTypeCount;
+  end;
+  TJSUnionTypeDef = class(TJSUnionOrTupleTypeDef);
+  TJSTupleTypeDef = class(TJSUnionOrTupleTypeDef);
+  TJSInterSectionTypeDef = class(TJSUnionOrTupleTypeDef);
+
+  { TJSArrayTypeDef }
+
+  TJSArrayTypeDef = Class(TJSTypeDef)
+  private
+    FBaseType: TJSTypeDef;
+  Public
+    Destructor Destroy; override;
+    Property BaseType : TJSTypeDef Read FBaseType Write FBaseType;
+  end;
+
+
+  { TJSGenericTypeRef }
+
+  TJSGenericTypeRef = Class(TJSStructuredTypeDef)
+  private
+    FBaseType: TJSTypeDef;
+    function GetType(aIndex : Integer): TJSTypeDef;
+    function GetTypeCount: Integer;
+  Public
+    Destructor destroy; override;
+    Property BaseType : TJSTypeDef Read FBaseType Write FBaseType;
+    Property ParamTypes[aIndex : Integer] : TJSTypeDef Read GetType;
+    property ParamTypeCount : Integer Read GetTypeCount;
+  end;
+
+  { TJSObjectTypeElementDef }
+
+  TJSObjectTypeElementDef = Class(TJSNamedTypedElement)
+  private
+    FOptional: Boolean;
+  Public
+    Destructor Destroy; override;
+    Property Optional : Boolean Read FOptional Write FOptional;
+  end;
+
+  TJSPropertyDeclaration = Class(TJSObjectTypeElementDef);
+
+  { TJSMethodDeclaration }
+
+  TJSMethodDeclaration = Class(TJSObjectTypeElementDef)
+  private
+    FFuncDef: TJSFuncDef;
+    FTypeParams: TJSElementNodes;
+  Public
+    Destructor Destroy; override;
+    Property TypeParams : TJSElementNodes Read FTypeParams Write FTypeParams;
+    Property FuncDef : TJSFuncDef Read FFuncDef Write FFuncDef;
+  end;
+
+  { TJSObjectTypeDef }
+
+  TJSObjectTypeDef = Class(TJSStructuredTypeDef)
+  private
+    FName: TJSString;
+    function GetElement(aIndex : Integer): TJSObjectTypeElementDef;
+    function GetElementCount: Integer;
+  Public
+    procedure AddElement(const aEl: TJSObjectTypeElementDef);
+    Property Name : TJSString Read FName Write FName;
+    Property Elements[aIndex : Integer] : TJSObjectTypeElementDef Read GetElement;
+    Property ElementCount : Integer Read GetElementCount;
+  end;
+
+
+  { TJSTypeDeclaration }
+
+  TJSTypeDeclaration = class(TJSNamedElement)
+  Private
+    FTypeDef : TJSTypeDef;
+    FTypeParams : TJSElementNodes;
+  Public
+    Destructor Destroy; override;
+    Property TypeParams : TJSElementNodes Read FTypeParams Write FTypeParams;
+    Property TypeDef : TJSTypeDef Read FTypeDef Write FTypeDef;
+  end;
+
+  { TJSTypeStatement }
+
+  TJSTypeStatement = Class(TJSElement)
+  private
+    FTypeDecl: TJSTypeDeclaration;
+  Public
+    Destructor Destroy; override;
+    Property TypeDecl : TJSTypeDeclaration Read FTypeDecl Write FTypeDecl;
+  end;
+
+
+  { TJSEnumDeclaration }
+
+  TJSEnumDeclaration = Class(TJSNamedElement)
+  private
+    FEnumDef: TJSEnumTypeDef;
+  Public
+    Destructor Destroy; override;
+    Property EnumDef : TJSEnumTypeDef Read FEnumDef Write FEnumDef;
+  end;
+
+  { TJSTypeStatement }
+
+  { TJSEnumStatement }
+
+  TJSEnumStatement = Class(TJSElement)
+  private
+    FEnumDecl : TJSEnumDeclaration;
+  Public
+    Destructor Destroy; override;
+    Property EnumDecl : TJSEnumDeclaration Read FEnumDecl Write FEnumDecl;
+  end;
+
+
+  { TJSClassDeclaration }
+
+  TJSMembersDeclaration = Class(TJSElement)
+  Private
+    FMembers: TJSSourceElements;
+    procedure SetMembers(AValue: TJSSourceElements);
+  Public
+    Destructor Destroy; override;
+    property Members : TJSSourceElements Read FMembers Write SetMembers;
+  end;
+
+  TJSNamedMembersDeclaration = Class(TJSMembersDeclaration)
+  Private
+    FName: TJSString;
+  Public
+    Property Name : TJSString Read FName Write FName;
+  end;
+
+  TJSClassDeclaration = Class(TJSNamedMembersDeclaration)
+  private
+    FExtends: TJSString;
+  Public
+    Property Extends : TJSString Read FExtends Write FExtends;
+  end;
+
+  { TJSClassStatement }
+
+  TJSClassStatement =  Class(TJSElement)
+  private
+    FDecl: TJSClassDeclaration;
+  Public
+    Destructor Destroy; override;
+    Property Decl : TJSClassDeclaration Read FDecl Write FDecl;
+  end;
+  { TJSInterfaceDeclaration }
+
+  TJSInterfaceDeclaration = Class(TJSObjectTypeDef)
+  private
+    FExtends: TJSElementNodes;
+  Public
+    Destructor Destroy; override;
+    Procedure AddExtends(Const aName : TJSString);
+    property Extends : TJSElementNodes Read FExtends;
+  end;
+
+
+
+  { TJSInterfaceStatement }
+
+  TJSInterfaceStatement = Class(TJSElement)
+  private
+    FDecl: TJSInterfaceDeclaration;
+  Public
+    Destructor Destroy; override;
+    Property Decl : TJSInterfaceDeclaration Read FDecl Write FDecl;
+  end;
+
+
+  { TJSModuleDeclaration }
+
+  TJSModuleDeclaration = Class(TJSNamedMembersDeclaration)
+  end;
+
+  TJSNamespaceDeclaration = Class(TJSNamedMembersDeclaration)
   end;
 
 implementation
+
+{ TJSClassStatement }
+
+destructor TJSClassStatement.Destroy;
+begin
+  FreeAndNil(FDecl);
+  inherited Destroy;
+end;
+
+{ TJSMethodDeclaration }
+
+destructor TJSMethodDeclaration.Destroy;
+begin
+  FreeAndNil(FTypeParams);
+  FreeAndNil(FFuncDef);
+  inherited Destroy;
+end;
+
+{ TJSNamedTypedElement }
+
+destructor TJSNamedTypedElement.Destroy;
+begin
+  FreeAndNil(FElementType);
+  inherited Destroy;
+end;
+
+{ TJSInterfaceDeclarationStatement }
+
+destructor TJSInterfaceStatement.Destroy;
+begin
+  FreeAndNil(FDecl);
+  inherited Destroy;
+end;
+
+{ TJSInterfaceDeclaration }
+
+destructor TJSInterfaceDeclaration.Destroy;
+begin
+  FreeAndNil(FExtends);
+  inherited Destroy;
+end;
+
+procedure TJSInterfaceDeclaration.AddExtends(const aName: TJSString);
+
+Var
+  Lit : TJSLiteral;
+
+begin
+  if FExtends=Nil then
+    FExtends:=TJSElementNodes.Create(TJSElementNode);
+  Lit:=TJSLiteral.Create(0,0,'');
+  Lit.Value:=TJSValue.Create(aName);
+  FExtends.AddNode().Node:=Lit
+end;
+
+{ TJSEnumStatement }
+
+destructor TJSEnumStatement.Destroy;
+begin
+  FreeAndNil(FEnumDecl);
+  inherited Destroy;
+end;
+
+{ TJSEnumTypeDef }
+
+function TJSEnumTypeDef.GetName(aIndex : Integer): jsBase.TJSString;
+begin
+  Result:=TJSLiteral(Values.Nodes[aIndex].Node).Value.AsString;
+end;
+
+function TJSEnumTypeDef.GetNameCount: Integer;
+begin
+  Result:=Values.Count;
+end;
+
+procedure TJSEnumTypeDef.AddName(aName: String);
+
+Var
+  Lit : TJSLiteral;
+
+begin
+  Lit:=TJSLiteral.Create(0,0,'');
+  Lit.Value:=TJSValue.Create(aName);
+  Values.AddNode().Node:=Lit
+end;
+
+{ TJSEnumDeclaration }
+
+destructor TJSEnumDeclaration.Destroy;
+
+begin
+  FreeAndNil(FEnumDef);
+  inherited Destroy;
+end;
+
+{ TJSFunctionParamDef }
+
+function TJSFunctionParamDef.GetParamType: TJSTypeDef;
+begin
+  Result:=ElementType;
+end;
+
+procedure TJSFunctionParamDef.SetParamType(AValue: TJSTypeDef);
+begin
+  ElementType:=ParamType;
+end;
+
+{ TJSArrowFunctionTypeDef }
+
+constructor TJSArrowFunctionTypeDef.Create(ALine, AColumn: Integer; const ASource: String);
+begin
+  inherited Create(ALine, AColumn, ASource);
+  FFunction:=TJSFuncDef.Create;
+end;
+
+destructor TJSArrowFunctionTypeDef.Destroy;
+begin
+  FreeAndNil(FFunction);
+  inherited Destroy;
+end;
+
+{ TJSArrowFunction }
+
+class function TJSArrowFunction.OperatorToken: tjsToken;
+begin
+  Result:=tjsArrow;
+end;
+
+{ TJSObjectTypeDef }
+
+function TJSObjectTypeDef.GetElement(aIndex : Integer): TJSObjectTypeElementDef;
+begin
+  Result:=Values[aIndex].Node as TJSObjectTypeElementDef;
+end;
+
+function TJSObjectTypeDef.GetElementCount: Integer;
+begin
+  Result:=Values.Count;
+end;
+
+Procedure TJSObjectTypeDef.AddElement(const aEl: TJSObjectTypeElementDef);
+begin
+  Values.AddNode(False).Node:=aEl;
+end;
+
+{ TJSObjectTypeElementDef }
+
+destructor TJSObjectTypeElementDef.Destroy;
+begin
+  FreeAndNil(FElementType);
+  inherited Destroy;
+end;
+
+{ TJSArrayTypeDef }
+
+destructor TJSArrayTypeDef.Destroy;
+begin
+  FreeAndNil(FBaseType);
+  inherited Destroy;
+end;
+
+{ TJSUnionTypeDef }
+
+function TJSUnionOrTupleTypeDef.GetType(aIndex : Integer): TJSTypeDef;
+begin
+  Result:=Values.Nodes[aIndex].Node as TJSTypeDef;
+end;
+
+function TJSUnionOrTupleTypeDef.GetTypeCount: Integer;
+begin
+  Result:=Values.Count;
+end;
+
+{ TJSTypeStatement }
+
+destructor TJSTypeStatement.Destroy;
+begin
+  FreeAndNil(FTypeDecl);
+  inherited Destroy;
+end;
+
+{ TJSTypeDeclaration }
+
+destructor TJSTypeDeclaration.Destroy;
+begin
+  Writeln('Destroying ',ClassName);
+  FreeAndNil(FTypeDef);
+  FreeAndNil(FTypeParams);
+  inherited Destroy;
+end;
+
+{ TJSGenericTypeRef }
+
+function TJSGenericTypeRef.GetType(aIndex : Integer): TJSTypeDef;
+begin
+  Result:=Values[aIndex].Node as TJSTypeDef;
+end;
+
+function TJSGenericTypeRef.GetTypeCount: Integer;
+begin
+  Result:=Values.Count;
+end;
+
+destructor TJSGenericTypeRef.destroy;
+begin
+  FreeAndNil(FBaseType);
+  inherited destroy;
+end;
+
+{ TJSStructuredTypeDef }
+
+constructor TJSStructuredTypeDef.Create(ALine, AColumn: Integer; const ASource: String);
+begin
+  inherited Create(ALine, AColumn, ASource);
+  FValues:=TJSElementNodes.Create(TJSElementNode);
+end;
+
+destructor TJSStructuredTypeDef.destroy;
+begin
+  FreeAndNil(FValues);
+  Inherited;
+end;
+
+procedure TJSStructuredTypeDef.AddValue(aElement: TJSElement);
+begin
+  FValues.AddNode.Node:=aElement;
+end;
+
+{ TJSMembersDeclaration }
+
+procedure TJSMembersDeclaration.SetMembers(AValue: TJSSourceElements);
+begin
+  if FMembers=AValue then Exit;
+  FMembers:=AValue;
+end;
+
+destructor TJSMembersDeclaration.Destroy;
+begin
+  inherited Destroy;
+end;
+
+{ TJSTypedParams }
+
+function TJSTypedParams.GetNames(aIndex : Integer): String;
+begin
+  Result:=Params[aIndex].Name;
+end;
+
+function TJSTypedParams.GetParams(aIndex : Integer): TJSTypedParam;
+begin
+  Result:=TJSTypedParam(Items[aIndex]);
+end;
+
+function TJSTypedParams.GetTypes(aIndex : Integer): TJSElement;
+begin
+  Result:=Params[aIndex].Node;
+end;
+
+function TJSTypedParams.AddParam(aName: jsBase.TJSString): TJSTypedParam;
+begin
+  Result:=add as TJSTypedParam;
+  Result.Name:=aName;
+end;
 
 { TJSAliasElements }
 
@@ -2034,11 +2642,29 @@ end;
 
 { TJSVarDeclaration }
 
+procedure TJSVarDeclaration.SetTyped(AValue: TJSTypeDef);
+begin
+  if FTyped=AValue then Exit;
+  if FOwnsType then
+    FreeAndNil(FTyped);
+  FTyped:=AValue;
+  FOwnsType:=aValue<>Nil;
+end;
 
 destructor TJSVarDeclaration.Destroy;
 begin
+  if FOwnsType then
+    FreeAndNil(FTyped);
   FreeAndNil(FInit);
   inherited Destroy;
+end;
+
+procedure TJSVarDeclaration.SetForeignType(AValue: TJSTypeDef);
+begin
+  if FOwnsType then
+    FreeAndNil(FTyped);
+  FTyped:=aValue;
+  FOwnsType:=False;
 end;
 
 { TJSIfStatement }
@@ -2145,25 +2771,40 @@ end;
 
 constructor TJSSourceElements.Create(ALine, AColumn: Integer; const ASource: String
   );
+
+  Function CN(aName : String; DoClear : Boolean = False) : TJSElementNodes;
+  begin
+    Result:=TJSElementNodes.Create(TJSElementNode);
+    Result.NodeType:=aName;
+    Result.DoClearNodes:=DoClear;
+  end;
 begin
   inherited Create(ALine, AColumn, ASource);
-  FStatements:=TJSElementNodes.Create(TJSElementNode);
-  FFunctions:=TJSElementNodes.Create(TJSElementNode);
-  FVars:=TJSElementNodes.Create(TJSElementNode);
+  FStatements:=CN('Statements');
+  FFunctions:=CN('Functions');
+  FVars:=CN('Vars',True);
+  FClasses:=CN('Classes',True);
+  FModules:=CN('Modules');
+  FNamespaces:=CN('Namespaces');
+  FTypes:=CN('Types',True);
+  FInterfaces:=CN('Interfaces',True);
+  FEnums:=CN('Enums',True);
 end;
 
 destructor TJSSourceElements.Destroy;
 
-Var
-  i : integer;
 
 begin
+  // Vars, types, enums, classes, interfaces are owned by their statements, and those are freed later
+  FreeAndNil(FEnums);
+  FreeAndNil(FTypes);
+  FreeAndNil(FInterfaces);
+  FreeAndNil(FModules);
+  FreeAndNil(FNamespaces);
   FreeAndNil(FStatements);
   FreeAndNil(FFunctions);
-  // Vars are owned by their statements, and those have been freed
-  For I:=0 to FVars.Count-1 do
-    FVars.Nodes[i].Node:=nil;
   FreeAndNil(FVars);
+  FreeAndNil(FClasses);
   inherited Destroy;
 end;
 
@@ -2174,9 +2815,42 @@ begin
   Result:=TJSElementNode(Items[Aindex])
 end;
 
-function TJSElementNodes.AddNode: TJSElementNode;
+destructor TJSElementNodes.Destroy;
+begin
+  if FClearNodes then
+    ClearNodes;
+  inherited Destroy;
+end;
+
+procedure TJSElementNodes.ClearNodes;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to Count-1 do
+     begin
+     if Assigned(Nodes[i].Node) then
+       begin
+       Write(FNodeType,': Clearing node ',I,': ');
+       WriteLn(Nodes[i].Node.ClassName)
+       end
+     else
+       Writeln(FNodeType,': Node ',i,'is nil');
+     Nodes[i].Node:=Nil;
+     end;
+end;
+
+function TJSElementNodes.AddNode(aIsAmbient : Boolean = False; aIsExport : Boolean = False): TJSElementNode;
 begin
   Result:=TJSElementNode(Add);
+  Result.IsAmbient:=aIsAmbient;
+  Result.IsExport:=aIsExport;
+end;
+
+function TJSElementNodes.AddNode(aEl: TJSElement; aIsAmbient: Boolean; aIsExport: Boolean): TJSElementNode;
+begin
+  AddNode(aIsAmbient,aIsExport).Node:=aEl;
 end;
 
 function TJSElementNodes.InsertNode(Index: integer): TJSElementNode;
@@ -2206,18 +2880,34 @@ procedure TJSFuncDef.SetParams(const AValue: TStrings);
 begin
   if FParams=AValue then exit;
   FParams.Assign(AValue);
+  TStringList(FParams).OwnsObjects:=True;
 end;
+
 
 constructor TJSFuncDef.Create;
 begin
   FParams:=TStringList.Create;
+  FTypedParams:=TJSTypedParams.Create(TJSTypedParam);
 end;
 
 destructor TJSFuncDef.Destroy;
 begin
+  FreeAndNil(FTypedParams);
   FreeAndNil(FBody);
   FreeAndNil(FParams);
+  FreeAndNil(FResultType);
   inherited Destroy;
+end;
+
+procedure TJSFuncDef.UpdateParams;
+
+Var
+  I : integer;
+
+begin
+  FParams.Clear;
+  For I:=0 to TypedParams.Count-1 do
+    FParams.Add(TypedParams.Names[i]);
 end;
 
 { TJSBracketMemberExpression }

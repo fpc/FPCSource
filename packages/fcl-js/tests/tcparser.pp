@@ -11,17 +11,20 @@ type
 
   { TTestJSParser }
 
-  TTestJSParser= class(TTestCase)
+  { TTestBaseJSParser }
+
+  TTestBaseJSParser = class(TTestCase)
   Private
     FSource : TStringStream;
     FParser : TJSParser;
     FSE : TJSSourceElements;
     FToFree: TJSElement;
   protected
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override;
-    Procedure CreateParser(Const ASource : string; aVersion : TECMAVersion = TECMAVersion.ecma5);
-    Procedure CheckClass(E : TJSElement; C : TJSElementClass);
+    Procedure CreateParser(Const ASource : string; aVersion : TECMAVersion = TECMAVersion.ecma5; aIsTypeScript : Boolean = False);
+    Function CheckClass(E : TJSElement; C : TJSElementClass; Const aMsg : String = '') : TJSElement;
+    Function CheckClass(Const aMsg : String; aExpectedClass : TJSElementClass; aActual : TJSElement) : TJSElement;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSToken); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSVarType); overload;
@@ -30,9 +33,25 @@ type
     Function  GetVars : TJSElementNodes;
     Function  GetStatements : TJSElementNodes;
     Function  GetFunctions : TJSElementNodes;
+    Function  GetFirstFunction : TJSFunctionDeclarationStatement;
+    Function  GetClasses : TJSElementNodes;
+    Function  GetFirstClass : TJSClassDeclaration;
     Function  GetFirstStatement : TJSElement;
     Function  GetFirstVar : TJSElement;
+    Function  GetModules : TJSElementNodes;
+    Function  GetFirstModule : TJSModuleDeclaration;
+    Function  GetNameSpaces : TJSElementNodes;
+    Function  GetFirstNameSpace : TJSNamespaceDeclaration;
+    Function  GetTypes : TJSElementNodes;
+    Function  GetFirstType : TJSTypeDeclaration;
+    Function  GetEnums : TJSElementNodes;
+    Function  GetFirstEnum: TJSEnumDeclaration;
     Function  GetExpressionStatement : TJSExpressionStatement;
+    Function  GetFirstInterface : TJSInterfaceDeclaration;
+  end;
+
+  TTestJSParser= class(TTestBaseJSParser)
+  private
   published
     procedure TestEmpty;
     procedure TestSimple;
@@ -98,10 +117,12 @@ type
     procedure TestAwaitFunctionCallNoArgs;
     procedure TestFunctionCallOneArg;
     procedure TestFunctionCallTwoArgs;
+    procedure TestObjectGeneratorFunction;
     procedure TestArrayExpressionNumericalArgs;
     procedure TestArrayExpressionStringArgs;
     procedure TestArrayExpressionIdentArgs;
     Procedure TestVarDeclarationSimple;
+    Procedure TestVarDeclarationInit;
     Procedure TestLetDeclarationSimple;
     procedure TestVarDeclarationDouble;
     procedure TestVarDeclarationSimpleInit;
@@ -164,13 +185,130 @@ type
     Procedure TestExportDefaultAssignment;
     Procedure TestExportDefaultFunction;
     Procedure TestExportDefaultAsyncFunction;
+    Procedure TestClass;
+    Procedure TestClassExtends;
+    Procedure TestClassWithMethod;
+    procedure TestClassExpression;
+    procedure TestLetClassExpression;
   end;
 
 implementation
 
 uses typinfo;
 
-Procedure TTestJSParser.AssertEquals(Const AMessage: String; Expected,
+{ ----------------------------------------------------------------------
+  TTestBaseJSParser
+  ----------------------------------------------------------------------}
+
+procedure TTestBaseJSParser.SetUp;
+begin
+  FParser:=Nil;
+  FSource:=Nil;
+end;
+
+procedure TTestBaseJSParser.TearDown;
+begin
+  FreeAndNil(FToFree);
+  FreeAndNil(FParser);
+  FReeAndNil(FSource);
+end;
+
+Procedure TTestBaseJSParser.CreateParser(Const ASource: string; aVersion : TECMAVersion = TECMAVersion.ecma5; aIsTypeScript : Boolean = False);
+begin
+  FSource:=TStringStream.Create(ASource);
+  FParser:=TJSParser.Create(FSource,aVersion,aIsTypescript);
+end;
+
+function TTestBaseJSParser.CheckClass(E: TJSElement; C: TJSElementClass; const aMsg: String): TJSElement;
+begin
+  AssertNotNull(aMsg+': Not null element',E);
+  AssertNotNull(aMsg+': Not null class',C);
+  AssertEquals(aMsg,C,E.ClassType);
+  Result:=E;
+end;
+
+function TTestBaseJSParser.CheckClass(const aMsg: String; aExpectedClass: TJSElementClass; aActual: TJSElement): TJSElement;
+begin
+  Result:=CheckClass(aActual,aExpectedClass,aMsg);
+end;
+
+procedure TTestBaseJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSToken);
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TJSToken),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TJSToken),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
+end;
+
+Function TTestBaseJSParser.GetSourceElements: TJSSourceElements;
+
+Var
+  E : TJSElement;
+  FB : TJSFunctionBody;
+
+begin
+  If Not Assigned(FSE) then
+    begin
+    AssertNotNull('Parser assigned',FParser);
+    E:=FParser.Parse;
+    CheckClass(E,TJSFunctionBody);
+    FB:=TJSFunctionBody(E);
+    AssertNotNull(FB.A);
+    CheckClass(FB.A,TJSSourceElements);
+    FSE:=TJSSourceElements(FB.A);
+    FToFree:=E;
+    end;
+  Result:=FSE;
+end;
+
+Function TTestBaseJSParser.GetVars: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Vars;
+end;
+
+Function TTestBaseJSParser.GetStatements: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Statements;
+end;
+
+Function TTestBaseJSParser.GetFunctions: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Functions;
+end;
+
+function TTestBaseJSParser.GetFirstFunction: TJSFunctionDeclarationStatement;
+Var
+  aFunctions : TJSElementNodes;
+
+begin
+  aFunctions:=GetFunctions;
+  AssertTrue('Have functions ',aFunctions.Count>0);
+  AssertNotNull('have first function node',aFunctions.Nodes[0].Node);
+  AssertEquals('First function node is function declaration',TJSFunctionDeclarationStatement,aFunctions.Nodes[0].Node.ClassType);
+  Result:=TJSFunctionDeclarationStatement(aFunctions.Nodes[0].Node);
+end;
+
+function TTestBaseJSParser.GetClasses: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Classes;
+end;
+
+function TTestBaseJSParser.GetFirstClass: TJSClassDeclaration;
+
+Var
+  aClasses : TJSElementNodes;
+
+begin
+  aClasses:=GetClasses;
+  AssertTrue('Have classes ',aClasses.Count>0);
+  AssertNotNull('have first class node',aClasses.Nodes[0].Node);
+  AssertEquals('First class node is class declaration',TJSClassDeclaration,aClasses.Nodes[0].Node.ClassType);
+  Result:=TJSClassDeclaration(aClasses.Nodes[0].Node);
+end;
+
+Procedure TTestBaseJSParser.AssertEquals(Const AMessage: String; Expected,
   Actual: TJSType);
 
 Var
@@ -182,7 +320,7 @@ begin
   AssertEquals(AMessage,NE,NA);
 end;
 
-procedure TTestJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSVarType);
+procedure TTestBaseJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSVarType);
 
 Var
   NE,NA : String;
@@ -193,7 +331,7 @@ begin
   AssertEquals(AMessage,NE,NA);
 end;
 
-Procedure TTestJSParser.AssertIdentifier(Msg: String; El: TJSElement;
+Procedure TTestBaseJSParser.AssertIdentifier(Msg: String; El: TJSElement;
   Const AName: TJSString);
 
 Var
@@ -208,7 +346,7 @@ begin
   AssertEquals(Msg+'Identifier has correct name',S2,S1);
 end;
 
-Function TTestJSParser.GetFirstStatement: TJSElement;
+Function TTestBaseJSParser.GetFirstStatement: TJSElement;
 
 Var
   E : TJSElementNodes;
@@ -220,7 +358,7 @@ begin
   AssertNotNull('First statement assigned',Result);
 end;
 
-Function TTestJSParser.GetFirstVar: TJSElement;
+Function TTestBaseJSParser.GetFirstVar: TJSElement;
 Var
   E : TJSElementNodes;
 begin
@@ -233,7 +371,76 @@ begin
   AssertNotNull('First variable declaration',Result);
 end;
 
-Function TTestJSParser.GetExpressionStatement: TJSExpressionStatement;
+function TTestBaseJSParser.GetModules: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Modules;
+end;
+
+function TTestBaseJSParser.GetFirstModule: TJSModuleDeclaration;
+Var
+  E : TJSElementNodes;
+
+begin
+  E:=GetModules;
+  AssertNotNull('Have modules',E);
+  AssertEquals('1 statement',1,E.Count);
+  AssertEquals('First module node is module declaration',TJSModuleDeclaration,E.Nodes[0].Node.ClassType);
+  Result:=E.Nodes[0].Node as TJSModuleDeclaration;
+end;
+
+function TTestBaseJSParser.GetNameSpaces: TJSElementNodes;
+begin
+  Result:=GetSourceElements.NameSpaces;
+end;
+
+function TTestBaseJSParser.GetFirstNameSpace: TJSNamespaceDeclaration;
+
+Var
+  E : TJSElementNodes;
+
+begin
+  E:=GetNameSpaces;
+  AssertNotNull('Have namespaces',E);
+  AssertEquals('1 namespace',1,E.Count);
+  AssertEquals('First module node is namespace declaration',TJSNamespaceDeclaration,E.Nodes[0].Node.ClassType);
+  Result:=E.Nodes[0].Node as TJSNamespaceDeclaration;
+end;
+
+function TTestBaseJSParser.GetTypes: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Types;
+end;
+
+function TTestBaseJSParser.GetFirstType: TJSTypeDeclaration;
+Var
+  E : TJSElementNodes;
+
+begin
+  E:=GetTypes;
+  AssertNotNull('Have types',E);
+  AssertEquals('1 type',1,E.Count);
+  AssertEquals('First type node is type declaration',TJSTypeDeclaration,E.Nodes[0].Node.ClassType);
+  Result:=(E.Nodes[0].Node as TJSTypeDeclaration);
+end;
+
+function TTestBaseJSParser.GetEnums: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Enums;
+end;
+
+function TTestBaseJSParser.GetFirstEnum: TJSEnumDeclaration;
+Var
+  E : TJSElementNodes;
+
+begin
+  E:=GetEnums;
+  AssertNotNull('Have enums',E);
+  AssertEquals('1 type',1,E.Count);
+  AssertEquals('First type node is enum declaration',TJSEnumDeclaration,E.Nodes[0].Node.ClassType);
+  Result:=(E.Nodes[0].Node as TJSEnumDeclaration);
+end;
+
+Function TTestBaseJSParser.GetExpressionStatement: TJSExpressionStatement;
 
 Var
   N : TJSElement;
@@ -242,6 +449,27 @@ begin
   CheckClass(N,TJSExpressionStatement);
   Result:=TJSExpressionStatement(N);
 end;
+
+function TTestBaseJSParser.GetFirstInterface: TJSInterfaceDeclaration;
+Var
+  E : TJSElementNodes;
+
+begin
+  E:=GetTypes;
+  AssertNotNull('Have types',E);
+  AssertEquals('1 type',1,E.Count);
+  AssertEquals('First type node is type declaration',TJSInterfaceDeclaration,E.Nodes[0].Node.ClassType);
+  Result:=(E.Nodes[0].Node as TJSInterfaceDeclaration);
+end;
+
+
+
+{ ----------------------------------------------------------------------
+  TTestJSParser
+  ----------------------------------------------------------------------}
+
+
+
 
 
 procedure TTestJSParser.TestSimple;
@@ -1564,6 +1792,30 @@ begin
   AssertEquals('Second argument name correct','e',TJSPrimaryExpressionIdent(E).Name);
 end;
 
+procedure TTestJSParser.TestObjectGeneratorFunction;
+Var
+    X : TJSExpressionStatement;
+    SA : TJSSimpleAssignStatement;
+    Obj : TJSObjectLiteral;
+
+begin
+  CreateParser('a = {* g() { } };',MinGeneratorVersion);
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).Name);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  AssertEquals('Assignment Expression assigned',TJSObjectLiteral,SA.Expr.ClassType);
+  Obj:=TJSObjectLiteral(SA.Expr);
+  AssertEquals('Object element count',1,Obj.Elements.Count);
+  AssertEquals('Object element name','g',Obj.Elements[0].Name);
+  AssertEquals('Object element expression',TJSFunctionDeclarationStatement,Obj.Elements[0].Expr.ClassType);
+  AssertTrue('Generator',TJSFunctionDeclarationStatement(Obj.Elements[0].Expr).IsGenerator);
+end;
+
 procedure TTestJSParser.TestArrayExpressionNumericalArgs;
 Var
   X : TJSExpressionStatement;
@@ -1629,6 +1881,23 @@ begin
   AssertEquals('correct variable type', vtVar, V.VarType);
   AssertEquals('variable name correct registered', 'a', V.Name);
   AssertNull('No initialization expression', V.Init);
+end;
+
+procedure TTestJSParser.TestVarDeclarationInit;
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('var a = 0;');
+  X:=GetFirstVar;
+  AssertNotNull('Variable statement assigned',(X));
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+  AssertEquals('correct variable type', vtVar, V.VarType);
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNotNull('initialization expression', V.Init);
+  CheckClass(V.Init,TJSLiteral);
+  AssertEquals('Init value correct', 0, TJSLiteral(V.init).Value.AsNumber);
 end;
 
 procedure TTestJSParser.TestLetDeclarationSimple;
@@ -2868,6 +3137,62 @@ begin
   AssertTrue('Async',F.AFunction.IsAsync);
 end;
 
+procedure TTestJSParser.TestClass;
+begin
+  CreateParser('class Rectangle {  } ',MinClassVersion);
+  AssertEquals('class name correct','Rectangle',GetFirstClass.Name);
+  AssertEquals('class extends name correct','',GetFirstClass.Extends);
+end;
+
+procedure TTestJSParser.TestClassExtends;
+begin
+  CreateParser('class Rectangle extends Shape {  function myMethod () { return null; } } ',MinClassVersion);
+  AssertEquals('class name correct','Rectangle',GetFirstClass.Name);
+  AssertEquals('class extends name correct','Shape',GetFirstClass.Extends);
+end;
+
+procedure TTestJSParser.TestClassWithMethod;
+begin
+  CreateParser('class Rectangle {  function myMethod () { return null; } } ',MinClassVersion);
+  AssertEquals('class name correct','Rectangle',GetFirstClass.Name);
+  AssertEquals('class extends name correct','',GetFirstClass.Extends);
+  AssertNotNull('Have members',GetFirstClass.Members);
+  AssertEquals('Have functions',1,GetFirstClass.Members.Functions.Count);
+end;
+
+procedure TTestJSParser.TestClassExpression;
+
+Var
+  X : TJSExpressionStatement;
+  A  : TJSSimpleAssignStatement;
+begin
+  CreateParser('a = class Rectangle {  } ');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Have left operand',A.LHS);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Correct name for assignment LHS ','a',TJSPrimaryExpressionIdent(A.LHS).Name);
+end;
+
+procedure TTestJSParser.TestLetClassExpression;
+Var
+  aVars : TJSVariableStatement;
+  aVarDecl : TJSVarDeclaration;
+  aClass : TJSClassDeclaration;
+begin
+  CreateParser('let a = class Rectangle {  } ',MinClassVersion);
+  AssertEquals('class name correct',TJSVariableStatement, GetFirstStatement.ClassType);
+  aVars:=TJSVariableStatement(GetFirstStatement);
+  AssertEquals('First class node is var declaration',TJSVarDeclaration,aVars.A.ClassType);
+  aVarDecl:=TJSVarDeclaration(aVars.A);
+  AssertNotNull('Var declaration has init',aVarDecl.Init);
+  AssertEquals('Init is class declaration',TJSClassDeclaration,aVarDecl.Init.ClassType);
+  aClass:=TJSClassDeclaration(aVarDecl.Init);
+  AssertEquals('class name correct','Rectangle',aClass.Name);
+end;
+
+
 procedure TTestJSParser.TestExportExportNameFrom;
 
 Var
@@ -3076,75 +3401,6 @@ begin
   end;
 end;
 
-procedure TTestJSParser.SetUp; 
-begin
-  FParser:=Nil;
-  FSource:=Nil;
-end; 
-
-procedure TTestJSParser.TearDown; 
-begin
-  FreeAndNil(FToFree);
-  FreeAndNil(FParser);
-  FReeAndNil(FSource);
-end;
-
-Procedure TTestJSParser.CreateParser(Const ASource: string; aVersion : TECMAVersion = TECMAVersion.ecma5);
-begin
-  FSource:=TStringStream.Create(ASource);
-  FParser:=TJSParser.Create(FSource,aVersion);
-end;
-
-Procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
-begin
-  AssertEquals(C,E.ClassType);
-end;
-
-procedure TTestJSParser.AssertEquals(const AMessage: String; Expected, Actual: TJSToken);
-Var
-  NE,NA : String;
-
-begin
-  NE:=GetEnumName(TypeInfo(TJSToken),Ord(Expected));
-  NA:=GetEnumName(TypeInfo(TJSToken),Ord(Actual));
-  AssertEquals(AMessage,NE,NA);
-end;
-
-Function TTestJSParser.GetSourceElements: TJSSourceElements;
-
-Var
-  E : TJSElement;
-  FB : TJSFunctionBody;
-
-begin
-  If Not Assigned(FSE) then
-    begin
-    AssertNotNull('Parser assigned',FParser);
-    E:=FParser.Parse;
-    CheckClass(E,TJSFunctionBody);
-    FB:=TJSFunctionBody(E);
-    AssertNotNull(FB.A);
-    CheckClass(FB.A,TJSSourceElements);
-    FSE:=TJSSourceElements(FB.A);
-    FToFree:=E;
-    end;
-  Result:=FSE;
-end;
-
-Function TTestJSParser.GetVars: TJSElementNodes;
-begin
-  Result:=GetSourceElements.Vars;
-end;
-
-Function TTestJSParser.GetStatements: TJSElementNodes;
-begin
-  Result:=GetSourceElements.Statements;
-end;
-
-Function TTestJSParser.GetFunctions: TJSElementNodes;
-begin
-  Result:=GetSourceElements.Functions;
-end;
 
 
 initialization
