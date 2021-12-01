@@ -95,6 +95,8 @@ interface
     function trimspace(const s:string):string;
     function trimspace(const s:AnsiString):AnsiString;
     function space (b : longint): string;
+    { returns the position of the first char of the set cs in s, if there is none, then it returns 0 }
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
     function PadSpace(const s:string;len:longint):string;
     function PadSpace(const s:AnsiString;len:longint):AnsiString;
     function GetToken(var s:string;endchar:char):string;
@@ -1180,6 +1182,21 @@ implementation
          getmem(result,length(s)+1);
          result^:=s;
       end;
+
+
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
+      var
+        i : integer;
+      begin
+        result:=0;
+        for i:=1 to length(s) do
+          if s[i] in cs then
+            begin
+              result:=i;
+              exit;
+            end;
+      end;
+
 
     function CompareStr(const S1, S2: string): Integer;
       var

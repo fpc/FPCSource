@@ -1708,12 +1708,13 @@ begin
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
 {$ifdef cpucapabilities}
-                        if (pos('+',s)<>0) or  (pos('-',s)<>0) then
+                        { find first occurrence of + or - }
+                        deletepos:=PosCharset(['+','-'],s);
+                        if deletepos<>0 then
                           begin
-                            deletepos:=min(pos('+',s),pos('-',s));
-                            extrasettings:=Copy(s,Pos('+',s),Length(s));
-                            Delete(s,Pos('+',s),Length(s));
-                          end
+                            extrasettings:=Copy(s,deletepos,Length(s));
+                            Delete(s,deletepos,Length(s));
+                           end
                         else
                           extrasettings:='';
 {$endif cpucapabilities}
@@ -1724,16 +1725,12 @@ begin
                           begin
                             Delete(extrasettings,1,1);
                             includecapability:=true;
-                            if Pos('+',extrasettings)<>0 then
+                            deletepos:=PosCharset(['+','-'],extrasettings);
+                            if deletepos<>0 then
                               begin
-                                s:=Copy(extrasettings,1,Pos('+',extrasettings)-1);
-                                Delete(extrasettings,1,Pos('+',extrasettings)-1);
-                              end
-                            else if Pos('-',extrasettings)<>0 then
-                              begin
-                                s:=Copy(extrasettings,1,Pos('+',extrasettings)-1);
-                                Delete(extrasettings,1,Pos('+',extrasettings)-1);
-                                includecapability:=false;
+                                includecapability:=extrasettings[deletepos]='+';
+                                s:=Copy(extrasettings,1,deletepos-1);
+                                Delete(extrasettings,1,deletepos-1);
                               end
                             else
                               begin
