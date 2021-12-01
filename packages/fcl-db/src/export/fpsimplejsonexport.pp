@@ -222,13 +222,13 @@ Var
 
 begin
   if EF.Field.IsNull then
-    S:='NULL' // do not localize
+    S:='null' // do not localize
   else if EF.Field.DataType=ftBoolean then
     begin
     If EF.FIeld.AsBoolean then
-      S:='True' // Do not localize
+      S:='true' // Do not localize
     else
-      S:='False';// Do not localize
+      S:='false';// Do not localize
     end
   else if EF.Field.DataType=ftFloat then
     Str(EF.FIeld.asFloat,S)
@@ -239,10 +239,7 @@ begin
   If FCF=cfObject then
     S:='"'+EF.ExportedName+'" : '+S;
   If (FCurrentRow<>'') then
-    if FCF=cfObject then
-      FCurrentRow:=FCurrentRow+'; '
-    else
-      FCurrentRow:=FCurrentRow+', ';
+    FCurrentRow:=FCurrentRow+', ';
   FCurrentRow:=FCurrentRow+S;
 end;
 
