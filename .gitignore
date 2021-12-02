@@ -33,6 +33,7 @@ build-stamp.*
 BuildUnit_*.pp
 log.*
 faillist.*
+gdb4fpc.ini
 link*.res
 longlog.*
 bin
@@ -63,6 +64,7 @@ symbol_order*.fpc
 /rtl/Package.fpc
 /rtl/units-*
 /utils/fpmake
+/utils/fpcm/fpcmake
 units
 /tests/createlst
 /tests/gparmake
