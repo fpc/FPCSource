@@ -1117,6 +1117,50 @@ Type
     Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
   end;
 
+  TBoolean8Helper = Type Helper for Boolean8
+  public
+    Class Function Parse(const S: string): Boolean; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Boolean; UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline; static;
+    Class Function TryToParse(const S: string; out AValue: Boolean): Boolean; inline; static;
+  Public
+    Function ToInteger: Integer; inline;
+    Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
+  end;
+
+  TBoolean16Helper = Type Helper for Boolean16
+  public
+    Class Function Parse(const S: string): Boolean; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Boolean; UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline; static;
+    Class Function TryToParse(const S: string; out AValue: Boolean): Boolean; inline; static;
+  Public
+    Function ToInteger: Integer; inline;
+    Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
+  end;
+
+  TBoolean32Helper = Type Helper for Boolean32
+  public
+    Class Function Parse(const S: string): Boolean; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Boolean; UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline; static;
+    Class Function TryToParse(const S: string; out AValue: Boolean): Boolean; inline; static;
+  Public
+    Function ToInteger: Integer; inline;
+    Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
+  end;
+
+  TBoolean64Helper = Type Helper for Boolean64
+  public
+    Class Function Parse(const S: string): Boolean; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Boolean; UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline; static;
+    Class Function TryToParse(const S: string; out AValue: Boolean): Boolean; inline; static;
+  Public
+    Function ToInteger: Integer; inline;
+    Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
+  end;
+
   TByteBoolHelper = Type Helper for ByteBool
   public
     Class Function Parse(const S: string): Boolean; inline; static;
@@ -1140,6 +1184,17 @@ Type
   end;
 
   TLongBoolHelper = Type Helper for LongBool
+  public
+    Class Function Parse(const S: string): Boolean; inline; static;
+    Class Function Size: Integer; inline; static;
+    Class Function ToString(const AValue: Boolean; UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline; static;
+    Class Function TryToParse(const S: string; out AValue: Boolean): Boolean; inline; static;
+  public
+    Function ToInteger: Integer; inline;
+    Function ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
+  end;
+
+  TQWordBoolHelper = Type Helper for QWordBool
   public
     Class Function Parse(const S: string): Boolean; inline; static;
     Class Function Size: Integer; inline; static;

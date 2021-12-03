@@ -1774,6 +1774,38 @@ end;
 {$i syshelpb.inc}
 
 { ---------------------------------------------------------------------
+  TBoolean8Helper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TBoolean8Helper}
+{$define TBOOLTYPE:=Boolean8}
+{$i syshelpb.inc}
+
+{ ---------------------------------------------------------------------
+  TBoolean16Helper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TBoolean16Helper}
+{$define TBOOLTYPE:=Boolean16}
+{$i syshelpb.inc}
+
+{ ---------------------------------------------------------------------
+  TBoolean32Helper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TBoolean32Helper}
+{$define TBOOLTYPE:=Boolean32}
+{$i syshelpb.inc}
+
+{ ---------------------------------------------------------------------
+  TBoolean64Helper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TBoolean64Helper}
+{$define TBOOLTYPE:=Boolean64}
+{$i syshelpb.inc}
+
+{ ---------------------------------------------------------------------
   TByteBoolHelper
   ---------------------------------------------------------------------}
 
@@ -1796,5 +1828,13 @@ end;
 
 {$define TBOOLHELPER:=TLongBoolHelper}
 {$define TBOOLTYPE:=LongBool}
+{$i syshelpb.inc}
+
+{ ---------------------------------------------------------------------
+  TQWordBoolHelper
+  ---------------------------------------------------------------------}
+
+{$define TBOOLHELPER:=TQWordBoolHelper}
+{$define TBOOLTYPE:=QWordBool}
 {$i syshelpb.inc}
 
