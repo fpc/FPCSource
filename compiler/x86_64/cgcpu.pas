@@ -369,6 +369,12 @@ unit cgcpu;
         r : longint;
         regs_to_save_mm: tcpuregisterarray;
       begin
+        { if a subroutine is marked as non-returning, we do
+          not generate any exit code, so we really trust the noreturn directive
+        }
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
+
         regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
         { Prevent return address from a possible call from ending up in the epilogue }
         { (restoring registers happens before epilogue, providing necessary padding) }
