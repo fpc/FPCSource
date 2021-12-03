@@ -3028,7 +3028,7 @@ begin
     end;
 end;
 
-function RPosEX(C: char; const S: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(C: char; const S: AnsiString; offs: cardinal): SizeInt;
 
 var I   : SizeUInt;
     p,p2: pChar;
@@ -3091,7 +3091,7 @@ begin
    end;
 end;
 
-function RPosex(const Substr: AnsiString; const Source: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: cardinal): SizeInt;
 var
   MaxLen,llen : SizeInt;
   c : char;
@@ -3120,7 +3120,7 @@ begin
    end;
 end;
 
-function RPosEX(C: unicodechar; const S: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(C: unicodechar; const S: UnicodeString; offs: cardinal): SizeInt;
 
 var I   : SizeUInt;
     p,p2: PUnicodeChar;
@@ -3182,7 +3182,7 @@ begin
    end;
 end;
 
-function RPosex(const Substr: UnicodeString; const Source: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: cardinal): SizeInt;
 var
   MaxLen,llen : SizeInt;
   c : unicodechar;
