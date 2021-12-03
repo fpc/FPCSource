@@ -522,7 +522,9 @@ end;
 
 function LoadICU: boolean;
 const
-  ICUver: array [1..12] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55', '56', '58', '60');
+  ICUver: array [1..15] of ansistring =
+    ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55', '56', '58', '60',
+     '63', '66', '68');
   TestProcName = 'ucnv_open';
 
 var
@@ -623,7 +625,9 @@ initialization
     SysGetIcuProc:=@GetIcuProc;
     SetStdIOCodePages;
     {$endif android}
-  end;
+  end
+  else
+    SysLogWrite(ANDROID_LOG_ERROR, 'cwstring: Failed to load ICU.');
 
 finalization
   SetUnicodeStringManager(oldm);
