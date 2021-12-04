@@ -7954,7 +7954,7 @@ unit aoptx86;
 
         { Data flow analysis }
         TestValMin, TestValMax: TCgInt;
-        SmallerOverflow: Boolean;
+        SmallerOverflow, BitwiseOnly, OrXorUsed: Boolean;
 
       begin
         Result := False;
@@ -8000,6 +8000,8 @@ unit aoptx86;
         TrySmaller := S_NO;
         SmallerOverflow := False;
         RegChanged := False;
+        BitwiseOnly := True;
+        OrXorUsed := False;
 
         hp1 := p;
 
@@ -8118,9 +8120,7 @@ unit aoptx86;
                     end;
                 end;
 
-              { OR and XOR are not included because they can too easily fool
-                the data flow analysis (they can cause non-linear behaviour) }
-              A_ADD,A_SUB,A_AND,A_SHL,A_SHR:
+              A_ADD,A_SUB,A_AND,A_OR,A_XOR,A_SHL,A_SHR:
                 begin
                   if
                     (taicpu(hp1).oper[1]^.typ <> top_reg) or
@@ -8153,29 +8153,49 @@ unit aoptx86;
                     ) then
                     Break;
 
+                  { Only process OR and XOR if there are only bitwise operations,
+                    since otherwise they can too easily fool the data flow
+                    analysis (they can cause non-linear behaviour) }
+
                   case taicpu(hp1).opcode of
                     A_ADD:
-                      if (taicpu(hp1).oper[0]^.typ = top_reg) then
-                        begin
-                          TestValMin := TestValMin * 2;
-                          TestValMax := TestValMax * 2;
-                        end
-                      else
-                        begin
-                          TestValMin := TestValMin + taicpu(hp1).oper[0]^.val;
-                          TestValMax := TestValMax + taicpu(hp1).oper[0]^.val;
-                        end;
+                      begin
+                        if OrXorUsed then
+                          { Too high a risk of non-linear behaviour that breaks DFA here }
+                          Break
+                        else
+                          BitwiseOnly := False;
+
+                        if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                          begin
+                            TestValMin := TestValMin * 2;
+                            TestValMax := TestValMax * 2;
+                          end
+                        else
+                          begin
+                            TestValMin := TestValMin + taicpu(hp1).oper[0]^.val;
+                            TestValMax := TestValMax + taicpu(hp1).oper[0]^.val;
+                          end;
+                      end;
                     A_SUB:
-                      if (taicpu(hp1).oper[0]^.typ = top_reg) then
-                        begin
-                          TestValMin := 0;
-                          TestValMax := 0;
-                        end
-                      else
-                        begin
-                          TestValMin := TestValMin - taicpu(hp1).oper[0]^.val;
-                          TestValMax := TestValMax - taicpu(hp1).oper[0]^.val;
-                        end;
+                      begin
+                        if OrXorUsed then
+                          { Too high a risk of non-linear behaviour that breaks DFA here }
+                          Break
+                        else
+                          BitwiseOnly := False;
+
+                        if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                          begin
+                            TestValMin := 0;
+                            TestValMax := 0;
+                          end
+                        else
+                          begin
+                            TestValMin := TestValMin - taicpu(hp1).oper[0]^.val;
+                            TestValMax := TestValMax - taicpu(hp1).oper[0]^.val;
+                          end;
+                      end;
                     A_AND:
                       if (taicpu(hp1).oper[0]^.typ = top_const) then
                         begin
@@ -8211,6 +8231,26 @@ unit aoptx86;
                           TestValMin := TestValMin and taicpu(hp1).oper[0]^.val;
                           TestValMax := TestValMax and taicpu(hp1).oper[0]^.val;
                         end;
+                    A_OR:
+                      begin
+                        if not BitwiseOnly then
+                          Break;
+
+                        OrXorUsed := True;
+
+                        TestValMin := TestValMin or taicpu(hp1).oper[0]^.val;
+                        TestValMax := TestValMax or taicpu(hp1).oper[0]^.val;
+                      end;
+                    A_XOR:
+                      begin
+                        if not BitwiseOnly then
+                          Break;
+
+                        OrXorUsed := True;
+
+                        TestValMin := TestValMin xor taicpu(hp1).oper[0]^.val;
+                        TestValMax := TestValMax xor taicpu(hp1).oper[0]^.val;
+                      end;
                     A_SHL:
                       begin
                         TestValMin := TestValMin shl taicpu(hp1).oper[0]^.val;
@@ -8469,8 +8509,6 @@ unit aoptx86;
                           hp2 := p;
                           repeat
 
-                            UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
-
                             { Explicitly check for the excluded register (don't include the first
                               instruction as it may be reading from here }
                             if ((p <> hp2) and (RegInInstruction(taicpu(hp1).oper[1]^.reg, hp2))) or
@@ -8480,12 +8518,31 @@ unit aoptx86;
                                 Break;
                               end;
 
+                            UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+
                             if not GetNextInstruction(hp2, hp2) then
                               InternalError(2020112340);
 
                           until (hp2 = hp1);
 
-                          if not RegInUse and not RegUsedAfterInstruction(ThisReg, hp1, TmpUsedRegs) then
+                          if not RegInUse and RegUsedAfterInstruction(ThisReg, hp1, TmpUsedRegs) then
+                            begin
+                              RegInUse := True;
+
+                              { We might still be able to get away with this }
+                              if GetNextInstructionUsingReg(hp1, hp2, ThisReg) and
+                                (hp2.typ = ait_instruction) and
+                                (
+                                  { Under -O1 and -O2, GetNextInstructionUsingReg may return an
+                                    instruction that doesn't actually contain ThisReg }
+                                  (cs_opt_level3 in current_settings.optimizerswitches) or
+                                  RegInInstruction(ThisReg, hp2)
+                                ) and
+                                RegLoadedWithNewValue(ThisReg, hp2) then
+                                RegInUse := False;
+                            end;
+
+                          if not RegInUse then
                             begin
                               DebugMsg(SPeepholeOptimization + 'Simplified register usage so ' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' = ' + debug_regname(taicpu(p).oper[1]^.reg), p);
                               ThisReg := taicpu(hp1).oper[1]^.reg;
