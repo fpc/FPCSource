@@ -369,68 +369,63 @@ unit cgcpu;
         r : longint;
         regs_to_save_mm: tcpuregisterarray;
       begin
-        { if a subroutine is marked as non-returning, we do
-          not generate any exit code, so we really trust the noreturn directive
+        { we do not need an exit stack frame when we never return
+                * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
+                * the entry stack frame must be normally generated because the subroutine could be still left by
+                  an exception and then the unwinding code might need to restore the registers stored by the entry code
         }
-        if po_noreturn in current_procinfo.procdef.procoptions then
-          exit;
-
-        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
-        { Prevent return address from a possible call from ending up in the epilogue }
-        { (restoring registers happens before epilogue, providing necessary padding) }
-        if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
-          list.concat(Taicpu.op_none(A_NOP));
-        { remove stackframe }
-        if not(nostackframe) and
-          { we do not need an exit stack frame when we never return
-
-            * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
-            * the entry stack frame must be normally generated because the subroutine could be still left by
-              an exception and then the unwinding code might need to restore the registers stored by the entry code
-          }
-          not(po_noreturn in current_procinfo.procdef.procoptions) then
+        if not(po_noreturn in current_procinfo.procdef.procoptions) then
           begin
-            if use_push then
+            regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
+            { Prevent return address from a possible call from ending up in the epilogue }
+            { (restoring registers happens before epilogue, providing necessary padding) }
+            if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
+              list.concat(Taicpu.op_none(A_NOP));
+            { remove stackframe }
+            if not(nostackframe) then
               begin
-                if (saved_xmm_reg_size<>0) then
+                if use_push then
                   begin
-                    href:=current_procinfo.save_regs_ref;
-                    for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
-                      if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
-                        begin
-                          { Allocate register so the optimizer does not remove the load }
-                          hreg:=newreg(R_MMREGISTER,regs_to_save_mm[r],R_SUBMMWHOLE);
-                          a_reg_alloc(list,hreg);
-                          a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
-                          inc(href.offset,tcgsize2size[OS_VECTOR]);
-                        end;
-                  end;
+                    if (saved_xmm_reg_size<>0) then
+                      begin
+                        href:=current_procinfo.save_regs_ref;
+                        for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
+                          if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
+                            begin
+                              { Allocate register so the optimizer does not remove the load }
+                              hreg:=newreg(R_MMREGISTER,regs_to_save_mm[r],R_SUBMMWHOLE);
+                              a_reg_alloc(list,hreg);
+                              a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
+                              inc(href.offset,tcgsize2size[OS_VECTOR]);
+                            end;
+                      end;
 
-                if (current_procinfo.final_localsize<>0) then
-                  increase_sp(current_procinfo.final_localsize);
-                internal_restore_regs(list,true);
+                    if (current_procinfo.final_localsize<>0) then
+                      increase_sp(current_procinfo.final_localsize);
+                    internal_restore_regs(list,true);
 
-                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
-                  list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
-                current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
-              end
-            else if (target_info.system=system_x86_64_win64) then
-              begin
-                { Comply with Win64 unwinding mechanism, which only recognizes
-                  'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
-                  the function epilog.
-                  Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
-                reference_reset_base(href,current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
-                list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
-                list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
-              end
-            else
-              generate_leave(list);
-            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+                    if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                      list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
+                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
+                  end
+                else if (target_info.system=system_x86_64_win64) then
+                  begin
+                    { Comply with Win64 unwinding mechanism, which only recognizes
+                      'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
+                      the function epilog.
+                      Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
+                    reference_reset_base(href,current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
+                    list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
+                    list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
+                  end
+                else
+                  generate_leave(list);
+                list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+              end;
+
+            if pi_uses_ymm in current_procinfo.flags then
+              list.Concat(taicpu.op_none(A_VZEROUPPER));
           end;
-
-        if pi_uses_ymm in current_procinfo.flags then
-          list.Concat(taicpu.op_none(A_VZEROUPPER));
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
 
