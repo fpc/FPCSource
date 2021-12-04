@@ -26,7 +26,12 @@ end;
 Function TBOOLHELPER.ToInteger: Integer; inline;
 
 begin
-  Result:=Integer(Self);
+  { Returns either True or False for the corresponding type, but not e.g. $1234
+    for a WordBool with that value }
+  if Self then
+    Result:=Integer(TBOOLTYPE(True))
+  else
+    Result:=Integer(TBOOLTYPE(False));
 end;
 
 Function TBOOLHELPER.ToString(UseBoolStrs: TUseBoolStrs = TUseBoolStrs.False): string; overload; inline;
