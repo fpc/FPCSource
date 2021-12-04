@@ -7959,6 +7959,100 @@ unit aoptx86;
       begin
         Result := False;
         p_removed := False;
+        ThisReg := taicpu(p).oper[1]^.reg;
+
+        { Check for:
+            movs/z   ###,%ecx (or %cx or %rcx)
+            ...
+            shl/shr/sar/rcl/rcr/ror/rol  %cl,###
+            (dealloc %ecx)
+
+          Change to:
+            mov      ###,%cl (if ### = %cl, then remove completely)
+            ...
+            shl/shr/sar/rcl/rcr/ror/rol  %cl,###
+        }
+
+        if (getsupreg(ThisReg) = RS_ECX) and
+          GetNextInstructionUsingReg(p, hp1, NR_ECX) and
+          (hp1.typ = ait_instruction) and
+          (
+            { Under -O1 and -O2, GetNextInstructionUsingReg may return an
+              instruction that doesn't actually contain ECX }
+            (cs_opt_level3 in current_settings.optimizerswitches) or
+            RegInInstruction(NR_ECX, hp1) or
+            (
+              { It's common for the shift/rotate's read/write register to be
+                initialised in between, so under -O2 and under, search ahead
+                one more instruction
+              }
+              GetNextInstruction(hp1, hp1) and
+              (hp1.typ = ait_instruction) and
+              RegInInstruction(NR_ECX, hp1)
+            )
+          ) and
+          MatchInstruction(hp1, [A_SHL, A_SHR, A_SAR, A_ROR, A_ROL, A_RCR, A_RCL], []) and
+          (taicpu(hp1).oper[0]^.typ = top_reg) { This is enough to determine that it's %cl } then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            hp2 := p;
+            repeat
+              UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+            until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+
+            if not RegUsedAfterInstruction(NR_CL, hp1, TmpUsedRegs) then
+              begin
+
+                case taicpu(p).opsize of
+                  S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                    if MatchOperand(taicpu(p).oper[0]^, NR_CL) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2Op 3a', p);
+                        RemoveCurrentP(p);
+                      end
+                    else
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).opsize := S_B;
+                        taicpu(p).oper[1]^.reg := NR_CL;
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2MovOp 1', p);
+                      end;
+                  S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                    if MatchOperand(taicpu(p).oper[0]^, NR_CX) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2Op 3b', p);
+                        RemoveCurrentP(p);
+                      end
+                    else
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).opsize := S_W;
+                        taicpu(p).oper[1]^.reg := NR_CX;
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2MovOp 2', p);
+                      end;
+{$ifdef x86_64}
+                  S_LQ:
+                    if MatchOperand(taicpu(p).oper[0]^, NR_ECX) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2Op 3c', p);
+                        RemoveCurrentP(p);
+                      end
+                    else
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).opsize := S_L;
+                        taicpu(p).oper[1]^.reg := NR_ECX;
+                        DebugMsg(SPeepholeOptimization + 'MovxOp2MovOp 3', p);
+                      end;
+{$endif x86_64}
+                  else
+                    InternalError(2021120401);
+                end;
+
+                Result := True;
+                Exit;
+              end;
+          end;
 
         { This is anything but quick! }
         if not(cs_opt_level2 in current_settings.optimizerswitches) then
@@ -7966,7 +8060,6 @@ unit aoptx86;
 
         SetLength(InstrList, 0);
         InstrMax := -1;
-        ThisReg := taicpu(p).oper[1]^.reg;
 
         case taicpu(p).opsize of
           S_BW, S_BL:
@@ -9847,7 +9940,7 @@ unit aoptx86;
 
                 if not RegUsed then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovxOp2Op',p);
+                    DebugMsg(SPeepholeOptimization + 'MovxOp2Op 1',p);
                     if taicpu(p).oper[0]^.typ=top_reg then
                       begin
                         case taicpu(hp1).opsize of
