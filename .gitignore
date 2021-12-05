@@ -31,6 +31,7 @@ fpcmade.*
 *-stamp.*
 build-stamp.*
 BuildUnit_*.pp
+BUnit.pp
 log.*
 faillist.*
 gdb4fpc.ini
