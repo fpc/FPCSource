@@ -7937,6 +7937,9 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass2Movx(var p : tai) : boolean;
+      label
+        { This label permits the case block for MOVSX/D to pass into the MOVZX block }
+        movzx_cascade;
       var
         ThisReg: TRegister;
         MinSize, MaxSize, TrySmaller, TargetSize: TOpSize;
@@ -8436,6 +8439,46 @@ unit aoptx86;
                     Break;
                 end;
 *)
+              A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}:
+                begin
+                  { If there are no instructions in between, then we might be able to make a saving }
+                  if (InstrMax <> -1) or (taicpu(hp1).oper[0]^.typ <> top_reg) or (taicpu(hp1).oper[0]^.reg <> ThisReg) then
+                    Break;
+
+                  { We have something like:
+          	      movzbw %dl,%dx
+                      ...
+          	      movswl %dx,%edx
+
+                    Change the latter to a zero-extension then enter the
+                    A_MOVZX case branch.
+                  }
+
+{$ifdef x86_64}
+                  if taicpu(hp1).opcode = A_MOVSXD then
+                    begin
+                      { this becomes a zero extension from 32-bit to 64-bit, but
+                        the upper 32 bits are already zero, so just delete the
+                        instruction }
+
+                      DebugMsg(SPeepholeOptimization + 'MovzMovsxd2MovzNop', hp1);
+                      RemoveInstruction(hp1);
+
+                      Result := True;
+                      Exit;
+                    end
+                  else
+{$endif x86_64}
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'MovzMovs2MovzMovz', hp1);
+                      taicpu(hp1).opcode := A_MOVZX;
+                      Result := True;
+
+                      { Enter the A_MOVZX block below }
+                      goto movzx_cascade;
+                    end;
+                end;
+
               A_MOVZX:
                 begin
                   if not MatchOpType(taicpu(hp1), top_reg, top_reg) then
@@ -8460,6 +8503,7 @@ unit aoptx86;
                       Break;
                     end;
 
+movzx_cascade:
                   { The objective here is to try to find a combination that
                     removes one of the MOV/Z instructions. }
                   case taicpu(hp1).opsize of
