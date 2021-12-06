@@ -7942,7 +7942,7 @@ unit aoptx86;
         movzx_cascade;
       var
         ThisReg: TRegister;
-        MinSize, MaxSize, TrySmaller, TargetSize: TOpSize;
+        MinSize, MaxSize, TryShiftDown, TargetSize: TOpSize;
         TargetSubReg: TSubRegister;
         hp1, hp2: tai;
         RegInUse, RegChanged, p_removed: Boolean;
@@ -7951,13 +7951,17 @@ unit aoptx86;
           GetNextInstructionUsingReg multiple times }
         InstrList: array of taicpu;
         InstrMax, Index: Integer;
-        UpperLimit, TrySmallerLimit: TCgInt;
+        UpperLimit, SignedUpperLimit, SignedLowerLimitBottom,
+        LowerLimit, SignedLowerLimit, SignedLowerLimitBottom,
+        TryShiftDownLimit, TryShiftDownSignedLimit, TryShiftDownSignedLimitLower,
+        WorkingValue: TCgInt;
 
         PreMessage: string;
 
         { Data flow analysis }
-        TestValMin, TestValMax: TCgInt;
-        SmallerOverflow, BitwiseOnly, OrXorUsed: Boolean;
+        TestValMin, TestValMax, TestValSignedMax: TCgInt;
+        BitwiseOnly, OrXorUsed,
+        ShiftDownOverflow, SignedOverflow, UnsignedOverflow, LowerSignedOverflow, UpperSignedOverflow: Boolean;
 
       begin
         Result := False;
@@ -8074,15 +8078,29 @@ unit aoptx86;
 {$endif i386 or i8086}
 
               UpperLimit := $FF;
+              SignedLowerLimit := $7F;
+              SignedLowerLimitBottom := -128;
               MinSize := S_B;
               if taicpu(p).opsize = S_BW then
-                MaxSize := S_W
+                begin
+                  MaxSize := S_W;
+                  SignedUpperLimit := $7F;
+                  SignedLowerLimitBottom := -32768;
+                end
               else
-                MaxSize := S_L;
+                begin
+                  MaxSize := S_L;
+                  SignedUpperLimit := $7FFFFFFF;
+                  SignedUpperLimitBottom := -2147483648;
+                end;
             end;
           S_WL:
             begin
               UpperLimit := $FFFF;
+              SignedUpperLimit := $7FFF;
+              SignedLowerLimitBottom := -32768;
+              SignedUpperLimit := $7FFFFFFF;
+              SignedUpperLimitBottom := -2147483648;
               MinSize := S_W;
               MaxSize := S_L;
             end
@@ -8092,12 +8110,17 @@ unit aoptx86;
 
         TestValMin := 0;
         TestValMax := UpperLimit;
-        TrySmallerLimit := UpperLimit;
-        TrySmaller := S_NO;
-        SmallerOverflow := False;
+        TestValSignedMax := SignedUpperLimit;
+        TryShiftDownLimit := UpperLimit;
+        TryShiftDown := S_NO;
+        ShiftDownOverflow := False;
         RegChanged := False;
         BitwiseOnly := True;
         OrXorUsed := False;
+        SignedOverflow := False;
+        LowerSignedOverflow := False;
+        UnsignedOverflow := False;
+        LowerUnsignedOverflow := False;
 
         hp1 := p;
 
@@ -8122,19 +8145,35 @@ unit aoptx86;
                     begin
                       Inc(TestValMin);
                       Inc(TestValMax);
+                      Inc(TestValSignedMax);
                     end
                   else
                     begin
                       Dec(TestValMin);
                       Dec(TestValMax);
+                      Dec(TestValSignedMax);
                     end;
                 end;
 
-              A_CMP:
+              A_TEST, A_CMP:
                 begin
-                  if (taicpu(hp1).oper[1]^.typ <> top_reg) or
+                  if (
+                      { Too high a risk of non-linear behaviour that breaks DFA
+                        here, unless it's cmp $0,%reg, which is equivalent to
+                        test %reg,%reg }
+                      OrXorUsed and
+                      (taicpu(hp1).opcode = A_CMP) and
+                      not Matchoperand(taicpu(hp1).oper[0]^, 0)
+                    ) or
+                    (taicpu(hp1).oper[1]^.typ <> top_reg) or
                     { Has to be an exact match on the register }
                     (taicpu(hp1).oper[1]^.reg <> ThisReg) or
+                    (
+                      { Permit "test %reg,%reg" }
+                      (taicpu(hp1).opcode = A_TEST) and
+                      (taicpu(hp1).oper[0]^.typ = top_reg) and
+                      (taicpu(hp1).oper[0]^.reg <> ThisReg)
+                    ) or
                     (taicpu(hp1).oper[0]^.typ <> top_const) or
                     { Make sure the comparison value is not smaller than the
                       smallest allowed signed value for the minimum size (e.g.
@@ -8142,17 +8181,45 @@ unit aoptx86;
                     not (
                       ((taicpu(hp1).oper[0]^.val and UpperLimit) = taicpu(hp1).oper[0]^.val) or
                       { Is it in the negative range? }
-                      (((not taicpu(hp1).oper[0]^.val) and (UpperLimit shr 1)) = (not taicpu(hp1).oper[0]^.val))
+                      (taicpu(hp1).oper[0]^.val >= SignedLowerLimitBottom)
                     ) then
                     Break;
 
-                  TestValMin := TestValMin - taicpu(hp1).oper[0]^.val;
-                  TestValMax := TestValMax - taicpu(hp1).oper[0]^.val;
+                  { ANDing can't increase the value past the limit or decrease
+                    it below 0, so we can skip the checks, plus the test value
+                    won't change afterwards }
+                  if (taicpu(hp1).opcode = A_CMP) and
+                    { cmp $0,$reg is equivalent to test %reg,%reg, plus the
+                      test values aren't being modified anyway }
+                    (taicpu(hp1).oper[0]^.val <> 0) then
+                    begin
+                      WorkingValue := taicpu(hp1).oper[0]^.val;
 
-                  if (TestValMin < TrySmallerLimit) or (TestValMax < TrySmallerLimit) or
-                    (TestValMin > UpperLimit) or (TestValMax > UpperLimit) then
-                    { Overflow }
-                    Break;
+                      TestValMin := TestValMin - WorkingValue;
+                      TestValMax := TestValMax - WorkingValue;
+                      TestValSignedMax := TestValSignedMax - WorkingValue;
+
+                      if (TestValSignedMax > SignedUpperLimit) then
+                        SignedOverflow := True;
+
+                      if (TestValMin > UpperLimit) or (TestValMax > UpperLimit) then
+                        { Absolute overflow }
+                        Break
+                      else if not ShiftDownOverflow and (TryShiftDown <> S_NO) and
+                        ((TestValMin > TryShiftDownLimit) or (TestValMax > TryShiftDownLimit)) then
+                        ShiftDownOverflow := True
+                      else if (TestValMin < SignedLowerLimitBottom) or (TestValMax < SignedLowerLimitBottom) then
+                        { Absolute overflow }
+                        Break
+                      else if (TestValMin < 0) or (TestValMax < 0) then
+                        UnsignedOverflow := True;
+
+                      { Because the register isn't actually adjusted, we can
+                        restore the test values to what they were previously }
+                      TestValMin := TestValMin + WorkingValue;
+                      TestValMax := TestValMax + WorkingValue;
+                      TestValSignedMax := TestValSignedMax + WorkingValue;
+                    end;
 
                   { Check to see if the active register is used afterwards }
                   TransferUsedRegs(TmpUsedRegs);
@@ -8216,7 +8283,7 @@ unit aoptx86;
                     end;
                 end;
 
-              A_ADD,A_SUB,A_AND,A_OR,A_XOR,A_SHL,A_SHR:
+              A_ADD,A_SUB,A_AND,A_OR,A_XOR,A_SHL,A_SHR,A_SAR:
                 begin
                   if
                     (taicpu(hp1).oper[1]^.typ <> top_reg) or
@@ -8266,11 +8333,13 @@ unit aoptx86;
                           begin
                             TestValMin := TestValMin * 2;
                             TestValMax := TestValMax * 2;
+                            TestValSignedMax := TestValSignedMax * 2;
                           end
                         else
                           begin
                             TestValMin := TestValMin + taicpu(hp1).oper[0]^.val;
                             TestValMax := TestValMax + taicpu(hp1).oper[0]^.val;
+                            TestValSignedMax := TestValSignedMax + taicpu(hp1).oper[0]^.val;
                           end;
                       end;
                     A_SUB:
@@ -8285,11 +8354,13 @@ unit aoptx86;
                           begin
                             TestValMin := 0;
                             TestValMax := 0;
+                            TestValSignedMax := 0;
                           end
                         else
                           begin
                             TestValMin := TestValMin - taicpu(hp1).oper[0]^.val;
                             TestValMax := TestValMax - taicpu(hp1).oper[0]^.val;
+                            TestValSignedMax := TestValSignedMax - taicpu(hp1).oper[0]^.val;
                           end;
                       end;
                     A_AND:
@@ -8304,21 +8375,21 @@ unit aoptx86;
                                 if ((taicpu(hp1).oper[0]^.val and $FF) = taicpu(hp1).oper[0]^.val) or
                                   ((not(taicpu(hp1).oper[0]^.val) and $7F) = (not taicpu(hp1).oper[0]^.val)) then
                                   begin
-                                    TrySmaller := S_B;
-                                    TrySmallerLimit := $FF;
+                                    TryShiftDown := S_B;
+                                    TryShiftDownLimit := $FF;
                                   end;
                               S_L:
                                 if ((taicpu(hp1).oper[0]^.val and $FF) = taicpu(hp1).oper[0]^.val) or
                                   ((not(taicpu(hp1).oper[0]^.val) and $7F) = (not taicpu(hp1).oper[0]^.val)) then
                                   begin
-                                    TrySmaller := S_B;
-                                    TrySmallerLimit := $FF;
+                                    TryShiftDown := S_B;
+                                    TryShiftDownLimit := $FF;
                                   end
                                 else if ((taicpu(hp1).oper[0]^.val and $FFFF) = taicpu(hp1).oper[0]^.val) or
                                   ((not(taicpu(hp1).oper[0]^.val) and $7FFF) = (not taicpu(hp1).oper[0]^.val)) then
                                   begin
-                                    TrySmaller := S_W;
-                                    TrySmallerLimit := $FFFF;
+                                    TryShiftDown := S_W;
+                                    TryShiftDownLimit := $FFFF;
                                   end;
                               else
                                 InternalError(2020112320);
@@ -8326,6 +8397,7 @@ unit aoptx86;
 
                           TestValMin := TestValMin and taicpu(hp1).oper[0]^.val;
                           TestValMax := TestValMax and taicpu(hp1).oper[0]^.val;
+                          TestValSignedMax := TestValSignedMax and taicpu(hp1).oper[0]^.val;
                         end;
                     A_OR:
                       begin
@@ -8336,6 +8408,7 @@ unit aoptx86;
 
                         TestValMin := TestValMin or taicpu(hp1).oper[0]^.val;
                         TestValMax := TestValMax or taicpu(hp1).oper[0]^.val;
+                        TestValSignedMax := TestValSignedMax or taicpu(hp1).oper[0]^.val;
                       end;
                     A_XOR:
                       begin
@@ -8346,13 +8419,17 @@ unit aoptx86;
 
                         TestValMin := TestValMin xor taicpu(hp1).oper[0]^.val;
                         TestValMax := TestValMax xor taicpu(hp1).oper[0]^.val;
+                        TestValSignedMax := TestValSignedMax xor taicpu(hp1).oper[0]^.val;
                       end;
                     A_SHL:
                       begin
                         TestValMin := TestValMin shl taicpu(hp1).oper[0]^.val;
                         TestValMax := TestValMax shl taicpu(hp1).oper[0]^.val;
+                        TestValSignedMax := TestValSignedMax shl taicpu(hp1).oper[0]^.val;
                       end;
-                    A_SHR:
+                    A_SHR,
+                    { The first instruction was MOVZX, so the value won't be negative }
+                    A_SAR:
                       begin
                         { we might be able to go smaller if SHR appears first }
                         if InstrMax = -1 then
@@ -8362,26 +8439,42 @@ unit aoptx86;
                             S_W:
                               if (taicpu(hp1).oper[0]^.val >= 8) then
                                 begin
-                                  TrySmaller := S_B;
-                                  TrySmallerLimit := $FF;
+                                  TryShiftDown := S_B;
+                                  TryShiftDownLimit := $FF;
+                                  TryShiftDownSignedLimit := $7F;
+                                  TrySmallerSignedLowerLimit := -128;
                                 end;
                             S_L:
                               if (taicpu(hp1).oper[0]^.val >= 24) then
                                 begin
-                                  TrySmaller := S_B;
-                                  TrySmallerLimit := $FF;
+                                  TryShiftDown := S_B;
+                                  TryShiftDownLimit := $FF;
+                                  TryShiftDownSignedLimit := $7F;
+                                  TrySmallerSignedLowerLimit := -128;
                                 end
                               else if (taicpu(hp1).oper[0]^.val >= 16) then
                                 begin
-                                  TrySmaller := S_W;
-                                  TrySmallerLimit := $FFFF;
+                                  TryShiftDown := S_W;
+                                  TryShiftDownLimit := $FFFF;
+                                  TryShiftDownSignedLimit := $7FFF;
+                                  TrySmallerSignedLowerLimit := -32768;
                                 end;
                             else
                               InternalError(2020112321);
                           end;
 
-                        TestValMin := TestValMin shr taicpu(hp1).oper[0]^.val;
-                        TestValMax := TestValMax shr taicpu(hp1).oper[0]^.val;
+                        if taicpu(hp1).opcode = A_SAR then
+                          begin
+                            TestValMin := SarInt64(TestValMin, taicpu(hp1).oper[0]^.val);
+                            TestValMax := SarInt64(TestValMax, taicpu(hp1).oper[0]^.val);
+                            TestValSignedMax := SarInt64(TestValSignedMax, taicpu(hp1).oper[0]^.val);
+                          end
+                        else
+                          begin
+                            TestValMin := TestValMin shr taicpu(hp1).oper[0]^.val;
+                            TestValMax := TestValMax shr taicpu(hp1).oper[0]^.val;
+                            TestValSignedMax := TestValSignedMax shr taicpu(hp1).oper[0]^.val;
+                          end;
                       end;
                     else
                       InternalError(2020112303);
@@ -8400,6 +8493,7 @@ unit aoptx86;
 
                       TestValMin := TestValMin * TestValMin;
                       TestValMax := TestValMax * TestValMax;
+                      TestValSignedMax := TestValSignedMax * TestValMax;
                     end;
                   3:
                     begin
@@ -8414,6 +8508,7 @@ unit aoptx86;
 
                       TestValMin := TestValMin * taicpu(hp1).oper[0]^.val;
                       TestValMax := TestValMax * taicpu(hp1).oper[0]^.val;
+                      TestValSignedMax := TestValSignedMax * taicpu(hp1).oper[0]^.val;
                     end;
                   else
                     Break;
@@ -8434,6 +8529,7 @@ unit aoptx86;
 
                       TestValMin := TestValMin div taicpu(hp1).oper[0]^.val;
                       TestValMax := TestValMax div taicpu(hp1).oper[0]^.val;
+                      TestValSignedMax := TestValSignedMax div taicpu(hp1).oper[0]^.val;
                     end;
                   else
                     Break;
@@ -8442,7 +8538,7 @@ unit aoptx86;
               A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}:
                 begin
                   { If there are no instructions in between, then we might be able to make a saving }
-                  if (InstrMax <> -1) or (taicpu(hp1).oper[0]^.typ <> top_reg) or (taicpu(hp1).oper[0]^.reg <> ThisReg) then
+                  if SignedOverflow or (taicpu(hp1).oper[0]^.typ <> top_reg) or (taicpu(hp1).oper[0]^.reg <> ThisReg) then
                     Break;
 
                   { We have something like:
@@ -8481,7 +8577,7 @@ unit aoptx86;
 
               A_MOVZX:
                 begin
-                  if not MatchOpType(taicpu(hp1), top_reg, top_reg) then
+                  if UnsignedOverflow or (taicpu(hp1).oper[0]^.typ <> top_reg) then
                     Break;
 
                   if not SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, ThisReg) then
@@ -8513,10 +8609,10 @@ movzx_cascade:
                           TargetSize := S_L;
                           TargetSubReg := R_SUBD;
                         end
-                      else if ((TrySmaller in [S_B, S_W]) and not SmallerOverflow) then
+                      else if ((TryShiftDown in [S_B, S_W]) and not ShiftDownOverflow) then
                         begin
-                          TargetSize := TrySmaller;
-                          if TrySmaller = S_B then
+                          TargetSize := TryShiftDown;
+                          if TryShiftDown = S_B then
                             TargetSubReg := R_SUBL
                           else
                             TargetSubReg := R_SUBW;
@@ -8530,7 +8626,7 @@ movzx_cascade:
                           TargetSize := S_W;
                           TargetSubReg := R_SUBW;
                         end
-                      else if ((TrySmaller = S_B) and not SmallerOverflow) then
+                      else if ((TryShiftDown = S_B) and not ShiftDownOverflow) then
                         begin
                           TargetSize := S_B;
                           TargetSubReg := R_SUBL;
@@ -8544,7 +8640,7 @@ movzx_cascade:
                           TargetSize := S_L;
                           TargetSubReg := R_SUBD;
                         end
-                      else if ((TrySmaller = S_B) and not SmallerOverflow) then
+                      else if ((TryShiftDown = S_B) and not ShiftDownOverflow) then
                         begin
                           TargetSize := S_B;
                           TargetSubReg := R_SUBL;
@@ -8752,13 +8848,18 @@ movzx_cascade:
                 Break;
             end;
 
-            if (TestValMin < 0) or (TestValMax < 0) or
-              (TestValMin > UpperLimit) or (TestValMax > UpperLimit) then
-              { Overflow }
+            if (TestValSignedMax > SignedLowerLimit) or (TestValSignedMax < SignedLowerLimitBottom) then
+              SignedOverflow := True;
+
+            if (TestValMin > UpperLimit) or (TestValMax > UpperLimit) or (TestValSignedMax > UpperLimit) or
+              (TestValMin < SignedLowerLimitBottom) or (TestValMax < SignedLowerLimitBottom) or (TestValSignedMax > SignedLowerLimitBottom) then
+              { Absolute overflow }
               Break
-            else if not SmallerOverflow and (TrySmaller <> S_NO) and
-              ((TestValMin > TrySmallerLimit) or (TestValMax > TrySmallerLimit)) then
-              SmallerOverflow := True;
+            else if not ShiftDownOverflow and (TryShiftDown <> S_NO) and
+              ((TestValMin > TryShiftDownLimit) or (TestValMax > TryShiftDownLimit)) then
+              ShiftDownOverflow := True
+            else if (TestValMin < 0) or (TestValMax < 0) then
+              UnsignedOverflow := True;
 
             { Contains highest index (so instruction count - 1) }
             Inc(InstrMax);
