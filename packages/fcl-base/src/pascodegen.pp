@@ -66,7 +66,7 @@ Type
     Procedure Indent;
     Procedure Undent;
     Function IsKeyWord (Const S : String) : Boolean;
-    Function EscapeKeyWord(Const S : String) : String;
+    Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String;
     Function MakePascalString(S: String; AddQuotes: Boolean=False): String;
     Function PrettyPrint(Const S: string): String;
     Procedure AddLn(Const Aline: string);
@@ -126,11 +126,14 @@ begin
   Result:=Pos(';'+lowercase(S)+';',KW)<>0;
 end;
 
-function TPascalCodeGenerator.EscapeKeyWord(const S: String): String;
+function TPascalCodeGenerator.EscapeKeyWord(const S: String; ForceAmpersand : Boolean = false): String;
 begin
   Result:=S;
   if IsKeyWord(S) then
-    Result:=KeywordPrefix+Result+KeywordSuffix
+    if ForceAmpersand then
+      Result:='&'+Result
+    else
+      Result:=KeywordPrefix+Result+KeywordSuffix
 end;
 
 procedure TPascalCodeGenerator.AddLn(const Aline: string);
