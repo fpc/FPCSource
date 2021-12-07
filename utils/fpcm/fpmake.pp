@@ -87,8 +87,8 @@ begin
             GitProcess.Parameters.Add('log');
             GitProcess.Parameters.Add('-n');
             GitProcess.Parameters.Add('1');
-            GitProcess.Parameters.Add('--date=iso');
-            GitProcess.Parameters.Add('--pretty=%cs');
+            GitProcess.Parameters.Add('--date=short');
+            GitProcess.Parameters.Add('--pretty=%cd');
             GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmpkg.pp'));
             GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.pp'));
             GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmwr.pp'));
