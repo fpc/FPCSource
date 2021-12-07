@@ -10017,7 +10017,7 @@ movzx_cascade:
 
     function TX86AsmOptimizer.OptPass1Movx(var p : tai) : boolean;
       var
-        hp1,hp2: tai;
+        hp1,hp2,hp3: tai;
         reg_and_hp1_is_instr, RegUsed, AndTest: Boolean;
         NewSize: TOpSize;
         NewRegSize: TSubRegister;
@@ -10161,7 +10161,15 @@ movzx_cascade:
               (
                 (
                   (taicpu(hp2).opcode=A_TEST) and
-                  MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[1]^.reg) and
+                  (
+                    MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[1]^.reg) or
+                    MatchOperand(taicpu(hp2).oper[0]^, -1) or
+                    (
+                      { If the AND and TEST instructions share a constant, this is also valid }
+                      (taicpu(hp1).oper[0]^.typ = top_const) and
+                      MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[0]^.val)
+                    )
+                  ) and
                   MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[1]^.reg)
                 ) or
                 (
@@ -10170,6 +10178,74 @@ movzx_cascade:
                   MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[1]^.reg)
                 )
               );
+
+            { change
+              movx    (oper),%reg2
+              and     $x,%reg2
+              test    %reg2,%reg2
+              dealloc %reg2
+
+              into
+
+              op     %reg1,%reg3
+
+              if the second op accesses only the bits stored in reg1
+            }
+            if ((taicpu(p).oper[0]^.typ=top_reg) or
+              ((taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr<>addr_full))) and
+              (taicpu(hp1).oper[0]^.typ = top_const) and
+              (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+              AndTest then
+              begin
+                { Check if the AND constant is in range }
+                case taicpu(p).opsize of
+                  S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}:
+                    begin
+                      NewSize := S_B;
+                      Limit := $FF;
+                    end;
+                  S_WL{$ifdef x86_64}, S_WQ{$endif x86_64}:
+                    begin
+                      NewSize := S_W;
+                      Limit := $FFFF;
+                    end;
+{$ifdef x86_64}
+                  S_LQ:
+                    begin
+                      NewSize := S_L;
+                      Limit := $FFFFFFFF;
+                    end;
+{$endif x86_64}
+                  else
+                    InternalError(2021120303);
+                end;
+
+                if (
+                    ((taicpu(hp1).oper[0]^.val and Limit) = taicpu(hp1).oper[0]^.val) or
+                    { Check for negative operands }
+                    (((not taicpu(hp1).oper[0]^.val) and Limit) = (not taicpu(hp1).oper[0]^.val))
+                  ) and
+                  GetNextInstruction(hp2,hp3) and
+                  MatchInstruction(hp3,A_Jcc,A_Setcc,A_CMOVcc,[]) and
+                  (taicpu(hp3).condition in [C_E,C_NE]) then
+                  begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                    if not(RegUsedAfterInstruction(taicpu(hp2).oper[1]^.reg, hp2, TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovxAndTest2Test done',p);
+                        taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
+                        taicpu(hp1).opcode := A_TEST;
+                        taicpu(hp1).opsize := NewSize;
+                        RemoveInstruction(hp2);
+                        RemoveCurrentP(p, hp1);
+                        Result:=true;
+                        exit;
+                      end;
+                  end;
+              end;
+
 
             if (taicpu(hp1).oper[0]^.typ = top_reg) and
               (((taicpu(p).opsize in [S_BW,S_BL,S_WL{$ifdef x86_64},S_BQ,S_WQ,S_LQ{$endif x86_64}]) and
