@@ -32,6 +32,13 @@ Type
     Procedure Test3VarDeclarations;
     Procedure TestKeywordVarDeclaration;
     Procedure TestSimpleType;
+    Procedure TestAliasType;
+    Procedure TestAliasAliasedType;
+    Procedure TestUnionType;
+    Procedure TestIntersectionType;
+    Procedure TestUnionIntersectionType;
+    Procedure TestEnumType;
+    Procedure TestExportInterface;
   end;
 
 implementation
@@ -106,7 +113,9 @@ Var
 
 begin
   Src:=FConverter.Source;
+  Writeln('>>>');
   Writeln(Src.Text);
+  Writeln('<<<');
   I:=0;
   While (I<Src.Count) and (Trim(Src[i])='') do
     Inc(I);
@@ -158,6 +167,49 @@ procedure TTestTSToPas.TestSimpleType;
 begin
   Convert('declare type MyType = string;');
   CheckDeclarations('type',['TMyType = string;']);
+end;
+
+procedure TTestTSToPas.TestAliasType;
+begin
+  Convert('declare type MyType = SomeOtherType;');
+  CheckDeclarations('type',['TMyType = SomeOtherType;']);
+end;
+
+procedure TTestTSToPas.TestAliasAliasedType;
+begin
+  Converter.TypeAliases.Add('SomeOtherType=TMyOther');
+  Convert('declare type MyType = SomeOtherType;');
+  CheckDeclarations('type',['TMyType = TMyOther;']);
+end;
+
+procedure TTestTSToPas.TestUnionType;
+begin
+  Convert('declare type MyType = string | number;');
+  CheckDeclarations('type',['TMyType = JSValue; // string | number']);
+end;
+
+procedure TTestTSToPas.TestIntersectionType;
+begin
+  Convert('declare type MyType = string & number;');
+  CheckDeclarations('type',['TMyType = JSValue; // string & number']);
+end;
+
+procedure TTestTSToPas.TestUnionIntersectionType;
+begin
+  Convert('declare type MyType = number | (string & number) ;');
+  CheckDeclarations('type',['TMyType = JSValue; // number | (string & number)']);
+end;
+
+procedure TTestTSToPas.TestEnumType;
+begin
+  Convert('declare enum Color {Red, Green, Blue} ;');
+  CheckDeclarations('type',['TColor = (Red, Green, Blue);']);
+end;
+
+procedure TTestTSToPas.TestExportInterface;
+begin
+//  Convert('export interface Color { function get() : string; } ;');
+//  CheckDeclarations('type',['TColor = (Red, Green, Blue);']);
 end;
 
 Initialization

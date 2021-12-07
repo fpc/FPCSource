@@ -2005,7 +2005,7 @@ Const
 begin
   Write(Keywords[el.varType]+' ');
   FSkipRoundBrackets:=true;
-  WriteJS(El.A);
+  WriteJS(El.VarDecl);
 end;
 
 procedure TJSWriter.WriteJS(El: TJSElement);

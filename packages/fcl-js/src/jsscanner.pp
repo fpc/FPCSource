@@ -19,7 +19,7 @@ unit JSScanner;
 
 interface
 
-uses SysUtils, Classes, jstoken;
+uses SysUtils, Classes, jsbase, jstoken;
 
 Type
   TECMAVersion = (ecma5,ecma2015,ecma2021);
@@ -37,6 +37,7 @@ Const
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'string exceeds end of line';
+  SErrExpectedEllipsis = 'Expected ellipsis, got ..';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
@@ -84,6 +85,7 @@ Type
 
   TJSScanner = class
   private
+    FDisableRShift: Boolean;
     FECMAVersion: TECMAVersion;
     FIsTypeScript: Boolean;
     FReturnComments: Boolean;
@@ -92,7 +94,7 @@ Type
     FSourceFilename: string;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: string;
+    FCurTokenString: String;
     FCurLine: string;
     TokenStr: PChar;
     FWasEndOfLine : Boolean;
@@ -132,9 +134,10 @@ Type
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
-    property CurTokenString: string read FCurTokenString;
+    property CurTokenString: String read FCurTokenString;
     property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
     Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
+    Property DisableRShift : Boolean Read FDisableRShift Write FDisableRShift;
   end;
 
 
@@ -475,8 +478,10 @@ function TJSScanner.DoNumericLiteral :TJSToken;
 Var
   TokenStart : PChar;
   Len : Integer;
+  Hex : Boolean;
 
 begin
+  Hex:=False;
   TokenStart := TokenStr;
   while true do
     begin
@@ -488,6 +493,7 @@ begin
           Inc(TokenStr);
           while Upcase(TokenStr[0]) in ['0'..'9','A'..'F'] do
             Inc(TokenStr);
+          Break;  
           end
         else
           Error(SInvalidHexadecimalNumber);
@@ -519,7 +525,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len);
   Result := tjsNumber;
 end;
 
@@ -711,6 +717,17 @@ begin
         If (Result=tjsNumber) then
           FCurTokenString:='0.'+FCurTokenString;
          end
+      else if TokenStr[0] = '.' then
+        begin
+        Inc(TokenStr);
+        if TokenStr[0]='.' then
+          begin
+          Inc(TokenStr);
+          Result:=tjsEllipsis
+          end
+        else
+          Error(SerrExpectedEllipsis);
+        end
       else
         Result := tjsDot;
       end;
@@ -803,7 +820,7 @@ begin
         Inc(TokenStr);
         Result:=tjsGE;
         end
-      else if TokenStr[0] = '>' then
+      else if (TokenStr[0] = '>') and Not DisableRShift then
   	begin
         Inc(TokenStr);
         if (TokenStr[0] = '>') then

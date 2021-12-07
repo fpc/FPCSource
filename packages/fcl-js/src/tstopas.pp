@@ -164,9 +164,6 @@ Type
     function WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean; virtual;
     function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean; virtual;
     // Additional
-    procedure WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);virtual;
-    procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition);virtual;
-    procedure WriteUnionDef(aDef: TIDLUnionTypeDefDefinition);virtual;
     }
     // Properties
     procedure WritePropertyDeclaration(D: TJSVariableStatement);
@@ -180,6 +177,7 @@ Type
     function GetAliasTypeAsString(aTypeDef: TJSTypeReference; asPascal, asSubType: Boolean): string;
     function GetIntersectionTypeAsString(aTypeDef: TJSIntersectionTypeDef; asPascal, asSubType: Boolean): String;
     function GetUnionTypeAsString(aTypeDef: TJSUnionTypeDef; asPascal, asSubType: Boolean): String;
+    function GetEnumTypeAsString(aTypeDef: TJSEnumTypeDef; asPascal, asSubType: Boolean): String;
 
     // Write types
     procedure WriteTypeDefs(Types: TJSElementNodes); virtual;
@@ -188,6 +186,7 @@ Type
     procedure WriteUnionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSUnionTypeDef);
     procedure WriteIntersectionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSIntersectionTypeDef);
     procedure WriteArrayTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSArrayTypeDef);
+    procedure WriteEnumTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSEnumTypeDef);
 
     // Extra interface/Implementation code.
     procedure WriteImplementation; virtual;
@@ -317,7 +316,7 @@ end;
 
 destructor TPasData.destroy;
 begin
-  Writeln('Destroying ',Self.FOriginalName,'->',Self.Pasname);
+  // Writeln('Destroying ',Self.FOriginalName,'->',Self.Pasname);
   inherited destroy;
 end;
 
@@ -396,7 +395,7 @@ begin
       Raise ETStoPas.Create('Parse result is not a function body');
       end;
     FElements:=El as TJSFunctionBody;
-    // DumpElements;
+    DumpElements;
   finally
     P.Free;
     S.Free;
@@ -1079,56 +1078,12 @@ begin
   Addln('%s = array of %s;',[GetName(aDef),GetTypeName(aDef.ElementType)])
 end;
 
-
-procedure TTypescriptToPas.WriteUnionDef(aDef : TIDLUnionTypeDefDefinition);
-
-Var
-  S : UTF8String;
-  D : TIDLDefinition;
-begin
-  S:='';
-  For D in adef.Union do
-    begin
-    if (S<>'') then
-      S:=S+', ';
-    S:=S+(D as TIDLTypeDefDefinition).TypeName;
-    end;
-  Comment('Union of '+S);
-  AddLn('%s = JSValue; ',[GetName(aDef)])
-end;
-
-
 procedure TTypescriptToPas.WritePromiseDef(aDef : TIDLPromiseTypeDefDefinition);
 
 begin
   AddLn('%s = TJSPromise;',[GetName(aDef)]);
 end;
 
-procedure TTypescriptToPas.WriteAliasTypeDef(aDef : TJSTypeDeclaration);
-
-Var
-  TN : String;
-
-begin
-  TN:=GetTypeName((aDef.TypeDef as TJSTypeReference).Name,True);
-  AddLn('%s = %s;',[GetName(aDef),TN]);
-end;
-
-function TTypescriptToPas.WriteTypeDef(aDef: TJSTypeDeclaration): Boolean;
-
-begin
-  Result:=True;
-  if ADef is TIDLSequenceTypeDefDefinition then
-    WriteSequenceDef(aDef as TIDLSequenceTypeDefDefinition)
-  else if ADef is TIDLUnionTypeDefDefinition then
-    WriteUnionDef(aDef as TIDLUnionTypeDefDefinition)
-  else if ADef is TIDLPromiseTypeDefDefinition then
-    WritePromiseDef(aDef as TIDLPromiseTypeDefDefinition)
-  else if ADef is TIDLRecordDefinition then
-    WriteRecordDef(aDef as TIDLRecordDefinition)
-  else
-    WriteAliasTypeDef(aDef);
-end;
 
 function TTypescriptToPas.WriteRecordDef(aDef: TIDLRecordDefinition): Boolean;
 
@@ -1617,11 +1572,12 @@ begin
     if coaddOptionsToheader in Options then
       AddOptionsToHeader;
     end;
-  if SourceElements.Types.Count>0 then
+  if (SourceElements.Types.Count>0) or (SourceElements.Enums.Count>0) then
     begin
     EnsureSection(csType);
     Indent;
     WriteTypeDefs(SourceElements.Types);
+    WriteTypeDefs(SourceElements.Enums);
     {
     WriteForwardClassDefs(Context.Definitions);
     WriteEnumDefs(Context.Definitions);
@@ -1743,14 +1699,10 @@ end;
 
 procedure TTypescriptToPas.AllocatePasNames(aList : TJSSourceElements; ParentName: String = '');
 
-Var
-  I : Integer;
-
 begin
-  For I:=0 to aList.Types.Count-1 do
-    AllocatePasNames(aList.Types,ParentName);
-  For I:=0 to aList.Vars.Count-1 do
-    AllocatePasNames(aList.Vars,ParentName);
+  AllocatePasNames(aList.Types,ParentName);
+  AllocatePasNames(aList.Enums,ParentName);
+  AllocatePasNames(aList.Vars,ParentName);
 end;
 
 
@@ -1807,6 +1759,8 @@ begin
     Result:=GetIntersectionTypeAsString(TJSIntersectionTypeDef(aType),asPascal,asSubType)
   else if aType is TJSArrayTypeDef then
     Result:=GetArrayTypeAsString(TJSArrayTypeDef(aType),asPascal,asSubType)
+  else if aType is TJSEnumTypeDef then
+    Result:=GetEnumTypeAsString(TJSEnumTypeDef(aType),asPascal,asSubType)
 end;
 
 Function TTypescriptToPas.GetUnionTypeAsString(aTypeDef : TJSUnionTypeDef; asPascal,asSubType : Boolean) : String;
@@ -1819,9 +1773,30 @@ begin
   For I:=0 to aTypeDef.TypeCount-1 do
     begin
     if Result<>'' then
-      Result:=Result+'&';
-    GetTypeAsString(aTypeDef.Types[I],asPascal,True);
+      Result:=Result+' | ';
+    Result:=Result+GetTypeAsString(aTypeDef.Types[I],asPascal,True);
     end;
+  if AsSubType then
+    Result:='('+Result+')';
+end;
+
+function TTypescriptToPas.GetEnumTypeAsString(aTypeDef: TJSEnumTypeDef; asPascal, asSubType: Boolean): String;
+Var
+  I : Integer;
+  N : String;
+
+begin
+  Result:='';
+  For I:=0 to aTypeDef.NameCount-1 do
+    begin
+    if Result<>'' then
+      Result:=Result+', ';
+    N:=aTypeDef.Names[I];
+    if IsKeyWord(N) then
+      N:='&'+N;
+    Result:=Result+N;
+    end;
+  Result:='('+Result+')';
   if AsSubType then
     Result:='('+Result+')';
 end;
@@ -1836,8 +1811,8 @@ begin
   For I:=0 to aTypeDef.TypeCount-1 do
     begin
     if Result<>'' then
-      Result:=Result+'|';
-    GetTypeAsString(aTypeDef.Types[I],asPascal,True);
+      Result:=Result+' & ';
+    Result:=Result+GetTypeAsString(aTypeDef.Types[I],asPascal,True);
     end;
   if AsSubType then
     Result:='('+Result+')';
@@ -1867,7 +1842,7 @@ begin
   genparams:=GetGenericParams(aTypeParams);
   if (genparams<>'') then
     gen:='generic ';
-  AddLn('%s%s%s = %s; // Intersection type: %s',[gen,aPasName,genparams,TN,GetTypeAsString(aTypeDef,False,false)]);
+  AddLn('%s%s%s = %s; // %s',[gen,aPasName,genparams,TN,GetTypeAsString(aTypeDef,False,false)]);
 end;
 
 Procedure TTypescriptToPas.WriteArrayTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSArrayTypeDef);
@@ -1884,6 +1859,19 @@ begin
   AddLn('%s%s%s = %s;',[gen,aPasName,genparams,arr]);
 end;
 
+procedure TTypescriptToPas.WriteEnumTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;
+  aTypeDef: TJSEnumTypeDef);
+var
+ arr,gen, genparams: String;
+
+begin
+  genparams:=GetGenericParams(aTypeParams);
+  if (genparams<>'') then
+    gen:='generic ';
+  arr:=GetEnumTypeAsString(aTypeDef,True,False);
+  AddLn('%s%s%s = %s;',[gen,aPasName,genparams,arr]);
+end;
+
 
 Procedure TTypescriptToPas.WriteTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef : TJSTypeDef);
 
@@ -1896,6 +1884,8 @@ begin
     WriteIntersectionTypeDef(aPasName,aOrgName,aTypeParams,TJSIntersectionTypeDef(aTypeDef))
   else if aTypeDef is TJSArrayTypeDef then
     WriteArrayTypeDef(aPasName,aOrgName,aTypeParams,TJSArrayTypeDef(aTypeDef))
+  else if aTypeDef is TJSEnumTypeDef then
+    WriteEnumTypeDef(aPasName,aOrgName,aTypeParams,TJSEnumTypeDef(aTypeDef))
 end;
 
 Procedure TTypescriptToPas.WriteTypeDefs(Types: TJSElementNodes);
@@ -1911,11 +1901,12 @@ begin
   for I:=0 to Types.Count-1 do
     begin
     N:=Types[0].Node;
+    // TJSEnumDeclaration is a descendent
     if N is TJSTypeDeclaration then
       begin
       aName:=GetName(Decl);
       WriteTypeDef(aName, Decl.Name, Decl.TypeParams, Decl.TypeDef);
-      end;
+      end
     end;
 end;
 

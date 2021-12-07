@@ -38,9 +38,17 @@ Const
 Type
   TECMAVersion = jsScanner.TECMAVersion;
   TScopeType = (stFunction,stClass,stModule,stNamespace);
-  TFunctionFlag = (ffAmbient);
+  TListType = (ltUnknown,ltTuple,ltTemplate);
+  TFunctionFlag = (ffAmbient,ffConstructor,ffGenerator);
   TFunctionFlags = Set of TFunctionFlag;
-  EJSParser = Class(Exception);
+  EJSParser = Class(Exception)
+    ErrorRow : Integer;
+    ErrorCol : integer;
+    FileName : String;
+  end;
+
+  TParseTypeOption = (ptoAllowLiteral,ptoRefOnly,ptoUnion,ptoIntersection);
+  TParseTypeOptions = set of TParseTypeOption;
 
   { TJSParser }
 
@@ -63,6 +71,9 @@ Type
     FLabels : TJSLabel;
     // these check that current token is identifier with specific value:
     // as, from, get, of, set, target
+    function AddToElements(aSource: TJSSourceElements; aElement: TJSElement; aIsAmbient: Boolean=False; aIsExport: Boolean=False): Boolean;
+    procedure ClassDefToMembers(aClass: TJSClassDeclaration; aClassDef: TJSObjectTypeDef);
+    function CurrentTokenIsValidIdentifier: Boolean;
     function GetIsTypeScript: Boolean;
     function  IdentifierIsLiteral(aValue : String) : Boolean;
     Procedure CheckIdentifierLiteral(aValue : String);
@@ -79,42 +90,46 @@ Type
     function LookupLabel(ALabelName: String; Kind: TJSToken): TJSLabel;
     function ParseAdditiveExpression: TJSElement;
     procedure ParseAliasElements(aElements: TJSAliasElements);
+    procedure ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     function ParseArguments: TJSarguments;
     function ParseArrayLiteral: TJSElement;
-    function ParseArrowFunctionTypeDef(aArgName : jsBase.TJSString): TJSArrowFunctionTypeDef;
+    procedure ParseArrowFunctionTypeDef(aDef: TJSArrowFunctionTypeDef; aFirstParam: TJSTypedParam); overload;
+    function ParseArrowFunctionTypeDef(aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef; overload;
+    function ParseArrowFunctionTypeDef(aFirst: TJSObjectTypeDef; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;  overload;
     function ParseAssignmentExpression: TJSElement;
     function ParseBitwiseAndExpression: TJSElement;
     function ParseBitwiseORExpression: TJSElement;
     function ParseBitwiseXORExpression: TJSElement;
     function ParseBlock: TJSElement;
     function ParseBreakStatement: TJSElement;
+    function ParseClassBody(isAmbient : Boolean = False): TJSSourceElements; inline;
+    function ParseClassDeclaration(isAmbient : Boolean = False; IsAbstract : Boolean = False) : TJSClassDeclaration;
+    function ParseClassStatement(isAmbient : Boolean = False; IsAbstract : Boolean = False) : TJSClassStatement;
+    function ParseClassExpression: TJSClassDeclaration;
     function ParseConditionalExpression: TJSElement;
     function ParseContinueStatement: TJSElement;
+    function ParseDebuggerStatement: TJSElement;
+    function ParseDestructuredParam(aParams: TJSTypedParams) : TJSTypedParam;
     function ParseEmptyStatement: TJSElement;
+    function ParseEnumDeclaration: TJSEnumDeclaration;
     function ParseEnumDeclarationStatement: TJSElement;
     function ParseEqualityExpression: TJSElement;
+    function ParseExportStatement(IsAssign : Boolean): TJSElement;
     function ParseExpression: TJSElement;
     function ParseExpressionStatement: TJSElement;
     procedure ParseFormalParameterList(aParams : TJSTypedParams);
     function ParseFunctionDeclaration(aFlags : TFunctionFlags): TJSFunctionDeclarationStatement;
-    function ParseFunctionExpression(IsGenerator : Boolean = False): TJSFunctionDeclarationStatement;
+    function ParseFunctionExpression(aFlags : TFunctionFlags): TJSFunctionDeclarationStatement;
     function ParseFunctionStatement: TJSElement;
     function ParseFunctionBody: TJSFunctionBody;
     procedure ParseGenericParamList(aList: TJSElementNodes);
-    function ParseClassBody: TJSSourceElements; inline;
-    function ParseClassDeclaration : TJSClassDeclaration;
-    function ParseClassStatement : TJSClassStatement;
-    function ParseClassExpression: TJSClassDeclaration;
-    function ParseInterfaceDeclaration: TJSInterfaceDeclaration;
-    function ParseInterfaceDeclarationStatement: TJSInterfaceStatement;
-    function ParseModuleDeclaration : TJSModuleDeclaration;
-    function ParseModuleBody: TJSSourceElements; inline;
-    function ParseNamespaceDeclaration : TJSNamespaceDeclaration;
-    function ParseNamespaceBody: TJSSourceElements; inline;
     function ParseIdentifier: jsbase.TJSString;
     function ParseIfStatement: TJSElement;
     function ParseImportStatement: TJSElement;
-    function ParseExportStatement: TJSElement;
+    function ParseIndexSignature: TJSObjectTypeElementDef;
+    function ParseIndexSignatureStatement: TJSIndexSignatureStatement;
+    function ParseInterfaceDeclaration: TJSInterfaceDeclaration;
+    function ParseInterfaceDeclarationStatement: TJSInterfaceStatement;
     function ParseIterationStatement: TJSElement;
     function ParseLabeledStatement: TJSElement;
     function ParseLeftHandSideExpression: TJSElement;
@@ -122,29 +137,36 @@ Type
     function ParseLogicalAndExpression: TJSElement;
     function ParseLogicalORExpression: TJSElement;
     function ParseMemberExpression: TJSElement;
+    function ParseModuleDeclarationStatement : TJSModuleStatement;
+    function ParseModuleDeclaration : TJSModuleDeclaration;
+    function ParseModuleBody: TJSSourceElements; inline;
     function ParseMultiplicativeExpression: TJSElement;
+    function ParseNamespaceDeclarationStatement : TJSNamespaceStatement;
+    function ParseNamespaceDeclaration(IsAmbient: Boolean = False): TJSNamespaceDeclaration;
+    function ParseNamespaceBody(IsAmbient: Boolean = False): TJSSourceElements; inline;
     function ParseNumericLiteral: TJSElement;
     procedure ParseObjectBody(aObj: TJSObjectTypeDef);
     function ParseObjectTypeDef: TJSObjectTypeDef;
     function ParseObjectLiteral: TJSElement;
-    function ParseParenthesisedDef: TJSTypeDef;
+    function ParseParenthesisedDef(aOptions : TParseTypeOptions): TJSTypeDef;
     function ParsePostFixExpression: TJSElement;
     function ParsePrimaryExpression: TJSElement;
     function ParseRegularExpressionLiteral: TJSElement;
     function ParseRelationalExpression: TJSElement;
     function ParseReturnStatement: TJSElement;
     function ParseShiftExpression: TJSElement;
-    function ParseStatement: TJSElement;
+    function ParseStatement(IsAmbient : Boolean = False): TJSElement;
     function ParseStatementList: TJSElement;
     function ParseStringLiteral: TJSElement;
     function ParseSwitchStatement: TJSElement;
     function ParseThrowStatement: TJSElement;
     function ParseTryStatement: TJSElement;
+    function ParseTypeDeclaration: TJSTypeDeclaration;
     function ParseTypeDeclarationStatement : TJSElement;
-    procedure ParseTypeList(aList: TJSElementNodes; aTerminator: TJSToken);
-    function ParseTypeRef : TJSTypeDef;
+    procedure ParseTypeList(aList: TJSElementNodes; aTerminator: TJSToken; ListType : TListType = ltUnknown);
+    function ParseTypeRef(aOptions: TParseTypeOptions = []): TJSTypeDef;
+    function ParseTypeScriptDeclarationStatement(Elements: TJSSourceElements; ScopeType: TScopeType; aIsAmbient: Boolean): TJSElement;
     function ParseUnaryExpression: TJSElement;
-    function ParseDebuggerStatement: TJSElement;
     function ParseVariableDeclaration(aVarType : TJSVarType = vtVar): TJSElement;
     function ParseVariableDeclarationList(aVarType : TJSVarType = vtVar): TJSElement;
     function ParseVariableStatement(aVarType : TJSVarType = vtVar): TJSElement;
@@ -160,7 +182,7 @@ Type
     Procedure Error(Fmt : String; Args : Array of const);
     // Parse functions
     Function IsIdentifier(const aIdentifier : String) : Boolean; inline;
-    function ParseSourceElements(ScopeType : TScopeType = stFunction): TJSSourceElements;
+    function ParseSourceElements(ScopeType : TScopeType = stFunction; ParentisAmbient : Boolean = False): TJSSourceElements;
     Property FunctionDepth : Integer Read FFunctionDepth Write FFunctionDepth;
     Property NoIn : Boolean Read FNoIn Write FNoIn;
     Property IsLHS : Boolean Read FIsLHS Write FIsLHS;
@@ -214,7 +236,7 @@ Resourcestring
   SErrExpectedButFound       = 'Unexpected token. Expected "%s" but found "%s"';
   SErrExpectedMulOrCurlyBrace = 'Unexpected token: Expected * or {, got: %s';
   SErrExpectedMulOrCurlyBraceOrDefault = 'Unexpected token: Expected * or { or default , got: %s';
-  SErrTypeExpected = 'Type expected';
+  SErrTypeExpected = 'Type expected, but found: "%s"';
   SErrUnionWithoutType = 'Union type without type name';
   SErrIntersectionWithoutType = 'Intersection type without type name';
   SErrArrayWithoutType = 'Array type without type name';
@@ -223,7 +245,9 @@ Resourcestring
   SErrorInTypeDef = 'Error in type definition. Expected %s';
   SArrowFunction = 'Arrow function';
   SBraceClose = 'Closing brace ")"';
-
+  SErrInvalidIndexSignature = 'Invalid index signature';
+  SErrExtendsNeedsTypeName = 'extends can only be used after type reference';
+  
 { TJSScanner }
 
 Function TJSParser.CurrentToken: TJSToken;
@@ -251,6 +275,8 @@ begin
     begin
     FCurrent:=FScanner.FetchToken;
     FCurrentString:=FScanner.CurTokenString;
+    if (FCurrentString='') then
+       FCurrentString:=TokenInfos[FCurrent];
     end;
   Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
@@ -398,6 +424,7 @@ Procedure TJSParser.Error(Msg: String);
 
 Var
   ErrAt : String;
+  E : EJSParser;
 
 begin
   If Assigned(FScanner) then
@@ -405,7 +432,11 @@ begin
       ErrAt:=Format('Error: file "%s" line %d, pos %d: ',[FScanner.CurFileName,FScanner.CurRow,FScanner.CurColumn])
     else
       ErrAt:=Format('Error: line %d, pos %d: ',[FScanner.Currow,FScanner.CurColumn]);
-  Raise Exception.Create(ErrAt+Msg)
+  E:=EJSParser.Create(ErrAt+Msg);
+  E.ErrorCol:=FScanner.CurColumn;
+  E.ErrorRow:=FScanner.CurRow;
+  E.FileName:=FScanner.CurFileName;
+  Raise E;
 end;
 
 Procedure TJSParser.Error(Fmt: String; Args: Array of const);
@@ -415,7 +446,7 @@ end;
 
 function TJSParser.IsIdentifier(const aIdentifier: String): Boolean;
 begin
-  Result:=(CurrentToken=jsToken.tjsIdentifier) and (CurrentTokenString=aIdentifier);
+  Result:=IdentifierIsLiteral(aIdentifier);
 end;
 
 constructor TJSParser.Create(AInput: TStream; aVersion: TECMAVersion; aIsTypeScript: Boolean);
@@ -498,23 +529,33 @@ function TJSParser.ParseIdentifier : JSBase.TJSString;
 
 begin
   Result:='';
-  Repeat
-    Expect(tjsIdentifier);
-    Result:=Result+CurrentTokenString;
+  Expect(tjsIdentifier);
+  Result:=CurrentTokenString;
+  GetNextToken;
+  While (CurrentToken=tjsDot) do
+    begin
     GetNextToken;
-    If (CurrentToken=tjsDot) then
-      begin
-      If (Result<>'') then
-         Result:=Result+'.';
-      GetNextToken;
-      end;
-  until (CurrentToken<>tjsIdentifier);
+    Expect(tjsIdentifier);
+    Result:=Result+'.'+CurrentTokenString;
+    GetNextToken;
+    end;
+//  until (CurrentToken<>tkDot) or FScanner.WasEndOfLine;
 end;
 
 procedure TJSParser.ParseGenericParamList(aList : TJSElementNodes);
+// On entry, we're on <
+// On exit, we're on >
 
+Var
+  PrevRShift : Boolean;
 begin
-  ParseTypeList(aList,jstoken.tjsGT);
+  PrevRShift:=FScanner.DisableRShift;
+  Try
+    FScanner.DisableRShift:=True;
+    ParseTypeList(aList,jstoken.tjsGT,ltTemplate);
+  Finally
+    FScanner.DisableRShift:=PrevRShift;
+  end;
 end;
 
 function TJSParser.ParseObjectTypeDef: TJSObjectTypeDef;
@@ -533,6 +574,92 @@ begin
   end;
 end;
 
+Function TJSParser.ParseIndexSignature : TJSObjectTypeElementDef;
+
+// On entry, we're on [
+// On exit, we're on ;
+
+Var
+  SigDecl : TJSIndexSignatureDeclaration;
+
+begin
+  SigDecl:=TJSIndexSignatureDeclaration(CreateElement(TJSIndexSignatureDeclaration));
+  try
+    Result:=SigDecl;
+    Consume(tjsSQuaredBraceOpen);
+    if (CurrentToken in [TJSToken.tjsNumber,TJSToken.tjsString]) then
+      begin
+      SigDecl.IndexName:=CurrentTokenString;
+      GetNextToken
+      end
+    else
+      SigDecl.IndexName:=ParseIdentifier;
+    case CurrentToken of
+      tjsColon :
+        begin
+        consume(tjsColon);
+        expect(tjsIdentifier);
+        if not (IsIdentifier('number') or IsIdentifier('string')) then
+          Error(SErrExpectedButFound,['number or string',CurrentTokenString]);
+        SigDecl.IndexType:=CurrentTokenString;
+        consume(tjsIdentifier);
+        end;
+      tjsIn :
+        begin
+        consume(tjsIn);
+        SigDecl.InIndexType:=ParseTypeRef;
+        end;
+    else
+      if (CurrentToken<>tjsSQuaredBraceClose) then
+        Error(SErrInvalidIndexSignature);
+    end;
+    Consume(tjsSQuaredBraceClose);
+    SigDecl.IsFunction:=(CurrentToken=tjsBraceOpen);
+    if SigDecl.IsFunction then
+      begin
+      GetNextToken;
+      Consume(tjsBraceClose);
+      end;
+    SigDecl.Optional:=(CurrentToken=tjsConditional);
+    if SigDecl.Optional then
+      GetNextToken;
+    consume(tjsColon);
+    SigDecl.ElementType:=ParseTypeRef([ptoAllowLiteral]);
+    if (not (CurrentToken in [tjsComma,tjsSemiColon])) or FScanner.WasEndOfLine then
+      Expect(tjsSEMICOLON);
+  except
+    SigDecl.free;
+    Raise;
+  end;
+end;
+
+function TJSParser.ParseIndexSignatureStatement: TJSIndexSignatureStatement;
+begin
+  Result:=TJSIndexSignatureStatement(CreateElement(TJSIndexSignatureStatement));
+  try
+    Result.Decl:=ParseIndexSignature as TJSIndexSignatureDeclaration;
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+Function TJSParser.CurrentTokenIsValidIdentifier : Boolean;
+
+Const
+   Valididents = [tjsIdentifier,jstoken.tjsString,jstoken.tjsnumber,tjsDelete,
+                  tjsWith,tjsThrow,tjsDefault,tjsAwait,tjscase,tjsdebugger,tjsCatch,
+                  tjsextends,tjsexport,tjsImport,tjsEnum,tjsClass,tjsFor,tjsReturn,
+                  tjsDo,tjsFinally,tjsWhile,tjsIf,tjsYield,tjsvoid,tjsbreak, 
+                  tjscontinue, tjsswitch, tjstrue, tjsNull, tjsThis,tjsFalse,
+                  tjsVar,tjsConst, tjsin, tjsInstanceOf, tjsfunction, tjstry, 
+                  tjselse, tjsSuper, tjsLet, tjsTypeOf];
+
+begin
+  Result:=CurrentToken in ValidIdents;
+end;
+
+
 Procedure TJSParser.ParseObjectBody(aObj: TJSObjectTypeDef);
 
 // On entry on {
@@ -545,9 +672,10 @@ Procedure TJSParser.ParseObjectBody(aObj: TJSObjectTypeDef);
     Result.Name:='any';
   end;
 
+
 var
   aName : jsBase.TJSString;
-  isOptional : Boolean;
+  IsMinus, isReadOnly, isOptional : Boolean;
   E : TJSObjectTypeElementDef;
   F : TJSMethodDeclaration ;
   FS : TJSFunctionDeclarationStatement;
@@ -561,30 +689,49 @@ begin
     E:=Nil;
     While CurrentToken=tjsComma do
        GetNextToken;
-    If (CurrentToken in [tjsIdentifier,jstoken.tjsString,jstoken.tjsnumber]) then
-       begin
-       aName:=CurrentTokenString;
-       GetNextToken;
-       end
-    else if (CurrentToken<>tjsBraceOpen) then
+    isMinus:=(CurrentToken=tjsMinus);
+    if IsMinus then 
+      GetNextToken;   
+    isReadOnly:=IsIdentifier('readonly') and not (PeekNextToken in [tjsColon,tjsBraceOpen, tjsConditional]);
+    if IsReadonly then
+      GetNextToken
+    else if IsMinus then
+      Error(SErrExpectedColonBrace,[CurrentTokenString]);  
+    If CurrentTokenIsValidIdentifier then
+      begin
+      aName:=CurrentTokenString;
+      GetNextToken;
+      end
+    else if (Not (CurrentToken in [tjsLT,tjsBraceOpen,tjsSQuaredBraceOpen,tjsNew])) then
        Error(SErrObjectElement,[CurrentTokenString]);
     isOptional:=(CurrentToken=tjsConditional);
     if isOPtional then
       GetNextToken;
     case CurrentToken of
+      tjsSQuaredBraceOpen:
+        begin
+        // [a:type] : Type
+        E:=ParseIndexSignature;
+        end;
       // PropertyName : PropertyType
       tjsColon:
         begin
         Consume(tjsColon);
         E:=TJSPropertyDeclaration(CreateElement(TJSPropertyDeclaration));
         E.Name:=aName;
-        E.ElementType:=ParseTypeRef;
+        E.ElementType:=ParseTypeRef([ptoAllowLiteral]);
         end;
       // <T1> () : TypeName;
       // () : TypeName;
+      tjsNew,
       tjsLT,
       tjsBraceOpen:
         begin
+        if CurrentToken=tjsNew then
+          begin
+          aName:='new';
+          GetNextToken;
+          end;
         TP:=Nil;
         F:=TJSMethodDeclaration(CreateElement(TJSMethodDeclaration));
         F.Name:=aName;
@@ -595,7 +742,7 @@ begin
           ParseGenericParamList(TP);
           consume(tjsGT);
           end;
-        FS:=ParseFunctionExpression(True);
+        FS:=ParseFunctionExpression([ffGenerator]);
         F.FuncDef:=FS.AFunction;
         FS.AFunction:=Nil;
         F.TypeParams:=TP;
@@ -603,7 +750,7 @@ begin
           F.Funcdef.ResultType:=CreateAny;
         FS.Free;
         end;
-      tjsComma,tjsSemicolon:
+      tjsComma,tjsSemicolon,tjsCurlyBraceClose:
         begin
         // PropertyName ; Type is any
         E:=TJSPropertyDeclaration(CreateElement(TJSPropertyDeclaration));
@@ -611,7 +758,7 @@ begin
         E.ElementType:=CreateAny;
         end;
     else
-      Raise EJSParser.CreateFmt(SErrExpectedColonBrace,[CurrentTokenString]);
+      Error(SErrExpectedColonBrace,[CurrentTokenString]);
     end;
     if Assigned(E) then
       begin
@@ -626,68 +773,168 @@ end;
 
 
 
-procedure TJSParser.ParseTypeList(aList : TJSElementNodes; aTerminator : TJSToken);
+procedure TJSParser.ParseTypeList(aList : TJSElementNodes; aTerminator : TJSToken; ListType: TListType = ltUnknown);
 
 // Entry on < or [, exit on terminator
 
 Var
-  aSub : TJSTypeDef;
+  aSub,aType : TJSTypeDef;
+  aParam : TJSNamedParamTypeDef;
+  IsSpread,IsExtends : Boolean;
+  PTO : TParseTypeOptions;
+
 
 begin
+  PTO:=[];
+  if ListType in [ltTuple,ltTemplate] then
+    Include(PTO,ptoAllowLiteral);
   GetNextToken;
   While (CurrentToken<>aTerminator) do
     begin
-    aSub:=ParseTypeRef;
-    aList.AddNode.Node:=aSub;
+    IsSpread:=(CurrentToken=tjsEllipsis);
+    if IsSpread then
+      GetNextToken;
+    IsExtends:=(CurrentToken=tjsExtends);
+    if IsExtends then
+      GetNextToken;
+    aType:=Nil;
+    aSub:=ParseTypeRef(PTO);
+    try
+      aSub.IsExtends:=isExtends;
+      aSub.IsSpread:=isSpread;
+      if (ListType=ltTemplate) and (CurrentToken=tjsAssign) then
+        begin
+        GetNextToken;
+        aType:=ParseTypeRef([ptoAllowLiteral]);
+        aParam:=TJSNamedParamTypeDef(CreateElement(TJSNamedParamTypeDef));
+        aParam.ParamName:=aSub;
+        aParam.ParamType:=aType;
+        aType:=Nil;
+        aSub:=aParam;
+        aList.AddNode.Node:=aSub;
+        end
+      else
+        begin
+        if (listType=ltTuple) and (CurrentToken=tjsConditional) then
+          GetNextToken;
+        aList.AddNode.Node:=aSub;
+        end;
+    except
+      aSub.Free;
+      aType.Free;
+      Raise;
+    end;
     if CurrentToken=tjsComma then
       GetNextToken;
     end;
 end;
 
-Function TJSParser.ParseArrowFunctionTypeDef (aArgName : jsBase.TJSString) : TJSArrowFunctionTypeDef;
+Function TJSParser.ParseArrowFunctionTypeDef (aArgName : jsBase.TJSString; aArgIsSpread : Boolean) : TJSArrowFunctionTypeDef;
 
-// On entry, we are on
-// )  of a () => Type
-// : from the first argument in a (argname : ) => Type
-// On exit: first token after the result type
-
-  Procedure ParseArgType(const aName : jsBase.TJSString);
-  // On entry we are on :
-  // On exit we are on , or )
-
-  begin
-    Consume(tjsColon);
-    Result.aFunction.TypedParams.AddParam(aName).Node:=ParseTypeRef;
-  end;
-
-Var
-  aName : jsBase.TJSString;
+var
+  P : TJSTypedParam;
 
 begin
   Result:=TJSArrowFunctionTypeDef(CreateElement(TJSArrowFunctionTypeDef));
   try
-    If aArgName <> '' then
+    P:=nil;
+    if (AArgName<>'') then
       begin
-      ParseArgType(aArgName);
+      P:=Result.aFunction.TypedParams.AddParam(aArgName);
+      P.IsSpread:=aArgIsSpread;
       end;
-    While CurrentToken<>tjsBraceClose do
-      begin
-      if CurrentToken=tjsComma then
-        Consume(tjscomma);
-      aName:=ParseIdentifier;
-      ParseArgType(aName);
-      end;
-    Consume(tjsBraceClose);
-    Consume(tjsArrow);
-    Result.aFunction.ResultType:=ParseTypeRef;
+    ParseArrowFunctionTypeDef(Result,P);
   except
-    FreeAndNil(Result);
+    Result.Free;
     Raise;
   end;
 end;
 
 
-Function TJSParser.ParseParenthesisedDef : TJSTypeDef;
+
+Function TJSParser.ParseArrowFunctionTypeDef (aFirst : TJSObjectTypeDef; aArgIsSpread: Boolean) : TJSArrowFunctionTypeDef;
+
+var
+  P : TJSTypedParam;
+
+begin
+  Result:=TJSArrowFunctionTypeDef(CreateElement(TJSArrowFunctionTypeDef));
+  try
+    P:=Result.aFunction.TypedParams.AddParam('');
+    P.Destructured:=aFirst;
+    P.IsSpread:=aArgIsSpread;
+    ParseArrowFunctionTypeDef(Result,P);
+  except
+    Result.Free;
+    Raise
+  end
+end;
+
+Procedure TJSParser.ParseArrowFunctionTypeDef(aDef : TJSArrowFunctionTypeDef; aFirstParam : TJSTypedParam);
+
+
+// On entry, we are on
+// )  of a () => Type
+// ? or : from the first argument in a (argname : ) => Type
+// On exit: first token after the result type
+
+  Procedure ParseArgType(P : TJSTypedParam; aIsSpread : Boolean);
+  // On entry we are on : or ?
+  // On exit we are on , or )
+
+  Var
+    IsConditional : Boolean;
+
+  begin
+    IsConditional:=CurrentToken=tjsConditional;
+    if IsConditional then
+      GetNextToken;
+    Consume(tjsColon);
+    With P do
+      begin
+      Node:=ParseTypeRef([ptoAllowLiteral]);
+      IsOptional:=IsConditional;
+      IsSpread:=aIsSpread;
+      end;
+  end;
+
+Var
+  P : TJSTypedParam;
+  aName : jsBase.TJSString;
+  IsSpread : Boolean;
+
+begin
+  If aFirstParam <> nil then
+    ParseArgType(aFirstParam,aFirstParam.IsSpread);
+  While (CurrentToken<>tjsBraceClose) do
+    begin
+    if CurrentToken=tjsComma then
+      Consume(tjscomma);
+    if CurrentToken<>tjsBraceClose then
+      begin
+      isSpread:=(CurrentToken=tjsEllipsis);
+      if IsSpread then
+        Consume(tjsEllipsis);
+      if (CurrentToken=tjsCurlyBraceOpen) then
+        begin
+        P:=ParseDestructuredParam(aDef.aFunction.TypedParams);
+        consume(tjsCurlyBraceClose);
+        end
+      else
+        begin
+        aName:=ParseIdentifier;
+        P:=aDef.aFunction.TypedParams.AddParam(aName);
+        end;
+      ParseArgType(P,IsSpread);
+      end;
+    end;
+  Consume(tjsBraceClose);
+  Consume(tjsArrow);
+  aDef.aFunction.ResultType:=ParseTypeRef([ptoAllowLiteral]);
+end;
+
+
+Function TJSParser.ParseParenthesisedDef (aOptions : TParseTypeOptions): TJSTypeDef;
 
 // On entry, we're on (
 // On exit we're after the type.
@@ -695,6 +942,7 @@ Function TJSParser.ParseParenthesisedDef : TJSTypeDef;
 Var
   aDef : TJSTypeDef;
   aArgName : jsbase.TJSString;
+  isSpread : Boolean;
 
 begin
   Result:=nil;
@@ -702,20 +950,27 @@ begin
   if CurrentToken=tjsBraceClose then
     begin
     // () => Type
-    Result:=ParseArrowFunctionTypeDef('');
+    Result:=ParseArrowFunctionTypeDef('',False);
     end
   else
     begin
-    aDef:=ParseTypeRef;
+    // (...Ident : ) => Type
+    isSpread:=(CurrentToken=tjsEllipsis);
+    // Actually we know it is a function at this point
+    if IsSpread then
+      Consume(tjsEllipsis);
+    aDef:=ParseTypeRef(aOptions - [ptoUnion,ptoIntersection]);
     // (Ident : ) => Type
-    if (CurrentToken=tjsColon) then
+    if (CurrentToken in [tjsColon,tjsConditional]) then
       begin
       if (aDef is TJSTypeReference) then
         begin
         aArgName:=TJSTypeReference(aDef).Name;
         FreeAndNil(aDef);
-        Result:=ParseArrowFunctionTypeDef(aArgName);
+        Result:=ParseArrowFunctionTypeDef(aArgName,IsSpread);
         end
+      else if (aDef is TJSObjectTypeDef) then
+        Result:=ParseArrowFunctionTypeDef(TJSObjectTypeDef(aDef),IsSpread)
       else
         Error(SErrorInTypeDef,[SArrowFunction]);
       end
@@ -730,12 +985,12 @@ begin
     end;
 end;
 
-Function TJSParser.ParseTypeRef : TJSTypeDef;
+function TJSParser.ParseTypeRef(aOptions : TParseTypeOptions): TJSTypeDef;
 
   Function ParseRef : TJSTypeReference;
 
   Var
-    TypeOf,NeedNext : Boolean;
+    NeedNext : Boolean;
     aName : jsbase.TJSString;
 
   begin
@@ -745,12 +1000,26 @@ Function TJSParser.ParseTypeRef : TJSTypeDef;
       if Result.IsTypeof then
         begin
         GetNextToken;
-        Expect(tjsIdentifier);
+        if (CurrentToken<>tjsImport) then
+          Expect(tjsIdentifier);
         end;
       NeedNext:=True;
       Case CurrentToken of
+        tjsImport :
+          begin
+          Result.IsImport:=True;
+          Consume(tjsImport);
+          Consume(tjsBraceOpen);
+          Expect(tjsToken.tjsString);
+          aName:=CurrentTokenString;
+          getNextToken;
+          Consume(tjsBraceClose);
+          NeedNext:=False;
+          end; 
         tjsVoid : aName:='void';
         tjsThis : aName:='this';
+        tjsNull : aName:='null';
+        tjsNew : aName:='new';
       else
         aName:=ParseIdentifier;
         needNext:=False;
@@ -768,88 +1037,153 @@ Function TJSParser.ParseTypeRef : TJSTypeDef;
 // On exit, we are on the first token after the type definition
 
 Const
-   StructTokens = [jsToken.tjsOR, jsToken.tjsLT, jsToken.tjsSQuaredBraceOpen];
+   StructTokens = [jsToken.tjsOR, jsToken.tjsAnd, jsToken.tjsLT, jsToken.tjsSQuaredBraceOpen];
 
 Var
-  Done : Boolean;
+  Done,RShift : Boolean;
   aType,aSub : TJSTypeDef;
   aStruct : TJSStructuredTypeDef;
-
+  aUnionOptions : TParseTypeOptions;
+  isKeyOf : Boolean;
+  CurrT : TJSToken;
 begin
+  isKeyOf:=False;
   aStruct:=Nil;
   aType:=Nil;
   Result:=Nil;
   Done:=False;
   try
     Repeat
-      Case CurrentToken of
+      CurrT:=CurrentToken;
+      Case CurrT of
+        tjsTrue,
+        tjsFalse,
+        tjsToken.tjsNumber,
+        tjsToken.tjsString:
+          begin
+          if (ptoAllowLiteral in aOptions) then
+            begin
+            AType:=TJSFixedValueReference(CreateElement(TJSFixedValueReference));
+            TJSFixedValueReference(AType).FixedValue:=ParseLiteral as TJSLiteral;
+            end
+          else
+            Done:=true;
+          end;
         tjsTYPEOF,
         tjsVoid,
         tjsThis,
+        tjsNew,
+        tjsNull,
         tjsIdentifier :
           begin
-          aType:=ParseRef;
+          if IsIdentifier('is') and Assigned(aType) then
+            begin
+            GetNextToken;
+            aType.TypeGuard:=ParseTypeRef();
+            end
+          else if IsIdentifier('keyof') then
+            begin
+            IsKeyOf:=True;
+            getNextToken;
+            end
+          else
+            begin  
+            aType:=ParseRef;
+            if ((ptoRefOnly in aOptions) and (CurrentToken<>tjsLT)) or FScanner.WasEndOfLine then
+              Done:=True;
+            end;  
           end;
         tjsOR :
           begin
-          if aType=Nil then
-            Error(SErrUnionWithoutType);
-          aStruct:=TJSUnionTypeDef(CreateElement(TJSUnionTypeDef));
-          aStruct.AddValue(aType);
-          Repeat
-            GetNextToken;
-            aStruct.AddValue(ParseTypeRef());
-          Until CurrentToken<>tjsOR;
-          aType:=aStruct;
+          if (ptoUnion in aOptions) then
+            Done:=True
+          else
+            begin
+            aStruct:=TJSUnionTypeDef(CreateElement(TJSUnionTypeDef));
+            TJSUnionTypeDef(aStruct).AllowEmpty:=aType=Nil;
+            if Assigned(aType) then
+              aStruct.AddValue(aType);
+            aType:=Nil;
+            Repeat
+              GetNextToken;
+              aUnionOptions:=[ptoUnion] + ([ptoAllowLiteral] * aOptions);
+              aStruct.AddValue(ParseTypeRef(aUnionOptions));
+            Until CurrentToken<>tjsOR;
+            aType:=aStruct;
+            if (CurrentToken=tjsBraceClose) or (FScanner.WasEndOfLine) then
+              Done:=true;
+            end;
           end;
         tjsAnd :
           begin
-          if aType=Nil then
-            Error(SErrIntersectionWithoutType);
-          aStruct:=TJSIntersectionTypeDef(CreateElement(TJSIntersectionTypeDef));
-          aStruct.AddValue(aType);
-          Repeat
-            GetNextToken;
-            aStruct.AddValue(ParseTypeRef());
-          Until CurrentToken<>tjsOR;
-          aType:=aStruct;
+          if (ptoIntersection in aOptions) then
+            Done:=True
+          else
+            begin
+            if aType=Nil then
+              Error(SErrIntersectionWithoutType);
+            aStruct:=TJSIntersectionTypeDef(CreateElement(TJSIntersectionTypeDef));
+            aStruct.AddValue(aType);
+            aType:=Nil;
+            Repeat
+              GetNextToken;
+              aUnionOptions:=[ptoIntersection] + ([ptoAllowLiteral] * aOptions);
+              aStruct.AddValue(ParseTypeRef(aUnionOptions));
+            Until CurrentToken<>tjsAnd;
+            aType:=aStruct;
+            if (CurrentToken=tjsBraceClose)  or (FScanner.WasEndOfLine) then
+              Done:=true;
+            end;
           end;
         tjsBraceOpen :
           begin
-          AType:=ParseParenthesisedDef
+          AType:=ParseParenthesisedDef(aOptions);
+          if AType is TJSArrowFunctionTypeDef then
+            Done:=FScanner.WasEndOfLine;
           end;
         tjsCurlyBraceOpen :
           begin
           AType:=ParseObjectTypeDef;
           Consume(tjsCurlyBraceClose);
+          Done:=FScanner.WasEndOfLine;
           end;
         tjsSQuaredBraceOpen :
           begin
-          if aType<>Nil then
+          if (aType<>Nil) and (aStruct=nil) then
             begin
             aSub:=aType;
             aType:=TJSArrayTypeDef(CreateElement(TJSArrayTypeDef));
             TJSArrayTypeDef(aType).BaseType:=aSub;
             GetNextToken;
+            if (CurrentToken<>tjsSQuaredBraceClose) then
+              begin
+              aSub:=ParseTypeRef([ptoAllowLiteral]);
+              TJSArrayTypeDef(aType).IndexType:=aSub;
+              end;
             end
           else
             begin // no earlier type yet, so tuple
             aStruct:=TJSTupleTypeDef(CreateElement(TJSTupleTypeDef));
-            ParseTypeList(aStruct.Values,tjsSQuaredBraceClose);
+            ParseTypeList(aStruct.Values,tjsSQuaredBraceClose,ltTuple);
             aType:=aStruct;
             end;
           Consume(tjsSQuaredBraceClose);
+          Done:=FScanner.WasEndOfLine; 
           end;
         tjsLT :
           begin
-          if aType=Nil then
-            Error(SErrGenericWithoutType);
           if (aType is TJSTypeReference) and (TJSTypeReference(aType).Name='Array') then
             begin
             FreeAndNil(AType);
             aType:=TJSArrayTypeDef(CreateElement(TJSArrayTypeDef));
             consume(tjsLT);
-            TJSArrayTypeDef(aType).BaseType:=ParseTypeRef();
+            RShift:=FScanner.DisableRShift;
+            FScanner.DisableRShift:=True;
+            try
+              TJSArrayTypeDef(aType).BaseType:=ParseTypeRef([ptoALlowLiteral]);
+            Finally
+              FScanner.DisableRShift:=RShift;
+            end;
             // GetNextToken;
             consume(tjsGT);
             end
@@ -861,47 +1195,109 @@ begin
             aType:=aStruct;
             ParseGenericParamList(aStruct.Values);
             consume(tjsGT);
+            if (ptoRefOnly in aOptions) then
+              Done:=true;
             end;
+          Done:=done or FScanner.WasEndOfLine; 
           end;
+        tjsExtends : 
+          begin
+          if aType=Nil  then
+            Error(SErrExtendsNeedsTypeName);
+          GetNextToken;
+          aType.ExtendsCond:=ParseTypeRef(aOptions);
+          if CurrentToken=tjsConditional then
+            begin
+            Consume(tjsConditional);
+            aType.ExtendsTrue:=ParseTypeRef(aOptions);
+            Consume(tjsColon);
+            aType.ExtendsFalse:=ParseTypeRef(aOptions);
+            end;
+          Done:=True;
+          end;  
       else
         done:=true;
       end;
-      if Currenttoken=tjsBraceClose then
+      if Currenttoken in [tjsBraceClose,tjsGT,tjsSemicolon,tjsCurlyBraceOpen, tjsCurlyBraceClose, tjsSQuaredBraceClose] then
         Done:=True;
-      if (not Done) and (PeekNextToken in StructTokens) then
-          GetNextToken;
+{      if (not Done) and Not IsIdentifier('is') and (PeekNextToken in StructTokens) then
+          GetNextToken;}
+      if assigned(aType) and IsKeyOf then
+        begin
+        aType.IsKeyOf:=True;
+        IsKeyOf:=False;
+        end;
     until done;
 
     if (Result=Nil) then
       if (aType<>Nil) then
         Result:=aType
       else
-        Error(SErrTypeExpected)
+        Error(SErrTypeExpected,[CurrentTokenString])
   except
+    if (aStruct<>aType) then
+      aStruct.Free;
     aType.Free;
-    aStruct.Free;
     Raise;
   end;
 end;
+
+Function TJSParser.ParseDestructuredParam(aParams : TJSTypedParams): TJSTypedParam;
+
+begin
+  Result:=aParams.AddParam('');
+  try
+    Result.Destructured:=TJSObjectTypeDef(CreateElement(TJSObjectTypeDef));
+    ParseObjectBody(Result.Destructured);
+  Except
+    Result.Free;
+    Raise;
+  end;
+end;
+
 
 Procedure TJSParser.ParseFormalParameterList(aParams : TJSTypedParams);
 
 Var
   P : TJSTypedParam;
+  IsSpread : Boolean;
+  allowed : TJSTokens;
+  aName : jsBase.TJSString;
 
 begin
-  While (CurrentToken=tjsIdentifier) do
+  allowed:=[tjsEllipsis, tjsIdentifier];
+  if IsTypeScript then
     begin
-    Expect(tjsIdentifier);
-    P:=aParams.AddParam(CurrentTokenString);
+    Include(Allowed,tjsThis);
+    Include(Allowed,tjsCurlyBraceOpen);
+    end;
+  While (CurrentToken in Allowed) do
+    begin
+    IsSpread:=(CurrentToken=tjsEllipsis);
+    if IsSpread then
+      Consume(tjsEllipsis);
+    if IsTypeScript and (CurrentToken=tjsThis) then
+      P:=aParams.AddParam('this')
+    else if IsTypeScript and (CurrentToken=tjsCurlyBraceOpen) then
+      ParseDestructuredParam(aParams)
+    else
+      begin
+      Expect(tjsIdentifier);
+      aName:=CurrentTokenString;
+      P:=aParams.AddParam(aName);
+      end;
+    P.IsSpread:=IsSpread;
     GetNextToken;
     if IsTypeScript then
       begin
+      P.IsOptional:=(CurrentToken=tjsConditional);
+      if P.IsOptional then
+        Consume(tjsConditional);
       Expect(tjsCOLON);
       Consume(tjsCOLON);
-      P.Node:=ParseTypeRef;
+      P.Node:=ParseTypeRef([ptoAllowLiteral]);
       end;
-    If (CurrentToken=tjsComma) then
+    while (CurrentToken=tjsComma) do
        GetNextToken;
     end;
 end;
@@ -913,28 +1309,49 @@ Var
   Id : jsBase.TJSString;
   D : TJSFuncDef;
   isGenerator : Boolean;
-
+  TP : TJSElementNodes;
+  
 begin
   {$ifdef debugparser}  Writeln('>>> Entering ParseFunctionDeclaration');{$endif debugparser}
-  Consume(tjsFunction);
+  TP:=nil;
+  if (ffConstructor in aFlags) then
+    consume(tjsIdentifier)
+  else if IsTypeScript and IsIdentifier('static') then
+    Consume(tjsIdentifier)
+  else
+    Consume(tjsFunction);
   isGenerator:=(CurrentToken=tjsMUL);
   if IsGenerator then
     Consume(tjsMul);
-  ID:=ParseIdentifier;
-  Consume(tjsBraceOpen);
+  if ffConstructor in aFlags then
+    ID:='constructor'
+  else if CurrentToken=tjsExtends then
+    begin
+    ID:='extends';
+    GetNextToken;
+    end
+  else
+    ID:=ParseIdentifier;
+  if CurrentToken=tjsLT then
+    begin
+    TP:=TJSElementNodes.Create(TJSElementNode);
+    ParseGenericParamList(TP);
+    consume(tjsGT);
+    end;  
   Result:=TJSFunctionDeclarationStatement(CreateElement(TJSFunctionDeclarationStatement));
-  Result.AFunction:=TJSFuncDef.Create;
-  D:=Result.AFunction;
   try
+    Result.AFunction:=TJSFuncDef.Create;
+    D:=Result.AFunction;
+    D.GenericParams:=TP;
     D.Name:=ID;
+    Consume(tjsBraceOpen);
     ParseFormalParameterList(D.TypedParams);
     D.UpdateParams;
     Consume(tjsBraceClose);
-    if IsTypeScript then
+    if IsTypeScript and (CurrentToken=tjsColon) then
       begin
       consume(tjsColon);
-      D.ResultType:=ParseTypeRef;
-      GetNextToken;
+      D.ResultType:=ParseTypeRef([ptoAllowLiteral]);
       end;
     if not (ffAmbient in aFlags) then
       begin
@@ -1062,7 +1479,7 @@ begin
       else If (CurrentToken=tjsMul) and (EcmaVersion>=MinGeneratorVersion) then
          begin
          E:=N.Elements.AddElement;
-         E.Expr:= ParseFunctionExpression(True);
+         E.Expr:= ParseFunctionExpression([ffGenerator]);
          E.Name:=TJSFunctionDeclarationStatement(E.Expr).AFunction.Name;
          NeedAssign:=False;
          end
@@ -1096,7 +1513,13 @@ begin
   {$ifdef debugparser}  Writeln('Parsing numerical literal');{$endif debugparser}
   Result:=Nil;
   try
-    Val(CurrentTokenString,D,I);
+    if Pos('0x',CurrentTokenString) = 1 then
+      begin
+      D:=StrToInt('$'+Copy(CurrentTokenString,3,Length(CurrentTokenString)-2));
+      I:=0;
+      end
+    else
+      Val(CurrentTokenString,D,I);
     If (I>0) then
       Error(SErrInvalidnumber,[CurrentTokenString]);
     L:=TJSLiteral(CreateElement(TJSLiteral));
@@ -1259,7 +1682,7 @@ begin
   {$ifdef debugparser}  Writeln('ParseMemberExpression');{$endif debugparser}
   Case CurrentToken of
     tjsClass : Result:=ParseClassExpression();
-    tjsFunction : Result:=ParseFunctionExpression();
+    tjsFunction : Result:=ParseFunctionExpression([ffGenerator]);
     tjsNew      : begin
                   GetNextToken;
                   N:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression));
@@ -1311,6 +1734,17 @@ begin
   {$ifdef debugparser}  Writeln('Exit ParseMemberExpression');{$endif debugparser}
 end;
 
+function TJSParser.ParseModuleDeclarationStatement: TJSModuleStatement;
+begin
+  Result:=TJSModuleStatement(CreateElement(TJSModuleStatement));
+  try
+    Result.Decl:=ParseModuleDeclaration;
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
 function TJSParser.ParseArguments: TJSarguments;
 
 Var
@@ -1349,7 +1783,7 @@ begin
   {$ifdef debugparser}  Writeln('ParseLeftHandSideExpression');{$endif debugparser}
   Case CurrentToken of
     tjsClass : Result:=ParseClassExpression;
-    tjsFunction : Result:=ParseFunctionExpression;
+    tjsFunction : Result:=ParseFunctionExpression([]);
     tjsNew      : Result:=ParseMemberExpression;
   else
     Result:=ParsePrimaryExpression
@@ -1512,6 +1946,17 @@ begin
     Raise;
   end;
   {$ifdef debugparser}  Writeln('Exit ParseMultiplicativeExpression');{$endif debugparser}
+end;
+
+function TJSParser.ParseNamespaceDeclarationStatement: TJSNamespaceStatement;
+begin
+  Result:=TJSNamespaceStatement(CreateElement(TJSNameSpaceStatement));
+  try
+    Result.Decl:=ParseNameSpaceDeclaration(True);
+  except
+    Result.Free;
+    Raise;
+  end;
 end;
 
 function TJSParser.ParseAdditiveExpression: TJSElement;
@@ -1806,6 +2251,7 @@ Var
 begin
   {$ifdef debugparser}  Writeln('ParseAssignmentExpression');{$endif debugparser}
   Result:=Nil;
+  C:=Nil;
   N:=ParseConditionalExpression;
   If not isLHS then
     Result:=N
@@ -1833,6 +2279,8 @@ begin
     {$ifdef debugparser}  Writeln('Exit ParseAssignmentExpression - no assignment');{$endif debugparser}
     Exit;
     end;
+  if C=Nil then
+    C:=TJSAssignStatement;
   A:=TJSAssignStatement(CreateElement(C));
   try
     Result:=A;
@@ -1865,7 +2313,7 @@ begin
     if IsTypeScript and (CurrentToken=tjsColon) then
       begin
       Consume(tjsColon);
-      V.Typed:=ParseTypeRef;
+      V.Typed:=ParseTypeRef([ptoAllowLiteral]);
       end;
     if (CurrentToken=tjsAssign) then
       begin
@@ -1950,7 +2398,7 @@ end;
 function TJSParser.ParseEmptyStatement : TJSElement;
 
 begin
-  Consume(tjsSemiColon,true);
+  Consume(tjsSemiColon,False);
   Result:=CreateElement(TJSEmptyStatement);
 end;
 
@@ -2118,17 +2566,33 @@ begin
   if (CurrentToken<>tjsCurlyBraceClose) then
     begin
     Repeat
-      Expect(tjsIdentifier);
-      aName:=CurrentTokenString;
+      if IsTypeScript and (currentToken=tjsDEFAULT) then
+        begin
+        aName:='default';
+        getNextToken
+        end
+      else
+        begin
+        Expect(tjsIdentifier);
+        aName:=CurrentTokenString;
+        Consume(tjsIdentifier);
+        end;
       aAlias:='';
-      Consume(tjsIdentifier);
       if IdentifierIsLiteral('as') then
         begin
         Consume(tjsIdentifier);
-        Expect(tjsIdentifier);
-        aAlias:=CurrentTokenString;
-        Consume(tjsIdentifier);
-        end;
+        if IsTypeScript and (currentToken=tjsDEFAULT) then
+          begin
+          aAlias:='default';
+          getNextToken;
+          end
+        else
+          begin
+          Expect(tjsIdentifier);
+          aAlias:=CurrentTokenString;
+          Consume(tjsIdentifier);
+          end;
+        end;  
       With aElements.AddAlias do
         begin
         Name:=aName;
@@ -2146,7 +2610,10 @@ function TJSParser.ParseImportStatement: TJSElement;
 Var
   Imp : TJSImportStatement;
   aExpectMore : Boolean;
+  isAssigned : Boolean;
+
 begin
+  isAssigned:=False;
   aExpectMore:=True;
   Consume(tjsImport);
   Imp:=TJSImportStatement(CreateElement(TJSImportStatement));
@@ -2179,30 +2646,63 @@ begin
       tjsCurlyBraceOpen:
         begin
         ParseAliasElements(Imp.NamedImports);
-        end
+        end;
+      tjsAssign:
+        begin
+        if IsTypeScript then
+           begin
+           Consume(tjsAssign);
+           isAssigned:=True;
+           Imp.Expression:=ParseExpression;
+           end;
+        end;
     else
       if aExpectMore then
         Error(SErrExpectedMulOrCurlyBrace,[CurrentTokenString]);
     end;
-    ConsumeIdentifierLiteral('from');
-    Expect(jstoken.tjsString);
-    Imp.ModuleName:=CurrentTokenString;
-    Consume(jstoken.tjsString);
+    if not IsAssigned then
+      begin
+      ConsumeIdentifierLiteral('from');
+      Expect(jstoken.tjsString);
+      Imp.ModuleName:=CurrentTokenString;
+      Consume(jstoken.tjsString);
+      end;
+    Consume(tjsSemicolon,True);
   except
     FreeAndNil(Result);
     Raise;
   end;
 end;
 
-function TJSParser.ParseExportStatement: TJSElement;
+function TJSParser.ParseExportStatement(isAssign : Boolean): TJSElement;
 Var
   Exp : TJSExportStatement;
-  async, aExpectFrom : Boolean;
+  IsAbstract, IsAmbient, aSync, aExpectFrom : Boolean;
   F : TJSFunctionDeclarationStatement;
+  FF : TFunctionFlags;
 
 begin
+   IsAmbient:=False;
+  aSync:=False;
   aExpectFrom:=True;
-  Consume(tjsExport);
+  if IsAssign then
+    Consume(tjsAssign)
+  else
+    Consume(tjsExport);
+  if IsTypeScript then
+    begin
+    if CurrentToken=tjsAssign then
+      begin
+      isAssign:=True;
+      getnexttoken;
+      end;
+    IsAmbient:=IsIdentifier('declare');
+    if IsAmbient then
+      GetNextToken;
+    IsAbstract:=IsIdentifier('abstract');
+    if IsAbstract then
+      GetNextToken;
+    end;
   Exp:=TJSExportStatement(CreateElement(TJSExportStatement));
   try
     Result:=Exp;
@@ -2226,14 +2726,28 @@ begin
         end;
       tjsVAR:
         Exp.Declaration:=ParseVariableStatement(vtVar);
+      tjsEnum:
+        Exp.Declaration:=ParseEnumDeclaration;
       tjsConst:
-        Exp.Declaration:=ParseVariableStatement(vtConst);
+        if IsTypeScript and (PeekNextToken=tjsENUM) then
+          Exp.Declaration:=ParseEnumDeclarationStatement
+        else
+          Exp.Declaration:=ParseVariableStatement(vtConst);
       tjsLet:
         Exp.Declaration:=ParseVariableStatement(vtLet);
       tjsFunction :
-        Exp.Declaration:=ParseFunctionDeclaration([]);
+        if IsTypeScript or isAmbient then
+          Exp.Declaration:=ParseFunctionDeclaration([ffAmbient])
+        else
+          Exp.Declaration:=ParseFunctionDeclaration([]);
       tjsClass :
-        Exp.Declaration:=ParseClassDeclaration;
+        begin
+        Exp.Declaration:=ParseClassDeclaration(IsAmbient or IsTypeScript,IsAbstract);
+        end;
+      tjsIMPORT :
+        begin
+        Exp.Declaration:=ParseImportStatement;
+        end;
       tjsDEFAULT:
         begin
         Exp.IsDefault:=True;
@@ -2242,18 +2756,73 @@ begin
         async:=IdentifierIsLiteral('async');
         if Async then
           GetNextToken;
+        IsAbstract:=IdentifierIsLiteral('abstract') and (PeekNextToken=tjsClass);
+        if IsAbstract then
+          GetNextToken;
         case CurrentToken of
           tjsFunction :
             begin
-            F:=ParseFunctionDeclaration([]);
+            FF:=[];
+            if IsTypeScript or IsAmbient then
+              Include(FF,ffAmbient);
+            F:=ParseFunctionExpression(FF);
             F.AFunction.IsAsync:=async;
             Exp.Declaration:=F;
             end;
-          tjsClass : Exp.Declaration:=ParseClassDeclaration;
+          tjsClass : Exp.Declaration:=ParseClassDeclaration(True,True);
         else
           Exp.Declaration:=ParseAssignmentExpression;
         end;
         end;
+      jsToken.tjsAssign:
+      begin
+      if IsTypeScript then
+        begin
+        consume(tjsAssign);
+        aExpectFrom:=False;
+        Exp.Declaration:=ParseExpression;
+        end;
+      end;
+      tjsIdentifier:
+        begin
+        if IsTypeScript then
+          begin
+          if IsIdentifier('interface') then
+            Exp.Declaration:=ParseInterfaceDeclaration
+          else if IsIdentifier('namespace') then
+            Exp.Declaration:=ParseNamespaceDeclaration(True)
+          else if IsIdentifier('module') then
+            Exp.Declaration:=ParseModuleDeclaration
+          else if IsIdentifier('class') then
+            Exp.Declaration:=ParseClassDeclaration(True)
+          else if IsIdentifier('abstract') then
+            begin
+            consume(tjsIdentifier);
+            if (CurrentToken=tjsClass) then
+              Exp.Declaration:=ParseClassDeclaration(True,True);
+            end
+          else if IsIdentifier('type') then
+            Exp.Declaration:=ParseTypeDeclaration
+          else if IsIdentifier('enum') then
+            Exp.Declaration:=ParseEnumDeclaration
+          else if IsIdentifier('as') then
+            begin
+            consume(tjsIdentifier);
+            if Not IsIdentifier('namespace') then
+              Error(SErrExpectedButFound,['namespace',CurrentTokenString]);
+            consume(tjsIdentifier);
+            expect(tjsIdentifier);
+            Exp.NameSpaceExport:=CurrentTokenString;
+            Consume(tjsIdentifier);
+            end
+          else if IsAssign then
+            Exp.Declaration:=ParseExpression
+          else
+            Error(SErrExpectedMulOrCurlyBraceOrDefault,[CurrentTokenString]);
+          end
+        else
+          Error(SErrExpectedMulOrCurlyBraceOrDefault,[CurrentTokenString]);
+        end
     else
       Error(SErrExpectedMulOrCurlyBraceOrDefault,[CurrentTokenString]);
     end;
@@ -2264,6 +2833,7 @@ begin
       Exp.ModuleName:=CurrentTokenString;
       Consume(jstoken.tjsString);
       end;
+    Consume(tjsSemicolon,True);
   except
     FreeAndNil(Result);
     Raise;
@@ -2491,31 +3061,34 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
-
 end;
 
-function TJSParser.ParseEnumDeclarationStatement: TJSElement;
+function TJSParser.ParseEnumDeclaration: TJSEnumDeclaration;
 // We are on the 'enum' identifier on entry, last token of type on exit
-
-Var
-  aES : TJSEnumStatement;
-  aDecl : TJSEnumDeclaration;
+var
+  El : TJSEnumElement;
 
 begin
   GetNextToken; // Skip 'enum'
-  aES:=TJSEnumStatement(CreateElement(TJSEnumStatement));
-  Result:=aES;
+  Result:=TJSEnumDeclaration(CreateElement(TJSEnumDeclaration));
   try
-    aES.EnumDecl:=TJSEnumDeclaration(CreateElement(TJSEnumDeclaration));
-    aDecl:=TJSEnumDeclaration(aES.EnumDecl);
-    aDecl.Name:=ParseIdentifier;
+    Result.Name:=ParseIdentifier;
     consume(tjsCurlyBraceOpen);
-    aDecl.EnumDef:=TJSEnumTypeDef(CreateElement(TJSEnumTypeDef));
+    Result.EnumDef:=TJSEnumTypeDef(CreateElement(TJSEnumTypeDef));
     While not (CurrentToken=tjsCurlyBraceClose) do
       begin
       if (CurrentToken=tjsComma) then
         Consume(tjsComma);
-      aDecl.EnumDef.AddName(ParseIdentifier);
+      // Trailing ,
+      if (CurrentToken<>tjsCurlyBraceClose) then
+        begin
+        EL:=Result.EnumDef.AddName(ParseIdentifier);
+        if CurrentToken=tjsAssign then
+          begin
+          Consume(tjsAssign);
+          el.Value:=ParseLiteral;
+          end;
+        end;
       end;
     Consume(tjsCurlyBraceClose);
   except
@@ -2524,41 +3097,74 @@ begin
   end;
 end;
 
-
-function TJSParser.ParseTypeDeclarationStatement: TJSElement;
-// We are on the 'type' identifier on entry, last token of type on exit
+function TJSParser.ParseEnumDeclarationStatement: TJSElement;
+// We are on the 'const' token or 'enum' identifier on entry, last token of type on exit
 
 Var
-  aTS : TJSTypeStatement;
-  aTypeDecl : TJSTypeDeclaration;
+  aES : TJSEnumStatement;
+  IsConst : Boolean;
 
 begin
-  GetNextToken; // Skip 'type'
-  aTS:=TJSTypeStatement(CreateElement(TJSTypeStatement));
-  Result:=aTS;
+  IsConst:=(CurrentToken=tjsConst);
+  if isConst then
+    Consume(tjsConst);
+  aES:=TJSEnumStatement(CreateElement(TJSEnumStatement));
+  Result:=aES;
   try
-    aTS.TypeDecl:=TJSTypeDeclaration(CreateElement(TJSTypeDeclaration));
-    aTypeDecl:=TJSTypeDeclaration(aTS.TypeDecl);
-    aTypeDecl.Name:=ParseIdentifier;
-    if (CurrentToken=tjsLT) then
-      begin
-      aTypeDecl.TypeParams:=TJSElementNodes.Create(TJSElementNode);
-      ParseGenericParamList(aTypeDecl.TypeParams);
-      Consume(tjsGT);
-      end;
-    Consume(tjsAssign);
-    aTypeDecl.TypeDef:=ParseTypeRef;
+    aES.EnumDecl:=ParseEnumDeclaration;
+    aES.EnumDecl.EnumDef.IsConst:=IsConst;
   except
     Result.Free;
     Raise;
   end;
 end;
 
-function TJSParser.ParseFunctionExpression(IsGenerator: Boolean): TJSFunctionDeclarationStatement;
+function TJSParser.ParseTypeDeclaration: TJSTypeDeclaration;
+
+// We are on the 'type' identifier on entry, last token of type on exit
+
+begin
+  GetNextToken; // Skip 'type'
+  Result:=TJSTypeDeclaration(CreateElement(TJSTypeDeclaration));
+  try
+    Result.Name:=ParseIdentifier;
+    if (CurrentToken=tjsLT) then
+      begin
+      Result.TypeParams:=TJSElementNodes.Create(TJSElementNode);
+      ParseGenericParamList(Result.TypeParams);
+      Consume(tjsGT);
+      end;
+    Consume(tjsAssign);
+    Result.TypeDef:=ParseTypeRef([ptoAllowLiteral]);
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+function TJSParser.ParseTypeDeclarationStatement: TJSElement;
+// We are on the 'type' identifier on entry, last token of type on exit
+
+Var
+  aTS : TJSTypeStatement;
+
+begin
+  aTS:=TJSTypeStatement(CreateElement(TJSTypeStatement));
+  Result:=aTS;
+  try
+    aTS.TypeDecl:=ParseTypeDeclaration;
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+function TJSParser.ParseFunctionExpression(aFlags : TFunctionFlags): TJSFunctionDeclarationStatement;
 
 Var
   Oni,olhs: Boolean;
   F : TJSFunctionDeclarationStatement;
+  TP : TJSElementNodes;
   N : jsBase.TJSString;
 
 begin
@@ -2566,12 +3172,13 @@ begin
   oni:=NoIn;
   olhs:=IsLHS;
   F:=Nil;
+  TP:=Nil;
   try
     NoIn:=False;
     IsLHS:=False;
     F:=TJSFunctionDeclarationStatement(CreateElement(TJSFunctionDeclarationStatement));
     try
-      if not IsGenerator then
+      if not (ffGenerator in aFlags) then
         Consume(tjsFunction);
       F.isGenerator:=(CurrentToken=tjsMUL);
       if F.IsGenerator then
@@ -2584,14 +3191,22 @@ begin
       else
         n:='';
       if n='' then ; // what to do with that?
+      if CurrentToken=tjsLT then
+        begin
+        TP:=TJSElementNodes.Create(TJSElementNode);
+        ParseGenericParamList(TP);
+        consume(tjsGT);
+        end;
       Consume(tjsBraceOpen);
       F.AFunction:= TJSFuncDef.Create;
+      F.Afunction.GenericParams:=TP;
+      TP:=nil;
       ParseFormalParameterList(F.AFunction.TypedParams);
       Consume(tjsBraceClose);
       if CurrentToken=tjsColon then
         begin
         Consume(tjsColon);
-        F.AFunction.ResultType:=ParseTypeRef;
+        F.AFunction.ResultType:=ParseTypeRef([ptoAllowLiteral]);
         end;
       if (CurrentToken=tjsCurlyBraceOpen) then
         begin
@@ -2631,7 +3246,7 @@ begin
   I:=Nil;
   A:=Nil;
   try
-    F:=ParseFunctionExpression;
+    F:=ParseFunctionExpression([]);
     I:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent));
     I.Name:=F.AFunction.Name;
     A:=TJSAssignStatement(CreateElement(TJSAssignStatement));
@@ -2744,18 +3359,27 @@ begin
   {$ifdef debugparser}  Writeln('Exit ParseExpression');{$endif debugparser}
 end;
 
-function TJSParser.ParseStatement : TJSElement;
+function TJSParser.ParseStatement(IsAmbient : Boolean = False): TJSElement;
+
+Var
+  FF : TFunctionFlags;
 
 begin
   {$ifdef debugparser} Writeln('>>> Parsestatement');{$endif}
   Result:=Nil;
+  FF:=[];
+  if isAmbient then
+    FF:=[ffAmbient];
   Case CurrentToken of
     tjsCurlyBraceOpen :
       Result:=ParseBlock;
     tjsLet:
       Result:=ParseVariableStatement(vtLet);
     tjsConst:
-      Result:=ParseVariableStatement(vtConst);
+      if IsTypeScript and (PeekNextToken=tjsEnum) then
+        Result:=ParseEnumDeclarationStatement
+      else
+        Result:=ParseVariableStatement(vtConst);
     tjsVar:
       Result:=ParseVariableStatement(vtVar);
     tjsSemicolon:
@@ -2764,12 +3388,14 @@ begin
       Result:=ParseIfStatement;
     tjsDo,tjsWhile,tjsFor:
       Result:=ParseIterationStatement;
+    tjsClass:
+      Result:=ParseClassStatement;
     tjsContinue:
       Result:=ParseContinueStatement;
     tjsImport:
       Result:=ParseImportStatement;
     tjsExport:
-      Result:=ParseExportStatement;
+      Result:=ParseExportStatement(False);
     tjsBreak:
       Result:=ParseBreakStatement;
     tjsReturn:
@@ -2795,8 +3421,24 @@ begin
     tjsIdentifier:
       If (PeekNextToken=tjsColon) then
         Result:=ParseLabeledStatement
-      else if IsTypeScript and IsIdentifier('type') then
-        Result:=ParseTypeDeclarationStatement
+      else if IsTypeScript then
+        begin
+        if IsIdentifier('type') then
+          Result:=ParseTypeDeclarationStatement
+        else if IsIdentifier('abstract') then
+          begin
+          consume(tjsIdentifier);
+          expect(tjsClass);
+          Result:=ParseClassStatement(True,True);
+          end
+        else if IsIdentifier('constructor') then
+          begin
+          Include(FF,ffConstructor);
+          Result:=ParseFunctionDeclaration(FF);
+          end
+        else
+          Result:=ParseExpressionStatement;
+        end
       else
         Result:=ParseExpressionStatement;
   else
@@ -2805,7 +3447,54 @@ begin
   {$ifdef debugparser} If Assigned(Result) then Writeln('<<< Parsestatement ',Result.ClassName) else Writeln('<<< Parsestatement (null');{$endif}
 end;
 
-function TJSParser.ParseSourceElements (ScopeType : TScopeType = stFunction): TJSSourceElements;
+Function TJSParser.AddToElements(aSource : TJSSourceElements; aElement : TJSElement; aIsAmbient : Boolean = False; aIsExport : Boolean = False): Boolean;
+
+begin
+  Result:=True;
+  if aElement is TJSInterfaceDeclaration then
+    aSource.Interfaces.AddNode(aElement,aIsAmbient,aIsExport)
+  else if aElement is TJSClassDeclaration then
+    aSource.Classes.AddNode(aElement,aIsAmbient,aIsExport)
+  else if aElement is TJSVarDeclaration then
+    aSource.Vars.AddNode(aElement,aIsAmbient,aIsExport)
+  else if aElement is TJSTypeDeclaration then
+    aSource.Types.AddNode(aElement,aIsAmbient,aIsExport)
+  else if aElement is TJSModuleDeclaration then
+    aSource.Modules.AddNode(aElement,aIsAmbient,aIsExport)
+  else if aElement is TJSNamespaceDeclaration then
+    aSource.NameSpaces.AddNode(aElement,aIsAmbient,aIsExport)
+  else
+    Result:=False;
+end;
+
+function TJSParser.ParseTypeScriptDeclarationStatement(Elements : TJSSourceElements; ScopeType : TScopeType; aIsAmbient : Boolean) : TJSElement;
+
+begin
+  Result:=Nil;
+  if IsIdentifier('module') then
+    Result:=Self.ParseModuleDeclarationStatement
+  else if IsIdentifier('namespace') or IsIdentifier('global') then
+    Result:=Self.ParseNamespaceDeclarationStatement
+  else if IsIdentifier('type') then
+    Result:=Self.ParseTypeDeclarationStatement
+  else if IsIdentifier('interface') then
+    Result:=Self.ParseInterfaceDeclarationStatement
+  else if (IsIdentifier('static')) then
+    begin
+    if aIsAmbient then
+      begin
+      Result:=Self.ParseFunctionDeclaration([ffAmbient]);
+      Elements.Functions.AddNode(aIsAmbient).Node:=Result;
+      end;
+    end;
+  if Assigned(Result) and (Result is TJSDeclarationStatement) then
+    begin
+    Elements.Statements.AddNode(aIsAmbient).Node:=Result;
+    AddToElements(Elements,TJSDeclarationStatement(Result).GetDeclaration,aIsAmbient);
+    end;
+end;
+
+function TJSParser.ParseSourceElements (ScopeType : TScopeType = stFunction; ParentisAmbient : Boolean = False): TJSSourceElements;
 
 Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
@@ -2824,7 +3513,7 @@ Var
   E : TJSElement;
   Done : Boolean;
   VS : TJSElementNodes;
-  isAmbient,isExport,aSync : Boolean;
+  isAmbient, isAbstract, aSync : Boolean;
   FF : TFunctionFlags;
 
   procedure DefaultParsing;
@@ -2832,8 +3521,10 @@ Var
   begin
     if CurrentToken in StatementTokens then
        begin
-       E:=Self.ParseStatement;
+       E:=Self.ParseStatement(IsAmbient);
        Result.Statements.AddNode(IsAmbient).Node:=E;
+       if E is TJSExportStatement then
+         AddToElements(Result,TJSExportStatement(E).Declaration,IsAmbient,True);
        end
      else
        Done:=True;
@@ -2850,14 +3541,33 @@ begin
       FCurrentVars:=Result.Vars;
       Repeat
         {$ifdef debugparser} Writeln('Sourceelements start:',GetEnumName(TypeInfo(TJSToken),Ord(CurrentToken)), ' As string: ',CurrentTokenString);{$endif debugparser}
-        isAmbient:= (ScopeType in [stFunction,stModule]) and IsIdentifier('declare');
-        isExport:= (ScopeType=stModule) and IsIdentifier('export');
-        if IsAmbient then
-          GetNextToken;
+        IsAmbient:=False;
+        if IsTypeScript then
+          begin
+          isAmbient:= (ScopeType in [stFunction,stModule]) and IsIdentifier('declare');
+          if IsAmbient then
+            GetNextToken
+          Else
+            begin
+            //isAmbient:= (ScopeType in [stModule,stNamespace]) and (CurrentToken=tjsEXPORT);
+            // if IsAmbient then
+            //  GetNextToken;
+            end;
+          if IsAmbient then
+            begin
+            IsAbstract:=IsIdentifier('abstract');
+            if IsAbstract then
+              GetNextToken;
+            end;
+          end;
+        isAmbient:=isAmbient or ParentisAmbient;
+
         aSync:= (ECMAVersion>=MinAsyncVersion) and IsIdentifier('async');
         if aSync then
           GetNextToken;
         Case CurrentToken of
+        jstoken.tjsEOF:
+          done:=True;
         jstoken.tjsFunction:
           begin
           If (PeekNextToken<>tjsBraceOpen) then
@@ -2867,27 +3577,27 @@ begin
               FF:=[ffAmbient];
             F:=Self.ParseFunctionDeclaration(FF);
             F.AFunction.IsAsync:=aSync;
-            Result.Functions.AddNode(IsAmbient,IsExport).Node:=F;
+            Result.Functions.AddNode(IsAmbient,False).Node:=F;
             end
           else
             begin
             {$ifdef debugparser} Writeln('Function expression detected');{$endif}
             E:=Self.ParseStatement;
-            Result.Statements.AddNode(IsAmbient,IsExport).Node:=E;
+            Result.Statements.AddNode(IsAmbient).Node:=E;
             end;
           end;
         jstoken.tjsClass:
           begin
-          E:=Self.ParseClassStatement;
-          Result.Statements.AddNode(IsAmbient,IsExport).Node:=E;
+          E:=Self.ParseClassStatement(isAmbient,isAbstract);
+          Result.Statements.AddNode(IsAmbient).Node:=E;
           C:=TJSClassStatement(E).Decl;
-          Result.Classes.AddNode(IsAmbient,IsExport).Node:=C;
+          Result.Classes.AddNode(IsAmbient).Node:=C;
           end;
         jstoken.tjsEnum:
           begin
           E:=Self.ParseEnumDeclarationStatement;
-          Result.Statements.AddNode(IsAmbient,IsExport).Node:=E;
-          Result.Enums.AddNode(IsAmbient,IsExport).Node:=TJSEnumStatement(E).EnumDecl;
+          Result.Statements.AddNode(IsAmbient).Node:=E;
+          Result.Enums.AddNode(IsAmbient).Node:=TJSEnumStatement(E).EnumDecl;
           end;
         jsToken.tjsMul:
           begin
@@ -2898,29 +3608,23 @@ begin
           else
             DefaultParsing;
           end;
+        jsToken.tjsSQuaredBraceOpen:
+          begin
+          if isTypeScript and (ScopeType=stClass) then
+            begin
+            E:=Self.ParseIndexSignatureStatement;
+            Result.Statements.AddNode(IsAmbient).Node:=E;
+            Result.Vars.AddNode(IsAmbient).Node:=TJSIndexSignatureStatement(E).Decl;
+            end;
+          end;
+
         else
           // else of Case
-          if IsTypeScript and IsIdentifier('module') then
+          if IsTypeScript then
             begin
-            E:=Self.ParseModuleDeclaration;
-            Result.Modules.AddNode(IsAmbient,IsExport).Node:=E;
-            end
-          else if IsTypeScript and IsIdentifier('namespace') then
-            begin
-            E:=Self.ParseNamespaceDeclaration;
-            Result.Namespaces.AddNode(IsAmbient,IsExport).Node:=E;
-            end
-          else if IsTypeScript and IsIdentifier('type') then
-            begin
-            E:=Self.ParseTypeDeclarationStatement;
-            Result.Statements.AddNode(IsAmbient,IsExport).Node:=E;
-            Result.Types.AddNode(IsAmbient,IsExport).Node:=TJStypeStatement(E).TypeDecl;
-            end
-          else if IsTypeScript and IsIdentifier('interface') then
-            begin
-            E:=Self.ParseInterfaceDeclarationStatement;
-            Result.Statements.AddNode(IsAmbient,IsExport).Node:=E;
-            Result.Types.AddNode(IsAmbient,IsExport).Node:=TJSInterfaceStatement(E).Decl;
+            E:=ParseTypeScriptDeclarationStatement(Result,ScopeType,IsAmbient);
+            if E=Nil then
+              DefaultParsing;
             end
           else
             DefaultParsing;
@@ -2955,46 +3659,249 @@ begin
   {$ifdef debugparser} Writeln('<<< Exiting FunctionBody');{$endif}
 end;
 
-function TJSParser.ParseClassBody: TJSSourceElements;
+function TJSParser.ParseClassBody(isAmbient : Boolean): TJSSourceElements;
 
 begin
   {$ifdef debugparser} Writeln('>>> Entering ParseClassBody');{$endif}
-  Result:=Self.ParseSourceElements(stClass);
+  Result:=Self.ParseSourceElements(stClass,IsAmbient);
   {$ifdef debugparser} Writeln('<<< Exiting ParseClassBody');{$endif}
 end;
 
-function TJSParser.ParseClassDeclaration: TJSClassDeclaration;
+procedure TJSParser.ClassDefToMembers(aClass : TJSClassDeclaration; aClassDef : TJSObjectTypeDef);
 
 Var
-  aName,aExtends : jsBase.TJSString;
+  El : TJSObjectTypeElementDef;
+  I : Integer;
 
 begin
-  Consume(tjsClass);
-  if CurrentToken=tjsIdentifier then
-    aName:=ParseIdentifier;
-  if CurrentToken=tjsExtends then
+  if (aClassDef.ElementCount>0) and (aClass.Members=Nil) then
+    aClass.Members:=TJSSourceElements(CreateElement(TJSSourceElements));
+  For I:=0 to aClassDef.ElementCount-1 do
     begin
-    Consume(tjsExtends);
-    aExtends:=ParseIdentifier;
+    El:=aClassDef.Elements[i];
+    if el is TJSPropertyDeclaration then
+      aClass.Members.Vars.AddNode(True,False).Node:=El
+    else if el is TJSMethodDeclaration then
+      aClass.Members.Functions.AddNode(True,False).Node:=El;
     end;
-  Result:=TJSClassDeclaration(CreateElement(TJSClassDeclaration));
+end;
+
+function TJSParser.ParseClassDeclaration(isAmbient: Boolean; IsAbstract: Boolean): TJSClassDeclaration;
+
+Var
+//  aName : jsBase.TJSString;
+//  aTypeDef : TJSTypeDef;
+  aClassDef : TJSObjectTypeDef;
+
+begin
+  //aTypeDef:=Nil;
+  if IsAmbient then
+    Result:=TJSAmbientClassDeclaration(CreateElement(TJSAmbientClassDeclaration))
+  else
+    Result:=TJSClassDeclaration(CreateElement(TJSClassDeclaration));
   try
-    Consume(tjsCurlyBraceOpen);
-    Result.Name:=aName;
-    Result.Extends:=aExtends;
-    Result.Members:=ParseClassBody;
-    Consume(tjsCurlyBraceClose);
+    Result.IsAbstract:=IsAbstract;
+    Consume(tjsClass);
+    if CurrentToken=tjsIdentifier then
+      Result.Name:=ParseIdentifier;
+
+    if CurrentToken=tjsLT then
+      begin
+      Result.TypeParams:=TJSElementNodes.Create(TJSElementNode);
+      ParseGenericParamList(Result.TypeParams);
+      Consume(tjsGT);
+      end;
+    if CurrentToken=tjsExtends then
+      begin
+      Consume(tjsExtends);
+      Result.Extends:=ParseTypeRef([ptoRefOnly]);
+      end;
+    if IsIdentifier('implements') then
+      begin
+      Result.ImplementsTypes:=TJSElementNodes.Create(TJSElementNode);
+      Consume(tjsIdentifier);
+      Repeat
+        if CurrentToken=tjsComma then
+          GetNextToken;
+        Result.ImplementsTypes.AddNode(ParseTypeRef());
+      Until (CurrentToken<>tjsComma);
+      end;
+    if IsAmbient then
+      begin
+      aClassDef:=TJSObjectTypeDef(CreateElement(TJSObjectTypeDef));
+      TJSAmbientClassDeclaration(Result).ClassDef:=aClassDef;
+      ParseAmbientClassBody(aClassDef);
+      Consume(tjsCurlyBraceClose);
+      ClassDefToMembers(Result,aClassDef);
+      end
+    else
+      begin
+      Consume(tjsCurlyBraceOpen);
+      Result.Members:=ParseClassBody(IsAmbient);
+      Consume(tjsCurlyBraceClose);
+      end;
   except
     FreeAndNil(Result);
     Raise;
   end;
 end;
 
-function TJSParser.ParseClassStatement: TJSClassStatement;
+Procedure TJSParser.ParseAmbientClassBody(aObj: TJSObjectTypeDef);
+
+// On entry on {
+// On exit on }
+
+  Function ParseAccessibility : TAccessibility;
+
+  begin
+    Result:=accDefault;
+    if CurrentToken=tjsIdentifier then
+      Case CurrentTokenString of
+        'private' : Result:=accPrivate;
+        'public' : Result:=accPublic;
+        'protected' : Result:=accProtected;
+      end;
+    if Result<>accDefault then
+      begin
+      if PeekNextToken=tjsColon then
+        Result:=accDefault
+      else
+        GetNextToken;
+      end;
+  end;
+
+  Function CreateAny : TJSTypeReference;
+
+  begin
+    Result:=TJSTypeReference(CreateElement(TJSTypeReference));
+    Result.Name:='any';
+  end;
+  
+  Function CheckSpecial(aName : string) : Boolean;
+  
+  begin
+    Result:=IsIdentifier(aName) and Not (PeekNextToken in [tjsConditional,tjsColon]);
+    If Result then 
+      GetNextToken;
+  end;
+
+var
+  aName : jsBase.TJSString;
+  IsSet, IsGet, IsAbstract,isStatic, isReadOnly, isOptional : Boolean;
+  E : TJSObjectTypeElementDef;
+  F : TJSMethodDeclaration ;
+  FS : TJSFunctionDeclarationStatement;
+  TP : TJSElementNodes;
+  acc : TAccessibility;
+
+begin
+  Consume(tjsCurlyBraceOpen);
+  While (CurrentToken<>tjsCurlyBraceClose) do
+    begin
+    aName:='';
+    E:=Nil;
+    acc:=ParseAccessibility;
+    isStatic:=IsIdentifier('static');
+    if IsStatic then
+      GetNextToken;
+    isAbstract:=IsIdentifier('abstract');
+    if IsAbstract then
+      GetNextToken;
+    isReadOnly:=CheckSpecial('readonly');
+    isGet:=CheckSpecial('get');
+    isSet:=CheckSpecial('set');
+    If CurrentTokenIsValidIdentifier then
+       begin
+       aName:=CurrentTokenString;
+       GetNextToken;
+       end
+    else if (Not (CurrentToken in [tjsBraceOpen,tjsLT,tjsSQuaredBraceOpen,tjsNew])) then
+       Error(SErrObjectElement,[CurrentTokenString]);
+    isOptional:=(CurrentToken=tjsConditional);
+    if isOPtional then
+      GetNextToken;
+    case CurrentToken of
+      tjsSQuaredBraceOpen:
+      begin
+      // [a:type] : Type
+      E:=ParseIndexSignature;
+      end;
+      // PropertyName : PropertyType
+      tjsColon:
+        begin
+        Consume(tjsColon);
+        E:=TJSPropertyDeclaration(CreateElement(TJSPropertyDeclaration));
+        E.Name:=aName;
+        E.ElementType:=ParseTypeRef([ptoAllowLiteral]);
+        TJSPropertyDeclaration(E).IsReadonly:=IsReadonly;
+        end;
+      // <T1> () : TypeName;
+      // () : TypeName;
+      tjsNew,
+      tjsWith,
+      tjsLT,
+      tjsBraceOpen:
+        begin
+        if CurrentToken=tjsNew then
+          begin
+          aName:='new';
+          GetNextToken;
+          end;
+        if CurrentToken=tjsWith then
+          begin
+          aName:='with';
+          GetNextToken;
+          end;
+        TP:=Nil;
+        F:=TJSMethodDeclaration(CreateElement(TJSMethodDeclaration));
+        F.Name:=aName;
+        E:=F;
+        if CurrentToken=tjsLT then
+          begin
+          TP:=TJSElementNodes.Create(TJSElementNode);
+          ParseGenericParamList(TP);
+          consume(tjsGT);
+          end;
+        FS:=ParseFunctionExpression([ffGenerator]);
+        F.FuncDef:=FS.AFunction;
+        FS.AFunction:=Nil;
+        F.TypeParams:=TP;
+        if Not Assigned(F.Funcdef.ResultType) then
+          F.Funcdef.ResultType:=CreateAny;
+        FS.Free;
+        end;
+      tjsComma,tjsSemicolon:
+        begin
+        // PropertyName ; Type is any
+        E:=TJSPropertyDeclaration(CreateElement(TJSPropertyDeclaration));
+        E.Name:=aName;
+        E.ElementType:=CreateAny;
+        end;
+    else
+      Error(SErrExpectedColonBrace,[CurrentTokenString]);
+    end;
+    if Assigned(E) then
+      begin
+      E.Accessibility:=acc;
+      E.Optional:=IsOptional;
+      E.IsStatic:=IsStatic;
+      E.IsAbstract:=IsAbstract;
+      E.IsGet:=IsGet;
+      E.IsSet:=IsSet;
+      aObj.AddElement(E);
+      end;
+    While CurrentToken in [tjsComma,tjsSemicolon] do
+       GetNextToken;
+    end;
+  Expect(tjsCurlyBraceClose);
+end;
+
+
+function TJSParser.ParseClassStatement(isAmbient : Boolean; IsAbstract : Boolean = False): TJSClassStatement;
 begin
   Result:=TJSClassStatement(CreateElement(TJSClassStatement));
   try
-    Result.Decl:=ParseClassDeclaration;
+    Result.Decl:=ParseClassDeclaration(isAmbient,IsAbstract);
   except
     Result.Free;
     Raise;
@@ -3006,14 +3913,15 @@ function TJSParser.ParseClassExpression: TJSClassDeclaration;
 Var
   Oni,olhs: Boolean;
   C : TJSClassDeclaration;
-  N : String;
-  aName,aExtends : jsBase.TJSString;
+  aName : jsBase.TJSString;
+  aType : TJSTypeDef;
 
 begin
   {$ifdef debugparser} Writeln('>>> ParseClassExpression');{$endif}
   oni:=NoIn;
   olhs:=IsLHS;
   C:=Nil;
+  aType:=Nil;
   try
     NoIn:=False;
     IsLHS:=False;
@@ -3025,11 +3933,11 @@ begin
       if CurrentToken=tjsExtends then
         begin
         Consume(tjsExtends);
-        aExtends:=ParseIdentifier;
+        aType:=ParseTypeRef;
         end;
       Consume(tjsCurlyBraceOpen);
       C.Name:=aName;
-      C.Extends:=aExtends;
+      C.Extends:=aType;
       C.Members:=ParseClassBody;
       Consume(tjsCurlyBraceClose);
       Result:=C;
@@ -3053,9 +3961,17 @@ Var
 
 begin
   Consume(tjsIdentifier);
-  Expect(jstoken.tjsString);
-  aname:=CurrentTokenString;
-  Consume(jsToken.tjsString);
+  if CurrentToken=tjsIdentifier then
+    begin
+    aName:=CurrentTokenString;
+    consume(tjsIdentifier);
+    end
+  else  
+    begin
+    Expect(jstoken.tjsString);
+    aname:=CurrentTokenString;
+    Consume(jsToken.tjsString);
+    end;
   Result:=TJSModuleDeclaration(CreateElement(TJSModuleDeclaration));
   try
     Result.Name:=aName;
@@ -3087,6 +4003,7 @@ function TJSParser.ParseInterfaceDeclaration: TJSInterfaceDeclaration;
 
 Var
   aName : jsBase.TJSString;
+  PT : TJSElementNodes;
 
 begin
   Consume(tjsIdentifier);
@@ -3094,12 +4011,26 @@ begin
   Result:=TJSInterfaceDeclaration(CreateElement(TJSInterfaceDeclaration));
   try
     Result.Name:=aName;
+    if (CurrentToken=tjsLt) then
+      begin
+      Result.TypeParams:=TJSElementNodes.Create(TJSElementNode);
+      ParseGenericParamList(Result.TypeParams);
+      Consume(tjsGT);
+      end;
     if (CurrentToken=tjsExtends) then
        begin
        Consume(tjsExtends);
        While CurrentToken<>tjsCurlyBraceOpen do
          begin
+         PT:=Nil;
          aName:=ParseIdentifier;
+         if CurrentToken=tjsLT then
+           begin
+           PT:=TJSElementNodes.Create(TJSElementNode);
+           ParseGenericParamList(PT);
+           Consume(tjsGT);
+           PT.Free;
+           end;
          Result.AddExtends(aName);
          if CurrentToken=tjsComma then
            Consume(tjsComma);
@@ -3119,25 +4050,29 @@ function TJSParser.ParseModuleBody: TJSSourceElements;
 
 begin
   {$ifdef debugparser} Writeln('>>> Entering ParseModuleBody');{$endif}
-  Result:=Self.ParseSourceElements(stModule);
+  Result:=Self.ParseSourceElements(stModule,IsTypeScript);
   {$ifdef debugparser} Writeln('<<< Exiting ParseModuleBody');{$endif}
 end;
 
-function TJSParser.ParseNamespaceDeclaration: TJSNamespaceDeclaration;
-// On entry we're on namespace keyword
+function TJSParser.ParseNamespaceDeclaration(IsAmbient : Boolean): TJSNamespaceDeclaration;
+// On entry we're on namespace or global keyword
 // on exit, we're after closing }
 
 Var
   aName : jsBase.TJSString;
-
+  IsGlobal : Boolean;
+  
 begin
+  IsGlobal:=IsIdentifier('global');
   Consume(tjsIdentifier); // namespace
-  aname:=ParseIdentifier;
+  if not IsGlobal then
+    aname:=ParseIdentifier;
   Result:=TJSNamespaceDeclaration(CreateElement(TJSNamespaceDeclaration));
   try
+    Result.IsGlobal:=IsGLobal;
     Result.Name:=aName;
     Consume(tjsCurlyBraceOpen);
-    Result.Members:=ParseNamespaceBody;
+    Result.Members:=ParseNamespaceBody(IsAmbient);
     Consume(tjsCurlyBraceClose);
   except
     FreeAndNil(Result);
@@ -3146,10 +4081,10 @@ begin
 
 end;
 
-function TJSParser.ParseNamespaceBody: TJSSourceElements;
+function TJSParser.ParseNamespaceBody(IsAmbient : Boolean): TJSSourceElements;
 begin
   {$ifdef debugparser} Writeln('>>> Entering ParseModuleBody');{$endif}
-  Result:=Self.ParseSourceElements(stNamespace);
+  Result:=Self.ParseSourceElements(stNamespace,IsAmbient);
   {$ifdef debugparser} Writeln('<<< Exiting ParseModuleBody');{$endif}
 end;
 

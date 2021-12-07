@@ -36,7 +36,7 @@ type
      tjsPLUSEQ, tjsPLUSPLUS,
      tjsURSHIFT, tjsURSHIFTEQ,
      tjsRSHIFT, tjsRSHIFTEQ,
-     tjsSEQ, tjsSNE, tjsMULEQ, tjsArrow,
+     tjsSEQ, tjsSNE, tjsMULEQ, tjsArrow, tjsEllipsis,
      { Reserved words start here. They must be last }
      tjsAWAIT, tjsBREAK, tjsCASE, tjsCATCH, tjsCLASS, tjsCONST, tjsCONTINUE,
      tjsDEBUGGER, tjsDEFAULT, tjsDELETE, tjsDO,
@@ -74,7 +74,7 @@ const
         '+=', '++',
         '>>>', '>>>=',
         '>>', '>>=',
-        '===', '!==', '*=', '=>',
+        '===', '!==', '*=', '=>', '...',
         // Identifiers last
         'await', 'break','case','catch', 'class','const','continue',
      'debugger','default','delete', 'do',

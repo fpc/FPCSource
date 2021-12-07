@@ -1000,7 +1000,7 @@ Var
 begin
   S:=TJSVariableStatement.Create(0,0);
   V:=TJSVarDeclaration.Create(0,0);
-  S.A:=V;
+  S.VarDecl:=V;
   V.Name:='a';
   AssertWrite('simple var','var a',S);
 end;
@@ -1013,7 +1013,7 @@ begin
   S:=TJSVariableStatement.Create(0,0);
   S.varType:=vtLet;
   V:=TJSVarDeclaration.Create(0,0);
-  S.A:=V;
+  S.VarDecl:=V;
   V.Name:='a';
   AssertWrite('simple let','let a',S);
 end;
@@ -1026,7 +1026,7 @@ begin
   S:=TJSVariableStatement.Create(0,0);
   S.varType:=vtConst;
   V:=TJSVarDeclaration.Create(0,0);
-  S.A:=V;
+  S.VarDecl:=V;
   V.Name:='a';
   V.Init:=CreateLiteral(1);
   AssertWrite('simple const','const a = 1',S);
@@ -1053,7 +1053,7 @@ begin
   L:=TJSVariableDeclarationList.Create(0,0);
   V:=TJSVarDeclaration.Create(0,0);
   L.A:=V;
-  S.A:=L;
+  S.VarDecl:=L;
   V.Name:='a';
   AssertWrite('simple var','var a',S);
 end;
@@ -1067,7 +1067,7 @@ Var
 begin
   S:=TJSVariableStatement.Create(0,0);
   L:=TJSVariableDeclarationList.Create(0,0);
-  S.A:=L;
+  S.VarDecl:=L;
   V:=TJSVarDeclaration.Create(0,0);
   L.A:=V;
   V.Name:='a';
@@ -1088,7 +1088,7 @@ Var
 begin
   S:=TJSVariableStatement.Create(0,0);
   L:=TJSVariableDeclarationList.Create(0,0);
-  S.A:=L;
+  S.VarDecl:=L;
   V:=TJSVarDeclaration.Create(0,0);
   L.A:=V;
   V.Name:='a';
@@ -1429,7 +1429,7 @@ var
     V:=TJSVariableStatement.Create(0,0);
     Result.Init:=V;
     C:=TJSCommaExpression.Create(0,0);
-    V.A:=C;
+    V.VarDecl:=C;
     C.A:=CreateAssignSt(CreateIdent(LoopVar),StartExpr);
     C.B:=CreateAssignSt(CreateIdent(LoopEndVar),EndExpr);
 
@@ -2435,7 +2435,7 @@ begin
   Exp:=TJSExportStatement.Create(0,0);
   VS:=TJSVariableStatement.Create(0,0);
   VV:=TJSVarDeclaration.Create(0,0);
-  VS.A:=VV;
+  VS.VarDecl:=VV;
   VV.Name:='a';
   Exp.Declaration:=VS;
   AssertWrite('Export statement','export var a',Exp);
@@ -2451,7 +2451,7 @@ begin
   VS:=TJSVariableStatement.Create(0,0);
   VS.varType:=vtLet;
   VV:=TJSVarDeclaration.Create(0,0);
-  VS.A:=VV;
+  VS.VarDecl:=VV;
   VV.varType:=vtLet;
   VV.Name:='a';
   Exp.Declaration:=VS;
@@ -2468,7 +2468,7 @@ begin
   VS:=TJSVariableStatement.Create(0,0);
   VS.varType:=vtConst;
   VV:=TJSVarDeclaration.Create(0,0);
-  VS.A:=VV;
+  VS.VarDecl:=VV;
   VV.varType:=vtConst;
   VV.Name:='a';
   Exp.Declaration:=VS;

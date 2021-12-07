@@ -102,6 +102,7 @@ type
     procedure TestURShift;
     procedure TestURShiftEq;
     procedure TestArrow;
+    procedure TestEllipsis;
     procedure TestAwaitECMA5;
     procedure TestAwaitECMA2021;
     procedure TestBreak;
@@ -489,6 +490,11 @@ end;
 procedure TTestJSScanner.TestArrow;
 begin
   CheckToken(tjsArrow,'=>');
+end;
+
+procedure TTestJSScanner.TestEllipsis;
+begin
+  CheckToken(tjsEllipsis,'...');
 end;
 
 procedure TTestJSScanner.TestAwaitECMA5;
