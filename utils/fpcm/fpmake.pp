@@ -65,7 +65,7 @@ var
 
 begin
   // If revision.inc does exist, try to update the file with the latest
-  // revision from svn. And include this information in the fpcmake
+  // commit from git. And include this information in the fpcmake
   // executable.
   With installer do
     begin
@@ -111,7 +111,6 @@ begin
             GitProcess.Parameters.Add('log');
             GitProcess.Parameters.Add('-n');
             GitProcess.Parameters.Add('1');
-            GitProcess.Parameters.Add('--date=iso');
             GitProcess.Parameters.Add('--pretty=%h');
             GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmpkg.pp'));
             GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.pp'));
