@@ -215,7 +215,8 @@ uses
                   Result:=PostPeepholeOptMov(p);
                 A_AND:
                   Result:=PostPeepholeOptAnd(p);
-                A_MOVSX:
+                A_MOVSX,
+                A_MOVSXD:
                   Result:=PostPeepholeOptMOVSX(p);
                 A_MOVZX:
                   Result:=PostPeepholeOptMovzx(p);
