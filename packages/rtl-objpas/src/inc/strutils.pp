@@ -2037,13 +2037,27 @@ end;
 function DelSpace1(const S: string): string;
 
 var
-  I : SizeInt;
+  I,J: SizeInt;
 
 begin
   Result:=S;
-  for i:=Length(Result) downto 2 do
-    if (Result[i]=' ') and (Result[I-1]=' ') then
-      Delete(Result,I,1);
+  I:=Length(Result);
+  While I>0 do
+    begin
+    if Result[I]=#32 then
+      begin
+      J:=I-1;
+      While (J>0) and (Result[J]=#32) do
+        Dec(j);
+      Inc(J);
+      if I<>J then
+        begin
+        Delete(Result,J+1,I-J);
+        I:=J+1;
+        end;
+      end;
+    dec(I);
+    end;
 end;
 
 function Tab2Space(const S: string; Numb: Byte): string;
