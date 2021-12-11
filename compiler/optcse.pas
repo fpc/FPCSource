@@ -596,6 +596,17 @@ unit optcse;
       tconstentries = array of tconstentry;
       pconstentries = ^tconstentries;
 
+    function CSEOnReference(n : tnode) : Boolean;
+      begin
+        Result:=(n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym)
+          and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
+{$if defined(aarch64)}
+            or (not(tabstractvarsym(tloadnode(n).symtableentry).is_regvar(false)))
+{$endif defined(aarch64)}
+           );
+      end;
+
+
     function collectconsts(var n:tnode; arg: pointer) : foreachnoderesult;
       var
         consts: pconstentries;
@@ -610,9 +621,7 @@ unit optcse;
           and use_vectorfpu(n.resultdef)
 {$endif x86}
           ) or
-          ((n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym) and
-           (vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
-          ) then
+          CSEOnReference(n) then
           begin
             found:=false;
             i:=0;
@@ -647,9 +656,8 @@ unit optcse;
         result:=fen_true;
         if tnode(pconstentry(arg)^.valuenode).isequal(n) then
           begin
-            { threadvar, so we took the address? }
-            if (pconstentry(arg)^.valuenode.nodetype=loadn) and (tloadnode(pconstentry(arg)^.valuenode).symtableentry.typ=staticvarsym) and
-              (vo_is_thread_var in tstaticvarsym(tloadnode(pconstentry(arg)^.valuenode).symtableentry).varoptions) then
+            { shall we take the address? }
+            if CSEOnReference(pconstentry(arg)^.valuenode) then
               begin
                 hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
                 ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
@@ -666,10 +674,8 @@ unit optcse;
 
 
     function do_consttovar(var rootnode : tnode) : tnode;
-
       var
         constentries : tconstentries;
-
       Procedure QuickSort(L, R : Longint);
         var
           I, J, P: Longint;
@@ -783,8 +789,7 @@ unit optcse;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
                   end
-                else if (constentries[i].valuenode.nodetype=loadn) and (tloadnode(constentries[i].valuenode).symtableentry.typ=staticvarsym) and
-                  (vo_is_thread_var in tstaticvarsym(tloadnode(constentries[i].valuenode).symtableentry).varoptions) and
+                else if CSEOnReference(constentries[i].valuenode) and
                    { if there is a call, we need most likely to save/restore a register }
                   ((constentries[i].weight>2) or
                   ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
