@@ -1211,6 +1211,8 @@ unit rgobj;
     function trgobj.get_alias(n:Tsuperregister):Tsuperregister;
 
     begin
+      if n>=maxreg then
+        internalerror(2021121201);
       while ri_coalesced in reginfo[n].flags do
         n:=reginfo[n].alias;
       get_alias:=n;

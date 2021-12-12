@@ -200,6 +200,7 @@ implementation
                       { avx instructions allow only the first operand (at&t counting) to be a register operand
                         all operands must be registers ... }
                       else if (oper[0]^.typ=top_reg) and
+                         (getregtype(oper[0]^.reg)=regtype) and
                          (oper[1]^.typ=top_reg) and
                          (oper[2]^.typ=top_reg) and
                          { but they must be different }
