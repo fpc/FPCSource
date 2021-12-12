@@ -98,7 +98,7 @@ interface
          function PostProcessMachExecutable(const fn: string; isdll: boolean): boolean;
        end;
 
-      TBooleanArray = array [1..1024] of boolean;
+      TBooleanArray = array [1..100000] of boolean;
       PBooleanArray = ^TBooleanArray;
 
       TInternalLinker = class(TLinker)
