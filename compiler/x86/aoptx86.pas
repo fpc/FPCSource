@@ -4189,14 +4189,232 @@ unit aoptx86;
       var
         hp1, p_label, p_dist, hp1_dist: tai;
         JumpLabel, JumpLabel_dist: TAsmLabel;
+        FirstValue, SecondValue: TCGInt;
       begin
         Result := False;
+        if (taicpu(p).oper[0]^.typ = top_const) and
+          (taicpu(p).oper[0]^.val <> -1) then
+          begin
+            { Convert unsigned maximum constants to -1 to aid optimisation }
+            case taicpu(p).opsize of
+              S_B:
+                if (taicpu(p).oper[0]^.val and $FF) = $FF then
+                  begin
+                    taicpu(p).oper[0]^.val := -1;
+                    Result := True;
+                    Exit;
+                  end;
+              S_W:
+                if (taicpu(p).oper[0]^.val and $FFFF) = $FFFF then
+                  begin
+                    taicpu(p).oper[0]^.val := -1;
+                    Result := True;
+                    Exit;
+                  end;
+              S_L:
+                if (taicpu(p).oper[0]^.val and $FFFFFFFF) = $FFFFFFFF then
+                  begin
+                    taicpu(p).oper[0]^.val := -1;
+                    Result := True;
+                    Exit;
+                  end;
+{$ifdef x86_64}
+              S_Q:
+                { Storing anything greater than $7FFFFFFF is not possible so do
+                  nothing };
+{$endif x86_64}
+              else
+                InternalError(2021121001);
+            end;
+          end;
 
         if GetNextInstruction(p, hp1) and
           TrySwapMovCmp(p, hp1) then
           begin
             Result := True;
             Exit;
+          end;
+
+        { Search for:
+            test  $x,(reg/ref)
+            jne   @lbl1
+            test  $y,(reg/ref) (same register or reference)
+            jne   @lbl1
+
+          Change to:
+            test  $(x or y),(reg/ref)
+            jne   @lbl1
+
+          (Note, this doesn't work with je instead of jne)
+
+          Also catch cases where "cmp $0,(reg/ref)" and "test %reg,%reg" are used.
+
+          Also search for:
+            test  $x,(reg/ref)
+            je    @lbl1
+            test  $y,(reg/ref)
+            je/jne @lbl2
+
+            If (x or y) = x, then the second jump is deterministic
+        }
+        if (
+            (
+              (taicpu(p).oper[0]^.typ = top_const) or
+              (
+                { test %reg,%reg can be considered equivalent to test, -1,%reg }
+                (taicpu(p).oper[0]^.typ = top_reg) and
+                MatchOperand(taicpu(p).oper[1]^, taicpu(p).oper[0]^.reg)
+              )
+            ) and
+            MatchInstruction(hp1, A_JCC, [])
+          ) then
+          begin
+            if (taicpu(p).oper[0]^.typ = top_reg) and
+              MatchOperand(taicpu(p).oper[1]^, taicpu(p).oper[0]^.reg) then
+              FirstValue := -1
+            else
+              FirstValue := taicpu(p).oper[0]^.val;
+
+            { If we have several test/jne's in a row, it might be the case that
+              the second label doesn't go to the same location, but the one
+              after it might (e.g. test; jne @lbl1; test; jne @lbl2; test @lbl1),
+              so accommodate for this with a while loop.
+            }
+            hp1_dist := hp1;
+
+            if GetNextInstruction(hp1, p_dist) and
+              (p_dist.typ = ait_instruction) and
+              (
+                (
+                  (taicpu(p_dist).opcode = A_TEST) and
+                  (
+                    (taicpu(p_dist).oper[0]^.typ = top_const) or
+                    { test %reg,%reg can be considered equivalent to test, -1,%reg }
+                    MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^)
+                  )
+                ) or
+                (
+                  { cmp 0,%reg = test %reg,%reg }
+                  (taicpu(p_dist).opcode = A_CMP) and
+                  MatchOperand(taicpu(p_dist).oper[0]^, 0)
+                )
+              ) and
+              { Make sure the destination operands are actually the same }
+              MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
+              GetNextInstruction(p_dist, hp1_dist) and
+              MatchInstruction(hp1_dist, A_JCC, []) then
+              begin
+                if
+                  (taicpu(p_dist).opcode = A_CMP) { constant will be zero } or
+                  (
+                    (taicpu(p_dist).oper[0]^.typ = top_reg) and
+                    MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^.reg)
+                  ) then
+                  SecondValue := -1
+                else
+                  SecondValue := taicpu(p_dist).oper[0]^.val;
+
+                { If both of the TEST constants are identical, delete the second
+                  TEST that is unnecessary.  }
+                if (FirstValue = SecondValue) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'TEST/Jcc/TEST; removed superfluous TEST', p_dist);
+                    RemoveInstruction(p_dist);
+                    Result := True;
+                    if condition_in(taicpu(hp1_dist).condition, taicpu(hp1).condition) then
+                      begin
+                        { Since the second jump's condition is a subset of the first, we
+                          know it will never branch because the first jump dominates it.
+                          Get it out of the way now rather than wait for the jump
+                          optimisations for a speed boost. }
+                        if IsJumpToLabel(taicpu(hp1_dist)) then
+                          TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
+
+                        DebugMsg(SPeepholeOptimization + 'Removed dominated jump (via TEST/Jcc/TEST)', hp1_dist);
+                        RemoveInstruction(hp1_dist);
+                      end
+                    else if condition_in(inverse_cond(taicpu(hp1).condition), taicpu(hp1_dist).condition) then
+                      begin
+                        { If the inverse of the first condition is a subset of the second,
+                          the second one will definitely branch if the first one doesn't }
+                        DebugMsg(SPeepholeOptimization + 'Conditional jump will always branch (via TEST/Jcc/TEST)', hp1_dist);
+                        MakeUnconditional(taicpu(hp1_dist));
+                        RemoveDeadCodeAfterJump(hp1_dist);
+                      end;
+
+                    Exit;
+                  end;
+
+                if (taicpu(hp1).condition in [C_E, C_Z]) then
+                  begin
+                    { Search for:
+                        test  $x,(reg/ref)
+                        je    @lbl1
+                        test  $y,(reg/ref)
+                        je    @lbl2
+
+                        If (x or y) = x (i.e. all the bits of y appear in x), then je @lbl2 will never branch, so remove.
+
+                      Also:
+                        test  $x,(reg/ref)
+                        je    @lbl1
+                        test  $y,(reg/ref)
+                        jne   @lbl2
+
+                        If (x or y) = x (i.e. all the bits of y appear in x), then jne @lbl2 will always branch, so make unconditional
+                    }
+                    if ((FirstValue or SecondValue) = FirstValue) then
+                      begin
+                        RemoveInstruction(p_dist);
+                        if (taicpu(hp1_dist).condition in [C_E, C_Z]) then
+                          begin
+                            if IsJumpToLabel(taicpu(hp1_dist)) then
+                              TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
+
+                            DebugMsg(SPeepholeOptimization + 'TEST/JE/TEST/JE merged', p);
+                            RemoveInstruction(hp1_dist);
+                            Result := True;
+                            Exit;
+                          end
+                        else if (taicpu(hp1_dist).condition in [C_NE, C_NZ]) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'TEST/JE/TEST/JNE merged', p);
+                            MakeUnconditional(taicpu(hp1_dist));
+                            RemoveDeadCodeAfterJump(hp1_dist);
+                            Result := True;
+                            Exit;
+                          end;
+                      end;
+
+                    { Drop out in any other situation }
+                  end
+                else if (taicpu(hp1).condition in [C_NE, C_NZ]) and
+                  (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
+                  { If the first instruction is test %reg,%reg or test $-1,%reg,
+                    then the second jump will never branch, so it can also be
+                    removed regardless of where it goes }
+                  (
+                    (FirstValue = -1) or
+                    (SecondValue = -1) or
+                    MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
+                  ) then
+                  begin
+                    { Same jump location... can be a register since nothing's changed }
+
+                    { If any of the entries are equivalent to test %reg,%reg, then the
+                      merged $(x or y) is also test %reg,%reg / test $-1,%reg }
+                    taicpu(p).loadconst(0, FirstValue or SecondValue);
+
+                    if IsJumpToLabel(taicpu(hp1_dist)) then
+                      TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
+
+                    DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
+                    RemoveInstruction(p_dist);
+                    RemoveInstruction(hp1_dist);
+                    Result := True;
+                    Exit;
+                  end;
+              end;
           end;
 
         { Search for:
