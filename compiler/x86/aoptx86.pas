@@ -10153,7 +10153,7 @@ unit aoptx86;
                 reference_reset(NewRef, 1, []);
                 NewRef.base := taicpu(p).oper[1]^.reg;
                 NewRef.scalefactor := 1;
-                NewRef.offset := taicpu(p).oper[0]^.val;
+                NewRef.offset := asizeint(taicpu(p).oper[0]^.val);
 
                 taicpu(hp1).opcode := A_LEA;
                 taicpu(hp1).loadref(0, NewRef);
