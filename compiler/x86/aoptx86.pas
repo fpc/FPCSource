@@ -2380,6 +2380,9 @@ unit aoptx86;
     var
       hp1, hp2, hp3: tai;
       DoOptimisation, TempBool: Boolean;
+{$ifdef x86_64}
+      NewConst: TCGInt;
+{$endif x86_64}
 
       procedure convert_mov_value(signed_movop: tasmop; max_value: tcgint); inline;
         begin
@@ -2392,6 +2395,90 @@ unit aoptx86;
             taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and max_value; { Trim to unsigned }
         end;
 
+      function TryConstMerge(var p1, p2: tai): Boolean;
+        var
+          ThisRef: TReference;
+        begin
+          Result := False;
+          ThisRef := taicpu(p2).oper[1]^.ref^;
+          { Only permit writes to the stack, since we can guarantee alignment with that }
+          if (ThisRef.index = NR_NO) and
+            (
+              (ThisRef.base = NR_STACK_POINTER_REG) or
+              (ThisRef.base = current_procinfo.framepointer)
+            ) then
+            begin
+              case taicpu(p).opsize of
+                S_B:
+                  begin
+                    { Word writes must be on a 2-byte boundary }
+                    if (taicpu(p1).oper[1]^.ref^.offset mod 2) = 0 then
+                      begin
+                        { Reduce offset of second reference to see if it is sequential with the first }
+                        Dec(ThisRef.offset, 1);
+                        if RefsEqual(taicpu(p1).oper[1]^.ref^, ThisRef) then
+                          begin
+                            { Make sure the constants aren't represented as a
+                              negative number, as these won't merge properly }
+                            taicpu(p1).opsize := S_W;
+                            taicpu(p1).oper[0]^.val := (taicpu(p1).oper[0]^.val and $FF) or ((taicpu(p2).oper[0]^.val and $FF) shl 8);
+                            DebugMsg(SPeepholeOptimization + 'Merged two byte-sized constant writes to stack (MovMov2Mov 2a)', p1);
+                            RemoveInstruction(p2);
+                            Result := True;
+                          end;
+                      end;
+                  end;
+                S_W:
+                  begin
+                    { Longword writes must be on a 4-byte boundary }
+                    if (taicpu(p1).oper[1]^.ref^.offset mod 4) = 0 then
+                      begin
+                        { Reduce offset of second reference to see if it is sequential with the first }
+                        Dec(ThisRef.offset, 2);
+                        if RefsEqual(taicpu(p1).oper[1]^.ref^, ThisRef) then
+                          begin
+                            { Make sure the constants aren't represented as a
+                              negative number, as these won't merge properly }
+                            taicpu(p1).opsize := S_L;
+                            taicpu(p1).oper[0]^.val := (taicpu(p1).oper[0]^.val and $FFFF) or ((taicpu(p2).oper[0]^.val and $FFFF) shl 16);
+                            DebugMsg(SPeepholeOptimization + 'Merged two word-sized constant writes to stack (MovMov2Mov 2b)', p1);
+                            RemoveInstruction(p2);
+                            Result := True;
+                          end;
+                      end;
+                  end;
+{$ifdef x86_64}
+                S_L:
+                  begin
+                    { Only sign-extended 32-bit constants can be written to 64-bit memory directly, so check to
+                      see if the constants can be encoded this way. }
+                    NewConst := (taicpu(p1).oper[0]^.val and $FFFFFFFF) or (taicpu(p2).oper[0]^.val shl 32);
+                    if (NewConst >= -2147483648) and (NewConst <= 2147483647) and
+                      { Quadword writes must be on an 8-byte boundary }
+                      ((taicpu(p1).oper[1]^.ref^.offset mod 8) = 0) then
+                      begin
+                        { Reduce offset of second reference to see if it is sequential with the first }
+                        Dec(ThisRef.offset, 4);
+                        if RefsEqual(taicpu(p1).oper[1]^.ref^, ThisRef) then
+                          begin
+                            { Make sure the constants aren't represented as a
+                              negative number, as these won't merge properly }
+                            taicpu(p1).opsize := S_Q;
+                            { Force a typecast into a 32-bit signed integer (that will then be sign-extended to 64-bit) }
+                            taicpu(p1).oper[0]^.val := NewConst;
+                            DebugMsg(SPeepholeOptimization + 'Merged two longword-sized constant writes to stack (MovMov2Mov 2c)', p1);
+                            RemoveInstruction(p2);
+                            Result := True;
+                          end;
+                      end;
+                  end;
+{$endif x86_64}
+                else
+                  ;
+              end;
+            end;
+        end;
+
       var
         GetNextInstruction_p, TempRegUsed, CrossJump: Boolean;
         PreMessage, RegName1, RegName2, InputVal, MaskNum: string;
@@ -2399,6 +2486,7 @@ unit aoptx86;
         CurrentReg, ActiveReg: TRegister;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
+
       begin
         Result:=false;
 
@@ -2949,6 +3037,60 @@ unit aoptx86;
         { Next instruction is also a MOV ? }
         if MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
           begin
+            if MatchOpType(taicpu(p), top_const, top_ref) and
+              MatchOpType(taicpu(hp1), top_const, top_ref) and
+              TryConstMerge(p, hp1) then
+              begin
+                Result := True;
+
+                { In case we have four byte writes in a row, check for 2 more
+                  right now so we don't have to wait for another iteration of
+                  pass 1
+                }
+
+                { If two byte-writes were merged, the opsize is now S_W, not S_B }
+                case taicpu(p).opsize of
+                  S_W:
+                    begin
+                      if GetNextInstruction(p, hp1) and
+                        MatchInstruction(hp1, A_MOV, [S_B]) and
+                        MatchOpType(taicpu(hp1), top_const, top_ref) and
+                        GetNextInstruction(hp1, hp2) and
+                        MatchInstruction(hp2, A_MOV, [S_B]) and
+                        MatchOpType(taicpu(hp2), top_const, top_ref) and
+                        { Try to merge the two bytes }
+                        TryConstMerge(hp1, hp2) then
+                          { Now try to merge the two words (hp2 will get deleted) }
+                          TryConstMerge(p, hp1);
+                    end;
+                  S_L:
+                    begin
+                      { Though this only really benefits x86_64 and not i386, it
+                        gets a potential optimisation done faster and hence
+                        reduces the number of times OptPass1MOV is entered }
+                      if GetNextInstruction(p, hp1) and
+                        MatchInstruction(hp1, A_MOV, [S_W]) and
+                        MatchOpType(taicpu(hp1), top_const, top_ref) and
+                        GetNextInstruction(hp1, hp2) and
+                        MatchInstruction(hp2, A_MOV, [S_W]) and
+                        MatchOpType(taicpu(hp2), top_const, top_ref) and
+                        { Try to merge the two words }
+                        TryConstMerge(hp1, hp2) then
+                          { This will always fail on i386, so don't bother
+                            calling it unless we're doing x86_64 }
+{$ifdef x86_64}
+                          { Now try to merge the two longwords (hp2 will get deleted) }
+                          TryConstMerge(p, hp1)
+{$endif x86_64}
+                          ;
+                    end;
+                  else
+                    ;
+                end;
+
+                Exit;
+              end;
+
             if (taicpu(p).oper[1]^.typ = top_reg) and
               MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
               begin
