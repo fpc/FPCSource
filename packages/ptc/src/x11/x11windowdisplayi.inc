@@ -373,7 +373,8 @@ begin
                                   StructureNotifyMask or FocusChangeMask or
                                   ButtonPressMask or ButtonReleaseMask or
                                   PointerMotionMask or ExposureMask or
-                                  EnterWindowMask or LeaveWindowMask or im_event_mask);
+                                  EnterWindowMask or LeaveWindowMask or
+                                  MappingNotify or im_event_mask);
   XSync(FDisplay, False);
 
 {$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
@@ -957,6 +958,7 @@ begin
         exit;
     end;
     case e._type of
+      MappingNotify: XRefreshKeyboardMapping(@e);
       FocusIn: begin
         NewFocus := True;
         NewFocusSpecified := True;

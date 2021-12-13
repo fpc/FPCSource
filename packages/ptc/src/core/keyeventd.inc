@@ -36,7 +36,8 @@ type
     pmkNumLockActive, pmkNumLockPressed,
     pmkCapsLockActive, pmkCapsLockPressed,
     pmkScrollLockActive, pmkScrollLockPressed,
-    pmkRightKey, pmkNumPadKey, pmkDeadKey);
+    pmkRightKey, pmkNumPadKey, pmkDeadKey,
+    pmkCommand);
   TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
@@ -191,3 +192,4 @@ const
   PTCKEY_MINUS        = $BD;
   PTCKEY_BACKQUOTE    = $C0;
   PTCKEY_QUOTE        = $DE;
+  PTCKEY_COMMAND      = $100;

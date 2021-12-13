@@ -195,6 +195,8 @@ begin
     T:=P.Targets.AddUnit('ptceventqueue.pp');
     with T.Dependencies do
       begin
+        AddInclude('ptceventqueue_st.inc');
+        AddInclude('ptceventqueue_mt.inc');
         AddUnit('ptc');
       end;
     T:=P.Targets.AddUnit('ptcwrapper.pp');

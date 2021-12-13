@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2015 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2015, 2021 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -42,12 +42,20 @@ end;
 
 { NSPTCWindowDelegate }
 
-function NSPTCWindowDelegate.windowShouldClose(sender: id): Boolean;
+function NSPTCWindowDelegate.windowShouldClose(sender: id): ObjCBOOL;
 begin
   if Assigned(FConsole) then
     Result := FConsole.HandleWindowShouldClose(sender)
   else
     Result := True;
+end;
+
+{ NSPTCView }
+
+procedure NSPTCView.drawRect(dirtyRect: NSRect);
+begin
+  if Assigned(FConsole) then
+    FConsole.FImage.drawInRect_fromRect_operation_fraction(NSMakeRect(0, 0, FConsole.FWidth, FConsole.FHeight), NSZeroRect, NSCompositeCopy, 1.0);
 end;
 
 { NSPTCWindow }
@@ -287,8 +295,8 @@ begin
     62:  exit(PTCKEY_CONTROL);  // Right Ctrl
     58,                     // Left Option (Alt) key
     61:  exit(PTCKEY_ALT);  // Right Option (Alt) key
-    55,            // Left Command key
-    54:  exit(0);  // Right Command key
+    55:  exit(PTCKEY_COMMAND);  // Left Command key
+    54:  exit(PTCKEY_COMMAND);  // Right Command key
     57:  exit(PTCKEY_CAPSLOCK);
     82:  exit(PTCKEY_NUMPAD0);
     83:  exit(PTCKEY_NUMPAD1);
@@ -320,29 +328,43 @@ var
   kcode: cushort;
   modflags: NSUInteger;
   Code, UniCode: Integer;
-  Alt, Shift, Control: Boolean;
   Press: Boolean;
   PressAndRelease: Boolean = False;
+  Characters: NSString;
+  ModifierKeys: TPTCModifierKeys;
 begin
   evtype := theEvent.type_;
   kcode := theEvent.keyCode;
   modflags := theEvent.modifierFlags;
+  if evtype in [NSKeyDown, NSKeyUp] then
+    Characters := theEvent.characters
+  else
+    Characters := nil;
   LOG('cocoa key event ' + Method + ' type=' + IntToStr(evtype) + ' keyCode=' + IntToStr(kcode) + ' modifierFlags=' + IntToStr(modflags));
   Result := False;
   Code := TranslateKeyCode(kcode);
-  Unicode := 32;
-  Alt := (modflags and NSAlternateKeyMask) <> 0;
-  Shift := (modflags and NSShiftKeyMask) <> 0;
-  Control := (modflags and NSControlKeyMask) <> 0;
+  Unicode := 0;
+  if Assigned(Characters) and (Characters.length = 1) then
+    Unicode := Characters.characterAtIndex(0);
+  ModifierKeys := [];
+  if (modflags and NSAlternateKeyMask) <> 0 then
+    Include(ModifierKeys, pmkAlt);
+  if (modflags and NSShiftKeyMask) <> 0 then
+    Include(ModifierKeys, pmkShift);
+  if (modflags and NSControlKeyMask) <> 0 then
+    Include(ModifierKeys, pmkControl);
+  if (modflags and NSCommandKeyMask) <> 0 then
+    Include(ModifierKeys, pmkCommand);
   case evtype of
     NSKeyDown: Press := True;
     NSKeyUp: Press := False;
     NSFlagsChanged:
       begin
         case Code of
-          PTCKEY_SHIFT: Press := Shift;
-          PTCKEY_CONTROL: Press := Control;
-          PTCKEY_ALT: Press := Alt;
+          PTCKEY_SHIFT: Press := pmkShift in ModifierKeys;
+          PTCKEY_CONTROL: Press := pmkControl in ModifierKeys;
+          PTCKEY_ALT: Press := pmkAlt in ModifierKeys;
+          PTCKEY_COMMAND: Press := pmkCommand in ModifierKeys;
           PTCKEY_CAPSLOCK:
             begin
               { we only receive a modifierFlags message when caps lock is pressed down,
@@ -360,17 +382,17 @@ begin
   end;
   if PressAndRelease then
   begin
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, True));
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, False));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, True));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, False));
   end
   else
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, Press));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, Press));
 end;
 
 function TCocoaConsole.HandleCocoaMouseEvent(theEvent: NSEvent;
   const Method: string): Boolean;
 begin
-  Writeln('HandleCocoaMouseEvent ', Method, ' ', theEvent.type_);
+  //Writeln('HandleCocoaMouseEvent ', Method, ' ', theEvent.type_);
   Result := False;
 end;
 
@@ -418,7 +440,7 @@ begin
   FPalette := TPTCPalette.Create;
   FClip := TPTCArea.Create;
   FArea := TPTCArea.Create;
-  FFormat := TPTCFormat.Create;
+  FFormat := TPTCFormatFactory.CreateNew;
   FEventQueue := TEventQueue.Create;
 
   Configure('/usr/share/ptcpas/ptcpas.conf');
@@ -608,7 +630,7 @@ end;
 
 procedure TCocoaConsole.Open(const ATitle: string; APages: Integer);
 begin
-  Open(ATitle, TPTCFormat.Create(32, $FF0000, $FF00, $FF), APages);
+  Open(ATitle, TPTCFormatFactory.CreateNew(32, $FF0000, $FF00, $FF), APages);
 end;
 
 procedure TCocoaConsole.Open(const ATitle: string; AFormat: IPTCFormat;
@@ -637,6 +659,7 @@ begin
   pool := NSAutoreleasePool.alloc.init;
   try
     NSApplication.sharedApplication;
+    NSApp.setActivationPolicy(NSApplicationActivationPolicyRegular);
     NSApp.finishLaunching;
 
     rct := NSMakeRect(0, 0, AWidth, AHeight);
@@ -658,23 +681,24 @@ begin
       AWidth,
       AHeight,
       8,
-      4,
-      True,
+      3,
+      False,
       False,
       NSDeviceRGBColorSpace,
       0,
       32);
     {$ifdef FPC_BIG_ENDIAN}
-      FFormat := TPTCFormat.Create(32, $FF000000, $FF0000, $FF00);
+      FFormat := TPTCFormatFactory.CreateNew(32, $FF000000, $FF0000, $FF00);
     {$else}
-      FFormat := TPTCFormat.Create(32, $FF, $FF00, $FF0000);
+      FFormat := TPTCFormatFactory.CreateNew(32, $FF, $FF00, $FF0000);
     {$endif}
     FPitch := FImageRep.bytesPerRow;
 
     FImage := NSImage.alloc.initWithSize(NSMakeSize(AWidth, AHeight));
     FImage.addRepresentation(FImageRep);
 
-    FView := NSView.alloc.initWithFrame(NSMakeRect(0, 0, AWidth, AHeight));
+    FView := NSPTCView.alloc.initWithFrame(NSMakeRect(0, 0, AWidth, AHeight));
+    FView.FConsole := Self;
 
     FWindow.setContentView(FView);
 
@@ -754,11 +778,7 @@ var
 begin
   pool := NSAutoreleasePool.alloc.init;
   try
-    FView.lockFocus;
-    FImage.drawInRect_fromRect_operation_fraction(NSMakeRect(0, 0, FWidth, FHeight), NSZeroRect, NSCompositeCopy, 1.0);
-    FView.unlockFocus;
-
-    FWindow.flushWindow;
+    FView.setNeedsDisplay_(True);
   finally
     pool.release;
   end;

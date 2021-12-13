@@ -123,6 +123,7 @@ begin
     PTCKEY_MINUS        : Result := 'PTCKEY_MINUS';
     PTCKEY_BACKQUOTE    : Result := 'PTCKEY_BACKQUOTE';
     PTCKEY_QUOTE        : Result := 'PTCKEY_QUOTE';
+    PTCKEY_COMMAND      : Result := 'PTCKEY_COMMAND';
     else
       Result := '';
   end;

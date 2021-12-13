@@ -1,5 +1,18 @@
-0.99.x
+0.99.16
  - added and implemented SetMousePos in unit ptcmouse
+ - applied patch by Nicolas QSO <nicolas@qso.com.ar> that fixes the handling of
+   international keyboards in Xvnc sessions.
+ - added support for macOS via the Cocoa API. Tested in macOS 11.6.1 Big Sur on
+   a Mac mini with an Apple M1 chip. Supported features:
+     fixed windowed output
+     keyboard input
+     the ptcgraph and ptccrt units also work
+   Features that are still missing:
+     mouse input
+     fullscreen output
+     resizable windowed output
+     OpenGL support
+     returning a mode list
 
 0.99.15
  - dead key support under Windows and X11 (via XIM)
