@@ -174,6 +174,7 @@ resourcestring
 function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
 function DelSpace(const S: string): string;
 function DelChars(const S: string; Chr: Char): string;
+function DelChars(const S: string; Chars: TSysCharSet): string;
 function DelSpace1(const S: string): string;
 function Tab2Space(const S: string; Numb: Byte): string;
 function NPos(const C: string; S: string; N: Integer): SizeInt;
@@ -2008,6 +2009,30 @@ begin
     dec(I);
     end;
 end;
+
+function DelChars(const S: string; Chars: TSysCharSet): string;
+
+var
+  I,J: SizeInt;
+
+begin
+  Result:=S;
+  if Chars=[] then exit;
+  I:=Length(Result);
+  While I>0 do
+    begin
+    if Result[I]in Chars then
+      begin
+      J:=I-1;
+      While (J>0) and (Result[J]in Chars) do
+       Dec(j);
+      Delete(Result,J+1,I-J);
+      I:=J+1;
+      end;
+    dec(I);
+    end;
+end;
+
 
 function DelSpace1(const S: string): string;
 
