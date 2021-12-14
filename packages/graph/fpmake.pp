@@ -64,22 +64,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    // Graph unit Linux/i386
-    T:=P.Targets.AddUnit('graph.pp',[i386],[linux]);
-      with T.Dependencies do
-        begin
-          AddInclude('graphh.inc');
-          AddInclude('graph.inc');
-          AddInclude('fontdata.inc');
-          AddInclude('clip.inc');
-          AddInclude('palette.inc');
-          AddInclude('modes.inc');
-          AddInclude('fills.inc');
-          AddInclude('gtext.inc');
-          AddInclude('graph16.inc',[freebsd,linux]);
-        end;
-    // Graph unit other targets
-    T:=P.Targets.AddUnit('graph.pp',[go32v2,amiga,win32,win64,freebsd,msdos]);
+    // Graph unit, restricted to i8086, i386 and x86_64 CPUs 
+    T:=P.Targets.AddUnit('graph.pp',[i8086,i386,x86_64],[go32v2,amiga,win32,win64,freebsd,linux,msdos]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
