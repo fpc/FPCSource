@@ -1257,6 +1257,15 @@ Function Pos (const c : UnicodeString; Const s : RawByteString; Offset: Sizeint 
     result:=Pos(c,UnicodeString(s),OffSet);
   end;
 
+{$ifndef FPC_HAS_UNICODESTR_OF_CHAR}
+{$define FPC_HAS_UNICODESTR_OF_CHAR}
+Function  StringOfChar(c : Unicodechar;l : SizeInt) : UnicodeString;
+begin
+  SetLength(StringOfChar,l);
+  FillWord(Pointer(StringOfChar)^,Length(StringOfChar),word(c));
+end;
+{$endif}
+
 {$ifndef FPC_HAS_POS_CHAR_UNICODESTR}
 {$define FPC_HAS_POS_CHAR_UNICODESTR}
 { Faster version for a char alone. Must be implemented because   }
