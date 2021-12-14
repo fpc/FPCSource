@@ -22,7 +22,7 @@ Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : S
 Function Pos (const c : RawByteString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 Function Pos (const c : UnicodeString; Const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Function Pos (const c : ShortString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
-
+Function StringOfChar(c : Unicodechar;l : SizeInt) : UnicodeString;
 Function UpCase(const s : UnicodeString) : UnicodeString;
 Function  UpCase(c:UnicodeChar):UnicodeChar;
 Function LowerCase(const s : UnicodeString) : UnicodeString;
