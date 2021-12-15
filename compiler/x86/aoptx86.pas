@@ -4519,6 +4519,8 @@ unit aoptx86;
 
                             { Only remove the second test if no jumps or other conditional instructions follow }
                             TransferUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
                             if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
                               RemoveInstruction(p_dist);
 
@@ -4559,12 +4561,15 @@ unit aoptx86;
                       TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
 
                     DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
+                    RemoveInstruction(hp1_dist);
+
                     { Only remove the second test if no jumps or other conditional instructions follow }
                     TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
                     if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
                       RemoveInstruction(p_dist);
 
-                    RemoveInstruction(hp1_dist);
                     Result := True;
                     Exit;
                   end;
