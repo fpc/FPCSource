@@ -277,13 +277,13 @@ begin
     109: exit(PTCKEY_F10);
     103: exit(PTCKEY_F11);
     111: exit(PTCKEY_F12);
-    105: exit(0);  // F13
-    107: exit(0);  // F14
-    113: exit(0);  // F15
-    106: exit(0);  // F16
-    64:  exit(0);  // F17
-    79:  exit(0);  // F18
-    80:  exit(0);  // F19
+    105: exit(PTCKEY_F13);
+    107: exit(PTCKEY_F14);
+    113: exit(PTCKEY_F15);
+    106: exit(PTCKEY_F16);
+    64:  exit(PTCKEY_F17);
+    79:  exit(PTCKEY_F18);
+    80:  exit(PTCKEY_F19);
     115: exit(PTCKEY_HOME);
     119: exit(PTCKEY_END);
     116: exit(PTCKEY_PAGEUP);
