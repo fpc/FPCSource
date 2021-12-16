@@ -2170,6 +2170,7 @@ procedure SetAfPt(w: pRastPort;p: Pointer; n: Byte);
 procedure SetDrPt(w: pRastPort;p: Word);
 procedure SetOPen(w: pRastPort;c: Byte);
 procedure SetWrMsk(w: pRastPort; m: Byte);
+procedure RemBob(Bob: PBob); inline;
 
 procedure SafeSetOutlinePen(w: pRastPort; c: byte);
 procedure SafeSetWriteMask( w: pRastPort ; m: smallint ) ;
@@ -2192,6 +2193,11 @@ function RasSize(w, h: Word): Integer;
 function InitGraphicsLibrary: boolean;
 
 implementation
+
+procedure RemBob(Bob: PBob);
+begin
+  Bob^.Flags := Bob^.Flags or BOBSAWAY;
+end;
 
 function VideoControlTags(ColorMap: PColorMap; const Tags: array of PtrUInt): LongBool; inline;
 begin
