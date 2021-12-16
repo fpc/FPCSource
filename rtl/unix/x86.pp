@@ -21,7 +21,6 @@ interface
 
 Uses BaseUnix;
 
-{$ifndef cpullvm}
 function ReadPortB (Port : Longint): Byte;inline;
 function ReadPortW (Port : Longint): Word;inline;
 function ReadPortL (Port : Longint): Longint;inline;
@@ -40,7 +39,6 @@ Procedure WritePortL (Port : Longint; Value : Longint);inline;
 Procedure WritePortW (Port : Longint; Value : Word);inline;
 Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
-{$endif}
 
 Function  fpIOperm (From,Num : Cardinal; Value : cint) : cint;
 Function  fpIoPL(Level : cint) : cint;
@@ -50,20 +48,55 @@ implementation
 
 Uses Syscall;
 
-{$IFDEF VER3_0}
-{ Bootstrapping kludge. Note that these do nothing, but since I/O ports are not
-  necessary for bootstrapping, these are only added to make the rtl compile
-  with 3.0.
-}
-procedure fpc_x86_outportb(p:longint;v:byte); begin end;
-procedure fpc_x86_outportw(p:longint;v:word); begin end;
-procedure fpc_x86_outportl(p:longint;v:longint); begin end;
-function fpc_x86_inportb(p:word):byte; begin fpc_x86_inportb:=0; end;
-function fpc_x86_inportw(p:word):word; begin fpc_x86_inportw:=0; end;
-function fpc_x86_inportl(p:word):longint; begin fpc_x86_inportl:=0; end;
-{$ENDIF VER3_0}
+{$IFDEF cpullvm}
+procedure fpc_x86_outportb(p:longint;v:byte);
+  begin
+    asm
+      movl %edx, p
+      movb v, %al
+      outb %al, %dx
+    end ['eax','edx'];
+  end;
 
-{$ifndef cpullvm}
+procedure fpc_x86_outportw(p:longint;v:word);
+  begin
+    asm
+      movl %edx, p
+      movw v, %ax
+      outw %ax, %dx
+    end ['eax','edx'];
+  end;
+
+procedure fpc_x86_outportl(p:longint;v:longint);
+  begin
+    asm
+      movl %edx, p
+      movl v, %eax
+      outl %eax, %dx
+    end ['eax','edx'];
+  end;
+
+function fpc_x86_inportb(p:word):byte; assembler; nostackframe;
+  asm
+    xorl %eax, %eax
+    movw %dx, p
+    inb %dx, %al
+  end;
+
+function fpc_x86_inportw(p:word):word; assembler; nostackframe;
+  asm
+    xorl %eax, %eax
+    movw %dx, p
+    inw %dx, %ax
+  end;
+
+function fpc_x86_inportl(p:word):longint; assembler; nostackframe;
+  asm
+    movw %dx, p
+    inl %dx, %eax
+  end;
+{$ENDIF ndef cpullvm}
+
 Procedure WritePort (Port : Longint; Value : Byte);inline;
 {
   Writes 'Value' to port 'Port'
@@ -333,7 +366,6 @@ begin
 {$endif CPUX86_64}        
   end;
 end;
-{$endif cpullvm}
 
 {$if defined(linux) or defined(android)}
 Function  fpIOperm (From,Num : Cardinal; Value : cint) : cint;
