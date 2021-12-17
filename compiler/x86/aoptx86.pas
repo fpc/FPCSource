@@ -4489,58 +4489,7 @@ unit aoptx86;
                     Exit;
                   end;
 
-                if (taicpu(hp1).condition in [C_E, C_Z]) then
-                  begin
-                    { Search for:
-                        test  $x,(reg/ref)
-                        je    @lbl1
-                        test  $y,(reg/ref)
-                        je    @lbl2
-
-                        If (x or y) = x (i.e. all the bits of y appear in x), then je @lbl2 will never branch, so remove.
-
-                      Also:
-                        test  $x,(reg/ref)
-                        je    @lbl1
-                        test  $y,(reg/ref)
-                        jne   @lbl2
-
-                        If (x or y) = x (i.e. all the bits of y appear in x), then jne @lbl2 will always branch, so make unconditional
-                    }
-                    if ((FirstValue or SecondValue) = FirstValue) then
-                      begin
-                        if (taicpu(hp1_dist).condition in [C_E, C_Z]) then
-                          begin
-                            if IsJumpToLabel(taicpu(hp1_dist)) then
-                              TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
-
-                            DebugMsg(SPeepholeOptimization + 'TEST/JE/TEST/JE merged', p);
-                            RemoveInstruction(hp1_dist);
-
-                            { Only remove the second test if no jumps or other conditional instructions follow }
-                            TransferUsedRegs(TmpUsedRegs);
-                            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                            if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
-                              RemoveInstruction(p_dist);
-
-                            Result := True;
-                            Exit;
-                          end
-                        else if (taicpu(hp1_dist).condition in [C_NE, C_NZ]) then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'TEST/JE/TEST/JNE merged', p);
-                            RemoveInstruction(p_dist);
-                            MakeUnconditional(taicpu(hp1_dist));
-                            RemoveDeadCodeAfterJump(hp1_dist);
-                            Result := True;
-                            Exit;
-                          end;
-                      end;
-
-                    { Drop out in any other situation }
-                  end
-                else if (taicpu(hp1).condition in [C_NE, C_NZ]) and
+                if (taicpu(hp1).condition in [C_NE, C_NZ]) and
                   (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
                   { If the first instruction is test %reg,%reg or test $-1,%reg,
                     then the second jump will never branch, so it can also be
