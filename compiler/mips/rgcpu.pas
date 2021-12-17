@@ -150,7 +150,7 @@ implementation
             else
               InternalError(2013061003);
           end;
-        if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
+        if (getregtype(instr.oper[1]^.reg)=regtype) and  (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) then
           begin
             case instr.opcode of
               A_MOVE:  instr.opcode:=A_LW;
@@ -160,7 +160,7 @@ implementation
               InternalError(2013061004);
             end;
           end
-        else if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
+        else if (getregtype(instr.oper[0]^.reg)=regtype) and  (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
           begin
             case instr.opcode of
               A_MOVE:  instr.opcode:=A_SW;

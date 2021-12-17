@@ -205,7 +205,7 @@ implementation
            (getregtype(instr.oper[1]^.reg)<>regtype) then
           exit;
         opidx:=-1;
-        if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
+        if (getregtype(instr.oper[0]^.reg)=regtype) and (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
           begin
             if (regtype=R_INTREGISTER) then
               instr.opcode:=A_LD_R
@@ -215,7 +215,7 @@ implementation
               instr.opcode:=A_LDDF;
             opidx:=0;
           end
-        else if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
+        else if (getregtype(instr.oper[1]^.reg)=regtype) and (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) then
           begin
             if (regtype=R_INTREGISTER) then
               instr.opcode:=A_ST_R
