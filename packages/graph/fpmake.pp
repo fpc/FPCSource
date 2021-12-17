@@ -65,7 +65,7 @@ begin
           AddInclude('gtext.inc');
         end;
     // Graph unit, restricted to i8086, i386 and x86_64 CPUs 
-    T:=P.Targets.AddUnit('graph.pp',[i8086,i386,x86_64],[go32v2,amiga,win32,win64,freebsd,linux,msdos]);
+    T:=P.Targets.AddUnit('graph.pp',[i8086,i386,x86_64],[go32v2,freebsd,linux,msdos]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -79,6 +79,20 @@ begin
           AddInclude('graph16.inc',[freebsd,linux]);
           AddInclude('vesa.inc',[go32v2,msdos]);
           AddInclude('vesah.inc',[go32v2,msdos]);
+        end;
+
+    // Graph unit, for win32 and win64 target 
+    T:=P.Targets.AddUnit('graph.pp',[win32,win64]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
         end;
 
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
