@@ -1559,12 +1559,12 @@ implementation
 
 
     function tifnode.internalsimplify(warn: boolean) : tnode;
-{$if defined(i386) or defined(x86_64) or defined(xtensa)}
+{$if defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
       var
         thenstmnt, elsestmnt: tnode;
         in_nr: tinlinenumber;
         paratype: tdef;
-{$endif}
+{$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
       begin
         result:=nil;
         { optimize constant expressions }
@@ -1592,7 +1592,7 @@ implementation
                end;
           end;
 {$ifndef llvm}
-{$if defined(i386) or defined(x86_64) or defined(xtensa)}
+{$if defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
         { use min/max intrinsic?
           convert (with <op> being <, >, >=, <=
           if a <op> b then
@@ -1628,6 +1628,9 @@ implementation
 {$if defined(xtensa)}
           (CPUXTENSA_HAS_MINMAX in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
 {$endif defined(xtensa)}
+{$if defined(aarch64)}
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+{$endif defined(aarch64)}
           (
           { the right size of the assignment in the then clause must either }
 
@@ -1702,7 +1705,7 @@ implementation
                       ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil)))
                 );
           end;
-{$endif defined(i386) or defined(x86_64) or defined(xtensa)}
+{$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
 {$endif llvm}
       end;
 
