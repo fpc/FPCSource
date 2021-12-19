@@ -309,6 +309,7 @@ begin
       begin
       AddUnit('fpjsonrpc');
       end;
+    T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
     With T.Dependencies do
       begin
