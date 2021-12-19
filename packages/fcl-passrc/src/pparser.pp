@@ -253,6 +253,7 @@ type
   private
     FCurModule: TPasModule;
     FFileResolver: TBaseFileResolver;
+    FIdentifierPos: TPasSourcePos;
     FImplicitUses: TStrings;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
@@ -390,6 +391,7 @@ type
     procedure ExpectTokens(tk:  TTokens);
     function GetPrevToken: TToken;
     function ExpectIdentifier: String;
+    Procedure SaveIdentifierPosition;
     Function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
     function isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True): Boolean;
@@ -398,7 +400,8 @@ type
     // Type declarations
     function ResolveTypeReference(Name: string; Parent: TPasElement; ParamCnt: integer = 0): TPasType;
     function ParseVarType(Parent : TPasElement = Nil): TPasType;
-    function ParseTypeDecl(Parent: TPasElement): TPasType;
+    function ParseTypeDecl(Parent: TPasElement): TPasType; overload;
+    function ParseTypeDecl(Parent: TPasElement; NamePos : TPasSourcePos): TPasType; overload;
     function ParseGenericTypeDecl(Parent: TPasElement; AddToParent: boolean): TPasGenericType;
     function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false): TPasType;
     function ParseReferenceToProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasProcedureType;
@@ -473,6 +476,7 @@ type
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
+    Property IdentifierPosition : TPasSourcePos Read FIdentifierPos;
   end;
 
 Type
@@ -1317,6 +1321,11 @@ function TPasParser.ExpectIdentifier: String;
 begin
   ExpectToken(tkIdentifier);
   Result := CurTokenString;
+end;
+
+procedure TPasParser.SaveIdentifierPosition;
+begin
+  FIdentifierPos:=FScanner.CurSourcePos;
 end;
 
 function TPasParser.CurTokenIsIdentifier(const S: String): Boolean;
@@ -3690,6 +3699,7 @@ begin
       begin
       Scanner.UnSetTokenOption(toOperatorToken);
       SaveComments;
+      SaveIdentifierPosition;
       case CurBlock of
         declConst:
           begin
@@ -3707,7 +3717,7 @@ begin
           end;
         declType:
           begin
-          TypeEl := ParseTypeDecl(Declarations);
+          TypeEl := ParseTypeDecl(Declarations,IdentifierPosition);
           // Scanner.SetForceCaret(OldForceCaret); // It may have been switched off
           if Assigned(TypeEl) then        // !!!
             begin
@@ -4060,7 +4070,7 @@ var
   OldForceCaret,ok: Boolean;
 begin
   SaveComments;
-  Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent));
+  Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent, IdentifierPosition));
   if Parent is TPasMembersType then
     Include(Result.VarModifiers,vmClass);
   ok:=false;
@@ -4154,7 +4164,7 @@ var
   ok: Boolean;
 begin
   SaveComments;
-  Result := TPasResString(CreateElement(TPasResString, CurTokenString, Parent));
+  Result := TPasResString(CreateElement(TPasResString, CurTokenString, Parent,IdentifierPosition));
   ok:=false;
   try
     ExpectToken(tkEqual);
@@ -4441,13 +4451,20 @@ begin
 end;
 
 function TPasParser.ParseTypeDecl(Parent: TPasElement): TPasType;
+
+begin
+  Result:=ParseTypeDecl(Parent,CurSourcePos);
+end;
+
+function TPasParser.ParseTypeDecl(Parent: TPasElement; NamePos : TPasSourcePos): TPasType;
+
 var
   TypeName: String;
-  NamePos: TPasSourcePos;
   OldForceCaret , IsDelphiGenericType: Boolean;
+
 begin
-  OldForceCaret:=Scanner.SetForceCaret(True);
   try
+    OldForceCaret:=Scanner.SetForceCaret(True);
     IsDelphiGenericType:=false;
     if (msDelphi in CurrentModeswitches) then
       begin
@@ -4460,7 +4477,6 @@ begin
     else
       begin
       TypeName := CurTokenString;
-      NamePos:=CurSourcePos;
       ExpectToken(tkEqual);
       Result:=ParseType(Parent,NamePos,TypeName,True);
       end;
@@ -7069,6 +7085,7 @@ begin
         if CheckSection then
           continue;
         ExpectToken(tkIdentifier);
+        SaveIdentifierPosition;
         ParseMembersLocalConsts(ARec,v);
         end;
       tkVar:
@@ -7078,6 +7095,7 @@ begin
         if CheckSection then
           continue;
         ExpectToken(tkIdentifier);
+        SaveIdentifierPosition;
         OldCount:=ARec.Members.Count;
         ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
         for i:=OldCount to ARec.Members.Count-1 do
