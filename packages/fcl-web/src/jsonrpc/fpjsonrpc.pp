@@ -118,21 +118,25 @@ Type
   TCustomJSONRPCHandlerClass = Class of TCustomJSONRPCHandler;
 
   TJSONRPCEvent = Procedure (Sender : TObject; Const Params : TJSONData; Out Res : TJSONData) of object;
+  TJSONContextRPCEvent = Procedure (Sender : TObject; aContext : TJSONRPCCallContext; Const Params : TJSONData; Out Res : TJSONData) of object;
 
   { TJSONRPCHandler }
 
   TJSONRPCHandler = Class(TCustomJSONRPCHandler)
   private
     FOnExecute: TJSONRPCEvent;
+    FOnContextExecute : TJSONContextRPCEvent;
   protected
     Function DoExecute(Const Params : TJSONData; AContext : TJSONRPCCallContext): TJSONData; override;
   Published
     Property OnExecute : TJSONRPCEvent Read FOnExecute Write FOnExecute;
+    Property OnContextExecute : TJSONContextRPCEvent Read FOnContextExecute Write FOnContextExecute;
     Property BeforeExecute;
     Property AfterExecute;
     Property OnParamError;
     Property Options;
     Property ParamDefs;
+    Property ResultType;
   end;
 
   { TJSONRPCEcho }
@@ -862,7 +866,9 @@ end;
 function TJSONRPCHandler.DoExecute(const Params: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
 begin
   Result:=Nil;
-  If Assigned(FOnExecute) then
+  If Assigned(FOnContextExecute) then
+    FOnContextExecute(Self,aContext,Params,Result)
+  else If Assigned(FOnExecute) then
     FOnExecute(Self,Params,Result);
 end;
 
