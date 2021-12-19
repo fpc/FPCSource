@@ -61,6 +61,9 @@ Type
     function OptPass2Bitwise(var p: tai): Boolean;
     function OptPass2TST(var p: tai): Boolean;
 
+    { Common code that tries to merge constant writes to sequential memory }
+    function TryConstMerge(var p: tai; hp1: tai): Boolean;
+
   protected
     function DoXTArithOp(var p: tai; hp1: tai): Boolean;
   End;
@@ -81,7 +84,7 @@ Type
 Implementation
 
   uses
-    cutils,verbose,globals,
+    cutils,verbose,globals,aoptutils,
     systems,
     cpuinfo,
     cgobj,procinfo,
@@ -2001,6 +2004,934 @@ Implementation
               ;
           end;
         end;
+    end;
+
+
+  function TARMAsmOptimizer.TryConstMerge(var p: tai; hp1: tai): Boolean;
+    const
+{$ifdef ARM}
+      LO_16_WRITE: TAsmOp = A_MOVW;
+      HI_16_WRITE: TAsmOp = A_MOVT;
+{$endif ARM}
+{$ifdef AARCH64}
+      LO_16_WRITE: TAsmOp = A_MOVZ;
+      HI_16_WRITE: TAsmOp = A_MOVK;
+{$endif AARCH64}
+    var
+      hp2, hp2_second, hp3, hp3_second, p_second, hp1_second: tai;
+      ThisReg: TRegister;
+      ThisRef: TReference;
+      so: TShifterOp;
+
+      procedure SearchAhead;
+        begin
+          { If p.opcode = A_STR, then ThisReg will be NR_NO }
+          if (
+{$ifdef ARM}
+              (p_second.typ = ait_instruction) and
+              (taicpu(p_second).condition = taicpu(p).condition) and
+              (
+                (taicpu(p_second).opcode = A_MOV) or
+                (taicpu(p_second).opcode = A_MOVW)
+              )
+{$endif ARM}
+{$ifdef AARCH64}
+              MatchInstruction(p, A_MOVZ, []) or
+              (
+                MatchInstruction(p, A_STR, []) and
+                SetAndTest(p, hp1)
+              )
+{$endif AARCH64}
+            ) and
+            (
+              (
+                (ThisReg <> NR_NO) and
+                (
+{$ifdef AARCH64}
+                  (
+                    (getsubreg(ThisReg) = R_SUBD) and
+                    MatchInstruction(hp1, A_MOVK, []) and
+                    (taicpu(hp1).oper[0]^.reg = ThisReg) and
+                    GetNextInstruction(hp1, hp2) and
+                    MatchInstruction(hp2, A_STR, []) and
+                    (taicpu(hp2).oper[0]^.reg = ThisReg) and
+                    GetNextInstruction(hp2, p_second)
+                  ) or
+{$endif AARCH64}
+                  (
+                    MatchInstruction(hp1, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, []) and
+                    (taicpu(hp1).oper[0]^.reg = ThisReg) and
+                    GetNextInstruction(hp1, p_second)
+                  )
+                )
+              ) or (
+                { Just search one ahead if ThisReg is NR_NO }
+                (ThisReg = NR_NO) and
+                GetNextInstruction(hp1, p_second)
+              )
+            ) and
+            (
+              (
+{$ifdef ARM}
+                (p_second.typ = ait_instruction) and
+                (taicpu(p_second).condition = taicpu(p).condition) and
+                (
+                  (taicpu(p_second).opcode = A_MOV) or
+                  (taicpu(p_second).opcode = A_MOVW)
+                ) and
+{$endif ARM}
+{$ifdef AARCH64}
+                MatchInstruction(p_second, A_MOVZ, []) and
+{$endif AARCH64}
+                { Don't use ThisReg because it may be NR_NO }
+                GetNextInstruction(p_second, hp1_second) and
+                (
+{$ifdef AARCH64}
+                  (
+                    MatchInstruction(hp1_second, A_MOVK, []) and
+                    GetNextInstruction(hp1_second, hp2_second) and
+                    MatchInstruction(hp2_second, A_STR, [PF_None])
+                  ) or
+{$endif AARCH64}
+                  MatchInstruction(hp1_second, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [])
+                )
+              )
+{$ifdef AARCH64}
+              or (
+                MatchInstruction(p_second, A_STR, []) and
+                (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) and
+                { Negate the result because we're setting hp1_second to nil }
+                not SetAndTest(nil, hp1_second)
+              )
+{$endif AARCH64}
+            ) then
+            TryConstMerge(p_second, hp1_second);
+        end;
+
+    begin
+      Result := False;
+{$ifdef ARM}
+      { We need a Cortex-A ARM processor that supports MOVW and MOVT }
+      if not (CPUARM_HAS_EXTENDED_CONSTANTS in cpu_capabilities[current_settings.cputype]) then
+        Exit;
+{$endif ARM}
+
+      ThisReg := NR_NO; { Safe initialisation }
+
+      case taicpu(p).opcode of
+{$ifdef ARM}
+        A_MOV,
+        A_MOVW:
+          if (taicpu(p).opcode <> A_MOV) or (taicpu(p).oper[1]^.typ = top_const) then
+{$endif ARM}
+{$ifdef AARCH64}
+        A_MOVZ:
+{$endif AARCH64}
+          begin
+            ThisReg := taicpu(p).oper[0]^.reg;
+            if Assigned(hp1){$ifdef ARM} and (taicpu(hp1).condition = taicpu(p).condition){$endif ARM} then
+              case taicpu(hp1).opcode of
+                A_STR:
+                  if {$ifdef ARM}(taicpu(hp1).ops = 2) and {$endif ARM}SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, ThisReg) then
+                    begin
+                      ThisRef := taicpu(hp1).oper[1]^.ref^;
+
+                      if (ThisRef.addressmode = AM_OFFSET) and
+                        (ThisRef.index = NR_NO) and
+                        { Only permit writes to the stack, since we can guarantee alignment with that }
+                        (
+                          (ThisRef.base = NR_STACK_POINTER_REG) or
+                          (ThisRef.base = current_procinfo.framepointer)
+                        ) then
+                        begin
+                          case taicpu(hp1).oppostfix of
+                            PF_B:
+                              {
+                                With sequences such as:
+                                  movz  w0,x
+                                  strb  w0,[sp, #ofs]
+                                  movz  w0,y
+                                  strb  w0,[sp, #ofs+1]
+
+                                Merge the constants to:
+                                  movz  w0,x + (y shl 8)
+                                  strh  w0,[sp, #ofs]
+
+                                Only use the stack pointer or frame pointer and an even offset though
+                                to guarantee alignment
+                              }
+                              if ((ThisRef.offset mod 2) = 0) and
+                                GetNextInstruction(hp1, p_second) and
+                                (p_second.typ = ait_instruction)
+{$ifdef ARM}
+                                and (taicpu(p_second).condition = taicpu(p).condition)
+{$endif ARM}
+                                then
+                                begin
+                                  case taicpu(p_second).opcode of
+{$ifdef ARM}
+                                    A_MOV,
+                                    A_MOVW:
+                                      if (taicpu(p_second).oppostfix = PF_None) and
+                                        ((taicpu(p_second).opcode <> A_MOV) or (taicpu(p_second).oper[1]^.typ = top_const)) then
+{$endif ARM}
+{$ifdef AARCH64}
+                                    A_MOVZ:
+{$endif AARCH64}
+                                      begin
+                                        if SuperRegistersEqual(taicpu(p_second).oper[0]^.reg, ThisReg) and
+                                          GetNextInstruction(p_second, hp1_second) and
+                                          MatchInstruction(hp1_second, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [PF_B]) and
+                                          SuperRegistersEqual(taicpu(hp1_second).oper[0]^.reg, ThisReg) then
+                                          begin
+                                            { Is the second storage location exactly one byte ahead? }
+                                            Inc(ThisRef.offset);
+                                            if RefsEqual(taicpu(hp1_second).oper[1]^.ref^, ThisRef) and
+                                              { The final safety check... make sure the register used
+                                                to store the constant isn't used afterwards }
+                                              RegEndOfLife(ThisReg, taicpu(hp1_second)) then
+                                              begin
+
+                                                { See if we can merge 4 bytes at once (this benefits ARM mostly, but provides a speed boost for AArch64 too) }
+                                                if GetNextInstruction(hp1_second, hp2) and
+                                                  (
+{$ifdef ARM}
+                                                    MatchInstruction(hp2, A_MOVW, [taicpu(p).condition], []) or
+{$endif ARM}
+                                                    (
+                                                      MatchInstruction(hp2, LO_16_WRITE{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [])
+{$ifdef ARM}
+                                                      and (taicpu(hp2).oper[1]^.typ = top_const)
+{$endif ARM}
+                                                    )
+                                                  ) and
+                                                  SuperRegistersEqual(taicpu(hp2).oper[0]^.reg, ThisReg) and
+                                                  GetNextInstruction(hp2, hp2_second) and
+                                                  MatchInstruction(hp2_second, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [PF_B]) and
+                                                  SuperRegistersEqual(taicpu(hp2_second).oper[0]^.reg, ThisReg) and
+                                                  GetNextInstruction(hp2_second, hp3) and
+                                                  (
+{$ifdef ARM}
+                                                    MatchInstruction(hp3, A_MOVW, [taicpu(p).condition], []) or
+{$endif ARM}
+                                                    (
+                                                      MatchInstruction(hp3, LO_16_WRITE{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [])
+{$ifdef ARM}
+                                                      and (taicpu(hp3).oper[1]^.typ = top_const)
+{$endif ARM}
+                                                    )
+                                                  ) and
+                                                  SuperRegistersEqual(taicpu(hp3).oper[0]^.reg, ThisReg) and
+                                                  GetNextInstruction(hp3, hp3_second) and
+                                                  MatchInstruction(hp3_second, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [PF_B]) and
+                                                  SuperRegistersEqual(taicpu(hp3_second).oper[0]^.reg, ThisReg) then
+                                                  begin
+                                                    Inc(ThisRef.offset);
+                                                    if RefsEqual(taicpu(hp2_second).oper[1]^.ref^, ThisRef) then
+                                                      begin
+                                                        Inc(ThisRef.offset);
+                                                        if RefsEqual(taicpu(hp3_second).oper[1]^.ref^, ThisRef) then
+                                                          begin
+                                                            { Merge the constants }
+                                                            DebugMsg(SPeepholeOptimization + 'Merged four byte-writes to memory into a single word-write (MovzStrbMovzStrbMovzStrbMovzStrb2MovzMovkStr)', p);
+{$ifdef ARM}
+                                                            taicpu(p).opcode := A_MOVW;
+{$endif ARM}
+                                                            taicpu(p).oper[1]^.val := (taicpu(p).oper[1]^.val and $FF) or ((taicpu(p_second).oper[1]^.val and $FF) shl 8);
+
+                                                            taicpu(hp2).opcode := HI_16_WRITE;
+                                                            taicpu(hp2).oper[1]^.val := (taicpu(hp2).oper[1]^.val and $FF) or ((taicpu(hp3).oper[1]^.val and $FF) shl 8);
+
+                                                            so.shiftimm := 16;
+                                                            so.shiftmode := SM_LSL;
+                                                            taicpu(hp2).loadshifterop(2, so);
+                                                            taicpu(hp2).ops := 3;
+
+                                                            taicpu(hp1).oppostfix := PF_None;
+
+                                                            AsmL.Remove(hp2);
+                                                            AsmL.InsertAfter(hp2, p);
+
+                                                            RemoveInstruction(p_second);
+                                                            RemoveInstruction(hp1_second);
+                                                            RemoveInstruction(hp2_second);
+                                                            RemoveInstruction(hp3);
+                                                            RemoveInstruction(hp3_second);
+                                                            Result := True;
+{$ifdef AARCH64}
+                                                            { Searching ahead only benefits AArch64 here }
+                                                            SearchAhead;
+{$endif AARCH64}
+                                                            Exit;
+                                                          end;
+                                                        { Reset the offset so the range check below is correct }
+                                                        Dec(ThisRef.offset);
+                                                      end;
+                                                    Dec(ThisRef.offset);
+                                                  end;
+{$ifdef ARM}
+                                                { Be careful.  strb and str support offsets between -4095 and +4095, but
+                                                  strh only supports offsets between -255 and +255.  However, we might be
+                                                  able to bypass this if there are four bytes in a row (for AArch64, just
+                                                  use SearchAhead below }
+                                                if { Remember we added 1 to the offset }
+                                                  (ThisRef.offset >= -254) and (ThisRef.offset <= 256) then
+{$endif ARM}
+                                                  begin
+
+                                                    { Merge the constants and remove the second pair of instructions }
+                                                    DebugMsg(SPeepholeOptimization + 'Merged two byte-writes to memory into a single half-write (MovzStrbMovzStrb2MovzStrh)', p);
+{$ifdef ARM}
+                                                    taicpu(p).opcode := A_MOVW;
+{$endif ARM}
+                                                    taicpu(p).oper[1]^.val := (taicpu(p).oper[1]^.val and $FF) or ((taicpu(p_second).oper[1]^.val and $FF) shl 8);
+                                                    taicpu(hp1).oppostfix := PF_H;
+                                                    RemoveInstruction(p_second);
+                                                    RemoveInstruction(hp1_second);
+                                                    Result := True;
+                                                  end;
+                                              end;
+                                          end;
+                                      end;
+{$ifdef AARCH64}
+                                    A_STR:
+                                      { Sometimes, the second mov might not be present as we're writing the
+                                        zero register to the next address - that is:
+                                          movz  w0,x
+                                          strb  w0,[sp, #ofs]
+                                          strb  wzr,[sp, #ofs+1]
+
+                                        Which becomes:
+                                          movz  w0,x
+                                          strh  w0,[sp, #ofs]
+                                      }
+                                      if RegEndOfLife(ThisReg, taicpu(hp1)) and
+                                        (taicpu(p_second).oppostfix = PF_B) and
+                                        (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) then
+                                        begin
+                                          { Is the second storage location exactly one byte ahead? }
+                                          Inc(ThisRef.offset);
+                                          if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                            begin
+                                              { Merge the constants and remove the second pair of instructions }
+                                              DebugMsg(SPeepholeOptimization + 'Merged a byte-write and a zero-register byte-write to memory into a single half-write (MovzStrbStrb2MovzStrh 1)', p);
+                                              taicpu(p).oper[1]^.val := taicpu(p).oper[1]^.val and $FF; { In case there's some extraneous bits }
+                                              taicpu(hp1).oppostfix := PF_H;
+                                              RemoveInstruction(p_second);
+                                              Result := True;
+                                            end;
+                                        end;
+{$endif AARCH64}
+                                    else
+                                      ;
+                                  end;
+
+                                  { Search ahead to see if more bytes are written individually,
+                                    because then we may be able to merge 4 bytes into a full
+                                    word write in a single pass }
+                                  if Result then
+                                    begin
+                                      SearchAhead;
+                                      Exit;
+                                    end;
+                                end;
+                            PF_H:
+                              {
+                                With sequences such as:
+                                  movz  w0,x
+                                  strh  w0,[sp, #ofs]
+                                  movz  w0,y
+                                  strh  w0,[sp, #ofs+2]
+
+                                Merge the constants to:
+                                  movz  w0,x
+                                  movk  w0,y,lsl #16
+                                  str   w0,[sp, #ofs]
+
+                                Only use the stack pointer or frame pointer and an offset
+                                that's a multiple of 4 though to guarantee alignment
+                              }
+                              if ((ThisRef.offset mod 4) = 0) and
+                                GetNextInstruction(hp1, p_second) and
+                                (p_second.typ = ait_instruction)
+{$ifdef ARM}
+                                and (taicpu(p_second).condition = taicpu(p).condition)
+{$endif ARM}
+                                then
+                                begin
+                                  case taicpu(p_second).opcode of
+{$ifdef ARM}
+                                    A_MOV,
+                                    A_MOVW:
+                                      if (taicpu(p).oppostfix = PF_None) and
+                                        ((taicpu(p).opcode <> A_MOV) or (taicpu(p).oper[1]^.typ = top_const)) then
+{$endif ARM}
+{$ifdef AARCH64}
+                                    A_MOVZ:
+{$endif AARCH64}
+                                      begin
+                                        if SuperRegistersEqual(taicpu(p_second).oper[0]^.reg, ThisReg) and
+                                          GetNextInstruction(p_second, hp1_second) and
+                                          MatchInstruction(hp1_second, A_STR{$ifdef ARM}, [taicpu(p).condition]{$endif ARM}, [PF_H]) and
+                                          SuperRegistersEqual(taicpu(hp1_second).oper[0]^.reg, ThisReg) then
+                                          begin
+                                            { Is the second storage location exactly one byte ahead? }
+                                            Inc(ThisRef.offset, 2);
+                                            if RefsEqual(taicpu(hp1_second).oper[1]^.ref^, ThisRef) and
+                                              { The final safety check... make sure the register used
+                                                to store the constant isn't used afterwards }
+                                              RegEndOfLife(ThisReg, taicpu(hp1_second)) then
+                                              begin
+                                                { Merge the constants }
+                                                DebugMsg(SPeepholeOptimization + 'Merged two half-writes to memory into a single word-write (MovzStrhMovzStrh2MovzMovkStr)', p);
+
+                                                { Repurpose the second MOVZ instruction into a MOVK instruction }
+                                                if taicpu(p_second).oper[1]^.val = 0 then
+                                                  begin
+                                                    { Or just remove it if it's not needed }
+                                                    RemoveInstruction(p_second);
+{$ifdef ARM}
+                                                    { If within the range 0..255, MOV suffices (256 can also be encoded this way) }
+                                                    if (taicpu(p).oper[1]^.val < 0) or (taicpu(p).oper[1]^.val > 256) then
+                                                      taicpu(p).opcode := A_MOVW;
+{$endif ARM}
+                                                  end
+                                                else
+                                                  begin
+                                                    asml.Remove(p_second);
+                                                    asml.InsertAfter(p_second, p);
+{$ifdef ARM}
+                                                    taicpu(p).opcode := A_MOVW;
+{$endif ARM}
+                                                    taicpu(p_second).opcode := HI_16_WRITE;
+{$ifdef AARCH64}
+                                                    so.shiftmode := SM_LSL;
+                                                    so.shiftimm := 16;
+
+                                                    taicpu(p_second).ops := 3;
+                                                    taicpu(p_second).loadshifterop(2, so);
+
+                                                    { Make doubly sure we're only using the 32-bit register, otherwise STR could write 64 bits }
+                                                    setsubreg(ThisReg, R_SUBD);
+                                                    taicpu(p).oper[0]^.reg := ThisReg;
+                                                    taicpu(p_second).oper[0]^.reg := ThisReg;
+                                                    taicpu(hp1).oper[0]^.reg := ThisReg;
+{$endif AARCH64}
+                                                    { TODO: Confirm that the A_MOVZ / A_MOVK combination is the most efficient }
+                                                  end;
+
+                                                taicpu(hp1).oppostfix := PF_None;
+                                                RemoveInstruction(hp1_second);
+                                                Result := True;
+                                              end;
+                                          end;
+                                      end;
+{$ifdef AARCH64}
+                                    A_STR:
+                                      { Sometimes, the second mov might not be present as we're writing the
+                                        zero register to the next address - that is:
+                                          movz  w0,x
+                                          strh  w0,[sp, #ofs]
+                                          strh  wzr,[sp, #ofs+1]
+
+                                        Which becomes:
+                                          movz  w0,x
+                                          str   w0,[sp, #ofs]
+                                      }
+                                      if RegEndOfLife(ThisReg, taicpu(hp1)) and
+                                        (taicpu(p_second).oppostfix = PF_H) and
+                                        (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) then
+                                        begin
+                                          { Is the second storage location exactly one byte ahead? }
+                                          Inc(ThisRef.offset, 2);
+                                          if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                            begin
+                                              { Merge the constants and remove the second pair of instructions }
+                                              DebugMsg(SPeepholeOptimization + 'Merged a half-write and a zero-register half-write to memory into a single word-write (MovzStrhStrh2MovzStr)', p);
+
+                                              { Make doubly sure we're only using the 32-bit register, otherwise STR could write 64 bits }
+                                              setsubreg(ThisReg, R_SUBD);
+                                              taicpu(p).oper[0]^.reg := ThisReg;
+                                              taicpu(hp1).oper[0]^.reg := ThisReg;
+
+                                              taicpu(hp1).oppostfix := PF_None;
+                                              RemoveInstruction(p_second);
+                                              Result := True;
+                                            end;
+                                        end;
+{$endif AARCH64}
+                                    else
+                                      ;
+                                  end;
+{$ifdef AARCH64}
+                                  { Search ahead to see if more half-words are written
+                                    individually, because then we may be able to merge
+                                    4 words into a full extended write in a single pass }
+                                  if Result then
+                                    begin
+                                      SearchAhead;
+                                      Exit;
+                                    end;
+{$endif AARCH64}
+                                end;
+                            else
+                              ;
+                          end;
+                        end;
+                    end;
+{$ifdef AARCH64}
+                A_MOVK:
+                  if (getsubreg(ThisReg) = R_SUBD) and
+                    (taicpu(hp1).oper[0]^.reg = ThisReg) and
+                    (taicpu(hp1).ops = 3) and
+                    (taicpu(hp1).oper[2]^.shifterop^.shiftmode = SM_LSL) and
+                    (taicpu(hp1).oper[2]^.shifterop^.shiftimm = 16) and
+                    GetNextInstruction(hp1, hp2) and
+                    MatchInstruction(hp2, A_STR, [PF_None]) and
+                    (taicpu(hp2).oper[0]^.reg = ThisReg) then
+                    begin
+                      {
+                        With sequences such as:
+                          movz  w0,x
+                          movk  w0,y,lsl #16
+                          str   w0,[sp, #ofs]
+                          movz  w0,z
+                          movk  w0,q,lsl #16
+                          str   w0,[sp, #ofs+4]
+
+                        Merge the constants to:
+                          movz  x0,x
+                          movk  x0,y,lsl #16
+                          movk  x0,z,lsl #32
+                          movk  x0,q,lsl #48
+                          str   x0,[sp, #ofs]
+
+                        Only use the stack pointer or frame pointer and an offset
+                        that's a multiple of 8 though to guarantee alignment
+                      }
+                      ThisRef := taicpu(hp2).oper[1]^.ref^;
+                      if ((ThisRef.offset mod 8) = 0) and
+                        GetNextInstruction(hp2, p_second) and
+                        (p_second.typ = ait_instruction) then
+                        case taicpu(p_second).opcode of
+                          A_MOVZ:
+                            if (
+                                (taicpu(p_second).oper[0]^.reg = ThisReg) or
+                                (
+                                  RegEndOfLife(ThisReg, taicpu(hp2)) and
+                                  (getsubreg(taicpu(p_second).oper[0]^.reg) = R_SUBD)
+                                )
+                              ) and GetNextInstruction(p_second, hp1_second) then
+                              begin
+                                case taicpu(hp1_second).opcode of
+                                  A_MOVK:
+                                    if (taicpu(p_second).oper[1]^.val <= $FFFF) and
+                                      (taicpu(hp1_second).oper[0]^.reg = taicpu(p_second).oper[0]^.reg) and
+                                      (taicpu(hp1_second).ops = 3) and
+                                      (taicpu(hp1_second).oper[2]^.shifterop^.shiftmode = SM_LSL) and
+                                      (taicpu(hp1_second).oper[2]^.shifterop^.shiftimm = 16) and
+                                      GetNextInstruction(hp1_second, hp2_second) and
+                                      MatchInstruction(hp2_second, A_STR, [PF_None]) and
+                                      (taicpu(hp1_second).oper[0]^.reg = taicpu(p_second).oper[0]^.reg) then
+                                      begin
+                                        Inc(ThisRef.offset, 4);
+                                        if RefsEqual(taicpu(hp2_second).oper[1]^.ref^, ThisRef) and
+                                          { The final safety check... make sure the register used
+                                            to store the constant isn't used afterwards }
+                                          RegEndOfLife(taicpu(p_second).oper[0]^.reg, taicpu(hp2_second)) then
+                                          begin
+                                            DebugMsg(SPeepholeOptimization + 'Merged two word-writes to memory into a single extended-write (MovzMovkStrMovzMovkStr2MovzMovkMovkMovkStr)', p);
+
+                                            { Extend register to 64-bit and repurpose second MOVZ to a MOVK with lsl 32 }
+                                            setsubreg(ThisReg, R_SUBQ);
+
+                                            taicpu(p).oper[0]^.reg := ThisReg;
+                                            taicpu(hp1).oper[0]^.reg := ThisReg;
+
+                                            { If the 3rd word is zero, we can remove the instruction entirely }
+                                            if taicpu(p_second).oper[1]^.val = 0 then
+                                              RemoveInstruction(p_second)
+                                            else
+                                              begin
+                                                taicpu(p_second).oper[0]^.reg := ThisReg;
+                                                so.shiftimm := 32;
+                                                so.shiftmode := SM_LSL;
+                                                taicpu(p_second).opcode := A_MOVK;
+                                                taicpu(p_second).ops := 3;
+                                                taicpu(p_second).loadshifterop(2, so);
+                                                AsmL.Remove(p_second);
+                                                AsmL.InsertBefore(p_second, hp2);
+                                              end;
+
+                                            taicpu(hp1_second).oper[0]^.reg := ThisReg;
+                                            taicpu(hp1_second).oper[2]^.shifterop^.shiftimm := 48;
+                                            taicpu(hp2).oper[0]^.reg := ThisReg;
+
+                                            AsmL.Remove(hp1_second);
+                                            AsmL.InsertBefore(hp1_second, hp2);
+
+                                            RemoveInstruction(hp2_second);
+                                            Result := True;
+                                          end;
+                                      end;
+                                  else
+                                    ;
+                                end;
+                              end;
+                          A_STR:
+                            { Sometimes, the second mov might not be present as we're writing the
+                              zero register to the next address - that is:
+                                movz  w0,x
+                                movk  w0,y,lsl #16
+                                str   w0,[sp, #ofs]
+                                str   wzr,[sp, #ofs+4]
+
+                              Which becomes:
+                                movz  x0,x
+                                movk  x0,y,lsl #16
+                                str   x0,[sp, #ofs]
+                            }
+                            begin
+                              { Sometimes, the second mov might not be present as we're writing the
+                                zero register to the next address - that is:
+                                  movz  w0,x
+                                  strh  w0,[sp, #ofs]
+                                  strh  wzr,[sp, #ofs+1]
+
+                                Which becomes:
+                                  movz  w0,x
+                                  str   w0,[sp, #ofs]
+                              }
+                              { Don't need to check end-of-life because the upper 32 bits are zero
+                                and the overall value isn't being modified }
+                              if (taicpu(p_second).oppostfix = PF_None) and
+                                (taicpu(p_second).oper[0]^.reg = NR_WZR) then
+                                begin
+                                  { Is the second storage location exactly one byte ahead? }
+                                  Inc(ThisRef.offset, 4);
+                                  if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                    begin
+                                      { Merge the constants and remove the second pair of instructions }
+                                      DebugMsg(SPeepholeOptimization + 'Merged a word-write and a zero-register word-write to memory into a single extended-write (MovzStrStr2MovzStr)', p);
+
+                                      setsubreg(taicpu(p).oper[0]^.reg, R_SUBQ);
+                                      setsubreg(taicpu(hp1).oper[0]^.reg, R_SUBQ);
+                                      setsubreg(taicpu(hp2).oper[0]^.reg, R_SUBQ);
+                                      RemoveInstruction(p_second);
+                                      Result := True;
+                                    end;
+                                end;
+                            end
+                          else
+                            ;
+                        end;
+                    end;
+{$endif AARCH64}
+                else
+                  ;
+              end;
+          end;
+{$ifdef AARCH64}
+        A_STR:
+          { hp1 is probably nil }
+          if getsupreg(taicpu(p).oper[0]^.reg) = RS_WZR then
+            begin
+              ThisRef := taicpu(p).oper[1]^.ref^;
+              if (ThisRef.addressmode = AM_OFFSET) and
+                (ThisRef.index = NR_NO) and
+                { Only permit writes to the stack, since we can guarantee alignment with that }
+                (
+                  (ThisRef.base = NR_STACK_POINTER_REG) or
+                  (ThisRef.base = current_procinfo.framepointer)
+                ) then
+                begin
+
+                  case taicpu(p).oppostfix of
+                    PF_B:
+                      {
+                        With sequences such as:
+                          strb  wzr,[sp, #ofs]
+                          movz  w0,x
+                          strb  w0,[sp, #ofs+1]
+
+                        Merge the constants to:
+                          movz  w0,x shl 8
+                          strh  w0,[sp, #ofs]
+
+                        Only use the stack pointer or frame pointer and an even offset though
+                        to guarantee alignment
+                      }
+                      if ((ThisRef.offset mod 2) = 0) and
+                        GetNextInstruction(p, p_second) and
+                        (p_second.typ = ait_instruction) then
+                        begin
+
+                          case taicpu(p_second).opcode of
+                            A_MOVZ:
+                              begin
+                                ThisReg := taicpu(p_second).oper[0]^.reg;
+                                if GetNextInstruction(p_second, hp1_second) and
+                                  MatchInstruction(hp1_second, A_STR, [PF_B]) and
+                                  SuperRegistersEqual(taicpu(hp1_second).oper[0]^.reg, ThisReg) then
+                                  begin
+                                    { Is the second storage location exactly one byte ahead? }
+                                    Inc(ThisRef.offset);
+                                    if RefsEqual(taicpu(hp1_second).oper[1]^.ref^, ThisRef) and
+                                      { The final safety check... make sure the register used
+                                        to store the constant isn't used afterwards }
+                                      RegEndOfLife(ThisReg, taicpu(hp1_second)) then
+                                      begin
+                                        { Merge the constants by repurposing the 2nd move, changing the register in the first STR and removing the second STR }
+                                        DebugMsg(SPeepholeOptimization + 'Merged a zero-register byte-write and a byte-write to memory into a single half-write (MovzStrbStrb2MovzStrh 2)', p);
+                                        taicpu(p_second).oper[1]^.val := (taicpu(p_second).oper[1]^.val and $FF) shl 8;
+
+                                        taicpu(hp1_second).oppostfix := PF_H;
+                                        Dec(taicpu(hp1_second).oper[1]^.ref^.offset, 1);
+
+                                        RemoveCurrentP(p, p_second);
+                                        Result := True;
+
+                                        hp1 := hp1_second; { So SearchAhead works properly below }
+                                      end;
+                                  end;
+                              end;
+                            A_STR:
+                              { Change:
+                                  strb  wzr,[sp, #ofs]
+                                  strb  wzr,[sp, #ofs+1]
+
+                                To:
+                                  strh  wzr,[sp, #ofs]
+                              }
+                              if (taicpu(p_second).oppostfix = PF_B) and
+                                (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) then
+                                begin
+                                  { Is the second storage location exactly one byte ahead? }
+                                  Inc(ThisRef.offset);
+                                  if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Merged two zero-register byte-writes to memory into a single zero-register half-write (StrbStrb2Strh)', p);
+                                      taicpu(p).oppostfix := PF_H;
+                                      RemoveInstruction(p_second);
+                                      Result := True;
+                                    end;
+                                end;
+                            else
+                              ;
+                          end;
+
+                          { Search ahead to see if more bytes are written individually,
+                            because then we may be able to merge 4 bytes into a full
+                            word write in a single pass }
+                          if Result then
+                            begin
+                              SearchAhead;
+                              Exit;
+                            end;
+                        end;
+                    PF_H:
+                      {
+                        With sequences such as:
+                          strh  wzr,[sp, #ofs]
+                          movz  w0,x
+                          strh  w0,[sp, #ofs+2]
+
+                        Merge the constants to:
+                          movz  w0,#0
+                          movk  w0,x,lsl #16
+                          str   w0,[sp, #ofs]
+
+                        Only use the stack pointer or frame pointer and an offset
+                        that's a multiple of 4 though to guarantee alignment
+                      }
+                      if ((ThisRef.offset mod 4) = 0) and
+                        GetNextInstruction(p, p_second) and
+                        (p_second.typ = ait_instruction) then
+                        begin
+                          case taicpu(p_second).opcode of
+                            A_MOVZ:
+                              begin
+                                ThisReg := taicpu(p_second).oper[0]^.reg;
+                                if GetNextInstruction(p_second, hp1_second) and
+                                  MatchInstruction(hp1_second, A_STR, [PF_H]) and
+                                  SuperRegistersEqual(taicpu(hp1_second).oper[0]^.reg, ThisReg) then
+                                  begin
+                                    { Is the second storage location exactly two bytes ahead? }
+                                    Inc(ThisRef.offset, 2);
+                                    if RefsEqual(taicpu(hp1_second).oper[1]^.ref^, ThisRef) and
+                                      { The final safety check... make sure the register used
+                                        to store the constant isn't used afterwards }
+                                      RegEndOfLife(ThisReg, taicpu(hp1_second)) then
+                                      begin
+
+                                        { Merge the constants }
+                                        DebugMsg(SPeepholeOptimization + 'Merged a zero-register half-write and a half-write to memory into a single word-write (StrhMovzStrh2MovzMovkStr)', p);
+
+                                        { Repurpose the first STR to a MOVZ instruction }
+                                        taicpu(p).opcode := A_MOVZ;
+                                        taicpu(p).oppostfix := PF_None;
+                                        taicpu(p).oper[0]^.reg := ThisReg;
+                                        taicpu(p).loadconst(1, 0);
+
+                                        so.shiftmode := SM_LSL;
+                                        so.shiftimm := 16;
+
+                                        taicpu(p_second).opcode := A_MOVK;
+                                        taicpu(p_second).ops := 3;
+                                        taicpu(p_second).loadshifterop(2, so);
+
+                                        { Make doubly sure we're only using the 32-bit register, otherwise STR could write 64 bits }
+                                        setsubreg(ThisReg, R_SUBD);
+                                        taicpu(p).oper[0]^.reg := ThisReg;
+                                        taicpu(p_second).oper[0]^.reg := ThisReg;
+                                        taicpu(hp1_second).oper[0]^.reg := ThisReg;
+
+                                        { TODO: Confirm that the A_MOVZ / A_MOVK combination is the most efficient }
+
+                                        taicpu(hp1_second).oppostfix := PF_None;
+                                        Dec(taicpu(hp1_second).oper[1]^.ref^.offset, 2);
+                                        Result := True;
+                                      end;
+                                  end;
+                              end;
+                            A_STR:
+                              { Change:
+                                  strh  wzr,[sp, #ofs]
+                                  strh  wzr,[sp, #ofs+2]
+
+                                To:
+                                  str   wzr,[sp, #ofs]
+                              }
+                              if (taicpu(p_second).oppostfix = PF_H) and
+                                (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) then
+                                begin
+                                  { Is the second storage location exactly one byte ahead? }
+                                  Inc(ThisRef.offset, 2);
+                                  if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Merged two zero-register half-writes to memory into a single zero-register word-write (StrhStrh2Str)', p);
+
+                                      { Make doubly sure we're only using the 32-bit register, otherwise STR could write 64 bits }
+                                      taicpu(p).oper[0]^.reg := NR_WZR;
+
+                                      taicpu(p).oppostfix := PF_None;
+                                      RemoveInstruction(p_second);
+                                      Result := True;
+                                    end;
+                                end;
+                            else
+                              ;
+                          end;
+                        end;
+                    PF_None:
+                      {
+                        With sequences such as:
+                          str   wzr,[sp, #ofs]
+                          movz  w0,x
+                          movk  w0,y,lsl #16
+                          str   w0,[sp, #ofs+4]
+
+                        Merge the constants to:
+                          movz  x0,#0
+                          movk  x0,x,lsl #32
+                          movk  x0,y,lsl #48
+                          str   x0,[sp, #ofs]
+
+                        Only use the stack pointer or frame pointer and an offset
+                        that's a multiple of 8 though to guarantee alignment
+                      }
+                      if ((ThisRef.offset mod 8) = 0) and
+                        GetNextInstruction(p, p_second) and
+                        (p_second.typ = ait_instruction) then
+                        begin
+                          case taicpu(p_second).opcode of
+                            A_MOVZ:
+                              begin
+                                ThisReg := taicpu(p_second).oper[0]^.reg;
+                                if GetNextInstruction(p_second, hp1_second) and
+                                  MatchInstruction(hp1_second, A_MOVK, []) and
+                                  GetNextInstruction(hp1_second, hp2_second) and
+                                  MatchInstruction(hp2_second, A_STR, [PF_None]) and
+                                  (taicpu(hp2_second).oper[0]^.reg = ThisReg) then
+                                  begin
+                                    { Is the second storage location exactly four bytes ahead? }
+                                    Inc(ThisRef.offset, 4);
+                                    if RefsEqual(taicpu(hp2_second).oper[1]^.ref^, ThisRef) and
+                                      { The final safety check... make sure the register used
+                                        to store the constant isn't used afterwards }
+                                      RegEndOfLife(ThisReg, taicpu(hp1_second)) then
+                                      begin
+                                        { Merge the constants }
+                                        DebugMsg(SPeepholeOptimization + 'Merged a zero-register word-write and a word-write to memory into a single extended-write (StrMovzMovkStr2MovzMovkMovkStr)', p);
+
+                                        setsubreg(ThisReg, R_SUBQ);
+
+                                        { Repurpose the first STR to a MOVZ instruction }
+                                        taicpu(p).opcode := A_MOVZ;
+                                        taicpu(p).oppostfix := PF_None;
+                                        taicpu(p).oper[0]^.reg := ThisReg;
+                                        taicpu(p).loadconst(1, 0);
+
+                                        { If the 3rd word is zero, we can remove the instruction entirely }
+                                        if taicpu(p_second).oper[1]^.val = 0 then
+                                          RemoveInstruction(p_second)
+                                        else
+                                          begin
+                                            so.shiftmode := SM_LSL;
+                                            so.shiftimm := 32;
+                                            taicpu(p_second).opcode := A_MOVK;
+                                            taicpu(p_second).ops := 3;
+                                            taicpu(p_second).loadshifterop(2, so);
+                                            taicpu(p_second).oper[0]^.reg := ThisReg;
+                                          end;
+
+                                        taicpu(p).oper[0]^.reg := ThisReg;
+                                        taicpu(hp1_second).oper[0]^.reg := ThisReg;
+                                        taicpu(hp1_second).oper[2]^.shifterop^.shiftimm := 48;
+
+                                        { TODO: Confirm that the A_MOVZ / A_MOVK / A_MOVK combination is the most efficient }
+
+                                        taicpu(hp2_second).oppostfix := PF_None;
+                                        Dec(taicpu(hp2_second).oper[1]^.ref^.offset, 4);
+                                        taicpu(hp2_second).oper[0]^.reg := ThisReg; { Remember to change the register to its 64-bit counterpart }
+                                        Result := True;
+                                      end;
+                                  end;
+                              end;
+                            A_STR:
+                              { Change:
+                                  str   wzr,[sp, #ofs]
+                                  str   wzr,[sp, #ofs+4]
+
+                                To:
+                                  str   xzr,[sp, #ofs]
+                              }
+                              if (taicpu(p_second).oppostfix = PF_None) and
+                                (getsupreg(taicpu(p_second).oper[0]^.reg) = RS_WZR) then
+                                begin
+                                  { Is the second storage location exactly one byte ahead? }
+                                  Inc(ThisRef.offset, 4);
+                                  if RefsEqual(taicpu(p_second).oper[1]^.ref^, ThisRef) then
+                                    begin
+                                      DebugMsg(SPeepholeOptimization + 'Merged two zero-register word-writes to memory into a single zero-register extended-write (StrStr2Str)', p);
+                                      taicpu(p).oper[0]^.reg := NR_XZR;
+                                      RemoveInstruction(p_second);
+                                      Result := True;
+                                    end;
+                                end;
+                            else
+                              ;
+                          end;
+                        end;
+                    else
+                      ;
+                  end;
+                end;
+            end;
+{$endif AARCH64}
+        else
+          ;
+      end;
     end;
 
 end.

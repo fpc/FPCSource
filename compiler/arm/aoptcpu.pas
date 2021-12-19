@@ -79,6 +79,7 @@ Type
     function OptPass1CMP(var p: tai): Boolean;
     function OptPass1STM(var p: tai): Boolean;
     function OptPass1MOV(var p: tai): Boolean;
+    function OptPass1MOVW(var p: tai): Boolean;
     function OptPass1MUL(var p: tai): Boolean;
     function OptPass1MVN(var p: tai): Boolean;
     function OptPass1VMov(var p: tai): Boolean;
@@ -1484,6 +1485,13 @@ Implementation
 
                     if Result then
                       Exit;
+
+                    { If no changes were made, now try constant merging }
+                    if TryConstMerge(p, hpfar1) then
+                      begin
+                        Result := True;
+                        Exit;
+                      end;
                   end;
                 end;
               {
@@ -1820,6 +1828,58 @@ Implementation
             Result:=true;
 
           Exit;
+        end;
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1MOVW(var p: tai): Boolean;
+    var
+      ThisReg: TRegister;
+      a: aint;
+      imm_shift: byte;
+      hp1, hp2: tai;
+    begin
+      Result := False;
+      ThisReg := taicpu(p).oper[0]^.reg;
+      if GetNextInstruction(p, hp1) then
+        begin
+          { Can the MOVW/MOVT pair be represented by a single MOV instruction? }
+          if MatchInstruction(hp1, A_MOVT, [taicpu(p).condition], []) and
+            (taicpu(hp1).oper[0]^.reg = ThisReg) then
+            begin
+              a := (aint(taicpu(p).oper[1]^.val) and $FFFF) or aint(taicpu(hp1).oper[1]^.val shl 16);
+
+              if is_shifter_const(a,imm_shift) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'MOVW/MOVT pair can encode value as a single MOV instruction (MovwMovT2Mov)', p);
+                  taicpu(p).opcode := A_MOV;
+                  taicpu(p).oper[1]^.val := a;
+                  RemoveInstruction(hp1);
+                  Result := True;
+                  Exit;
+                end
+              else if is_shifter_const(not(a),imm_shift) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'MOVW/MOVT pair can encode value as a single MVN instruction (MovwMovT2Mvn)', p);
+                  taicpu(p).opcode := A_MVN;
+                  taicpu(p).oper[1]^.val := not(a);
+                  RemoveInstruction(hp1);
+                  Result := True;
+                  Exit;
+                end;
+            end;
+
+          if (
+              (
+                MatchInstruction(hp1, A_STR, [taicpu(p).condition], [PF_H]) and
+                (taicpu(hp1).oper[0]^.reg = ThisReg)
+              )
+            ) and
+            TryConstMerge(p, hp1) then
+            begin
+              Result := True;
+              Exit;
+            end;
         end;
     end;
 
@@ -2351,6 +2411,8 @@ Implementation
               Result := OptPass1LDR(p);
             A_MOV:
               Result := OptPass1MOV(p);
+            A_MOVW:
+              Result := OptPass1MOVW(p);
             A_AND:
               Result := OptPass1And(p);
             A_ADD,

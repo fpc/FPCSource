@@ -383,6 +383,9 @@ Implementation
       if inherited OptPass1STR(p) or
         LookForPostindexedPattern(p) then
         Exit(True);
+
+      if getsupreg(taicpu(p).oper[0]^.reg) = RS_WZR then
+        Result := TryConstMerge(p, nil);
     end;
 
 
@@ -645,10 +648,12 @@ Implementation
   function TCpuAsmOptimizer.OptPass1MOVZ(var p: tai): boolean;
     var
       hp1: tai;
-      ZeroReg: TRegister;
+      TargetReg: TRegister;
     begin
       Result := False;
       hp1 := nil;
+
+      TargetReg := taicpu(p).oper[0]^.reg;
       if (taicpu(p).oppostfix = PF_None) and (taicpu(p).condition = C_None) then
         begin
           if
@@ -658,7 +663,7 @@ Implementation
             not GetNextInstruction(p, hp1) or
             { MOVZ and MOVK/MOVN instructions undergo macro-fusion. }
             not MatchInstruction(hp1, [A_MOVK, A_MOVN], [C_None], [PF_None]) or
-            (taicpu(hp1).oper[0]^.reg <> taicpu(p).oper[0]^.reg) then
+            (taicpu(hp1).oper[0]^.reg <> TargetReg) then
             begin
               if (taicpu(p).oper[1]^.val = 0) then
                 begin
@@ -672,12 +677,11 @@ Implementation
                   }
                   DebugMsg(SPeepholeOptimization + 'Movz0ToMovZeroReg', p);
 
-                  { Make sure the zero register is the correct size }
-                  ZeroReg := taicpu(p).oper[0]^.reg;
-                  setsupreg(ZeroReg, RS_XZR);
+                  { Convert TargetReg to the correctly-sized zero register }
+                  setsupreg(TargetReg, RS_XZR);
 
                   taicpu(p).opcode := A_MOV;
-                  taicpu(p).loadreg(1, ZeroReg);
+                  taicpu(p).loadreg(1, TargetReg);
                   Result := True;
                   Exit;
                 end;
@@ -697,6 +701,48 @@ Implementation
               Result:=true;
               exit;
             end;
+        end;
+
+      if (getsupreg(TargetReg) <= RS_X30) and { Mostly to play safe }
+        GetNextInstructionUsingReg(p, hp1, TargetReg) and
+        (hp1.typ = ait_instruction) then
+        begin
+          case taicpu(hp1).opcode of
+{$ifdef AARCH64}
+            A_MOVK:
+              { Try to avoid too much unnecessary processing by checking to see
+                if the register is 32-bit }
+              if (getsubreg(TargetReg) = R_SUBD) and
+                (taicpu(hp1).oper[0]^.reg = TargetReg) and
+                TryConstMerge(p, hp1) then
+                begin
+                  Result := True;
+                  Exit;
+                end;
+{$endif AARCH64}
+            A_STR:
+              {
+                With sequences such as:
+                  movz  w0,x
+                  strb  w0,[sp, #ofs]
+                  movz  w0,y
+                  strb  w0,[sp, #ofs+1]
+
+                Merge the constants to:
+                  movz  w0,x + (y shl 8)
+                  strw  w0,[sp, #ofs]
+
+                Only use the stack pointer or frame pointer and an even offset though
+                to guarantee alignment
+              }
+              if TryConstMerge(p, hp1) then
+                begin
+                  Result := True;
+                  Exit;
+                end;
+            else
+              ;
+          end;
         end;
     end;
 
