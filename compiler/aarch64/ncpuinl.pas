@@ -357,6 +357,11 @@ implementation
             expectloc:=LOC_MMREGISTER;
             Result:=nil;
           end
+        else if is_32bitint(resultdef) then
+          begin
+            expectloc:=LOC_REGISTER;
+            Result:=nil;
+          end
         else
           Result:=inherited first_minmax;
       end;
@@ -369,18 +374,18 @@ implementation
         ai: taicpu;
         op: TAsmOp;
       begin
-         if is_single(resultdef) or is_double(resultdef) then
+        paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+          paraarray[2]:=tcallparanode(parameters).paravalue;
+
+        for i:=low(paraarray) to high(paraarray) do
+           secondpass(paraarray[i]);
+
+        if is_single(resultdef) or is_double(resultdef) then
            begin
-             paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
-             paraarray[2]:=tcallparanode(parameters).paravalue;
-
-              for i:=low(paraarray) to high(paraarray) do
-               secondpass(paraarray[i]);
-
              { no memory operand is allowed }
              for i:=low(paraarray) to high(paraarray) do
                begin
-                 if not(paraarray[i].location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
                    hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,
                      paraarray[i].resultdef,true);
                end;
@@ -405,6 +410,35 @@ implementation
              end;
 
              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+           end
+         else if is_32bitint(resultdef) then
+           begin
+             { no memory operand is allowed }
+             for i:=low(paraarray) to high(paraarray) do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                   hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
+                     paraarray[i].resultdef,paraarray[i].resultdef,true);
+               end;
+
+             location_reset(location,LOC_REGISTER,paraarray[1].location.size);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,
+               paraarray[1].location.register,paraarray[2].location.register));
+
+             case inlinenumber of
+               in_min_dword,
+               in_min_longint:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_LT));
+               in_max_dword,
+               in_max_longint:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
+               else
+                 Internalerror(2021121901);
+             end;
            end
          else
            internalerror(2021121801);

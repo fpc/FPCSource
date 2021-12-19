@@ -1629,7 +1629,8 @@ implementation
           (CPUXTENSA_HAS_MINMAX in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
 {$endif defined(xtensa)}
 {$if defined(aarch64)}
-          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef)) and
+          (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef) or
+           is_32bitint(tassignmentnode(thenstmnt).right.resultdef)) and
 {$endif defined(aarch64)}
           (
           { the right size of the assignment in the then clause must either }
