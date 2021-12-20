@@ -20,7 +20,7 @@ unit FPDDDBF;
 interface
 
 uses
-  Classes, SysUtils, db,dbf, fpdatadict;
+  Classes, SysUtils, db,dbf, fpdatadict, sqltypes;
   
 Type
 
@@ -34,6 +34,7 @@ Type
   Public
     Procedure Disconnect ; override;
     Function Connect(const AConnectString : String) : Boolean; override;
+    Function GetObjectList(ASchemaType: TSchemaType; AList: TSqlObjectIdentifierList): Integer; override;
     Function GetTableList(List : TStrings) : Integer; override;
     Function ImportFields(Table : TDDTableDef) : Integer; override;
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; override;
@@ -64,6 +65,28 @@ begin
   FConnected:=True;
   FConnectString:=AConnectString;
   Result:=True;
+end;
+
+Function TDBFDDEngine.GetObjectList(ASchemaType: TSchemaType;
+  AList : TSqlObjectIdentifierList): Integer;
+var
+  L: TStrings;
+  I: Integer;
+begin
+  AList.Clear;
+  if ASchemaType = stTables then
+  begin
+    L := TStringList.Create;
+    try
+      Result := GetTableList(L);
+      for I := 0 to L.Count-1 do
+        AList.AddIdentifier(L[I]);
+    finally
+      L.Free;
+    end;
+  end
+  else
+    Result := 0;
 end;
 
 Function TDBFDDEngine.GetTableList(List: TStrings) : Integer;
@@ -161,7 +184,7 @@ end;
 
 class function TDBFDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
-  Result:=[ecImport,ecViewTable];
+  Result:=[ecImport,ecViewTable,ecTableIndexes];
 end;
 
 Procedure InitDBFImporter;
