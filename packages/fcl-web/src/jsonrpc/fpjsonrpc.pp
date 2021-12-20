@@ -93,6 +93,9 @@ Type
     FParamDefs: TJSONParamDefs;
     FExecParams : TJSONData;
     FResultType: TJSONtype;
+    FRPCMethodName : String;
+    function GetRPCMethodName: String;
+    procedure SetRPCMethodName(AValue: String);
     procedure SetParamDefs(const AValue: TJSONParamDefs);
   Protected
     function CreateParamDefs: TJSONParamDefs; virtual;
@@ -114,6 +117,7 @@ Type
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
     // Used in parameter descriptions
     Property ResultType : TJSONtype Read FResultType Write FResultType;
+    Property RPCMethodName : String Read GetRPCMethodName Write SetRPCMethodName;
   end;
   TCustomJSONRPCHandlerClass = Class of TCustomJSONRPCHandler;
 
@@ -748,6 +752,20 @@ begin
   FParamDefs.Assign(AValue);
 end;
 
+function TCustomJSONRPCHandler.GetRPCMethodName: String;
+begin
+  Result:=FRPCMethodName;
+  if Result='' then
+    Result:=Name;
+end;
+
+procedure TCustomJSONRPCHandler.SetRPCMethodName(AValue: String);
+begin
+  if aValue=FRPCMethodName then
+    Exit;
+  FRPCMethodName:=aValue;
+end;
+
 procedure TCustomJSONRPCHandler.DoCheckParams(const Params: TJSONData);
 begin
   if (Params is TJSONObject) then
@@ -1068,6 +1086,7 @@ function TCustomJSONRPCDispatcher.FindHandler(const AClassName, AMethodName: TJS
 Var
   C : TComponent;
   D : TJSONRPCHandlerDef;
+  I : Integer;
 
 
 begin
@@ -1075,9 +1094,14 @@ begin
   FreeObject:=Nil;
   If Assigned(Owner) and ((AClassName='') or (CompareText(AClassName,Owner.name)=0)) then
     begin
-    C:=Owner.FindComponent(AMethodName);
-    If C is TCustomJSONRPCHandler then
-      Result:=TCustomJSONRPCHandler(C);
+    I:=0;
+    While (Result=Nil) and (I<ComponentCount) do
+      begin
+      C:=Owner.Components[i];
+      If (C is TCustomJSONRPCHandler) and SameText(TCustomJSONRPCHandler(C).RPCMethodName,aMethodName) then
+        Result:=TCustomJSONRPCHandler(C);
+      Inc(I);
+      end;
     end;
   If (Result=Nil) and (jdoSearchRegistry in Options) then
     begin
@@ -1651,6 +1675,7 @@ Var
   DM : TDatamodule;
   I,J : Integer;
   C : TComponent;
+  H : TCustomJSONRPCHandler absolute C;
   D : TJSONRPCHandlerDef;
   B : Boolean;
   CN : TJSONStringType;
@@ -1670,13 +1695,13 @@ begin
         C:=DM.Components[i];
         if C is TCustomJSONRPCHandler then
           begin
-          J:=IndexOfHandlerDef(CN,C.Name);
+          J:=IndexOfHandlerDef(CN,H.RPCMethodName);
           If (J<>-1) then
-             JSONRPCError(SErrDuplicateRPCCLassMethodHandler,[CN,C.Name]);
-          D:=AddHandlerDef(CN,C.Name);
-          D.ArgumentCount:=TCustomJSONRPCHandler(C).ParamDefs.Count;
-          D.ParamDefs:=TCustomJSONRPCHandler(C).ParamDefs;
-          D.ResultType:=TCustomJSONRPCHandler(C).ResultType;
+             JSONRPCError(SErrDuplicateRPCCLassMethodHandler,[CN,H.RPCMethodName]);
+          D:=AddHandlerDef(CN,H.RPCMethodName);
+          D.ArgumentCount:=H.ParamDefs.Count;
+          D.ParamDefs:=H.ParamDefs;
+          D.ResultType:=H.ResultType;
           {$ifdef wmdebug}SendDebug('Registering provider '+C.Name);{$endif}
           D.FDataModuleClass:=TDataModuleClass(DM.ClassType);
           end;
