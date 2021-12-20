@@ -1095,7 +1095,7 @@ begin
   If Assigned(Owner) and ((AClassName='') or (CompareText(AClassName,Owner.name)=0)) then
     begin
     I:=0;
-    While (Result=Nil) and (I<ComponentCount) do
+    While (Result=Nil) and (I<Owner.ComponentCount) do
       begin
       C:=Owner.Components[i];
       If (C is TCustomJSONRPCHandler) and SameText(TCustomJSONRPCHandler(C).RPCMethodName,aMethodName) then
@@ -1530,6 +1530,7 @@ Var
   AClass : TCustomJSONRPCHandlerClass;
   DM : TDataModule;
   C : TComponent;
+  I : Integer;
 
 begin
   Result:=Nil;
@@ -1539,10 +1540,15 @@ begin
     {$ifdef wmdebug}SendDebug(Format('Creating datamodule from class %d ',[Ord(Assigned(FDataModuleClass))]));{$endif}
     DM:=FDataModuleClass.Create(AOwner);
     {$ifdef wmdebug}SendDebug(Format('Created datamodule from class %s ',[DM.ClassName]));{$endif}
-    C:=DM.FindComponent(FHandlerMethodName);
-    If (C<>Nil) and (C is TCustomJSONRPCHandler) then
-      Result:=TCustomJSONRPCHandler(C)
-    else
+    I:=0;
+    While (Result=Nil) and (I<DM.ComponentCount) do
+      begin
+      C:=DM.Components[i];
+      If (C is TCustomJSONRPCHandler) and SameText(TCustomJSONRPCHandler(C).RPCMethodName,FHandlerMethodName) then
+        Result:=TCustomJSONRPCHandler(C);
+      inc(I);
+      end;
+    If Result=Nil then
       begin
       FreeAndNil(DM);
       JSONRPCError(SErrUnknownJSONRPCMethodHandler,[FHandlerMethodName]);
