@@ -272,6 +272,7 @@ Type
     Function CreateAPI(aOptions : TCreateAPIOptions): TJSONObject; overload;
     Function CreateAPI : TJSONObject; overload;
     // Return API Description including namespace, as a string. If options are not specified, APICreator.DefaultOptions is used.
+    Function APIAsPascal(aOptions : TCreateAPIOptions; aUnitName : string) : String; virtual;
     Function APIAsString(aOptions : TCreateAPIOptions) : TJSONStringType; virtual;
     Function APIAsString : TJSONStringType; virtual;
     Property APICreator : TAPIDescriptionCreator Read FAPICreator Write  SetAPICreator;
@@ -481,9 +482,8 @@ resourcestring
 
 implementation
 
-{$IFDEF WMDEBUG}
-uses dbugintf;
-{$ENDIF}
+
+uses {$IFDEF WMDEBUG}dbugintf, {$ENDIF} fprpccodegen;
 
 function CreateJSONErrorObject(const AMessage: String; const ACode: Integer
   ): TJSONObject;
@@ -1438,6 +1438,28 @@ end;
 function TCustomJSONRPCDispatcher.CreateAPI: TJSONObject;
 begin
   Result:=CreateAPI(APICreator.DefaultOptions);
+end;
+
+function TCustomJSONRPCDispatcher.APIAsPascal(aOptions: TCreateAPIOptions; aUnitName: string): String;
+
+Var
+  J : TJSONObject;
+  Gen : TAPIClientCodeGen;
+
+begin
+  J:=APICreator.CreateAPI(aOptions);
+  try
+    Gen:=TAPIClientCodeGen.Create(Self);
+    if aUnitName='' then
+      aUnitName:='services';
+    Gen.OutputUnitName:=aUnitName;
+    Gen.API:=J;
+    Gen.Execute;
+    Result:=Gen.Source.Text;
+  finally
+    Gen.Free;
+    J.Free;
+  end;
 end;
 
 function TCustomJSONRPCDispatcher.APIAsString(aOptions: TCreateAPIOptions): TJSONStringType;
