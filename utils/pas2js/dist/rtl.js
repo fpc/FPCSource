@@ -1449,7 +1449,7 @@ var rtl = {
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
     $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
     $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); },
-    $ExtClass: function(name,o){ return this.$Scope(name,rtl.tTypeInfoExtClass,o); }
+    $ExtClass: function(name,o){ return this.$inherited(name,rtl.tTypeInfoExtClass,o); }
   },
 
   newTIParam: function(param){
@@ -1497,4 +1497,3 @@ var rtl = {
     return Object.keys(rtl.$res);
   }
 }
-
