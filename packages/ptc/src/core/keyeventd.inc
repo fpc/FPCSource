@@ -37,7 +37,7 @@ type
     pmkCapsLockActive, pmkCapsLockPressed,
     pmkScrollLockActive, pmkScrollLockPressed,
     pmkRightKey, pmkNumPadKey, pmkDeadKey,
-    pmkCommand);
+    pmkCommand, pmkFunction);
   TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
@@ -216,3 +216,4 @@ const
   PTCKEY_F33          = $115;
   PTCKEY_F34          = $116;
   PTCKEY_F35          = $117;
+  PTCKEY_FUNCTION     = $118;  { the 'fn' key on Apple keyboards }

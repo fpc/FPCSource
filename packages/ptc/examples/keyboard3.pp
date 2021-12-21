@@ -147,6 +147,7 @@ begin
     PTCKEY_BACKQUOTE    : Result := 'PTCKEY_BACKQUOTE';
     PTCKEY_QUOTE        : Result := 'PTCKEY_QUOTE';
     PTCKEY_COMMAND      : Result := 'PTCKEY_COMMAND';
+    PTCKEY_FUNCTION     : Result := 'PTCKEY_FUNCTION';
     else
       Result := '';
   end;

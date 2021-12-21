@@ -546,7 +546,8 @@ begin
   if sym_modded = XK_ISO_Left_Tab then
   begin
     sym_modded := XK_Tab;
-    uni := 9;
+    if press then
+      uni := 9;
     Include(modkeys, pmkShift);
   end;
 

@@ -246,7 +246,7 @@ begin
     40:  exit(PTCKEY_K);
     37:  exit(PTCKEY_L);
     41:  exit(PTCKEY_SEMICOLON);
-    39:  exit(0);  // '
+    39:  exit(PTCKEY_QUOTE);
     42:  exit(PTCKEY_BACKSLASH);
     50:  exit(PTCKEY_BACKQUOTE);
     6:   exit(PTCKEY_Z);
@@ -288,6 +288,7 @@ begin
     119: exit(PTCKEY_END);
     116: exit(PTCKEY_PAGEUP);
     121: exit(PTCKEY_PAGEDOWN);
+    63:  exit(PTCKEY_FUNCTION);
     117: exit(PTCKEY_DELETE);
     56,                       // Left Shift
     60:  exit(PTCKEY_SHIFT);  // Right Shift
@@ -308,8 +309,8 @@ begin
     89:  exit(PTCKEY_NUMPAD7);
     91:  exit(PTCKEY_NUMPAD8);
     92:  exit(PTCKEY_NUMPAD9);
-    71:  exit(0);  // Clear (Num Lock???)
-    81:  exit(0);  // numpad '='
+    71:  exit(PTCKEY_CLEAR);  // Clear (in place of Num Lock)
+    81:  exit(PTCKEY_EQUALS);  // numpad '='
     75:  exit(PTCKEY_DIVIDE);
     67:  exit(PTCKEY_MULTIPLY);
     78:  exit(PTCKEY_SUBTRACT);
@@ -343,7 +344,7 @@ begin
   LOG('cocoa key event ' + Method + ' type=' + IntToStr(evtype) + ' keyCode=' + IntToStr(kcode) + ' modifierFlags=' + IntToStr(modflags));
   Result := False;
   Code := TranslateKeyCode(kcode);
-  Unicode := 0;
+  Unicode := -1;
   if Assigned(Characters) and (Characters.length = 1) then
     Unicode := Characters.characterAtIndex(0);
   ModifierKeys := [];
@@ -355,6 +356,15 @@ begin
     Include(ModifierKeys, pmkControl);
   if (modflags and NSCommandKeyMask) <> 0 then
     Include(ModifierKeys, pmkCommand);
+  if (modflags and NSNumericPadKeyMask) <> 0 then
+    Include(ModifierKeys, pmkNumPadKey);
+  if (modflags and NSFunctionKeyMask) <> 0 then
+    Include(ModifierKeys, pmkFunction);
+  if (kcode = 54) or    { Right Command key }
+     (kcode = 60) or    { Right Shift }
+     (kcode = 61) or    { Right Option (Alt) key }
+     (kcode = 62) then  { Right Ctrl }
+    Include(ModifierKeys, pmkRightKey);
   case evtype of
     NSKeyDown: Press := True;
     NSKeyUp: Press := False;
@@ -372,6 +382,8 @@ begin
                 ptc event queue }
               PressAndRelease := True;
             end;
+          PTCKEY_FUNCTION:
+            Press := pmkFunction in ModifierKeys;
         else
           begin
             LOG('Unknown NSFlagsChanged key code');
@@ -380,13 +392,86 @@ begin
         end;
       end;
   end;
+  case Code of
+    PTCKEY_UP,
+    PTCKEY_DOWN,
+    PTCKEY_LEFT,
+    PTCKEY_RIGHT:
+      begin
+        Exclude(ModifierKeys, pmkNumPadKey);
+        Unicode := -1;
+      end;
+    PTCKEY_ENTER:
+      begin
+        if pmkControl in ModifierKeys then
+        begin
+          if not (pmkAlt in ModifierKeys) and
+             not (pmkShift in ModifierKeys) then
+            Unicode := $0A
+          else
+            Unicode := -1;
+        end
+        else
+          Unicode := $0D;
+      end;
+    PTCKEY_BACKSPACE:
+      begin
+        if pmkControl in ModifierKeys then
+        begin
+          if not (pmkAlt in ModifierKeys) and
+             not (pmkShift in ModifierKeys) then
+            Unicode := $7F
+          else
+            Unicode := -1;
+        end
+        else
+          Unicode := $08;
+      end;
+    PTCKEY_TAB:
+      begin
+        if not (pmkControl in ModifierKeys) and
+           not (pmkAlt in ModifierKeys) and
+           not (pmkCommand in ModifierKeys) then
+          Unicode := 9
+        else
+          Unicode := -1;
+      end;
+    PTCKEY_DELETE,
+    PTCKEY_PAGEUP,
+    PTCKEY_PAGEDOWN,
+    PTCKEY_HOME,
+    PTCKEY_END,
+    PTCKEY_CLEAR,
+    PTCKEY_F1,
+    PTCKEY_F2,
+    PTCKEY_F3,
+    PTCKEY_F4,
+    PTCKEY_F5,
+    PTCKEY_F6,
+    PTCKEY_F7,
+    PTCKEY_F8,
+    PTCKEY_F9,
+    PTCKEY_F10,
+    PTCKEY_F11,
+    PTCKEY_F12,
+    PTCKEY_F13,
+    PTCKEY_F14,
+    PTCKEY_F15,
+    PTCKEY_F16,
+    PTCKEY_F17,
+    PTCKEY_F18,
+    PTCKEY_F19:
+      Unicode := -1;
+  end;
   if PressAndRelease then
   begin
     FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, True));
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, False));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, -1, ModifierKeys, False));
   end
+  else if Press then
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, True))
   else
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, Press));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, -1, ModifierKeys, False));
 end;
 
 function TCocoaConsole.HandleCocoaMouseEvent(theEvent: NSEvent;
