@@ -8285,6 +8285,17 @@ unit aoptx86;
                     (taicpu(hp1).oper[0]^.val <> 0) then
                     begin
                       WorkingValue := taicpu(hp1).oper[0]^.val;
+                      case MinSize of
+                        S_B:
+                          if (WorkingValue and $ff)<>WorkingValue then
+                            break;
+                        S_W:
+                          if (WorkingValue and $ffff)<>WorkingValue then
+                            break;
+                        else
+                          ;
+                      end;
+
 
                       TestValMin := TestValMin - WorkingValue;
                       TestValMax := TestValMax - WorkingValue;
