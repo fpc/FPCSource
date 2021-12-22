@@ -4239,7 +4239,7 @@ unit aoptx86;
         Result:=false;
         if taicpu(p).ops <> 2 then
           exit;
-        if ((taicpu(p).oper[1]^.typ=top_reg) and GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg)) or
+        if (MatchOpType(taicpu(p),top_reg,top_reg) and GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg)) or
           GetNextInstruction(p,hp1) then
           begin
             if MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
