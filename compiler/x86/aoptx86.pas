@@ -7968,7 +7968,7 @@ unit aoptx86;
         function CheckOverflowConditions: Boolean;
           begin
             Result := True;
-            if (TestValSignedMax > SignedUpperLimit) or (TestValSignedMax < SignedUpperLimitBottom) then
+            if (TestValSignedMax > SignedUpperLimit) then
               UpperSignedOverflow := True;
 
             if (TestValSignedMax > SignedLowerLimit) or (TestValSignedMax < SignedLowerLimitBottom) then
@@ -7978,7 +7978,7 @@ unit aoptx86;
               LowerUnsignedOverflow := True;
 
             if (TestValMin > UpperLimit) or (TestValMax > UpperLimit) or (TestValSignedMax > UpperLimit) or
-              (TestValMin < SignedUpperLimitBottom) or (TestValMax < SignedUpperLimitBottom) or (TestValSignedMax > SignedUpperLimit) then
+              (TestValMin < SignedUpperLimitBottom) or (TestValMax < SignedUpperLimitBottom) or (TestValSignedMax < SignedUpperLimitBottom) then
               begin
                 { Absolute overflow }
                 Result := False;
@@ -8270,12 +8270,15 @@ unit aoptx86;
                       smallest allowed signed value for the minimum size (e.g.
                       -128 for 8-bit) }
                     not (
-                      ((taicpu(hp1).oper[0]^.val and UpperLimit) = taicpu(hp1).oper[0]^.val) or
+                      ((taicpu(hp1).oper[0]^.val and LowerLimit) = taicpu(hp1).oper[0]^.val) or
                       { Is it in the negative range? }
-                      (taicpu(hp1).oper[0]^.val >= SignedLowerLimitBottom)
+                      (
+                        (taicpu(hp1).oper[0]^.val < 0) and
+                        (taicpu(hp1).oper[0]^.val >= SignedLowerLimitBottom)
+                      )
                     ) then
                     Break;
-
+(*
                   { ANDing can't increase the value past the limit or decrease
                     it below 0, so we can skip the checks, plus the test value
                     won't change afterwards }
@@ -8285,17 +8288,6 @@ unit aoptx86;
                     (taicpu(hp1).oper[0]^.val <> 0) then
                     begin
                       WorkingValue := taicpu(hp1).oper[0]^.val;
-                      case MinSize of
-                        S_B:
-                          if (WorkingValue and $ff)<>WorkingValue then
-                            break;
-                        S_W:
-                          if (WorkingValue and $ffff)<>WorkingValue then
-                            break;
-                        else
-                          ;
-                      end;
-
 
                       TestValMin := TestValMin - WorkingValue;
                       TestValMax := TestValMax - WorkingValue;
@@ -8309,18 +8301,36 @@ unit aoptx86;
                       TestValMin := TestValMin + WorkingValue;
                       TestValMax := TestValMax + WorkingValue;
                       TestValSignedMax := TestValSignedMax + WorkingValue;
-                    end;
+                    end; *)
 
                   { Check to see if the active register is used afterwards }
                   TransferUsedRegs(TmpUsedRegs);
                   IncludeRegInUsedRegs(ThisReg, TmpUsedRegs);
                   if not RegUsedAfterInstruction(ThisReg, hp1, TmpUsedRegs) then
                     begin
-                      case MinSize of
+                      { Make sure the comparison or any previous instructions
+                        hasn't pushed the test values outside of the range of
+                        MinSize }
+                      if LowerUnsignedOverflow and not UpperUnsignedOverflow then
+                        begin
+                          { Exceeded lower bound but not upper bound }
+                          TargetSize := MaxSize;
+                        end
+                      else if not LowerSignedOverflow or not LowerUnsignedOverflow then
+                        begin
+                          { Size didn't exceed lower bound }
+                          TargetSize := MinSize;
+                        end
+                      else
+                        Break;
+
+                      case TargetSize of
                         S_B:
                           TargetSubReg := R_SUBL;
                         S_W:
                           TargetSubReg := R_SUBW;
+                        S_L:
+                          TargetSubReg := R_SUBD;
                         else
                           InternalError(2021051002);
                       end;
@@ -8427,19 +8437,14 @@ unit aoptx86;
                           end
                         else
                           begin
-                            TestValMin := TestValMin + taicpu(hp1).oper[0]^.val;
-                            TestValMax := TestValMax + taicpu(hp1).oper[0]^.val;
-                            TestValSignedMax := TestValSignedMax + taicpu(hp1).oper[0]^.val;
+                            WorkingValue := taicpu(hp1).oper[0]^.val;
+                            TestValMin := TestValMin + WorkingValue;
+                            TestValMax := TestValMax + WorkingValue;
+                            TestValSignedMax := TestValSignedMax + WorkingValue;
                           end;
                       end;
                     A_SUB:
                       begin
-                        if OrXorUsed then
-                          { Too high a risk of non-linear behaviour that breaks DFA here }
-                          Break
-                        else
-                          BitwiseOnly := False;
-
                         if (taicpu(hp1).oper[0]^.typ = top_reg) then
                           begin
                             TestValMin := 0;
@@ -8448,9 +8453,16 @@ unit aoptx86;
                           end
                         else
                           begin
-                            TestValMin := TestValMin - taicpu(hp1).oper[0]^.val;
-                            TestValMax := TestValMax - taicpu(hp1).oper[0]^.val;
-                            TestValSignedMax := TestValSignedMax - taicpu(hp1).oper[0]^.val;
+                            if OrXorUsed then
+                              { Too high a risk of non-linear behaviour that breaks DFA here }
+                              Break
+                            else
+                              BitwiseOnly := False;
+
+                            WorkingValue := taicpu(hp1).oper[0]^.val;
+                            TestValMin := TestValMin - WorkingValue;
+                            TestValMax := TestValMax - WorkingValue;
+                            TestValSignedMax := TestValSignedMax - WorkingValue;
                           end;
                       end;
                     A_AND:
@@ -8485,9 +8497,10 @@ unit aoptx86;
                                 InternalError(2020112320);
                             end;
 
-                          TestValMin := TestValMin and taicpu(hp1).oper[0]^.val;
-                          TestValMax := TestValMax and taicpu(hp1).oper[0]^.val;
-                          TestValSignedMax := TestValSignedMax and taicpu(hp1).oper[0]^.val;
+                          WorkingValue := taicpu(hp1).oper[0]^.val;
+                          TestValMin := TestValMin and WorkingValue;
+                          TestValMax := TestValMax and WorkingValue;
+                          TestValSignedMax := TestValSignedMax and WorkingValue;
                         end;
                     A_OR:
                       begin
@@ -8496,33 +8509,49 @@ unit aoptx86;
 
                         OrXorUsed := True;
 
-                        TestValMin := TestValMin or taicpu(hp1).oper[0]^.val;
-                        TestValMax := TestValMax or taicpu(hp1).oper[0]^.val;
-                        TestValSignedMax := TestValSignedMax or taicpu(hp1).oper[0]^.val;
+                        WorkingValue := taicpu(hp1).oper[0]^.val;
+                        TestValMin := TestValMin or WorkingValue;
+                        TestValMax := TestValMax or WorkingValue;
+                        TestValSignedMax := TestValSignedMax or WorkingValue;
                       end;
                     A_XOR:
                       begin
-                        if not BitwiseOnly then
-                          Break;
+                        if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                          begin
+                            TestValMin := 0;
+                            TestValMax := 0;
+                            TestValSignedMax := 0;
+                          end
+                        else
+                          begin
+                            if not BitwiseOnly then
+                              Break;
 
-                        OrXorUsed := True;
+                            OrXorUsed := True;
 
-                        TestValMin := TestValMin xor taicpu(hp1).oper[0]^.val;
-                        TestValMax := TestValMax xor taicpu(hp1).oper[0]^.val;
-                        TestValSignedMax := TestValSignedMax xor taicpu(hp1).oper[0]^.val;
+                            WorkingValue := taicpu(hp1).oper[0]^.val;
+                            TestValMin := TestValMin xor WorkingValue;
+                            TestValMax := TestValMax xor WorkingValue;
+                            TestValSignedMax := TestValSignedMax xor WorkingValue;
+                          end;
                       end;
                     A_SHL:
                       begin
-                        TestValMin := TestValMin shl taicpu(hp1).oper[0]^.val;
-                        TestValMax := TestValMax shl taicpu(hp1).oper[0]^.val;
-                        TestValSignedMax := TestValSignedMax shl taicpu(hp1).oper[0]^.val;
+                        BitwiseOnly := False;
+
+                        WorkingValue := taicpu(hp1).oper[0]^.val;
+                        TestValMin := TestValMin shl WorkingValue;
+                        TestValMax := TestValMax shl WorkingValue;
+                        TestValSignedMax := TestValSignedMax shl WorkingValue;
                       end;
                     A_SHR,
                     { The first instruction was MOVZX, so the value won't be negative }
                     A_SAR:
                       begin
-                        { we might be able to go smaller if SHR appears first }
-                        if InstrMax = -1 then
+                        if InstrMax <> -1 then
+                          BitwiseOnly := False
+                        else
+                          { we might be able to go smaller if SHR appears first }
                           case MinSize of
                             S_B:
                               ;
@@ -8553,17 +8582,18 @@ unit aoptx86;
                               InternalError(2020112321);
                           end;
 
+                        WorkingValue := taicpu(hp1).oper[0]^.val;
                         if taicpu(hp1).opcode = A_SAR then
                           begin
-                            TestValMin := SarInt64(TestValMin, taicpu(hp1).oper[0]^.val);
-                            TestValMax := SarInt64(TestValMax, taicpu(hp1).oper[0]^.val);
-                            TestValSignedMax := SarInt64(TestValSignedMax, taicpu(hp1).oper[0]^.val);
+                            TestValMin := SarInt64(TestValMin, WorkingValue);
+                            TestValMax := SarInt64(TestValMax, WorkingValue);
+                            TestValSignedMax := SarInt64(TestValSignedMax, WorkingValue);
                           end
                         else
                           begin
-                            TestValMin := TestValMin shr taicpu(hp1).oper[0]^.val;
-                            TestValMax := TestValMax shr taicpu(hp1).oper[0]^.val;
-                            TestValSignedMax := TestValSignedMax shr taicpu(hp1).oper[0]^.val;
+                            TestValMin := TestValMin shr WorkingValue;
+                            TestValMax := TestValMax shr WorkingValue;
+                            TestValSignedMax := TestValSignedMax shr WorkingValue;
                           end;
                       end;
                     else
