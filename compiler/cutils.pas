@@ -293,13 +293,13 @@ implementation
 
 
     function newalignment(oldalignment: longint; offset: int64): longint;
-      var
-        localoffset: longint;
       begin
-        localoffset:=longint(offset);
-        while (localoffset mod oldalignment)<>0 do
-          oldalignment:=oldalignment div 2;
-        newalignment:=oldalignment;
+        { oldalignment must be power of two.
+          Works even for negative offsets (but not alignments),
+          as two's complement of, say, 2^4+2^3 is 11000 and -2^4-2^3 is 11...1101000 -
+          both end with exactly N zeros, where N is the largest power of two that divides the number
+          (smallest power of two involved in these sums). }
+        result:=1 shl BsfQWord(qword(offset or oldalignment));
       end;
 
 
@@ -340,50 +340,45 @@ implementation
 
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if a<=1 then
-          result:=i
-        else
-          begin
-            if i<0 then
-              result:=((i+1-a) div a) * a
-            else
-              result:=((i-1+a) div a) * a;
-          end;
+        { One-line formula for i >= 0 is
+          >>> (i + a - 1) and not (a - 1),
+          and for i < 0 is
+          >>> i and not (a - 1). }
+
+        if a>0 then
+          a:=a-1; { 'a' is decremented beforehand, this also allows a=0 as a synonym for a=1. }
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
       end;
 
 
     function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if a<=1 then
-          result:=i
-        else
-          begin
-            if i<0 then
-              result:=((i+1-a) div a) * a
-            else
-              result:=((i-1+a) div a) * a;
-          end;
+        { Copy of 'longint' version. }
+        if a>0 then
+          a:=a-1;
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
       end;
 
 
     function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if (a<=1) or (i=0) then
-          result:=i
-        else
-          result:=((i-1+a) div a) * a;
+        { No i < 0 case here. }
+        if a>0 then
+          a:=a-1;
+        result:=(i+a) and not a;
       end;
 
 
