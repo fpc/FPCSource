@@ -422,7 +422,7 @@ type
 function TSystemFunctionCallback.Handler(aStack, aFP: Pointer): PtrUInt;
 var
   args: specialize TArray<Pointer>;
-  i, len: SizeInt;
+  i, len, argidx: SizeInt;
   val: PPtrUInt;
   resptr: Pointer;
 begin
@@ -430,6 +430,7 @@ begin
   if fResultInParam then
     Dec(len);
   SetLength(args, len);
+  argidx := 0;
   for i := 0 to High(fArgInfos) do begin
     if i = fResultIdx then
       Continue;
@@ -441,9 +442,10 @@ begin
         val := @PPtrUInt(aFP)[fArgInfos[i].Offset];
     end;
     if fArgInfos[i].Deref then
-      args[i] := PPtrUInt(val^)
+      args[argidx] := PPtrUInt(val^)
     else
-      args[i] := val;
+      args[argidx] := val;
+    Inc(argidx);
   end;
 
   if fResultInParam then begin
