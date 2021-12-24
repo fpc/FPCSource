@@ -250,6 +250,7 @@ type
     property IsRecord: boolean read GetIsRecord;
     property IsSet: boolean read GetIsSet;
     property BaseType: TRttiType read GetBaseType;
+    property Handle: PTypeInfo read FTypeInfo;
     property AsInstance: TRttiInstanceType read GetAsInstance;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
