@@ -6006,6 +6006,7 @@ unit aoptx86;
          v: TCGInt;
          hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
          FirstMatch: Boolean;
+         NewReg: TRegister;
          JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
        begin
          Result:=false;
@@ -6144,6 +6145,84 @@ unit aoptx86;
                end;
 
              GetNextInstruction(p_jump, p_jump);
+           end;
+
+         {
+           Try to optimise the following:
+             cmp       $x,###  ($x and $y can be registers or constants)
+             je        @lbl1   (only reference)
+ 	     cmp       $y,###  (### are identical)
+           @Lbl:
+             sete      %reg1
+
+           Change to:
+             cmp       $x,###
+             sete      %reg2   (allocate new %reg2)
+             cmp       $y,###
+             sete      %reg1
+             orb       %reg2,%reg1
+             (dealloc %reg2)
+
+           This adds an instruction (so don't perform under -Os), but it removes
+           a conditional branch.
+         }
+         if not (cs_opt_size in current_settings.optimizerswitches) and
+           MatchInstruction(hp1, A_Jcc, []) and
+           IsJumpToLabel(taicpu(hp1)) and
+           (taicpu(hp1).condition in [C_E, C_Z]) and
+           GetNextInstruction(hp1, hp2) and
+           MatchInstruction(hp2, A_CMP, A_TEST, [taicpu(p).opsize]) and
+           MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^) and
+           { The first operand of CMP instructions can only be a register or
+             operand anyway, so no need to check }
+           GetNextInstruction(hp2, p_label) and
+           (p_label.typ = ait_label) and
+           (tai_label(p_label).labsym.getrefs = 1) and
+           (JumpTargetOp(taicpu(hp1))^.ref^.symbol = tai_label(p_label).labsym) and
+           GetNextInstruction(p_label, p_dist) and
+           MatchInstruction(p_dist, A_SETcc, []) and
+           (taicpu(p_dist).condition in [C_E, C_Z]) and
+           (taicpu(p_dist).oper[0]^.typ = top_reg) then
+           begin
+             TransferUsedRegs(TmpUsedRegs);
+             UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+             UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+             UpdateUsedRegs(TmpUsedRegs, tai(p_label.Next));
+             UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
+
+             if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+               { Get the instruction after the SETcc instruction so we can
+                 allocate a new register over the entire range }
+               GetNextInstruction(p_dist, hp1_dist) then
+               begin
+                 { Register can appear in p if it's not used afterwards, so only
+                   allocate between hp1 and hp1_dist }
+                 NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, hp1_dist);
+                 if NewReg <> NR_NO then
+                   begin
+                     DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
+
+                     { Change the jump instruction into a SETcc instruction }
+                     taicpu(hp1).opcode := A_SETcc;
+                     taicpu(hp1).opsize := S_B;
+                     taicpu(hp1).loadreg(0, NewReg);
+
+                     { This is now a dead label }
+                     tai_label(p_label).labsym.decrefs;
+
+                     { Prefer adding before the next instruction so the FLAGS
+                       register is deallicated first  }
+                     AsmL.InsertBefore(
+                       taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg),
+                       hp1_dist
+                     );
+
+                     Result := True;
+                     { Don't exit yet, as p wasn't changed and hp1, while
+                       modified, is still intact and might be optimised by the
+                       SETcc optimisation below }
+                   end;
+               end;
            end;
 
          if taicpu(p).oper[0]^.typ = top_const then
