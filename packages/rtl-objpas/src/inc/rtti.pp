@@ -312,6 +312,32 @@ type
     property ReferredType: TRttiType read GetReferredType;
   end;
 
+  TRttiArrayType = class(TRttiType)
+  private
+    function GetDimensionCount: SizeUInt; inline;
+    function GetDimension(aIndex: SizeInt): TRttiType; inline;
+    function GetElementType: TRttiType; inline;
+    function GetTotalElementCount: SizeInt; inline;
+  public
+    property DimensionCount: SizeUInt read GetDimensionCount;
+    property Dimensions[Index: SizeInt]: TRttiType read GetDimension;
+    property ElementType: TRttiType read GetElementType;
+    property TotalElementCount: SizeInt read GetTotalElementCount;
+  end;
+
+  TRttiDynamicArrayType = class(TRttiType)
+  private
+    function GetDeclaringUnitName: String; inline;
+    function GetElementSize: SizeUInt; inline;
+    function GetElementType: TRttiType; inline;
+    function GetOleAutoVarType: TVarType; inline;
+  public
+    property DeclaringUnitName: String read GetDeclaringUnitName;
+    property ElementSize: SizeUInt read GetElementSize;
+    property ElementType: TRttiType read GetElementType;
+    property OleAutoVarType: TVarType read GetOleAutoVarType;
+  end;
+
   { TRttiMember }
 
   TMemberVisibility=(mvPrivate, mvProtected, mvPublic, mvPublished);
@@ -1274,6 +1300,8 @@ begin
           tkClass   : Result := TRttiInstanceType.Create(ATypeInfo);
           tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo);
           tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo);
+          tkArray: Result := TRttiArrayType.Create(ATypeInfo);
+          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo);
           tkInt64,
           tkQWord: Result := TRttiInt64Type.Create(ATypeInfo);
           tkInteger,
@@ -2588,6 +2616,52 @@ end;
 function TRttiPointerType.GetReferredType: TRttiType;
 begin
   Result := GRttiPool.GetType(FTypeData^.RefType);
+end;
+
+{ TRttiArrayType }
+
+function TRttiArrayType.GetDimensionCount: SizeUInt;
+begin
+  Result := FTypeData^.ArrayData.DimCount;
+end;
+
+function TRttiArrayType.GetDimension(aIndex: SizeInt): TRttiType;
+begin
+  if aIndex >= FTypeData^.ArrayData.DimCount then
+    raise ERtti.CreateFmt(SErrDimensionOutOfRange, [aIndex, FTypeData^.ArrayData.DimCount]);
+  Result := GRttiPool.GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
+end;
+
+function TRttiArrayType.GetElementType: TRttiType;
+begin
+  Result := GRttiPool.GetType(FTypeData^.ArrayData.ElType);
+end;
+
+function TRttiArrayType.GetTotalElementCount: SizeInt;
+begin
+  Result := FTypeData^.ArrayData.ElCount;
+end;
+
+{ TRttiDynamicArrayType }
+
+function TRttiDynamicArrayType.GetDeclaringUnitName: String;
+begin
+  Result := FTypeData^.DynUnitName;
+end;
+
+function TRttiDynamicArrayType.GetElementSize: SizeUInt;
+begin
+  Result := FTypeData^.elSize;
+end;
+
+function TRttiDynamicArrayType.GetElementType: TRttiType;
+begin
+  Result := GRttiPool.GetType(FTypeData^.ElType2);
+end;
+
+function TRttiDynamicArrayType.GetOleAutoVarType: TVarType;
+begin
+  Result := Word(FTypeData^.varType);
 end;
 
 { TRttiRefCountedInterfaceType }
