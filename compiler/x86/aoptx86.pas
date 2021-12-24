@@ -1073,7 +1073,15 @@ unit aoptx86;
         for CurrentSuperReg in RegSet do
           begin
             CurrentReg := newreg(R_INTREGISTER, TSuperRegister(CurrentSuperReg), RegSize);
-            if not AUsedRegs[R_INTREGISTER].IsUsed(CurrentReg) then
+            if not AUsedRegs[R_INTREGISTER].IsUsed(CurrentReg)
+{$if defined(i386) or defined(i8086)}
+              { If the target size is 8-bit, make sure we can actually encode it }
+              and (
+                (RegSize >= R_SUBW) or { Not R_SUBL or R_SUBH }
+                (GetSupReg(CurrentReg) in [RS_EAX,RS_EBX,RS_ECX,RS_EDX])
+              )
+{$endif i386 or i8086}
+              then
               begin
                 Currentp := p;
                 Breakout := False;
