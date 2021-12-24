@@ -110,6 +110,7 @@ type
     function GetTypeInfo: PTypeInfo; inline;
     function GetTypeKind: TTypeKind; inline;
     function GetIsEmpty: boolean; inline;
+    procedure Init; inline;
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
@@ -1488,15 +1489,21 @@ end;
 
 { TValue }
 
+procedure TValue.Init;
+begin
+  { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  FData.FAsMethod.Code := Nil;
+  FData.FAsMethod.Data := Nil;
+{$else}
+  FData.FAsUInt64 := 0;
+{$endif}
+end;
+
 class function TValue.Empty: TValue;
 begin
+  Result.Init;
   result.FData.FTypeInfo := nil;
-{$if SizeOf(TMethod) > SizeOf(QWord)}
-  Result.FData.FAsMethod.Code := Nil;
-  Result.FData.FAsMethod.Data := Nil;
-{$else}
-  Result.FData.FAsUInt64 := 0;
-{$endif}
 end;
 
 function TValue.GetTypeDataProp: PTypeData;
@@ -1605,14 +1612,8 @@ type
 var
   td: PTypeData;
 begin
+  result.Init;
   result.FData.FTypeInfo:=ATypeInfo;
-  { resets the whole variant part; FValueData is already Nil }
-{$if SizeOf(TMethod) > SizeOf(QWord)}
-  Result.FData.FAsMethod.Code := Nil;
-  Result.FData.FAsMethod.Data := Nil;
-{$else}
-  Result.FData.FAsUInt64 := 0;
-{$endif}
   if not Assigned(ATypeInfo) then
     Exit;
   { first handle those types that need a TValueData implementation }
