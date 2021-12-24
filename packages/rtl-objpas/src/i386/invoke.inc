@@ -780,7 +780,11 @@ begin
     for i := 0 to c do begin
       if (argidx = fResultIdx) and orgresinparam then
         Inc(argidx);
-      if pfResult in fArgs[i].ParamFlags then begin
+      if pass = 0 then
+        idx := i
+      else
+        idx := stackargs[c - i];
+      if pfResult in fArgs[idx].ParamFlags then begin
         fResultIdx := argidx;
         fResultInParam := True;
       end;
@@ -789,10 +793,6 @@ begin
         Inc(stackcount);
         Continue;
       end;
-      if pass = 0 then
-        idx := i
-      else
-        idx := stackargs[c - i];
       if pass = 0 then
         fArgInfos[argidx].ArgType := TArgType.GenReg
       else
