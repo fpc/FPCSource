@@ -8577,6 +8577,11 @@ unit aoptx86;
             { Under -O1 and -O2, GetNextInstructionUsingReg may return an
               instruction that doesn't actually contain ThisReg }
             (cs_opt_level3 in current_settings.optimizerswitches) or
+            { This allows this Movx optimisation to work through the SETcc instructions
+              inserted by the 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR'
+              optimisation on -O1 and -O2 (on -O3, GetNextInstructionUsingReg will
+              skip over these SETcc instructions). }
+            (taicpu(hp1).opcode = A_SETcc) or
             RegInInstruction(ThisReg, hp1)
           ) do
           begin
@@ -8634,30 +8639,6 @@ unit aoptx86;
                       )
                     ) then
                     Break;
-(*
-                  { ANDing can't increase the value past the limit or decrease
-                    it below 0, so we can skip the checks, plus the test value
-                    won't change afterwards }
-                  if (taicpu(hp1).opcode = A_CMP) and
-                    { cmp $0,$reg is equivalent to test %reg,%reg, plus the
-                      test values aren't being modified anyway }
-                    (taicpu(hp1).oper[0]^.val <> 0) then
-                    begin
-                      WorkingValue := taicpu(hp1).oper[0]^.val;
-
-                      TestValMin := TestValMin - WorkingValue;
-                      TestValMax := TestValMax - WorkingValue;
-                      TestValSignedMax := TestValSignedMax - WorkingValue;
-
-                      if not CheckOverflowConditions then
-                        Break;
-
-                      { Because the register isn't actually adjusted, we can
-                        restore the test values to what they were previously }
-                      TestValMin := TestValMin + WorkingValue;
-                      TestValMax := TestValMax + WorkingValue;
-                      TestValSignedMax := TestValSignedMax + WorkingValue;
-                    end; *)
 
                   { Check to see if the active register is used afterwards }
                   TransferUsedRegs(TmpUsedRegs);
@@ -8737,6 +8718,21 @@ unit aoptx86;
                       Result := True;
                       Exit;
                     end;
+                end;
+              A_SETcc:
+                begin
+                  { This allows this Movx optimisation to work through the SETcc instructions
+                    inserted by the 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR'
+                    optimisation on -O1 and -O2 (on -O3, GetNextInstructionUsingReg will
+                    skip over these SETcc instructions). }
+                  if (cs_opt_level3 in current_settings.optimizerswitches) or
+                    { Of course, break out if the current register is used }
+                    RegInOp(ThisReg, taicpu(hp1).oper[0]^) then
+                    Break
+                  else
+                    { We must use Continue so the instruction doesn't get added
+                      to InstrList }
+                    Continue;
                 end;
 
               A_ADD,A_SUB,A_AND,A_OR,A_XOR,A_SHL,A_SHR,A_SAR:
@@ -9103,7 +9099,7 @@ unit aoptx86;
                 end;
 
               else
-                { This includes ADC, SBB, IDIV and SAR }
+                { This includes ADC, SBB and IDIV }
                 Break;
             end;
 
