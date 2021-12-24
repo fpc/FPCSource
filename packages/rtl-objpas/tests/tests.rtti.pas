@@ -80,6 +80,8 @@ type
 
     procedure TestMakeNativeInt;
 
+    procedure TestMakeFromArray;
+
     procedure TestMakeGenericNil;
     procedure TestMakeGenericLongInt;
     procedure TestMakeGenericString;
@@ -840,6 +842,54 @@ begin
   Check(PPointer(v.GetReferenceToRawData)^ = Pointer(o));
   Check(v.AsObject = o);
   o.Free;
+end;
+
+procedure TTestCase1.TestMakeFromArray;
+var
+  arr, subarr: array of TValue;
+  v, varr: TValue;
+  ti: PTypeInfo;
+  i: LongInt;
+begin
+  SetLength(arr, 3 * 4);
+  for i := 0 to High(arr) do
+    TValue.{$ifdef fpc}specialize{$endif} Make<LongInt>(i + 1, arr[i]);
+
+  ti := PTypeInfo(TypeInfo(LongInt));
+
+  v := TValue.FromArray(TypeInfo(TArrayOfLongintDyn), arr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(arr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(arr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = arr[i].AsInteger, 'Value of array element does not match');
+  end;
+
+  subarr := Copy(arr, 0, 4);
+  v := TValue.FromArray(TypeInfo(TArrayOfLongintStatic), subarr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(subarr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(subarr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = subarr[i].AsInteger, 'Value of array element does not match');
+  end;
+
+  v := TValue.FromArray(TypeInfo(TArrayOfLongint2DStatic), arr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(arr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(arr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = arr[i].AsInteger, 'Value of array element does not match');
+  end;
 end;
 
 procedure TTestCase1.TestMakeGenericNil;

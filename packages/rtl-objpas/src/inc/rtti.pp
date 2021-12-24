@@ -124,6 +124,7 @@ type
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
     class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
+    class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -800,6 +801,8 @@ type
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
+  SErrDimensionOutOfRange     = 'Dimension index %d is out of range [0, %d[';
+  SErrLengthOfArrayMismatch   = 'Length of static array does not match: Got %d, but expected %d';
   SErrInvalidTypecast         = 'Invalid class typecast';
   SErrRttiObjectNoHandle      = 'RTTI object instance has no valid handle property';
   SErrRttiObjectAlreadyRegistered = 'A RTTI object with handle 0x%x is already registered';
@@ -1839,6 +1842,30 @@ begin
 {$else}
   TValue.Make(@aValue, aTypeInfo, Result);
 {$endif}
+end;
+
+class function TValue.FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
+var
+  i, sz: SizeInt;
+  data: TValueDataIntImpl;
+begin
+  Result.Init;
+  Result.FData.FTypeInfo := aArrayTypeInfo;
+  if not Assigned(aArrayTypeInfo) then
+    Exit;
+  if aArrayTypeInfo^.Kind = tkDynArray then begin
+    data := TValueDataIntImpl.CreateRef(Nil, aArrayTypeInfo, True);
+    sz := Length(aValues);
+    DynArraySetLength(data.FBuffer, aArrayTypeInfo, 1, @sz);
+    Result.FData.FValueData := data;
+  end else if aArrayTypeInfo^.Kind = tkArray then begin
+    if Result.GetArrayLength <> Length(aValues) then
+      raise ERtti.CreateFmt(SErrLengthOfArrayMismatch, [Length(aValues), Result.GetArrayLength]);
+    Result.FData.FValueData := TValueDataIntImpl.CreateCopy(Nil, Result.TypeData^.ArrayData.Size, aArrayTypeInfo, False);
+  end else
+    raise ERtti.CreateFmt(SErrTypeKindNotSupported, [aArrayTypeInfo^.Name]);
+  for i := 0 to High(aValues) do
+    Result.SetArrayElement(i, aValues[i]);
 end;
 
 function TValue.GetIsEmpty: boolean;
