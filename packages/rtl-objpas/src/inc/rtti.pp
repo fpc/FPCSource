@@ -3057,26 +3057,30 @@ end;
 
 procedure TMethodImplementation.HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
 var
-  i, argidx: SizeInt;
+  i, argidx, validx: SizeInt;
   args: TValueArray;
   res: TValue;
 begin
   Assert(fArgLen = Length(aArgs), 'Length of arguments does not match');
   SetLength(args, fArgLen);
   argidx := 0;
+  validx := 0;
   i := 0;
   while i < Length(fArgs) do begin
     if pfArray in fArgs[i].ParamFlags then begin
+      Inc(validx);
       Inc(i);
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
-      TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
+      TValue.MakeOpenArray(aArgs[validx - 1], SizeInt(aArgs[validx]), fArgs[i].ParamType, args[argidx]);
       Inc(argidx);
+      Inc(validx);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
       if Assigned(fArgs[i].ParamType) then
-        TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
+        TValue.Make(aArgs[validx], fArgs[i].ParamType, args[argidx])
       else
-        TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
+        TValue.Make(@aArgs[validx], TypeInfo(Pointer), args[argidx]);
       Inc(argidx);
+      Inc(validx);
     end;
 
     Inc(i);
