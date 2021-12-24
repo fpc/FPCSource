@@ -3070,15 +3070,16 @@ begin
       Inc(i);
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
       TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
+      Inc(argidx);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
       if Assigned(fArgs[i].ParamType) then
         TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
       else
         TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
+      Inc(argidx);
     end;
 
     Inc(i);
-    Inc(argidx);
   end;
 
   if Assigned(fCallbackMethod) then
