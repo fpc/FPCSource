@@ -593,19 +593,7 @@ begin
     end;
   end;
 
-  if Force then
-  begin
-    SmallForce:=true;
-  end else
-  begin
-    Counter:=0;
-    if not ForceCursorUpdate then
-      while not smallforce and (Counter < (VideoBufSize div 4) - 1) do
-      begin
-        SmallForce := (PDWord(VideoBuf)[Counter] <> PDWord(OldVideoBuf)[Counter]);
-        inc(Counter);
-      end;
-  end;
+  SmallForce:=Force or not ForceCursorUpdate;
 
   LocalRP := VideoWindow^.RPort;
 
