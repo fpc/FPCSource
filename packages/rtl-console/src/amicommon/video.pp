@@ -49,6 +49,7 @@ procedure GotInactiveWindow;
 function HasInactiveWindow: boolean;
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
+procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
 
 var
   VideoWindow: PWindow;
@@ -562,13 +563,14 @@ begin
   end;
 end;
 
-procedure SysUpdateScreen(Force: Boolean);
+
+procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
 var
   SmallForce: Boolean;
-  Counter, CounterX, CounterY: LongInt;
+  CounterX, CounterY: LongInt;
   LocalRP: PRastPort;
   sY, sX: LongInt;
-  TmpCharData: Word;
+  BufStartOfs: LongInt;
   {$ifdef VideoSpeedTest}
   NumChanged: Integer;
   t,ta: Double;
@@ -612,16 +614,17 @@ begin
 
   if Smallforce then
   begin
-    VBuf:=@VideoBuf^[0];
-    OldVBuf:=@OldVideoBuf^[0];
+    BufStartOfs:=y1 * ScreenWidth + x1;
+    VBuf:=@VideoBuf^[BufStartOfs];
+    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     {$ifdef VideoSpeedTest}
     t := now();
     {$endif}
-    sY := videoWindow^.borderTop;
-    for CounterY := 0 to ScreenHeight - 1 do
+    sY := videoWindow^.borderTop + Y1 * VideoFontHeight;
+    for CounterY := Y1 to Y2 do
     begin
-      sX := videoWindow^.borderLeft;
-      for CounterX := 0 to ScreenWidth - 1 do
+      sX := videoWindow^.borderLeft + X1 * 8;
+      for CounterX := X1 to X2 do
       begin
         if (VBuf^ <> OldVBuf^) or Force then
         begin
@@ -663,6 +666,10 @@ begin
   {$endif}
 end;
 
+procedure SysUpdateScreen(Force: Boolean);
+begin
+  UpdateScreenPart(0,0,ScreenWidth-1,ScreenHeight-1,Force);
+end;
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
