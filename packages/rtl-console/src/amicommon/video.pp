@@ -564,19 +564,20 @@ end;
 
 procedure SysUpdateScreen(Force: Boolean);
 var
-  BufCounter: Longint;
   SmallForce: Boolean;
   Counter, CounterX, CounterY: LongInt;
-  NumChanged: Integer;
   LocalRP: PRastPort;
   sY, sX: LongInt;
   TmpCharData: Word;
   {$ifdef VideoSpeedTest}
+  NumChanged: Integer;
   t,ta: Double;
   {$endif}
+  VBuf,OldVBuf: PWord;
 begin
   {$ifdef VideoSpeedTest}
   ta := now();
+  NumChanged := 0;
   {$endif}
   SmallForce := False;
 
@@ -621,12 +622,10 @@ begin
   LocalRP := BufRp;
   {$endif}
 
-  BufCounter:=0;
-  NumChanged:=0;
-
-
   if Smallforce then
   begin
+    VBuf:=@VideoBuf^[0];
+    OldVBuf:=@OldVideoBuf^[0];
     {$ifdef VideoSpeedTest}
     t := now();
     {$endif}
@@ -636,15 +635,17 @@ begin
       sX := videoWindow^.borderLeft;
       for CounterX := 0 to ScreenWidth - 1 do
       begin
-        if (VideoBuf^[BufCounter] <> OldVideoBuf^[BufCounter]) or Force then
+        if (VBuf^ <> OldVBuf^) or Force then
         begin
-          TmpCharData := VideoBuf^[BufCounter];
-          SetABPenDrMd(LocalRP, VideoPens[(TmpCharData shr 8) and %00001111], VideoPens[(TmpCharData shr 12) and %00000111], JAM2);
-          BltTemplate(CharPointers[TmpCharData and $FF], 0, SrcMod, LocalRP, sX, sY, 8, VideoFontHeight);
-          OldVideoBuf^[BufCounter] := VideoBuf^[BufCounter];
+          SetABPenDrMd(LocalRP, VideoPens[(VBuf^ shr 8) and %00001111], VideoPens[(VBuf^ shr 12) and %00000111], JAM2);
+          BltTemplate(CharPointers[VBuf^ and $FF], 0, SrcMod, LocalRP, sX, sY, 8, VideoFontHeight);
+          OldVBuf^:=VBuf^;
+          {$ifdef VideoSpeedTest}
           Inc(NumChanged);
+          {$endif}
         end;
-        Inc(BufCounter);
+        Inc(VBuf);
+        Inc(OldVBuf);
         sX := sX + 8;
       end;
       sY := sY + VideoFontHeight;
