@@ -10603,7 +10603,11 @@ movzx_cascade:
                       S_WQ:
                         begin
                           if taicpu(p).opcode = A_MOVZX then
-                            taicpu(p).opsize := S_BL
+                            begin
+                              taicpu(p).opsize := S_BL;
+                              { 64-bit zero extension is implicit, so change to the 32-bit register }
+                              setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                            end
                           else
                             taicpu(p).opsize := S_BQ;
                           RegUsed := True;
@@ -10618,7 +10622,11 @@ movzx_cascade:
                       S_LQ:
                         begin
                           if taicpu(p).opcode = A_MOVZX then
-                            taicpu(p).opsize := S_BL
+                            begin
+                              taicpu(p).opsize := S_BL;
+                              { 64-bit zero extension is implicit, so change to the 32-bit register }
+                              setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                            end
                           else
                             taicpu(p).opsize := S_BQ;
                           RegUsed := True;
@@ -10631,7 +10639,11 @@ movzx_cascade:
                       S_LQ:
                         begin
                           if taicpu(p).opcode = A_MOVZX then
-                            taicpu(p).opsize := S_WL
+                            begin
+                              taicpu(p).opsize := S_WL;
+                              { 64-bit zero extension is implicit, so change to the 32-bit register }
+                              setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                            end
                           else
                             taicpu(p).opsize := S_WQ;
                           RegUsed := True;
