@@ -29,6 +29,7 @@ type
     InitDriver        : Procedure;
     DoneDriver        : Procedure;
     UpdateScreen      : Procedure(Force : Boolean);
+    UpdateScreenArea  : Procedure(const X1, Y1, X2, Y2: Word; Force : Boolean);
     ClearScreen       : Procedure;
     SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
     GetVideoModeCount : Function : Word;
@@ -133,7 +134,13 @@ procedure ClearScreen;
 { Clears the screen }
 procedure UpdateScreen(Force: Boolean);
 { Force specifies whether the whole screen has to be redrawn, or (if target
-  platform supports it) its parts only }
+  platform supports it) only the changed parts }
+procedure UpdateScreenArea(const X1, Y1, X2, Y2: Word; Force: Boolean);
+{ Updates the screen in the area marked by coordinates X1, Y1 (top left) and
+  X2, Y2 (bottom right), coordinates inclusive. Force specifies whether the
+  whole area has to be redrawn, or (if target platform supports it) its changed
+  parts only. If the target doesn't implement it, UpdateScreen() will be called
+  instead. }
 procedure SetCursorPos(NewCursorX, NewCursorY: Word);
 { Position the cursor to the given position }
 function GetCursorType: Word;

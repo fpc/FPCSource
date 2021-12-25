@@ -756,6 +756,7 @@ Const
     InitDriver : @SysInitVideo;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
+    UpdateScreenArea: nil;
     ClearScreen : @SysClearScreen;
     SetVideoMode : @SysSetVideoMode;
     GetVideoModeCount : @SysGetVideoModeCount;
