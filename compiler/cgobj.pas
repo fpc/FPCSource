@@ -2698,7 +2698,6 @@ implementation
         for r:=low(regs_to_save_int) to high(regs_to_save_int) do
           if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
-
         if uses_registers(R_ADDRESSREGISTER) then
           for r:=low(regs_to_save_int) to high(regs_to_save_int) do
             if regs_to_save_int[r] in rg[R_ADDRESSREGISTER].used_in_proc then
@@ -2714,9 +2713,7 @@ implementation
 
             for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
               if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
-                begin
-                  inc(size,tcgsize2size[OS_VECTOR]);
-                end;
+                inc(size,tcgsize2size[OS_VECTOR]);
           end;
 
         if size>0 then

@@ -9738,7 +9738,6 @@ unit aoptx86;
 {$endif i8086}
         carryadd_opcode : TAsmOp;
         symbol: TAsmSymbol;
-        reg: tsuperregister;
         increg, tmpreg: TRegister;
       begin
         result:=false;
@@ -9832,76 +9831,66 @@ unit aoptx86;
                  else if not(cs_opt_size in current_settings.optimizerswitches) then
                    begin
                      { search for an available register which is volatile }
-                     for reg in tcpuregisterset do
+                     increg := GetIntRegisterBetween(R_SUBL, UsedRegs, p, hp1);
+                     if increg <> NR_NO then
                        begin
-                         if
- {$if defined(i386) or defined(i8086)}
-                           { Only use registers whose lowest 8-bits can Be accessed }
-                           (reg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX]) and
- {$endif i386 or i8086}
-                           (reg in paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption)) and
-                           not(reg in UsedRegs[R_INTREGISTER].GetUsedRegs)
-                           { We don't need to check if tmpreg is in hp1 or not, because
-                             it will be marked as in use at p (if not, this is
-                             indictive of a compiler bug). }
-                           then
+                         { We don't need to check if tmpreg is in hp1 or not, because
+                           it will be marked as in use at p (if not, this is
+                           indictive of a compiler bug). }
+                         TAsmLabel(symbol).decrefs;
+                         Taicpu(p).clearop(0);
+                         Taicpu(p).ops:=1;
+                         Taicpu(p).is_jmp:=false;
+                         Taicpu(p).opcode:=A_SETcc;
+                         DebugMsg(SPeepholeOptimization+'JccAdd2SetccAdd',p);
+                         Taicpu(p).condition:=inverse_cond(Taicpu(p).condition);
+                         Taicpu(p).loadreg(0,increg);
+
+                         if getsubreg(Taicpu(hp1).oper[1]^.reg)<>R_SUBL then
                            begin
-                             TAsmLabel(symbol).decrefs;
-                             increg := newreg(R_INTREGISTER,reg,R_SUBL);
-                             Taicpu(p).clearop(0);
-                             Taicpu(p).ops:=1;
-                             Taicpu(p).is_jmp:=false;
-                             Taicpu(p).opcode:=A_SETcc;
-                             DebugMsg(SPeepholeOptimization+'JccAdd2SetccAdd',p);
-                             Taicpu(p).condition:=inverse_cond(Taicpu(p).condition);
-                             Taicpu(p).loadreg(0,increg);
-
-                             if getsubreg(Taicpu(hp1).oper[1]^.reg)<>R_SUBL then
-                               begin
-                                 case getsubreg(Taicpu(hp1).oper[1]^.reg) of
-                                   R_SUBW:
-                                     begin
-                                       tmpreg := newreg(R_INTREGISTER,reg,R_SUBW);
-                                       hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BW,increg,tmpreg);
-                                     end;
-                                   R_SUBD:
-                                     begin
-                                       tmpreg := newreg(R_INTREGISTER,reg,R_SUBD);
-                                       hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,increg,tmpreg);
-                                     end;
- {$ifdef x86_64}
-                                   R_SUBQ:
-                                     begin
-                                       { MOVZX doesn't have a 64-bit variant, because
-                                         the 32-bit version implicitly zeroes the
-                                         upper 32-bits of the destination register }
-                                       hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,increg,
-                                         newreg(R_INTREGISTER,reg,R_SUBD));
-                                       tmpreg := newreg(R_INTREGISTER,reg,R_SUBQ);
-                                     end;
- {$endif x86_64}
-                                   else
-                                     Internalerror(2020030601);
+                             case getsubreg(Taicpu(hp1).oper[1]^.reg) of
+                               R_SUBW:
+                                 begin
+                                   tmpreg := newreg(R_INTREGISTER,getsupreg(increg),R_SUBW);
+                                   hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BW,increg,tmpreg);
                                  end;
-                                 taicpu(hp2).fileinfo:=taicpu(hp1).fileinfo;
-                                 asml.InsertAfter(hp2,p);
-                               end
-                             else
-                               tmpreg := increg;
+                               R_SUBD:
+                                 begin
+                                   tmpreg := newreg(R_INTREGISTER,getsupreg(increg),R_SUBD);
+                                   hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,increg,tmpreg);
+                                 end;
+{$ifdef x86_64}
+                               R_SUBQ:
+                                 begin
+                                   { MOVZX doesn't have a 64-bit variant, because
+                                     the 32-bit version implicitly zeroes the
+                                     upper 32-bits of the destination register }
+                                   tmpreg := newreg(R_INTREGISTER,getsupreg(increg),R_SUBD);
+                                   hp2:=Taicpu.op_reg_reg(A_MOVZX,S_BL,increg,tmpreg);
+                                   setsubreg(tmpreg, R_SUBQ);
+                                 end;
+{$endif x86_64}
+                               else
+                                 Internalerror(2020030601);
+                             end;
+                             taicpu(hp2).fileinfo:=taicpu(hp1).fileinfo;
+                             asml.InsertAfter(hp2,p);
+                           end
+                         else
+                           tmpreg := increg;
 
-                             if (Taicpu(hp1).opcode=A_INC) or (Taicpu(hp1).opcode=A_DEC) then
-                               begin
-                                 Taicpu(hp1).ops:=2;
-                                 Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^)
-                               end;
-                             Taicpu(hp1).loadreg(0,tmpreg);
-                             AllocRegBetween(tmpreg,p,hp1,UsedRegs);
-
-                             Result := True;
-
-                             { p is no longer a Jcc instruction, so exit }
-                             Exit;
+                         if (Taicpu(hp1).opcode=A_INC) or (Taicpu(hp1).opcode=A_DEC) then
+                           begin
+                             Taicpu(hp1).ops:=2;
+                             Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^)
                            end;
+                         Taicpu(hp1).loadreg(0,tmpreg);
+                         AllocRegBetween(tmpreg,p,hp1,UsedRegs);
+
+                         Result := True;
+
+                         { p is no longer a Jcc instruction, so exit }
+                         Exit;
                        end;
                    end;
                end;
