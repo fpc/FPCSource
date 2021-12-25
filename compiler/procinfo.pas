@@ -145,6 +145,11 @@ unit procinfo;
           localrefsyms : tfpobjectlist;
           localrefdefs : tfpobjectlist;
 
+          { Registers saved by the current procedure - useful for peephole optimizers }
+          saved_regs_int,
+          saved_regs_address,
+          saved_regs_mm: TCPURegisterSet;
+
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 

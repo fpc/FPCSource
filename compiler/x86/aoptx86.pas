@@ -1070,7 +1070,10 @@ unit aoptx86;
       begin
         { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
-        RegSet := paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
+        RegSet :=
+          paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption) +
+          current_procinfo.saved_regs_int;
+
         for CurrentSuperReg in RegSet do
           begin
             CurrentReg := newreg(R_INTREGISTER, TSuperRegister(CurrentSuperReg), RegSize);
@@ -1141,7 +1144,10 @@ unit aoptx86;
       begin
         { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
-        RegSet := paramanager.get_volatile_registers_mm(current_procinfo.procdef.proccalloption);
+        RegSet :=
+          paramanager.get_volatile_registers_mm(current_procinfo.procdef.proccalloption) +
+          current_procinfo.saved_regs_mm;
+
         for CurrentSuperReg in RegSet do
           begin
             CurrentReg := newreg(R_MMREGISTER, TSuperRegister(CurrentSuperReg), RegSize);

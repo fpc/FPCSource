@@ -2698,6 +2698,7 @@ implementation
         for r:=low(regs_to_save_int) to high(regs_to_save_int) do
           if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
+
         if uses_registers(R_ADDRESSREGISTER) then
           for r:=low(regs_to_save_int) to high(regs_to_save_int) do
             if regs_to_save_int[r] in rg[R_ADDRESSREGISTER].used_in_proc then
@@ -2713,7 +2714,9 @@ implementation
 
             for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
               if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
-                inc(size,tcgsize2size[OS_VECTOR]);
+                begin
+                  inc(size,tcgsize2size[OS_VECTOR]);
+                end;
           end;
 
         if size>0 then
@@ -2732,17 +2735,22 @@ implementation
                   end;
                 include(rg[R_INTREGISTER].preserved_by_proc,regs_to_save_int[r]);
               end;
+            current_procinfo.saved_regs_int := rg[R_INTREGISTER].preserved_by_proc;
 
             if uses_registers(R_ADDRESSREGISTER) then
-              for r:=low(regs_to_save_address) to high(regs_to_save_address) do
-                begin
-                  if regs_to_save_address[r] in rg[R_ADDRESSREGISTER].used_in_proc then
-                    begin
-                      a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,regs_to_save_address[r],R_SUBWHOLE),href);
-                      inc(href.offset,sizeof(aint));
-                    end;
-                  include(rg[R_ADDRESSREGISTER].preserved_by_proc,regs_to_save_address[r]);
-                end;
+              begin
+                for r:=low(regs_to_save_address) to high(regs_to_save_address) do
+                  begin
+                    if regs_to_save_address[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+                      begin
+                        a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,regs_to_save_address[r],R_SUBWHOLE),href);
+                        inc(href.offset,sizeof(aint));
+                      end;
+                    include(rg[R_ADDRESSREGISTER].preserved_by_proc,regs_to_save_address[r]);
+                  end;
+
+                current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
+              end;
 
             if uses_registers(R_MMREGISTER) then
               begin
@@ -2765,6 +2773,8 @@ implementation
                         include(rg[R_MMREGISTER].preserved_by_proc,regs_to_save_mm[r]);
                       end;
                   end;
+
+                current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
               end;
           end;
       end;
