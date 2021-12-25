@@ -377,7 +377,7 @@
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
+      class function TObject.InitInstance(instance : pointer) : tobject;
 
 {$ifndef VER3_0}
         var
