@@ -191,7 +191,7 @@ Procedure UpdateScreenArea (const X1, Y1, X2, Y2: Word; Force: Boolean);
 begin
   if (LockUpdateScreen<=0) then
     if Assigned(CurrentVideoDriver.UpdateScreenArea) then
-      CurrentVideoDriver.UpdateScreenArea(X1,Y1,X2,Y2,Force);
+      CurrentVideoDriver.UpdateScreenArea(X1,Y1,X2,Y2,Force)
     else
       UpdateScreen(Force);
 end;
