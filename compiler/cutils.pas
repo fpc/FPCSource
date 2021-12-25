@@ -295,11 +295,13 @@ implementation
     function newalignment(oldalignment: longint; offset: int64): longint;
       begin
         { oldalignment must be power of two.
-          Works even for negative offsets (but not alignments),
-          as two's complement of, say, 2^4+2^3 is 11000 and -2^4-2^3 is 11...1101000 -
-          both end with exactly N zeros, where N is the largest power of two that divides the number
-          (smallest power of two involved in these sums). }
-        result:=1 shl BsfQWord(qword(offset or oldalignment));
+
+          Negating two's complement number keeps its tail '100...000' and complements all bits above.
+          "x and -x" extracts this tail of 'x'.
+          Said tail of "oldalignment or offset" is the desired answer. }
+
+        result:=oldalignment or longint(offset); { high part of offset won't matter as long as alignment is 32-bit }
+        result:=result and -result;
       end;
 
 
