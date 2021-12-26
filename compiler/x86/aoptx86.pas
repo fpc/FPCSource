@@ -10527,12 +10527,32 @@ unit aoptx86;
                     ((taicpu(hp1).oper[0]^.val and Limit) = taicpu(hp1).oper[0]^.val)
                   ) then
                   begin
+{$if defined(i386) or defined(i8086)}
+                    { If the target size is 8-bit, make sure we can actually encode it }
+                    if (NewRegSize = R_SUBL) and (taicpu(hp1).oper[0]^.typ = top_reg) and not (GetSupReg(taicpu(hp1).oper[0]^.reg) in [RS_EAX,RS_EBX,RS_ECX,RS_EDX]) then
+                      Exit;
+{$endif i386 or i8086}
+
                     DebugMsg(SPeepholeOptimization + 'MovxOp2Op 2',p);
 
-                    if AndTest and not RegUsed then
-                      taicpu(hp1).opcode := A_TEST;
-
                     taicpu(hp1).opsize := NewSize;
+
+                    taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
+                    if AndTest then
+                      begin
+                        RemoveInstruction(hp2);
+                        if not RegUsed then
+                          begin
+                            taicpu(hp1).opcode := A_TEST;
+                            if (taicpu(hp1).oper[0]^.typ = top_ref) then
+                              begin
+                                { Make sure the reference is the second operand }
+                                SwapOper := taicpu(hp1).oper[0];
+                                taicpu(hp1).oper[0] := taicpu(hp1).oper[1];
+                                taicpu(hp1).oper[1] := SwapOper;
+                              end;
+                          end;
+                      end;
 
                     case taicpu(hp1).oper[0]^.typ of
                       top_reg:
@@ -10543,18 +10563,6 @@ unit aoptx86;
                       else
                         ;
                     end;
-
-                    taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
-                    if (taicpu(hp1).opcode = A_TEST) and (taicpu(hp1).oper[0]^.typ = top_ref) then
-                      begin
-                        { For TEST, make sure the reference is the second operand }
-                        SwapOper := taicpu(hp1).oper[0];
-                        taicpu(hp1).oper[0] := taicpu(hp1).oper[1];
-                        taicpu(hp1).oper[1] := SwapOper;
-                      end;
-
-                    if AndTest then
-                      RemoveInstruction(hp2);
 
                     if RegUsed then
                       begin
