@@ -445,6 +445,7 @@ begin
       if (msg <> nil) then ReplyMsg(msg);
     until msg = nil;
     ModifyIDCMP(videoWindow,0);
+    VideoWindow^.UserPort:=nil;
     Permit();
     CloseWindow(videoWindow);
     VideoWindow := nil;
