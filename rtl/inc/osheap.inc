@@ -79,7 +79,7 @@
     function SysAllocMem(size: ptruint): pointer;
       begin
         result := SysGetMem(size);
-        if not assigned(result) then
+        if assigned(result) then
           FillChar(result^,SysMemSize(result),0);
       end;
 
