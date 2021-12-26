@@ -259,6 +259,7 @@ const
     InitEnhancedDriver        : nil;
     DoneDriver                : @SysDoneVideo;
     UpdateScreen              : @SysUpdateScreen;
+    UpdateScreenArea          : nil;
     ClearScreen               : nil;
     SetVideoMode              : @SysSetVideoMode;
     GetVideoModeCount         : nil;

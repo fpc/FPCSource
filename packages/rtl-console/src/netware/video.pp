@@ -177,6 +177,7 @@ Const
   InitEnhancedDriver        : Nil;
   DoneDriver                : @SysDoneVideo;
   UpdateScreen              : @SysUpdateScreen;
+  UpdateScreenArea          : Nil;
   ClearScreen               : Nil;
   SetVideoMode              : @SysSetVideoMode;
   GetVideoModeCount         : @SysGetVideoModeCount;

@@ -49,7 +49,6 @@ procedure GotInactiveWindow;
 function HasInactiveWindow: boolean;
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
-procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
 
 var
   VideoWindow: PWindow;
@@ -564,7 +563,7 @@ begin
 end;
 
 
-procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
+procedure SysUpdateScreenArea(const X1,Y1,X2,Y2: Word; Force: Boolean);
 var
   SmallForce: Boolean;
   CounterX, CounterY: LongInt;
@@ -668,7 +667,7 @@ end;
 
 procedure SysUpdateScreen(Force: Boolean);
 begin
-  UpdateScreenPart(0,0,ScreenWidth-1,ScreenHeight-1,Force);
+  SysUpdateScreenArea(0,0,ScreenWidth-1,ScreenHeight-1,Force);
 end;
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
@@ -875,6 +874,7 @@ const
     InitEnhancedDriver : Nil;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
+    UpdateScreenArea : @SysUpdateScreenArea;
     ClearScreen : @SysClearScreen;
     SetVideoMode : @SysSetVideoMode;
     GetVideoModeCount : @SysGetVideoModeCount;
