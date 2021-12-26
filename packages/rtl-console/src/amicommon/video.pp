@@ -178,7 +178,8 @@ var
   videoDefaultFlags: PtrUInt;
 begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
-  if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
+  if (GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1) or
+     FPC_VIDEO_FULLSCREEN then
     videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
   if FPC_VIDEO_FULLSCREEN then
   begin
@@ -199,7 +200,7 @@ begin
       WA_Activate   , 1,
       WA_Borderless , 1,
       WA_BackDrop   , 1,
-      WA_FLAGS      , VIDEO_WFLG_DEFAULTS or WFLG_BORDERLESS,
+      WA_FLAGS      , videoDefaultFlags,
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
       TAG_END, TAG_END
     ]);
@@ -216,7 +217,7 @@ begin
       WA_MaxHeight  , 32768,
       WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
       WA_Activate   , 1,
-      WA_FLAGS      , (VIDEO_WFLG_DEFAULTS or
+      WA_FLAGS      , (videoDefaultFlags or
                        WFLG_DRAGBAR       or WFLG_DEPTHGADGET   or WFLG_SIZEGADGET or
                        WFLG_SIZEBBOTTOM   or WFLG_CLOSEGADGET),
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
