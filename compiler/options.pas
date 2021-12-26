@@ -4399,7 +4399,22 @@ begin
         utilsprefix:=target_cpu_string + '-linux-android-';
     end;
 
-  { Set up default value for the heap }
+  { Set up default value for the heap on Amiga-likes (values only apply if the OSHeap allocator is used) }
+  if target_info.system in systems_amigalike then
+    begin
+      case target_info.system of
+        system_m68k_amiga:
+          heapsize:=256*1024;
+        system_powerpc_amiga,
+        system_powerpc_morphos,
+        system_arm_aros,
+        system_i386_aros,
+        system_x86_64_aros:
+          heapsize:=1024*1024;
+        else
+          heapsize:=256*1024;
+      end;
+    end;
   if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
     begin
       case target_info.system of
