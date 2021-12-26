@@ -83,7 +83,11 @@ uses
       a_i32_load8_u, a_i32_load16_u, a_i64_load8_u, a_i64_load16_u, a_i64_load32_u,
       a_i32_store8, a_i32_store16, a_i64_store8, a_i64_store16, a_i64_store32,
       // additional memory
-      a_memory_grow, a_memory_size
+      a_memory_grow, a_memory_size,
+      // bulk memory operations
+      a_memory_copy, a_memory_fill,
+      // exceptions
+      a_try,a_catch,a_catch_all,a_delegate,a_throw,a_rethrow,a_end_try
       );
 
       TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
@@ -91,12 +95,15 @@ uses
 
       { TWasmFuncType }
 
+      PWasmFuncType = ^TWasmFuncType;
       TWasmFuncType = class
         params: TWasmResultType;
         results: TWasmResultType;
         constructor Create(aparams, aresults: TWasmResultType);
+        constructor Create(afunctype: TWasmFuncType);
         procedure add_param(param: TWasmBasicType);
         procedure add_result(res: TWasmBasicType);
+        function Equals(Obj: TObject): boolean; override;
       end;
 
       {# This should define the array of instructions as string }
@@ -266,6 +273,10 @@ uses
       NR_FPU_RESULT_REG = NR_NO;
       NR_MM_RESULT_REG = NR_NO;
 
+      { No default flags }
+      NR_DEFAULTFLAGS = NR_NO;
+      RS_DEFAULTFLAGS = RS_NO;
+
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -290,6 +301,8 @@ uses
         implementation's runtime call stack (which includes return addresses and
         function parameters) is not visible in linear memory. }
       STACK_POINTER_SYM = '__stack_pointer';
+      { The exception tag symbol, used for FPC exceptions }
+      FPC_EXCEPTION_TAG_SYM = '__FPC_exception';
 
 {*****************************************************************************
                                   Helpers
@@ -311,6 +324,9 @@ uses
       to compile (but it won't execute it).
     }
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+
+    function natural_alignment_for_load_store(op: TAsmOp): shortint;
+    function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
 
 implementation
 
@@ -391,6 +407,58 @@ uses
         internalerror(2015082701);
       end;
 
+    function natural_alignment_for_load_store(op: TAsmOp): shortint;
+      begin
+        case op of
+          a_i32_load8_s,
+          a_i32_load8_u,
+          a_i64_load8_s,
+          a_i64_load8_u,
+          a_i32_store8,
+          a_i64_store8:
+            result:=0;
+
+          a_i32_load16_s,
+          a_i32_load16_u,
+          a_i64_load16_s,
+          a_i64_load16_u,
+          a_i32_store16,
+          a_i64_store16:
+            result:=1;
+
+          a_i32_load,
+          a_f32_load,
+          a_i64_load32_s,
+          a_i64_load32_u,
+          a_i32_store,
+          a_f32_store,
+          a_i64_store32:
+            result:=2;
+
+          a_i64_load,
+          a_f64_load,
+          a_i64_store,
+          a_f64_store:
+            result:=3;
+          else
+            internalerror(2021092614);
+        end;
+      end;
+
+    function encode_wasm_basic_type(wbt: TWasmBasicType): Byte;
+      begin
+        case wbt of
+          wbt_i32:
+            result:=$7F;
+          wbt_i64:
+            result:=$7E;
+          wbt_f32:
+            result:=$7D;
+          wbt_f64:
+            result:=$7C;
+        end;
+      end;
+
 {*****************************************************************************
                                   TWasmFuncType
 *****************************************************************************}
@@ -400,6 +468,13 @@ uses
         inherited Create;
         params:=aparams;
         results:=aresults;
+      end;
+
+    constructor TWasmFuncType.Create(afunctype: TWasmFuncType);
+      begin
+        inherited Create;
+        params:=afunctype.params;
+        results:=afunctype.results;
       end;
 
     procedure TWasmFuncType.add_param(param: TWasmBasicType);
@@ -412,6 +487,27 @@ uses
       begin
         SetLength(results,Length(results)+1);
         results[High(results)]:=res;
+      end;
+
+    function TWasmFuncType.Equals(Obj: TObject): boolean;
+      var
+        O: TWasmFuncType;
+      begin
+        if Obj=Self then
+          exit(true)
+        else if (Obj<>nil) and (Obj is TWasmFuncType) then
+          begin
+            O:=TWasmFuncType(Obj);
+            if (Length(params)<>Length(O.params)) or (Length(results)<>Length(O.results)) then
+              exit(false);
+            if (Length(params)>0) and (CompareByte(params[0],O.params[0],Length(params)*SizeOf(params[0]))<>0) then
+              exit(false);
+            if (Length(results)>0) and (CompareByte(results[0],O.results[0],Length(results)*SizeOf(results[0]))<>0) then
+              exit(false);
+            Result:=true;
+          end
+        else
+          Result:=inherited Equals(Obj);
       end;
 
 end.

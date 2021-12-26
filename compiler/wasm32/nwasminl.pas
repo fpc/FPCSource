@@ -34,10 +34,23 @@ interface
 
       twasminlinenode = class(tcginlinenode)
       private
+        function first_abs_real:tnode;override;
+        function first_int_real:tnode;override;
+        function first_sqrt_real:tnode;override;
+        function first_trunc_real:tnode;override;
+        function first_round_real:tnode;override;
+        procedure second_abs_real;override;
+        procedure second_int_real;override;
+        procedure second_sqrt_real;override;
+        procedure second_trunc_real;override;
+        procedure second_round_real;override;
         procedure second_high; override;
         procedure second_memory_size;
         procedure second_memory_grow;
+        procedure second_memory_fill;
+        procedure second_memory_copy;
         procedure second_unreachable;
+        procedure second_throw_fpcexception;
       protected
         function first_sqr_real: tnode; override;
       public
@@ -51,7 +64,7 @@ interface
 implementation
 
     uses
-      ninl,compinnr,
+      ninl,ncal,compinnr,
       cpubase,
       aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,
@@ -62,6 +75,157 @@ implementation
 {*****************************************************************************
                                twasminlinenode
 *****************************************************************************}
+
+    function twasminlinenode.first_abs_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
+
+
+    function twasminlinenode.first_int_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
+
+
+    function twasminlinenode.first_sqrt_real: tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
+
+
+    function twasminlinenode.first_trunc_real: tnode;
+      begin
+        expectloc:=LOC_REGISTER;
+        result:=nil;
+      end;
+
+
+    function twasminlinenode.first_round_real: tnode;
+      begin
+        expectloc:=LOC_REGISTER;
+        result:=nil;
+      end;
+
+
+    procedure twasminlinenode.second_abs_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_abs));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_abs));
+          else
+            internalerror(2021092902);
+        end;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_int_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_trunc));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_trunc));
+          else
+            internalerror(2021092903);
+        end;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_sqrt_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_sqrt));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_sqrt));
+          else
+            internalerror(2021092901);
+        end;
+
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_trunc_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+          OS_F64:
+            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+          else
+            internalerror(2021092904);
+        end;
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_round_real;
+      begin
+        secondpass(left);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+
+        case left.location.size of
+          OS_F32:
+            begin
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_nearest));
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+            end;
+          OS_F64:
+            begin
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_nearest));
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+            end
+          else
+            internalerror(2021092905);
+        end;
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
 
     procedure twasminlinenode.second_high;
       var
@@ -86,7 +250,6 @@ implementation
           end;
         { if not nil }
         current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[hightype])));
-        thlcgwasm(hlcg).incblock;
         thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
@@ -105,7 +268,6 @@ implementation
         thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,-1,R_INTREGISTER);
         { endif }
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_end_if));
-        thlcgwasm(hlcg).decblock;
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
@@ -148,10 +310,89 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_memory_fill;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
+
+        secondpass(tcallparanode(tcallparanode(left).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.location,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.location.register);
+
+        secondpass(tcallparanode(left).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.location,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_fill));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,3);
+      end;
+
+
+    procedure twasminlinenode.second_memory_copy;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        secondpass(tcallparanode(tcallparanode(tcallparanode(left).right).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef,
+          tcallparanode(tcallparanode(tcallparanode(left).right).right).left.location.register);
+
+        secondpass(tcallparanode(tcallparanode(left).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.location,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.location.register);
+
+        secondpass(tcallparanode(left).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.location,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_memory_copy));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,3);
+      end;
+
+
     procedure twasminlinenode.second_unreachable;
       begin
         location_reset(location,LOC_VOID,OS_NO);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_unreachable));
+      end;
+
+
+    procedure twasminlinenode.second_throw_fpcexception;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
       end;
 
 
@@ -181,6 +422,21 @@ implementation
               CheckParameters(0);
               resultdef:=voidtype;
             end;
+          in_wasm32_throw_fpcexception:
+            begin
+              CheckParameters(0);
+              resultdef:=voidtype;
+            end;
+          in_wasm32_memory_fill:
+            begin
+              CheckParameters(3);
+              resultdef:=voidtype;
+            end;
+          in_wasm32_memory_copy:
+            begin
+              CheckParameters(3);
+              resultdef:=voidtype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -194,7 +450,10 @@ implementation
           in_wasm32_memory_size,
           in_wasm32_memory_grow:
             expectloc:=LOC_REGISTER;
-          in_wasm32_unreachable:
+          in_wasm32_memory_fill,
+          in_wasm32_memory_copy,
+          in_wasm32_unreachable,
+          in_wasm32_throw_fpcexception:
             expectloc:=LOC_VOID;
           else
             Result:=inherited first_cpu;
@@ -209,8 +468,14 @@ implementation
             second_memory_size;
           in_wasm32_memory_grow:
             second_memory_grow;
+          in_wasm32_memory_fill:
+            second_memory_fill;
+          in_wasm32_memory_copy:
+            second_memory_copy;
           in_wasm32_unreachable:
             second_unreachable;
+          in_wasm32_throw_fpcexception:
+            second_throw_fpcexception;
           else
             inherited pass_generate_code_cpu;
         end;
@@ -237,7 +502,6 @@ implementation
             thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register);
 
             current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-            thlcgwasm(hlcg).incblock;
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
             current_asmdata.CurrAsmList.Concat(taicpu.op_const(a_i32_const,0));
@@ -270,7 +534,6 @@ implementation
               thlcgwasm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_ADD,resultdef,1);
 
             current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-            thlcgwasm(hlcg).decblock;
 
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);

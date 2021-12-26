@@ -155,10 +155,10 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     pushq %rsp
 
     { Pass address of our own entry points to .fini and .init.  }
-    movq $ini_dummy, %r8
-    movq $ini_dummy, %rcx
+    movq ini_dummy@GOTPCREL(%rip), %r8
+    movq ini_dummy@GOTPCREL(%rip), %rcx
 
-    movq $main_stub, %rdi
+    movq main_stub@GOTPCREL(%rip), %rdi
 
     { Call the user's main function, and exit with its value.
      But let the libc call main.    }

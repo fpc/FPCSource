@@ -37,7 +37,7 @@ type
     Mode      : longint;
 {$endif}
     RecSize   : SizeInt;
-    _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
+    _private  : array[1..3 * SizeOf(SizeInt) + SizeOf(pointer) + 4 * SizeOf(codepointer)] of byte;
     UserData  : array[1..32] of byte;
     name      : array[0..filerecnamelength] of TFileTextRecChar;
 {$ifdef USE_FILEREC_FULLNAME}

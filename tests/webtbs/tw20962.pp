@@ -50,7 +50,7 @@ begin
  move('abcde',str1[1],5);
  str2:= str1;
  testproc(str2);
- if psizeint(pchar(pointer(str1))-2*sizeof(sizeint))^ <> 1 then
+ if StringRefCount(str1) <> 1 then
    Halt(1);
  if str1<>'abcde' then
    Halt(2);  

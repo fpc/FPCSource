@@ -25,7 +25,7 @@ unit httproute;
 interface
 
 uses
-  Classes, SysUtils, httpdefs;
+  Classes, SysUtils, syncobjs, httpdefs;
 
 Type
   EHTTPRoute = Class(EHTTP);
@@ -152,14 +152,52 @@ Type
 
   THTTPRouteRequestEvent = Procedure (Sender : TObject; ARequest : TRequest; AResponse : TResponse) of object;
 
+  { TRequestInterceptor }
+
+  TRequestInterceptEvent = Procedure (ARequest : TRequest; AResponse : TResponse; var aContinue : Boolean) of object;
+
+  TInterceptAt = (iaBefore,iaAfter);
+
+  { TRequestInterceptorItem }
+
+  TRequestInterceptorItem = Class(TCollectionItem)
+  private
+    FDisabled: Boolean;
+    FEvent: TRequestInterceptEvent;
+    FInterceptAt: TInterceptAt;
+    FName: String;
+  Protected
+    Function RunIntercept(ARequest: TRequest; AResponse: TResponse): Boolean;
+  Public
+    Property Disabled : Boolean Read FDisabled Write FDisabled;
+    Property Name : String Read FName;
+    Property Event : TRequestInterceptEvent Read FEvent Write FEvent;
+    Property InterceptAt : TInterceptAt Read FInterceptAt Write FInterceptAt;
+  end;
+
+  { TRequestInterceptorList }
+
+  TRequestInterceptorList = Class(TCollection)
+  private
+    function GetR(aIndex : Integer): TRequestInterceptorItem;
+  Public
+    Function addInterCeptor(Const aName : String) : TRequestInterceptorItem;
+    Function RunIntercepts(RunAt : TInterceptAt; ARequest : TRequest; AResponse : TResponse) : Boolean; virtual;
+    Function IndexOfInterceptor(const aName : String) : integer;
+    Function FindInterceptor(const aName : String) : TRequestInterceptorItem;
+    Property Interceptors[aIndex : Integer] : TRequestInterceptorItem Read GetR; default;
+  end;
+
   { THTTPRouter }
 
   THTTPRouter = Class(TComponent)
   private
+    FLock : TCriticalSection;
     FAfterRequest: THTTPRouteRequestEvent;
     FBeforeRequest: THTTPRouteRequestEvent;
     FRouteOptions: TRouteOptions;
     FRoutes : THTTPRouteList;
+    FIntercepts : TRequestInterceptorList;
     function GetR(AIndex : Integer): THTTPRoute;
     Class Procedure DoneService;
     Class
@@ -167,10 +205,14 @@ Type
           FServiceClass : THTTPRouterClass;
     function GetRouteCount: Integer;
   Protected
+    // Lock & Unlock list
+    Procedure Lock;
+    Procedure Unlock;
     // Return an instance of given class with Pattern, Method, IsDefault filled in.
     function CreateHTTPRoute(AClass: THTTPRouteClass; const APattern: String; AMethod: TRouteMethod; IsDefault: Boolean ): THTTPRoute; virtual;
     // Override this if you want to use another collection class.
     Function CreateRouteList : THTTPRouteList; virtual;
+    Function CreateInterceptorList : TRequestInterceptorList; virtual;
     Procedure CheckDuplicate(APattern : String; AMethod : TRouteMethod; isDefault : Boolean);
     // Actually route request. Override this for customized behaviour.
     Procedure DoRouteRequest(ARequest : TRequest; AResponse : TResponse); virtual;
@@ -179,6 +221,8 @@ Type
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
+    // Find default route for this method.
+    function FindDefaultRoute(AMethod: TRouteMethod): THTTPRoute;
     // Delete given route by index.
     Procedure DeleteRoute(AIndex : Integer);
     // Delete given route by index.
@@ -195,6 +239,9 @@ Type
     Class Procedure SetServiceClass(AClass : THTTPRouterClass);
     // Convert string to HTTP Route method
     Class Function StringToRouteMethod(Const S : String) : TRouteMethod;
+    // Interceptor
+    Procedure RegisterInterceptor(const aName : String; aEvent : TRequestInterceptEvent; aAt : TInterceptAt = iaBefore);
+    Procedure UnRegisterInterceptor(const aName : String);
     // Register event based route
     Function RegisterRoute(Const APattern : String; AEvent: TRouteEvent; IsDefault : Boolean = False) : THTTPRoute;overload;
     Function RegisterRoute(Const APattern : String; AMethod : TRouteMethod; AEvent: TRouteEvent; IsDefault : Boolean = False): THTTPRoute;overload;
@@ -216,6 +263,10 @@ Type
     function GetHTTPRoute(const Path: String; AMethod: TRouteMethod; Params: TStrings): THTTPRoute;
     // Do actual routing. Exceptions raised will not be caught. Request must be initialized
     Procedure RouteRequest(ARequest : TRequest; AResponse : TResponse);
+    // Move route with aRouteID before default route with same method.
+    Function MoveRouteBeforeDefault(aRouteID : Integer) : Boolean;
+    // Move route with aRouteID before default route.
+    Function MoveRouteBefore(aRoute1,aRoute2 : THTTPRoute) : Boolean;
     // Indexed access to the registered routes.
     Property Routes [AIndex : Integer]  : THTTPRoute Read GetR; Default;
     // Number of registered routes.
@@ -227,6 +278,7 @@ Type
     // Global options used when routing a request.
     Property RouteOptions : TRouteOptions Read FRouteOptions Write FRouteOptions;
   end;
+
 
 Function RouteMethodToString (R : TRouteMethod)  : String;
 // Shortcut for THTTPRouter.Service;
@@ -242,6 +294,7 @@ uses strutils, typinfo;
 Resourcestring
   EDuplicateRoute = 'Duplicate route pattern: %s and method: %s';
   EDuplicateDefaultRoute = 'Duplicate default route registered with pattern: %s and method: %s';
+  SErrDuplicateInterceptor = 'Duplicate interceptor name: %s';
 
 function RouteMethodToString(R: TRouteMethod): String;
 
@@ -257,6 +310,68 @@ end;
 function HTTPRouter: THTTPRouter;
 begin
   Result:=THTTPRouter.Service;
+end;
+
+{ TRequestInterceptorItem }
+
+function TRequestInterceptorItem.RunIntercept(ARequest: TRequest; AResponse: TResponse): Boolean;
+begin
+  Result:=True;
+  If Assigned(Event) then
+    Event(aRequest,aResponse,Result);
+end;
+
+{ TRequestInterceptorList }
+
+function TRequestInterceptorList.GetR(aIndex : Integer): TRequestInterceptorItem;
+begin
+  Result:=TRequestInterceptorItem(Items[aIndex]);
+end;
+
+function TRequestInterceptorList.addInterCeptor(const aName: String): TRequestInterceptorItem;
+begin
+  If IndexOfInterceptor(aName)<>-1 then
+    Raise EHTTPRoute.CreateFmt(SErrDuplicateInterceptor,[aName]);
+  Result:=Add as TRequestInterceptorItem;
+  Result.FName:=aName;
+end;
+
+function TRequestInterceptorList.RunIntercepts(RunAt: TInterceptAt; ARequest: TRequest; AResponse: TResponse): Boolean;
+
+Var
+  I : Integer;
+
+begin
+  Result:=True;
+  I:=0;
+  While Result and (I<Count) do
+    begin
+    With GetR(i) do
+      if (RunAt=InterceptAt) and not Disabled then
+        Result:=RunIntercept(aRequest,aResponse);
+    Inc(I)
+    end;
+
+end;
+
+function TRequestInterceptorList.IndexOfInterceptor(const aName: String): integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and not SameText(aName,GetR(Result).Name) do
+    Dec(Result);
+end;
+
+function TRequestInterceptorList.FindInterceptor(const aName: String): TRequestInterceptorItem;
+
+Var
+  Idx : Integer;
+
+begin
+  Idx:=IndexOfInterceptor(aName);
+  if Idx=-1 then
+    Result:=Nil
+  else
+    Result:=GetR(Idx);
 end;
 
 { THTTPRouteCallback }
@@ -294,7 +409,12 @@ end;
 
 function THTTPRouter.GetR(AIndex : Integer): THTTPRoute;
 begin
-  Result:=FRoutes[AIndex]
+  Lock;
+  try
+    Result:=FRoutes[AIndex]
+  finally
+    Unlock;
+  end;
 end;
 
 class procedure THTTPRouter.DoneService;
@@ -304,12 +424,32 @@ end;
 
 function THTTPRouter.GetRouteCount: Integer;
 begin
-  Result:=FRoutes.Count;
+  Lock;
+  try
+    Result:=FRoutes.Count;
+  finally
+    UnLock;
+  end;
+end;
+
+procedure THTTPRouter.Lock;
+begin
+  FLock.Enter;
+end;
+
+procedure THTTPRouter.Unlock;
+begin
+  FLock.Leave;
 end;
 
 function THTTPRouter.CreateRouteList: THTTPRouteList;
 begin
   Result:=THTTPRouteList.Create(THTTPRoute);
+end;
+
+function THTTPRouter.CreateInterceptorList: TRequestInterceptorList;
+begin
+  Result:=TRequestInterceptorList.Create(TRequestInterceptorItem);
 end;
 
 procedure THTTPRouter.CheckDuplicate(APattern: String; AMethod: TRouteMethod;
@@ -320,14 +460,19 @@ Var
 
 begin
   DI:=-1;
-  For I:=0 to FRoutes.Count-1 do
-    begin
-    R:=FRoutes[I];
-    if R.Default then
-      DI:=I;
-    if R.Matches(APattern,AMethod,FRouteOptions) then
-      Raise EHTTPRoute.CreateFmt(EDuplicateRoute,[APattern,RouteMethodToString(AMethod)]);
-    end;
+  Lock;
+  try
+    For I:=0 to FRoutes.Count-1 do
+      begin
+      R:=FRoutes[I];
+      if R.Default then
+        DI:=I;
+      if R.Matches(APattern,AMethod,FRouteOptions) then
+        Raise EHTTPRoute.CreateFmt(EDuplicateRoute,[APattern,RouteMethodToString(AMethod)]);
+      end;
+  finally
+    Unlock;
+  end;
   if isDefault and (DI<>-1) then
     Raise EHTTPRoute.CreateFmt(EDuplicateDefaultRoute,[APattern,RouteMethodToString(AMethod)]);
 end;
@@ -369,27 +514,45 @@ constructor THTTPRouter.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   froutes:=CreateRouteList;
+  FIntercepts:=CreateInterceptorList;
+  FLock:=TCriticalSection.Create;
 end;
 
 destructor THTTPRouter.Destroy;
 begin
+  FreeAndNil(FLock);
   FreeAndNil(FRoutes);
   inherited Destroy;
 end;
 
 procedure THTTPRouter.DeleteRoute(AIndex: Integer);
 begin
-  FRoutes.Delete(Aindex)
+  Lock;
+  try
+    FRoutes.Delete(Aindex)
+  finally
+    Unlock;
+  end;
 end;
 
 procedure THTTPRouter.DeleteRouteByID(AID: Integer);
 begin
-  FRoutes.FindItemID(AID).Free;
+  Lock;
+  try
+    FRoutes.FindItemID(AID).Free;
+  finally
+    Unlock;
+  end;
 end;
 
 procedure THTTPRouter.DeleteRoute(ARoute: THTTPRoute);
 begin
-  ARoute.Free;
+  Lock;
+  try
+    ARoute.Free;
+  finally
+    Unlock;
+  end;
 end;
 
 class function THTTPRouter.Service: THTTPRouter;
@@ -425,6 +588,33 @@ begin
   While (Result>Low(TRouteMethod)) and (RouteMethodNames[Result]<>MN) do
     Result:=Pred(Result);
   if Result=rmAll then Result:=rmUnknown;
+end;
+
+procedure THTTPRouter.RegisterInterceptor(const aName: String; aEvent: TRequestInterceptEvent; aAt: TInterceptAt);
+
+Var
+  Intr : TRequestInterceptorItem;
+
+begin
+  Lock;
+  try
+    Intr:=FIntercepts.AddInterceptor(aName);
+  finally
+    Unlock;
+  end;
+  Intr.Event:=aEvent;
+  Intr.InterceptAt:=aAt;
+end;
+
+procedure THTTPRouter.UnRegisterInterceptor(const aName: String);
+
+begin
+  Lock;
+  try
+    FIntercepts.FindInterceptor(aName).Free;
+  finally
+    Unlock;
+  end;
 end;
 
 function THTTPRouter.RegisterRoute(const APattern: String;AData : Pointer;
@@ -480,7 +670,12 @@ function THTTPRouter.CreateHTTPRoute(AClass : THTTPRouteClass; const APattern: S
 
 begin
   CheckDuplicate(APattern,AMethod,isDefault);
-  Result:=AClass.Create(FRoutes);
+  Lock;
+  try
+    Result:=AClass.Create(FRoutes);
+  finally
+    UnLock;
+  end;
   With Result do
     begin
     URLPattern:=APattern;
@@ -530,23 +725,39 @@ begin
   MethodMisMatch:=False;
   Result:=Nil;
   I:=0;
-  While (Result=Nil) and (I<FRoutes.Count) do
-    begin
-    Result:=FRoutes[i];
-    If Not Result.MatchPattern(APathInfo,Params,FRouteOptions) then
-      Result:=Nil
-    else if Not Result.MatchMethod(AMethod) then
+  Lock;
+  try
+    While (Result=Nil) and (I<FRoutes.Count) do
       begin
-      Result:=Nil;
-      Params.Clear;
-      MethodMisMatch:=True;
+      Result:=FRoutes[i];
+      If Not Result.MatchPattern(APathInfo,Params,FRouteOptions) then
+        Result:=Nil
+      else if Not Result.MatchMethod(AMethod) then
+        begin
+        Result:=Nil;
+        Params.Clear;
+        MethodMisMatch:=True;
+        end;
+      Inc(I);
       end;
-    Inc(I);
-    end;
+  finally
+    Unlock;
+  end;
   // Find default route.
   if (Result=Nil) then
-    begin
-    I:=0;
+    Result:=FindDefaultRoute(aMethod);
+end;
+
+function THTTPRouter.FindDefaultRoute(AMethod: TRouteMethod) : THTTPRoute;
+
+Var
+  i : Integer;
+
+begin
+  I:=0;
+  Result:=nil;
+  Lock;
+  try
     While (Result=Nil) and (I<FRoutes.Count) do
       begin
       Result:=FRoutes[i];
@@ -554,7 +765,9 @@ begin
         Result:=Nil;
       Inc(I);
       end;
-    end;
+  finally
+    Unlock;
+  end;
 end;
 
 function THTTPRouter.GetHTTPRoute(const Path: String; AMethod: TRouteMethod; Params : TStrings): THTTPRoute;
@@ -582,9 +795,44 @@ procedure THTTPRouter.RouteRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   If Assigned(FBeforeRequest) then
     FBeforeRequest(Self,ARequest,AResponse);
-  DoRouteRequest(ARequest,AResponse);
+  if FIntercepts.RunIntercepts(iaBefore,ARequest,aResponse) then
+    // Safety
+    if not aResponse.ContentSent then
+      DoRouteRequest(ARequest,AResponse);
+  FIntercepts.RunIntercepts(iaAfter,ARequest,aResponse);
   If Assigned(FAfterRequest) then
     FAfterRequest(Self,ARequest,AResponse);
+end;
+
+function THTTPRouter.MoveRouteBeforeDefault(aRouteID : integer): Boolean;
+
+Var
+  aRoute,aDefaultRoute : THTTPRoute;
+
+begin
+  Result:=False;
+  Lock;
+  try
+    aRoute:=THTTPRoute(FRoutes.FindItemID(aRouteID));
+  finally
+    Unlock;
+  end;
+  aDefaultRoute:=FindDefaultRoute(aRoute.Method);
+  Result:=MoveRouteBefore(aRoute,aDefaultRoute);
+end;
+
+function THTTPRouter.MoveRouteBefore(aRoute1, aRoute2: THTTPRoute): Boolean;
+begin
+  Result:=Assigned(aRoute1) and Assigned(aRoute2) and (aRoute1.Index>aRoute2.Index);
+  if Result then
+    begin
+    Lock;
+    try
+      FRoutes.Move(aRoute1.Index,aRoute2.Index);
+    finally
+      Unlock;
+    end;
+    end;
 end;
 
 { THTTPRouteInterface }
@@ -813,7 +1061,7 @@ end;
 
 function THTTPRoute.MatchMethod(const AMethod: TRouteMethod): Boolean;
 begin
-  Result:=(Method=rmAll) or (Method=AMethod);
+  Result:=(Method=rmAll) or (Method=AMethod) or (aMethod=rmAll);
 end;
 
 { THTTPRouteCallbackex }

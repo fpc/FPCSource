@@ -295,7 +295,7 @@ type
 	CFNetServicesError = SInt32;
 const
 {
-   * An error of unknown type has occured.
+   * An error of unknown type has occurred.
    }
 	kCFNetServicesErrorUnknown = -72000;
 

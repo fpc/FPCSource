@@ -640,6 +640,7 @@ procedure TestLongint;
 
 begin
   TestSingle;
+  TestDouble;
   TestDWord;
   TestLongint;
 end.

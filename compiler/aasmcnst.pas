@@ -1196,12 +1196,12 @@ implementation
          2 +
          { elesize }
          2 +
-{$ifdef cpu64bitaddr}
-         { alignment }
-         4 +
-{$endif cpu64bitaddr}
          { reference count }
+{$ifdef cpu64bitaddr}
+         s32inttype.size +
+{$else !cpu64bitaddr}
          sizesinttype.size +
+{$endif !cpu64bitaddr}
          { length }
          sizesinttype.size;
        unicodestring_header_size:=ansistring_header_size;
@@ -1244,8 +1244,10 @@ implementation
 
    destructor ttai_typedconstbuilder.destroy;
      begin
-       { the queue should have been flushed if it was used }
-       if fqueue_offset<>low(fqueue_offset) then
+       { the queue should have been flushed if it was used
+         (but if there were errors, we may have aborted before that happened) }
+       if (fqueue_offset<>low(fqueue_offset)) and
+          (ErrorCount=0) then
          internalerror(2014062901);
        faggregateinformation.free;
        fasmlist.free;
@@ -1440,12 +1442,12 @@ implementation
        emit_tai(tai_const.create_16bit(elesize),u16inttype);
        inc(result.ofs,2);
 {$ifdef cpu64bitaddr}
-       { dummy for alignment }
-       emit_tai(tai_const.create_32bit(0),u32inttype);
-       inc(result.ofs,4);
-{$endif cpu64bitaddr}
+       emit_tai(tai_const.Create_32bit(-1),s32inttype);
+       inc(result.ofs,s32inttype.size);
+{$else !cpu64bitaddr}
        emit_tai(tai_const.create_sizeint(-1),sizesinttype);
        inc(result.ofs,sizesinttype.size);
+{$endif !cpu64bitaddr}
        emit_tai(tai_const.create_sizeint(len),sizesinttype);
        inc(result.ofs,sizesinttype.size);
        if string_symofs=0 then
@@ -1651,12 +1653,12 @@ implementation
              else
                internalerror(2016082301);
            end;
-{$ifdef cpu64bitaddr}
-           { dummy for alignment }
-           result.add_field_by_def('',u32inttype);
-{$endif cpu64bitaddr}
            { reference count }
+{$ifdef cpu64bitaddr}
+           result.add_field_by_def('',s32inttype);
+{$else !cpu64bitaddr}
            result.add_field_by_def('',sizesinttype);
+{$endif !cpu64bitaddr}
            { length in elements }
            result.add_field_by_def('',sizesinttype);
          end

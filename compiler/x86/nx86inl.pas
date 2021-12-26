@@ -907,6 +907,8 @@ implementation
          else
            begin
              load_fpu_location(left);
+             if left.location.loc=LOC_REFERENCE then
+               tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
              emit_none(A_FSQRT,S_NO);
            end;
        end;

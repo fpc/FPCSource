@@ -28,6 +28,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('rtl-extra');
 
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/md5.pp');

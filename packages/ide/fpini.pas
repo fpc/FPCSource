@@ -41,7 +41,7 @@ uses
 {$endif USE_EXTERNAL_COMPILER}
   WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
-  FPIntf,FPTools,FPSwitch,fpccrc;
+  FPIntf,FPTools,FPSwitch,fpchash;
 
 const
   PrinterDevice : string = 'prn';

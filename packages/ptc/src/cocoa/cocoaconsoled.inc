@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2015 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2015, 2021 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,16 @@ type
   private
     FConsole: TCocoaConsole;
   public
-    function windowShouldClose(sender: id): Boolean;
+    function windowShouldClose(sender: id): ObjCBOOL;
+  end;
+
+  { NSPTCView }
+
+  NSPTCView = objcclass(NSView)
+  private
+    FConsole: TCocoaConsole;
+  public
+    procedure drawRect(dirtyRect: NSRect); override;
   end;
 
   { NSPTCWindow }
@@ -86,7 +95,7 @@ type
     FWindow: NSPTCWindow;
     FImageRep: NSBitmapImageRep;
     FImage: NSImage;
-    FView: NSView;
+    FView: NSPTCView;
 
     class procedure MaybeCreateAutoreleasePool;
 

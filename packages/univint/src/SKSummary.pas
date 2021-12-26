@@ -445,7 +445,7 @@ function SKSummaryCopyParagraphSummaryString( summary: SKSummaryRef; numParagrap
  *    
  *    outParagraphIndexOfSentences:
  *      array for returning the index of the paragraph in which
- *      sentence occured
+ *      sentence occurred
  *  
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework

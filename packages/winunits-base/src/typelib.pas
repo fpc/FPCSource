@@ -734,9 +734,9 @@ begin
           end;
         if bIsFunction then
           if (sConv<>'safecall') then
-            sFunc:=sFunc+':HRESULT'
+            sFunc:=sFunc+': HRESULT'
           else
-            sFunc:=sFunc+format(':%s',[sType]);
+            sFunc:=sFunc+format(': %s',[sType]);
         if bIsDispatch then
           s:=s+sFunc+format(';dispid %d;'#13#10,[FD^.memid])
         else
@@ -774,7 +774,7 @@ begin
               sType:=sType+'  readonly'
             else
               sType:=sType+' writeonly';
-            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s:%s dispid %d;%s'#13#10,
+            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s: %s dispid %d;%s'#13#10,
               [BstrName,BstrDocString,sMethodName,sPropParam,sType,FD^.memid,sl]);
             end
           else //remove readonly or writeonly
@@ -864,7 +864,7 @@ begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
         sType:=TypeToString(TI,VD^.ElemdescVar.tdesc);
-        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s:%s  dispid %d;'#13#10,
+        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s: %s  dispid %d;'#13#10,
           [BstrName,BstrDocString,sMethodName,sType,VD^.memId]);
         end;
       end;
@@ -888,23 +888,23 @@ begin
       if not bget then //setter only
         begin
         if bput then
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,pname,sParam,sptype,pname,sDefault])
         else
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,prname,sParam,sprtype,prname,sDefault]);
         end
       else if not (bput or bputref) then //getter only
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sgtype,name,sDefault])
       else if bput and (sptype=sgtype) then //don't create property if no matching type.
         begin
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sptype,name,pname,sDefault]);
         end
         else if bputref and (sprtype=sgtype) then //don't create property if no matching type.
           begin
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
             [sorgname,sdoc,name,sParam,sprtype,name,prname,sDefault]);
           end;
     result:=s+'  end;'#13#10;
@@ -1074,7 +1074,7 @@ Procedure TTypeLibImporter.ImportEnums(Const TL : ITypeLib; TICount : Integer);
 
 Var
   i,j : integer;
-  sl ,senum: string;
+  sl ,senum, stype: string;
   BstrName, BstrDocString, BstrHelpFile : WideString;
   dwHelpContext: DWORD;
   TI:ITypeInfo;
@@ -1099,14 +1099,18 @@ begin
       bDuplicate:=false;
       if not MakeValidId(BstrName,senum) then
         AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,senum],True);
-      if (InterfaceSection.IndexOf(Format('  %s =LongWord;',[senum]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
+      if TA^.cbSizeInstance > 2 then
+        stype:='Integer' // https://docs.microsoft.com/en-us/windows/win32/midl/enum
+      else
+        stype:='Word';
+      if (InterfaceSection.IndexOf(Format('  %s = %s;',[senum,stype]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
         begin
         senum:=senum+IntToStr(i); // index is unique in this typelib
         AddToHeader('//  Warning: duplicate enum ''%s''. Renamed to ''%s''. consts appended with %d',[BstrName,senum,i]);
         bDuplicate:=true;
         end;
       AddToInterface('Type');
-      AddToInterface('  %s =LongWord;',[senum]);
+      AddToInterface('  %s = %s;',[senum,stype]);
       FTypes.Add(senum);
       FDeclared.Add(senum);
       AddToInterface('Const');
@@ -1129,6 +1133,7 @@ begin
             end;
           end;
         end;
+      AddToInterface('');
       end;
     TI.ReleaseTypeAttr(TA);
     end;
@@ -1790,6 +1795,7 @@ begin
   FUses.Add('Classes');
   //FUses.Add('OleServer');
   FUses.Add('Variants');
+  AddToInterface('');
   AddToInterface('Const');
   AddToInterface('  %sMajorVersion = %d;',[BstrName,LA^.wMajorVerNum]);
   AddToInterface('  %sMinorVersion = %d;',[BstrName,LA^.wMinorVerNum]);

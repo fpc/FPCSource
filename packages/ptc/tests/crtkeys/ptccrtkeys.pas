@@ -1,5 +1,6 @@
 program ptccrtkeys;
 uses
+{$ifdef UNIX}cthreads,{$endif UNIX}
   ptccrt, ptcgraph;
 var
   Gd, Gm: Integer;

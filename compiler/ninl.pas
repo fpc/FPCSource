@@ -2527,9 +2527,8 @@ implementation
                         else if not is_open_array(left.resultdef) and
                            not is_array_of_const(left.resultdef) and
                            not is_dynamic_array(left.resultdef) then
-                          result:=cordconstnode.create(tarraydef(left.resultdef).highrange-
-                            tarraydef(left.resultdef).lowrange+1,
-                            sinttype,true);
+                          result:=genintconstnode(tarraydef(left.resultdef).highrange-
+                            tarraydef(left.resultdef).lowrange+1,sizesinttype);
                       end;
                     else
                       ;
@@ -2833,7 +2832,8 @@ implementation
             which typechecks the arguments, possibly inserting conversion to valreal.
             To handle smaller types without excess precision, we need to remove
             these extra typecasts. }
-          if (p.nodetype=typeconvn) and
+          if not(cs_excessprecision in current_settings.localswitches) and
+             (p.nodetype=typeconvn) and
              (ttypeconvnode(p).left.resultdef.typ=floatdef) and
              (p.flags*[nf_explicit,nf_internal]=[]) and
              (tfloatdef(ttypeconvnode(p).left.resultdef).floattype in (floattypes*[s32real,s64real,s80real,sc80real,s128real])) then

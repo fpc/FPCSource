@@ -106,21 +106,21 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption:tproccalloption):tcpuregisterarray;
       const
-        saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array[0..5] of tsuperregister{$endif} = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
+        saved_regs: tcpuregisterarray = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
       begin
         result:=saved_regs;
       end;
 
     function tcpuparamanager.get_saved_registers_address(calloption:tproccalloption):tcpuregisterarray;
       const
-        saved_addr_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array[0..4] of tsuperregister{$endif} = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
+        saved_addr_regs: tcpuregisterarray = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
       begin
         result:=saved_addr_regs;
       end;
 
     function tcpuparamanager.get_saved_registers_fpu(calloption:tproccalloption):tcpuregisterarray;
       const
-        saved_fpu_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array[0..5] of tsuperregister{$endif} = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
+        saved_fpu_regs: tcpuregisterarray = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
       begin
         result:=saved_fpu_regs;
       end;

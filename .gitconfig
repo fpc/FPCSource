@@ -1,0 +1,11 @@
+# git config entry to make more nice looking diffs
+# run
+#  git config --local include.path ../.gitconfig
+# to include this file in your local git config
+
+# not sure if we could do a [diff "fpc" "pascal"] or something like this
+[diff "fpc"]
+  xfuncname = "^[ \\t]*(((class[ \\t]+)?(procedure|function)|constructor|destructor|[ \\t].*[ \\t]*=[ \\t]*(class|interface|object|record)|initialization|finalization)[ \\t]*.*)$"
+
+[diff "pascal"]
+  xfuncname = "^[ \\t]*(((class[ \\t]+)?(procedure|function)|constructor|destructor|[ \\t].*[ \\t]*=[ \\t]*(class|interface|object|record)|initialization|finalization)[ \\t]*.*)$"

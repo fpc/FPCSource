@@ -151,55 +151,72 @@ interface
 
 
     procedure TZ80AddNode.second_cmpsmallset;
-
-      procedure gencmp(tmpreg1,tmpreg2 : tregister);
-        var
-          i : byte;
-        begin
-          //current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
-          //for i:=2 to tcgsize2size[left.location.size] do
-          //  begin
-          //    tmpreg1:=GetNextReg(tmpreg1);
-          //    tmpreg2:=GetNextReg(tmpreg2);
-          //    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-          //  end;
-        end;
-
-      var
-        tmpreg : tregister;
       begin
-        //pass_left_right;
-        //location_reset(location,LOC_FLAGS,OS_NO);
-        //force_reg_left_right(false,false);
-        //
-        //case nodetype of
-        //  equaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  unequaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_NE;
-        //    end;
-        //  lten,
-        //  gten:
-        //    begin
-        //      if (not(nf_swapped in flags) and
-        //          (nodetype = lten)) or
-        //         ((nf_swapped in flags) and
-        //          (nodetype = gten)) then
-        //        swapleftright;
-        //      tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        //      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
-        //        left.location.register,right.location.register,tmpreg);
-        //      gencmp(tmpreg,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  else
-        //    internalerror(2004012401);
-        //end;
+        case nodetype of
+          equaln,unequaln:
+            begin
+              if left.resultdef.size>=2 then
+                internalerror(2021100302);
+              second_cmp;
+            end;
+          lten,gten:
+            begin
+              if left.resultdef.size>=2 then
+                internalerror(2021100302);
+
+              pass_left_right;
+
+              if (not(nf_swapped in flags) and (nodetype = lten)) or
+                 ((nf_swapped in flags) and (nodetype = gten)) then
+                swapleftright;
+
+              if left.location.loc<>LOC_REGISTER then
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+              if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                begin
+                  if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
+                    begin
+                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_AND,NR_A,right.location.reference));
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
+                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    end
+                  else
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+                end;
+              case right.location.loc of
+                LOC_CONSTANT:
+                  begin
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_AND,NR_A,right.location.value));
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,right.location.value));
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  end;
+                LOC_REGISTER,LOC_CREGISTER:
+                  begin
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_AND,NR_A,right.location.register));
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  end;
+                LOC_REFERENCE,LOC_CREFERENCE:
+                  begin
+                    { Already handled before the case statement. Nothing to do here. }
+                  end;
+                else
+                  internalerror(2021100303);
+              end;
+
+              location_reset(location,LOC_FLAGS,OS_NO);
+              location.resflags:=F_E;
+            end
+          else
+            internalerror(2021100301);
+        end;
       end;
 
 

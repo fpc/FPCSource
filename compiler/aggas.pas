@@ -74,8 +74,6 @@ interface
 {$endif WASM}
        private
         setcount: longint;
-        procedure WriteDecodedSleb128(a: int64);
-        procedure WriteDecodedUleb128(a: qword);
         procedure WriteCFI(hp: tai_cfi_base);
         function NextSetLabel: string;
        protected
@@ -223,11 +221,11 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 { TODO: .data.ro not yet working}
-{$if defined(arm) or defined(riscv64) or defined(powerpc)}
+{$if defined(arm) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
           '.rodata',
-{$else defined(arm) or defined(riscv64) or defined(powerpc)}
+{$else defined(arm) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
           '.data',
-{$endif defined(arm) or defined(riscv64) or defined(powerpc)}
+{$endif defined(arm) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
           '.rodata',
           '.bss',
           '.threadvar',
@@ -660,21 +658,6 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteDecodedUleb128(a: qword);
-      var
-        i,len : longint;
-        buf   : array[0..63] of byte;
-      begin
-        len:=EncodeUleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
-      end;
-
-
     procedure TGNUAssembler.WriteCFI(hp: tai_cfi_base);
       begin
         writer.AsmWrite(cfi2str[hp.cfityp]);
@@ -705,21 +688,6 @@ implementation
             internalerror(2019030203);
         end;
         writer.AsmLn;
-      end;
-
-
-    procedure TGNUAssembler.WriteDecodedSleb128(a: int64);
-      var
-        i,len : longint;
-        buf   : array[0..255] of byte;
-      begin
-        len:=EncodeSleb128(a,buf,0);
-        for i:=0 to len-1 do
-          begin
-            if (i > 0) then
-              writer.AsmWrite(',');
-            writer.AsmWrite(tostr(buf[i]));
-          end;
       end;
 
 
@@ -852,14 +820,26 @@ implementation
         end;
 
 
-      procedure WriteImportExport(hp:tai_impexp);
+      procedure WriteTagType(hp: tai_tagtype);
         var
-          symstypestr: string;
+          wasm_basic_typ: TWasmBasicType;
+          first: boolean;
         begin
-          Str(hp.symstype,symstypestr);
-          writer.AsmWriteLn(asminfo^.comment+'ait_importexport(extname='''+hp.extname+''', intname='''+hp.intname+''', extmodule='''+hp.extmodule+''', symstype='+symstypestr+')');
-          if hp.extmodule='' then
-            writer.AsmWriteLn(#9'.export_name '+hp.intname+', '+hp.extname);
+          writer.AsmWrite(#9'.tagtype'#9);
+          writer.AsmWrite(hp.tagname);
+          first:=true;
+          for wasm_basic_typ in hp.params do
+            begin
+              if first then
+                begin
+                  first:=false;
+                  writer.AsmWrite(' ');
+                end
+              else
+                writer.AsmWrite(',');
+              writer.AsmWrite(gas_wasm_basic_type_str[wasm_basic_typ]);
+            end;
+          writer.AsmLn;
         end;
 {$endif WASM}
 
@@ -1194,9 +1174,9 @@ implementation
                          writer.AsmWrite(ait_const2str[aitconst_8bit]);
                          case tai_const(hp).consttype of
                            aitconst_uleb128bit:
-                             WriteDecodedUleb128(qword(tai_const(hp).value));
+                             writer.AsmWrite(uleb128tostr(qword(tai_const(hp).value)));
                            aitconst_sleb128bit:
-                             WriteDecodedSleb128(int64(tai_const(hp).value));
+                             writer.AsmWrite(sleb128tostr(tai_const(hp).value));
                            else
                              ;
                          end
@@ -1409,6 +1389,10 @@ implementation
                      writer.AsmWriteLn('.lglobl .'+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                    { the dotted name is the name of the actual function entry }
                    writer.AsmWrite('.');
+                 end
+               else if tai_symbol(hp).sym.typ=AT_WASM_EXCEPTION_TAG then
+                 begin
+                   { nothing here, to ensure we don' write the .type directive for exception tags }
                  end
                else
                  begin
@@ -1653,10 +1637,41 @@ implementation
                if tai_local(hp).last then
                  writer.AsmLn;
              end;
+           ait_globaltype:
+             begin
+               writer.AsmWrite(#9'.globaltype'#9);
+               writer.AsmWrite(tai_globaltype(hp).globalname);
+               writer.AsmWrite(', ');
+               writer.AsmWrite(gas_wasm_basic_type_str[tai_globaltype(hp).gtype]);
+               if tai_globaltype(hp).immutable then
+                 writer.AsmWrite(', immutable');
+               writer.AsmLn;
+             end;
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));
-           ait_importexport:
-             WriteImportExport(tai_impexp(hp));
+           ait_export_name:
+             begin
+               writer.AsmWrite(#9'.export_name'#9);
+               writer.AsmWrite(tai_export_name(hp).intname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_export_name(hp).extname);
+             end;
+           ait_tagtype:
+             WriteTagType(tai_tagtype(hp));
+           ait_import_module:
+             begin
+               writer.AsmWrite(#9'.import_module'#9);
+               writer.AsmWrite(tai_import_module(hp).symname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_import_module(hp).importmodule);
+             end;
+           ait_import_name:
+             begin
+               writer.AsmWrite(#9'.import_name'#9);
+               writer.AsmWrite(tai_import_name(hp).symname);
+               writer.AsmWrite(', ');
+               writer.AsmWriteLn(tai_import_name(hp).importname);
+             end;
 {$endif WASM}
 
            else

@@ -465,12 +465,12 @@ implementation
                      not((p1.nodetype = subscriptn) and
                          is_packed_record_or_object(tsubscriptnode(p1).left.resultdef))) then
                    begin
-                     statement_syssym:=cordconstnode.create(p1.resultdef.size,sizesinttype,true);
+                     statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype);
                      if (l = in_bitsizeof_x) then
                        statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
                    end
                  else
-                   statement_syssym:=cordconstnode.create(p1.resultdef.packedbitsize,sizesinttype,true);
+                   statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype);
                  { type def is a struct with generic fields }
                  if df_has_generic_fields in p1.resultdef.defoptions then
                     include(statement_syssym.flags,nf_generic_para);
@@ -1772,7 +1772,7 @@ implementation
 ****************************************************************************}
 
 
-    function real_const_node_from_pattern(s:string):tnode;
+    function real_const_node_from_pattern(const s:string):tnode;
       var
         d : bestreal;
         code : integer;
@@ -2383,6 +2383,7 @@ implementation
 
                if (p1.nodetype=stringconstn) and (token=_ID) then
                  begin
+                   strdef:=nil;
                    { the def of a string const is an array }
                    case tstringconstnode(p1).cst_type of
                      cst_conststring:

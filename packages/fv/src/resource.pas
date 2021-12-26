@@ -1,5 +1,3 @@
-
-asjgfsdkjsfld
 { Resource Unit
 
   Programmer: Brad Williams

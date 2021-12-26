@@ -202,7 +202,10 @@ interface
        cguidconstnode : tguidconstnodeclass = tguidconstnode;
        cnilnode : tnilnodeclass=tnilnode;
 
-    function genintconstnode(const v : TConstExprInt) : tordconstnode;
+    { Creates tordconstnode with the smallest possible int type which can hold v }
+    function genintconstnode(const v : TConstExprInt) : tordconstnode; overload;
+    { Creates tordconstnode with the preferredinttype type or a bigger type which can hold v }
+    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef) : tordconstnode; overload;
     function genenumnode(v : tenumsym) : tordconstnode;
 
     { some helper routines }
@@ -230,6 +233,17 @@ implementation
       begin
          int_to_type(v,htype);
          genintconstnode:=cordconstnode.create(v,htype,true);
+      end;
+
+
+    function genintconstnode(const v : TConstExprInt; preferredinttype : tdef) : tordconstnode;
+      var
+        htype : tdef;
+      begin
+        int_to_type(v,htype);
+        if htype.size<preferredinttype.size then
+          htype:=preferredinttype;
+        result:=cordconstnode.create(v,htype,true);
       end;
 
 

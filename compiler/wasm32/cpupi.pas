@@ -26,8 +26,8 @@ unit cpupi;
 interface
 
   uses
-    cutils,globtype,
-    procinfo,cpuinfo, symtype,aasmbase,
+    cutils,globtype,aasmdata,
+    procinfo,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
   type
@@ -36,8 +36,13 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     public
+      { label to the nearest local exception handler }
+      CurrRaiseLabel : tasmlabel;
+
+      constructor create(aparent: tprocinfo); override;
       function calc_stackframe_size : longint;override;
       procedure setup_eh; override;
+      procedure generate_exit_label(list: tasmlist); override;
       procedure postprocess_code; override;
       procedure set_first_temp_offset;override;
     end;
@@ -45,38 +50,310 @@ interface
 implementation
 
     uses
-      systems,globals,cpubase,tgcpu,aasmdata,aasmcpu,aasmtai,cgexcept,
-      tgobj,paramgr,symconst,symcpu;
+      systems,verbose,globals,cpubase,tgcpu,aasmcpu,aasmtai,cgexcept,
+      tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
+      fmodule,hlcgobj,hlcgcpu,defutil;
 
 {*****************************************************************************
-                     twasmexceptionstatehandler
+                     twasmexceptionstatehandler_noexceptions
 *****************************************************************************}
 
     type
-      twasmexceptionstatehandler = class(tcgexceptionstatehandler)
+
+      { twasmexceptionstatehandler_noexceptions }
+
+      twasmexceptionstatehandler_noexceptions = class(tcgexceptionstatehandler)
+        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
       end;
 
-    class procedure twasmexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    class procedure twasmexceptionstatehandler_noexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: new_exception')));
+        if not assigned(exceptionreasontype) then
+          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
+        reference_reset(t.envbuf,0,[]);
+        reference_reset(t.jmpbuf,0,[]);
+        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
       end;
 
-    class procedure twasmexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    class procedure twasmexceptionstatehandler_noexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
       begin
-        list.Concat(tai_comment.Create(strpnew('TODO: free_exception')));
+        tg.ungettemp(list,t.reasonbuf);
       end;
 
-    class procedure twasmexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    class procedure twasmexceptionstatehandler_noexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      begin
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
+      end;
+
+    class procedure twasmexceptionstatehandler_noexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+      begin
+      end;
+
+    class procedure twasmexceptionstatehandler_noexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
       end;
 
 {*****************************************************************************
+                     twasmexceptionstatehandler_jsexceptions
+*****************************************************************************}
+
+    type
+      twasmexceptionstatehandler_jsexceptions = class(tcgexceptionstatehandler)
+        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
+        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
+      begin
+        if not assigned(exceptionreasontype) then
+          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
+        reference_reset(t.envbuf,0,[]);
+        reference_reset(t.jmpbuf,0,[]);
+        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+      begin
+        tg.ungettemp(list,t.reasonbuf);
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      begin
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+      begin
+      end;
+
+    class procedure twasmexceptionstatehandler_jsexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+      begin
+        list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
+      end;
+
+{*****************************************************************************
+                     twasmexceptionstatehandler_nativeexceptions
+*****************************************************************************}
+
+    type
+
+      { twasmexceptionstatehandler_nativeexceptions }
+
+      twasmexceptionstatehandler_nativeexceptions = class(tcgexceptionstatehandler)
+        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        { start of an "on" (catch) block }
+        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        { end of an "on" (catch) block }
+        class procedure end_catch(list: TAsmList); override;
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      begin
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+      begin
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+      begin
+        internalerror(2021100503);
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      var
+        pd: tprocdef;
+        href2: treference;
+        fpc_catches_res,
+        paraloc1: tcgpara;
+        exceptloc: tlocation;
+        indirect: boolean;
+        otherunit: boolean;
+      begin
+        paraloc1.init;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        indirect:=(tf_supports_packages in target_info.flags) and
+                    (target_info.system in systems_indirect_var_imports) and
+                    (cs_imported_data in current_settings.localswitches) and
+                    otherunit;
+
+        { send the vmt parameter }
+        pd:=search_system_proc('fpc_catches');
+        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        if otherunit then
+          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
+        hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
+        paramanager.freecgpara(list, paraloc1);
+        fpc_catches_res:=hlcg.g_call_system_proc(list, pd, [@paraloc1], nil);
+        location_reset(exceptloc, LOC_REGISTER, def_cgsize(fpc_catches_res.def));
+        exceptloc.register:=hlcg.getaddressregister(list, fpc_catches_res.def);
+        hlcg.gen_load_cgpara_loc(list, fpc_catches_res.def, fpc_catches_res, exceptloc, true);
+
+        { is it this catch? }
+        thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+        paraloc1.done;
+
+        exceptlocdef:=fpc_catches_res.def;
+        exceptlocreg:=exceptloc.register;
+      end;
+
+    class procedure twasmexceptionstatehandler_nativeexceptions.end_catch(list: TAsmList);
+      begin
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+      end;
+
+{*****************************************************************************
+                     twasmexceptionstatehandler_bfexceptions
+*****************************************************************************}
+
+    type
+
+      { twasmexceptionstatehandler_bfexceptions }
+
+      twasmexceptionstatehandler_bfexceptions = class(tcgexceptionstatehandler)
+        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        { start of an "on" (catch) block }
+        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        { end of an "on" (catch) block }
+        class procedure end_catch(list: TAsmList); override;
+      end;
+
+    class procedure twasmexceptionstatehandler_bfexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      begin
+        exceptstate.exceptionlabel:=nil;
+        exceptstate.oldflowcontrol:=flowcontrol;
+        exceptstate.finallycodelabel:=nil;
+
+        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
+      end;
+
+    class procedure twasmexceptionstatehandler_bfexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+      begin
+      end;
+
+    class procedure twasmexceptionstatehandler_bfexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+      begin
+        internalerror(2021100502);
+      end;
+
+    class procedure twasmexceptionstatehandler_bfexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      var
+        pd: tprocdef;
+        href2: treference;
+        fpc_catches_res,
+        paraloc1: tcgpara;
+        exceptloc: tlocation;
+        indirect: boolean;
+        otherunit: boolean;
+      begin
+        paraloc1.init;
+        otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
+        indirect:=(tf_supports_packages in target_info.flags) and
+                    (target_info.system in systems_indirect_var_imports) and
+                    (cs_imported_data in current_settings.localswitches) and
+                    otherunit;
+
+        { send the vmt parameter }
+        pd:=search_system_proc('fpc_catches');
+        reference_reset_symbol(href2, current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect), 0, sizeof(pint), []);
+        if otherunit then
+          current_module.add_extern_asmsym(excepttype.vmt_mangledname, AB_EXTERNAL, AT_DATA);
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
+        hlcg.a_loadaddr_ref_cgpara(list, excepttype.vmt_def, href2, paraloc1);
+        paramanager.freecgpara(list, paraloc1);
+        fpc_catches_res:=hlcg.g_call_system_proc(list, pd, [@paraloc1], nil);
+        location_reset(exceptloc, LOC_REGISTER, def_cgsize(fpc_catches_res.def));
+        exceptloc.register:=hlcg.getaddressregister(list, fpc_catches_res.def);
+        hlcg.gen_load_cgpara_loc(list, fpc_catches_res.def, fpc_catches_res, exceptloc, true);
+
+        { is it this catch? }
+        thlcgwasm(hlcg).a_cmp_const_reg_stack(list, fpc_catches_res.def, OC_NE, 0, exceptloc.register);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+
+        paraloc1.done;
+
+        exceptlocdef:=fpc_catches_res.def;
+        exceptlocreg:=exceptloc.register;
+      end;
+
+    class procedure twasmexceptionstatehandler_bfexceptions.end_catch(list: TAsmList);
+      begin
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
+      end;
+
+{*****************************************************************************
+                             twasmblockitem
+*****************************************************************************}
+
+    type
+
+      { twasmblockitem }
+
+      twasmblockitem = class(TLinkedListItem)
+        blockstart: taicpu;
+        elseinstr: taicpu;
+        constructor Create(ablockstart: taicpu);
+      end;
+
+      constructor twasmblockitem.Create(ablockstart: taicpu);
+        begin
+          blockstart:=ablockstart;
+        end;
+
+{*****************************************************************************
+                             twasmblockstack
+*****************************************************************************}
+
+    type
+
+      { twasmblockstack }
+
+      twasmblockstack = class(tlinkedlist)
+
+      end;
+
+{*****************************************************************************
                            tcpuprocinfo
 *****************************************************************************}
+
+    constructor tcpuprocinfo.create(aparent: tprocinfo);
+      begin
+        inherited create(aparent);
+        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          current_asmdata.getjumplabel(CurrRaiseLabel);
+      end;
 
     function tcpuprocinfo.calc_stackframe_size: longint;
       begin
@@ -86,7 +363,22 @@ implementation
 
     procedure tcpuprocinfo.setup_eh;
       begin
-        cexceptionstatehandler:=twasmexceptionstatehandler;
+        if ts_wasm_native_exceptions in current_settings.targetswitches then
+          cexceptionstatehandler:=twasmexceptionstatehandler_nativeexceptions
+        else if ts_wasm_js_exceptions in current_settings.targetswitches then
+          cexceptionstatehandler:=twasmexceptionstatehandler_jsexceptions
+        else if ts_wasm_no_exceptions in current_settings.targetswitches then
+          cexceptionstatehandler:=twasmexceptionstatehandler_noexceptions
+        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          cexceptionstatehandler:=twasmexceptionstatehandler_bfexceptions
+        else
+          internalerror(2021091701);
+      end;
+
+    procedure tcpuprocinfo.generate_exit_label(list: tasmlist);
+      begin
+        list.concat(taicpu.op_none(a_end_block));
+        inherited generate_exit_label(list);
       end;
 
     procedure tcpuprocinfo.postprocess_code;
@@ -132,6 +424,177 @@ implementation
             end;
         end;
 
+      function FindNextInstruction(hp: tai): taicpu;
+        begin
+          result:=nil;
+          if not assigned(hp) then
+            exit;
+          repeat
+            hp:=tai(hp.next);
+          until not assigned(hp) or (hp.typ=ait_instruction);
+          if assigned(hp) then
+            result:=taicpu(hp);
+        end;
+
+      procedure resolve_labels_pass1(asmlist: TAsmList);
+        var
+          hp: tai;
+          lastinstr, nextinstr: taicpu;
+          cur_nesting_depth: longint;
+          lbl: tai_label;
+          blockstack: twasmblockstack;
+          cblock: twasmblockitem;
+        begin
+          blockstack:=twasmblockstack.create;
+          cur_nesting_depth:=0;
+          lastinstr:=nil;
+          hp:=tai(asmlist.first);
+          while assigned(hp) do
+            begin
+              case hp.typ of
+                ait_instruction:
+                  begin
+                    lastinstr:=taicpu(hp);
+                    case lastinstr.opcode of
+                      a_block,
+                      a_loop,
+                      a_if,
+                      a_try:
+                        begin
+                          blockstack.Concat(twasmblockitem.create(lastinstr));
+                          inc(cur_nesting_depth);
+                        end;
+
+                      a_else:
+                        begin
+                          cblock:=twasmblockitem(blockstack.Last);
+                          if (cblock=nil) or
+                             (cblock.blockstart.opcode<>a_if) or
+                             assigned(cblock.elseinstr) then
+                            internalerror(2021102302);
+                          cblock.elseinstr:=lastinstr;
+                        end;
+
+                      a_end_block,
+                      a_end_loop,
+                      a_end_if,
+                      a_end_try:
+                        begin
+                          dec(cur_nesting_depth);
+                          if cur_nesting_depth<0 then
+                            internalerror(2021102001);
+                          cblock:=twasmblockitem(blockstack.GetLast);
+                          if (cblock=nil) or
+                             ((cblock.blockstart.opcode=a_block) and (lastinstr.opcode<>a_end_block)) or
+                             ((cblock.blockstart.opcode=a_loop) and (lastinstr.opcode<>a_end_loop)) or
+                             ((cblock.blockstart.opcode=a_if) and (lastinstr.opcode<>a_end_if)) or
+                             ((cblock.blockstart.opcode=a_try) and (lastinstr.opcode<>a_end_try)) then
+                            internalerror(2021102301);
+                          cblock.free;
+                        end;
+
+                      else
+                        ;
+                    end;
+                  end;
+                ait_label:
+                  begin
+                    lbl:=tai_label(hp);
+                    lbl.labsym.nestingdepth:=-1;
+                    nextinstr:=FindNextInstruction(hp);
+
+                    if assigned(nextinstr) and (nextinstr.opcode in [a_end_block,a_end_try,a_end_if]) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth
+                    else if assigned(lastinstr) and (lastinstr.opcode=a_loop) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth
+                    else if assigned(lastinstr) and (lastinstr.opcode in [a_end_block,a_end_try,a_end_if]) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth+1
+                    else if assigned(nextinstr) and (nextinstr.opcode=a_loop) then
+                      lbl.labsym.nestingdepth:=cur_nesting_depth+1;
+                  end;
+                else
+                  ;
+              end;
+              hp:=tai(hp.Next);
+            end;
+          if cur_nesting_depth<>0 then
+            internalerror(2021102002);
+          blockstack.free;
+        end;
+
+      procedure resolve_labels_pass2(asmlist: TAsmList);
+        var
+          hp: tai;
+          instr: taicpu;
+          cur_nesting_depth: longint;
+        begin
+          cur_nesting_depth:=0;
+          hp:=tai(asmlist.first);
+          while assigned(hp) do
+            begin
+              if hp.typ=ait_instruction then
+                begin
+                  instr:=taicpu(hp);
+                  case instr.opcode of
+                    a_block,
+                    a_loop,
+                    a_if,
+                    a_try:
+                      inc(cur_nesting_depth);
+
+                    a_end_block,
+                    a_end_loop,
+                    a_end_if,
+                    a_end_try:
+                      begin
+                        dec(cur_nesting_depth);
+                        if cur_nesting_depth<0 then
+                          internalerror(2021102003);
+                      end;
+
+                    a_br,
+                    a_br_if:
+                      begin
+                        if instr.ops<>1 then
+                          internalerror(2021102004);
+                        if instr.oper[0]^.typ=top_ref then
+                          begin
+                            if not assigned(instr.oper[0]^.ref^.symbol) then
+                              internalerror(2021102005);
+                            if (instr.oper[0]^.ref^.base<>NR_NO) or
+                               (instr.oper[0]^.ref^.index<>NR_NO) or
+                               (instr.oper[0]^.ref^.offset<>0) then
+                              internalerror(2021102006);
+                            if (instr.oper[0]^.ref^.symbol.nestingdepth<>-1) and
+                               (cur_nesting_depth>=instr.oper[0]^.ref^.symbol.nestingdepth) then
+                              instr.loadconst(0,cur_nesting_depth-instr.oper[0]^.ref^.symbol.nestingdepth)
+                            else
+                              begin
+{$ifndef EXTDEBUG}
+                                internalerror(2021102007);
+{$endif EXTDEBUG}
+                              end;
+                          end;
+                      end;
+
+                    else
+                      ;
+                  end;
+                end;
+              hp:=tai(hp.Next);
+            end;
+          if cur_nesting_depth<>0 then
+            internalerror(2021102008);
+        end;
+
+      procedure resolve_labels(asmlist: TAsmList);
+        begin
+          if not assigned(asmlist) then
+            exit;
+          resolve_labels_pass1(asmlist);
+          resolve_labels_pass2(asmlist);
+        end;
+
       var
        templist : TAsmList;
        l : TWasmLocal;
@@ -156,6 +619,8 @@ implementation
         templist.Free;
 
         replace_local_frame_pointer(aktproccode);
+
+        resolve_labels(aktproccode);
 
         inherited postprocess_code;
       end;

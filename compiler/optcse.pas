@@ -42,6 +42,7 @@ unit optcse;
       Further, it could be done probably in a faster way though the complexity can't probably not reduced
     }
     function do_optcse(var rootnode : tnode) : tnode;
+    function do_consttovar(var rootnode : tnode) : tnode;
 
   implementation
 
@@ -49,8 +50,11 @@ unit optcse;
       globtype,globals,
       cutils,cclasses,
       nutils,compinnr,
-      nbas,nld,ninl,ncal,nadd,nmem,
+      nbas,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
+      procinfo,
+      paramgr,
+      cpubase,
       symconst,symdef,symsym,symtable,symtype,
       defutil,
       optbase;
@@ -577,6 +581,257 @@ unit optcse;
         writeln('====================================================================================');
         writeln;
 {$endif csedebug}
+        result:=nil;
+      end;
+
+    type
+      tconstentry = record
+        valuenode : tnode;
+        weight : TCGInt;
+        temp : ttempcreatenode;
+      end;
+
+      pconstentry = ^tconstentry;
+
+      tconstentries = array of tconstentry;
+      pconstentries = ^tconstentries;
+
+    function CSEOnReference(n : tnode) : Boolean;
+      begin
+        Result:=(n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym)
+          and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
+{$if defined(aarch64)}
+            or (not(tabstractvarsym(tloadnode(n).symtableentry).is_regvar(false)))
+{$endif defined(aarch64)}
+           );
+      end;
+
+
+    function collectconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        consts: pconstentries;
+        found: Boolean;
+        i: Integer;
+      begin
+        result:=fen_true;
+        consts:=pconstentries(arg);
+        if ((n.nodetype=realconstn)
+{$ifdef x86}
+          { x87 consts would end up in memory, so loading them in temps. makes no sense }
+          and use_vectorfpu(n.resultdef)
+{$endif x86}
+          ) or
+          CSEOnReference(n) then
+          begin
+            found:=false;
+            i:=0;
+            for i:=0 to High(consts^) do
+              begin
+                if tnode(consts^[i].valuenode).isequal(n) then
+                  begin
+                    found:=true;
+                    break;
+                  end;
+              end;
+            if found then
+              inc(consts^[i].weight)
+            else
+              begin
+                SetLength(consts^,length(consts^)+1);
+                with consts^[high(consts^)] do
+                  begin
+                    valuenode:=n.getcopy;
+                    valuenode.fileinfo:=current_procinfo.entrypos;
+                    weight:=1;
+                  end;
+              end;
+          end;
+      end;
+
+
+    function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        hp: tnode;
+      begin
+        result:=fen_true;
+        if tnode(pconstentry(arg)^.valuenode).isequal(n) then
+          begin
+            { shall we take the address? }
+            if CSEOnReference(pconstentry(arg)^.valuenode) then
+              begin
+                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
+                ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
+              end
+            else
+              hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+
+            hp.fileinfo:=n.fileinfo;
+            n.Free;
+            n:=hp;
+            do_firstpass(n);
+          end;
+       end;
+
+
+    function do_consttovar(var rootnode : tnode) : tnode;
+      var
+        constentries : tconstentries;
+      Procedure QuickSort(L, R : Longint);
+        var
+          I, J, P: Longint;
+          Item, Q : tconstentry;
+        begin
+         repeat
+           I := L;
+           J := R;
+           P := (L + R) div 2;
+           repeat
+             Item := constentries[P];
+             while Item.weight>constentries[I].weight do
+               I := I + 1;
+             while Item.weight<constentries[J].weight do
+               J := J - 1;
+             If I <= J then
+             begin
+               Q := constentries[I];
+               constentries[I] := constentries[J];
+               constentries[J] := Q;
+               if P = I then
+                P := J
+               else if P = J then
+                P := I;
+               I := I + 1;
+               J := J - 1;
+             end;
+           until I > J;
+           if L < J then
+             QuickSort(L, J);
+           L := I;
+         until I >= R;
+        end;
+
+      var
+        creates,
+        deletes,
+        statements : tstatementnode;
+        createblock,
+        deleteblock,
+        rootblock : tblocknode;
+        i, max_fpu_regs_assigned, fpu_regs_assigned,
+        max_int_regs_assigned, int_regs_assigned: Integer;
+        old_current_filepos: tfileposinfo;
+      begin
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization pass started');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
+        foreachnodestatic(pm_postprocess,rootnode,@collectconsts,@constentries);
+        createblock:=nil;
+        deleteblock:=nil;
+        rootblock:=nil;
+        { estimate how many int registers can be used }
+        if pi_do_call in current_procinfo.flags then
+          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption))
+          { we store only addresses, so take care of the relation between address sizes and register sizes }
+            div (sizeof(PtrUInt) div sizeof(ALUUInt))
+          { heuristics, just use a quarter of all registers at maximum }
+            div 4
+        else
+          max_int_regs_assigned:=max(first_int_imreg div 4,1);
+{$if defined(x86) or defined(aarch64) or defined(arm)}
+        { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
+        if pi_do_call in current_procinfo.flags then
+          { heuristics, just use a fifth of all registers at maximum }
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 5
+        else
+          max_fpu_regs_assigned:=max(first_mm_imreg div 5,1);
+{$else defined(x86) or defined(aarch64) or defined(arm)}
+        if pi_do_call in current_procinfo.flags then
+          { heuristics, just use a fifth of all registers at maximum }
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 5
+        else
+          max_fpu_regs_assigned:=max(first_fpu_imreg div 5,1);
+{$endif defined(x86) or defined(aarch64) or defined(arm)}
+        fpu_regs_assigned:=0;
+        int_regs_assigned:=0;
+        if Length(constentries)>0 then
+          begin
+            { sort entries by weight }
+            QuickSort(0,High(constentries));
+            { assign only the constants with the highest weight to a register }
+            for i:=High(constentries) downto 0 do
+              begin
+                if (constentries[i].valuenode.nodetype=realconstn) and
+                   { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>3) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                then
+                  begin
+                    if fpu_regs_assigned>=max_fpu_regs_assigned then
+                      break;
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
+                       constentries[i].valuenode.resultdef.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(fpu_regs_assigned);
+                  end
+                else if CSEOnReference(constentries[i].valuenode) and
+                   { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>2) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                then
+                  begin
+                    if int_regs_assigned>=max_int_regs_assigned then
+                      break;
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(voidpointertype,
+                       voidpointertype.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
+                       caddrnode.create_internal(constentries[i].valuenode)));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(int_regs_assigned);
+                  end;
+              end;
+          end;
+        if assigned(createblock) then
+          begin
+            addstatement(statements,createblock);
+            addstatement(statements,rootnode);
+            addstatement(statements,deleteblock);
+            rootnode:=rootblock;
+            do_firstpass(rootnode);
+          end;
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization result');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
         result:=nil;
       end;
 

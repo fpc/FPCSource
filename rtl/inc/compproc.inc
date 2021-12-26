@@ -323,6 +323,7 @@ procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByt
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Procedure fpc_AnsiStr_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
+Procedure fpc_AnsiStr_ZeroBased_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
@@ -362,6 +363,7 @@ procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: Wi
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
+Procedure fpc_WideStr_ZeroBased_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
@@ -410,6 +412,7 @@ procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src:
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Procedure fpc_UnicodeStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
+Procedure fpc_UnicodeStr_ZeroBased_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
@@ -708,9 +711,15 @@ procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: 
 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+{$if not defined(FPC_WASM_NATIVE_EXCEPTIONS) and not defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
 Function fpc_PushExceptAddr (Ft: {$ifdef CPU16}SmallInt{$else}Longint{$endif};_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
-procedure fpc_Raiseexception (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer); compilerproc;
 Procedure fpc_PopAddrStack; compilerproc;
+{$endif}
+{$ifdef FPC_WASM_BRANCHFUL_EXCEPTIONS}
+function fpc_raised_exception_flag: Boolean;compilerproc;
+procedure fpc_clear_exception_flag;compilerproc;
+{$endif FPC_WASM_BRANCHFUL_EXCEPTIONS}
+procedure fpc_Raiseexception (Obj : TObject; AnAddr : CodePointer; AFrame : Pointer); compilerproc;
 function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;

@@ -2521,6 +2521,7 @@ procedure SetAfPt(w: PRastPort; p: Pointer; n: Byte);
 procedure SetDrPt(w: PRastPort; p: Word);
 procedure SetOPen(w: PRastPort; c: Byte);
 procedure SetWrMsk(w: PRastPort; m: Byte);
+procedure RemBob(Bob: PBob); inline;
 
 procedure SafeSetOutlinePen(w: PRastPort; c: Byte);
 procedure SafeSetWriteMask(w: PRastPort; m: SmallInt) ;
@@ -2538,6 +2539,11 @@ function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inl
 function RasSize(w, h: Word): Integer;
 
 implementation
+
+procedure RemBob(Bob: PBob);
+begin
+  Bob^.Flags := Bob^.Flags or BOBSAWAY;
+end;
 
 function AllocSpriteData(bm: PBitMap; const argv: array of PtrUInt): PExtSprite;
 begin

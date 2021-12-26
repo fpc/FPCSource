@@ -36,25 +36,27 @@ type
      tjsPLUSEQ, tjsPLUSPLUS,
      tjsURSHIFT, tjsURSHIFTEQ,
      tjsRSHIFT, tjsRSHIFTEQ,
-     tjsSEQ, tjsSNE, tjsMULEQ,
+     tjsSEQ, tjsSNE, tjsMULEQ, tjsArrow, tjsEllipsis,
      { Reserved words start here. They must be last }
-     tjsBREAK,tjsCASE, tjsCATCH, tjsCONTINUE,
-     tjsDEFAULT, tjsDELETE, tjsDO,
-     tjsELSE,
-     tjsFalse, tjsFINALLY, tjsFOR, tjsFUNCTION,
-     tjsIF, tjsIN, tjsINSTANCEOF,
-     tjsNEW,tjsNULL,
+     tjsAWAIT, tjsBREAK, tjsCASE, tjsCATCH, tjsCLASS, tjsCONST, tjsCONTINUE,
+     tjsDEBUGGER, tjsDEFAULT, tjsDELETE, tjsDO,
+     tjsELSE, tjsENUM, tjsEXPORT, tjsEXTENDS,
+     tjsFALSE, tjsFINALLY, tjsFOR, tjsFUNCTION,
+     tjsIF, tjsIMPORT, tjsIN, tjsINSTANCEOF,
+     tjsLet,
+     tjsNEW, tjsNULL,
      tjsRETURN,
-     tjsSWITCH,
+     tjsSUPER, tjsSWITCH,
      tjsTHIS, tjsTHROW, tjsTrue, tjsTRY, tjsTYPEOF,
      tjsVAR, tjsVOID,
      tjsWHILE, tjsWITH,
-     tjsAWAIT
+     tjsYield
    );
+   TJSTokens = Set of TJSToken;
 
 const
-  FirstKeyword = tjsBreak;
-  LastKeyWord = tJSWith;
+  FirstKeyword = tjsAwait;
+  LastKeyWord = tJSYield;
 
   TokenInfos: array[TJSToken] of string = ('unknown',
        // Specials
@@ -72,20 +74,21 @@ const
         '+=', '++',
         '>>>', '>>>=',
         '>>', '>>=',
-        '===', '!==', '*=',
+        '===', '!==', '*=', '=>', '...',
         // Identifiers last
-        'break','case','catch', 'continue',
-     'default','delete', 'do',
-     'else',
+        'await', 'break','case','catch', 'class','const','continue',
+     'debugger','default','delete', 'do',
+     'else','enum','export','extends',
      'false','finally', 'for', 'function',
-     'if', 'in', 'instanceof',
+     'if', 'import', 'in', 'instanceof',
+     'let',
      'new','null',
      'return',
-     'switch',
+     'super', 'switch',
      'this', 'throw', 'true', 'try', 'typeof',
      'var', 'void',
      'while', 'with',
-     'await'
+     'yield'
     );
 
 

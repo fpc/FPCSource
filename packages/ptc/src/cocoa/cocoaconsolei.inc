@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2015 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2015, 2021 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -42,12 +42,20 @@ end;
 
 { NSPTCWindowDelegate }
 
-function NSPTCWindowDelegate.windowShouldClose(sender: id): Boolean;
+function NSPTCWindowDelegate.windowShouldClose(sender: id): ObjCBOOL;
 begin
   if Assigned(FConsole) then
     Result := FConsole.HandleWindowShouldClose(sender)
   else
     Result := True;
+end;
+
+{ NSPTCView }
+
+procedure NSPTCView.drawRect(dirtyRect: NSRect);
+begin
+  if Assigned(FConsole) then
+    FConsole.FImage.drawInRect_fromRect_operation_fraction(NSMakeRect(0, 0, FConsole.FWidth, FConsole.FHeight), NSZeroRect, NSCompositeCopy, 1.0);
 end;
 
 { NSPTCWindow }
@@ -238,7 +246,7 @@ begin
     40:  exit(PTCKEY_K);
     37:  exit(PTCKEY_L);
     41:  exit(PTCKEY_SEMICOLON);
-    39:  exit(0);  // '
+    39:  exit(PTCKEY_QUOTE);
     42:  exit(PTCKEY_BACKSLASH);
     50:  exit(PTCKEY_BACKQUOTE);
     6:   exit(PTCKEY_Z);
@@ -269,17 +277,18 @@ begin
     109: exit(PTCKEY_F10);
     103: exit(PTCKEY_F11);
     111: exit(PTCKEY_F12);
-    105: exit(0);  // F13
-    107: exit(0);  // F14
-    113: exit(0);  // F15
-    106: exit(0);  // F16
-    64:  exit(0);  // F17
-    79:  exit(0);  // F18
-    80:  exit(0);  // F19
+    105: exit(PTCKEY_F13);
+    107: exit(PTCKEY_F14);
+    113: exit(PTCKEY_F15);
+    106: exit(PTCKEY_F16);
+    64:  exit(PTCKEY_F17);
+    79:  exit(PTCKEY_F18);
+    80:  exit(PTCKEY_F19);
     115: exit(PTCKEY_HOME);
     119: exit(PTCKEY_END);
     116: exit(PTCKEY_PAGEUP);
     121: exit(PTCKEY_PAGEDOWN);
+    63:  exit(PTCKEY_FUNCTION);
     117: exit(PTCKEY_DELETE);
     56,                       // Left Shift
     60:  exit(PTCKEY_SHIFT);  // Right Shift
@@ -287,8 +296,8 @@ begin
     62:  exit(PTCKEY_CONTROL);  // Right Ctrl
     58,                     // Left Option (Alt) key
     61:  exit(PTCKEY_ALT);  // Right Option (Alt) key
-    55,            // Left Command key
-    54:  exit(0);  // Right Command key
+    55:  exit(PTCKEY_COMMAND);  // Left Command key
+    54:  exit(PTCKEY_COMMAND);  // Right Command key
     57:  exit(PTCKEY_CAPSLOCK);
     82:  exit(PTCKEY_NUMPAD0);
     83:  exit(PTCKEY_NUMPAD1);
@@ -300,8 +309,8 @@ begin
     89:  exit(PTCKEY_NUMPAD7);
     91:  exit(PTCKEY_NUMPAD8);
     92:  exit(PTCKEY_NUMPAD9);
-    71:  exit(0);  // Clear (Num Lock???)
-    81:  exit(0);  // numpad '='
+    71:  exit(PTCKEY_CLEAR);  // Clear (in place of Num Lock)
+    81:  exit(PTCKEY_EQUALS);  // numpad '='
     75:  exit(PTCKEY_DIVIDE);
     67:  exit(PTCKEY_MULTIPLY);
     78:  exit(PTCKEY_SUBTRACT);
@@ -320,29 +329,52 @@ var
   kcode: cushort;
   modflags: NSUInteger;
   Code, UniCode: Integer;
-  Alt, Shift, Control: Boolean;
   Press: Boolean;
   PressAndRelease: Boolean = False;
+  Characters: NSString;
+  ModifierKeys: TPTCModifierKeys;
 begin
   evtype := theEvent.type_;
   kcode := theEvent.keyCode;
   modflags := theEvent.modifierFlags;
+  if evtype in [NSKeyDown, NSKeyUp] then
+    Characters := theEvent.characters
+  else
+    Characters := nil;
   LOG('cocoa key event ' + Method + ' type=' + IntToStr(evtype) + ' keyCode=' + IntToStr(kcode) + ' modifierFlags=' + IntToStr(modflags));
   Result := False;
   Code := TranslateKeyCode(kcode);
-  Unicode := 32;
-  Alt := (modflags and NSAlternateKeyMask) <> 0;
-  Shift := (modflags and NSShiftKeyMask) <> 0;
-  Control := (modflags and NSControlKeyMask) <> 0;
+  Unicode := -1;
+  if Assigned(Characters) and (Characters.length = 1) then
+    Unicode := Characters.characterAtIndex(0);
+  ModifierKeys := [];
+  if (modflags and NSAlternateKeyMask) <> 0 then
+    Include(ModifierKeys, pmkAlt);
+  if (modflags and NSShiftKeyMask) <> 0 then
+    Include(ModifierKeys, pmkShift);
+  if (modflags and NSControlKeyMask) <> 0 then
+    Include(ModifierKeys, pmkControl);
+  if (modflags and NSCommandKeyMask) <> 0 then
+    Include(ModifierKeys, pmkCommand);
+  if (modflags and NSNumericPadKeyMask) <> 0 then
+    Include(ModifierKeys, pmkNumPadKey);
+  if (modflags and NSFunctionKeyMask) <> 0 then
+    Include(ModifierKeys, pmkFunction);
+  if (kcode = 54) or    { Right Command key }
+     (kcode = 60) or    { Right Shift }
+     (kcode = 61) or    { Right Option (Alt) key }
+     (kcode = 62) then  { Right Ctrl }
+    Include(ModifierKeys, pmkRightKey);
   case evtype of
     NSKeyDown: Press := True;
     NSKeyUp: Press := False;
     NSFlagsChanged:
       begin
         case Code of
-          PTCKEY_SHIFT: Press := Shift;
-          PTCKEY_CONTROL: Press := Control;
-          PTCKEY_ALT: Press := Alt;
+          PTCKEY_SHIFT: Press := pmkShift in ModifierKeys;
+          PTCKEY_CONTROL: Press := pmkControl in ModifierKeys;
+          PTCKEY_ALT: Press := pmkAlt in ModifierKeys;
+          PTCKEY_COMMAND: Press := pmkCommand in ModifierKeys;
           PTCKEY_CAPSLOCK:
             begin
               { we only receive a modifierFlags message when caps lock is pressed down,
@@ -350,6 +382,8 @@ begin
                 ptc event queue }
               PressAndRelease := True;
             end;
+          PTCKEY_FUNCTION:
+            Press := pmkFunction in ModifierKeys;
         else
           begin
             LOG('Unknown NSFlagsChanged key code');
@@ -358,19 +392,92 @@ begin
         end;
       end;
   end;
+  case Code of
+    PTCKEY_UP,
+    PTCKEY_DOWN,
+    PTCKEY_LEFT,
+    PTCKEY_RIGHT:
+      begin
+        Exclude(ModifierKeys, pmkNumPadKey);
+        Unicode := -1;
+      end;
+    PTCKEY_ENTER:
+      begin
+        if pmkControl in ModifierKeys then
+        begin
+          if not (pmkAlt in ModifierKeys) and
+             not (pmkShift in ModifierKeys) then
+            Unicode := $0A
+          else
+            Unicode := -1;
+        end
+        else
+          Unicode := $0D;
+      end;
+    PTCKEY_BACKSPACE:
+      begin
+        if pmkControl in ModifierKeys then
+        begin
+          if not (pmkAlt in ModifierKeys) and
+             not (pmkShift in ModifierKeys) then
+            Unicode := $7F
+          else
+            Unicode := -1;
+        end
+        else
+          Unicode := $08;
+      end;
+    PTCKEY_TAB:
+      begin
+        if not (pmkControl in ModifierKeys) and
+           not (pmkAlt in ModifierKeys) and
+           not (pmkCommand in ModifierKeys) then
+          Unicode := 9
+        else
+          Unicode := -1;
+      end;
+    PTCKEY_DELETE,
+    PTCKEY_PAGEUP,
+    PTCKEY_PAGEDOWN,
+    PTCKEY_HOME,
+    PTCKEY_END,
+    PTCKEY_CLEAR,
+    PTCKEY_F1,
+    PTCKEY_F2,
+    PTCKEY_F3,
+    PTCKEY_F4,
+    PTCKEY_F5,
+    PTCKEY_F6,
+    PTCKEY_F7,
+    PTCKEY_F8,
+    PTCKEY_F9,
+    PTCKEY_F10,
+    PTCKEY_F11,
+    PTCKEY_F12,
+    PTCKEY_F13,
+    PTCKEY_F14,
+    PTCKEY_F15,
+    PTCKEY_F16,
+    PTCKEY_F17,
+    PTCKEY_F18,
+    PTCKEY_F19:
+      Unicode := -1;
+  end;
   if PressAndRelease then
   begin
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, True));
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, False));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, True));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, -1, ModifierKeys, False));
   end
+  else if Press then
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, ModifierKeys, True))
   else
-    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, Unicode, Alt, Shift, Control, Press));
+    FEventQueue.AddEvent(TPTCKeyEventFactory.CreateNew(Code, -1, ModifierKeys, False));
 end;
 
 function TCocoaConsole.HandleCocoaMouseEvent(theEvent: NSEvent;
   const Method: string): Boolean;
 begin
-  Writeln('HandleCocoaMouseEvent ', Method, ' ', theEvent.type_);
+  //Writeln('HandleCocoaMouseEvent ', Method, ' ', theEvent.type_);
   Result := False;
 end;
 
@@ -418,7 +525,7 @@ begin
   FPalette := TPTCPalette.Create;
   FClip := TPTCArea.Create;
   FArea := TPTCArea.Create;
-  FFormat := TPTCFormat.Create;
+  FFormat := TPTCFormatFactory.CreateNew;
   FEventQueue := TEventQueue.Create;
 
   Configure('/usr/share/ptcpas/ptcpas.conf');
@@ -608,7 +715,7 @@ end;
 
 procedure TCocoaConsole.Open(const ATitle: string; APages: Integer);
 begin
-  Open(ATitle, TPTCFormat.Create(32, $FF0000, $FF00, $FF), APages);
+  Open(ATitle, TPTCFormatFactory.CreateNew(32, $FF0000, $FF00, $FF), APages);
 end;
 
 procedure TCocoaConsole.Open(const ATitle: string; AFormat: IPTCFormat;
@@ -637,6 +744,7 @@ begin
   pool := NSAutoreleasePool.alloc.init;
   try
     NSApplication.sharedApplication;
+    NSApp.setActivationPolicy(NSApplicationActivationPolicyRegular);
     NSApp.finishLaunching;
 
     rct := NSMakeRect(0, 0, AWidth, AHeight);
@@ -658,23 +766,24 @@ begin
       AWidth,
       AHeight,
       8,
-      4,
-      True,
+      3,
+      False,
       False,
       NSDeviceRGBColorSpace,
       0,
       32);
     {$ifdef FPC_BIG_ENDIAN}
-      FFormat := TPTCFormat.Create(32, $FF000000, $FF0000, $FF00);
+      FFormat := TPTCFormatFactory.CreateNew(32, $FF000000, $FF0000, $FF00);
     {$else}
-      FFormat := TPTCFormat.Create(32, $FF, $FF00, $FF0000);
+      FFormat := TPTCFormatFactory.CreateNew(32, $FF, $FF00, $FF0000);
     {$endif}
     FPitch := FImageRep.bytesPerRow;
 
     FImage := NSImage.alloc.initWithSize(NSMakeSize(AWidth, AHeight));
     FImage.addRepresentation(FImageRep);
 
-    FView := NSView.alloc.initWithFrame(NSMakeRect(0, 0, AWidth, AHeight));
+    FView := NSPTCView.alloc.initWithFrame(NSMakeRect(0, 0, AWidth, AHeight));
+    FView.FConsole := Self;
 
     FWindow.setContentView(FView);
 
@@ -754,11 +863,7 @@ var
 begin
   pool := NSAutoreleasePool.alloc.init;
   try
-    FView.lockFocus;
-    FImage.drawInRect_fromRect_operation_fraction(NSMakeRect(0, 0, FWidth, FHeight), NSZeroRect, NSCompositeCopy, 1.0);
-    FView.unlockFocus;
-
-    FWindow.flushWindow;
+    FView.setNeedsDisplay_(True);
   finally
     pool.release;
   end;

@@ -420,9 +420,30 @@ begin
                       else if KeyMode = kmGO32 then
                         KeyBufAdd(#0#144);
                     PTCKEY_CLEAR,
+                    PTCKEY_NUMPAD0:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#146);
+                    PTCKEY_NUMPAD1:
+                      KeyBufAdd(#0#117);
+                    PTCKEY_NUMPAD2:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#145);
+                    PTCKEY_NUMPAD3:
+                      KeyBufAdd(#0#118);
+                    PTCKEY_NUMPAD4:
+                      KeyBufAdd(#0#115);
                     PTCKEY_NUMPAD5:
                       if KeyMode in [kmGO32, kmFPWINCRT] then
                         KeyBufAdd(#0#143);
+                    PTCKEY_NUMPAD6:
+                      KeyBufAdd(#0#116);
+                    PTCKEY_NUMPAD7:
+                      KeyBufAdd(#0#119);
+                    PTCKEY_NUMPAD8:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#141);
+                    PTCKEY_NUMPAD9:
+                      KeyBufAdd(#0#132);
                   end;
                 end
                 else

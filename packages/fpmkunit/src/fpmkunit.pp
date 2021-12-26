@@ -83,13 +83,13 @@ uses
 {$ifdef UNIX}
   BaseUnix,
 {$endif UNIX}
+{$ifdef WINDOWS}
+  windows,
+{$endif WINDOWS}
 {$ifndef NO_THREADING}
 {$ifdef UNIX}
   cthreads,
 {$endif UNIX}
-{$ifdef WINDOWS}
-  windows,
-{$endif WINDOWS}
 {$endif NO_THREADING}
   SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
@@ -2936,8 +2936,7 @@ begin
       SourceCPU:=StringToCPU({$I %FPCTARGETCPU%});
     end;
 
-  if (SourceOS<>OS) then
-    UseBinutilsPrefix:=true;
+  UseBinutilsPrefix:=(SourceOS<>OS);
   if (SourceCPU<>CPU) then
     begin
       { we need to accept 32<->64 conversion }

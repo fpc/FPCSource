@@ -500,7 +500,6 @@ implementation
                          thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList, opdef, OC_A, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg);
 
                          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-                         thlcgwasm(hlcg).incblock;
                          thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
                          hlcg.a_load_const_reg(current_asmdata.CurrAsmList, uopdef, 0, location.register);
@@ -526,7 +525,6 @@ implementation
                        begin
 {$ifdef WASM}
                          current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
-                         thlcgwasm(hlcg).decblock;
 {$else WASM}
                          hlcg.a_label(current_asmdata.CurrAsmList, l2);
 {$endif WASM}
@@ -1229,9 +1227,6 @@ implementation
          min_label:=case_get_min(labels);
 
          { Generate the jumps }
-{$ifdef OLDREGVARS}
-         load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
 {$if not defined(cpu64bitalu)}
          if def_cgsize(opsize) in [OS_64,OS_S64] then
            genlinearcmplist(labels)
@@ -1333,9 +1328,6 @@ implementation
                  secondpass(statement);
                  { don't come back to case line }
                  current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
-{$ifdef OLDREGVARS}
-                 load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
                end;
            end;
@@ -1351,9 +1343,6 @@ implementation
            begin
 
              secondpass(elseblock);
-{$ifdef OLDREGVARS}
-             load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            end;
 
          current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));

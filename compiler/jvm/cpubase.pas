@@ -247,6 +247,10 @@ uses
       NR_FPU_RESULT_REG = NR_NO;
       NR_MM_RESULT_REG = NR_NO;
 
+      { No default flags }
+      NR_DEFAULTFLAGS = NR_NO;
+      RS_DEFAULTFLAGS = RS_NO;
+
 
 {*****************************************************************************
                        GCC /ABI linking information

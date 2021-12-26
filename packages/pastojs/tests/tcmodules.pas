@@ -20,7 +20,7 @@
 unit TCModules;
 
 {$mode objfpc}{$H+}
-
+{$Optimization }
 interface
 
 uses
@@ -277,6 +277,7 @@ type
     Procedure TestInteger_BitwiseShrNativeInt;
     Procedure TestInteger_BitwiseShlNativeInt;
     Procedure TestInteger_SystemFunc;
+    Procedure TestInteger_AssignOutsideConst;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -524,9 +525,10 @@ type
     Procedure TestClasS_CallInheritedConstructor;
     Procedure TestClass_ClassVar_Assign;
     Procedure TestClass_CallClassMethod;
-    Procedure TestClass_CallClassMethodStatic; // ToDo
+    Procedure TestClass_CallClassMethodStatic;
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
+    Procedure TestClass_Property_ClassMethodStatic;
     Procedure TestClass_Property_Indexed;
     Procedure TestClass_Property_IndexSpec;
     Procedure TestClass_PropertyOfTypeArray;
@@ -909,9 +911,12 @@ type
 
     // Library
     Procedure TestLibrary_Empty;
-    Procedure TestLibrary_ExportFunc; // ToDo
+    Procedure TestLibrary_ExportFunc;
+    Procedure TestLibrary_Export_Index_Fail;
+    Procedure TestLibrary_ExportVar;
+    Procedure TestLibrary_ExportUnitFunc;
     // ToDo: test delayed specialization init
-    // ToDO: analyzer
+    // ToDo: analyzer
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1981,8 +1986,17 @@ var
   InitName: String;
   LastNode: TJSElement;
   Arg: TJSArrayLiteralElement;
+  IsProg, IsLib: Boolean;
 begin
   if SkipTests then exit;
+
+  IsProg:=false;
+  IsLib:=false;
+  if Module is TPasProgram then
+    IsProg:=true
+  else if Module is TPasLibrary then
+    IsLib:=true;
+
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
@@ -2017,9 +2031,9 @@ begin
   AssertNotNull('module name param',Arg.Expr);
   ModuleNameExpr:=Arg.Expr as TJSLiteral;
   AssertEquals('module name param is string',ord(jstString),ord(ModuleNameExpr.Value.ValueType));
-  if Module is TPasProgram then
+  if IsProg then
     AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString))
-  else if Module is TPasLibrary then
+  else if IsLib then
     AssertEquals('module name','library',String(ModuleNameExpr.Value.AsString))
   else
     AssertEquals('module name',Module.Name,String(ModuleNameExpr.Value.AsString));
@@ -2037,13 +2051,15 @@ begin
   CheckFunctionParam('module intf-function',Arg,FJSModuleSrc);
 
   // search for $mod.$init or $mod.$main - the last statement
-  if (Module is TPasProgram) or (Module is TPasLibrary) then
+  if IsProg or IsLib then
     begin
     InitName:='$main';
     AssertEquals('$mod.'+InitName+' function 1',true,JSModuleSrc.Statements.Count>0);
     end
   else
     InitName:='$init';
+  InitAssign:=nil;
+  InitFunction:=nil;
   FJSInitBody:=nil;
   if JSModuleSrc.Statements.Count>0 then
     begin
@@ -2056,7 +2072,7 @@ begin
         InitFunction:=InitAssign.Expr as TJSFunctionDeclarationStatement;
         FJSInitBody:=InitFunction.AFunction.Body as TJSFunctionBody;
         end
-      else if (Module is TPasProgram) or (Module is TPasLibrary) then
+      else if IsProg or IsLib then
         CheckDottedIdentifier('init function',InitAssign.LHS,'$mod.'+InitName);
       end;
     end;
@@ -2124,6 +2140,7 @@ procedure TCustomTestModule.CheckSource(Msg, Statements: String;
   InitStatements: string; ImplStatements: string);
 var
   ActualSrc, ExpectedSrc, InitName: String;
+  IsProg, IsLib: Boolean;
 begin
   ActualSrc:=JSToStr(JSModuleSrc);
   if coUseStrict in Converter.Options then
@@ -2141,9 +2158,15 @@ begin
       +'};'+LineEnding;
 
   // program main or unit initialization
-  if (Module is TPasProgram) or (Trim(InitStatements)<>'') then
+  IsProg:=false;
+  IsLib:=false;
+  if Module is TPasProgram then
+    IsProg:=true
+  else if Module is TPasLibrary then
+    IsLib:=true;
+  if IsProg or IsLib or (Trim(InitStatements)<>'') then
     begin
-    if (Module is TPasProgram) or (Module is TPasLibrary) then
+    if IsProg or IsLib then
       InitName:='$main'
     else
       InitName:='$init';
@@ -2155,6 +2178,7 @@ begin
 
   //writeln('TCustomTestModule.CheckSource ExpectedIntf="',ExpectedSrc,'"');
   //writeln('TTestModule.CheckSource InitStatements="',Trim(InitStatements),'"');
+  //writeln('TCustomTestModule.CheckSource ',ActualSrc);
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
@@ -3159,8 +3183,8 @@ begin
     'this.HiByte2 = (0x1234 >> 8) & 0xFF;',
     'this.LoWord1 = 0x1234CDEF & 0xFFFF;',
     'this.HiWord1 = (0x1234CDEF >> 16) & 0xFFFF;',
-    'this.LoWord2 = -0x1234CDEF & 0xFFFF;',
-    'this.HiWord2 = (-0x1234CDEF >> 16) & 0xFFFF;',
+    'this.LoWord2 = -0x1234CDEF >>> 0;',
+    'this.HiWord2 = Math.floor(-0x1234CDEF / 4294967296) >>> 0;',
     'this.lo4 = 0x34 & 0xF;',
     'this.hi4 = (0x34 >> 4) & 0xF;',
     'this.lo5 = (((-0x34 & 255) << 24) >> 24) & 0xFF;',
@@ -7463,6 +7487,106 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestInteger_AssignOutsideConst;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  MinInt = low(longint);',
+  '  MaxInt = high(longint);',
+  'type',
+  '  {#TMyInt}TMyInt = MinInt..MaxInt;',
+  'var',
+  '  i: TMyInt;',
+  '  aByte: byte;',
+  '  aShortInt: shortint;',
+  '  aWord: word;',
+  '  aSmallInt: smallint;',
+  '  aLongWord: longword;',
+  '  aLongInt: longint;',
+  '  aNativeInt: nativeint;',
+  '  aNativeUInt: nativeuint;',
+  'begin',
+  '  aByte:=$FF;',
+  '  aByte:=$100;',
+  '  aByte:=-1;',
+  '  aByte:=-127;',
+  '  aByte:=-128;',
+  '  aByte:=-254;',
+  '  aByte:=-255;',
+  '  aByte:=-256;',
+  '  aShortInt:=127;',
+  '  aShortInt:=128;',
+  '  aShortInt:=-128;',
+  '  aShortInt:=-129;',
+  '  aWord:=$ffff;',
+  '  aWord:=$10000;',
+  '  aWord:=-1;',
+  '  aWord:=-$ffff;',
+  '  aWord:=-$10000;',
+  '  aWord:=-$10001;',
+  '  aSmallInt:=$7fff;',
+  '  aSmallInt:=$8000;',
+  '  aSmallInt:=-$8000;',
+  '  aSmallInt:=-$8001;',
+  '  aLongWord:=$ffffffff;',
+  '  aLongWord:=$100000000;',
+  '  aLongWord:=-1;',
+  '  aLongWord:=-$ffffffff;',
+  '  aNativeInt:=$1fffffffffffff;',
+  '  aNativeInt:=-$1fffffffffffff;',
+  '  aNativeUInt:=$1fffffffffffff;',
+  '  aNativeUInt:=-$1fffffffffffff;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestInteger_AssignOutsideConst',
+    LinesToStr([
+    'this.MinInt = -2147483648;',
+    'this.MaxInt = 2147483647;',
+    'this.i = 0;',
+    'this.aByte = 0;',
+    'this.aShortInt = 0;',
+    'this.aWord = 0;',
+    'this.aSmallInt = 0;',
+    'this.aLongWord = 0;',
+    'this.aLongInt = 0;',
+    'this.aNativeInt = 0;',
+    'this.aNativeUInt = 0;',
+    '']),
+    LinesToStr([
+    '$mod.aByte = 0xFF;',
+    '$mod.aByte = 0;',
+    '$mod.aByte = 255;',
+    '$mod.aByte = 129;',
+    '$mod.aByte = 128;',
+    '$mod.aByte = 2;',
+    '$mod.aByte = 1;',
+    '$mod.aByte = 0;',
+    '$mod.aShortInt = 127;',
+    '$mod.aShortInt = -128;',
+    '$mod.aShortInt = -128;',
+    '$mod.aShortInt = 127;',
+    '$mod.aWord = 0xffff;',
+    '$mod.aWord = 0;',
+    '$mod.aWord = 65535;',
+    '$mod.aWord = 1;',
+    '$mod.aWord = 0;',
+    '$mod.aWord = 65535;',
+    '$mod.aSmallInt = 0x7fff;',
+    '$mod.aSmallInt = -32768;',
+    '$mod.aSmallInt = -0x8000;',
+    '$mod.aSmallInt = 32767;',
+    '$mod.aLongWord = 0xffffffff;',
+    '$mod.aLongWord = 0;',
+    '$mod.aLongWord = 4294967295;',
+    '$mod.aLongWord = 1;',
+    '$mod.aNativeInt = 0x1fffffffffffff;',
+    '$mod.aNativeInt = -0x1fffffffffffff;',
+    '$mod.aNativeUInt = 0x1fffffffffffff;',
+    '$mod.aNativeUInt = 1;',
+    '']));
+end;
+
 procedure TTestModule.TestCurrency;
 begin
   StartProgram(false);
@@ -9528,10 +9652,18 @@ begin
   'type',
   '  TArrayInt = array[1..3] of longint;',
   '  TArrayArrayInt = array[5..6] of TArrayInt;',
+  '  TArrayArrayArrayInt = array[7..8] of TArrayArrayInt;',
+  '  TArrayDim2Int = array[1..2,1..3] of longint;',
+  '  TArrayDim3Int = array[1..2,1..3,1..4] of longint;',
+  '  TArrayDim4Int = array[1..2,1..3,1..4,1..5] of longint;',
   'var',
   '  Arr: TArrayInt;',
   '  Arr2: TArrayArrayInt;',
   '  Arr3: array[boolean] of TArrayInt = ((11,12,13),(21,22,23));',
+  '  Arr4: TArrayArrayInt;',
+  '  ArrDim2: TArrayDim2Int;',
+  '  ArrDim3: TArrayDim3Int;',
+  '  ArrDim4: TArrayDim4Int;',
   '  i: longint;',
   'begin',
   '  i:=low(arr);',
@@ -9547,23 +9679,80 @@ begin
   '  i:=arr2[5,2];',
   '  arr2:=arr2;',// clone multi dim static array
   '  arr3:=arr3;',// clone anonymous multi dim static array
+  '  arr4:=arr4;',
+  '  Arr:=Arr;',
+  '  ArrDim2:=ArrDim2;',
+  '  ArrDim3:=ArrDim3;',
+  '  ArrDim4:=ArrDim4;',
   '']);
   ConvertProgram;
   CheckSource('TestArray_StaticMultiDim',
     LinesToStr([ // statements
     'this.TArrayArrayInt$clone = function (a) {',
-    '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
-    '  return r;',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '  return b;',
+    '};',
+    'this.TArrayArrayArrayInt$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = $mod.TArrayArrayInt$clone(a[c]);',
+    '  return b;',
+    '};',
+    'this.TArrayDim2Int$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '  return b;',
+    '};',
+    'this.TArrayDim3Int$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) {',
+    '    var d = b[c] = [];',
+    '    d.length = 3;',
+    '    var e = a[c];',
+    '    for (var f = 0; f < 3; f++) d[f] = e[f].slice(0);',
+    '  };',
+    '  return b;',
+    '};',
+    'this.TArrayDim4Int$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) {',
+    '    var d = b[c] = [];',
+    '    d.length = 3;',
+    '    var e = a[c];',
+    '    for (var f = 0; f < 3; f++) {',
+    '      var g = d[f] = [];',
+    '      g.length = 4;',
+    '      var h = e[f];',
+    '      for (var i = 0; i < 4; i++) g[i] = h[i].slice(0);',
+    '    };',
+    '  };',
+    '  return b;',
     '};',
     'this.Arr = rtl.arraySetLength(null, 0, 3);',
     'this.Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
     'this.Arr3$a$clone = function (a) {',
-    '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
-    '  return r;',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '  return b;',
     '};',
     'this.Arr3 = [[11, 12, 13], [21, 22, 23]];',
+    'this.Arr4 = rtl.arraySetLength(null, 0, 2, 3);',
+    'this.ArrDim2 = rtl.arraySetLength(null, 0, 2, 3);',
+    'this.ArrDim3 = rtl.arraySetLength(null, 0, 2, 3, 4);',
+    'this.ArrDim4 = rtl.arraySetLength(',
+    '  null,',
+    '  0,',
+    '  2,',
+    '  3,',
+    '  4,',
+    '  5',
+    ');',
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
@@ -9580,6 +9769,11 @@ begin
     '$mod.i = $mod.Arr2[0][1];',
     '$mod.Arr2 = $mod.TArrayArrayInt$clone($mod.Arr2);',
     '$mod.Arr3 = $mod.Arr3$a$clone($mod.Arr3);',
+    '$mod.Arr4 = $mod.TArrayArrayInt$clone($mod.Arr4);',
+    '$mod.Arr = $mod.Arr.slice(0);',
+    '$mod.ArrDim2 = $mod.TArrayDim2Int$clone($mod.ArrDim2);',
+    '$mod.ArrDim3 = $mod.TArrayDim3Int$clone($mod.ArrDim3);',
+    '$mod.ArrDim4 = $mod.TArrayDim4Int$clone($mod.ArrDim4);',
     '']));
 end;
 
@@ -9611,14 +9805,16 @@ begin
     'this.TArrayInt = 3;',
     'this.TArrayArrayInt = 4;',
     'var TArrayArrayInt$1$clone = function (a) {',
-    '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
-    '  return r;',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '  return b;',
     '};',
     'var Arr3$a$clone = function (a) {',
-    '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
-    '  return r;',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '  return b;',
     '};',
     'this.DoIt = function () {',
     '  var Arr = rtl.arraySetLength(null, 0, 3);',
@@ -9736,9 +9932,10 @@ begin
     '  };',
     '});',
     'this.TArrayRec$clone = function (a) {',
-    '  var r = [];',
-    '  for (var i = 0; i < 2; i++) r.push($mod.TRec.$clone(a[i]));',
-    '  return r;',
+    '  var b = [];',
+    '  b.length = 2;',
+    '  for (var c = 0; c < 2; c++) b[c] = $mod.TRec.$clone(a[c]);',
+    '  return b;',
     '};',
     'this.Arr = rtl.arraySetLength(null, this.TRec, 2);',
     '']),
@@ -11775,6 +11972,12 @@ begin
   CheckSource('TestRecord_FieldArray',
     LinesToStr([ // statements
     'rtl.recNewT(this, "TRec", function () {',
+    '  this.m$a$clone = function (a) {',
+    '    var b = [];',
+    '    b.length = 2;',
+    '    for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '    return b;',
+    '  };',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
     '    r.a = [];',
@@ -11789,7 +11992,7 @@ begin
     '  this.$assign = function (s) {',
     '    this.a = rtl.arrayRef(s.a);',
     '    this.s = s.s.slice(0);',
-    '    this.m = s.m.slice(0);',
+    '    this.m = this.m$a$clone(s.m);',
     '    this.o = s.o.slice(0);',
     '    return this;',
     '  };',
@@ -11841,6 +12044,12 @@ begin
     '});',
     'rtl.recNewT(this, "TRec", function () {',
     '  this.i = 0;',
+    '  this.m$a$clone = function (a) {',
+    '    var b = [];',
+    '    b.length = 2;',
+    '    for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '    return b;',
+    '  };',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
     '    r.a = [];',
@@ -11856,7 +12065,7 @@ begin
     '    this.i = s.i;',
     '    this.a = rtl.arrayRef(s.a);',
     '    this.s = s.s.slice(0);',
-    '    this.m = s.m.slice(0);',
+    '    this.m = this.m$a$clone(s.m);',
     '    this.p.$assign(s.p);',
     '    return this;',
     '  };',
@@ -12250,6 +12459,12 @@ begin
     '}, true);',
     'rtl.recNewT(this, "TRec", function () {',
     '  this.i = 0;',
+    '  this.m$a$clone = function (a) {',
+    '    var b = [];',
+    '    b.length = 2;',
+    '    for (var c = 0; c < 2; c++) b[c] = a[c].slice(0);',
+    '    return b;',
+    '  };',
     '  this.$new = function () {',
     '    var r = Object.create(this);',
     '    r.a = [];',
@@ -12265,7 +12480,7 @@ begin
     '    this.i = s.i;',
     '    this.a = rtl.arrayRef(s.a);',
     '    this.s = s.s.slice(0);',
-    '    this.m = s.m.slice(0);',
+    '    this.m = this.m$a$clone(s.m);',
     '    this.p.$assign(s.p);',
     '    return this;',
     '  };',
@@ -13816,6 +14031,111 @@ begin
     '$mod.TObject.Fx = $with1.Fy + 1;',
     '$mod.TObject.Fy = $with1.Fx + 2;',
     '$with1.$class.SetInt($with1.$class.GetInt() + 3);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_Property_ClassMethodStatic;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class function GetInt: longint; static;',
+  '    class procedure SetInt(Value: longint); static;',
+  '    class function GetItems(Index: word): longint; static;',
+  '    class procedure SetItems(Index: word; const Value: longint); static;',
+  '  end;',
+  '  TBird = class',
+  '    class procedure Fly;',
+  '    class property IntA: longint read GetInt write SetInt;',
+  '    class property Items[Index: word]: longint read GetItems write SetItems;',
+  '  end;',
+  'class function tobject.getint: longint;',
+  'begin',
+  'end;',
+  'class procedure tobject.setint(value: longint);',
+  'begin',
+  'end;',
+  'class function tobject.GetItems(Index: word): longint;',
+  'begin',
+  'end;',
+  'class procedure TObject.SetItems(Index: word; const Value: longint);',
+  'begin',
+  'end;',
+  'class procedure tbird.fly;',
+  'var w: longint;',
+  'begin',
+  '  inta:=inta+51;',
+  '  w:=items[52];',
+  '  items[53]:=54;',
+  'end;',
+  'var Obj: tbird;',
+  '  i: longint;',
+  'begin',
+  '  tbird.inta:=tbird.inta+1;',
+  '  i:=tbird.items[2];',
+  '  tbird.items[3]:=4;',
+  '  obj.inta:=obj.inta+11;',
+  '  i:=obj.items[12];',
+  '  obj.items[13]:=14;',
+  '  with Tbird do begin',
+  '    inta:=inta+21;',
+  '    i:=items[22];',
+  '    items[23]:=24;',
+  '  end;',
+  '  with Obj do begin',
+  '    inta:=inta+31;',
+  '    i:=items[32];',
+  '    items[33]:=34;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_Property_ClassMethod',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetInt = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetInt = function (Value) {',
+    '  };',
+    '  this.GetItems = function (Index) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetItems = function (Index, Value) {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Fly = function () {',
+    '    var w = 0;',
+    '    this.SetInt(this.GetInt() + 51);',
+    '    w = this.GetItems(52);',
+    '    this.SetItems(53, 54);',
+    '  };',
+    '});',
+    'this.Obj = null;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TObject.SetInt($mod.TObject.GetInt() + 1);',
+    '$mod.i = $mod.TObject.GetItems(2);',
+    '$mod.TObject.SetItems(3, 4);',
+    '$mod.TObject.SetInt($mod.TObject.GetInt() + 11);',
+    '$mod.i = $mod.TObject.GetItems(12);',
+    '$mod.TObject.SetItems(13, 14);',
+    'var $with = $mod.TBird;',
+    '$with.SetInt($with.GetInt() + 21);',
+    '$mod.i = $with.GetItems(22);',
+    '$with.SetItems(23, 24);',
+    'var $with1 = $mod.Obj;',
+    '$with1.SetInt($with1.GetInt() + 31);',
+    '$mod.i = $with1.GetItems(32);',
+    '$with1.SetItems(33, 34);',
     '']));
 end;
 
@@ -18474,6 +18794,9 @@ begin
   '  end;',
   '  TExtChildB = class external name ''ExtChildB''(TExtRootB)',
   '  end;',
+  '  TExtString = class external name ''String''',
+  '    function charAt(aIndex : NativeInt) : string;',
+  '  end;',
   'var',
   '  Obj: TObject;',
   '  Child: TChild;',
@@ -18482,6 +18805,8 @@ begin
   '  RootB: TExtRootB;',
   '  ChildB: TExtChildB;',
   '  i: IUnknown;',
+  '  s: string;',
+  '  v: jsvalue;',
   'begin',
   '  obj:=tobject(roota);',
   '  obj:=tobject(childa);',
@@ -18491,7 +18816,9 @@ begin
   '  roota:=textroota(rootb);',
   '  roota:=textroota(childb);',
   '  childa:=textchilda(textroota(obj));',
-  '  roota:=TExtRootA(i)',
+  '  roota:=TExtRootA(i);',
+  '  s:=TExtString(s).charAt(7);',
+  '  s:=TExtString(v).charAt(8);',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
@@ -18512,6 +18839,8 @@ begin
     'this.RootB = null;',
     'this.ChildB = null;',
     'this.i = null;',
+    'this.s = "";',
+    'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.RootA;',
@@ -18523,6 +18852,8 @@ begin
     '$mod.RootA = $mod.ChildB;',
     '$mod.ChildA = $mod.Obj;',
     '$mod.RootA = $mod.i;',
+    '$mod.s = $mod.s.charAt(7);',
+    '$mod.s = $mod.v.charAt(8);',
     '']));
 end;
 
@@ -20660,7 +20991,7 @@ begin
     '    this.FAnt = null;',
     '  };',
     '  this.$final = function () {',
-    '    this.FAnt = undefined;',
+    '    rtl.setIntfP(this, "FAnt", null);',
     '  };',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
@@ -20838,7 +21169,7 @@ begin
     '    this.FDoveObj = null;',
     '  };',
     '  this.$final = function () {',
-    '    this.FBirdIntf = undefined;',
+    '    rtl.setIntfP(this, "FBirdIntf", null);',
     '    this.FDoveObj = undefined;',
     '    $mod.TObject.$final.call(this);',
     '  };',
@@ -32556,6 +32887,12 @@ begin
   ConvertProgram;
   CheckSource('TestRangeChecks_ArrayIndex',
     LinesToStr([ // statements
+    'this.TArrByteChar$clone = function (a) {',
+    '  var b = [];',
+    '  b.length = 256;',
+    '  for (var c = 0; c < 256; c++) b[c] = a[c].slice(0);',
+    '  return b;',
+    '};',
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.A = [];',
@@ -33568,24 +33905,64 @@ end;
 
 procedure TTestModule.TestLibrary_ExportFunc;
 begin
-  exit;
-
   StartLibrary(false);
   Add([
   'procedure Run(w: word);',
   'begin',
   'end;',
   'exports',
-  '  Run,',
+  '  Run;',
   '  run name ''Foo'';',
+  '  test1.run name ''Test1Run'';',
   '']);
   ConvertLibrary;
   CheckSource('TestLibrary_ExportFunc',
     LinesToStr([ // statements
+    'this.Run = function (w) {',
+    '};',
+    'export { this.Run as Run, this.Run as Foo, this.Run as Test1Run };',
     '']),
     LinesToStr([
     '']));
   CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestLibrary_Export_Index_Fail;
+begin
+  StartLibrary(false);
+  Add([
+  'procedure Run(w: word);',
+  'begin',
+  'end;',
+  'exports',
+  '  Run index 3;',
+  '']);
+  SetExpectedPasResolverError('Not supported: export index',nNotSupportedX);
+  ConvertLibrary;
+end;
+
+procedure TTestModule.TestLibrary_ExportVar;
+begin
+  StartLibrary(false);
+  Add([
+  'var Wing: word;',
+  'exports',
+  '  Wing;',
+  '']);
+  ConvertLibrary;
+  CheckSource('TestLibrary_ExportVar',
+    LinesToStr([ // statements
+    'this.Wing = 0;',
+    'export { this.Wing as Wing };',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestLibrary_ExportUnitFunc;
+begin
+
 end;
 
 Initialization

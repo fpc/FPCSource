@@ -1,4 +1,4 @@
-PTCPas 0.99.15
+PTCPas 0.99.16
 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
 PTCPas is a free, portable framebuffer library, written in Free Pascal. It is
@@ -30,6 +30,7 @@ Supported consoles:
              compatible.)
   X11 (on linux and other unix-like OSes, supports XRandR, XF86VidMode, XShm
        and xf86dga extensions)
+  Cocoa for macOS (tested on macOS 11.6.1 Big Sur on an Apple M1 Mac mini.)
   Vesa 1.0+ (DOS. Supports LFB and banked video memory access)
   VGA (DOS, fakemodes, mode13h, etc...)
   CGA (DOS, added by me just for fun ... and maybe some day I'll even add

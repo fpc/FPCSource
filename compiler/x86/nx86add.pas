@@ -166,7 +166,7 @@ unit nx86add;
                  if (op=A_SUB) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    overflowcheck and
+                    not overflowcheck and
                     UseIncDec then
                   begin
                     emit_reg(A_DEC,TCGSize2Opsize[opsize],left.location.register);
@@ -198,11 +198,18 @@ unit nx86add;
                         r:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,cgsize_orddef(opsize),right.location,r);
                         emit_reg(A_NOT,TCGSize2Opsize[opsize],r);
+
+                        if mboverflow and overflowcheck then
+                          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
                         emit_reg_reg(A_AND,TCGSize2Opsize[opsize],r,left.location.register);
                      end
                    else
                      begin
-                        emit_op_right_left(op,opsize);
+                       if mboverflow and overflowcheck then
+                         cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
+                       emit_op_right_left(op,opsize);
                      end;
                  end;
             end;
@@ -221,6 +228,7 @@ unit nx86add;
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
@@ -957,6 +965,9 @@ unit nx86add;
             if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,left.location,location.register,mms_movescalar);
+
+            if left.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           end
         else
           begin
@@ -974,6 +985,9 @@ unit nx86add;
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
             cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
 
+            if left.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+
             { force floating point reg. location to be written to memory,
               we don't force it to mm register because writing to memory
               allows probably shorter code because there is no direct fpu->mm register
@@ -983,6 +997,9 @@ unit nx86add;
               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
 
             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,location.register,mms_movescalar);
+
+            if right.location.loc=LOC_REFERENCE then
+              tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
           end;
       end;
 
@@ -1161,6 +1178,10 @@ unit nx86add;
             make_not_regable(right,[ra_addr_regable]);
           end;
         Result:=inherited pass_1;
+        { correct expectloc, it does not matter of Result is set as another pass_1 is run on it
+          which will fix that one }
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER;
       end;
 
 
@@ -1550,6 +1571,9 @@ unit nx86add;
            set_result_location_reg;
            if nodetype<>subn then
             begin
+              if checkoverflow then
+                cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
               if (right.location.loc<>LOC_CONSTANT) then
                 hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
                    left.location.register,right.location.register,
@@ -1565,6 +1589,9 @@ unit nx86add;
                 swapleftright;
               if left.location.loc<>LOC_CONSTANT then
                 begin
+                  if checkoverflow then
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
                   if right.location.loc<>LOC_CONSTANT then
                     hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                         right.location.register,left.location.register,
@@ -1579,6 +1606,10 @@ unit nx86add;
                   tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
                     left.location.value,tmpreg);
+
+                  if checkoverflow then
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
                   hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                     right.location.register,tmpreg,location.register,checkoverflow,ovloc);
                 end;
@@ -1601,6 +1632,9 @@ unit nx86add;
            { at this point, left.location.loc should be LOC_REGISTER }
            if right.location.loc=LOC_REGISTER then
              begin
+               if checkoverflow then
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
                { when swapped another result register }
                if (nodetype=subn) and (nf_swapped in flags) then
                  begin
@@ -1618,15 +1652,25 @@ unit nx86add;
                { right.location<>LOC_REGISTER }
                if right.location.loc in [LOC_CSUBSETREF,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_SUBSETREG] then
                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef,true);
+
                if (nodetype=subn) and (nf_swapped in flags) then
                  begin
                    tmpreg:=left.location.register;
                    left.location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,right.location,left.location.register);
+
+                   if checkoverflow then
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,opsize,tmpreg,left.location.register);
                  end
                else
-                 cg.a_op_loc_reg(current_asmdata.CurrAsmList,cgop,opsize,right.location,left.location.register);
+                 begin
+                   if checkoverflow then
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
+                   cg.a_op_loc_reg(current_asmdata.CurrAsmList,cgop,opsize,right.location,left.location.register);
+                 end;
                location_freetemp(current_asmdata.CurrAsmList,right.location);
              end;
 

@@ -691,10 +691,14 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
      jz         .Ldeclockednolock
      lock
      decl       (%rcx)
-     jmp        .Ldeclockedend
+     setzb      %al
+     ret
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
+    .p2align 3
 .Ldeclockednolock:
      decl       (%rcx)
-.Ldeclockedend:
      setzb      %al
   end;
 
@@ -716,10 +720,14 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
      jz         .Ldeclockednolock
      lock
      decq       (%rcx)
-     jmp        .Ldeclockedend
+     setzb      %al
+     ret
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
+    .p2align 3
 .Ldeclockednolock:
      decq       (%rcx)
-.Ldeclockedend:
      setzb      %al
   end;
 
@@ -742,10 +750,13 @@ procedure inclocked(var l : longint);assembler; nostackframe;
      jz         .Linclockednolock
      lock
      incl       (%rcx)
-     jmp        .Linclockedend
+     ret
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
+    .p2align 3
 .Linclockednolock:
      incl       (%rcx)
-.Linclockedend:
   end;
 
 
@@ -767,10 +778,13 @@ procedure inclocked(var l : int64);assembler; nostackframe;
      jz         .Linclockednolock
      lock
      incq       (%rcx)
-     jmp        .Linclockedend
+     ret
+{$ifndef VER3_2}
+    .p2align 4,,10
+{$endif VER3_2}
+    .p2align 3
 .Linclockednolock:
      incq       (%rcx)
-.Linclockedend:
   end;
 
 

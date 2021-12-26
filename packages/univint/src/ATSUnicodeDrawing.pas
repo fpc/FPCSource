@@ -1534,7 +1534,7 @@ function ATSUOffsetToPosition( iTextLayout: ATSUTextLayout; iOffset: UniCharArra
  *  Parameters:
  *    
  *    iTextLayout:
- *      The layout in which the mouse down event occured.
+ *      The layout in which the mouse down event occurred.
  *    
  *    iLocationX:
  *      The x-coordinate of the event, in local coordinates, relative

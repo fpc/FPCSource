@@ -5455,7 +5455,7 @@ const
  *    instead of this API. If you use the standard window Carbon event
  *    handler on your windows, you can also use a
  *    kEventControlContextualMenuClick event handler to be notified
- *    when a contextual menu click has occured; in this case, you do
+ *    when a contextual menu click has occurred; in this case, you do
  *    not need to call this API.
  *  
  *  Mac OS X threading:
@@ -5502,7 +5502,7 @@ function IsShowContextualMenuClick( const (*var*) inEvent: EventRecord ): Boolea
  *    If you use the standard window Carbon event handler on your
  *    windows, you can also use a kEventControlContextualMenuClick
  *    event handler to be notified when a contextual menu click has
- *    occured; in this case, you do not need to call this API.
+ *    occurred; in this case, you do not need to call this API.
  *  
  *  Mac OS X threading:
  *    Not thread safe

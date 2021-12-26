@@ -58,7 +58,7 @@ SRCBATCHEXT=.bat
 endif
 endif
 ifdef COMSPEC
-ifneq ($(findstring $(OS_SOURCE),$(OSNeedsComspecToRunBatch)),)
+ifneq ($(filter $(OS_SOURCE),$(OSNeedsComspecToRunBatch)),)
 ifndef RUNBATCH
 RUNBATCH=$(COMSPEC) /C
 endif
@@ -216,11 +216,11 @@ $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 SOURCESUFFIX=$(OS_SOURCE)
 else
-ifneq ($(findstring $(OS_TARGET),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_TARGET),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 else
 TARGETSUFFIX=$(FULL_TARGET)
@@ -231,11 +231,11 @@ ifneq ($(FULL_TARGET),$(FULL_SOURCE))
 CROSSCOMPILE=1
 endif
 ifeq ($(findstring makefile,$(MAKECMDGOALS)),)
-ifeq ($(findstring $(FULL_TARGET),$(MAKEFILETARGETS)),)
+ifeq ($(filter $(FULL_TARGET),$(MAKEFILETARGETS)),)
 $(error The Makefile doesn't support target $(FULL_TARGET), please run fpcmake first)
 endif
 endif
-ifneq ($(findstring $(OS_TARGET),$(BSDs)),)
+ifneq ($(filter $(OS_TARGET),$(BSDs)),)
 BSDhier=1
 endif
 ifeq ($(OS_TARGET),linux)
@@ -289,8 +289,8 @@ endif
 ifndef CROSSBINDIR
 CROSSBINDIR:=$(wildcard $(FPCDIR)/bin/$(TARGETSUFFIX))
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
-ifneq ($(findstring $(OS_SOURCE),darwin ios),)
+ifneq ($(filter $(OS_TARGET),darwin iphonesim ios),)
+ifneq ($(filter $(OS_SOURCE),darwin ios),)
 DARWIN2DARWIN=1
 endif
 endif
@@ -366,322 +366,322 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-macosclassic)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),m68k-sinclairql)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-macosclassic)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-haiku)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-aros)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-netbsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-aros)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-freertos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),arm-ios)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),mips64el-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i8086-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-freebsd)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-win64)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-android)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),aarch64-ios)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),wasm32-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),wasm32-wasi)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),riscv32-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),riscv32-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),riscv64-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),riscv64-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),xtensa-linux)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),xtensa-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),xtensa-freertos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),z80-embedded)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),z80-zxspectrum)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),z80-msxdos)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 ifeq ($(FULL_TARGET),z80-amstradcpc)
-override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas
+override TARGET_UNITS+=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts charset cpall character unicodedata unicodenumtable fpwidestring classes uuchar dos extpas fpintres heaptrc wasiutil
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1327,11 +1327,11 @@ ifdef REQUIRE_PACKAGESDIR
 override PACKAGESDIR+=$(REQUIRE_PACKAGESDIR)
 endif
 ifdef ZIPINSTALL
-ifneq ($(findstring $(OS_TARGET),$(UNIXs)),)
+ifneq ($(filter $(OS_TARGET),$(UNIXs)),)
 UNIXHier=1
 endif
 else
-ifneq ($(findstring $(OS_SOURCE),$(UNIXs)),)
+ifneq ($(filter $(OS_SOURCE),$(UNIXs)),)
 UNIXHier=1
 endif
 endif
@@ -1519,7 +1519,7 @@ endif
 ifeq ($(OS_SOURCE),linux)
 ifndef GCCLIBDIR
 ifeq ($(CPU_TARGET),i386)
-ifneq ($(findstring x86_64,$(shell uname -a)),)
+ifneq ($(filter x86_64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
@@ -1542,11 +1542,11 @@ CROSSGCCOPT=-m64
 endif
 endif
 ifeq ($(CPU_TARGET),sparc)
-ifneq ($(findstring sparc64,$(shell uname -a)),)
+ifneq ($(filter sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 CROSSGCCOPT=-mabi=32
 else
 CROSSGCCOPT=-m32
@@ -1560,19 +1560,19 @@ FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
 ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
 FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
+ifneq ($(filter $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
 FPCMAKE_CROSSGCCOPT=-m64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
 FPCMAKE_CROSSGCCOPT=-mabi=64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 FPCMAKE_CROSSGCCOPT=-mabi=32
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv64),)
+ifeq ($(FPCFPMAKE_CPU_OPT),riscv64)
 FPCMAKE_CROSSGCCOPT=-mabi=lp64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv32),)
+ifeq ($(FPCFPMAKE_CPU_OPT),riscv32)
 FPCMAKE_CROSSGCCOPT=-mabi=ilp32
 else
 FPCMAKE_CROSSGCCOPT=-m32
@@ -1751,7 +1751,7 @@ DEBUGSYMEXT=.xcoff
 SHORTSUFFIX=mac
 IMPORTLIBPREFIX=imp
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
+ifneq ($(filter $(OS_TARGET),darwin iphonesim ios),)
 BATCHEXT=.sh
 EXEEXT=
 HASSHAREDLIB=1
@@ -1830,7 +1830,7 @@ endif
 ifeq ($(OS_TARGET),wasi)
 EXEEXT=.wasm
 endif
-ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
 ZIPSUFFIX=$(SHORTSUFFIX)
 ZIPCROSSPREFIX=
@@ -2191,8 +2191,8 @@ ifdef SYSROOTPATH
 override FPCOPT+=-XR$(SYSROOTPATH)
 else
 ifeq ($(OS_TARGET),$(OS_SOURCE))
-ifneq ($(findstring $(OS_TARGET),darwin),)
-ifneq ($(findstring $(CPU_TARGET),aarch64),)
+ifeq ($(OS_TARGET),darwin)
+ifeq ($(CPU_TARGET),aarch64)
 ifneq ($(wildcard /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk),)
 override FPCOPT+=-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
@@ -2203,8 +2203,8 @@ endif
 ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
-ifneq ($(findstring $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64),)
+ifneq ($(filter $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
+ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel riscv64 powerpc64),)
 override FPCOPT+=-Cg
 endif
 endif
@@ -2247,10 +2247,10 @@ ifdef ACROSSCOMPILE
 override FPCOPT+=$(CROSSOPT)
 endif
 override COMPILER:=$(strip $(FPC) $(FPCOPT))
-ifneq (,$(findstring -sh ,$(COMPILER)))
+ifneq (,$(filter -sh,$(COMPILER)))
 UseEXECPPAS=1
 endif
-ifneq (,$(findstring -s ,$(COMPILER)))
+ifneq (,$(filter -s,$(COMPILER)))
 ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 UseEXECPPAS=1
 endif
@@ -2665,12 +2665,14 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $< -Fiwasiinc
+wasiutil$(PPUEXT) : wasiutil.pp wasiapi$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc wasiapi$(PPUEXT) system$(PPUEXT)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc wasiapi$(PPUEXT) wasiutil$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $<
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) wasiapi$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+		    objpas$(PPUEXT) wasiapi$(PPUEXT) sysconst$(PPUEXT) wasiutil$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $< -Fi$(OBJPASDIR)/sysutils
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) \
@@ -2696,7 +2698,11 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $<
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas $(SYSTEMUNIT)$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) $< -Fu$(INC) -Fi$(RTL)/charmaps
+fpintres$(PPUEXT) : $(INC)/fpintres.pp $(INC)/intres.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

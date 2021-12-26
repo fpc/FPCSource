@@ -50,6 +50,8 @@ type
   // Handles all OS calls
 
   { TSocketHandler }
+  TSocketState = (sosCanread,sosCanWrite,sosException);
+  TSocketStates = Set of TSocketState;
 
   TSocketHandler = Class(TObject)
   Private
@@ -67,6 +69,8 @@ type
     function Accept : Boolean; virtual;
     Function Close : Boolean; virtual;
     function Shutdown(BiDirectional : Boolean): boolean; virtual;
+    function Select(aCheck : TSocketStates; TimeOut : Integer): TSocketStates; virtual;
+    function CanRead(TimeOut : Integer): Boolean; virtual;
     function Recv(Const Buffer; Count: Integer): Integer; virtual;
     function Send(Const Buffer; Count: Integer): Integer; virtual;
     function BytesAvailable: Integer; virtual;
@@ -78,6 +82,7 @@ type
   TSocketHandlerClass = Class of TSocketHandler;
 
   { TSocketStream }
+  TSocketStreamArray = Array of TSocketStream;
 
   TSocketStream = class(THandleStream)
   Private
@@ -95,10 +100,14 @@ type
     function GetLocalAddress: TSockAddr;
     function GetRemoteAddress: TSockAddr;
     procedure SetIOTimeout(AValue: Integer);
+  Protected
   Public
     Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
     destructor Destroy; override;
+    Class Function Select(Var aRead,aWrite,aExceptions : TSocketStreamArray; aTimeOut: Integer): Boolean; virtual;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Select(aCheck : TSocketStates; TimeOut : Integer): TSocketStates;
+    Function CanRead(TimeOut : Integer): Boolean;
     Function Read (Var Buffer; Count : Longint) : longint; Override;
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
@@ -110,6 +119,7 @@ type
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
     Property IOTimeout : Integer read FIOTimeout Write SetIOTimeout;
     Property ConnectTimeout : Integer read FConnectTimeout Write SetConnectTimeout;
+    Property Handler : TSocketHandler Read FHandler;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
@@ -337,6 +347,96 @@ begin
   Result:=False;
 end;
 
+function TSocketHandler.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
+{$if defined(unix) or defined(windows)}
+var
+  FDSR,FDSW,FDSE : TFDSet;
+  PFDSR,PFDSW,PFDSE : PFDSet;
+  TimeV: TTimeVal;
+  PTV : ^TTimeVal;
+  res : Longint;
+
+  Procedure DoSet(var FDS : TFDSet; var PFDS : PFDSet; aState : TSocketState);
+
+  begin
+    if not (aState in aCheck) then
+      PFDS:=nil
+    else
+      begin
+      FDS := Default(TFDSet);
+      {$ifdef unix}
+      fpFD_Zero(FDS);
+      fpFD_Set(FSocket.Handle, FDS);
+      {$endif}
+      {$ifdef windows}
+      FDS := Default(TFDSet);
+      FD_Zero(FDS);
+      FD_Set(FSocket.Handle, FDS);
+      {$ENDIF}
+      PFDS:=@FDS;
+      end
+  end;
+
+  Procedure CheckSet(var FDS : TFDSet; aState : TSocketState);
+
+  begin
+    if aState in aCheck then
+      begin
+      {$ifdef unix}
+      if fpFD_IsSet(FSocket.Handle, FDS)>0 then
+        Include(Result,aState);
+      {$endif}
+      {$ifdef windows}
+      if FD_IsSet(FSocket.Handle, FDS) then
+        Include(Result,aState);
+      {$endif}
+      end;
+  end;
+
+{$endif}
+begin
+  Result:=[];
+{$if defined(unix) or defined(windows)}
+  Res:=-1;
+  if Timeout<0 then
+    PTV:=Nil
+  else
+    begin
+    TimeV.tv_usec := (TimeOut mod 1000) * 1000;
+    TimeV.tv_sec := TimeOut div 1000;
+    PTV:=@TimeV;
+    end;
+  DoSet(FDSR,PFDSR,sosCanRead);
+  DoSet(FDSW,PFDSW,sosCanWrite);
+  DoSet(FDSE,PFDSE,sosException);
+{$endif}
+{$ifdef unix}
+  Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, PTV);
+{$endif}
+{$ifdef windows}
+  Res:=winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
+{$endif}
+{$if defined(unix) or defined(windows)}
+  if Res>0 then
+    begin
+    CheckSet(FDSR,sosCanRead);
+    CheckSet(FDSW,sosCanWrite);
+    CheckSet(FDSE,sosException);
+    end;
+  if Res<0 then
+    FLastError:=SocketError
+  else
+    FLastError:=0;
+{$else}
+  FLastError:=0;    
+{$endif}
+end;
+
+function TSocketHandler.CanRead(TimeOut : Integer): Boolean;
+begin
+  Result:=Select([sosCanRead],Timeout)<>[];
+end;
+
 function TSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
 
 Var
@@ -438,6 +538,96 @@ begin
   inherited Destroy;
 end;
 
+class function TSocketStream.Select(var aRead, aWrite, aExceptions: TSocketStreamArray; ATimeout : Integer): Boolean;
+
+{$if defined(unix) or defined(windows)}
+var
+  FDR,FDW,FDE: TFDSet;
+  TimeV: TTimeVal;
+  MaxHandle : Longint;
+
+  Procedure FillFD(var FD : TFDSet; anArray : TSocketStreamArray);
+
+  Var
+    S : TSocketStream;
+
+  begin
+    FD := Default(TFDSet);
+    {$ifdef unix}
+    fpFD_Zero(FD);
+    For S in AnArray do
+      begin
+      fpFD_Set(S.Handle, FD);
+      if S.Handle>MaxHandle then
+        MaxHandle:=S.Handle;
+      end;
+    {$ENDIF}
+    {$ifdef windows}
+    FD_Zero(FD);
+    For S in AnArray do
+      begin
+      FD_Set(S.Handle, FD);
+      if S.Handle>MaxHandle then
+        MaxHandle:=S.Handle;
+      end;
+    {$ENDIF}
+  end;
+
+  function FillArr(FD : TFDSet; Src : TSocketStreamArray) : TSocketStreamArray;
+
+  Var
+    S : TSocketStream;
+    aLen : Integer;
+
+  begin
+    Result:=nil;
+    SetLength(Result,Length(Src));
+    aLen:=0;
+    For S in Src do
+      begin
+{$IFDEF UNIX}
+      if fpFD_IsSet(S.Handle, FD)>0 then
+{$ENDIF}
+{$IFDEF Windows}
+      if FD_isSet(S.Handle, FD) then
+{$ENDIF}
+        begin
+        Result[aLen]:=S;
+        Inc(aLen);
+        end;
+      end;
+    SetLength(Result,aLen);
+  end;
+  
+{$ENDIF} // Unix or windows
+
+begin
+  Result:=False;
+{$if defined(unix) or defined(windows)}
+  MaxHandle:=0;
+  TimeV.tv_usec := (aTimeOut mod 1000) * 1000;
+  TimeV.tv_sec := aTimeOut div 1000;
+  FillFD(FDR,aRead);
+  FillFD(FDW,aWrite);
+  FillFD(FDE,aExceptions);
+  if MaxHandle=0 then
+    exit;
+{$ifdef unix}
+  Result := fpSelect(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+{$endif}
+{$ifdef windows}
+  Result := winsock2.Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+{$endif}
+  aRead:=FillArr(FDR,aRead);
+  aWrite:=FillArr(FDR,aRead);
+  aExceptions:=FillArr(FDR,aRead);
+{$ELSE}  // Unix or windows
+  aRead:=[];
+  aWrite:=[];
+  aExceptions:=[];
+{$ENDIF}  
+end;
+
 procedure TSocketStream.GetSockOptions;
 {$ifdef windows}
 var
@@ -476,12 +666,23 @@ end;
 Procedure TSocketStream.SetSocketOptions(Value : TSocketOptions);
 
 begin
+  FSocketOptions:=Value;
 end;
 
 function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Result:=0;
+end;
+
+function TSocketStream.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
+begin
+  Result:=FHandler.Select(aCheck,TimeOut);
+end;
+
+Function TSocketStream.CanRead (TimeOut : Integer) : Boolean;
+begin
+  Result:=FHandler.CanRead(TimeOut);
 end;
 
 Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
@@ -526,6 +727,7 @@ Var
 {$endif unix}
 
 begin
+  E:=False;
   if FIOTimeout=AValue then Exit;
   FIOTimeout:=AValue;
 
@@ -618,7 +820,7 @@ begin
     FDS := Default(TFDSet);
     FD_Zero(FDS);
     FD_Set(FSocket, FDS);
-    Result := Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+    Result := winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
     If not Result then
@@ -879,20 +1081,30 @@ begin
 end;
 
 Function  TInetServer.SockToStream (ASocket : Longint) : TSocketStream;
-
 Var
   H : TSocketHandler;
+  A : Boolean;
+
+  procedure ShutDownH;
+  begin
+    H.Shutdown(False);
+    FreeAndNil(Result);
+  end;
 
 begin
   H:=GetClientSocketHandler(aSocket);
   Result:=TInetSocket.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
-  if Not H.Accept then
-    begin
-    H.Shutdown(False);
-    FreeAndNil(Result);
-    end;
+
+  try
+    A:=H.Accept;
+  except
+    ShutDownH;
+    raise;
+  end;
+  if Not A then
+    ShutDownH;
 end;
 
 Function TInetServer.Accept : Longint;
@@ -1082,7 +1294,7 @@ begin
     Res:=fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   {$ifdef windows}
-    Res:=select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
+    Res:=winsock2.select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
   {$ENDIF}
   if (Res=0) then
     Result:=ctrTimeout

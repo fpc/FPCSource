@@ -62,18 +62,18 @@ var
   argv: PPChar;
   envp: PPChar;
 //  errno: integer;
-  
+
 function get_cmdline:Pchar;
 
 property cmdline:Pchar read get_cmdline;
 
 implementation
 
-const 
+const
   calculated_cmdline: Pchar = nil;
   { System limits, POSIX value in parentheses, used for buffer and stack allocation }
   ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
-  PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }  
+  PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
 
 {$i system.inc}
@@ -128,8 +128,10 @@ function paramstr(l: longint) : string;
      begin
        paramstr := execpathstr;
      end
+   else if (l > 0) and ( l < argc ) then
+     paramstr:=strpas(argv[l])
    else
-     paramstr:=strpas(argv[l]);
+     paramstr:='';
  end;
 
 {*****************************************************************************
@@ -234,7 +236,7 @@ begin
   SysInitExceptions;
   initunicodestringmanager;
   SetupCmdLine;
-  
+
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Setup stdin, stdout and stderr }
   SysInitStdIO;

@@ -457,7 +457,7 @@ var
   s, linkstr,
   cmdstr  : TCmdStr;
   success : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   StaticStr, RedirectStr,
   StripStr   : string[40];
 begin

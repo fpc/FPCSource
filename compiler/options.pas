@@ -78,9 +78,14 @@ Type
     procedure ForceStaticLinking;
    protected
     MacVersionSet: boolean;
+    IdfVersionSet: boolean;
     processorstr: TCmdStr;
     function ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
     procedure MaybeSetDefaultMacVersionMacro;
+{$ifdef XTENSA}
+    function ParseVersionStr(out ver: longint; const compvarname, value: string): boolean;
+    procedure MaybeSetIdfVersionMacro;
+{$endif}
     procedure VerifyTargetProcessor;
   end;
 
@@ -95,7 +100,7 @@ implementation
 
 uses
   widestr,
-  {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif},
+  charset,
   SysUtils,
   version,
   cutils,cmsgs,
@@ -1146,6 +1151,86 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     result:=true;
   end;
 
+{$ifdef XTENSA}
+function TOption.ParseVersionStr(out ver: longint;
+  const compvarname, value: string): boolean;
+
+  function subval(start,maxlen: longint; out stop: longint): string;
+    var
+      i: longint;
+    begin
+      result:='';
+      i:=start;
+      while (i<=length(value)) and
+            (value[i] in ['0'..'9']) do
+        inc(i);
+      { sufficient amount of digits? }
+      if (i=start) or
+         (i-start>maxlen) then
+        exit;
+      result:=copy(value,start,i-start);
+      stop:=i;
+    end;
+
+  var
+    temp,
+    compvarvalue: string[15];
+    i: longint;
+  begin
+    Result:=false;
+    IdfVersionSet:=false;
+    emptystr:='';
+    { check whether the value is a valid version number }
+    if value='' then
+      begin
+        undef_system_macro(compvarname);
+        exit(true);
+      end;
+    { major version number }
+    compvarvalue:=subval(1,2,i);
+    { not enough digits -> invalid }
+    if compvarvalue='' then
+      exit(false);
+    { already end of string -> invalid }
+    if (i>=length(value)) or
+       (value[i]<>'.') then
+      exit(false);
+    { minor version number }
+    temp:=subval(i+1,2,i);
+    if temp='' then
+      exit(false);
+    if length(temp)=1 then
+      temp:='0'+temp;
+    compvarvalue:=compvarvalue+temp;
+    { patch level }
+    if i<=length(value) then
+      begin
+        if value[i]<>'.' then
+          exit(false);
+        temp:=subval(i+1,2,i);
+        if temp='' then
+          exit(false);
+
+        if length(temp)=1 then
+          temp:='0'+temp;
+        compvarvalue:=compvarvalue+temp;
+        { must be the end }
+        if i<=length(value) then
+          exit(false);
+      end
+    else
+      begin
+        compvarvalue:=compvarvalue+'00';
+      end;
+    val(compvarvalue,idf_version,i);
+    if i=0 then
+      begin
+        set_system_compvar(compvarname,compvarvalue);
+        IdfVersionSet:=true;
+        result:=true;
+      end;
+end;
+{$endif XTENSA}
 
 procedure TOption.MaybeSetDefaultMacVersionMacro;
 var
@@ -1221,6 +1306,34 @@ begin
   end;
 end;
 
+{$ifdef XTENSA}
+procedure TOption.MaybeSetIdfVersionMacro;
+begin
+  if not(target_info.system=system_xtensa_freertos) then
+    exit;
+  if IdfVersionSet then
+    exit;
+  { nothing specified -> defaults }
+  case current_settings.controllertype of
+    ct_esp8266:
+      begin
+        set_system_compvar('IDF_VERSION','30300');
+        idf_version:=30300;
+      end;
+    ct_esp32:
+      begin
+        set_system_compvar('IDF_VERSION','40200');
+        idf_version:=40200;
+      end;
+    else
+      begin
+        set_system_compvar('IDF_VERSION','00000');
+        idf_version:=0;
+      end;
+  end;
+end;
+{$endif XTENSA}
+
 procedure TOption.VerifyTargetProcessor;
   begin
     { no custom target processor specified -> ok }
@@ -1252,13 +1365,19 @@ procedure TOption.interpret_option(const opt:TCmdStr;ispara:boolean);
 var
   code : integer;
   c    : char;
+{$ifdef cpucapabilities}
+  cf   : tcpuflags;
+  cpuflagsstr,
+  extrasettings,
+{$endif cpucapabilities}
   more : TCmdStr;
   major,minor : longint;
   error : integer;
-  j,l   : longint;
+  j,l   , deletepos: longint;
   d,s   : TCmdStr;
   hs    : TCmdStr;
   unicodemapping : punicodemap;
+  includecapability: Boolean;
 {$ifdef llvm}
   disable: boolean;
 {$endif}
@@ -1356,7 +1475,10 @@ begin
 
            'A' :
              begin
-               paratargetasm:=find_asm_by_string(More);
+               if CompareText(More,'DEFAULT') = 0 then
+                 paratargetasm:=as_default
+               else
+                 paratargetasm:=find_asm_by_string(More);
                if paratargetasm=as_none then
                  IllegalPara(opt);
              end;
@@ -1585,8 +1707,59 @@ begin
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
+{$ifdef cpucapabilities}
+                        { find first occurrence of + or - }
+                        deletepos:=PosCharset(['+','-'],s);
+                        if deletepos<>0 then
+                          begin
+                            extrasettings:=Copy(s,deletepos,Length(s));
+                            Delete(s,deletepos,Length(s));
+                           end
+                        else
+                          extrasettings:='';
+{$endif cpucapabilities}
                         if not(Setcputype(s,init_settings)) then
                           IllegalPara(opt);
+{$ifdef cpucapabilities}
+                        while extrasettings<>'' do
+                          begin
+                            Delete(extrasettings,1,1);
+                            includecapability:=true;
+                            deletepos:=PosCharset(['+','-'],extrasettings);
+                            if deletepos<>0 then
+                              begin
+                                includecapability:=extrasettings[deletepos]='+';
+                                s:=Copy(extrasettings,1,deletepos-1);
+                                Delete(extrasettings,1,deletepos-1);
+                              end
+                            else
+                              begin
+                                s:=extrasettings;
+                                extrasettings:='';
+                              end;
+                            for cf in tcpuflags do
+                              begin
+                                Str(cf,cpuflagsstr);
+                                { expect that the cpuflagsstr i.e. the enum as well contains _HAS_ }
+                                if Pos('_HAS_',cpuflagsstr)<>0 then
+                                { get rid of prefix including _HAS_ }
+                                  Delete(cpuflagsstr,1,Pos('_HAS_',cpuflagsstr)+4)
+                                else
+                                  Internalerror(2021110601);
+                                if s=cpuflagsstr then
+                                  begin
+                                    if includecapability then
+                                      Include(cpu_capabilities[init_settings.cputype],cf)
+                                    else
+                                      Exclude(cpu_capabilities[init_settings.cputype],cf);
+                                    s:='';
+                                    break;
+                                  end;
+                              end;
+                            if s<>'' then
+                              IllegalPara(opt);
+                          end;
+{$endif cpucapabilities}
                         CPUSetExplicitly:=true;
                         break;
                       end;
@@ -1737,13 +1910,13 @@ begin
              end;
            'D' :
              begin
-               include(init_settings.globalswitches,cs_link_deffile);
                j:=1;
                while j<=length(more) do
                 begin
                   case more[j] of
                     'd' :
                       begin
+                        include(init_settings.globalswitches,cs_link_deffile);
                         description:=Copy(more,j+1,255);
                         break;
                       end;
@@ -1759,6 +1932,7 @@ begin
                       end;
                     'v' :
                       begin
+                        include(init_settings.globalswitches,cs_link_deffile);
                         dllversion:=Copy(more,j+1,255);
                         l:=pos('.',dllversion);
                         dllminor:=0;
@@ -1789,7 +1963,10 @@ begin
                         break;
                       end;
                     'w' :
-                      usewindowapi:=true;
+                      begin
+                        include(init_settings.globalswitches,cs_link_deffile);
+                        usewindowapi:=true;
+                       end;
                     '-' :
                       begin
                         exclude(init_settings.globalswitches,cs_link_deffile);
@@ -2757,6 +2934,13 @@ begin
                           begin
                             break;
                           end
+{$ifdef XTENSA}
+                        else if (target_info.system in [system_xtensa_freertos]) and
+                           ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2,255)) then
+                          begin
+                            break;
+                          end
+{$endif XTENSA}
                         else
                           IllegalPara(opt);
                       end;
@@ -3628,6 +3812,17 @@ end;
 
 procedure TOption.checkoptionscompatibility;
 begin
+{$ifdef wasm}
+  if (Ord(ts_wasm_no_exceptions in init_settings.targetswitches)+
+      Ord(ts_wasm_js_exceptions in init_settings.targetswitches)+
+      Ord(ts_wasm_native_exceptions in init_settings.targetswitches)+
+      Ord(ts_wasm_bf_exceptions in init_settings.targetswitches))>1 then
+    begin
+      Message(option_too_many_exception_modes);
+      StopOptions(1);
+    end;
+{$endif}
+
 {$ifdef i8086}
   if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
     begin
@@ -4423,6 +4618,10 @@ begin
   { maybe override assembler }
   if (option.paratargetasm<>as_none) then
     begin
+      if (option.paratargetasm=as_default) then
+        begin
+          option.paratargetasm:=target_info.assem;
+        end;
       if not set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then
@@ -4502,6 +4701,11 @@ begin
 
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
+
+{$ifdef XTENSA}
+  { set ESP32 or ESP8266 default SDK versions }
+  option.MaybeSetIdfVersionMacro;
+{$endif XTENSA}
 
 {$ifdef cpufpemu}
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
@@ -4794,6 +4998,14 @@ begin
       ;
   end;
 {$endif m68k}
+{$ifdef wasm}
+  { if no explicit exception handling mode is set for WebAssembly, assume no exceptions }
+  if init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_js_exceptions,ts_wasm_native_exceptions,ts_wasm_bf_exceptions]=[] then
+    begin
+      def_system_macro(TargetSwitchStr[ts_wasm_no_exceptions].define);
+      include(init_settings.targetswitches,ts_wasm_no_exceptions);
+    end;
+{$endif wasm}
 
   { now we can define cpu and fpu type }
   def_cpu_macros;

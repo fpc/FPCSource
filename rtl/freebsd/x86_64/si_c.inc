@@ -21,7 +21,7 @@ var argc: longint;
     env : ppchar;
     s   : pchar;
 begin
-  argc:=plongint(ap)^; 
+  argc:=pptrint(ap)^;
   argv:=ppchar(ap[1]);
   env:=	ppchar(ap[2+argc]);
   environ:=env;

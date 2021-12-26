@@ -322,7 +322,7 @@ interface
 
 {*** Misc ***}
     function  FullTypeName(def,otherdef:tdef):string;
-    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    function generate_nested_name(symtable:tsymtable;const delimiter:string):string;
     { def is the extended type of a helper }
     function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
@@ -1633,6 +1633,7 @@ implementation
         sym: tfieldvarsym;
       begin
         result:=false;
+        def:=generrordef;
         { If a record contains a union, it does not contain a "single
           non-composite field" in the context of certain ABIs requiring
           special treatment for such records }
@@ -1642,8 +1643,8 @@ implementation
         { a record/object can contain other things than fields }
         currentsymlist:=symlist;
         { recurse in arrays and records }
-        sym:=nil;
         repeat
+          sym:=nil;
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
@@ -1674,7 +1675,12 @@ implementation
                 end;
               { if the array element is again a record, continue descending }
               if currentdef.typ=recorddef then
-                currentsymlist:=trecorddef(currentdef).symtable.SymList
+                begin
+                  { the record might be empty, so reset the result until we've
+                    really found something }
+                  result:=false;
+                  currentsymlist:=trecorddef(currentdef).symtable.SymList
+                end
               else
                 begin
                   { otherwise we found the type of the single element }
@@ -2925,7 +2931,7 @@ implementation
         FullTypeName:=s1;
       end;
 
-    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    function generate_nested_name(symtable:tsymtable;const delimiter:string):string;
       begin
         result:='';
         while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do

@@ -141,6 +141,9 @@ uses
                 A_VXORPD,
                 A_VPXOR:
                   Result:=OptPass1VPXor(p);
+                A_VMOVDQA,
+                A_VMOVDQU:
+                  Result:=OptPass1VMOVDQ(p);
                 A_XORPS,
                 A_XORPD,
                 A_PXOR:
@@ -152,6 +155,9 @@ uses
                 A_SHRX,
                 A_SHLX:
                   Result:=OptPass1SHXX(p);
+                A_VCVTSS2SD,
+                A_CVTSS2SD:
+                  Result:=OptPass1_V_Cvtss2sd(p);
                 else
                   ;
               end;
@@ -209,7 +215,8 @@ uses
                   Result:=PostPeepholeOptMov(p);
                 A_AND:
                   Result:=PostPeepholeOptAnd(p);
-                A_MOVSX:
+                A_MOVSX,
+                A_MOVSXD:
                   Result:=PostPeepholeOptMOVSX(p);
                 A_MOVZX:
                   Result:=PostPeepholeOptMovzx(p);
@@ -228,6 +235,11 @@ uses
                   Result:=PostPeepholeOptPush(p);
                 A_SHR:
                   Result:=PostPeepholeOptShr(p);
+                A_ADD,
+                A_SUB:
+                  Result:=PostPeepholeOptADDSUB(p);
+                A_VPXOR:
+                  Result:=PostPeepholeOptVPXOR(p);
                 else
                   ;
               end;

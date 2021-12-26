@@ -2790,7 +2790,8 @@ end;
        exit;
 
      PTCModeList := Copy(PTCWrapperObject.Modes);
-     SortModes(Low(PTCModeList), High(PTCModeList));
+     if Length(PTCModeList) > 0 then
+       SortModes(Low(PTCModeList), High(PTCModeList));
 
      Has320x200 := ContainsExactResolution(320, 200);
      Has320x240 := ContainsExactResolution(320, 240);

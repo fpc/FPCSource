@@ -438,6 +438,14 @@ unit hlcgobj;
           procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
           {#
+              This routine is called after g_call_system_proc to a system proc,
+              that might raise an exception. It is used on platforms, that need
+              to manually check an 'exception raised' flag, like WebAssembly in
+              branchful exceptions mode.
+          }
+          procedure g_maybe_checkforexceptions(list : TAsmList); virtual;
+
+          {#
               Call when the current location should never be reached
           }
           procedure g_unreachable(list: TAsmList); virtual;
@@ -688,7 +696,8 @@ implementation
        fmodule,
        verbose,defutil,paramgr,
        symtable,
-       nbas,ncon,nld,ncgrtti,pass_2,
+       nbas,ncon,nld,nmem,
+       ncgrtti,pass_2,
        cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
@@ -3345,6 +3354,12 @@ implementation
     end;
 
 
+  procedure thlcgobj.g_maybe_checkforexceptions(list : TAsmList);
+    begin
+      { do nothing by default }
+    end;
+
+
   procedure thlcgobj.g_unreachable(list: TAsmList);
     begin
       { nothing }
@@ -3881,10 +3896,12 @@ implementation
         a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
       else
       }
+      cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
       if qword(hto-lto)>qword(aintmax) then
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
+      cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
       g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
       a_label(list,neglabel);
     end;
@@ -4652,6 +4669,11 @@ implementation
         inn,
         asn,isn:
           result := fen_norecurse_false;
+        vecn:
+          { we cannot do SSA during partial writes to arrays which span multiple registers, see also tw39325 }
+          if (tvecnode(n).left.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+            (tcgsize2size[reg_cgsize(tvecnode(n).left.location.register)]<>tvecnode(n).left.resultdef.size) then
+            result := fen_norecurse_false;
         else
           ;
       end;
@@ -4750,10 +4772,6 @@ implementation
       { initialises temp. ansi/wide string data }
       if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
         inittempvariables(list);
-
-{$ifdef OLDREGVARS}
-      load_regvars(list,nil);
-{$endif OLDREGVARS}
     end;
 
   procedure thlcgobj.gen_finalize_code(list: TAsmList);
@@ -4767,10 +4785,6 @@ implementation
             exit;
           current_procinfo:=current_procinfo.parent;
         end;
-
-{$ifdef OLDREGVARS}
-      cleanup_regvars(list);
-{$endif OLDREGVARS}
 
       { finalize paras data }
       if assigned(current_procinfo.procdef.parast) and
@@ -4842,10 +4856,6 @@ implementation
        end;
 
       list.concat(Tai_force_line.Create);
-
-{$ifdef OLDREGVARS}
-      load_regvars(list,nil);
-{$endif OLDREGVARS}
     end;
 
   procedure thlcgobj.gen_exit_code(list: TAsmList);

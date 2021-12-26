@@ -2555,7 +2555,7 @@ asmr_d_finish_reading=07001_DL_Afslutter assembler-parsing ($1)
 asmr_e_none_label_contain_at=07002_E_Ikke-label navn indeholder @
 % A identifier which isn't a label can't contain a @.
 asmr_e_building_record_offset=07004_E_Fejl under opbygning af struktur-offset
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_OFFSET brugt uden navn

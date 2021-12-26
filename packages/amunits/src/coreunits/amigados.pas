@@ -1781,6 +1781,10 @@ FUNCTION WriteChars(const buf : pCHAR location 'd1'; buflen : ULONG location 'd2
 FUNCTION BADDR(bval :BPTR): POINTER;
 FUNCTION MKBADDR(adr: Pointer): BPTR;
 
+{$if defined(AMIGA_V1_2_ONLY)}
+function GetVar(const Name: PChar; Buffer: PChar; Size: LongInt; Flags: LongInt): LongInt;
+{$endif}
+
 {$if not defined(AMIGA_V1_2_ONLY)}
 // var args version
 FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
@@ -1872,6 +1876,41 @@ FUNCTION MKBADDR(adr : POINTER): BPTR; inline;
 BEGIN
     MKBADDR := BPTR( PTRUINT(adr) shr 2);
 END;
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function GetVar(const Name: PChar; Buffer: PChar; Size: LongInt; Flags: LongInt): LongInt;
+var
+  Anchor: TAnchorPath;
+  FName: AnsiString;
+  FLock: BPTR;
+  Fh: BPTR;
+  MyProc: PProcess;
+  OldWinPtr: Pointer;
+begin
+  GetVar := -1;
+  //
+  MyProc := PProcess(FindTask(Nil));
+  OldWinPtr := MyProc^.pr_WindowPtr;
+  MyProc^.pr_WindowPtr := Pointer(-1);
+  //
+  FName := 'ENV:' + AnsiString(Name);
+  FLock := Lock(PChar(FName), SHARED_LOCK);
+  if FLock <> 0 then
+  begin
+    UnLock(FLock);
+    // search in env for all Variables
+    Fh := DosOpen(PChar(FName), MODE_OLDFILE);
+    if Fh <> 0 then
+    begin
+      GetVar := DosRead(Fh, Buffer, Size);
+      DosClose(FH);
+    end;
+  end;
+  //
+  MyProc^.pr_WindowPtr := OldWinPtr;
+end;
+{$endif}
+
 {$if not defined(AMIGA_V1_2_ONLY)}
 FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
 begin

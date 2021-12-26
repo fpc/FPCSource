@@ -38,16 +38,17 @@ unit optloadmodifystore;
   interface
 
     uses
-      node;
+      node,nld;
 
     procedure do_optloadmodifystore(var rootnode : tnode);
+    function try_opt_assignmentnode(assignmentnode : tassignmentnode): tnode;
 
   implementation
 
     uses
-      globtype,verbose,nutils,compinnr,
+      globtype,globals,verbose,nutils,compinnr,
       defutil,defcmp,htypechk,pass_1,constexp,
-      nadd,ncal,ncon,ncnv,ninl,nld,nmat,
+      nadd,ncal,ncon,ncnv,ninl,nmat,
       symdef;
 
     function try_opt_assignmentnode(assignmentnode: tassignmentnode): tnode;
@@ -57,6 +58,10 @@ unit optloadmodifystore;
         result:=nil;
         with assignmentnode do
           begin
+            { *** Here are simple optimizations which are performed
+              when -O2 (via a call from tassignmentnode.simplify) or
+              when cs_opt_use_load_modify_store is enabled (in a separate pass).
+            }
             { replace i:=succ/pred(i) by inc/dec(i)? }
             if (right.nodetype=inlinen) and
               ((tinlinenode(right).inlinenumber=in_succ_x) or (tinlinenode(right).inlinenumber=in_pred_x)) and
@@ -273,6 +278,71 @@ unit optloadmodifystore;
                 taddnode(ttypeconvnode(right).left).left:=nil;
                 exit;
               end;
+            { replace i:=not i  by in_not_assign_x(i)
+                      i:=-i     by in_neg_assign_x(i)
+
+              this handles the case, where there are no implicit type conversions }
+            if (right.nodetype in [notn,unaryminusn]) and
+              (tunarynode(right).left.isequal(left)) and
+              is_integer(tunarynode(right).left.resultdef) and
+              ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              valid_for_var(tunarynode(right).left,false) and
+              not(might_have_sideeffects(tunarynode(right).left)) then
+              begin
+                if right.nodetype=notn then
+                  newinlinenodetype:=in_not_assign_x
+                else
+                  newinlinenodetype:=in_neg_assign_x;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,tunarynode(right).left);
+                result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
+                tunarynode(right).left:=nil;
+                exit;
+              end;
+            { replace i:=not i  by in_not_assign_x(i)
+                      i:=-i     by in_neg_assign_x(i)
+
+              this handles the case with type conversions:
+                   outer typeconv: right
+                          neg/not: ttypeconvnode(right).left
+                   inner typeconv: tunarynode(ttypeconvnode(right).left).left
+                   right side 'i': ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left }
+            if (right.nodetype=typeconvn) and
+               (ttypeconvnode(right).convtype=tc_int_2_int) and
+               (ttypeconvnode(right).left.nodetype in [notn,unaryminusn]) and
+               is_integer(ttypeconvnode(right).left.resultdef) and
+               (right.resultdef.size<=ttypeconvnode(right).left.resultdef.size) and
+               (tunarynode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
+               (ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
+               are_equal_ints(right.resultdef,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
+               ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.isequal(left) and
+               is_integer(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
+               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               valid_for_var(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left,false) and
+               not(might_have_sideeffects(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left)) then
+              begin
+                if ttypeconvnode(right).left.nodetype=notn then
+                  newinlinenodetype:=in_not_assign_x
+                else
+                  newinlinenodetype:=in_neg_assign_x;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left);
+                result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
+                ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left:=nil;
+                exit;
+              end;
+
+            if not (cs_opt_use_load_modify_store in current_settings.optimizerswitches) then
+              exit;
+            { *** Here are more complex optimizations which are performed only
+              when cs_opt_use_load_modify_store is enabled.
+            }
 {$ifdef enable_shl_shr_assign_x_y}
             { replace i:=i shl k by in_shl_assign_x_y(i,k)
                       i:=i shr k by in_shr_assign_x_y(i,k)
@@ -555,65 +625,6 @@ unit optloadmodifystore;
                 exit;
               end;
 {$endif enable_sar_assign_x_y or enable_rox_assign_x_y}
-            { replace i:=not i  by in_not_assign_x(i)
-                      i:=-i     by in_neg_assign_x(i)
-
-              this handles the case, where there are no implicit type conversions }
-            if (right.nodetype in [notn,unaryminusn]) and
-              (tunarynode(right).left.isequal(left)) and
-              is_integer(tunarynode(right).left.resultdef) and
-              ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-              ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
-              valid_for_var(tunarynode(right).left,false) and
-              not(might_have_sideeffects(tunarynode(right).left)) then
-              begin
-                if right.nodetype=notn then
-                  newinlinenodetype:=in_not_assign_x
-                else
-                  newinlinenodetype:=in_neg_assign_x;
-                result:=cinlinenode.createintern(
-                  newinlinenodetype,false,tunarynode(right).left);
-                result.localswitches:=localswitches;
-                result.fileinfo:=fileinfo;
-                result.verbosity:=verbosity;
-                tunarynode(right).left:=nil;
-                exit;
-              end;
-            { replace i:=not i  by in_not_assign_x(i)
-                      i:=-i     by in_neg_assign_x(i)
-
-              this handles the case with type conversions:
-                   outer typeconv: right
-                          neg/not: ttypeconvnode(right).left
-                   inner typeconv: tunarynode(ttypeconvnode(right).left).left
-                   right side 'i': ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left }
-            if (right.nodetype=typeconvn) and
-               (ttypeconvnode(right).convtype=tc_int_2_int) and
-               (ttypeconvnode(right).left.nodetype in [notn,unaryminusn]) and
-               is_integer(ttypeconvnode(right).left.resultdef) and
-               (right.resultdef.size<=ttypeconvnode(right).left.resultdef.size) and
-               (tunarynode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
-               (ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
-               are_equal_ints(right.resultdef,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
-               ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.isequal(left) and
-               is_integer(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left.resultdef) and
-               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
-               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
-               valid_for_var(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left,false) and
-               not(might_have_sideeffects(ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left)) then
-              begin
-                if ttypeconvnode(right).left.nodetype=notn then
-                  newinlinenodetype:=in_not_assign_x
-                else
-                  newinlinenodetype:=in_neg_assign_x;
-                result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left);
-                result.localswitches:=localswitches;
-                result.fileinfo:=fileinfo;
-                result.verbosity:=verbosity;
-                ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left:=nil;
-                exit;
-              end;
           end;
       end;
 

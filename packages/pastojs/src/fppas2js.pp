@@ -462,6 +462,9 @@ unit FPPas2Js;
   {$define HasInt64}
 {$endif}
 
+{$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
+{$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
+
 interface
 
 uses
@@ -1065,15 +1068,17 @@ type
   TPasToJsPlatform = (
     PlatformBrowser,
     PlatformNodeJS,
-    PlatformElectron
+    PlatformElectron,
+    PlatformModule
     );
   TPasToJsPlatforms = set of TPasToJsPlatform;
 const
   PasToJsPlatformNames: array[TPasToJsPlatform] of string = (
    'Browser',
    'NodeJS',
-   'Electron'
-    );
+   'Electron',
+   'Module'
+  );
 type
   TPasToJsProcessor = (
     ProcessorECMAScript5,
@@ -2076,6 +2081,7 @@ type
       RTLFunc: TPas2JSBuiltInName; PosEl: TPasElement): TJSCallExpression; virtual;
     Function CreateRangeCheckCall_TypeRange(aType: TPasType; GetExpr: TJSElement;
       AContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
+    Procedure PrepareAssignDifferentIntegers(El: TPasImplAssign; AssignContext: TAssignContext); virtual;
     // reference
     Function CreateReferencePath(El: TPasElement; AContext: TConvertContext;
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
@@ -2092,6 +2098,7 @@ type
     // section
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Procedure CreateExportsSection(El: TPasLibrary; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
@@ -4908,6 +4915,7 @@ var
   ResolvedEl: TPasResolverResult;
   DeclEl: TPasElement;
   Proc: TPasProcedure;
+  V: TPasVariable;
 begin
   if El.Parent is TLibrarySection then
     // ok
@@ -4923,14 +4931,28 @@ begin
   DeclEl:=ResolvedEl.IdentEl;
   if DeclEl=nil then
     RaiseMsg(20210106223620,nSymbolCannotBeExportedFromALibrary,
-      sSymbolCannotBeExportedFromALibrary,[],El)
-  else if DeclEl is TPasProcedure then
+      sSymbolCannotBeExportedFromALibrary,[],El);
+  if not (DeclEl.Parent is TPasSection) then
+    RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
+      sSymbolCannotBeExportedFromALibrary,[],El);
+
+  if not (DeclEl.Parent is TLibrarySection) then
+    // disable exports in units
+    RaiseMsg(20211022224239,nSymbolCannotBeExportedFromALibrary,
+      sSymbolCannotBeExportedFromALibrary,[],El);
+
+  if DeclEl is TPasProcedure then
     begin
     Proc:=TPasProcedure(DeclEl);
-    if Proc.Parent is TPasSection then
-      // ok
-    else
-      RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
+    if Proc.IsExternal or Proc.IsAbstract then
+      RaiseMsg(20211021225630,nSymbolCannotBeExportedFromALibrary,
+        sSymbolCannotBeExportedFromALibrary,[],El);
+    end
+  else if DeclEl is TPasVariable then
+    begin
+    V:=TPasVariable(DeclEl);
+    if vmExternal in V.VarModifiers then
+      RaiseMsg(20211021225634,nSymbolCannotBeExportedFromALibrary,
         sSymbolCannotBeExportedFromALibrary,[],El);
     end
   else
@@ -6874,17 +6896,25 @@ var
   ElType: TPasType;
 begin
   l:=length(Arr.Ranges);
-  if l=0 then exit(false);
-  if l>1 then exit(false ); // ToDo: return true when cloning multi dims is implemented
-  ElType:=ResolveAliasType(Arr.ElType);
-  if ElType is TPasArrayType then
-    Result:=length(TPasArrayType(ElType).Ranges)>0
-  else if ElType is TPasRecordType then
-    Result:=true
-  else if ElType is TPasSetType then
-    Result:=true
+  case l of
+  0:
+    Result:=false; // dyn array
+  1:
+    begin
+    // 1-dim static array
+    ElType:=ResolveAliasType(Arr.ElType);
+    if ElType is TPasArrayType then
+      Result:=length(TPasArrayType(ElType).Ranges)>0
+    else if ElType is TPasRecordType then
+      Result:=true
+    else if ElType is TPasSetType then
+      Result:=true
+    else
+      Result:=false; // can use  arr.slice(0)
+    end
   else
-    Result:=false;
+    Result:=true; // multi dim static array
+  end;
 end;
 
 function TPas2JSResolver.IsTGUID(TypeEl: TPasRecordType): boolean;
@@ -8298,8 +8328,8 @@ begin
       if Assigned(Lib.LibrarySection) then
         AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
       HasImplCode:=AddDelayedInits(Lib,Src,IntfContext);
+      CreateExportsSection(Lib,Src,IntfContext);
       CreateInitSection(Lib,Src,IntfContext);
-      // ToDo: append exports
       end
     else
       begin // unit
@@ -9925,7 +9955,10 @@ begin
       begin
       // a.StaticProc  ->  pas.unit1.aclass.StaticProc(defaultargs)
       // ToDo: check if left side has only types (no call nor field)
-      Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,aContext);
+      if Assigned(OnConvertRight) then
+        Result:=OnConvertRight(RightEl,AContext,Data)
+      else
+        Result:=ConvertIdentifierExpr(RightEl,TPrimitiveExpr(RightEl).Value,AContext);
       exit;
       end;
     end;
@@ -12132,7 +12165,7 @@ begin
         JSBaseType:=TResElDataPas2JSBaseType(ParamTypeEl.CustomData).JSBaseType;
         if JSBaseType=pbtJSValue then
           begin
-          if (C=TPasClassType)
+          if ((C=TPasClassType) and not TPasClassType(Decl).IsExternal)
               or (C=TPasClassOfType)
               or (C=TPasRecordType) then
             begin
@@ -13745,7 +13778,6 @@ begin
       end;
     btString:
       begin
-        writeln('AAA1 TPasToJSConverter.ConvertBuiltIn_LowHigh ',IsLow);
       if isLow then
         // low(aString) -> 1
         Result:=CreateLiteralNumber(El,1)
@@ -14262,7 +14294,7 @@ begin
     RaiseInconsistency(20190129102200,El);
   Param := El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedParam,[]);
-  if not (ResolvedParam.BaseType in btAllInteger) then
+  if not (ResolvedParam.BaseType in btAllJSInteger) then
     DoError(20190129121100,nXExpectedButYFound,sXExpectedButYFound,['integer type',
       AContext.Resolver.GetResolverResultDescription(ResolvedParam)],Param);
   Shift := AContext.Resolver.GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType,IsLoFunc,Mask);
@@ -16640,13 +16672,13 @@ function TPasToJSConverter.ConvertArrayType(El: TPasArrayType;
 //    eltype: module.$rtti["ElTypeName"]
 //  };
 //
-const
-  CloneArrName = 'a';
-  CloneResultName = 'r';
-  CloneRunName = 'i';
 var
+  VarIndex: integer;
   ProcScope: TPas2JSProcedureScope;
   Src: TJSSourceElements;
+  Index: Integer;
+  BodySrc: TJSSourceElements;
+  ForLoop: TJSForStatement;
 
   procedure StorePrecompiledJS(JS: TJSElement);
   begin
@@ -16657,26 +16689,63 @@ var
       ProcScope.AddGlobalJS(CreatePrecompiledJS(JS));
   end;
 
+  function GetNextVarName: string;
+  var
+    i: integer;
+  begin
+    i:=VarIndex mod 52;
+    if i<26 then
+      Result:=chr(ord('a')+i)
+    else
+      Result:=chr(ord('A')+i);
+    if VarIndex>=52 then
+      Result:=Result+IntToStr(VarIndex div 52);
+    inc(VarIndex);
+  end;
+
+  procedure AddLoopSt(JS: TJSElement);
+  var
+    List: TJSStatementList;
+  begin
+    if Index=0 then
+      AddToSourceElements(BodySrc,JS)
+    else
+      begin
+      if ForLoop.Body=nil then
+        ForLoop.Body:=JS
+      else
+        begin
+        List:=TJSStatementList(CreateElement(TJSStatementList,El));
+        List.A:=ForLoop.Body;
+        List.B:=JS;
+        ForLoop.Body:=List;
+        end;
+      end;
+  end;
+
 var
   aResolver: TPas2JSResolver;
   AssignSt: TJSSimpleAssignStatement;
   ArrName: String;
-  Index: Integer;
   ElTypeLo: TPasType;
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
   RangeEnd: TMaxPrecInt;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
-  BodySrc: TJSSourceElements;
   VarSt: TJSVariableStatement;
-  ForLoop: TJSForStatement;
   ExprLT: TJSRelationalExpressionLT;
   PlusPlus: TJSUnaryPostPlusPlusExpression;
-  BracketEx: TJSBracketMemberExpression;
+  BracketLeftEx, BracketRightEx: TJSBracketMemberExpression;
   ArraySt, CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
   FuncContext: TFunctionContext;
+  SrcArrName, ResultName, LoopVarName, NewArrName,
+    ParentNewArrName, ParentSrcArrName: string;
+  VarDecl: TJSVarDeclaration;
+  MaxIndex: SizeInt;
+  UseSlice: boolean;
+  NewLoop: TJSForStatement;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -16695,72 +16764,172 @@ begin
 
   if aResolver.HasStaticArrayCloneFunc(El) then
     begin
-    // For example: type TArr = array[1..2] of array[1..2] of longint;
+    // Example1: type TStaticArray = array[1..2] of array[1..2] of longint;
     //  this.TStaticArray$clone = function(a){
-    //    var r = [];
-    //    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
-    //    return r;
+    //    var b = [];
+    //    b.length = Dim1;
+    //    for (var c=0; c<Dim1; c++) b[c] = a[c].slice(0);
+    //    return b;
     //  };
-    BracketEx:=nil;
+    // Example2: type TDim3 = array[1..3,2..4,3..5] of longint;
+    //  this.TDim3$clone = function(a){
+    //    var b = [];
+    //    b.length = Dim1;
+    //    for (var c=0; c<Dim1; c++){
+    //      var d = b[c] = [];
+    //      d.length = Dim2;
+    //      var e = a[c];
+    //      for (var f=0; f<Dim2; f++) d[f] = e[f].slice(0);
+    //    }
+    //    return b;
+    //  };
+    BracketLeftEx:=nil;
     AssignSt:=nil;
     Func:=nil;
     FuncContext:=nil;
     try
-      Index:=0;
-      RangeEl:=El.Ranges[Index];
+      VarIndex:=0;
+      SrcArrName:=GetNextVarName;
+      ResultName:=GetNextVarName;
+      LoopVarName:='';
+
+      ElTypeLo:=aResolver.ResolveAliasType(El.ElType);
+
       // function(a){...
       Func:=CreateFunctionSt(El,true,true);
-      Func.AFunction.Params.Add(CloneArrName);
+      Func.AFunction.Params.Add(SrcArrName);
       BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       FuncContext:=TFunctionContext.Create(El,BodySrc,AContext);
       FuncContext.IsGlobal:=true;
-      // var r = [];
-      VarSt:=CreateVarStatement(CloneResultName,TJSArrayLiteral(CreateElement(TJSArrayLiteral,El)),El);
-      AddToSourceElements(BodySrc,VarSt);
-      // for (
-      ForLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
-      AddToSourceElements(BodySrc,ForLoop);
-      // var i=0;
-      ForLoop.Init:=CreateVarStatement(CloneRunName,CreateLiteralNumber(El,0),El);
-      // i<high(a)
-      ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
-      ForLoop.Cond:=ExprLT;
-      ExprLT.A:=CreatePrimitiveDotExpr(CloneRunName,El);
-      RangeEnd:=aResolver.GetRangeLength(RangeEl);
-      ExprLT.B:=CreateLiteralNumber(RangeEl,RangeEnd);
-      // i++
-      PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
-      ForLoop.Incr:=PlusPlus;
-      PlusPlus.A:=CreatePrimitiveDotExpr(CloneRunName,El);
-      // r.push(...
-      Call:=CreateCallExpression(El);
-      ForLoop.Body:=Call;
-      Call.Expr:=CreatePrimitiveDotExpr(CloneResultName+'.push',El);
-      // a[i]
-      BracketEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-      BracketEx.MExpr:=CreatePrimitiveDotExpr(CloneArrName,El);
-      BracketEx.Name:=CreatePrimitiveDotExpr(CloneRunName,El);
-      // clone a[i]
-      ElTypeLo:=aResolver.ResolveAliasType(El.ElType);
-      CloneEl:=nil;
-      if ElTypeLo is TPasArrayType then
+
+      MaxIndex:=length(El.Ranges)-1;
+
+      UseSlice:=(ElTypeLo is TPasUnresolvedSymbolRef)
+             or (ElTypeLo is TPasRangeType);
+      ForLoop:=nil;
+      if UseSlice then
+        // static array of a base type -> inner loop is replaced with slice(0)
+        dec(MaxIndex);
+
+      for Index:=0 to MaxIndex do
         begin
-        if length(TPasArrayType(ElTypeLo).Ranges)=0 then
-          RaiseNotSupported(El,FuncContext,20180218223414,GetObjName(ElTypeLo));
-        CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElTypeLo),BracketEx,FuncContext);
-        end
-      else if ElTypeLo is TPasRecordType then
-        CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElTypeLo),BracketEx,FuncContext)
-      else if ElTypeLo is TPasSetType then
-        CloneEl:=CreateReferencedSet(El,BracketEx)
-      else
-        RaiseNotSupported(El,FuncContext,20180218223618,GetObjName(ElTypeLo));
-      Call.AddArg(CloneEl);
-      BracketEx:=nil;
-      // return r;
+        RangeEl:=El.Ranges[Index];
+        RangeEnd:=aResolver.GetRangeLength(RangeEl);
+
+        if Index=0 then
+          NewArrName:=ResultName
+        else
+          begin
+          ParentNewArrName:=NewArrName;
+          NewArrName:=GetNextVarName;
+          end;
+
+        // var NewArr = [];
+        VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
+        VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+        VarSt.A:=VarDecl;
+        VarDecl.Name:=NewArrName;
+        VarDecl.Init:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        AddLoopSt(VarSt);
+        if Index>0 then
+          begin
+          // var NewArr = ParentNewArrName[LoopVar] = [];
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          AssignSt.Expr:=VarDecl.Init; // ... = []
+          VarDecl.Init:=AssignSt;
+          // ... = ParentNewArrName[LoopVar] = ...
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          AssignSt.LHS:=BracketLeftEx;
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(ParentNewArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          end;
+
+        // NewArr.length = Dim;
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreatePrimitiveDotExpr(NewArrName+'.length',El);
+        AssignSt.Expr:=CreateLiteralNumber(El,RangeEnd);
+        AddLoopSt(AssignSt);
+
+        if Index>0 then
+          begin
+          // var SrcArrName = ParentSrcArrName[LoopVar];
+          ParentSrcArrName:=SrcArrName;
+          SrcArrName:=GetNextVarName;
+
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          VarSt:=CreateVarStatement(SrcArrName,BracketLeftEx,El);
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(ParentSrcArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          AddLoopSt(VarSt);
+          end;
+
+        // for (
+        LoopVarName:=GetNextVarName;
+        NewLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
+        AddLoopSt(NewLoop);
+        ForLoop:=NewLoop;
+        // var LoopVar=0;
+        ForLoop.Init:=CreateVarStatement(LoopVarName,CreateLiteralNumber(El,0),El);
+        // LoopVar<Dim
+        ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
+        ForLoop.Cond:=ExprLT;
+        ExprLT.A:=CreatePrimitiveDotExpr(LoopVarName,El);
+        ExprLT.B:=CreateLiteralNumber(El,RangeEnd);
+        // LoopVar++
+        PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
+        ForLoop.Incr:=PlusPlus;
+        PlusPlus.A:=CreatePrimitiveDotExpr(LoopVarName,El);
+
+        if Index=MaxIndex then
+          begin
+          // NewArr[LoopVar] = ...
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          ForLoop.Body:=AssignSt;
+          BracketLeftEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          AssignSt.LHS:=BracketLeftEx;
+          BracketLeftEx.MExpr:=CreatePrimitiveDotExpr(NewArrName,El);
+          BracketLeftEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          // SrcArr[LoopVar]
+          BracketRightEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+          BracketRightEx.MExpr:=CreatePrimitiveDotExpr(SrcArrName,El);
+          BracketRightEx.Name:=CreatePrimitiveDotExpr(LoopVarName,El);
+          try
+            // clone array element
+            CloneEl:=nil;
+            if UseSlice then
+              begin
+              // SrcArr[LoopVar].slice(0)
+              Call:=CreateCallExpression(El);
+              CloneEl:=Call;
+              Call.Expr:=CreateDotNameExpr(El,BracketRightEx,'slice');
+              Call.AddArg(CreateLiteralNumber(El,0));
+              end
+            else if ElTypeLo is TPasArrayType then
+              begin
+              if length(TPasArrayType(ElTypeLo).Ranges)=0 then
+                RaiseNotSupported(El,FuncContext,20180218223414,GetObjName(ElTypeLo));
+              CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElTypeLo),BracketRightEx,FuncContext);
+              end
+            else if ElTypeLo is TPasRecordType then
+              CloneEl:=CreateRecordCallClone(El,TPasRecordType(ElTypeLo),BracketRightEx,FuncContext)
+            else if ElTypeLo is TPasSetType then
+              CloneEl:=CreateReferencedSet(El,BracketRightEx)
+            else
+              RaiseNotSupported(El,FuncContext,20180218223618,GetObjName(ElTypeLo));
+            AssignSt.Expr:=CloneEl;
+            BracketRightEx:=nil;
+          finally
+            BracketRightEx.Free;
+          end;
+
+          end;
+
+        end;
+
+      // return ResultName;
       ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
       AddToSourceElements(BodySrc,ReturnSt);
-      ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
+      ReturnSt.Expr:=CreatePrimitiveDotExpr(ResultName,El);
 
       ArrName:=GetOverloadName(El,AContext)+GetBIName(pbifnArray_Static_Clone);
       if El.Parent is TProcedureBody then
@@ -16790,7 +16959,6 @@ begin
 
       ArraySt:=nil;
     finally
-      BracketEx.Free;
       Func.Free;
       ArraySt.Free;
       FuncContext.Free;
@@ -17842,11 +18010,81 @@ begin
   RootContext:=AContext.GetRootContext as TRootContext;
   // add initialization section
   if Assigned(El.InitializationSection)
+      or (El is TPasLibrary) // the begin..end is optional in a library, but the js it always needed
       or (length(RootContext.GlobalClassMethods)>0) then
     AddToSourceElements(Src,ConvertInitializationSection(El,AContext));
   // finalization: not supported
   if Assigned(El.FinalizationSection) then
     raise Exception.Create('TPasToJSConverter.ConvertInitializationSection: finalization section is not supported');
+end;
+
+procedure TPasToJSConverter.CreateExportsSection(El: TPasLibrary;
+  Src: TJSSourceElements; AContext: TConvertContext);
+var
+  ExportSymbols: TFPList;
+  aResolver: TPas2JSResolver;
+  ExpSt: TJSExportStatement;
+  i: Integer;
+  Symb: TPasExportSymbol;
+  Ref: TResolvedReference;
+  NamePath: String;
+  EvalValue: TResEvalValue;
+  ExpNameJS: TJSExportNameElement;
+  Decl: TPasElement;
+  ResolvedEl: TPasResolverResult;
+begin
+  ExportSymbols:=El.LibrarySection.ExportSymbols;
+  if ExportSymbols.Count=0 then exit;
+  aResolver:=AContext.Resolver;
+
+  ExpSt:=TJSExportStatement(CreateElement(TJSExportStatement,El));
+  AddToSourceElements(Src,ExpSt);
+  for i:=0 to ExportSymbols.Count-1 do
+    begin
+    ExpNameJS:=ExpSt.ExportNames.AddElement;
+    Symb:=TObject(ExportSymbols[i]) as TPasExportSymbol;
+
+    // name
+    if Symb.NameExpr<>nil then
+      begin
+      aResolver.ComputeElement(Symb.NameExpr,ResolvedEl,[rcConstant]);
+      Decl:=ResolvedEl.IdentEl;
+      end
+    else
+      begin
+      if not (Symb.CustomData is TResolvedReference) then
+        RaiseNotSupported(Symb,AContext,20211020142506,GetObjName(Symb.CustomData));
+      Ref:=TResolvedReference(Symb.CustomData);
+      Decl:=Ref.Declaration;
+      end;
+    NamePath:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
+    ExpNameJS.Name:=NamePath;
+
+    // alias
+    if Symb.ExportName<>nil then
+      begin
+      EvalValue:=aResolver.Eval(Symb.ExportName,[refConst]);
+      if EvalValue=nil then
+        RaiseNotSupported(Symb.ExportName,AContext,20211020144200);
+      case EvalValue.Kind of
+      {$ifdef FPC_HAS_CPSTRING}
+      revkString:
+        ExpNameJS.Alias:=TResEvalString(EvalValue).S;
+      {$endif}
+      revkUnicodeString:
+        ExpNameJS.Alias:=String(TResEvalUTF16(EvalValue).S);
+      else
+        RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
+      end;
+
+      end
+    else
+      begin
+      if Decl.Name='' then
+        RaiseNotSupported(Symb,AContext,20211020144730);
+      ExpNameJS.Alias:=Decl.Name;
+      end;
+    end;
 end;
 
 procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;
@@ -18860,8 +19098,6 @@ begin
     // TArrayType$clone(ArrayExpr);
     if ArrTypeEl.Name='' then
       RaiseNotSupported(El,AContext,20180218230407,'copy anonymous multi dim static array');
-    if length(ArrTypeEl.Ranges)>1 then
-      RaiseNotSupported(El,AContext,20180218231700,'copy multi dim static array');
     FuncContext:=AContext.GetFunctionContext;
     Path:=CreateReferencePath(ArrTypeEl,FuncContext,rpkPathAndName)
           +GetBIName(pbifnArray_Static_Clone);
@@ -18957,6 +19193,9 @@ var
   Func: TJSFunctionDeclarationStatement;
   VarType: TPasType;
   AssignSt: TJSSimpleAssignStatement;
+  C: TClass;
+  ElClass: TPasClassType;
+  Call: TJSCallExpression;
 begin
   // add instance members
   AncestorIsExternal:=(Ancestor is TPasClassType) and TPasClassType(Ancestor).IsExternal;
@@ -18986,13 +19225,29 @@ begin
           // mfFinalize: clear reference
           if vmExternal in TPasVariable(P).VarModifiers then continue;
           VarType:=ClassContext.Resolver.ResolveAliasType(TPasVariable(P).VarType);
-          if (VarType.ClassType=TPasRecordType)
-              or (VarType.ClassType=TPasClassType)
-              or (VarType.ClassType=TPasClassOfType)
-              or (VarType.ClassType=TPasSetType)
-              or (VarType.ClassType=TPasProcedureType)
-              or (VarType.ClassType=TPasFunctionType)
-              or (VarType.ClassType=TPasArrayType) then
+          C:=VarType.ClassType;
+          if (C=TPasClassType) then
+            begin
+            ElClass:=TPasClassType(VarType);
+            if (ElClass.ObjKind=okInterface) and (ElClass.InterfaceType=citCom) then
+              begin
+              // rtl.setIntfP(this,"FieldName",null)
+              Call:=CreateCallExpression(El);
+              NewEl:=Call;
+              Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
+              Call.AddArg(CreatePrimitiveDotExpr('this',El));
+              Call.AddArg(CreateLiteralString(El,TransformElToJSName(P,New_FuncContext)));
+              Call.AddArg(CreateLiteralNull(El));
+              end;
+            end;
+          if (NewEl=nil)
+              and ((C=TPasRecordType)
+                or (C=TPasClassType)
+                or (C=TPasClassOfType)
+                or (C=TPasSetType)
+                or (C=TPasProcedureType)
+                or (C=TPasFunctionType)
+                or (C=TPasArrayType)) then
             begin
             // add 'this.FieldName = undefined;'
             AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
@@ -20905,7 +21160,7 @@ begin
     Result:=Call;
     if LHS is TJSDotMemberExpression then
       begin
-      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS})
+      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
       Call.AddArg(TJSDotMemberExpression(LHS).MExpr);
       TJSDotMemberExpression(LHS).MExpr:=nil;
@@ -20918,7 +21173,7 @@ begin
       end
     else if LHS is TJSBracketMemberExpression then
       begin
-      // path[index] = RHS  ->  rtl.setIntfP(path,index,RHS})
+      // path[index] = RHS  ->  rtl.setIntfP(path,index,RHS)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
       Call.AddArg(TJSBracketMemberExpression(LHS).MExpr);
       TJSBracketMemberExpression(LHS).MExpr:=nil;
@@ -21568,8 +21823,6 @@ var
     else
       begin
       ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
-      if ProcScope.ImplProc<>nil then
-        ProcScope:=ProcScope.ImplProc.CustomData as TPas2JSProcedureScope;
       if ProcScope.SelfArg=nil then
         begin
         {$IFDEF VerbosePas2JS}
@@ -22301,6 +22554,7 @@ begin
       end;
     if AssignContext.RightSide=nil then
       AssignContext.RightSide:=ConvertExpression(El.right,AContext);
+
     if (AssignContext.RightResolved.BaseType in [btSet,btArrayOrSet])
         and (AssignContext.RightResolved.IdentEl<>nil) then
       begin
@@ -22334,6 +22588,13 @@ begin
       // noncurrency := currency
       // e.g. double := currency  ->  double := currency/10000
       AssignContext.RightSide:=CreateDivideNumber(El,AssignContext.RightSide,10000);
+      end
+    else if (AssignContext.LeftResolved.BaseType<>AssignContext.RightResolved.BaseType)
+        and (AssignContext.LeftResolved.BaseType in btAllJSInteger)
+        and (AssignContext.RightResolved.BaseType in btAllJSInteger) then
+      begin
+      // AnInteger := OtherInteger
+      PrepareAssignDifferentIntegers(El,AssignContext);
       end
     else if AssignContext.RightResolved.BaseType in btAllStringAndChars then
       begin
@@ -22539,6 +22800,7 @@ begin
       if (bsRangeChecks in AContext.ScannerBoolSwitches)
           and not (T.Expr is TJSLiteral) then
         begin
+        // range checks
         if AssignContext.LeftResolved.BaseType in btAllJSInteger then
           begin
           if LeftTypeEl is TPasUnresolvedSymbolRef then
@@ -24797,6 +25059,101 @@ begin
     ReleaseEvalValue(Value);
     if Result=nil then
       GetExpr.Free;
+  end;
+end;
+
+procedure TPasToJSConverter.PrepareAssignDifferentIntegers(El: TPasImplAssign;
+  AssignContext: TAssignContext);
+
+  function CutToUIntDouble(IntValue: TMaxPrecInt): TMaxPrecInt;
+  begin
+    {$IFDEF pas2js}
+    Result:=((IntValue div $80000000) and $003fffff)*$80000000 +(IntValue and $7FFFFFFF);
+    {$ELSE}
+    Result:=IntValue and MaxSafeIntDouble;
+    {$ENDIF}
+  end;
+
+var
+  aResolver: TPas2JSResolver;
+  LeftBT, RightBT: TResolverBaseType;
+  Value: TResEvalValue;
+  IntValue, LeftMinVal, LeftMaxVal, RightMinVal, RightMaxVal: TMaxPrecInt;
+begin
+  aResolver:=AssignContext.Resolver;
+  LeftBT:=AssignContext.LeftResolved.BaseType;
+  RightBT:=AssignContext.RightResolved.BaseType;
+
+  if not aResolver.GetIntegerRange(LeftBT,LeftMinVal,LeftMaxVal) then
+    RaiseNotSupported(El.left,AssignContext,20210815195159);
+  if not aResolver.GetIntegerRange(RightBT,RightMinVal,RightMaxVal) then
+    RaiseNotSupported(El.right,AssignContext,20210815195228);
+  if (LeftMinVal<=RightMinVal) and (LeftMaxVal>=RightMaxVal) then
+    exit; // right is subset of left
+
+  // right might not fit into left
+
+  Value:=aResolver.Eval(El.right,[]);
+  try
+    if Value<>nil then
+      begin
+      case Value.Kind of
+      revkInt:
+        begin
+        IntValue:=TResEvalInt(Value).Int;
+        if (IntValue>=LeftMinVal) and (IntValue<=LeftMaxVal) then
+          exit;
+        end;
+      revkUInt:
+        begin
+        if TResEvalUInt(Value).UInt<=HighIntAsUInt then
+          begin
+          IntValue:=TMaxPrecInt(TResEvalUInt(Value).UInt);
+          if (IntValue>=LeftMinVal) and (IntValue<=LeftMaxVal) then
+            exit;
+          end
+        else
+          {$IFDEF Pas2js}
+          RaiseNotSupported(El.right,AssignContext,20210815214534);
+          {$ELSE}
+          IntValue:=PMaxPrecInt(@TResEvalUInt(Value).UInt)^;
+          {$ENDIF}
+        end;
+      revkExternal:
+        exit;
+      else
+        RaiseNotSupported(El.right,AssignContext,20210815204203,'right='+Value.AsDebugString);
+      end;
+
+      case LeftBT of
+      btByte: IntValue:=IntValue and $FF; // Note: "and" handles negative numbers
+      btShortInt:
+        begin
+        IntValue:=(IntValue and $FF);
+        if IntValue>$7F then IntValue:=IntValue-$100;
+        end;
+      btWord: IntValue:=IntValue and $FFFF;
+      btSmallInt:
+        begin
+        IntValue:=(IntValue and $FFFF);
+        if IntValue>$7FFF then IntValue:=IntValue-$10000;
+        end;
+      btLongWord: IntValue:=IntValue and $FFFFFFFF;
+      btLongint:
+        begin
+        IntValue:=(IntValue and $FFFFFFFF);
+        if IntValue>$7FFFFFFF then IntValue:=IntValue-$100000000;
+        end;
+      btUIntDouble:
+        IntValue:=CutToUIntDouble(IntValue);
+      btIntDouble:
+        IntValue:=CutToUIntDouble(IntValue);
+      end;
+
+      AssignContext.RightSide:=CreateLiteralNumber(El.right,IntValue);
+      end;
+  finally
+    ReleaseEvalValue(Value);
   end;
 end;
 

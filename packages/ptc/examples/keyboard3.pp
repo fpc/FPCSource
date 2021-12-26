@@ -113,6 +113,29 @@ begin
     PTCKEY_F10          : Result := 'PTCKEY_F10';
     PTCKEY_F11          : Result := 'PTCKEY_F11';
     PTCKEY_F12          : Result := 'PTCKEY_F12';
+    PTCKEY_F13          : Result := 'PTCKEY_F13';
+    PTCKEY_F14          : Result := 'PTCKEY_F14';
+    PTCKEY_F15          : Result := 'PTCKEY_F15';
+    PTCKEY_F16          : Result := 'PTCKEY_F16';
+    PTCKEY_F17          : Result := 'PTCKEY_F17';
+    PTCKEY_F18          : Result := 'PTCKEY_F18';
+    PTCKEY_F19          : Result := 'PTCKEY_F19';
+    PTCKEY_F20          : Result := 'PTCKEY_F20';
+    PTCKEY_F21          : Result := 'PTCKEY_F21';
+    PTCKEY_F22          : Result := 'PTCKEY_F22';
+    PTCKEY_F23          : Result := 'PTCKEY_F23';
+    PTCKEY_F24          : Result := 'PTCKEY_F24';
+    PTCKEY_F25          : Result := 'PTCKEY_F25';
+    PTCKEY_F26          : Result := 'PTCKEY_F26';
+    PTCKEY_F27          : Result := 'PTCKEY_F27';
+    PTCKEY_F28          : Result := 'PTCKEY_F28';
+    PTCKEY_F29          : Result := 'PTCKEY_F29';
+    PTCKEY_F30          : Result := 'PTCKEY_F30';
+    PTCKEY_F31          : Result := 'PTCKEY_F31';
+    PTCKEY_F32          : Result := 'PTCKEY_F32';
+    PTCKEY_F33          : Result := 'PTCKEY_F33';
+    PTCKEY_F34          : Result := 'PTCKEY_F34';
+    PTCKEY_F35          : Result := 'PTCKEY_F35';
     PTCKEY_DELETE       : Result := 'PTCKEY_DELETE';
     PTCKEY_NUMLOCK      : Result := 'PTCKEY_NUMLOCK';
     PTCKEY_SCROLLLOCK   : Result := 'PTCKEY_SCROLLLOCK';
@@ -123,6 +146,8 @@ begin
     PTCKEY_MINUS        : Result := 'PTCKEY_MINUS';
     PTCKEY_BACKQUOTE    : Result := 'PTCKEY_BACKQUOTE';
     PTCKEY_QUOTE        : Result := 'PTCKEY_QUOTE';
+    PTCKEY_COMMAND      : Result := 'PTCKEY_COMMAND';
+    PTCKEY_FUNCTION     : Result := 'PTCKEY_FUNCTION';
     else
       Result := '';
   end;

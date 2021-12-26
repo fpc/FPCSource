@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$MODE OBJFPC}
 unit Keyboard;
 interface
 
@@ -34,11 +36,14 @@ function WaitForSystemEvent(millisec: Integer): boolean;
 function IBMToANSI(s: RawByteString): RawByteString;
 function ANSIToIBM(s: RawByteString): RawByteString;
 
+var
+  FPC_DOKEYCONVERSION: boolean = False;
+
 
 implementation
 
 uses
-   video, exec, intuition, inputevent, mouse, sysutils, keymap, timer;
+   video, exec, intuition, inputevent, mouse, sysutils, keymap, timer, amigados;
 
 {$i keyboard.inc}
 {$i keyscan.inc}
@@ -460,7 +465,8 @@ begin
           ie.ie_position.ie_addr := PPointer(IAddr)^;
           Buff[0] := #0;
           Ret := MapRawKey(@ie, @Buff[0], 1, nil);
-          AnsiToIBMChar(Buff[0]);
+          if FPC_DOKEYCONVERSION then
+            AnsiToIBMChar(Buff[0]);
           KeyCode := Ord(Buff[0]);
           KeySet^.KeyCode := Ord(Buff[0]);         // if maprawkey does not work it still is 0
           KeySet^.ShiftState := LastShiftState;    // shift state set before the case
@@ -712,7 +718,13 @@ end;
 procedure InitSystemEventWait;
 var
   initOK: boolean;
+  envBuf: array[0..15] of char;
 begin
+  {.$if not defined(AMIGA_V1_2_ONLY)}
+  if GetVar('FPC_DOKEYCONVERSION',@envBuf,sizeof(envBuf),0) > -1 then
+    FPC_DOKEYCONVERSION := True;
+  {.$endif}
+
   waitTimerFired:=false;
   waitTPort:=CreateMsgPort();
   if assigned(waitTPort) then

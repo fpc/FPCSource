@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2011, 2015, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2011, 2015, 2017, 2021  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -36,7 +36,8 @@ type
     pmkNumLockActive, pmkNumLockPressed,
     pmkCapsLockActive, pmkCapsLockPressed,
     pmkScrollLockActive, pmkScrollLockPressed,
-    pmkRightKey, pmkNumPadKey, pmkDeadKey);
+    pmkRightKey, pmkNumPadKey, pmkDeadKey,
+    pmkCommand, pmkFunction);
   TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
@@ -191,3 +192,28 @@ const
   PTCKEY_MINUS        = $BD;
   PTCKEY_BACKQUOTE    = $C0;
   PTCKEY_QUOTE        = $DE;
+  PTCKEY_COMMAND      = $100;
+  PTCKEY_F13          = $101;
+  PTCKEY_F14          = $102;
+  PTCKEY_F15          = $103;
+  PTCKEY_F16          = $104;
+  PTCKEY_F17          = $105;
+  PTCKEY_F18          = $106;
+  PTCKEY_F19          = $107;
+  PTCKEY_F20          = $108;
+  PTCKEY_F21          = $109;
+  PTCKEY_F22          = $10A;
+  PTCKEY_F23          = $10B;
+  PTCKEY_F24          = $10C;
+  PTCKEY_F25          = $10D;
+  PTCKEY_F26          = $10E;
+  PTCKEY_F27          = $10F;
+  PTCKEY_F28          = $110;
+  PTCKEY_F29          = $111;
+  PTCKEY_F30          = $112;
+  PTCKEY_F31          = $113;
+  PTCKEY_F32          = $114;
+  PTCKEY_F33          = $115;
+  PTCKEY_F34          = $116;
+  PTCKEY_F35          = $117;
+  PTCKEY_FUNCTION     = $118;  { the 'fn' key on Apple keyboards }

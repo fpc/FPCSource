@@ -215,7 +215,7 @@
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
-          class function InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$endif}
+          class function InitInstance(instance : pointer) : tobject;
           procedure CleanupInstance;
           class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;
@@ -444,20 +444,20 @@
        UnsafeAttribute = class(TCustomAttribute);
        RefAttribute = class(TCustomAttribute);
        VolatileAttribute = class(TCustomAttribute);
-       
+
        StoredAttribute = Class(TCustomAttribute)
        Private
           FFlag : Boolean;
           FName : String;
        Public
-         Constructor Create; 
-         Constructor Create(Const aFlag : Boolean); 
-         Constructor Create(Const aName : String); 
+         Constructor Create;
+         Constructor Create(Const aFlag : Boolean);
+         Constructor Create(Const aName : String);
          Property Flag : Boolean Read FFlag;
-         Property Name : String Read FName; 
+         Property Name : String Read FName;
        end;
-       
-  
+
+
     Const
        ExceptProc : TExceptProc = Nil;
        RaiseProc : TExceptProc = Nil;

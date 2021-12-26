@@ -432,7 +432,7 @@ var
   ltostr,
   ordersymfile: TCmdStr;
   linkscript: TAsmScript;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   GCSectionsStr,
   StaticStr,
   StripStr   : string[63];

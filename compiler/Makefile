@@ -58,7 +58,7 @@ SRCBATCHEXT=.bat
 endif
 endif
 ifdef COMSPEC
-ifneq ($(findstring $(OS_SOURCE),$(OSNeedsComspecToRunBatch)),)
+ifneq ($(filter $(OS_SOURCE),$(OSNeedsComspecToRunBatch)),)
 ifndef RUNBATCH
 RUNBATCH=$(COMSPEC) /C
 endif
@@ -214,11 +214,11 @@ $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 SOURCESUFFIX=$(OS_SOURCE)
 else
-ifneq ($(findstring $(OS_TARGET),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_TARGET),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 else
 TARGETSUFFIX=$(FULL_TARGET)
@@ -229,11 +229,11 @@ ifneq ($(FULL_TARGET),$(FULL_SOURCE))
 CROSSCOMPILE=1
 endif
 ifeq ($(findstring makefile,$(MAKECMDGOALS)),)
-ifeq ($(findstring $(FULL_TARGET),$(MAKEFILETARGETS)),)
+ifeq ($(filter $(FULL_TARGET),$(MAKEFILETARGETS)),)
 $(error The Makefile doesn't support target $(FULL_TARGET), please run fpcmake first)
 endif
 endif
-ifneq ($(findstring $(OS_TARGET),$(BSDs)),)
+ifneq ($(filter $(OS_TARGET),$(BSDs)),)
 BSDhier=1
 endif
 ifeq ($(OS_TARGET),linux)
@@ -287,8 +287,8 @@ endif
 ifndef CROSSBINDIR
 CROSSBINDIR:=$(wildcard $(FPCDIR)/bin/$(TARGETSUFFIX))
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
-ifneq ($(findstring $(OS_SOURCE),darwin ios),)
+ifneq ($(filter $(OS_TARGET),darwin iphonesim ios),)
+ifneq ($(filter $(OS_SOURCE),darwin ios),)
 DARWIN2DARWIN=1
 endif
 endif
@@ -451,13 +451,19 @@ endif
 ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
+SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+ifndef GIT
+GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+endif
 DATE_FMT = +%Y/%m/%d
 ifdef SOURCE_DATE_EPOCH
     COMPDATESTR ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
 else
    GIT_DIR = $(wildcard ../.git)
    ifneq ($(GIT_DIR),)
-      COMPDATESTR:=$(shell git log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      ifneq ($(GIT),)
+	COMPDATESTR:=$(shell $(GIT) log -1 --pretty=%cd --date=format:'%Y/%m/%d')
+      endif
    endif
 endif
 ifdef COMPDATESTR
@@ -557,7 +563,6 @@ CPUSUF=wasm32
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
-SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
 PPUDUMPPROG:=$(firstword $(strip $(wildcard $(addsuffix /ppudump$(SRCEXEEXT),$(SEARCHPATH)))))
 ifndef PPUDUMP
 ifdef PPUDUMPPROG
@@ -569,16 +574,31 @@ endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
-ifeq ($(REVSTR),)
-ifneq ($(SVNVERSION),)
+ ifeq ($(REVSTR),)
+  ifneq ($(wildcard ../.git),)
+   ifneq ($(GIT),)
+GITDESCRIBE=$(shell $(GIT) describe --dirty)
+REVSTR:=$(word 2,$(subst -, ,$(GITDESCRIBE)))-$(word 3,$(subst -, ,$(GITDESCRIBE)))
+    ifneq ($(shell $(GIT) log @{u}..),)
+REVSTR:=$(REVSTR)-unpushed
+    endif
+    ifneq ($(word 4,$(subst -, ,$(GITDESCRIBE))),)
+REVSTR:=$(REVSTR)-$(word 4,$(subst -, ,$(GITDESCRIBE)))
+    endif
+   endif
+export REVSTR
+  else
+   ifneq ($(SVNVERSION),)
 REVSTR:=$(subst r,,$(subst r1:,,r$(subst exported,,$(shell $(SVNVERSION) -c .))))
 export REVSTR
-else
+   endif
+  endif
+ endif
+endif
 ifeq ($(REVINC),force)
+ifeq ($(REVSTR),)
 REVSTR:=exported
 export REVSTR
-endif
-endif
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB
@@ -2565,11 +2585,11 @@ ifdef REQUIRE_PACKAGESDIR
 override PACKAGESDIR+=$(REQUIRE_PACKAGESDIR)
 endif
 ifdef ZIPINSTALL
-ifneq ($(findstring $(OS_TARGET),$(UNIXs)),)
+ifneq ($(filter $(OS_TARGET),$(UNIXs)),)
 UNIXHier=1
 endif
 else
-ifneq ($(findstring $(OS_SOURCE),$(UNIXs)),)
+ifneq ($(filter $(OS_SOURCE),$(UNIXs)),)
 UNIXHier=1
 endif
 endif
@@ -2757,7 +2777,7 @@ endif
 ifeq ($(OS_SOURCE),linux)
 ifndef GCCLIBDIR
 ifeq ($(CPU_TARGET),i386)
-ifneq ($(findstring x86_64,$(shell uname -a)),)
+ifneq ($(filter x86_64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
@@ -2780,11 +2800,11 @@ CROSSGCCOPT=-m64
 endif
 endif
 ifeq ($(CPU_TARGET),sparc)
-ifneq ($(findstring sparc64,$(shell uname -a)),)
+ifneq ($(filter sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 CROSSGCCOPT=-mabi=32
 else
 CROSSGCCOPT=-m32
@@ -2798,19 +2818,19 @@ FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
 ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
 FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
+ifneq ($(filter $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
 FPCMAKE_CROSSGCCOPT=-m64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
 FPCMAKE_CROSSGCCOPT=-mabi=64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips mipsel),)
 FPCMAKE_CROSSGCCOPT=-mabi=32
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv64),)
+ifeq ($(FPCFPMAKE_CPU_OPT),riscv64)
 FPCMAKE_CROSSGCCOPT=-mabi=lp64
 else
-ifneq ($(findstring $(FPCFPMAKE_CPU_OPT),riscv32),)
+ifeq ($(FPCFPMAKE_CPU_OPT),riscv32)
 FPCMAKE_CROSSGCCOPT=-mabi=ilp32
 else
 FPCMAKE_CROSSGCCOPT=-m32
@@ -2989,7 +3009,7 @@ DEBUGSYMEXT=.xcoff
 SHORTSUFFIX=mac
 IMPORTLIBPREFIX=imp
 endif
-ifneq ($(findstring $(OS_TARGET),darwin iphonesim ios),)
+ifneq ($(filter $(OS_TARGET),darwin iphonesim ios),)
 BATCHEXT=.sh
 EXEEXT=
 HASSHAREDLIB=1
@@ -3068,7 +3088,7 @@ endif
 ifeq ($(OS_TARGET),wasi)
 EXEEXT=.wasm
 endif
-ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
+ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
 ZIPSUFFIX=$(SHORTSUFFIX)
 ZIPCROSSPREFIX=
@@ -3786,8 +3806,8 @@ ifdef SYSROOTPATH
 override FPCOPT+=-XR$(SYSROOTPATH)
 else
 ifeq ($(OS_TARGET),$(OS_SOURCE))
-ifneq ($(findstring $(OS_TARGET),darwin),)
-ifneq ($(findstring $(CPU_TARGET),aarch64),)
+ifeq ($(OS_TARGET),darwin)
+ifeq ($(CPU_TARGET),aarch64)
 ifneq ($(wildcard /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk),)
 override FPCOPT+=-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
@@ -3798,8 +3818,8 @@ endif
 ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
-ifneq ($(findstring $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(findstring $(CPU_TARGET),x86_64 mips mipsel riscv64),)
+ifneq ($(filter $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
+ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel riscv64 powerpc64),)
 override FPCOPT+=-Cg
 endif
 endif
@@ -3842,10 +3862,10 @@ ifdef ACROSSCOMPILE
 override FPCOPT+=$(CROSSOPT)
 endif
 override COMPILER:=$(strip $(FPC) $(FPCOPT))
-ifneq (,$(findstring -sh ,$(COMPILER)))
+ifneq (,$(filter -sh,$(COMPILER)))
 UseEXECPPAS=1
 endif
-ifneq (,$(findstring -s ,$(COMPILER)))
+ifneq (,$(filter -s,$(COMPILER)))
 ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 UseEXECPPAS=1
 endif
@@ -4971,6 +4991,9 @@ endif
 else
 	$(MAKE) revision.inc REVINC=force
 endif
+ifeq ($(COMPILEREXENAME),)
+COMPILEREXENAME:=$(EXENAME)
+endif
 .PHONY : revision
 revision :
 	$(DEL) revision.inc
@@ -4991,9 +5014,8 @@ else
 endif
 	$(COMPILER) version.pas
 endif
-	$(COMPILER) pp.pas
+	$(COMPILER) -o$(BASEDIR)/$(COMPILEREXENAME) pp.pas
 	$(EXECPPAS)
-	$(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 .PHONY: cycle full full_targets fullcycle wpocycle
 ifeq ($(CPU_SOURCE),$(PPC_TARGET))
 ifeq ($(OS_SOURCE),$(OS_TARGET))
@@ -5010,13 +5032,11 @@ wpocycle:
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtlclean
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(RTLOPT) $(OPTWPOPERFORM) $(OPTNEW))' rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' $(addsuffix _clean,$(ALLTARGETS))
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' compiler
-	$(MOVE) $(EXENAME) $(TEMPWPONAME1)
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3PREFIX)$(TEMPNAME3)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)))' 'COMPILEREXENAME=$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' compiler 
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtlclean
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(RTLOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' $(addsuffix _clean,$(ALLTARGETS))
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' compiler
-	$(COPY) $(EXENAME) $(TEMPWPONAME2)
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1PREFIX)$(TEMPWPONAME1)' 'OPT=$(strip $(LOCALOPT) $(OPTNEW) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM)))' 'COMPILEREXENAME=$(EXENAME)' compiler
 else
 wpocycle:
 endif
@@ -5050,17 +5070,13 @@ next :
 	$(MAKE) echotime
 endif
 $(TEMPNAME1) :
-	$(MAKE) 'OLDFPC=' next CYCLELEVEL=1
-	-$(DEL) $(TEMPNAME1)
-	$(MOVE) $(EXENAME) $(TEMPNAME1)
+	$(MAKE) 'OLDFPC=' next CYCLELEVEL=1 'COMPILEREXENAME=$(TEMPNAME1PREFIX)$(TEMPNAME1)'
 $(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1PREFIX)$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2
-	-$(DEL) $(TEMPNAME2)
-	$(MOVE) $(EXENAME) $(TEMPNAME2)
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1PREFIX)$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2 'COMPILEREXENAME=$(TEMPNAME2REFIX)$(TEMPNAME2)'
 $(TEMPNAME3) : $(TEMPNAME2)
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2PREFIX)$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next CYCLELEVEL=3
-	-$(DEL) $(TEMPNAME3)
-	$(MOVE) $(EXENAME) $(TEMPNAME3)
+		-$(DEL) $(TEMPNAME3)
+		$(MOVE) $(EXENAME) $(TEMPNAME3)
 cycle:
 ifdef NEED_G_COMPILERS
 	$(MAKE) fpcmade.generate_g_compilers

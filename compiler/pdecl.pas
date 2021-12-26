@@ -803,6 +803,7 @@ implementation
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
                     wasforward:=true;
+                    objecttype:=odt_none;
                     case token of
                       _CLASS :
                         objecttype:=default_class_type;

@@ -315,9 +315,6 @@ interface
          expectloc : tcgloc;
          { the location of the result of this node (pass2) }
          location : tlocation;
-         { the parent node of this is node    }
-         { this field is set by concattolist  }
-         parent : tnode;
          { next node in control flow on the same block level, i.e.
            for loop nodes, this is the next node after the end of the loop,
            same for if and case, if this field is nil, the next node is the procedure exit,
@@ -395,7 +392,6 @@ interface
          procedure XMLPrintNodeData(var T: Text); virtual;
          procedure XMLPrintNodeTree(var T: Text); virtual;
 {$endif DEBUG_NODE_XML}
-         procedure concattolist(l : tlinkedlist);virtual;
          function ischild(p : tnode) : boolean;virtual;
 
          { ensures that the optimizer info record is allocated }
@@ -419,7 +415,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
@@ -439,7 +434,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          procedure swapleftright;
@@ -462,7 +456,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
@@ -853,11 +846,6 @@ implementation
       end;
 
 
-    procedure tnode.concattolist(l : tlinkedlist);
-      begin
-      end;
-
-
     function tnode.ischild(p : tnode) : boolean;
       begin
          ischild:=false;
@@ -1027,7 +1015,6 @@ implementation
          p.nodetype:=nodetype;
          p.expectloc:=expectloc;
          p.location:=location;
-         p.parent:=parent;
          p.flags:=flags;
          p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
@@ -1145,14 +1132,6 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure tunarynode.concattolist(l : tlinkedlist);
-      begin
-         left.parent:=self;
-         left.concattolist(l);
-         inherited concattolist(l);
-      end;
-
-
     function tunarynode.ischild(p : tnode) : boolean;
       begin
          ischild:=p=left;
@@ -1207,18 +1186,6 @@ implementation
         inherited derefimpl;
         if assigned(right) then
           right.derefimpl;
-      end;
-
-
-    procedure tbinarynode.concattolist(l : tlinkedlist);
-      begin
-         { we could change that depending on the number of }
-         { required registers                              }
-         left.parent:=self;
-         left.concattolist(l);
-         left.parent:=self;
-         left.concattolist(l);
-         inherited concattolist(l);
       end;
 
 
@@ -1413,14 +1380,6 @@ implementation
          inherited XMLPrintNodeData(T);
       end;
 {$endif DEBUG_NODE_XML}
-
-    procedure ttertiarynode.concattolist(l : tlinkedlist);
-      begin
-         third.parent:=self;
-         third.concattolist(l);
-         inherited concattolist(l);
-      end;
-
 
     function ttertiarynode.ischild(p : tnode) : boolean;
       begin

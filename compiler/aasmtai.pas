@@ -92,9 +92,13 @@ interface
           ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
 {$ifdef wasm}
-          ait_importexport,
+          ait_export_name,
           ait_local,
+          ait_globaltype,
           ait_functype,
+          ait_tagtype,
+          ait_import_module,
+          ait_import_name,
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive,
@@ -239,9 +243,13 @@ interface
           'llvmmetadatarefop',
 {$endif}
 {$ifdef wasm}
-          'importexport',
+          'export_name',
           'local',
+          'globaltype',
           'functype',
+          'tagtype',
+          'import_module',
+          'import_name',
 {$endif}
           'cfi',
           'seh_directive',
@@ -357,7 +365,13 @@ interface
                      ait_llvmmetadatarefoperand,
 {$endif llvm}
 {$ifdef wasm}
-                     ait_importexport,ait_local,ait_functype,
+                     ait_export_name,
+                     ait_local,
+                     ait_globaltype,
+                     ait_functype,
+                     ait_tagtype,
+                     ait_import_module,
+                     ait_import_name,
 {$endif wasm}
                      ait_seh_directive,
                      ait_cfi,
@@ -425,8 +439,6 @@ interface
           ash_nop,
           ash_pushnv,ash_savenv
         );
-
-      TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
 
 
     const
@@ -595,6 +607,7 @@ interface
           has_value : boolean;
           constructor Create(_sym:tasmsymbol;siz:longint);
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
+          constructor Create_Weak(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
@@ -936,6 +949,7 @@ interface
            constructor Create(b:byte);virtual;
            constructor Create_op(b: byte; _op: byte);virtual;
            constructor create_max(b: byte; max: byte);virtual;
+           constructor create_op_max(b: byte; _op: byte; max: byte);virtual;
            constructor Create_zeros(b:byte);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1434,6 +1448,19 @@ implementation
          if not(sym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN]) then
            sym.bind:=AB_GLOBAL;
          is_global:=true;
+      end;
+
+
+    constructor tai_symbol.Create_Weak(_sym:tasmsymbol;siz:longint);
+      begin
+        inherited Create;
+        typ:=ait_symbol;
+        sym:=_sym;
+        size:=siz;
+        if not(sym.bind in [AB_NONE,AB_WEAK_EXTERNAL]) then
+          internalerror(2021092801);
+        sym.bind:=AB_WEAK;
+        is_global:=false;
       end;
 
 
@@ -2318,6 +2345,7 @@ implementation
 
     function tai_realconst.datasize: word;
       begin
+        result:=0;
         case realtyp of
           aitrealconst_s32bit:
             result:=4;
@@ -3322,6 +3350,21 @@ implementation
        end;
 
 
+     constructor tai_align_abstract.create_op_max(b: byte; _op: byte; max: byte);
+       begin
+          inherited Create;
+          typ:=ait_align;
+          if b in [1,2,4,8,16,32] then
+            aligntype := b
+          else
+            aligntype := 1;
+          fillop:=_op;
+          use_op:=true;
+          maxbytes:=max;
+          fillsize:=0;
+       end;
+
+
      constructor tai_align_abstract.Create_zeros(b: byte);
        begin
           inherited Create;
@@ -3625,9 +3668,11 @@ implementation
 {$endif JVM}
 
 begin
+{$ifndef WASM}
 {$push}{$warnings off}
   { taitype should fit into a 4 byte set for speed reasons }
   if ord(high(taitype))>31 then
     internalerror(201108181);
 {$pop}
+{$endif WASM}
 end.

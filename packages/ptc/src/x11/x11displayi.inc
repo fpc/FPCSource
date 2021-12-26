@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013, 2015-2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2015-2017, 2021 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -380,6 +380,29 @@ begin
   FFunctionKeys[$FF and XK_F10] := Integer(PTCKEY_F10);
   FFunctionKeys[$FF and XK_F11] := Integer(PTCKEY_F11);
   FFunctionKeys[$FF and XK_F12] := Integer(PTCKEY_F12);
+  FFunctionKeys[$FF and XK_F13] := Integer(PTCKEY_F13);
+  FFunctionKeys[$FF and XK_F14] := Integer(PTCKEY_F14);
+  FFunctionKeys[$FF and XK_F15] := Integer(PTCKEY_F15);
+  FFunctionKeys[$FF and XK_F16] := Integer(PTCKEY_F16);
+  FFunctionKeys[$FF and XK_F17] := Integer(PTCKEY_F17);
+  FFunctionKeys[$FF and XK_F18] := Integer(PTCKEY_F18);
+  FFunctionKeys[$FF and XK_F19] := Integer(PTCKEY_F19);
+  FFunctionKeys[$FF and XK_F20] := Integer(PTCKEY_F20);
+  FFunctionKeys[$FF and XK_F21] := Integer(PTCKEY_F21);
+  FFunctionKeys[$FF and XK_F22] := Integer(PTCKEY_F22);
+  FFunctionKeys[$FF and XK_F23] := Integer(PTCKEY_F23);
+  FFunctionKeys[$FF and XK_F24] := Integer(PTCKEY_F24);
+  FFunctionKeys[$FF and XK_F25] := Integer(PTCKEY_F25);
+  FFunctionKeys[$FF and XK_F26] := Integer(PTCKEY_F26);
+  FFunctionKeys[$FF and XK_F27] := Integer(PTCKEY_F27);
+  FFunctionKeys[$FF and XK_F28] := Integer(PTCKEY_F28);
+  FFunctionKeys[$FF and XK_F29] := Integer(PTCKEY_F29);
+  FFunctionKeys[$FF and XK_F30] := Integer(PTCKEY_F30);
+  FFunctionKeys[$FF and XK_F31] := Integer(PTCKEY_F31);
+  FFunctionKeys[$FF and XK_F32] := Integer(PTCKEY_F32);
+  FFunctionKeys[$FF and XK_F33] := Integer(PTCKEY_F33);
+  FFunctionKeys[$FF and XK_F34] := Integer(PTCKEY_F34);
+  FFunctionKeys[$FF and XK_F35] := Integer(PTCKEY_F35);
 
   FFunctionKeys[$FF and XK_Shift_L] := Integer(PTCKEY_SHIFT);
   FFunctionKeys[$FF and XK_Shift_R] := Integer(PTCKEY_SHIFT);
@@ -523,7 +546,8 @@ begin
   if sym_modded = XK_ISO_Left_Tab then
   begin
     sym_modded := XK_Tab;
-    uni := 9;
+    if press then
+      uni := 9;
     Include(modkeys, pmkShift);
   end;
 

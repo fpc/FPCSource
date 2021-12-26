@@ -819,7 +819,7 @@ const
 	scsiIdentifyMessageRejected = scsiErrorBase + 12; { -7924 =                        }
 	scsiMessageRejectReceived = scsiErrorBase + 13; { -7923 = Message reject received           }
 	scsiSCSIBusReset = scsiErrorBase + 14; { -7922 = SCSI bus reset sent/received    }
-	scsiParityError = scsiErrorBase + 15; { -7921 = Uncorrectable parity error occured     }
+	scsiParityError = scsiErrorBase + 15; { -7921 = Uncorrectable parity error occurred     }
 	scsiAutosenseFailed = scsiErrorBase + 16; { -7920 = Autosense: Request sense cmd fail  }
 	scsiUnused11 = scsiErrorBase + 17; { -7919 =                        }
 	scsiDataRunError = scsiErrorBase + 18; { -7918 = Data overrun/underrun error     }

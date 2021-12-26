@@ -29,17 +29,15 @@ end;
 procedure Do_Erase(p: pchar; pchangeable: boolean);
 var
   fd: __wasi_fd_t;
-  pr: PChar;
+  pr: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(p,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(p,fd,pr);
+  if InOutRes<>0 then
     exit;
-  res:=__wasi_path_unlink_file(fd,pr,StrLen(pr));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  res:=__wasi_path_unlink_file(fd,PChar(pr),Length(pr));
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
-  FreeMem(pr);
 end;
 
 procedure do_truncate (handle:thandle;fpos:int64);
@@ -56,23 +54,18 @@ end;
 procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
 var
   fd1,fd2: __wasi_fd_t;
-  pr1,pr2: PChar;
+  pr1,pr2: RawByteString;
   res: __wasi_errno_t;
 begin
-  if not ConvertToFdRelativePath(p1,fd1,pr1) then
+  InOutRes:=ConvertToFdRelativePath(p1,fd1,pr1);
+  if InOutRes<>0 then
     exit;
-  if not ConvertToFdRelativePath(p2,fd2,pr2) then
-  begin
-    FreeMem(pr1);
+  InOutRes:=ConvertToFdRelativePath(p2,fd2,pr2);
+  if InOutRes<>0 then
     exit;
-  end;
-  res:=__wasi_path_rename(fd1,pr1,StrLen(pr1),fd2,pr2,StrLen(pr2));
-  if res=__WASI_ERRNO_SUCCESS then
-    InOutRes:=0
-  else
+  res:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2));
+  if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
-  FreeMem(pr1);
-  FreeMem(pr2);
 end;
 
 function Do_Write(Handle:thandle;Addr:Pointer;Len:Longint):longint;
@@ -107,7 +100,7 @@ begin
   repeat
     our_iov.buf:=Addr;
     our_iov.buf_len:=Len;
-    __wasi_fd_read(Handle,@our_iov,1,@our_nread);
+    res:=__wasi_fd_read(Handle,@our_iov,1,@our_nread);
   until (res=__WASI_ERRNO_SUCCESS) or ((res<>__WASI_ERRNO_INTR) and (res<>__WASI_ERRNO_AGAIN));
   if res=__WASI_ERRNO_SUCCESS then
     begin
@@ -201,7 +194,7 @@ var
   fdflags: __wasi_fdflags_t = 0;
   ourfd: __wasi_fd_t;
   res: __wasi_errno_t;
-  pr: PChar;
+  pr: RawByteString;
   fd: __wasi_fd_t;
 Begin
 { close first if opened }
@@ -285,14 +278,15 @@ Begin
      end;
      exit;
    end;
-  if not ConvertToFdRelativePath(p,fd,pr) then
+  InOutRes:=ConvertToFdRelativePath(p,fd,pr);
+  if InOutRes<>0 then
     exit;
 { real open call }
   repeat
     res:=__wasi_path_open(fd,
                           0,
-                          pr,
-                          strlen(pr),
+                          PChar(pr),
+                          length(pr),
                           oflags,
                           fs_rights_base,
                           fs_rights_base,
@@ -316,5 +310,4 @@ Begin
       FileRec(f).Handle:=ourfd;
       InOutRes:=0;
     end;
-  FreeMem(pr);
 end;

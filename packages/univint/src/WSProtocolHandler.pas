@@ -278,7 +278,7 @@ function WSProtocolHandlerGetTypeID: CFTypeID; external name '_WSProtocolHandler
  *      SOAP).
  *  
  *  Result:
- *    a WSProtocolHandlerRef, NULL if a parse error occured.
+ *    a WSProtocolHandlerRef, NULL if a parse error occurred.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later but deprecated in 10.8

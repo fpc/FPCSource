@@ -30,8 +30,9 @@ interface
 
     type
        tx8664addnode = class(tx86addnode)
-          procedure second_addordinal; override;
-          procedure second_mul;
+         function use_generic_mul64bit: boolean; override;
+         procedure second_addordinal; override;
+         procedure second_mul;
        end;
 
   implementation
@@ -42,6 +43,11 @@ interface
       defutil,
       cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
       tgobj;
+
+    function tx8664addnode.use_generic_mul64bit: boolean;
+    begin
+      result:=false;
+    end;
 
 {*****************************************************************************
                                 Addordinal
@@ -122,6 +128,10 @@ interface
         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,right.location,rega);
         { Also allocate RDX, since it is also modified by a mul (JM). }
         cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+
+        if needoverflowcheck then
+          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
         if use_ref then
           emit_ref(A_MUL,opsize,ref)
         else
@@ -130,6 +140,7 @@ interface
          begin
            current_asmdata.getjumplabel(hl4);
            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+           cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
            cg.a_label(current_asmdata.CurrAsmList,hl4);
          end;

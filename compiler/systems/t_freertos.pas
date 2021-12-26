@@ -39,6 +39,9 @@ implementation
        TlinkerFreeRTOS=class(texternallinker)
        private
           Function  WriteResponseFile: Boolean;
+{$ifdef XTENSA}
+          procedure GenerateDefaultLinkerScripts(out out_ld_filename,project_ld_filename: AnsiString);
+{$endif XTENSA}
        public
           constructor Create; override;
           procedure SetDefaultInfo; override;
@@ -51,7 +54,7 @@ implementation
                                   TlinkerEmbedded
 *****************************************************************************}
 
-Constructor TlinkerFreeRTOS.Create;
+constructor TlinkerFreeRTOS.Create;
 begin
   Inherited Create;
   SharedLibFiles.doubles:=true;
@@ -75,7 +78,7 @@ begin
 end;
 
 
-Function TlinkerFreeRTOS.WriteResponseFile: Boolean;
+function TlinkerFreeRTOS.WriteResponseFile: Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
@@ -938,46 +941,29 @@ begin
 
 end;
 
-
-function TlinkerFreeRTOS.MakeExecutable:boolean;
-var
-  StaticStr,
-  binstr,
-  cmdstr,
-  mapstr: Ansistring;
-  success : boolean;
-  GCSectionsStr,
-  DynLinkStr,
-  StripStr,
-  FixedExeFileName: string;
 {$ifdef XTENSA}
+{ If espX.project.ld or espX_out.ld scripts cannot be located, generate
+  default scripts so that linking can proceed.  Note: the generated
+  scripts may not match the actual options chosen when the libraries
+  were built. }
+procedure TlinkerFreeRTOS.GenerateDefaultLinkerScripts(out out_ld_filename,
+  project_ld_filename: AnsiString);
+var
   S: Ansistring;
   t: Text;
   hp: TCmdStrListItem;
-  filepath: TCmdStr;
+  filepath: TCmdStr = '';
   i,j: integer;
-  lib: AnsiString;
-{$endif XTENSA}
+  lib,
+  binstr,
+  cmdstr: AnsiString;
+  success: boolean;
 begin
-{$ifdef XTENSA}
-  { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
-  if idfpath='' then
-    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
-{$endif XTENSA}
-
-  { for future use }
-  StaticStr:='';
-  StripStr:='';
-  mapstr:='';
-  DynLinkStr:='';
-
-  success:=true;
-  Result:=false;
-
-{$ifdef XTENSA}
   { generate a sdkconfig.h if none is provided,
-    only a few fields are provided to far }
-  Assign(t,'sdkconfig.h');
+    only a few fields are provided to far.
+    Assume that if linker scripts are not located,
+    sdkconfig.h is also missing }
+  Assign(t,outputexedir+'/sdkconfig.h');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1013,9 +999,9 @@ begin
 
   { generate an sdkconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('sdkconfig')) then
+  if not(Sysutils.FileExists(outputexedir+'/sdkconfig')) then
     begin
-      Assign(t,'sdkconfig');
+      Assign(t,outputexedir+'/sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1031,9 +1017,9 @@ begin
 
   { generate an Kconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('Kconfig')) then
+  if not(Sysutils.FileExists(outputexedir+'/Kconfig')) then
     begin
-      Assign(t,'Kconfig');
+      Assign(t,outputexedir+'/Kconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1049,9 +1035,9 @@ begin
 
   { generate an Kconfig.projbuild if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('Kconfig.projbuild')) then
+  if not(Sysutils.FileExists(outputexedir+'/Kconfig.projbuild')) then
     begin
-      Assign(t,'Kconfig.projbuild');
+      Assign(t,outputexedir+'/Kconfig.projbuild');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1067,9 +1053,9 @@ begin
 
   { generate an kconfigs.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('kconfigs.in')) then
+  if not(Sysutils.FileExists(outputexedir+'/kconfigs.in')) then
     begin
-      Assign(t,'kconfigs.in');
+      Assign(t,outputexedir+'/kconfigs.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1085,9 +1071,9 @@ begin
 
   { generate an kconfigs_projbuild.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists('kconfigs_projbuild.in')) then
+  if not(Sysutils.FileExists(outputexedir+'/kconfigs_projbuild.in')) then
     begin
-      Assign(t,'kconfigs_projbuild.in');
+      Assign(t,outputexedir+'/kconfigs_projbuild.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1104,7 +1090,7 @@ begin
   { generate a config.env if none is provided,
     COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
     be needed to be filed properly }
-  Assign(t,'config.env');
+  Assign(t,outputexedir+'/config.env');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1118,8 +1104,8 @@ begin
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32",');
       writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
-      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "kconfigs.in",');
-      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "kconfigs_projbuild.in"');
+      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+outputexedir+'/kconfigs.in",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+outputexedir+'/kconfigs_projbuild.in"');
     end
   else
     begin
@@ -1135,7 +1121,7 @@ begin
   {$pop}
 
   { generate ldgen_libraries }
-  Assign(t,'ldgen_libraries');
+  Assign(t,outputexedir+'/ldgen_libraries');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1169,11 +1155,14 @@ begin
   {$pop}
 
   binstr:='gcc';
-  if (current_settings.controllertype = ct_esp32) then
-    cmdstr:='-C -P -x c -E -o esp32_out.ld -I . $IDF_PATH/components/esp32/ld/esp32.ld'
+  if current_settings.controllertype = ct_none then
+    Message(exec_f_controllertype_expected)
+  else if current_settings.controllertype = ct_esp32 then
+    cmdstr:='-C -P -x c -E -o $OUTPUT/esp32_out.ld -I $OUTPUT/ $IDF_PATH/components/esp32/ld/esp32.ld'
   else
-    cmdstr:='-C -P -x c -E -o esp8266_out.ld -I . $IDF_PATH/components/esp8266/ld/esp8266.ld';
+    cmdstr:='-C -P -x c -E -o $OUTPUT/esp8266_out.ld -I $OUTPUT/ $IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$OUTPUT',outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
@@ -1186,53 +1175,111 @@ begin
     binstr:=binstr+source_info.exeext;
   S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
-    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-            '--config sdkconfig '+
-            '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
-            '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
-            '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
-            '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
-            '$IDF_PATH/components/esp_gdbstub/linker.lf '+
-            '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in '+
-            '--output ./esp32.project.ld '+
-            '--kconfig $IDF_PATH/Kconfig '+
-            '--env-file config.env '+
-            '--libraries-file ldgen_libraries '+
-            '--objdump '+S
+    begin
+      project_ld_filename:=outputexedir+'/esp32.project.ld';
+      cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
+              '--config $OUTPUT/sdkconfig '+
+              '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
+              '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
+              '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
+              '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
+              '$IDF_PATH/components/esp_gdbstub/linker.lf '+
+              '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in '+
+              '--output '+project_ld_filename+' '+
+              '--kconfig $IDF_PATH/Kconfig '+
+              '--env-file $OUTPUT/config.env '+
+              '--libraries-file $OUTPUT/ldgen_libraries '+
+              '--objdump '+S;
+    end
   else
-    cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-            '--config sdkconfig '+
-            '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
-            '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
-            '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
-            '$IDF_PATH/components/lwip/linker.lf $IDF_PATH/components/spi_flash/linker.lf '+
-            '--env "COMPONENT_KCONFIGS_PROJBUILD=  $IDF_PATH/components/bootloader/Kconfig.projbuild '+
-            '$IDF_PATH/components/esptool_py/Kconfig.projbuild  $IDF_PATH/components/partition_table/Kconfig.projbuild"'+
-            '--env "COMPONENT_KCONFIGS=$IDF_PATH/components/app_update/Kconfig '+
-            '$IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig '+
-            '$IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig" '+
-            '--input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in '+
-            '--output ./esp8266.project.ld '+
-            '--kconfig $IDF_PATH/Kconfig '+
-            '--env-file config.env '+
-            '--libraries-file ldgen_libraries '+
-            '--objdump '+S;
+    begin
+      project_ld_filename:=outputexedir+'/esp8266.project.ld';
+      cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
+              '--config $OUTPUT/sdkconfig '+
+              '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
+              '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
+              '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
+              '$IDF_PATH/components/lwip/linker.lf $IDF_PATH/components/spi_flash/linker.lf '+
+              '--env "COMPONENT_KCONFIGS_PROJBUILD=  $IDF_PATH/components/bootloader/Kconfig.projbuild '+
+              '$IDF_PATH/components/esptool_py/Kconfig.projbuild  $IDF_PATH/components/partition_table/Kconfig.projbuild"'+
+              '--env "COMPONENT_KCONFIGS=$IDF_PATH/components/app_update/Kconfig '+
+              '$IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig '+
+              '$IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig" '+
+              '--input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in '+
+              '--output '+project_ld_filename+' '+
+              '--kconfig $IDF_PATH/Kconfig '+
+              '--env-file $OUTPUT/config.env '+
+              '--libraries-file $OUTPUT/ldgen_libraries '+
+              '--objdump '+S;
+    end;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  Replace(cmdstr,'$OUTPUT',outputexedir);
+  if success then
     success:=DoExec(binstr,cmdstr,true,false);
+end;
+{$endif XTENSA}
+
+
+function TlinkerFreeRTOS.MakeExecutable:boolean;
+var
+  StaticStr,
+  binstr,
+  cmdstr,
+  mapstr: Ansistring;
+  success : boolean;
+  GCSectionsStr,
+  DynLinkStr,
+  StripStr,
+  FixedExeFileName: string;
+{$ifdef XTENSA}
+  esp_out_ld_filename,
+  esp_project_ld_filename: AnsiString;
+{$endif XTENSA}
+begin
+{$ifdef XTENSA}
+  { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
+  if idfpath='' then
+    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
+  idfpath:=ExcludeTrailingBackslash(idfpath);
+{$endif XTENSA}
+
+  { for future use }
+  StaticStr:='';
+  StripStr:='';
+  mapstr:='';
+  DynLinkStr:='';
+
+  success:=true;
+  Result:=false;
+
+{$ifdef XTENSA}
+  { Locate linker scripts.  If not found, generate defaults. }
+  if ((current_settings.controllertype = ct_esp32) and
+      not (FindLibraryFile('esp32_out','', '.ld', esp_out_ld_filename) and
+           FindLibraryFile('esp32.project','', '.ld', esp_project_ld_filename))) or
+     ((current_settings.controllertype = ct_esp8266) and
+      not (FindLibraryFile('esp8266_out','', '.ld', esp_out_ld_filename) and
+           FindLibraryFile('esp8266.project','', '.ld', esp_project_ld_filename))) then
+    GenerateDefaultLinkerScripts(esp_out_ld_filename,esp_project_ld_filename);
 
   if (current_settings.controllertype = ct_esp32) then
-    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
+    begin
+      Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
        '-L $IDF_PATH/components/esp_rom/esp32/ld '+
        '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
-       '-L . -T esp32_out.ld -T esp32.project.ld '+
-       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
+       '-T '+esp_out_ld_filename+' -T '+esp_project_ld_filename+' '+
+       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld';
+      if idf_version>=40200 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32_rom/esp32/ld -T esp32.rom.api.ld';
+    end
   else
-    Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
-      '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
-      '-L . -T esp8266_out.ld -T esp8266.project.ld'; { Project scripts }
+    begin
+      Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
+        '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
+        '-T '+esp_out_ld_filename+' -T '+esp_project_ld_filename; { Project scripts }
+    end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
 {$endif XTENSA}
@@ -1450,13 +1497,14 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
     stringoffset:=secheader.sh_offset;
 
     seek(f,elfheader.e_shoff);
+    status.codesize:=0;
     status.datasize:=0;
     for i:=0 to elfheader.e_shnum-1 do
       begin
         blockread(f,secheader,sizeof(secheader));
         secheader:=MaybeSwapSecHeader(secheader);
         secname:=ReadSectionName(stringoffset+secheader.sh_name);
-        if secname='.text' then
+        if pos('.text',secname)<>0 then
           begin
             Message1(execinfo_x_codesize,tostr(secheader.sh_size));
             status.codesize:=secheader.sh_size;
@@ -1471,7 +1519,6 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
             Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
             inc(status.datasize,secheader.sh_size);
           end;
-
       end;
     close(f);
     {$pop}

@@ -29,6 +29,8 @@ unit tgobj;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_FREETEMP}
+
   interface
 
     uses
@@ -494,7 +496,7 @@ implementation
                { check type that are allowed to be released }
                if not(hp^.temptype in temptypes) then
                 begin
-{$ifdef EXTDEBUG}
+{$ifdef DEBUG_FREETEMP}
                   if hp^.temptype = tt_persistent then
                     Comment(V_Note,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing')
                   else

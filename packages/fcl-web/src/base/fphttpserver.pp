@@ -20,10 +20,12 @@ unit fphttpserver;
 interface
 
 uses
-  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpdefs;
+  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpdefs, httpprotocol,
+  fpthreadpool;
 
 Const
   ReadBufLen = 4096;
+  DefaultKeepConnectionTimeout = 50; // Ms
 
 Type
   TFPHTTPConnection = Class;
@@ -60,38 +62,86 @@ Type
 
   TFPHTTPConnection = Class(TObject)
   private
-    FOnError: TRequestErrorHandler;
+    Class var _ConnectionCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
+  private
+    FBusy: Boolean;
+    FConnectionID: String;
+    FIsUpgraded: Boolean;
+    FOnRequestError: TRequestErrorHandler;
+    FOnUnexpectedError: TRequestErrorHandler;
     FServer: TFPCustomHTTPServer;
     FSocket: TSocketStream;
+    FIsSocketSetup : Boolean;
     FBuffer : Ansistring;
+    FKeepAlive : Boolean;
+    function GetKeepConnections: Boolean;
+    function GetKeepConnectionTimeout: Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
   Protected
+    // Allocate the ID for this connection.
+    Procedure AllocateConnectionID;
+    // Read the request content
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
+    // Allow descendents to handle unknown headers
     procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
+    // Handle request error, calls OnRequestError
     procedure HandleRequestError(E : Exception); virtual;
+    // Handle unexpected error, calls OnUnexpectedError
+    procedure HandleUnexpectedError(E : Exception); virtual;
+    // Setup socket
     Procedure SetupSocket; virtual;
+    // Mark connection as busy with request
+    Procedure SetBusy;
+    // Actually handle request
+    procedure DoHandleRequest; virtual;
+    // Read request headers
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
+    // Check if we have keep-alive and no errors occurred
+    Function AllowNewRequest : Boolean;
+    // Check if there is a new request pending, i.e. there is data.
+    Function RequestPending : Boolean;
+    // True if we're handling a request. Needed to be able to schedule properly.
+    Property Busy : Boolean Read FBusy;
+    // The server supports HTTP 1.1 connection: keep-alive
+    Property KeepConnections : Boolean read GetKeepConnections;
+    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    Property KeepConnectionTimeout: Integer read GetKeepConnectionTimeout;
+  Public
+    Type
+      TConnectionIDAllocator = Procedure(out aID : String) of object;
+    class var IDAllocator : TConnectionIDAllocator;
   Public
     Constructor Create(AServer : TFPCustomHTTPServer; ASocket : TSocketStream);
     Destructor Destroy; override;
-    Procedure HandleRequest; virtual;
+    // Handle 1 request: Set up socket if needed, Read request, dispatch, return response.
+    Procedure HandleRequest;
+    // Unique ID per new connection
+    Property ConnectionID : String Read FConnectionID;
+    // The socket used by this connection
     Property Socket : TSocketStream Read FSocket;
+    // The server that created this connection
     Property Server : TFPCustomHTTPServer Read FServer;
-    Property OnRequestError : TRequestErrorHandler Read FOnError Write FOnError;
+    // Handler to call when an error occurs.
+    Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Called when an unexpected error occurs outside the request.
+    Property OnUnexpectedError : TRequestErrorHandler Read FOnUnexpectedError Write FOnUnexpectedError;
+    // Look up host names to map IP -> hostname ?
     Property LookupHostNames : Boolean Read GetLookupHostNames;
+    // is the current connection set up for KeepAlive?
+    Property KeepAlive: Boolean read FKeepAlive;
+    // Is the current connection upgraded ?
+    Property IsUpgraded : Boolean Read FIsUpgraded;
   end;
 
   { TFPHTTPConnectionThread }
-
   TFPHTTPConnectionThread = Class(TThread)
   private
     FConnection: TFPHTTPConnection;
-    FThreadList: TThreadList;
+    FOnDone : TNotifyEvent;
   Public
-    Constructor CreateConnection(AConnection : TFPHTTPConnection); virtual;
-    Constructor CreateConnection(AConnection : TFPHTTPConnection; AThreadList: TThreadList);
+    Constructor CreateConnection(AConnection : TFPHTTPConnection; aOnConnectionDone : TNotifyEvent); virtual;
     Procedure Execute; override;
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
@@ -102,6 +152,144 @@ Type
       Var AResponse : TFPHTTPConnectionResponse) of object;
 
   { TFPCustomHttpServer }
+  TThreadMode = (tmNone,tmThread,tmThreadPool);
+
+  { TFPHTTPServerConnectionHandler }
+
+  TFPHTTPServerConnectionHandler = Class(TObject)
+  Private
+    FServer : TFPCustomHttpServer;
+  Protected
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); virtual; abstract;
+  Public
+    Constructor Create(aServer : TFPCustomHttpServer); virtual;
+    Destructor Destroy; override;
+    Procedure CloseSockets; virtual; abstract;
+    Procedure CheckRequests; virtual; abstract;
+    Function WaitForRequests(MaxAttempts : Integer = 10) : Boolean; virtual;
+    Function GetActiveConnectionCount : Integer; virtual; abstract;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); virtual; abstract;
+    Property Server : TFPCustomHttpServer Read FServer;
+  end;
+
+  TConnectionList = Class(TThreadList)
+  end;
+
+  { TFPHTTPServerConnectionListHandler }
+
+  TFPHTTPServerConnectionListHandler = Class(TFPHTTPServerConnectionHandler)
+  Private
+
+    FList: TConnectionList;
+  Protected
+    Type
+      TConnectionIterator = Procedure (aConnection :TFPHTTPConnection; var aContinue : boolean) of object;
+    Function CreateList : TConnectionList;
+    Procedure CloseConnectionSocket(aConnection :TFPHTTPConnection; var aContinue : boolean);
+    Procedure Foreach(aIterator : TConnectionIterator);
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
+  Public
+    Constructor Create(aServer : TFPCustomHTTPServer); override;
+    Destructor Destroy; override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    Procedure CloseSockets; override;
+    Function GetActiveConnectionCount : Integer; override;
+    Property List : TConnectionList Read FList;
+  end;
+
+
+  { TFPSimpleConnectionHandler }
+
+  TFPSimpleConnectionHandler = Class(TFPHTTPServerConnectionHandler)
+    FConnection : TFPHTTPConnection;
+  Protected
+    Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
+  Public
+    procedure CheckRequests; override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    Function GetActiveConnectionCount : Integer; override;
+    Procedure CloseSockets; override;
+    Property Connection : TFPHTTPConnection Read FConnection;
+  end;
+
+  { TFPThreadedConnectionHandler }
+
+  TFPThreadedConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
+  private
+    procedure ConnectionDone(Sender: TObject);
+  Public
+    procedure CheckRequests; override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+  end;
+
+  { TFPPooledConnectionHandler }
+
+  TFPPooledConnectionHandler = Class(TFPHTTPServerConnectionListHandler)
+  Private
+    FPool : TFPCustomSimpleThreadPool;
+  Protected
+    Type
+
+       { THandleRequestTask }
+
+       THandleRequestTask = Class(TThreadPoolTask)
+       private
+         FConnection: TFPHTTPConnection;
+         FOnDone: TNotifyEvent;
+       Protected
+         procedure DoExecute; override;
+       Public
+         Constructor Create(aConnection : TFPHTTPConnection; aOnConnectionDone : TNotifyEvent);
+         Property Connection : TFPHTTPConnection Read FConnection;
+         Property OnDone : TNotifyEvent Read FOnDone;
+       end;
+    procedure ConnectionDone(Sender: TObject); virtual;
+    procedure ScheduleRequest(aConnection: TFPHTTPConnection);virtual;
+    procedure CheckRequest(aConnection: TFPHTTPConnection; var aContinue : Boolean);virtual;
+  Public
+    Procedure CloseSockets; override;
+    procedure CheckRequests; override;
+    Constructor Create(aServer : TFPCustomHttpServer); override;
+    Destructor Destroy; override;
+    Procedure HandleConnection(aConnection : TFPHTTPConnection); override;
+    function CreatePool : TFPCustomSimpleThreadPool;
+    Property Pool : TFPCustomSimpleThreadPool Read FPool;
+  end;
+
+  // List of server connection handlers TFPHTTPServerConnectionHandler
+
+
+  THandlesUpgradeEvent = procedure(aRequest : TFPHTTPConnectionRequest; var aHandlesUpgrade : Boolean) of object;
+  TUpgradeConnectionEvent = procedure(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) of object;
+
+  { TUpgradeHandlerItem }
+
+  TUpgradeHandlerItem = Class(TCollectionItem)
+  private
+    FName: String;
+    FOnHandlesUpgrade: THandlesUpgradeEvent;
+    FOnUpgrade: TUpgradeConnectionEvent;
+  Public
+    Property Name : String Read FName Write FName;
+    Property OnHandleUpgrade : THandlesUpgradeEvent Read FOnHandlesUpgrade Write FOnHandlesUpgrade;
+    Property OnUpgrade : TUpgradeConnectionEvent Read FOnUpgrade Write FOnUpgrade;
+  end;
+
+  { TUpgradeHandlerList }
+
+  TUpgradeHandlerList = Class(TCollection)
+  private
+    function GetHandlerItem(aIndex : Integer): TUpgradeHandlerItem;
+  Public
+    Function IndexOfName(const aName : String) : Integer;
+    Function HandlerByName(const aName : String) : TUpgradeHandlerItem;
+    Function AddHandler(const aName : String; aOnCheck : THandlesUpgradeEvent; aOnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem; virtual;
+    Property Handler[aIndex :Integer] : TUpgradeHandlerItem Read GetHandlerItem; default;
+  end;
+
+  { TConnectionList }
+
+
 
   TFPCustomHttpServer = Class(TComponent)
   Private
@@ -110,25 +298,32 @@ Type
     FAdminName: string;
     FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
+    FKeepConnections: Boolean;
+    FKeepConnectionTimeout: Integer;
     FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
+    FOnUnexpectedError: TRequestErrorHandler;
     FAddress: string;
     FPort: Word;
     FQueueSize: Word;
     FServer : TInetServer;
     FLoadActivate : Boolean;
     FServerBanner: string;
-    FLookupHostNames,
-    FThreaded: Boolean;
-    FConnectionThreadList: TThreadList;
-    FConnectionCount : Integer;
+    FLookupHostNames : Boolean;
+    FTreadMode: TThreadMode;
     FUseSSL: Boolean;
+    FConnectionHandler : TFPHTTPServerConnectionHandler;
+    FUpdateHandlers : TUpgradeHandlerList;
     procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
+    function GetConnectionCount: Integer;
+    function GetHasUpdateHandlers: Boolean;
     function GetHostName: string;
+    function GetThreaded: Boolean;
+    function GetUpdateHandlers: TUpgradeHandlerList;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
     procedure SetCertificateData(AValue: TCertificateData);
@@ -139,9 +334,13 @@ Type
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    procedure SetThreadMode(AValue: TThreadMode);
     procedure SetupSocket;
-    procedure WaitForRequests(MaxAttempts: Integer = 10);
+    procedure SetupConnectionHandler;
   Protected
+    Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
+    // Override this to create Descendent
+    Function CreateUpgradeHandlerList : TUpgradeHandlerList;
     // Override this to create descendent
     function CreateSSLSocketHandler: TSocketHandler;
     // Override this to create descendent
@@ -155,10 +354,12 @@ Type
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
     // Called on accept errors
     procedure DoAcceptError(Sender: TObject; ASocket: Longint; E: Exception;  var ErrorAction: TAcceptErrorAction);
+    // Called when accept is idle. Will check for new requests.
+    procedure DoAcceptIdle(Sender: TObject);
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
-    // Create a connection handling thread.
-    Function CreateConnectionThread(Conn : TFPHTTPConnection) : TFPHTTPConnectionThread; virtual;
+    // Create a connection handler object depending on threadmode
+    Function CreateConnectionHandler : TFPHTTPServerConnectionHandler; virtual;
     // Check if server is inactive
     Procedure CheckInactive;
     // Called by TInetServer when a new connection is accepted.
@@ -176,11 +377,21 @@ Type
                             Var AResponse : TFPHTTPConnectionResponse); virtual;
     // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
-    // Connection count
-    Property ConnectionCount : Integer Read FConnectionCount;
+    // Called when a connection encounters an error outside the request. Will call OnUnexpectedError when set.
+    procedure HandleUnexpectedError(Sender: TObject; E : Exception); virtual;
+    // Connection Handler
+    Property Connectionhandler : TFPHTTPServerConnectionHandler Read FConnectionHandler;
+    // Connection count. Convenience shortcut for Connectionhandler.GetActiveConnectionCount;
+    Property ConnectionCount : Integer Read GetConnectionCount;
+    // Upgrade handlers. Created on demand
+    Property UpdateHandlers : TUpgradeHandlerList Read GetUpdateHandlers;
+    // Has update handlers
+    Property HasUpdateHandlers : Boolean Read GetHasUpdateHandlers;
   public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
+    Function RegisterUpdateHandler(Const aName : string;  OnCheck : THandlesUpgradeEvent; OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
+    Procedure UnRegisterUpdateHandler(Const aName : string);
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
@@ -188,16 +399,24 @@ Type
     Property Address : string Read FAddress Write SetAddress;
     // Port to listen on.
     Property Port : Word Read FPort Write SetPort Default 80;
+    // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
+    Property KeepConnections: Boolean read FKeepConnections write FKeepConnections;
+    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    Property KeepConnectionTimeout: Integer read FKeepConnectionTimeout write FKeepConnectionTimeout;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read FQueueSize Write SetQueueSize Default 5;
     // Called when deciding whether to accept a connection.
     Property OnAllowConnect : TConnectQuery Read FOnAllowConnect Write SetOnAllowConnect;
     // Use a thread to handle a connection ?
-    property Threaded : Boolean read FThreaded Write SetThreaded;
+    property Threaded : Boolean read GetThreaded Write SetThreaded; deprecated 'Use ThreadMode instead';
+    // ThreadMode: none, threading, threadpool.
+    property ThreadMode : TThreadMode read FTreadMode Write SetThreadMode;
     // Called to handle the request. If Threaded=True, it is called in a the connection thread.
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
     // Called when an unexpected error occurs during handling of the request. Sender is the TFPHTTPConnection.
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
+    // Called when an unexpected error occurs outside the request. Sender is either the TFPHTTPConnection or TFPCustomHttpServer
+    Property OnUnexpectedError : TRequestErrorHandler Read FOnUnexpectedError Write FOnUnexpectedError;
     // Called when there are no connections waiting.
     Property OnAcceptIdle : TNotifyEvent Read FOnAcceptIdle Write SetIdle;
     // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
@@ -218,7 +437,6 @@ Type
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
-
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -228,15 +446,18 @@ Type
     Property QueueSize;
     Property OnAllowConnect;
     property Threaded;
+    property ThreadMode;
     Property OnRequest;
     Property OnRequestError;
     Property OnAcceptIdle;
     Property AcceptIdleTimeout;
+    Property KeepConnections;
+    Property KeepConnectionTimeout;
   end;
 
   EHTTPServer = Class(EHTTP);
 
-  Function GetStatusCode (ACode: Integer) : String;
+  Function GetStatusCode (ACode: Integer) : String; deprecated 'Use GetHTTPStatusText from unit httpprotocol';
 
 implementation
 
@@ -245,67 +466,13 @@ resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
   SErrMissingProtocol = 'Missing HTTP protocol version in request';
+  SErrDuplicateUpgradeHandler = 'Duplicate upgrade handler';
 
 { TFPHTTPConnectionRequest }
 Function GetStatusCode (ACode: Integer) : String;
 
 begin
-  Case ACode of
-    100 :  Result:='Continue';
-    101 :  Result:='Switching Protocols';
-    200 :  Result:='OK';
-    201 :  Result:='Created';
-    202 :  Result:='Accepted';
-    203 :  Result:='Non-Authoritative Information';
-    204 :  Result:='No Content';
-    205 :  Result:='Reset Content';
-    206 :  Result:='Partial Content';
-    300 :  Result:='Multiple Choices';
-    301 :  Result:='Moved Permanently';
-    302 :  Result:='Found';
-    303 :  Result:='See Other';
-    304 :  Result:='Not Modified';
-    305 :  Result:='Use Proxy';
-    307 :  Result:='Temporary Redirect';
-    400 :  Result:='Bad Request';
-    401 :  Result:='Unauthorized';
-    402 :  Result:='Payment Required';
-    403 :  Result:='Forbidden';
-    404 :  Result:='Not Found';
-    405 :  Result:='Method Not Allowed';
-    406 :  Result:='Not Acceptable';
-    407 :  Result:='Proxy Authentication Required';
-    408 :  Result:='Request Time-out';
-    409 :  Result:='Conflict';
-    410 :  Result:='Gone';
-    411 :  Result:='Length Required';
-    412 :  Result:='Precondition Failed';
-    413 :  Result:='Request Entity Too Large';
-    414 :  Result:='Request-URI Too Large';
-    415 :  Result:='Unsupported Media Type';
-    416 :  Result:='Requested range not satisfiable';
-    417 :  Result:='Expectation Failed';
-    418 :  Result:='I''m a teapot';
-    421 :  Result:='Misdirected Request';
-    422 :  Result:='Unprocessable Entity';
-    423 :  Result:='Locked';
-    424 :  Result:='Failed Dependency';
-    425 :  Result:='Too Early';
-    426 :  Result:='Upgrade Required';
-    428 :  Result:='Precondition Required';
-    429 :  Result:='Too Many Requests';
-    431 :  Result:='Request Header Fields Too Large';
-    451 :  Result:='Unavailable For Legal Reasons';
-
-    500 :  Result:='Internal Server Error';
-    501 :  Result:='Not Implemented';
-    502 :  Result:='Bad Gateway';
-    503 :  Result:='Service Unavailable';
-    504 :  Result:='Gateway Time-out';
-    505 :  Result:='HTTP Version not supported';
-  else
-    Result:='Unknown status';
-  end;
+  Result := GetHTTPStatusText(ACode);
 end;
 
 Function GetHostNameByAddress(const AnAddress: String): String;
@@ -322,6 +489,298 @@ begin
     FreeAndNil(Resolver);
   end;
 end;
+
+{ TUpgradeHandlerList }
+
+function TUpgradeHandlerList.GetHandlerItem(aIndex : Integer): TUpgradeHandlerItem;
+begin
+  Result:=TUpgradeHandlerItem(Items[aIndex]);
+end;
+
+function TUpgradeHandlerList.IndexOfName(const aName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and Not SameText(aName,GetHandlerItem(Result).Name) do
+    Dec(Result);
+end;
+
+function TUpgradeHandlerList.HandlerByName(const aName: String): TUpgradeHandlerItem;
+
+Var
+  Idx : integer;
+
+begin
+  Idx:=IndexOfName(aName);
+  if (Idx=-1) then
+    Result:=Nil
+  else
+    Result:=GetHandlerItem(Idx);
+end;
+
+function TUpgradeHandlerList.AddHandler(const aName: String; aOnCheck: THandlesUpgradeEvent; aOnUpgrade: TUpgradeConnectionEvent
+  ): TUpgradeHandlerItem;
+begin
+  if IndexOfName(aName)<>-1 then
+    Raise EHTTPServer.CreateFmt(SErrDuplicateUpgradeHandler,[aName]);
+  Result:=add as TUpgradeHandlerItem;
+  Result.Name:=aName;
+  Result.OnHandleUpgrade:=aOnCheck;
+  Result.OnUpgrade:=aOnUpgrade;
+end;
+
+{ TFPPooledConnectionHandler.THandleRequestTask }
+
+constructor TFPPooledConnectionHandler.THandleRequestTask.Create(aConnection: TFPHTTPConnection; aOnConnectionDone : TNotifyEvent);
+begin
+  FOnDone:=aOnConnectionDone;
+  FConnection:=aConnection;
+end;
+
+procedure TFPPooledConnectionHandler.THandleRequestTask.DoExecute;
+begin
+  Try
+    Connection.HandleRequest;
+    if Assigned(FOnDone) then
+      FOnDone(Connection);
+  except
+    On E : Exception do
+      Connection.HandleUnexpectedError(E);
+  end;
+end;
+
+{ TFPPooledConnectionHandler }
+
+procedure TFPPooledConnectionHandler.CheckRequests;
+
+begin
+  // First schedule what is already there..
+  FPool.CheckQueuedTasks;
+  // Now maybe add
+  Foreach(@CheckRequest);
+end;
+
+constructor TFPPooledConnectionHandler.Create(aServer: TFPCustomHttpServer);
+begin
+  inherited Create(aServer);
+  FPool:=CreatePool;
+end;
+
+destructor TFPPooledConnectionHandler.Destroy;
+begin
+  FreeAndNil(FPool);
+  inherited Destroy;
+end;
+
+procedure TFPPooledConnectionHandler.ScheduleRequest(aConnection: TFPHTTPConnection);
+
+begin
+  // So we don't schedule it again while it is waiting to be handled.
+  aConnection.SetBusy;
+  FPool.AddTask(THandleRequestTask.Create(aConnection,@ConnectionDone));
+end;
+
+procedure TFPPooledConnectionHandler.CheckRequest(aConnection: TFPHTTPConnection; var aContinue: Boolean);
+begin
+  if Server.Active and aConnection.AllowNewRequest and aConnection.RequestPending then
+    ScheduleRequest(aConnection);
+end;
+
+procedure TFPPooledConnectionHandler.CloseSockets;
+begin
+  FPool.CancelQueuedTasks;
+  inherited CloseSockets;
+end;
+
+procedure TFPPooledConnectionHandler.ConnectionDone(Sender: TObject);
+
+var
+  aConn : TFPHTTPConnection;
+
+begin
+  aConn:=Sender as TFPHTTPConnection;
+  if Not aConn.AllowNewRequest then
+    RemoveConnection(aConn);
+end;
+
+procedure TFPPooledConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  Inherited;
+  ScheduleRequest(aConnection);
+end;
+
+function TFPPooledConnectionHandler.CreatePool: TFPCustomSimpleThreadPool;
+
+Var
+  P : TFPSimpleThreadPool;
+
+begin
+  P:=TFPSimpleThreadPool.Create;
+  //P.AddWaitInterval:=10;
+  P.AddTimeout:=30;
+  Result:=P;
+end;
+
+{ TFPHTTPServerConnectionListHandler }
+
+function TFPHTTPServerConnectionListHandler.CreateList: TConnectionList;
+begin
+  Result:=TConnectionList.Create;
+end;
+
+destructor TFPHTTPServerConnectionListHandler.Destroy;
+begin
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+procedure TFPHTTPServerConnectionListHandler.CloseConnectionSocket(aConnection: TFPHTTPConnection; var aContinue: boolean);
+begin
+  if Not aConnection.IsUpgraded then
+    sockets.CloseSocket(aConnection.Socket.Handle);
+end;
+
+procedure TFPHTTPServerConnectionListHandler.Foreach(aIterator: TConnectionIterator);
+Var
+  L : TList;
+  aContinue : Boolean;
+  I : Integer;
+
+begin
+  aContinue:=True;
+  L:=FList.LockList;
+  try
+    For I:=L.Count-1 downto 0 do
+      if aContinue then
+        aIterator(TFPHTTPConnection(L[i]),aContinue);
+  finally
+    FList.UnlockList;
+  end;
+end;
+
+procedure TFPHTTPServerConnectionListHandler.RemoveConnection(aConnection: TFPHTTPConnection);
+begin
+  Flist.Remove(aConnection);
+  aConnection.Free;
+end;
+
+constructor TFPHTTPServerConnectionListHandler.Create(aServer: TFPCustomHTTPServer);
+begin
+  inherited Create(aServer);
+  FList:=CreateList;
+end;
+
+procedure TFPHTTPServerConnectionListHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  FList.Add(aConnection);
+end;
+
+procedure TFPHTTPServerConnectionListHandler.CloseSockets;
+begin
+  Foreach(@CloseConnectionSocket);
+end;
+
+function TFPHTTPServerConnectionListHandler.GetActiveConnectionCount: Integer;
+
+Var
+  L : TList;
+begin
+  L:=FList.LockList;
+  try
+    Result:=L.Count;
+  finally
+    FList.UnlockList;
+  end;
+end;
+
+{ TFPThreadedConnectionHandler }
+
+procedure TFPThreadedConnectionHandler.ConnectionDone(Sender: TObject);
+begin
+  RemoveConnection(Sender as TFPHTTPConnection)
+end;
+
+procedure TFPThreadedConnectionHandler.CheckRequests;
+begin
+  // Do nothing
+end;
+
+procedure TFPThreadedConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  Inherited; // Adds to list
+  TFPHTTPConnectionThread.CreateConnection(aConnection,@ConnectionDone);
+end;
+
+
+{ TFPSimpleConnectionHandler }
+
+function TFPSimpleConnectionHandler.GetActiveConnectionCount: Integer;
+begin
+  Result:=Ord(Assigned(FConnection));
+end;
+
+procedure TFPSimpleConnectionHandler.RemoveConnection(aConnection: TFPHTTPConnection);
+begin
+  if aConnection=FConnection then
+    FConnection:=Nil;
+  aConnection.Free;
+end;
+
+procedure TFPSimpleConnectionHandler.CheckRequests;
+begin
+  // Do nothing
+end;
+
+procedure TFPSimpleConnectionHandler.HandleConnection(aConnection: TFPHTTPConnection);
+begin
+  FConnection:=AConnection;
+  try
+    FConnection.HandleRequest;
+  finally
+    RemoveConnection(aConnection);
+  end;
+end;
+
+procedure TFPSimpleConnectionHandler.CloseSockets;
+begin
+  if Assigned(FConnection) then
+    sockets.CloseSocket(FConnection.Socket.Handle);
+end;
+
+
+{ TFPHTTPServerConnectionHandler }
+
+constructor TFPHTTPServerConnectionHandler.Create(aServer: TFPCustomHttpServer);
+begin
+  FServer:=aServer;
+end;
+
+destructor TFPHTTPServerConnectionHandler.Destroy;
+begin
+  FServer:=Nil;
+  inherited Destroy;
+end;
+
+Function TFPHTTPServerConnectionHandler.WaitForRequests(MaxAttempts: Integer = 10) : Boolean;
+
+Var
+  aLastCount,ACount : Integer;
+
+begin
+  ACount:=0;
+  aLastCount:=GetActiveConnectionCount;
+  While (GetActiveConnectionCount>0) and (aCount<MaxAttempts) do
+    begin
+    Sleep(100);
+    if (GetActiveConnectionCount=aLastCount) then
+      Inc(ACount)
+    else
+      aLastCount:=GetActiveConnectionCount;
+    end;
+  Result:=aLastCount=0;
+end;
+
+
+
 
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
@@ -353,7 +812,9 @@ Var
   S : String;
   I : Integer;
 begin
-  S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetStatusCode(Code)]);
+  if Connection.IsUpgraded then
+    exit;
+  S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetHTTPStatusText(Code)]);
   For I:=0 to Headers.Count-1 do
     S:=S+Headers[i]+#13#10;
   // Last line in headers is empty.
@@ -362,6 +823,8 @@ end;
 
 procedure TFPHTTPConnectionResponse.DoSendContent;
 begin
+  if Connection.IsUpgraded then
+    exit;
   If Assigned(ContentStream) then
     Connection.Socket.CopyFrom(ContentStream,0)
   else
@@ -441,12 +904,19 @@ end;
 
 procedure TFPHTTPConnection.HandleRequestError(E: Exception);
 begin
-  If Assigned(FOnError) then
+  If Assigned(FOnRequestError) then
     try
-      FOnError(Self,E);
+      FOnRequestError(Self,E);
     except
-      // We really cannot handle this...
+      On E : exception do
+        HandleUnexpectedError(E);
     end;
+end;
+
+procedure TFPHTTPConnection.HandleUnexpectedError(E: Exception);
+begin
+  If Assigned(FOnUnexpectedError) then
+    FOnUnexpectedError(Self,E);
 end;
 
 procedure TFPHTTPConnection.SetupSocket;
@@ -455,6 +925,12 @@ begin
   FSocket.ReadFlags:=MSG_NOSIGNAL;
   FSocket.WriteFlags:=MSG_NOSIGNAL;
 {$endif}
+  FIsSocketSetup:=True;
+end;
+
+procedure TFPHTTPConnection.SetBusy;
+begin
+  FBusy:=True;
 end;
 
 Procedure TFPHTTPConnection.InterPretHeader(ARequest : TFPHTTPConnectionRequest; Const AHeader : String);
@@ -472,6 +948,8 @@ begin
     Exit;
     end;
   N:=Copy(V,1,P-1);
+  if SameText(N,'Upgrade') then
+    V:=V;
   Delete(V,1,P);
   V:=Trim(V);
   ARequest.SetFieldByName(N,V);
@@ -532,12 +1010,15 @@ begin
     P:=Length(FBuffer);
     if (P>0) then
       begin
+      if P>L then
+        P:=L;
       Move(FBuffer[1],S[1],P);
+      FBuffer:='';
       L:=L-P;
       end;
     P:=P+1;
     R:=1;
-    While (L<>0) and (R>0) do
+    While (L>0) and (R>0) do
       begin
       R:=FSocket.Read(S[p],L);
       If R<0 then
@@ -576,18 +1057,28 @@ begin
   end;
 end;
 
+function TFPHTTPConnection.AllowNewRequest: Boolean;
+begin
+  Result:=not (Busy or IsUpgraded);
+  Result:=Result and KeepConnections and KeepAlive and (Socket.LastError=0) ;
+end;
+
+function TFPHTTPConnection.RequestPending: Boolean;
+begin
+  Result:=(Not IsUpgraded) and Socket.CanRead(KeepConnectionTimeout);
+end;
+
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
 begin
+  FIsUpgraded:=False;
+  FIsSocketSetup:=False;
   FSocket:=ASocket;
   FServer:=AServer;
-  If Assigned(FServer) then
-    InterLockedIncrement(FServer.FConnectionCount)
+  AllocateConnectionID;
 end;
 
 destructor TFPHTTPConnection.Destroy;
 begin
-  If Assigned(FServer) then
-    InterLockedDecrement(FServer.FConnectionCount);
   FreeAndNil(FSocket);
   Inherited;
 end;
@@ -601,77 +1092,132 @@ begin
     Result:=False;  
 end;
 
-procedure TFPHTTPConnection.HandleRequest;
+procedure TFPHTTPConnection.AllocateConnectionID;
+
+begin
+  if Assigned(IDAllocator) then
+    IDAllocator(FConnectionID);
+  if FConnectionID='' then
+{$IFDEF CPU64}
+    FConnectionID:=IntToStr(InterlockedIncrement64(_ConnectionCount));
+{$ELSE}
+    FConnectionID:=IntToStr(InterlockedIncrement(_ConnectionCount));
+{$ENDIF}
+end;
+
+procedure TFPHTTPConnection.DoHandleRequest;
 
 Var
   Req : TFPHTTPConnectionRequest;
   Resp : TFPHTTPConnectionResponse;
 
 begin
-  Try
-    SetupSocket;
-    // Read headers.
-    Req:=ReadRequestHeaders;
-    try
-      //set port
-      Req.ServerPort := Server.Port;
-      // Read content, if any
-      If Req.ContentLength>0 then
-        ReadRequestContent(Req);
-      Req.InitRequestVars;
-      // Create Response
-      Resp:= Server.CreateResponse(Req);
-      try
-        Server.InitResponse(Resp);
-        Resp.FConnection:=Self;
-        // And dispatch
-        if Server.Active then
-          Server.HandleRequest(Req,Resp);
-        if Assigned(Resp) and (not Resp.ContentSent) then
-          Resp.SendContent;
-      finally
-        FreeAndNil(Resp);
+  if IsUpgraded then
+    exit;
+  // Read headers.
+  Resp:=Nil;
+  Req:=ReadRequestHeaders;
+  try
+    //set port
+    Req.ServerPort := Server.Port;
+    // Read content, if any
+    If Req.ContentLength>0 then
+      ReadRequestContent(Req);
+    Req.InitRequestVars;
+    If Server.CheckUpgrade(Self,Req) then
+      begin
+      FSocket:=Nil; // Must have been taken over by upgrader
+      FIsUpgraded:=True;
+      Exit;
       end;
-    Finally
-      FreeAndNil(Req);
-    end;
+    if KeepConnections then
+      begin
+      // Read out keep-alive
+      FKeepAlive:=Req.HttpVersion='1.1'; // keep-alive is default on HTTP 1.1
+      if SameText(Req.GetHeader(hhConnection),'close') then
+        FKeepAlive:=False
+      else if SameText(Req.GetHeader(hhConnection),'keep-alive') then
+        FKeepAlive:=True;
+      end;
+    // Create Response
+    Resp:= Server.CreateResponse(Req);
+    Server.InitResponse(Resp);
+    // We set the header here now. User can override it when needed.
+    if FKeepAlive and (Req.HttpVersion='1.0') and not Resp.HeaderIsSet(hhConnection) then
+      Resp.SetHeader(hhConnection,'keep-alive');
+    Resp.FConnection:=Self;
+    // And dispatch
+    if Server.Active then
+      Server.HandleRequest(Req,Resp);
+    if Assigned(Resp) and (not Resp.ContentSent) then
+      Resp.SendContent;
+  Finally
+    FreeAndNil(Resp);
+    FreeAndNil(Req);
+  end;
+end;
+
+function TFPHTTPConnection.GetKeepConnections: Boolean;
+begin
+  if Assigned(FServer) then
+    Result := FServer.KeepConnections
+  else
+    Result := False;
+end;
+
+function TFPHTTPConnection.GetKeepConnectionTimeout: Integer;
+begin
+  if Assigned(FServer) then
+    Result := FServer.KeepConnectionTimeout
+  else
+    Result := 0;
+end;
+
+procedure TFPHTTPConnection.HandleRequest;
+
+
+begin
+  FBusy:=True;
+  Try
+    if not FIsSocketSetup then
+      SetupSocket;
+    DoHandleRequest;
   Except
     On E : Exception do
+      begin
+      FKeepAlive:=False; // don't keep alive connections that failed
       HandleRequestError(E);
+      end;
   end;
+  FBusy:=False;
 end;
 
 { TFPHTTPConnectionThread }
 
-constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection
-  );
+constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection; aOnConnectionDone : TNotifyEvent);
 begin
+  FOnDone:=aOnConnectionDone;
   FConnection:=AConnection;
   FreeOnTerminate:=True;
   Inherited Create(False);
 end;
 
-constructor TFPHTTPConnectionThread.CreateConnection(AConnection: TFPHTTPConnection; AThreadList: TThreadList);
-begin
-  FThreadList := AThreadList;
-  if Assigned(FThreadList) then
-    FThreadList.Add(Self);
-  CreateConnection(AConnection);
-end;
 
 procedure TFPHTTPConnectionThread.Execute;
+
 begin
   try
-    try
-      FConnection.HandleRequest;
-    finally
-      FreeAndNil(FConnection);
-      if Assigned(FThreadList) then
-        FThreadList.Remove(Self);
-    end;
+    // Always handle first request
+    Connection.HandleRequest;
+    While not Terminated and Connection.AllowNewRequest do
+      if Connection.RequestPending then
+        Connection.HandleRequest;
   except
-    // Silently ignore errors.
+    on E : Exception do
+      Connection.HandleUnexpectedError(E);
   end;
+  If Assigned(FOnDone) then
+    FOnDone(Connection);
 end;
 
 { TFPCustomHttpServer }
@@ -682,7 +1228,7 @@ begin
     try
       FOnRequestError(Sender,E);
     except
-      // Do not let errors in user code escape.
+      HandleUnexpectedError(Self, E);
     end
 end;
 
@@ -703,14 +1249,52 @@ begin
     Result:=Assigned(FServer);
 end;
 
+function TFPCustomHttpServer.GetConnectionCount: Integer;
+begin
+  if Assigned(FConnectionHandler) then
+    Result:=FConnectionHandler.GetActiveConnectionCount
+  else
+    Result:=0;
+end;
+
+function TFPCustomHttpServer.GetHasUpdateHandlers: Boolean;
+begin
+  Result:=FUpdateHandlers<>Nil;
+end;
+
 procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
 begin
   AHandler:=GetSocketHandler(UseSSL);
 end;
 
+procedure TFPCustomHttpServer.DoAcceptIdle(Sender: TObject);
+begin
+  if Assigned(OnAcceptIdle) then
+    OnAcceptIdle(Sender);
+  try
+    // Allow the connection handler to check for requests
+    FConnectionHandler.CheckRequests;
+  except
+    On E : Exception do
+      HandleUnexpectedError(Self, E);
+  end;
+end;
+
 function TFPCustomHttpServer.GetHostName: string;
 begin
   Result:=FCertificateData.HostName;
+end;
+
+function TFPCustomHttpServer.GetThreaded: Boolean;
+begin
+  Result:=ThreadMode=tmThread;
+end;
+
+function TFPCustomHttpServer.GetUpdateHandlers: TUpgradeHandlerList;
+begin
+  If FUpdateHandlers=Nil then
+    FUpdateHandlers:=CreateUpgradeHandlerList;
+  Result:=FUpdateHandlers;
 end;
 
 procedure TFPCustomHttpServer.SetAcceptIdleTimeout(AValue: Cardinal);
@@ -733,6 +1317,8 @@ begin
   if not (csDesigning in Componentstate) then
     if AValue then
       begin
+      if (FConnectionHandler=Nil) then
+        SetupConnectionHandler;
       CreateServerSocket;
       SetupSocket;
       StartServerSocket;
@@ -789,12 +1375,20 @@ begin
 end;
 
 procedure TFPCustomHttpServer.SetThreaded(const AValue: Boolean);
+
+Const
+  Modes : Array[Boolean] of TThreadMode = (tmNone,tmThread);
 begin
-  if FThreaded=AValue then exit;
+  if GetThreaded=AValue then exit;
+  ThreadMode:=Modes[aValue];
+end;
+
+procedure TFPCustomHttpServer.SetThreadMode(AValue: TThreadMode);
+begin
+  if FTreadMode=AValue then Exit;
   CheckInactive;
-  FThreaded:=AValue;
-  if FThreaded and not Assigned(FConnectionThreadList) then
-    FConnectionThreadList:=TThreadList.Create;
+  FTreadMode:=AValue;
+  SetupConnectionHandler;
 end;
 
 function TFPCustomHttpServer.CreateRequest: TFPHTTPConnectionRequest;
@@ -823,10 +1417,13 @@ begin
   Result:=TFPHTTPConnection.Create(Self,Data);
 end;
 
-function TFPCustomHttpServer.CreateConnectionThread(Conn: TFPHTTPConnection
-  ): TFPHTTPConnectionThread;
+function TFPCustomHttpServer.CreateConnectionHandler: TFPHTTPServerConnectionHandler;
 begin
-   Result:=TFPHTTPConnectionThread.CreateConnection(Conn, FConnectionThreadList);
+  case ThreadMode of
+    tmNone : Result:=TFPSimpleConnectionHandler.Create(Self);
+    tmThread : Result:=TFPThreadedConnectionHandler.Create(Self);
+    tmThreadPool : Result:=TFPPooledConnectionHandler.Create(Self);
+  end;
 end;
 
 procedure TFPCustomHttpServer.CheckInactive;
@@ -842,19 +1439,10 @@ Var
 
 begin
   Con:=CreateConnection(Data);
-  try
-    Con.FServer:=Self;
-    Con.OnRequestError:=@HandleRequestError;
-    if Threaded then
-      CreateConnectionThread(Con)
-    else
-      begin
-      Con.HandleRequest;
-      end;
-  finally
-    if not Threaded then
-      Con.Free;
-  end;
+  Con.FServer:=Self;
+  Con.OnRequestError:=@HandleRequestError;
+  Con.OnUnexpectedError:=@HandleUnexpectedError;
+  FConnectionHandler.HandleConnection(Con);
 end;
 
 procedure TFPCustomHttpServer.SetupSocket;
@@ -862,6 +1450,52 @@ procedure TFPCustomHttpServer.SetupSocket;
 begin
   FServer.QueueSize:=Self.QueueSize;
   FServer.ReuseAddress:=true;
+end;
+
+procedure TFPCustomHttpServer.SetupConnectionHandler;
+begin
+  if Assigned(FConnectionHandler) then
+    FreeAndNil(FConnectionHandler);
+  FConnectionHandler:=CreateConnectionHandler();
+end;
+
+function TFPCustomHttpServer.CheckUpgrade(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
+
+Var
+  I : Integer;
+  Handler : TUpgradeHandlerItem;
+  S : String;
+
+begin
+  Result:=HasUpdateHandlers;
+  If Result then
+    begin
+    Result:=False;
+    If Pos('upgrade',LowerCase(aRequest.GetHeader(hhConnection)))=0 then
+      Exit;
+    If (aRequest.GetHeader(hhUpgrade)='') then
+      Exit;
+    I:=0;
+    While (I<UpdateHandlers.Count) and not Result do
+      begin
+      Handler:=UpdateHandlers[i];
+      Handler.OnHandleUpgrade(aRequest,Result);
+      Inc(I);
+      end;
+   If Result then
+     Handler.OnUpgrade(aConnection,aRequest);
+   end;
+end;
+
+function TFPCustomHttpServer.CreateUpgradeHandlerList: TUpgradeHandlerList;
+begin
+  Result:=TUpgradeHandlerList.Create(TUpgradeHandlerItem);
+end;
+
+procedure TFPCustomHttpServer.HandleUnexpectedError(Sender: TObject; E: Exception);
+begin
+  If Assigned(FOnUnexpectedError) then
+    FOnUnexpectedError(Sender,E);
 end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
@@ -876,7 +1510,7 @@ begin
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
   FServer.OnAcceptError:=@DoAcceptError;
-  FServer.OnIdle:=OnAcceptIdle;
+  FServer.OnIdle:=@DoAcceptIdle;
   FServer.AcceptIdleTimeOut:=AcceptIdleTimeout;
 end;
 
@@ -906,25 +1540,10 @@ begin
   FQueueSize:=5;
   FServerBanner := 'FreePascal';
   FCertificateData:=CreateCertificateData;
+  FKeepConnections:=False;
+  FKeepConnectionTimeout:=DefaultKeepConnectionTimeout;
 end;
 
-procedure TFPCustomHttpServer.WaitForRequests(MaxAttempts: Integer);
-
-Var
-  FLastCount,ACount : Integer;
-
-begin
-  ACount:=0;
-  FLastCount:=FConnectionCount;
-  While (FConnectionCount>0) and (ACount<MaxAttempts) do
-    begin
-    Sleep(100);
-    if (FConnectionCount=FLastCount) then
-      Inc(ACount)
-    else
-      FLastCount:=FConnectionCount;
-    end;
-end;
 
 function TFPCustomHttpServer.CreateCertificateData: TCertificateData;
 begin
@@ -972,29 +1591,42 @@ begin
 end;
 
 destructor TFPCustomHttpServer.Destroy;
-var
-  ThreadList: TList;
-  I: Integer;
+
 begin
   Active:=False;
-  if Threaded and (FConnectionCount>0) then
+  if (GetConnectionCount>0) then
   begin
+    FConnectionHandler.WaitForRequests;
     // first wait for open requests to finish and get closed automatically
-    WaitForRequests;
-    // force close open sockets
-    ThreadList:=FConnectionThreadList.LockList;
-    try
-      for I:= ThreadList.Count-1 downto 0 do
-        CloseSocket(TFPHTTPConnectionThread(ThreadList[I]).Connection.Socket.Handle);
-    finally
-      FConnectionThreadList.UnlockList;
-    end;
+    // Force close
+    FConnectionHandler.CloseSockets;
     // all requests must be destroyed - wait infinitely
-    WaitForRequests(High(Integer));
+    FConnectionHandler.WaitForRequests(High(Integer));
   end;
-  FreeAndNil(FConnectionThreadList);
+  FreeAndNil(FConnectionHandler);
   FreeAndNil(FCertificateData);
   inherited Destroy;
+end;
+
+function TFPCustomHttpServer.RegisterUpdateHandler(const aName: string; OnCheck: THandlesUpgradeEvent;
+  OnUpgrade: TUpgradeConnectionEvent): TUpgradeHandlerItem;
+begin
+  With UpdateHandlers do
+    Result:=AddHandler(aName,OnCheck,OnUpgrade)
+end;
+
+procedure TFPCustomHttpServer.UnRegisterUpdateHandler(const aName: string);
+
+Var
+  Idx : Integer;
+
+begin
+  With UpdateHandlers do
+    begin
+    Idx:=IndexOfName(aName);
+    if Idx<>-1 then
+      Delete(Idx);
+    end;
 end;
 
 end.

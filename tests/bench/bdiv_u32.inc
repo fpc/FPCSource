@@ -59,6 +59,26 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  { TUInt32Bit7Test }
+
+  TUInt32Bit7Test = class(TUInt32DivTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt32Bit7ModTest }
+
+  TUInt32Bit7ModTest = class(TUInt32ModTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
   { TUInt32Bit10Test }
 
   TUInt32Bit10Test = class(TUInt32DivTest)
@@ -412,6 +432,78 @@ procedure TUInt32Bit3ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 3;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit7Test }
+
+function TUInt32Bit7Test.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit division by 7';
+  end;
+
+function TUInt32Bit7Test.GetDivisor: Cardinal;
+  begin
+    Result := 7;
+  end;
+
+procedure TUInt32Bit7Test.DoTestIteration(Iteration: Integer);
+  var
+    Numerator, Answer: Cardinal;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := 4294967294;
+      255:
+        Numerator := 4294967295;
+      else
+        Numerator := Cardinal(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := Numerator div 7;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit7ModTest }
+
+function TUInt32Bit7ModTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit modulus by 7';
+  end;
+
+function TUInt32Bit7ModTest.GetDivisor: Cardinal;
+  begin
+    Result := 7;
+  end;
+
+procedure TUInt32Bit7ModTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator, Answer: Cardinal;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      252:
+        Numerator := 4294967291;
+      253:
+        Numerator := 4294967292;
+      254:
+        Numerator := 4294967293;
+      255:
+        Numerator := 4294967295;
+      else
+        Numerator := Cardinal(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := Numerator mod 7;
 
     FResultArray[Index] := Answer;
   end;

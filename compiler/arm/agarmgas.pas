@@ -129,6 +129,10 @@ unit agarmgas;
             result:='-mfpu=vfpv4 '+result;
           fpu_neon_vfpv4:
             result:='-mfpu=neon-vfpv4 '+result;
+          fpu_fpv5_sp_d16:
+            result:='-mfpu=fpv5-sp-d16 '+result;
+          fpu_fpv5_d16:
+            result:='-mfpu=fpv5-d16 '+result;
           else
             ;
         end;

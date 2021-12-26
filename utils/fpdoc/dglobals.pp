@@ -37,7 +37,7 @@ Var
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
-       'Published', 'Automated','Strict Private','Strict Protected',
+      'Published', 'Automated','Strict Private','Strict Protected',
        'Required', 'Optional' // ObjCClass
        );
 
@@ -146,6 +146,7 @@ type
   TFPDocEngine = class(TPasTreeContainer)
   private
     FDocLogLevels: TFPDocLogLevels;
+    FExamplesPath: String;
     FOnParseUnit: TOnParseUnitEvent;
     function ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
     function ResolveLinkInUsedUnits(AModule: TPasModule; const ALinkDest: String; Strict: Boolean=False): String;
@@ -210,6 +211,7 @@ type
     property RootDocNode: TDocNode read FRootDocNode;
     Property DocLogLevels : TFPDocLogLevels Read FDocLogLevels Write FDocLogLevels;
     Property OnParseUnit : TOnParseUnitEvent Read FOnParseUnit Write FOnParseUnit;
+    Property ExamplesPath : String Read FExamplesPath Write FExamplesPath;
   end;
 
 
@@ -1541,16 +1543,23 @@ var
   
 begin
   Result:='';
-  for i := 0 to DescrDocs.Count - 1 do
+  Fn:=UTF8Encode(ExElement['file']);
+  if FN='' then
+    exit;
+  if ExamplesPath<>'' then
+    Result:=IncludeTrailingPathDelimiter(ExamplesPath)+FN
+  else
     begin
-    Fn:=UTF8Encode(ExElement['file']);
-    if (FN<>'') and (TDOMDocument(DescrDocs[i]) = ExElement.OwnerDocument) then
+    I:=0;
+    While (Result='') and (I<DescrDocs.Count) do
       begin
-      Result := ExtractFilePath(DescrDocNames[i]) + FN;
-      if (ExtractFileExt(Result)='') then
-        Result:=Result+'.pp';
+      if (TDOMDocument(DescrDocs[i]) = ExElement.OwnerDocument) then
+        Result := ExtractFilePath(DescrDocNames[i]) + FN;
+      Inc(I);
       end;
     end;  
+  if (ExtractFileExt(Result)='') then
+    Result:=Result+'.pp';
 end;
 
 

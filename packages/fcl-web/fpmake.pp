@@ -32,6 +32,8 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('fcl-hash');
+    P.Dependencies.Add('hash');
     P.Dependencies.Add('fcl-registry',AllWindowsOSes);
     P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
@@ -50,9 +52,11 @@ begin
 
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/webdata');
+    P.SourcePath.Add('src/jwt');
     P.SourcePath.Add('src/jsonrpc');
     P.SourcePath.Add('src/hpack');
     P.SourcePath.Add('src/restbridge');
+    P.SourcePath.Add('src/websocket');
     T:=P.Targets.addUnit('fpmimetypes.pp');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
@@ -62,6 +66,11 @@ begin
     T:=P.Targets.AddUnit('httproute.pp');
       T.ResourceStrings:=true;
     T.Dependencies.AddUnit('httpdefs');
+
+    T:=P.Targets.AddUnit('httpjson.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpdefs');
+    T.Dependencies.AddUnit('httpprotocol');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
@@ -300,6 +309,7 @@ begin
       begin
       AddUnit('fpjsonrpc');
       end;
+    T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
     With T.Dependencies do
       begin
@@ -321,6 +331,14 @@ begin
     T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fpoauth2ini.pp');
     T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fpjwasha256.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha512.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha384.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwaes256.pp');
+    T.Dependencies.AddUnit('fpjwt');
     T:=P.Targets.AddUnit('fphttpwebclient.pp');
     T.Dependencies.AddUnit('fpwebclient');
     T:=P.Targets.AddUnit('restbase.pp');
@@ -427,7 +445,43 @@ begin
       AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestconst');
       end;
+    T:=P.Targets.AddUnit('fpwebsocket.pp');
+    T.Resourcestrings:=True;
+    T:=P.Targets.AddUnit('fpcustwsserver.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      end;
+    T:=P.Targets.AddUnit('fpwebsocketserver.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      AddUnit('fpcustwsserver');
+      end;
+    T:=P.Targets.AddUnit('fpwebsocketclient.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      end;
+    T:=P.Targets.AddUnit('wsupgrader.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      AddUnit('fpcustwsserver');
+      end;
     end;
+    T:=P.Targets.AddUnit('fphttpclientpool.pas');
+    T.Resourcestrings:=True;
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      end;
+    T:=P.Targets.AddUnit('fphttpclientasyncpool.pas');
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      AddUnit('fphttpclientpool');
+      end;
 end;
     
 {$ifndef ALLPACKAGES}

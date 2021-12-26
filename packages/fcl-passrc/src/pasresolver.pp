@@ -20088,7 +20088,7 @@ begin
   try
     ComputeElement(Param,ResolvedParam,[]);
     Shift := GetShiftAndMaskForLoHiFunc(ResolvedParam.BaseType, Proc.BuiltIn=bfLo, Mask);
-    Evaluated := fExprEvaluator.LoHiValue(Value,Shift,Mask,Params);
+    Evaluated := fExprEvaluator.ShiftAndMaskValue(Value,Shift,Mask,Params);
   finally
     ReleaseEvalValue(Value);
   end;
@@ -27920,13 +27920,31 @@ begin
     writeln('TPasResolver.ComputeElement Unary Kind=',TUnaryExpr(El).Kind,' OpCode=',TUnaryExpr(El).OpCode,' OperandResolved=',GetResolverResultDbg(ResolvedEl),' ',GetElementSourcePosStr(El));
     {$ENDIF}
     case TUnaryExpr(El).OpCode of
-      eopAdd, eopSubtract:
+      eopAdd:
         if ResolvedEl.BaseType in (btAllInteger+btAllFloats) then
           exit
         else if IsGenericTemplType(ResolvedEl) then
           exit
         else
           RaiseMsg(20170216152532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
+      eopSubtract:
+        if ResolvedEl.BaseType in (btAllSignedInteger+btAllFloats) then
+          exit
+        else if ResolvedEl.BaseType in btAllInteger then
+          begin
+          case ResolvedEl.BaseType of
+          btByte,btWord:
+            ResolvedEl.BaseType:=btLongint;
+          btLongWord,btUIntDouble:
+            ResolvedEl.BaseType:=btIntDouble;
+          end;
+          exit;
+          end
+        else if IsGenericTemplType(ResolvedEl) then
+          exit
+        else
+          RaiseMsg(20210815225815,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
             [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
       eopNot:
         begin

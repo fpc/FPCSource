@@ -29,7 +29,7 @@ interface
 
     uses
       globals,cclasses,
-      node,nbas,nutils,
+      node,nbas,nutils,aasmdata,
       symdef,procinfo,optdfa;
 
     type
@@ -74,6 +74,7 @@ interface
         procedure generate_code;
         procedure generate_code_tree;
         procedure generate_exceptfilter(nestedpi: tcgprocinfo);
+        procedure generate_exit_label(list: tasmlist); virtual;
         procedure resetprocdef;
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
@@ -122,7 +123,7 @@ implementation
        cutils, cmsgs,
        { global }
        globtype,tokens,verbose,comphook,constexp,
-       systems,cpubase,aasmbase,aasmtai,aasmdata,
+       systems,cpubase,aasmbase,aasmtai,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,symcreat,
        paramgr,
@@ -1045,7 +1046,7 @@ implementation
       end;
 
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(riscv32) or defined(riscv64) or defined(m68k)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(riscv32) or defined(riscv64) or defined(m68k)}
     const
       exception_flags: array[boolean] of tprocinfoflags = (
         [],
@@ -1057,7 +1058,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(m68k)}
+{$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(m68k)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
@@ -1101,11 +1102,16 @@ implementation
                 not(cs_generate_stackframes in current_settings.localswitches) and
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
+{$if defined(aarch64)}
+               { on aarch64, it must be a leaf subroutine }
+                not(pi_do_call in flags) and
+{$endif defined(aarch64)}
                 not ((pi_has_stackparameter in flags)
-{$ifndef arm}   { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+{$if defined(i386) or defined(x86_64)}
+               { Outgoing parameter(s) on stack do not need stackframe on x86 targets
                  with fixed stack. On ARM it fails, see bug #25050 }
                   and (not paramanager.use_fixed_stack)
-{$endif arm}
+{$endif defined(i386) or defined(x86_64)}
                   ) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_needs_stackframe]+
@@ -1136,6 +1142,7 @@ implementation
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
                     tg.direction:=1;
+                    Include(flags,pi_no_framepointer_needed)
                   end
 {$if defined(arm)}
                 { On arm, the stack frame size can be estimated to avoid using an extra frame pointer,
@@ -1217,22 +1224,15 @@ implementation
              end;
 
            if RedoDFA then
-             begin
-               dfabuilder.resetdfainfo(code);
-               dfabuilder.createdfainfo(code);
-               include(flags,pi_dfaavailable);
-             end;
+             dfabuilder.redodfainfo(code);
 
-           RedoDFA:=OptimizeForLoop(code);
+           if cs_opt_forloop in current_settings.optimizerswitches then
+             RedoDFA:=OptimizeForLoop(code);
 
            RedoDFA:=ConvertForLoops(code) or RedoDFA;
 
            if RedoDFA then
-             begin
-               dfabuilder.resetdfainfo(code);
-               dfabuilder.createdfainfo(code);
-               include(flags,pi_dfaavailable);
-             end;
+             dfabuilder.redodfainfo(code);
 
            { when life info is available, we can give more sophisticated warning about uninitialized
              variables ...
@@ -1274,6 +1274,15 @@ implementation
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
          procdef.isempty:=true;
+
+       if cs_opt_nodecse in current_settings.optimizerswitches then
+         do_optcse(code);
+
+       if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
+         do_optloadmodifystore(code);
+
+       if cs_opt_consts in current_settings.optimizerswitches then
+         do_consttovar(code);
       end;
 
 
@@ -1690,6 +1699,12 @@ implementation
       end;
 
 
+    procedure tcgprocinfo.generate_exit_label(list: tasmlist);
+      begin
+        hlcg.a_label(list,CurrExitLabel);
+      end;
+
+
      procedure TCGProcinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
@@ -1941,12 +1956,6 @@ implementation
         { add implicit entry and exit code }
         add_entry_exit_code;
 
-        if cs_opt_nodecse in current_settings.optimizerswitches then
-          do_optcse(code);
-
-        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
-          do_optloadmodifystore(code);
-
         { only do secondpass if there are no errors }
         if (ErrorCount<>0) then
           begin
@@ -1988,9 +1997,6 @@ implementation
               body is generated because the localloc is updated.
               Note: The generated code will be inserted after the code generation of
               the body is finished, because only then the position is known }
-{$ifdef oldregvars}
-            assign_regvars(code);
-{$endif oldreg}
             current_filepos:=entrypos;
 
             hlcg.gen_load_para_value(templist);
@@ -2054,7 +2060,7 @@ implementation
                 aktproccode.concatlist(templist);
               end;
             { insert exit label at the correct position }
-            hlcg.a_label(templist,CurrExitLabel);
+            generate_exit_label(templist);
             if assigned(exitlabel_asmnode.currenttai) then
               aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
             else
@@ -2065,19 +2071,6 @@ implementation
 
             { reset switches }
             current_settings.localswitches:=oldswitches;
-
-{$ifdef OLDREGVARS}
-            { note: this must be done only after as much code as possible has  }
-            {   been generated. The result is that when you ungetregister() a  }
-            {   regvar, it will actually free the regvar (and alse free the    }
-            {   the regvars at the same time). Doing this too early will       }
-            {   confuse the register allocator, as the regvars will still be   }
-            {   used. It should be done before loading the result regs (so     }
-            {   they don't conflict with the regvars) and before               }
-            {   gen_entry_code (that one has to be able to allocate the        }
-            {   regvars again) (JM)                                            }
-            free_regvars(aktproccode);
-{$endif OLDREGVARS}
 
             { generate symbol and save end of header position }
             current_filepos:=entrypos;

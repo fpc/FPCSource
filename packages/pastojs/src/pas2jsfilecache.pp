@@ -33,7 +33,7 @@ uses
   Classes, SysUtils,
   fpjson,
   PScanner, PasResolver, PasUseAnalyzer,
-  Pas2jsLogger, Pas2jsFileUtils, Pas2JSFS;
+  Pas2jsLogger, Pas2jsFileUtils, Pas2JSFS, Pas2JSUtils;
 
 
 type
@@ -65,7 +65,7 @@ type
   private
     FChangeStamp: TChangeStamp;
     FPath: string;
-    FEntries: TFPList; // list of TPas2jsCachedDirectoryEntry
+    FEntries: TFPList; // list of TPas2jsCachedDirectoryEntry, sorted first case insensitive then sensitive
     FPool: TPas2jsCachedDirectories;
     FRefCount: integer;
     FSorted: boolean;
@@ -78,6 +78,7 @@ type
     destructor Destroy; override;
     function Count: integer;
     procedure Clear;
+    procedure Invalidate; inline;
     property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;// set on Update to Pool.ChangeStamp
     function NeedsUpdate: boolean;
     procedure Update;
@@ -107,7 +108,7 @@ type
     property Sorted: boolean read FSorted write SetSorted; // descending, sort first case insensitive, then sensitive
   end;
 
-  TReadDirectoryEvent = function(Dir: TPas2jsCachedDirectory): boolean of object;// true = skip default function
+  TPas2jsReadDirectoryEvent = function(Dir: TPas2jsCachedDirectory): boolean of object;// true = skip default function
 
   { TPas2jsCachedDirectories }
 
@@ -117,7 +118,7 @@ type
     FDirectories: TPasAnalyzerKeySet;// set of TPas2jsCachedDirectory, key is Directory
     FWorkingDirectory: string;
   private
-    FOnReadDirectory: TReadDirectoryEvent;
+    FOnReadDirectory: TPas2jsReadDirectoryEvent;
     type
       TFileInfo = record
         Filename: string;
@@ -132,6 +133,7 @@ type
     destructor Destroy; override;
     property ChangeStamp: TChangeStamp read FChangeStamp;
     procedure Invalidate; inline;
+    procedure InvalidateDirectory(const aDirectory: string); virtual;
     procedure Clear;
     function DirectoryExists(Filename: string): boolean;
     function FileExists(Filename: string): boolean;
@@ -148,7 +150,7 @@ type
                       CreateIfNotExists: boolean = true;
                       DoReference: boolean = true): TPas2jsCachedDirectory;
     property WorkingDirectory: string read FWorkingDirectory write SetWorkingDirectory; // used for relative filenames, contains trailing path delimiter
-    property OnReadDirectory: TReadDirectoryEvent read FOnReadDirectory write FOnReadDirectory;
+    property OnReadDirectory: TPas2jsReadDirectoryEvent read FOnReadDirectory write FOnReadDirectory;
   end;
 
 type
@@ -205,7 +207,13 @@ type
     function CreateLineReader(RaiseOnError: boolean): TSourceLineReader; override;
   end;
 
+  TPas2jsFileSrcAttr = packed record
+    AllowSrcMap: boolean;
+  end;
+  PPas2jsFileSrcAttr = ^TPas2jsFileSrcAttr;
+
   TPas2jsReadFileEvent = function(aFilename: string; var aSource: string): boolean of object;
+  TPas2jsGetFileSrcAttrEvent = procedure(aFilename: string; var Attr: TPas2jsFileSrcAttr) of object;
   TPas2jsWriteFileEvent = procedure(aFilename: string; Source: string) of object;
 
   TPas2jsSearchPathKind = (
@@ -225,6 +233,7 @@ type
     FIncludePaths: TStringList;
     FIncludePathsFromCmdLine: integer;
     FLog: TPas2jsLogger;
+    FOnGetFileSrcAttr: TPas2jsGetFileSrcAttrEvent;
     FOnReadFile: TPas2jsReadFileEvent;
     FOnWriteFile: TPas2jsWriteFileEvent;
     FResetStamp: TChangeStamp;
@@ -234,16 +243,16 @@ type
     FPCUPaths: TStringList;
     function FileExistsILogged(var Filename: string): integer;
     function FileExistsLogged(const Filename: string): boolean;
-    function GetOnReadDirectory: TReadDirectoryEvent;
+    function GetOnReadDirectory: TPas2jsReadDirectoryEvent;
     procedure RegisterMessages;
     procedure SetBaseDirectory(AValue: string);
     function AddSearchPaths(const Paths: string; Kind: TPas2jsSearchPathKind;
       FromCmdLine: boolean; var List: TStringList; var CmdLineCount: integer): string;
-    procedure SetOnReadDirectory(AValue: TReadDirectoryEvent);
+    procedure SetOnReadDirectory(AValue: TPas2jsReadDirectoryEvent);
   protected
     function FindSourceFileName(const aFilename: string): String; override;
     function GetHasPCUSupport: Boolean; virtual;
-    function ReadFile(Filename: string; var Source: string): boolean; virtual;
+    function ReadFile(Filename: string; var Source: string; var Attr: TPas2jsFileSrcAttr): boolean; virtual;
     procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);// find files, matching * and ?
   public
     constructor Create(aLog: TPas2jsLogger); overload;
@@ -283,10 +292,9 @@ type
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
     function TryCreateRelativePath(const Filename, BaseDirectory: String;
       UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
-  Protected
-    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
   public
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
+    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property ForeignUnitPaths: TStringList read FForeignUnitPaths;
     property ResourcePaths : TStringList read FResourcePaths;
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
@@ -296,8 +304,9 @@ type
     property ResetStamp: TChangeStamp read FResetStamp;
     property UnitPaths: TStringList read FUnitPaths;
     property UnitPathsFromCmdLine: integer read FUnitPathsFromCmdLine;
-    property OnReadDirectory: TReadDirectoryEvent read GetOnReadDirectory write SetOnReadDirectory;
+    property OnReadDirectory: TPas2jsReadDirectoryEvent read GetOnReadDirectory write SetOnReadDirectory;
     property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
+    property OnGetFileSrcAttr: TPas2jsGetFileSrcAttrEvent read FOnGetFileSrcAttr write FOnGetFileSrcAttr;
     property OnWriteFile: TPas2jsWriteFileEvent read FOnWriteFile write FOnWriteFile;
   end;
 
@@ -583,6 +592,11 @@ begin
     TObject(FEntries[i]).{$IFDEF Pas2js}Destroy{$ELSE}Free{$ENDIF};
   FEntries.Clear;
   FSorted:=true;
+end;
+
+procedure TPas2jsCachedDirectory.Invalidate;
+begin
+  FChangeStamp:=InvalidChangeStamp;
 end;
 
 procedure TPas2jsCachedDirectory.Update;
@@ -882,7 +896,22 @@ end;
 
 procedure TPas2jsCachedDirectories.Invalidate;
 begin
-  IncreaseChangeStamp(FChangeStamp);
+  FChangeStamp:=IncreaseChangeStamp(FChangeStamp);
+end;
+
+procedure TPas2jsCachedDirectories.InvalidateDirectory(const aDirectory: string
+  );
+var
+  Dir: String;
+  CacheDir: TPas2jsCachedDirectory;
+begin
+  Dir:=ResolveDots(aDirectory);
+  if not FilenameIsAbsolute(Dir) then
+    Dir:=WorkingDirectory+Dir;
+  Dir:=IncludeTrailingPathDelimiter(Dir);
+  CacheDir:=TPas2jsCachedDirectory(FDirectories.FindKey(Pointer(Dir)));
+  if CacheDir=nil then exit;
+  CacheDir.Invalidate;
 end;
 
 procedure TPas2jsCachedDirectories.Clear;
@@ -1120,6 +1149,7 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean; Binary: boolean
 var
   NewSource: string;
   b: Boolean;
+  SrcAttr: TPas2jsFileSrcAttr;
 begin
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load START "',Filename,'" Loaded=',Loaded);
@@ -1157,11 +1187,13 @@ begin
     exit;
   end;
   NewSource:='';
+  SrcAttr:=Default(TPas2jsFileSrcAttr);
+  SrcAttr.AllowSrcMap:=not Binary;
   if RaiseOnError then
-    b:=Cache.ReadFile(Filename,NewSource)
+    b:=Cache.ReadFile(Filename,NewSource,SrcAttr)
   else
     try
-      b:=Cache.ReadFile(Filename,NewSource);
+      b:=Cache.ReadFile(Filename,NewSource,SrcAttr);
     except
     end;
   if not b then begin
@@ -1187,6 +1219,7 @@ begin
   FLoaded:=true;
   FCacheStamp:=Cache.ResetStamp;
   FLoadedFileAge:=Cache.DirectoryCache.FileAge(Filename);
+  AllowSrcMap:=SrcAttr.AllowSrcMap;
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load END ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
@@ -1344,13 +1377,13 @@ begin
   end;
 end;
 
-procedure TPas2jsFilesCache.SetOnReadDirectory(AValue: TReadDirectoryEvent);
+procedure TPas2jsFilesCache.SetOnReadDirectory(AValue: TPas2jsReadDirectoryEvent);
 begin
   DirectoryCache.OnReadDirectory:=AValue;
 end;
 
-function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string
-  ): boolean;
+function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string;
+  var Attr: TPas2jsFileSrcAttr): boolean;
 {$IFDEF Pas2js}
 {$ELSE}
 var
@@ -1361,28 +1394,31 @@ begin
   try
     if Assigned(OnReadFile) then
       Result:=OnReadFile(Filename,Source);
-    if Result then
-      Exit;
-    {$IFDEF Pas2js}
-    try
-      Source:=NJS_FS.readFileSync(Filename,new(['encoding','utf8']));
-    except
-      raise EReadError.Create(String(JSExceptValue));
-    end;
-    Result:=true;
-    {$ELSE}
-    ms:=TMemoryStream.Create;
-    try
-      ms.LoadFromFile(Filename);
-      SetLength(Source,ms.Size);
-      ms.Position:=0;
-      if Source<>'' then
-        ms.Read(Source[1],length(Source));
+    if not Result then
+      begin
+      {$IFDEF Pas2js}
+      try
+        Source:=NJS_FS.readFileSync(Filename,new(['encoding','utf8']));
+      except
+        raise EReadError.Create(String(JSExceptValue));
+      end;
       Result:=true;
-    finally
-      ms.Free;
-    end;
-    {$ENDIF}
+      {$ELSE}
+      ms:=TMemoryStream.Create;
+      try
+        ms.LoadFromFile(Filename);
+        SetLength(Source,ms.Size);
+        ms.Position:=0;
+        if Source<>'' then
+          ms.Read(Source[1],length(Source));
+        Result:=true;
+      finally
+        ms.Free;
+      end;
+      {$ENDIF}
+      end;
+    if Assigned(OnGetFileSrcAttr) then
+      OnGetFileSrcAttr(Filename,Attr);
   except
     on E: Exception do begin
       EPas2jsFileCache.Create('Error reading file "'+Filename+'": '+E.Message);
@@ -2142,7 +2178,7 @@ begin
       Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[FormatPath(Filename)]);
 end;
 
-function TPas2jsFilesCache.GetOnReadDirectory: TReadDirectoryEvent;
+function TPas2jsFilesCache.GetOnReadDirectory: TPas2jsReadDirectoryEvent;
 begin
   Result:=DirectoryCache.OnReadDirectory;
 end;

@@ -537,7 +537,7 @@ type
          case TTypeKind of
             tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
               MinValue,MaxValue : Longint;
-              case byte of
+              case TTypeKind of
                 tkEnumeration: (
                   BaseTypeRef : pointer
                   );

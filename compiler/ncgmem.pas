@@ -815,7 +815,10 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
+              if cs_zerobasedstrings in current_settings.localswitches then
+                helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_zerobased_rangecheck'
+              else
+                helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
               pd:=search_system_proc(helpername);
               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);

@@ -942,7 +942,7 @@ reg16|32,mem          \320\1\xC5\110                  8086,NOX86_64
 reg16|32|64,mem       \320\1\x8D\110              8086
 
 [LEAVE]
-(Ch_RWESP, Ch_WEBP)
+(Ch_RWESP, Ch_RWEBP)
 void                  \1\xC9                          186
 
 [LES,lesX]
@@ -2339,12 +2339,12 @@ xmmreg,mmxrm         \331\2\x0F\x2A\110             KATMAI,SSE,MMX
 mmxreg,mem64          \331\2\x0F\x2D\110              KATMAI,SSE,MMX
 mmxreg,xmmreg         \331\2\x0F\x2D\110              KATMAI,SSE,MMX
 
-[CVTSI2SS,cvtsi2ssX]
+[CVTSI2SS,cvtsi2ssS]
 (Ch_Wop2, Ch_Rop1)
 xmmreg,rm32           \333\321\2\x0F\x2A\110      KATMAI,SSE
 xmmreg,rm64           \333\321\2\x0F\x2A\110      KATMAI,SSE,X86_64
 
-[CVTSS2SI,cvtss2siX]
+[CVTSS2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,mem32	      \333\320\2\x0F\x2D\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2D\110          KATMAI,SSE
@@ -2354,7 +2354,7 @@ reg32|64,xmmreg       \333\320\2\x0F\x2D\110          KATMAI,SSE
 mmxreg,mem64          \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 mmxreg,xmmreg         \331\2\x0F\x2C\110              KATMAI,SSE,MMX
 
-[CVTTSS2SI,cvttss2siX]
+[CVTTSS2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,mem32        \333\320\2\x0F\x2C\110          KATMAI,SSE
 reg32|64,xmmreg       \333\320\2\x0F\x2C\110          KATMAI,SSE
@@ -2866,7 +2866,7 @@ xmmreg,xmmrm            \361\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 xmmreg,xmmreg            \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 xmmreg,mem64             \2\x0F\x5A\110                WILLAMETTE,SSE2 ;,SQ
 
-[CVTSD2SI,cvtsd2siX]
+[CVTSD2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32,xmmreg 	        \334\2\x0F\x2D\110        WILLAMETTE,SSE2
 reg32,mem64          	\334\2\x0F\x2D\110        WILLAMETTE,SSE2
@@ -2878,7 +2878,7 @@ reg64,mem64 	        \334\320\2\x0F\x2D\110        WILLAMETTE,SSE2,X86_64
 xmmreg,xmmreg           \334\2\x0F\x5A\110              WILLAMETTE,SSE2 ;,SQ
 xmmreg,mem64            \334\2\x0F\x5A\110              WILLAMETTE,SSE2 ;,SQ
 
-[CVTSI2SD,cvtsi2sdX]
+[CVTSI2SD,cvtsi2sdS]
 (Ch_Wop2, Ch_Rop1)
 xmmreg,rm32             \334\2\x0F\x2A\110        	WILLAMETTE,SSE2
 xmmreg,rm64             \326\334\321\2\x0F\x2A\110      WILLAMETTE,SSE2,X86_64
@@ -2900,7 +2900,7 @@ xmmreg,xmmrm            \361\2\x0F\xE6\110              WILLAMETTE,SSE2,SM
 (Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \333\2\x0F\x5B\110              WILLAMETTE,SSE2,SM
 
-[CVTTSD2SI,cvttsd2siX]
+[CVTTSD2SI]
 (Ch_Wop2, Ch_Rop1)
 reg32|64,xmmreg         \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
 reg32|64,mem64          \334\320\2\x0F\x2C\110        WILLAMETTE,SSE2
@@ -3479,19 +3479,19 @@ xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM
 
 [ROUNDPS]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x08\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDPD]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x09\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSS]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \336\361\3\x0F\x3A\x0A\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSD]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 xmmreg,xmmrm,imm      \337\361\3\x0F\x3A\x0B\110\26            SSE41,SM2,SB,AR2
 
 ;*******************************************************************************
@@ -3526,7 +3526,7 @@ xmmreg,xmmrm,imm       \361\3\x0F\x3A\x62\110\26               SSE42,SM2,SB,AR2
 xmmreg,xmmrm           \361\3\x0F\x38\x37\110                  SSE42,SM
 
 [POPCNT,popcntX]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg16,rm16             \333\320\2\x0F\xB8\110              386,SM,SSE4
 reg32,rm32             \333\320\2\x0F\xB8\110              386,SM,SSE4
 reg64,rm64             \333\320\2\x0F\xB8\110              386,SM,SSE4,X86_64
@@ -4171,13 +4171,11 @@ zmmreg_mz,zmmreg_er                       \350\351\370\1\x5B\110                
 (Ch_Wop2, Ch_Rop1)
 xmmreg_mz,mem256                          \334\350\352\362\364\370\1\xE6\110        AVX,SANDYBRIDGE,TFV
 xmmreg_mz,xmmrm                           \334\350\352\362\370\1\xE6\110            AVX,SANDYBRIDGE,TFV
-xmmreg_mz,ymmreg                           \334\350\352\362\364\370\1\xE6\110       AVX,SANDYBRIDGE
+xmmreg_mz,ymmreg                          \334\350\352\362\364\370\1\xE6\110        AVX,SANDYBRIDGE
 xmmreg_mz,bmem64                          \334\350\352\370\1\xE6\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \334\350\352\364\370\1\xE6\110            AVX512,BCST4,TFV
-
-ymmreg_mz,mem512                          \334\350\351\352\370\1\xE6\110            AVX512,TFV
+ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\xE6\110            AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\xE6\110            AVX512
 
 ; VCVTPD2PS xmmreg_mz,mem256 must come first - map MemRefSize 256bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
@@ -4188,9 +4186,8 @@ xmmreg_mz,ymmreg                          \350\352\361\362\364\370\1\x5A\110    
 xmmreg_mz,xmmrm                           \350\352\361\362\370\1\x5A\110            AVX,SANDYBRIDGE,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\x5A\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\361\364\370\1\x5A\110            AVX512,BCST4,TFV
-ymmreg_mz,mem512                          \350\351\352\361\370\1\x5A\110            AVX512,TFV
+ymmreg_mz,zmmrm_er                        \350\351\352\361\370\1\x5A\110            AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\361\370\1\x5A\110            AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x5A\110            AVX512
 
 [VCVTPH2PS]
 (Ch_Wop2, Ch_Rop1)
@@ -4243,19 +4240,22 @@ reg64,xmmreg_er                           \334\350\352\362\363\370\1\x2D\110    
 xmmreg_mz,xmmreg,mem64                    \334\350\352\362\370\1\x5A\75\120         AVX,SANDYBRIDGE,T1S
 xmmreg_mz,xmmreg,xmmreg_er                \334\350\352\362\370\1\x5A\75\120         AVX,SANDYBRIDGE
 
-[VCVTSI2SD,vcvtsi2sdX]
-(Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,reg32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
-xmmreg,xmmreg,mem32                       \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
-xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
 
-[VCVTSI2SS,vcvtsi2ssX]
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTSI2SD,vcvtsi2sdS]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,reg32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD
-xmmreg,xmmreg,mem32                       \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,SD,T1S
+xmmreg,xmmreg_er,reg32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
+xmmreg,xmmreg_er,reg64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
+xmmreg,xmmreg_er,mem32                    \334\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
+xmmreg,xmmreg_er,mem64                    \334\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,T1S
+
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTSI2SS,vcvtsi2ssS]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg_er,reg32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE
 xmmreg,xmmreg_er,reg64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg_er,mem64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,X86_64,T1S
+xmmreg,xmmreg_er,mem32                    \333\350\362\370\1\x2A\75\120             AVX,SANDYBRIDGE,T1S
+xmmreg,xmmreg_er,mem64                    \333\350\352\362\363\370\1\x2A\75\120     AVX,SANDYBRIDGE,T1S
 
 [VCVTSS2SD]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
@@ -4278,9 +4278,8 @@ xmmreg_mz,ymmreg                          \350\352\361\362\364\370\1\xE6\110    
 xmmreg_mz,xmmrm                           \350\352\361\362\370\1\xE6\110            AVX,SANDYBRIDGE,AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\361\370\1\xE6\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\361\364\370\1\xE6\110            AVX512,BCST4,TFV
-ymmreg_mz,mem512                          \350\351\352\361\370\1\xE6\110            AVX512,TFV
+ymmreg_mz,zmmrm_sae                       \350\351\352\361\370\1\xE6\110            AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\361\370\1\xE6\110            AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\xE6\110            AVX512
 
 [VCVTTPS2DQ]
 (Ch_Wop2, Ch_Rop1)
@@ -7282,17 +7281,18 @@ zmmreg_mz,mem512                          \350\351\352\361\370\1\x7B\110        
 zmmreg_mz,bmem64                          \350\351\352\361\370\1\x7B\110            AVX512,TFV
 zmmreg_mz,zmmreg_er                       \350\351\352\361\370\1\x7B\110            AVX512
 
+
+; VCVTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                               map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTPD2UDQ, vcvtpd2udqN]
 (Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x79\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x79\110                AVX512,TFV
-xmmreg_mz,xmmreg                          \350\352\370\1\x79\110                    AVX512
+xmmreg_mz,xmmrm                           \350\352\370\1\x79\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x79\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x79\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x79\110                AVX512
-ymmreg_mz,mem512                          \350\351\352\370\1\x79\110                AVX512,TFV
+ymmreg_mz,zmmrm_er                        \350\351\352\370\1\x79\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x79\110                AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_er                       \350\351\352\370\1\x79\110                AVX512
 
 [VCVTPD2UQQ]
 (Ch_Wop2, Ch_Rop1)
@@ -7346,17 +7346,17 @@ zmmreg_mz,mem512                          \333\350\351\352\370\1\xE6\110        
 zmmreg_mz,bmem64                          \333\350\351\352\370\1\xE6\110            AVX512,TFV
 zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\xE6\110            AVX512
 
+; VCVTQQ2PS xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                              map all other MemrefSize (without broasdcast MemRef) to xmmreg, xmmrm
 [VCVTQQ2PS,vcvtqq2psN]
 (Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x5B\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x5B\110                AVX512,TFV
-xmmreg_mz,xmmreg                          \350\352\370\1\x5B\110                    AVX512
+xmmreg_mz,xmmrm                           \350\352\370\1\x5B\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x5B\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x5B\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x5B\110                AVX512
-ymmreg_mz,mem512                          \350\351\352\370\1\x5B\110                AVX512,TFV
+ymmreg_mz,zmmrm_er                        \350\351\352\370\1\x5B\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x5B\110                AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_er                       \350\351\352\370\1\x5B\110                AVX512
 
 [VCVTSD2USI]
 (Ch_Wop2, Ch_Rop1)
@@ -7382,17 +7382,18 @@ zmmreg_mz,mem512                          \350\351\352\361\370\1\x7A\110        
 zmmreg_mz,bmem64                          \350\351\352\361\370\1\x7A\110            AVX512,TFV
 zmmreg_mz,zmmreg_sae                      \350\351\352\361\370\1\x7A\110            AVX512
 
+
+; VCVTTPD2UDQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                                map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTTPD2UDQ,vcvttpd2udqN]
 (Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \350\352\370\1\x78\110                    AVX512,TFV
 xmmreg_mz,mem256                          \350\352\364\370\1\x78\110                AVX512,TFV
-xmmreg_mz,xmmreg                          \350\352\370\1\x78\110                    AVX512
+xmmreg_mz,xmmrm                           \350\352\370\1\x78\110                    AVX512,TFV
 xmmreg_mz,bmem64                          \350\352\370\1\x78\110                    AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \350\352\364\370\1\x78\110                AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \350\352\364\370\1\x78\110                AVX512
-ymmreg_mz,mem512                          \350\351\352\370\1\x78\110                AVX512,TFV
+ymmreg_mz,zmmrm_sae                          \350\351\352\370\1\x78\110                AVX512,TFV
 ymmreg_mz,bmem64                          \350\351\352\370\1\x78\110                AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_sae                      \350\351\352\370\1\x78\110                AVX512
 
 [VCVTTPD2UQQ]
 (Ch_Wop2, Ch_Rop1)
@@ -7481,28 +7482,35 @@ zmmreg_mz,mem512                          \333\350\351\352\370\1\x7A\110        
 zmmreg_mz,bmem64                          \333\350\351\352\370\1\x7A\110            AVX512,TFV
 zmmreg_mz,zmmreg_er                       \333\350\351\352\370\1\x7A\110            AVX512
 
+; VCVTTUQQ2PSQ xmmreg_mz,mem256 must come first - map MemRefSize 256,512bits correct
+;                                                 map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
 [VCVTUQQ2PS,vcvtuqq2psN]
 (Ch_Wop2, Ch_Rop1)
-xmmreg_mz,mem128                          \334\350\352\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,mem256                          \334\350\352\364\370\1\x7A\110            AVX512,TFV
-xmmreg_mz,xmmreg                          \334\350\352\370\1\x7A\110                AVX512
+xmmreg_mz,xmmrm                           \334\350\352\370\1\x7A\110                AVX512,TFV
 xmmreg_mz,bmem64                          \334\350\352\370\1\x7A\110                AVX512,BCST2,TFV
 xmmreg_mz,bmem64                          \334\350\352\364\370\1\x7A\110            AVX512,BCST4,TFV
 xmmreg_mz,ymmreg                          \334\350\352\364\370\1\x7A\110            AVX512
-ymmreg_mz,mem512                          \334\350\351\352\370\1\x7A\110            AVX512,TFV
+ymmreg_mz,zmmrm_er                        \334\350\351\352\370\1\x7A\110            AVX512,TFV
 ymmreg_mz,bmem64                          \334\350\351\352\370\1\x7A\110            AVX512,BCST8,TFV
-ymmreg_mz,zmmreg_er                       \334\350\351\352\370\1\x7A\110            AVX512
 
-[VCVTUSI2SD,vcvtusi2sdX]
-(Ch_Wop2, Ch_Rop1)
-xmmreg,xmmreg_er,mem64                     \334\350\352\370\1\x7B\75\120               AVX512,T1S
-xmmreg,xmmreg_er,reg64                     \334\350\352\370\1\x7B\75\120               AVX512
-xmmreg,xmmreg_er,rm32                     \334\350\370\1\x7B\75\120                    AVX512,T1S
 
-[VCVTUSI2SS,vcvtusi2ssX]
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTUSI2SD,vcvtusi2sdS]
 (Ch_Wop2, Ch_Rop1)
-xmmreg,xmmreg_er,rm64                     \333\350\352\370\1\x7B\75\120                AVX512,T1S
-xmmreg,xmmreg_er,rm32                     \333\350\370\1\x7B\75\120                    AVX512,T1S
+xmmreg,xmmreg_er,reg32                    \334\350\370\1\x7B\75\120                 AVX512
+xmmreg,xmmreg_er,reg64                    \334\350\352\370\1\x7B\75\120             AVX512,X86_64
+xmmreg,xmmreg_er,mem32                    \334\350\370\1\x7B\75\120                 AVX512,T1S
+xmmreg,xmmreg_er,mem64                    \334\350\352\370\1\x7B\75\120             AVX512,T1S
+
+
+; special handling - gas suffix "S" =>> instructions-opsize = source-operand
+[VCVTUSI2SS,vcvtusi2ssS]
+(Ch_Wop2, Ch_Rop1)
+xmmreg,xmmreg_er,reg32                    \333\350\370\1\x7B\75\120                 AVX512
+xmmreg,xmmreg_er,reg64                    \333\350\352\370\1\x7B\75\120             AVX512,X86_64
+xmmreg,xmmreg_er,mem32                    \333\350\370\1\x7B\75\120                 AVX512,T1S
+xmmreg,xmmreg_er,mem64                    \333\350\352\370\1\x7B\75\120             AVX512,T1S
 
 [VDBPSADBW]
 (Ch_All)
@@ -7621,7 +7629,7 @@ xmmreg_mz,xmmreg,xmmreg_sae,imm8          \350\361\372\1\x55\75\120\27          
 
 ; VFPCLASSPD kreg_m,mem256 and mem512 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
-[VFPCLASSPD,vfpclasspdX]
+[VFPCLASSPD,vfpclasspdS]
 (Ch_All)
 kreg_m,mem256,imm8                        \350\352\361\364\372\1\x66\110\26         AVX512,TFV
 kreg_m,mem512,imm8                        \350\351\352\361\372\1\x66\110\26         AVX512,TFV
@@ -7634,7 +7642,7 @@ kreg_m,bmem64,imm8                        \350\351\352\361\372\1\x66\110\26     
 
 ; VFPCLASSPS kreg_m,mem256 and mem512 must come first - map MemRefSize 256,512bits correct
 ;                                              map all other MemrefSize (without broasdcast MemRef) to kreg_m, xmmrm
-[VFPCLASSPS,vfpclasspsX]
+[VFPCLASSPS,vfpclasspsS]
 (Ch_All)
 kreg_m,mem256,imm8                        \350\361\364\372\1\x66\110\26             AVX512,TFV
 kreg_m,mem512,imm8                        \350\351\361\372\1\x66\110\26             AVX512,TFV
@@ -9128,5 +9136,35 @@ kreg_m,xmmreg,xmmrm                       \350\361\371\1\x8F\75\120             
 kreg_m,ymmreg,ymmrm                       \350\361\364\371\1\x8F\75\120             AVX512,TFVM
 kreg_m,zmmreg,zmmrm                       \350\351\361\371\1\x8F\75\120             AVX512,TFVM
 
+;*******************************************************************************
+;********* SHA *****************************************************************
+;*******************************************************************************
 
+[SHA1RNDS4]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm,imm                          \3\x0F\x3A\xCC\110\26                     SHA
 
+[SHA1NEXTE]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC8\110                        SHA
+
+[SHA1MSG1]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC9\110                        SHA
+
+[SHA1MSG2]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xC\110                        SHA
+
+[SHA256RNDS2]
+; reads also xmm0 !
+(Ch_Mop2, Ch_Rop1, Ch_RXMM0)
+xmmreg,xmmrm                              \3\x0F\x38\xCB\110                        SHA
+
+[SHA256MSG1]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xCC\110                        SHA
+
+[SHA256MSG2]
+(Ch_Mop2, Ch_Rop1)
+xmmreg,xmmrm                              \3\x0F\x38\xCD\110                        SHA

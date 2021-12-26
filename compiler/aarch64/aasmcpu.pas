@@ -187,6 +187,7 @@ uses
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
          constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister; const _op4 : tshifterop);
          constructor op_reg_reg_reg_cond(op : tasmop;_op1,_op2,_op3 : tregister; const _op4: tasmcond);
+         constructor op_reg_const_ref(op: tasmop; _op1: tregister; _op2: aint; _op3: treference);
 
          constructor op_const_ref(op:tasmop; _op1: aint; _op2: treference);
 
@@ -607,6 +608,16 @@ implementation
       end;
 
 
+    constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
+      begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadconst(1,_op2);
+         loadref(2,_op3);
+      end;
+
+
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
@@ -660,7 +671,7 @@ implementation
           exit;
         { "ldr literal" must be a 32/64 bit LDR and have a symbol }
         if (ref.refaddr=addr_pic) and
-           (not (op in [A_LDR,A_B,A_BL]) or
+           (not (op in [A_LDR,A_B,A_BL,A_ADR]) or
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
             (not assigned(ref.symbol) and
              not assigned(ref.symboldata))) then
@@ -1094,6 +1105,7 @@ implementation
            A_FNMADD,
            A_FNMSUB,
            A_FRINTX,
+           A_FRINTZ,
            A_FSQRT,
            A_FSUB,
            A_ORR,
@@ -1118,6 +1130,7 @@ implementation
            A_FCVTZS,
            A_SDIV,
            A_SMULL,
+           A_SMULH,
            A_STLXP,
            A_STLXR,
            A_STXP,
@@ -1131,6 +1144,7 @@ implementation
            A_UCVTF,
            A_UDIV,
            A_UMULL,
+           A_UMULH,
            A_UXTB,
            A_UXTH:
              if opnr=0 then

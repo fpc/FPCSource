@@ -166,11 +166,12 @@ uses
       IF_ARMv7M     = $00F00000;
       IF_ARMv7EM    = $01000000;
 
-      IF_FPMASK     = $00000F00;
+      IF_FPMASK     = $c0000F00;
       IF_FPA        = $00000100;
       IF_VFPv2      = $00000200;
       IF_VFPv3      = $00000400;
       IF_VFPv4      = $00000800;
+      IF_VFPv5      = $80000000;
 
       { if the instruction can change in a second pass }
       IF_PASS2  = $80000000;
@@ -2245,7 +2246,10 @@ implementation
             { fpu_fpv4_s16   } IF_NONE,
             { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
             { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
-            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON
+            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON,
+            { fpu_fpv5_d16   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5,
+            { fpu_fpv5_sp_d16} IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5,
+            { fpu_fp_armv8   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5
           );
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];

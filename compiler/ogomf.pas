@@ -803,7 +803,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,verbose,globals,fpccrc,
+       cutils,verbose,globals,fpchash,
        fmodule,aasmtai,aasmdata,
        ogmap,owomflib,elfbase,
        version

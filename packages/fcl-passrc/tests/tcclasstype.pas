@@ -40,7 +40,7 @@ type
     Procedure AddMember(S : String);
     Procedure ParseClass;
     Procedure ParseClassFail(Msg: string; MsgNumber: integer);
-    Procedure DoParseClass(FromSpecial : Boolean = False);
+    Procedure DoParseClass(FromSpecial : Boolean = False; SkipTests : Boolean = False);
     procedure SetUp; override;
     procedure TearDown; override;
     procedure DefaultMethod;
@@ -71,12 +71,16 @@ type
     procedure TestEmptyEndNoParent;
     procedure TestEmptyObjC;
     procedure TestEmptyObjCCategory;
+    Procedure TestForward;
+    Procedure TestForwardAndDeclaration;
+    Procedure TestForwardAndDeclarationKeepForward;
     Procedure TestOneInterface;
     Procedure TestTwoInterfaces;
     procedure TestOneSpecializedClass;
     procedure TestOneSpecializedClassInterface;
     Procedure TestOneField;
     Procedure TestOneFieldComment;
+    Procedure TestOneClassOfField;
     procedure TestOneFieldStatic;
     Procedure TestOneHelperField;
     Procedure TestOneVarField;
@@ -379,14 +383,14 @@ begin
     StartClass;
   FEnded:=True;
   if (AEnd<>'') then
-    FDecl.Add('  '+AEnd);
+    FDecl.Add(AEnd);
 end;
 
 procedure TTestClassType.AddMember(S: String);
 begin
   if Not FStarted then
     StartClass;
-  FDecl.Add('    '+S+';');
+  FDecl.Add('  '+S+';');
 end;
 
 procedure TTestClassType.ParseClass;
@@ -412,9 +416,12 @@ begin
   AssertEquals('Missing parser error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
 end;
 
-procedure TTestClassType.DoParseClass(FromSpecial: Boolean);
+procedure TTestClassType.DoParseClass(FromSpecial: Boolean; SkipTests : Boolean = False);
 var
   AncestorType: TPasType;
+  I : Integer;
+  S : String;
+
 begin
   EndClass;
   Add('Type');
@@ -423,8 +430,16 @@ begin
     Add('// A comment');
     Engine.NeedComments:=True;
     end;
-  Add('  '+TrimRight(FDecl.Text)+';');
+  For I:=0 to FDecl.Count-1 do
+    begin
+    S:=TrimRight(FDecl[i]);
+    if I=FDecl.Count-1 then
+      S:=S+';';
+    Add('  '+S);
+    end;
   ParseDeclarations;
+  if SkipTests then
+    exit;
   AssertEquals('One class type definition',1,Declarations.Classes.Count);
   AssertEquals('First declaration is type definition.',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
   FClass:=TObject(Declarations.Classes[0]) as TPasClassType;
@@ -563,6 +578,45 @@ begin
   AssertTrue('Is objectivec',TheClass.IsObjCClass);
 end;
 
+procedure TTestClassType.TestForward;
+begin
+  FStarted:=True;
+  FEnded:=True;
+  FDecl.Add('TMyClass = Class');
+  ParseClass;
+end;
+
+procedure TTestClassType.TestForwardAndDeclaration;
+begin
+  FStarted:=True;
+  FEnded:=True;
+  FDecl.Add('TMyClass = Class;');
+  FDecl.Add('');
+  FDecl.Add('TMyClass = Class (TObject) a : Integer; end');
+  ParseClass;
+end;
+
+procedure TTestClassType.TestForwardAndDeclarationKeepForward;
+begin
+  FStarted:=True;
+  FEnded:=True;
+  Parser.Options:=Parser.Options+[po_KeepClassForward];
+  FDecl.Add('TMyClass = Class;');
+  FDecl.Add('');
+  FDecl.Add('TMyClass = Class (TObject) a : Integer; end');
+  DoParseClass(False,True);
+  AssertEquals('Declaration types count ',2,Declarations.Types.Count);
+  AssertEquals('First declaration is type definition.',TPasClassType,TObject(Declarations.Types[0]).ClassType);
+  FClass:=TObject(Declarations.Types[0]) as TPasClassType;
+  AssertTrue('1st type is Forward class',FClass.IsForward);
+  AssertEquals('Second declaration is type definition.',TPasClassType,TObject(Declarations.Types[1]).ClassType);
+  FClass:=TObject(Declarations.Types[1]) as TPasClassType;
+  AssertFalse('2nd type is not Forward class',FClass.IsForward);
+  AssertEquals('2nd type has fields',1,FClass.Members.Count);
+  TheType:=FClass; // So assertcomment can get to it
+
+end;
+
 procedure TTestClassType.TestOneInterface;
 begin
   StartClass('TObject','ISomething');
@@ -672,6 +726,15 @@ begin
   ParseClass;
   AssertNotNull('Have 1 field',Field1);
   AssertEquals('field comment','c'+sLineBreak,Field1.DocComment);
+  AssertVisibility;
+end;
+
+procedure TTestClassType.TestOneClassOfField;
+begin
+  AddMember('a : class of MyClass');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertMemberName('a');
   AssertVisibility;
 end;
 

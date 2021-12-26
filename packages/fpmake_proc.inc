@@ -110,6 +110,12 @@ begin
 {$include fcl-extra/fpmake.pp}
 end;
 
+procedure add_fcl_hash(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-hash/fpmake.pp}
+end;
+
 procedure add_fcl_fpcunit(const ADirectory: string);
 begin
   with Installer do

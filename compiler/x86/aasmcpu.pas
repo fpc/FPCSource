@@ -346,7 +346,13 @@ interface
         Ch_RRAX, Ch_RRCX, Ch_RRDX, Ch_RRBX, Ch_RRSP, Ch_RRBP, Ch_RRSI, Ch_RRDI,
         Ch_WRAX, Ch_WRCX, Ch_WRDX, Ch_WRBX, Ch_WRSP, Ch_WRBP, Ch_WRSI, Ch_WRDI,
         Ch_RWRAX, Ch_RWRCX, Ch_RWRDX, Ch_RWRBX, Ch_RWRSP, Ch_RWRBP, Ch_RWRSI, Ch_RWRDI,
-        Ch_MRAX, Ch_MRCX, Ch_MRDX, Ch_MRBX, Ch_MRSP, Ch_MRBP, Ch_MRSI, Ch_MRDI
+        Ch_MRAX, Ch_MRCX, Ch_MRDX, Ch_MRBX, Ch_MRSP, Ch_MRBP, Ch_MRSI, Ch_MRDI,
+
+        { xmm register }
+        Ch_RXMM0,
+        Ch_WXMM0,
+        Ch_RWXMM0,
+        Ch_MXMM0
       );
 
       TInsProp = packed record
@@ -376,6 +382,9 @@ interface
         ExistsSSEAVX             : boolean;
         ConstSize                : TConstSizeInfo;
         BCSTTypes                : Set of TMemRefSizeInfoBCSTType;
+        RegXMMSizeMask           : int64;
+        RegYMMSizeMask           : int64;
+        RegZMMSizeMask           : int64;
       end;
 
 
@@ -460,6 +469,7 @@ interface
         IF_RAND,
         IF_XSAVE,
         IF_PREFETCHWT1,
+        IF_SHA,
 
         { mask for processor level }
         { please keep these in order and in sync with IF_PLEVEL }
@@ -581,7 +591,7 @@ interface
          constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
          constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
-         procedure changeopsize(siz:topsize);
+         procedure changeopsize(siz:topsize); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
          function  GetString:string;
 
@@ -606,7 +616,7 @@ interface
          { the next will reset all instructions that can change in pass 2 }
          procedure ResetPass1;override;
          procedure ResetPass2;override;
-         function  CheckIfValid:boolean;
+         function  CheckIfValid:boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
          function  Pass1(objdata:TObjData):longint;override;
          procedure Pass2(objdata:TObjData);override;
          procedure SetOperandOrder(order:TOperandOrder);
@@ -996,7 +1006,7 @@ implementation
                                  Taicpu Constructors
 *****************************************************************************}
 
-    procedure taicpu.changeopsize(siz:topsize);
+    procedure taicpu.changeopsize(siz:topsize); {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         opsize:=siz;
       end;
@@ -1824,23 +1834,8 @@ implementation
           for i:=0 to p^.ops-1 do
            begin
              insot:=p^.optypes[i];
-             if ((insot and (OT_XMMRM or OT_REG_EXTRA_MASK)) = OT_XMMRM) OR
-                ((insot and (OT_YMMRM or OT_REG_EXTRA_MASK)) = OT_YMMRM) OR
-                ((insot and (OT_ZMMRM or OT_REG_EXTRA_MASK)) = OT_ZMMRM) then
-             begin
-               if (insot and OT_SIZE_MASK) = 0 then
-               begin
-                 case insot and (OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
-                   OT_XMMRM: insot := insot or OT_BITS128;
-                   OT_YMMRM: insot := insot or OT_BITS256;
-                   OT_ZMMRM: insot := insot or OT_BITS512;
-                   else
-                     ;
-                 end;
-               end;
-             end;
-
              currot:=oper[i]^.ot;
+
              { Check the operand flags }
              if (insot and (not currot) and OT_NON_SIZE)<>0 then
                exit;
@@ -1941,7 +1936,7 @@ implementation
       end;
 
 
-    function taicpu.CheckIfValid:boolean;
+    function taicpu.CheckIfValid:boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=FindInsEntry(nil);
       end;
@@ -3535,8 +3530,6 @@ implementation
        * \370          - VEX 0F-FLAG
        * \371          - VEX 0F38-FLAG
        * \372          - VEX 0F3A-FLAG
-
-
       }
 
       var
@@ -4945,6 +4938,7 @@ implementation
     var
       AsmOp: TasmOp;
       i,j: longint;
+      iCntOpcodeValError: longint;
       insentry  : PInsEntry;
 
       MRefInfo: TMemRefSizeInfo;
@@ -4983,6 +4977,8 @@ implementation
       ExistsCode337     : boolean;
       ExistsSSEAVXReg   : boolean;
 
+      hs1,hs2 : String;
+
       function bitcnt(aValue: int64): integer;
       var
         i: integer;
@@ -5004,6 +5000,7 @@ implementation
       new(InsTabMemRefSizeInfoCache);
       FillChar(InsTabMemRefSizeInfoCache^,sizeof(TInsTabMemRefSizeInfoCache),0);
 
+      iCntOpcodeValError := 0;
       for AsmOp := low(TAsmOp) to high(TAsmOp) do
       begin
         i := InsTabCache^[AsmOp];
@@ -5377,6 +5374,7 @@ implementation
 
             inc(insentry);
           end;
+
           if InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX then
           begin
             case RegBCSTSizeMask of
@@ -5528,8 +5526,32 @@ implementation
           begin
             InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiNoMemRef;
           end;
+
+          InsTabMemRefSizeInfoCache^[AsmOp].RegXMMSizeMask:=RegXMMSizeMask;
+          InsTabMemRefSizeInfoCache^[AsmOp].RegYMMSizeMask:=RegYMMSizeMask;
+          InsTabMemRefSizeInfoCache^[AsmOp].RegZMMSizeMask:=RegZMMSizeMask;
+
+          if (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) and
+             (gas_needsuffix[AsmOp] <> AttSufNONE) and
+             (not(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples)) then
+          begin
+            // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat
+
+            if (AsmOp <> A_CVTSI2SD) and
+	       (AsmOp <> A_CVTSI2SS) then
+	    begin	    
+              inc(iCntOpcodeValError);
+              Str(gas_needsuffix[AsmOp],hs1);
+              Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
+              Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
+                       std_op2str[AsmOp],hs1,hs2);
+	    end;	       
+          end;
         end;
       end;
+
+      if iCntOpcodeValError > 0 then
+       InternalError(2021011201);
 
       for AsmOp := low(TAsmOp) to high(TAsmOp) do
       begin

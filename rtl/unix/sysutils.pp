@@ -525,8 +525,14 @@ end;
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
+Var
+  I : Int64;
+
 begin
-  result:=longint(FileSeek(Handle,int64(FOffset),Origin));
+  I:=FileSeek(Handle,int64(FOffset),Origin);
+  if I>High(Longint) then
+     Raise EInOutError.CreateFmt(SErrPosToBigForLongint,[I]);
+  result:=I;
 end;
 
 
@@ -1432,6 +1438,7 @@ var
   usecs : Word;
 begin
   DoGetLocalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
+  SystemTime.DayOfWeek:=DayOfWeek(EncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day))-1;
 end ;
 {$endif}
 

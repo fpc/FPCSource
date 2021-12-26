@@ -8,7 +8,9 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef, tfFPCCDisp8);
+
+  { TAVXTestGenerator }
 
   TAVXTestGenerator = class(TObject)
   private
@@ -16,13 +18,18 @@ type
   protected
     procedure Init;
 
-    function InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+
+    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
     destructor Destroy; override;
 
-    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
+    function MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask: String): boolean;
+    procedure ListMemRefState;
+//    function MakeTestFilesMREF(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean; aDestPath: String): boolean;
 
     property OpCodeList: TStringList read FOpCodeList write FOpCodeList;
   end;
@@ -35,7 +42,7 @@ uses SysUtils, AsmTestGenerator, Dialogs;
 
 constructor TAVXTestGenerator.Create;
 var
-  i: integer;	
+  i: integer;
 begin
   inherited;
 
@@ -58,10 +65,25 @@ begin
   inherited;
 end;
 
+{$define TEST_SHA}
+{$define TEST_XSAVE}
+{$define TEST_ALL}
+
 procedure TAVXTestGenerator.Init;
 begin
   // Opcode, i386, x8664, AVX512, Parameter
+{$if defined(TEST_SHA) or defined(TEST_ALL)}
+  { SHA opcodes }
+  FOpCodeList.Add('SHA1RNDS4,1,1,0,XMMREG,XMMRM,IMM8,');
+  FOpCodeList.Add('SHA1NEXTE,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA1MSG1,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA1MSG2,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256RNDS2,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256MSG1,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA256MSG2,1,1,0,XMMREG,XMMRM,,');  
+{$endif defined(TEST_SHA) or defined(TEST_ALL)}
 
+{$if defined(TEST_XSAVE) or defined(TEST_ALL)}
   { XSAVE opcodes }
   FOpCodeList.Add('XGETBV,1,1,0,,,,,');
   FOpCodeList.Add('XSETBV,1,1,0,,,,,');
@@ -71,7 +93,9 @@ begin
   FOpCodeList.Add('XRSTOR64,1,1,0,MEM64,,,,');
   FOpCodeList.Add('XSAVEOPT,1,1,0,MEM64,,,,');
   FOpCodeList.Add('XSAVEOPT64,1,1,0,MEM64,,,,');
+{$endif defined(TEST_XSAVE) or defined(TEST_ALL)}
 
+{$ifdef TEST_ALL}
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,MEM32,,,');
 
@@ -97,6 +121,23 @@ begin
   FOpCodeList.Add('COMISS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('COMISS,1,1,0,XMMREG,MEM32,,,');
 
+  FOpCodeList.Add('cvtsd2si,1,1,0,REG32,MEM64,,');
+  FOpCodeList.Add('cvtsd2si,1,1,0,REG32,XMMREG_ER,,');
+  FOpCodeList.Add('cvtsd2si,1,1,0,REG64,MEM64,,');
+  FOpCodeList.Add('cvtsd2si,1,1,0,REG64,XMMREG_ER,,');
+  FOpCodeList.Add('cvtss2si,1,1,0,REG32,MEM32,,');
+  FOpCodeList.Add('cvtss2si,1,1,0,REG32,XMMREG_ER,,');
+  FOpCodeList.Add('cvtss2si,1,1,0,REG64,MEM32,,');
+  FOpCodeList.Add('cvtss2si,1,1,0,REG64,XMMREG_ER,,');
+  FOpCodeList.Add('cvttsd2si,1,1,0,REG32,MEM64,,');
+  FOpCodeList.Add('cvttsd2si,1,1,0,REG32,XMMREG_SAE,,');
+  FOpCodeList.Add('cvttsd2si,1,1,0,REG64,MEM64,,');
+  FOpCodeList.Add('cvttsd2si,1,1,0,REG64,XMMREG_SAE,,');
+  FOpCodeList.Add('cvttss2si,1,1,0,REG32,MEM32,,');
+  FOpCodeList.Add('cvttss2si,1,1,0,REG32,XMMREG_SAE,,');
+  FOpCodeList.Add('cvttss2si,1,1,0,REG64,MEM32,,');
+  FOpCodeList.Add('cvttss2si,1,1,0,REG64,XMMREG_SAE,,');
+
   FOpCodeList.Add('DIVSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('DIVSS,1,1,0,XMMREG,MEM32,,,');
 
@@ -104,6 +145,10 @@ begin
   FOpCodeList.Add('MAXSS,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('MINSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('MINSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('MOVSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MOVSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MOVSS,1,1,0,MEM32,XMMREG,,,');
 
   FOpCodeList.Add('MULSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('MULSS,1,1,0,XMMREG,MEM32,,,');
@@ -126,41 +171,41 @@ begin
 
 
   FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('COMISD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('DIVSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('MAXSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,MEM64,,,');
   FOpCodeList.Add('MINSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MINSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MINSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('MULSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('SUBSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,MEM64,,,');
 
   FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,MEM64,,,');
 
 
 
@@ -199,10 +244,10 @@ begin
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vaddpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_ER,');
   FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vaddpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vaddps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vaddps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vaddps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -227,9 +272,9 @@ begin
   FOpCodeList.Add('vandnpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandnpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vandnpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vandnpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vandnps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandnps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vandnps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -239,9 +284,9 @@ begin
   FOpCodeList.Add('vandpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vandpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vandpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vandps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vandps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vandps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -398,9 +443,9 @@ begin
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,XMMREG,2B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,YMMRM,IMM8');
-  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,4B32,IMM8');
+  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,YMMREG,4B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,MEM512,IMM8');
-  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,8B32,IMM8');
+  FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,8B64,IMM8');
   FOpCodeList.Add('vcmppd,1,1,1,KREG_M,ZMMREG,ZMMREG_SAE,IMM8');
   FOpCodeList.Add('vcmppd,1,1,0,XMMREG,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vcmppd,1,1,0,YMMREG,YMMREG,YMMRM,IMM8');
@@ -535,9 +580,9 @@ begin
   FOpCodeList.Add('vdivpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vdivpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vdivpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vdivpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vdivpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vdivpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vdivpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vdivpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vdivpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_ER,');
   FOpCodeList.Add('vdivps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vdivps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
@@ -583,10 +628,10 @@ begin
   FOpCodeList.Add('vmaxpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vmaxpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vmaxpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vmaxpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vmaxpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vmaxpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_SAE,');
   FOpCodeList.Add('vmaxpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vmaxpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vmaxpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vmaxps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vmaxps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vmaxps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -601,9 +646,9 @@ begin
   FOpCodeList.Add('vminpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vminpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vminpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vminpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_SAE,');
   FOpCodeList.Add('vminps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vminps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
@@ -724,9 +769,9 @@ begin
   FOpCodeList.Add('vmulpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vmulpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vmulpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vmulpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vmulpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vmulpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vmulpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vmulpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vmulpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_ER,');
   FOpCodeList.Add('vmulps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vmulps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
@@ -742,9 +787,9 @@ begin
   FOpCodeList.Add('vorpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vorpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vorpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vorpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vorpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vorpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vorpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vorpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vorps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vorps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vorps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -793,9 +838,9 @@ begin
   FOpCodeList.Add('vpaddq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpaddq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpaddq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpaddq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpaddq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpaddq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpaddq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpaddq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpaddsb,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpaddsb,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpaddsb,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
@@ -847,9 +892,9 @@ begin
   FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,XMMREG,XMMRM,');
   FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,XMMREG,2B64,');
   FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,YMMREG,4B32,');
+  FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,YMMREG,4B64,');
   FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,ZMMREG,8B32,');
+  FOpCodeList.Add('vpcmpeqq,1,1,1,KREG_M,ZMMREG,8B64,');
   FOpCodeList.Add('vpcmpeqq,1,1,0,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('vpcmpeqq,1,1,0,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('vpcmpeqw,1,1,1,KREG_M,XMMREG,XMMRM,');
@@ -875,9 +920,9 @@ begin
   FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,XMMREG,XMMRM,');
   FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,XMMREG,2B64,');
   FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,YMMREG,4B32,');
+  FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,YMMREG,4B64,');
   FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,ZMMREG,8B32,');
+  FOpCodeList.Add('vpcmpgtq,1,1,1,KREG_M,ZMMREG,8B64,');
   FOpCodeList.Add('vpcmpgtq,1,1,0,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('vpcmpgtq,1,1,0,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('vpcmpgtw,1,1,1,KREG_M,XMMREG,XMMRM,');
@@ -893,13 +938,13 @@ begin
   FOpCodeList.Add('vpermilpd,1,1,1,XMMREG_MZ,XMMRM,IMM8,');
   FOpCodeList.Add('vpermilpd,1,1,1,XMMREG_MZ,2B64,IMM8,');
   FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,YMMRM,IMM8,');
-  FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,4B32,IMM8,');
+  FOpCodeList.Add('vpermilpd,1,1,1,YMMREG_MZ,4B64,IMM8,');
   FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,ZMMRM,IMM8,');
-  FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,8B32,IMM8,');
+  FOpCodeList.Add('vpermilpd,1,1,1,ZMMREG_MZ,8B64,IMM8,');
   FOpCodeList.Add('vpermilps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpermilps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vpermilps,1,1,1,XMMREG_MZ,XMMRM,IMM8,');
@@ -920,9 +965,9 @@ begin
   FOpCodeList.Add('vpextrd,1,1,1,RM32,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrq,1,1,1,RM64,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrw,1,1,1,MEM16,XMMREG,IMM8,');
-  FOpCodeList.Add('vpextrw,1,1,1,REG16,XMMREG,IMM8,');
+  //FOpCodeList.Add('vpextrw,1,1,1,REG16,XMMREG,IMM8,');
   FOpCodeList.Add('vpextrw,1,1,1,REG32,XMMREG,IMM8,');
-  FOpCodeList.Add('vpextrw,1,1,1,REG64,XMMREG,IMM8,');
+  //FOpCodeList.Add('vpextrw,1,1,1,REG64,XMMREG,IMM8,');
   FOpCodeList.Add('vphaddd,1,1,0,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('vphaddd,1,1,0,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('vphaddsw,1,1,0,XMMREG,XMMREG,XMMRM,');
@@ -939,7 +984,6 @@ begin
   FOpCodeList.Add('vpinsrb,1,1,1,XMMREG,XMMREG,REG32,IMM8');
   FOpCodeList.Add('vpinsrb,1,1,1,XMMREG,XMMREG,MEM8,IMM8');
   FOpCodeList.Add('vpinsrd,1,1,1,XMMREG,XMMREG,RM32,IMM8');
-  FOpCodeList.Add('vpinsrq,1,1,1,XMMREG,XMMREG,RM64,IMM8');
   FOpCodeList.Add('vpinsrw,1,1,1,XMMREG,XMMREG,MEM16,IMM8');
   FOpCodeList.Add('vpinsrw,1,1,1,XMMREG,XMMREG,REG32,IMM8');
   FOpCodeList.Add('vpmaddubsw,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
@@ -1075,9 +1119,9 @@ begin
   FOpCodeList.Add('vpmuldq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpmuldq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpmuldq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpmuldq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpmuldq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpmuldq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpmuldq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpmuldq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpmulhrsw,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpmulhrsw,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpmulhrsw,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
@@ -1099,9 +1143,9 @@ begin
   FOpCodeList.Add('vpmuludq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpmuludq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpmuludq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpmuludq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpmuludq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpmuludq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpmuludq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpmuludq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpor,1,1,0,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('vpor,1,1,0,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('vpsadbw,1,1,1,XMMREG,XMMREG,XMMRM,');
@@ -1145,10 +1189,10 @@ begin
   FOpCodeList.Add('vpsllq,1,1,1,XMMREG_MZ,2B64,IMM8,');
   FOpCodeList.Add('vpsllq,1,1,1,YMMREG_MZ,YMMREG,XMMRM,');
   FOpCodeList.Add('vpsllq,1,1,1,YMMREG_MZ,YMMRM,IMM8,');
-  FOpCodeList.Add('vpsllq,1,1,1,YMMREG_MZ,4B32,IMM8,');
+  FOpCodeList.Add('vpsllq,1,1,1,YMMREG_MZ,4B64,IMM8,');
   FOpCodeList.Add('vpsllq,1,1,1,ZMMREG_MZ,ZMMREG,XMMRM,');
   FOpCodeList.Add('vpsllq,1,1,1,ZMMREG_MZ,ZMMRM,IMM8,');
-  FOpCodeList.Add('vpsllq,1,1,1,ZMMREG_MZ,8B32,IMM8,');
+  FOpCodeList.Add('vpsllq,1,1,1,ZMMREG_MZ,8B64,IMM8,');
   FOpCodeList.Add('vpsllw,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsllw,1,1,1,XMMREG_MZ,XMMRM,IMM8,');
   FOpCodeList.Add('vpsllw,1,1,1,YMMREG_MZ,YMMREG,XMMRM,');
@@ -1186,11 +1230,11 @@ begin
   FOpCodeList.Add('vpsrlq,1,1,1,XMMREG_MZ,XMMRM,IMM8,');
   FOpCodeList.Add('vpsrlq,1,1,1,XMMREG_MZ,2B64,IMM8,');
   FOpCodeList.Add('vpsrlq,1,1,1,YMMREG_MZ,YMMRM,IMM8,');
-  FOpCodeList.Add('vpsrlq,1,1,1,YMMREG_MZ,4B32,IMM8,');
+  FOpCodeList.Add('vpsrlq,1,1,1,YMMREG_MZ,4B64,IMM8,');
   FOpCodeList.Add('vpsrlq,1,1,1,YMMREG_MZ,YMMREG,XMMRM,');
   FOpCodeList.Add('vpsrlq,1,1,1,ZMMREG_MZ,ZMMREG,XMMRM,');
   FOpCodeList.Add('vpsrlq,1,1,1,ZMMREG_MZ,ZMMRM,IMM8,');
-  FOpCodeList.Add('vpsrlq,1,1,1,ZMMREG_MZ,8B32,IMM8,');
+  FOpCodeList.Add('vpsrlq,1,1,1,ZMMREG_MZ,8B64,IMM8,');
   FOpCodeList.Add('vpsrlw,1,1,1,XMMREG_MZ,XMMRM,IMM8,');
   FOpCodeList.Add('vpsrlw,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsrlw,1,1,1,YMMREG_MZ,YMMRM,IMM8,');
@@ -1209,9 +1253,9 @@ begin
   FOpCodeList.Add('vpsubq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsubq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpsubq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpsubq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpsubq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpsubq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpsubq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpsubq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpsubsb,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsubsb,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpsubsb,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
@@ -1241,9 +1285,9 @@ begin
   FOpCodeList.Add('vpunpckhqdq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpunpckhqdq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpunpckhqdq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpunpckhqdq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpunpckhqdq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpunpckhqdq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpunpckhqdq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpunpckhqdq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpunpckhwd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpunpckhwd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpunpckhwd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
@@ -1259,9 +1303,9 @@ begin
   FOpCodeList.Add('vpunpcklqdq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpunpcklqdq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpunpcklqdq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpunpcklqdq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpunpcklqdq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpunpcklqdq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpunpcklqdq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpunpcklqdq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpunpcklwd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpunpcklwd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpunpcklwd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
@@ -1286,9 +1330,9 @@ begin
   FOpCodeList.Add('vshufpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vshufpd,1,1,1,XMMREG_MZ,XMMREG,2B64,IMM8');
   FOpCodeList.Add('vshufpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,IMM8');
-  FOpCodeList.Add('vshufpd,1,1,1,YMMREG_MZ,YMMREG,4B32,IMM8');
+  FOpCodeList.Add('vshufpd,1,1,1,YMMREG_MZ,YMMREG,4B64,IMM8');
   FOpCodeList.Add('vshufpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,IMM8');
-  FOpCodeList.Add('vshufpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,IMM8');
+  FOpCodeList.Add('vshufpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,IMM8');
   FOpCodeList.Add('vshufps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vshufps,1,1,1,XMMREG_MZ,XMMREG,4B32,IMM8');
   FOpCodeList.Add('vshufps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,IMM8');
@@ -1298,9 +1342,9 @@ begin
   FOpCodeList.Add('vsqrtpd,1,1,1,XMMREG_MZ,XMMRM,,');
   FOpCodeList.Add('vsqrtpd,1,1,1,XMMREG_MZ,2B64,,');
   FOpCodeList.Add('vsqrtpd,1,1,1,YMMREG_MZ,YMMRM,,');
-  FOpCodeList.Add('vsqrtpd,1,1,1,YMMREG_MZ,4B32,,');
+  FOpCodeList.Add('vsqrtpd,1,1,1,YMMREG_MZ,4B64,,');
   FOpCodeList.Add('vsqrtpd,1,1,1,ZMMREG_MZ,MEM512,,');
-  FOpCodeList.Add('vsqrtpd,1,1,1,ZMMREG_MZ,8B32,,');
+  FOpCodeList.Add('vsqrtpd,1,1,1,ZMMREG_MZ,8B64,,');
   FOpCodeList.Add('vsqrtpd,1,1,1,ZMMREG_MZ,ZMMREG_ER,,');
   FOpCodeList.Add('vsqrtps,1,1,1,XMMREG_MZ,XMMRM,,');
   FOpCodeList.Add('vsqrtps,1,1,1,XMMREG_MZ,4B32,,');
@@ -1317,9 +1361,9 @@ begin
   FOpCodeList.Add('vsubpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vsubpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vsubpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vsubpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vsubpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vsubpd,1,1,1,ZMMREG_MZ,ZMMREG,MEM512,');
-  FOpCodeList.Add('vsubpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vsubpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vsubpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMREG_ER,');
   FOpCodeList.Add('vsubps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vsubps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
@@ -1343,9 +1387,9 @@ begin
   FOpCodeList.Add('vunpckhpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vunpckhpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vunpckhpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vunpckhpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vunpckhpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vunpckhpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vunpckhpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vunpckhpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vunpckhps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vunpckhps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vunpckhps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1355,9 +1399,9 @@ begin
   FOpCodeList.Add('vunpcklpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vunpcklpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vunpcklpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vunpcklpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vunpcklpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vunpcklpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vunpcklpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vunpcklpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vunpcklps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vunpcklps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vunpcklps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1367,9 +1411,9 @@ begin
   FOpCodeList.Add('vxorpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vxorpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vxorpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vxorpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vxorpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vxorpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vxorpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vxorpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vxorps,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vxorps,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vxorps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1397,20 +1441,20 @@ begin
   FOpCodeList.Add('vpblendd,1,1,0,XMMREG,XMMREG,XMMRM,IMM8');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,MEM8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,XMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,MEM8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,YMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,MEM8,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG8,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG8,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG64,,');
   //FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,REG16,,');
   FOpCodeList.Add('vpbroadcastb,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vpbroadcastd,1,1,1,XMMREG_MZ,MEM32,,');
@@ -1433,18 +1477,18 @@ begin
   FOpCodeList.Add('vpbroadcastq,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,MEM16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,XMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,MEM16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,XMMREG,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,YMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,MEM16,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG16,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG16,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG32,,');
-  FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG64,,');
+  //FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,REG64,,');
   FOpCodeList.Add('vpbroadcastw,1,1,1,ZMMREG_MZ,XMMREG,,');
   FOpCodeList.Add('vperm2i128,1,1,0,YMMREG,YMMREG,YMMRM,IMM8');
   FOpCodeList.Add('vpermd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1453,25 +1497,25 @@ begin
   FOpCodeList.Add('vpermd,1,1,1,ZMMREG_MZ,ZMMREG,16B32,');
   FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,MEM256,IMM8,');
   FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,YMMREG,IMM8,');
-  FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,4B32,IMM8,');
+  FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,4B64,IMM8,');
   FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpermpd,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,ZMMRM,IMM8,');
-  FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,8B32,IMM8,');
+  FOpCodeList.Add('vpermpd,1,1,1,ZMMREG_MZ,8B64,IMM8,');
   FOpCodeList.Add('vpermps,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
   FOpCodeList.Add('vpermps,1,1,1,YMMREG_MZ,YMMREG,8B32,');
   FOpCodeList.Add('vpermps,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
   FOpCodeList.Add('vpermps,1,1,1,ZMMREG_MZ,ZMMREG,16B32,');
   FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,YMMRM,IMM8,');
-  FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,4B32,IMM8,');
+  FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,4B64,IMM8,');
   FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpermq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,ZMMRM,IMM8,');
-  FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,8B32,IMM8,');
+  FOpCodeList.Add('vpermq,1,1,1,ZMMREG_MZ,8B64,IMM8,');
   FOpCodeList.Add('vpmaskmovd,1,1,0,XMMREG,XMMREG,MEM128,');
   FOpCodeList.Add('vpmaskmovd,1,1,0,MEM128,XMMREG,XMMREG,');
   FOpCodeList.Add('vpmaskmovd,1,1,0,YMMREG,YMMREG,MEM256,');
@@ -1489,9 +1533,9 @@ begin
   FOpCodeList.Add('vpsllvq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsllvq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpsllvq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpsllvq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpsllvq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpsllvq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpsllvq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpsllvq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
   FOpCodeList.Add('vpsravd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsravd,1,1,1,XMMREG_MZ,XMMREG,4B32,');
   FOpCodeList.Add('vpsravd,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
@@ -1507,9 +1551,9 @@ begin
   FOpCodeList.Add('vpsrlvq,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vpsrlvq,1,1,1,XMMREG_MZ,XMMREG,2B64,');
   FOpCodeList.Add('vpsrlvq,1,1,1,YMMREG_MZ,YMMREG,YMMRM,');
-  FOpCodeList.Add('vpsrlvq,1,1,1,YMMREG_MZ,YMMREG,4B32,');
+  FOpCodeList.Add('vpsrlvq,1,1,1,YMMREG_MZ,YMMREG,4B64,');
   FOpCodeList.Add('vpsrlvq,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,');
-  FOpCodeList.Add('vpsrlvq,1,1,1,ZMMREG_MZ,ZMMREG,8B32,');
+  FOpCodeList.Add('vpsrlvq,1,1,1,ZMMREG_MZ,ZMMREG,8B64,');
 
   FOpCodeList.Add('vgatherdpd,1,1,0,XMMREG,XMEM32,XMMREG,');
   FOpCodeList.Add('vgatherdpd,1,1,1,XMMREG_M,XMEM32,,');
@@ -1526,7 +1570,7 @@ begin
   FOpCodeList.Add('vgatherqpd,1,1,1,XMMREG_M,XMEM64,,');
   FOpCodeList.Add('vgatherqpd,1,1,0,YMMREG,YMEM64,YMMREG,');
   FOpCodeList.Add('vgatherqpd,1,1,1,YMMREG_M,YMEM64,,');
-  FOpCodeList.Add('vgatherqpd,1,1,1,ZMMREG_M,ZMEM32,,');
+  FOpCodeList.Add('vgatherqpd,1,1,1,ZMMREG_M,ZMEM64,,');
   FOpCodeList.Add('vgatherqps,1,1,0,XMMREG,XMEM32,XMMREG,');
   FOpCodeList.Add('vgatherqps,1,1,0,XMMREG,YMEM32,XMMREG,');
   FOpCodeList.Add('vgatherqps,1,1,1,XMMREG_M,XMEM32,,');
@@ -1923,10 +1967,14 @@ begin
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,mem512,,');
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,8b64,,');
   FOpCodeList.Add('vcvtuqq2ps,1,1,1,ymmreg_mz,zmmreg_er,,');
-  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,rm32,');
-  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,rm64,');
-  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,rm32,');
-  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,rm64,');
+  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,reg32,');
+  FOpCodeList.Add('vcvtusi2sd,1,1,1,xmmreg,xmmreg_er,mem32,');
+  FOpCodeList.Add('vcvtusi2sd,0,1,1,xmmreg,xmmreg_er,reg64,');
+  FOpCodeList.Add('vcvtusi2sd,0,1,1,xmmreg,xmmreg_er,mem64,');
+  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,reg32,');
+  FOpCodeList.Add('vcvtusi2ss,1,1,1,xmmreg,xmmreg_er,mem32,');
+  FOpCodeList.Add('vcvtusi2ss,0,1,1,xmmreg,xmmreg_er,reg64,');
+  FOpCodeList.Add('vcvtusi2ss,0,1,1,xmmreg,xmmreg_er,mem64,');
   FOpCodeList.Add('vdbpsadbw,1,1,1,xmmreg_mz,xmmreg,xmmrm,imm8');
   FOpCodeList.Add('vdbpsadbw,1,1,1,ymmreg_mz,ymmreg,ymmrm,imm8');
   FOpCodeList.Add('vdbpsadbw,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
@@ -3247,20 +3295,12 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,xmmreg,xmmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,ymmreg,ymmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
+{$endif TEST_ALL}  
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
-                                        aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
-var
-  i: integer;
-  sData: string;
-  sDestFile: string;
-  sl: TStringList;
-  slAsm: TStringList;
-  LastOpCode: String;
-  NewOpCode: String;
-
-  function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+function TAVXTestGenerator.SaveFile(aAsmList: TStringList; aOpcode, aDestPath,
+  aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+begin
   begin
     result := false;
 
@@ -3272,6 +3312,35 @@ var
       aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
     end;
   end;
+end;
+
+function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
+                                        aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+var
+  i,j: integer;
+  sData: string;
+  sDestFile: string;
+  sLocalVarDataTyp: string;
+  sl: TStringList;
+  slAsm: TStringList;
+  slLocalHeader: TStringList;
+  slFilemask: TStringList;
+  LastOpCode: String;
+  NewOpCode: String;
+  FoundNewOpcode: boolean;
+
+  //function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
+  //begin
+  //  result := false;
+  //
+  //  if aAsmList.Count > 0 then
+  //  begin
+  //    aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+  //    aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+  //
+  //    aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
+  //  end;
+  //end;
 
 begin
   result := false;
@@ -3282,40 +3351,183 @@ begin
   try
     slAsm := TStringList.Create;
     try
-      LastOpCode := '';
+      slFilemask := TStringList.Create;
+      try
+        slFilemask.CommaText := ansilowercase(aFilemask);
 
-      for i := 0 to aOpCodeList.Count - 1 do
-      //for i := 0 to 0 do
-      begin
-        sl.Clear;
-        sl.CommaText := aOpCodeList[i];
+        LastOpCode := '';
 
-        while sl.Count < 8 do sl.Add('');
-
-        NewOpCode := ansilowercase(sl[0]);
-        if NewOpCode <> '' then
+        for i := 0 to aOpCodeList.Count - 1 do
         begin
-          if (not(aX64) and (sl[1] = '1')) or // i386
-             (aX64 and (sl[2] = '1')) then    // x86_64
+          sl.Clear;
+          sl.CommaText := aOpCodeList[i];
+
+          while sl.Count < 8 do sl.Add('');
+
+          NewOpCode := ansilowercase(sl[0]);
+
+          FoundNewOpcode := false;
+          for j := 0 to slFilemask.Count - 1 do
           begin
-            if (sl[4]  = '') and
-               (sl[5]  = '') and
-               (sl[6]  = '') and
-               (sl[7]  = '') then
-            begin                                        // Opcode with no Params, e.g. VZEROALL
-              slAsm.Add('    ' + sl[0]);
-            end
-            else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+            if Pos(slFilemask[j], NewOpCode) = 1 then
+             FoundNewOpcode := true;
+          end;
 
-	    sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+          if not(FoundNewOpcode) and (slFilemask.Count > 0) then
+           NewOpcode := '';
 
+          if NewOpCode <> '' then
+          begin
+            if (not(aX64) and (sl[1] = '1')) or // i386
+               (aX64 and (sl[2] = '1')) then    // x86_64
+            begin
+	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
 
-            SaveFile(slAsm, sDestFile, aDestPath, aFileExt, aHeaderList, aFooterList);
-            writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+              slLocalHeader := TStringList.Create;
+              try
+                slLocalHeader.Text := aHeaderList.text;
 
-            slAsm.Clear;
+	        if (sl[4]  = '') and
+                   (sl[5]  = '') and
+                   (sl[6]  = '') and
+                   (sl[7]  = '') then
+                begin                                        // Opcode with no Params, e.g. VZEROALL
+                  slAsm.Add('    ' + sl[0]);
+                end
+                else
+	        begin
+                  if aMREF then
+	          begin
+                    sLocalVarDataTyp := '';
+ 	            TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+		    sDestFile := 'MREF_' + sDestFile;
+
+		    if trim(sLocalVarDataTyp) = '' then
+		     sLocalVarDataTyp := 'byte';
+
+                    slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
+	          end
+   	          else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	        end;
+
+                SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+
+              finally
+                FreeAndNil(slLocalHeader);
+              end;
+
+              slAsm.Clear;
+            end;
           end;
         end;
+      finally
+        FreeAndNil(slFilemask);
+      end;
+    finally
+      FreeAndNil(slAsm);
+    end;
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
+function TAVXTestGenerator.InternalMakeTestFilesCDisp8(aX64, aAVX512,
+  aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList,
+  aHeaderList, aFooterList: TStringList): boolean;
+var
+  i,j: integer;
+  sData: string;
+  sDestFile: string;
+  sLocalVarDataTyp: string;
+  sl: TStringList;
+  slAsm: TStringList;
+  slLocalHeader: TStringList;
+  slFilemask: TStringList;
+  LastOpCode: String;
+  NewOpCode: String;
+  FoundNewOpcode: boolean;
+
+begin
+  result := false;
+
+  aOpCodeList.Sort;
+
+  sl := TStringList.Create;
+  try
+    slAsm := TStringList.Create;
+    try
+      slFilemask := TStringList.Create;
+      try
+        slFilemask.CommaText := ansilowercase(aFilemask);
+
+        LastOpCode := '';
+
+        for i := 0 to aOpCodeList.Count - 1 do
+        begin
+          sl.Clear;
+          sl.CommaText := aOpCodeList[i];
+
+          while sl.Count < 8 do sl.Add('');
+
+          NewOpCode := ansilowercase(sl[0]);
+
+          FoundNewOpcode := false;
+          for j := 0 to slFilemask.Count - 1 do
+          begin
+            if Pos(slFilemask[j], NewOpCode) = 1 then
+             FoundNewOpcode := true;
+          end;
+
+          if not(FoundNewOpcode) and (slFilemask.Count > 0) then
+           NewOpcode := '';
+
+          if NewOpCode <> '' then
+          begin
+            if (
+                (not(aX64) and (sl[1] = '1')) or // i386
+                (aX64 and (sl[2] = '1'))
+               ) and
+               (
+                sl[3] = '1'
+               )
+
+                then    // x86_64
+            begin
+	      sDestFile := format('%s_%d%s', [NewOpcode, i, trim(copy(sl[4],1,1) + copy(sl[5],1,1) + copy(sl[6],1,1) + copy(sl[7],1,1))]);
+
+              slLocalHeader := TStringList.Create;
+              try
+                slLocalHeader.Text := aHeaderList.text;
+
+	        if (sl[4]  = '') and
+                   (sl[5]  = '') and
+                   (sl[6]  = '') and
+                   (sl[7]  = '') then
+                begin                                        // Opcode with no Params, e.g. VZEROALL
+                  slAsm.Add('    ' + sl[0]);
+                end
+                else
+	        begin
+   	          TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+	        end;
+
+                if trim(slAsm.Text) <> '' then
+                begin
+                  sDestFile := 'CDISP8_' + sDestFile;
+                  SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
+                  writeln(format('%s%s%s', [aDestPath, sDestFile, aFileExt]));
+                end;
+              finally
+                FreeAndNil(slLocalHeader);
+              end;
+
+              slAsm.Clear;
+            end;
+          end;
+        end;
+      finally
+        FreeAndNil(slFilemask);
       end;
     finally
       FreeAndNil(slAsm);
@@ -3326,7 +3538,7 @@ begin
 end;
 
 function TAVXTestGenerator.MakeTestFiles(aTyp: TTestFileTyp; aX64, aAVX512, aSAE: boolean;
-  aDestPath: String): boolean;
+  aDestPath, aFilemask: String): boolean;
 var
   slHeader: TStringList;
   slFooter: TStringList;
@@ -3361,6 +3573,236 @@ begin
 
                   slFooter.Add('  end;');
                   slFooter.Add('end.');
+                end;
+         tfFPCMRef:
+                begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program $$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+
+                  slHeader.Add('type');
+                  slHeader.Add('  rec = record');
+
+                  slHeader.Add('    rByte: byte;');
+                  slHeader.Add('    rWord: word;');
+                  slHeader.Add('    rDWord: dword;');
+                  slHeader.Add('    rQWord: qword;');
+                  slHeader.Add('    rOWord: array[0..15] of byte;');
+                  slHeader.Add('    rYWord: array[0..31] of byte;');
+                  slHeader.Add('    rZWord: array[0..63] of byte;');
+
+                  slHeader.Add('  end;');
+
+
+		  slHeader.Add('var');
+                  slHeader.Add('   gRec: rec;');
+		  slHeader.Add('   gByte: byte;');
+		  slHeader.Add('   gWord: word;');
+		  slHeader.Add('  gDWord: dword;');
+		  slHeader.Add('  gQWord: qword;');
+		  slHeader.Add('  gOWord: array[0..15] of byte;');
+		  slHeader.Add('  gYWord: array[0..31] of byte;');
+		  slHeader.Add('  gZWord: array[0..63] of byte;');
+
+		  slHeader.Add('const');
+		  slHeader.Add('   cgByte: byte = 0;');
+		  slHeader.Add('   cgWord: word = 0;');
+		  slHeader.Add('  cgDWord: dword = 0;');
+		  slHeader.Add('  cgQWord: qword = 0;');
+		  slHeader.Add('  cgOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('  cgYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('  cgZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                  '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+//  slHeader.Add('  cgZWord: array[0..63] of byte;');
+
+                  slHeader.Add(' procedure dummyproc;');
+		  slHeader.Add(' var');
+                  slHeader.Add('     lRec: rec;');
+		  slHeader.Add('     lByte: byte;');
+		  slHeader.Add('     lWord: word;');
+		  slHeader.Add('    lDWord: dword;');
+		  slHeader.Add('    lQWord: qword;');
+		  slHeader.Add('    lOWord: array[0..15] of byte;');
+		  slHeader.Add('    lYWord: array[0..31] of byte;');
+		  slHeader.Add('    lSingle: single;');
+
+		  slHeader.Add('    lDouble: double;');
+		  slHeader.Add('    lZWord: array[0..63] of byte;');
+
+                  slHeader.Add(' const');
+		  slHeader.Add('     clByte: byte = 0;');
+		  slHeader.Add('     clWord: word = 0;');
+		  slHeader.Add('    clDWord: dword = 0;');
+		  slHeader.Add('    clQWord: qword = 0;');
+		  slHeader.Add('    clOWord: array[0..15] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('    clYWord: array[0..31] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+		  slHeader.Add('    clZWord: array[0..63] of byte = ((0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+		                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0),' +
+                                                                    '(0),(0),(0),(0),(0),(0),(0),(0));');
+
+
+
+                  slHeader.Add(' begin');
+                  slHeader.Add('   asm');
+                  for i := 1 to 10 do
+                   slHeader.Add('    NOP');
+
+
+                  for i := 1 to 10 do
+                   slFooter.Add('    NOP');
+
+		  slFooter.Add('  end;');
+		  slFooter.Add(' end;');
+                  slFooter.Add('begin');
+                  slFooter.Add('end.');
+                end;
+         tfFPCCDisp8:
+                begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program $$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+                  slHeader.Add('{$mode objfpc}{$H+}');
+
+                  slHeader.Add('uses sysutils;');
+
+                  slHeader.Add('const');
+                  slHeader.Add('  cDataBlockByte: Array[0..255] of byte = ( $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E, $0F,');
+                  slHeader.Add('                                            $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F,');
+                  slHeader.Add('                                            $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F,');
+                  slHeader.Add('                                            $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $3A, $3B, $3C, $3D, $3E, $3F,');
+                  slHeader.Add('                                            $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $4A, $4B, $4C, $4D, $4E, $4F,');
+                  slHeader.Add('                                            $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $5A, $5B, $5C, $5D, $5E, $5F,');
+                  slHeader.Add('                                            $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $6A, $6B, $6C, $6D, $6E, $6F,');
+                  slHeader.Add('                                            $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $7A, $7B, $7C, $7D, $7E, $7F,');
+                  slHeader.Add('                                            $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $8A, $8B, $8C, $8D, $8E, $8F,');
+                  slHeader.Add('                                            $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $9A, $9B, $9C, $9D, $9E, $9F,');
+                  slHeader.Add('                                            $A0, $A1, $A2, $A3, $A4, $A5, $A6, $A7, $A8, $A9, $AA, $AB, $AC, $AD, $AE, $AF,');
+                  slHeader.Add('                                            $B0, $B1, $B2, $B3, $B4, $B5, $B6, $B7, $B8, $B9, $BA, $BB, $BC, $BD, $BE, $BF,');
+                  slHeader.Add('                                            $C0, $C1, $C2, $C3, $C4, $C5, $C6, $C7, $C8, $C9, $CA, $CB, $CC, $CD, $CE, $CF,');
+                  slHeader.Add('                                            $D0, $D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8, $D9, $DA, $DB, $DC, $DD, $DE, $DF,');
+                  slHeader.Add('                                            $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $E8, $E9, $EA, $EB, $EC, $ED, $EE, $EF,');
+                  slHeader.Add('                                            $F0, $F1, $F2, $F3, $F4, $F5, $F6, $F7, $F8, $F9, $FA, $FB, $FC, $FD, $FE, $FF);');
+                  slHeader.Add('var');
+                  slHeader.Add('  DataBlock: Array[0..$3FFF] of dword;');
+                  slHeader.Add('  i: integer;');
+
+                  slHeader.Add('procedure writelnK7;');
+                  slHeader.Add('var');
+                  slHeader.Add('  iK7: dword;');
+                  slHeader.Add('begin');
+                  slHeader.Add('  asm');
+                  slHeader.Add('    kmovd  iK7, k7');
+                  slHeader.Add('  end;');
+                  slHeader.Add('  writeln(''K7: '' + ' + 'inttostr(iK7));');
+                  slHeader.Add('end;');
+
+                  slHeader.Add('procedure writelnOK;');
+                  slHeader.Add('begin');
+                  slHeader.Add('  writeln('' OK '');');
+                  slHeader.Add('end;');
+
+
+                  slHeader.Add('begin');
+                  slHeader.Add('  for i := 0 to high(DataBlock) do');
+                  slHeader.Add('   DataBlock[i] := cDataBlockByte[i mod 256];');
+
+                  slHeader.Add('  write(Paramstr(0) + '': '');');
+
+                  slHeader.Add('  try');
+                  slHeader.Add('    asm');
+
+                  slHeader.Add('      vpxord   zmm0,  zmm0,  zmm0');
+                  slHeader.Add('      vpxord   xmm1,  xmm1,  xmm1');
+                  slHeader.Add('      vpxord   xmm2,  xmm2,  xmm2');
+                  slHeader.Add('      vpxord   xmm3,  xmm3,  xmm3');
+                  slHeader.Add('      vpxord   xmm4,  xmm4,  xmm4');
+                  slHeader.Add('      vpcmpeqb   k1,  zmm0,  zmm0');
+
+                  if aX64 then
+                  begin
+                    slHeader.Add('      lea       rax, @@CHECKRESULT');
+                    slHeader.Add('      kmovq      k6, rax');
+
+                    slHeader.Add('      lea       rax, DataBlock');
+                    slHeader.Add('      push      rax');
+                  end
+                  else
+                  begin
+                    slHeader.Add('      lea       eax, @@CHECKRESULT');
+                    slHeader.Add('      kmovd      k6, eax');
+
+                    slHeader.Add('      lea       eax, DataBlock');
+                    slHeader.Add('      push      eax');
+                  end;
+
+
+                  for i := 1 to 10 do
+                   slHeader.Add('NOP');
+
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+
+                  slFooter.Add('      call writelnOK');
+                  slFooter.Add('      jmp  @@END');
+
+
+                  slFooter.Add('  @@CHECKRESULT:   ');
+                  slFooter.Add('      kmovd  eax, k7');
+                  slFooter.Add('      call writelnK7');
+                  slFooter.Add('  @@END:   ');
+
+
+                  if aX64 then slFooter.Add('        pop rax')
+                   else slFooter.Add('        pop eax');
+
+
+                  slFooter.Add('    end;');
+                  slFooter.Add('  except');
+                  slFooter.Add('    on E: EInvalidOp do');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(''Error - Invalid Op: '' + E.Message);');
+                  slFooter.Add('      end;');
+
+                  slFooter.Add('    on E: Exception do');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(''Fehler: '' + E.Message);');
+                  slFooter.Add('      end;');
+                  slFooter.Add('  end;');
+                  slFooter.Add('end.');
+
                 end;
          tfFPCInc: begin
                   writeln(format('outputformat: fpc  platform: %s  path: %s',
@@ -3437,7 +3879,10 @@ begin
                 end;
       end;
 
-      InternalMakeTestFiles(aX64, aAVX512, aSAE, aDestPath, Fileext, FOpCodeList, slHeader, slFooter);
+      case aTyp of
+        tfFPCCDisp8: InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+                else InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+      end;
 
     finally
       FreeAndNil(slFooter);
@@ -3445,6 +3890,11 @@ begin
   finally
     FreeAndNil(slHeader);
   end;
+end;
+
+procedure TAVXTestGenerator.ListMemRefState;
+begin
+  TAsmTestGenerator.ListMemRefState;
 end;
 
 end.

@@ -1,3 +1,18 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2018-2021 by the Free Pascal development team
+    Original author: Michael van Canneyt
+
+    New common base for all pascal code generator units in fcl
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit pascodegen;
 
 {$mode objfpc}{$H+}
@@ -51,7 +66,7 @@ Type
     Procedure Indent;
     Procedure Undent;
     Function IsKeyWord (Const S : String) : Boolean;
-    Function EscapeKeyWord(Const S : String) : String;
+    Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String;
     Function MakePascalString(S: String; AddQuotes: Boolean=False): String;
     Function PrettyPrint(Const S: string): String;
     Procedure AddLn(Const Aline: string);
@@ -111,11 +126,14 @@ begin
   Result:=Pos(';'+lowercase(S)+';',KW)<>0;
 end;
 
-function TPascalCodeGenerator.EscapeKeyWord(const S: String): String;
+function TPascalCodeGenerator.EscapeKeyWord(const S: String; ForceAmpersand : Boolean = false): String;
 begin
   Result:=S;
   if IsKeyWord(S) then
-    Result:=KeywordPrefix+Result+KeywordSuffix
+    if ForceAmpersand then
+      Result:='&'+Result
+    else
+      Result:=KeywordPrefix+Result+KeywordSuffix
 end;
 
 procedure TPascalCodeGenerator.AddLn(const Aline: string);

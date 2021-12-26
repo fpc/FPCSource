@@ -25,16 +25,16 @@ begin
     P.Description := 'A portable, yet usable substitute for the Turbo Pascal Graph unit.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
 
-    P.CPUs:=[i386,x86_64,powerpc,i8086];
+    P.CPUs:=[i386,x86_64,powerpc,i8086,aarch64];
     P.OSes:=[go32v2,win32,win64,linux,freebsd,darwin,msdos];
 
     P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
-    P.Dependencies.Add('ptc',[win32,win64,linux]);
+    P.Dependencies.Add('ptc',[win32,win64,linux,darwin]);
 
     // Dependencies for ptc, due to fpcmake bug:
-    P.Dependencies.Add('fcl-base',[win32,win64,linux]);
+    P.Dependencies.Add('fcl-base',[win32,win64,linux,darwin]);
     P.Dependencies.Add('x11',[freebsd,linux]); // ptc only depends on reebsd and linux on x11
-    P.Dependencies.Add('hermes',[win32,win64,linux]);
+    P.Dependencies.Add('hermes',[win32,win64,linux,darwin]);
     P.Dependencies.Add('opengl',[win32,win64,linux]);
 
     P.SourcePath.Add('src');
@@ -64,22 +64,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    // Graph unit Linux/i386
-    T:=P.Targets.AddUnit('graph.pp',[i386],[linux]);
-      with T.Dependencies do
-        begin
-          AddInclude('graphh.inc');
-          AddInclude('graph.inc');
-          AddInclude('fontdata.inc');
-          AddInclude('clip.inc');
-          AddInclude('palette.inc');
-          AddInclude('modes.inc');
-          AddInclude('fills.inc');
-          AddInclude('gtext.inc');
-          AddInclude('graph16.inc',[freebsd,linux]);
-        end;
-    // Graph unit other targets
-    T:=P.Targets.AddUnit('graph.pp',[go32v2,amiga,win32,win64,freebsd,msdos]);
+    // Graph unit, restricted to i8086, i386 and x86_64 CPUs 
+    T:=P.Targets.AddUnit('graph.pp',[i8086,i386,x86_64],[go32v2,freebsd,linux,msdos]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -93,6 +79,20 @@ begin
           AddInclude('graph16.inc',[freebsd,linux]);
           AddInclude('vesa.inc',[go32v2,msdos]);
           AddInclude('vesah.inc',[go32v2,msdos]);
+        end;
+
+    // Graph unit, for win32 and win64 target 
+    T:=P.Targets.AddUnit('graph.pp',[win32,win64]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
         end;
 
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
@@ -117,7 +117,7 @@ begin
         begin
           AddUnit('graph');
         end;
-    T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux]);
+    T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux,darwin]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -129,12 +129,12 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux]);
+    T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux,darwin]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');
         end;
-    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux]);
+    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux,darwin]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');

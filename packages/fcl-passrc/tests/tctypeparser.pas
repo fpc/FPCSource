@@ -93,6 +93,11 @@ type
     Procedure TestSimpleTypeStringSizeWrong;
     Procedure TestSimpleTypeStringSizeDeprecated;
     Procedure TestSimpleTypeStringSizePlatform;
+    procedure TestSimpleTypeStringCodePage;
+    procedure TestSimpleTypeStringCodePageIncomplete;
+    procedure TestSimpleTypeStringCodePageWrong;
+    procedure TestSimpleTypeStringCodePageDeprecated;
+    procedure TestSimpleTypeStringCodePagePlatform;
     Procedure TestSimpleTypeWord;
     Procedure TestSimpleTypeWordDeprecated;
     Procedure TestSimpleTypeWordPlatform;
@@ -109,6 +114,7 @@ type
     procedure TestPointerSimpleDeprecated;
     procedure TestPointerSimplePlatform;
     Procedure TestStaticArray;
+    procedure TestStaticArrayAsRange;
     Procedure TestStaticArrayComment;
     procedure TestStaticArrayDeprecated;
     procedure TestStaticArrayPlatform;
@@ -170,6 +176,7 @@ type
     procedure TestPointerReference;
     Procedure TestPointerKeyWord;
     Procedure TestPointerFile;
+    Procedure TestAbstractObject;
   end;
 
   { TTestRecordTypeParser }
@@ -3220,7 +3227,37 @@ end;
 procedure TTestTypeParser.TestSimpleTypeStringSize;
 begin
   DoTestStringType('String[10]','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).LengthExpr);
 end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePage;
+
+begin
+  DoTestStringType('String(10)','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).CodePageExpr);
+  AssertNotNull('Have codepage expression', TPasAliasType(TheType).CodePageExpr);
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageIncomplete;
+begin
+  DoTypeError('Incomplete string: missing )','string(10');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageWrong;
+begin
+  DoTypeError('Incomplete string, ] instead of (','string(10]');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageDeprecated;
+begin
+  DoTestStringType('String(10)','deprecated');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePagePlatform;
+begin
+  DoTestStringType('String(10)','Platform');
+end;
+
 
 procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
 begin
@@ -3348,6 +3385,15 @@ begin
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
   AssertEquals('Packed',True,TPasArrayType(TheType).IsPacked);
 end;
+
+procedure TTestTypeParser.TestStaticArrayAsRange;
+
+begin
+  Parser.Options:=Parser.Options+[po_arrayrangeexpr];
+  DoParseArray('packed array [0..2] of integer','',Nil);
+  AssertEquals('Array has ranges',1,Length(TPasArrayType(TheType).Ranges));
+end;
+
 
 procedure TTestTypeParser.TestStaticArrayTypedIndex;
 begin
@@ -3812,6 +3858,19 @@ begin
   Add('  pfile = ^file;');
   ParseDeclarations;
   AssertEquals('object definition count',1,Declarations.Types.Count);
+end;
+
+procedure TTestTypeParser.TestAbstractObject;
+
+begin
+  Add('Type');
+  Add('  Reference = object abstract');
+  Add('   x : integer;');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+  AssertEquals('object is abstract',True,TPasClassType(Declarations.Classes[0]).IsAbstract);
+  AssertEquals('object is object',True,TPasClassType(Declarations.Classes[0]).ObjKind=okObject);
 end;
 
 

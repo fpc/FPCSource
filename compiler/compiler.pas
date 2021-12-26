@@ -36,7 +36,7 @@ uses
 {$ifdef WATCOM}
   emu387,
 {$endif WATCOM}
-{$if defined(unix) and (FPC_FULLVERSION>20700)}
+{$if defined(unix)}
   { system code page stuff for unix }
   unixcp,
   fpwidestring,
@@ -197,7 +197,7 @@ procedure InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
-{$if defined(unix) and (FPC_FULLVERSION>20700)}
+{$if defined(unix)}
   { Set default code page for ansistrings on unix-like systems }
   DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}

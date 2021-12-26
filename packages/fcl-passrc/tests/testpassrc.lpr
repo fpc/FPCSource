@@ -6,8 +6,8 @@ uses
   //MemCheck,
   Classes, consoletestrunner, tcscanner,  tctypeparser, tcstatements,
   tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
-  tcexprparser, tcprocfunc, tcpassrcutil, tcresolver, tcgenerics,
-  tcuseanalyzer, pasresolveeval, tcresolvegenerics;
+  tcexprparser, tcprocfunc, tcpassrcutil, tcresolver,
+  tcuseanalyzer, pasresolveeval, tcresolvegenerics, tcgenerics;
 
 type
 

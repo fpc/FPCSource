@@ -146,7 +146,7 @@ begin
   begin
     paramstr := execpathstr;
   end
-  else if (l < argc) then
+  else if (l > 0) and (l < argc) then
   begin
     paramstr:=strpas(argv[l]);
   end
@@ -193,7 +193,7 @@ end;
 {$i sighnd.inc}
 
 procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
-function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
+function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack';
 
 type
   {$PACKRECORDS C}

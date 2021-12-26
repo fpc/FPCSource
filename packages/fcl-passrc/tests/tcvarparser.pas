@@ -14,18 +14,21 @@ Type
   TTestVarParser = Class(TTestParser)
   private
     FHint: string;
+    FIsThreadVar: Boolean;
     FVar: TPasVariable;
   Protected
     Function ParseVar(ASource : String; Const AHint : String = '') : TPasVariable; virtual; overload;
     Procedure AssertVariableType(Const ATypeName : String);
     Procedure AssertVariableType(Const AClass : TClass);
     Procedure AssertParseVarError(ASource : String);
+    Property IsThreadVar : Boolean Read FIsThreadVar Write FIsThreadVar;
     Property TheVar : TPasVariable Read FVar;
     Property Hint : string Read FHint Write FHint;
     procedure SetUp; override;
     Procedure TearDown; override;
   Published
     Procedure TestSimpleVar;
+    Procedure TestSimpleThreadVar;
     Procedure TestSimpleVarAbsoluteName;
     Procedure TestSimpleVarHelperName;
     procedure TestSimpleVarHelperType;
@@ -56,6 +59,7 @@ Type
     procedure TestVarExternalLibNoName;
     Procedure TestVarCVar;
     Procedure TestVarCVarExternal;
+    Procedure TestVarCVarExport;
     Procedure TestVarPublic;
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
@@ -74,7 +78,10 @@ Var
   D : String;
 begin
   Hint:=AHint;
-  Add('Var');
+  if not IsThreadVar then
+    Add('Var')
+  else
+    Add('Threadvar');
   D:='A : '+ASource;
   If Hint<>'' then
     D:=D+' '+Hint;
@@ -128,6 +135,13 @@ end;
 
 procedure TTestVarParser.TestSimpleVar;
 begin
+  ParseVar('b','');
+  AssertVariableType('b');
+end;
+
+procedure TTestVarParser.TestSimpleThreadVar;
+begin
+  IsThreadVar:=True;
   ParseVar('b','');
   AssertVariableType('b');
 end;
@@ -393,6 +407,12 @@ procedure TTestVarParser.TestVarCVarExternal;
 begin
   ParseVar('integer; cvar;external','');
   AssertEquals('Variable modifiers',[vmcvar,vmexternal],TheVar.VarModifiers);
+end;
+
+procedure TTestVarParser.TestVarCVarExport;
+begin
+  ParseVar('integer; cvar; export','');
+  AssertEquals('Variable modifiers',[vmCVar,vmExport],TheVar.VarModifiers);
 end;
 
 procedure TTestVarParser.TestVarPublic;

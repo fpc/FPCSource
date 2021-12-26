@@ -68,7 +68,7 @@ unit agcpugas;
     const
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
-        '', // armv8 is not accepted by GNU assembler
+        'armv8-a', // armv8 is not accepted by GNU assembler
         'armv8-a',
         'armv8.1-a',
         'armv8.2-a',
@@ -99,6 +99,40 @@ unit agcpugas;
        cgbase,cgutils;
 
 
+    function GetmarchStr : String;
+      var
+        cf: tcpuflags;
+      begin
+        Result:='-march='+cputype_to_gas_march[current_settings.cputype];
+        for cf in cpu_capabilities[current_settings.cputype] do
+          begin
+            case cf of
+              CPUAARCH64_HAS_DOTPROD:
+                Result:=Result+'+dotprod';
+              CPUAARCH64_HAS_AES:
+                Result:=Result+'+aes';
+              CPUAARCH64_HAS_SHA2:
+                Result:=Result+'+sha2';
+              CPUAARCH64_HAS_SHA3:
+                Result:=Result+'+sha3';
+              CPUAARCH64_HAS_SM4:
+                Result:=Result+'+sm4';
+              CPUAARCH64_HAS_CRYPTO:
+                Result:=Result+'+crypto';
+              CPUAARCH64_HAS_MEMTAG:
+                Result:=Result+'+memtag';
+              CPUAARCH64_HAS_PAUTH:
+                Result:=Result+'+pauth';
+              CPUAARCH64_HAS_TME:
+                Result:=Result+'+tme';
+              CPUAARCH64_HAS_PROFILE:
+                Result:=Result+'+profile';
+              else
+                ;
+            end
+          end;
+      end;
+
 {****************************************************************************}
 {                      AArch64 Assembler writer                              }
 {****************************************************************************}
@@ -113,7 +147,7 @@ unit agcpugas;
       begin
         result:=inherited MakeCmdLine;
         if cputype_to_gas_march[current_settings.cputype] <> '' then
-	  Replace(result,'$MARCHOPT','-march='+cputype_to_gas_march[current_settings.cputype])
+          Replace(result,'$MARCHOPT',GetmarchStr)
         else
           Replace(result,'$MARCHOPT','');
       end;
@@ -133,7 +167,7 @@ unit agcpugas;
       begin
         result:=inherited MakeCmdLine;
         if cputype_to_gas_march[current_settings.cputype] <> '' then
-	  Replace(result,'$MARCHOPT','-march='+cputype_to_gas_march[current_settings.cputype])
+          Replace(result,'$MARCHOPT',GetmarchStr)
         else
           Replace(result,'$MARCHOPT','');
       end;

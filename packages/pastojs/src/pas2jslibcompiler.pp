@@ -49,6 +49,7 @@ Type
     P : PDirectoryCache; ADirPath: PAnsiChar): boolean; {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
   TUnitAliasCallBack = Function (Data: Pointer;
     AUnitName: PAnsiChar; AUnitNameMaxLen: Integer): boolean; {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
+  TGetFileSrcAttrCallBack = procedure(AData: Pointer; AFileName: PAnsiChar; AFileNameLen: Integer; AFileInfo: PPas2jsFileSrcAttr); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 
   { TLibraryPas2JSCompiler }
 
@@ -67,14 +68,17 @@ Type
     FOnWriteJSCallBack: TWriteJSCallBack;
     FOnWriteJSData: Pointer;
     FReadBufferLen: Cardinal;
+    FOnGetFileSrcAttr: TGetFileSrcAttrCallBack;
+    FOnGetFileSrcAttrData: Pointer;
     function GetLogEncoding: String;
     procedure SetLogEncoding(AValue: String);
   Protected
-    Function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
+    Function DoWriteJSFile(const DestFilename, MapFilename: String; aWriter: TPas2JSMapper): Boolean; override;
     Procedure GetLastError(AError : PAnsiChar; Var AErrorLength : Longint;
       AErrorClass : PAnsiChar; Var AErrorClassLength : Longint);
     Function ReadFile(aFilename: string; var aSource: string): boolean; virtual;
     Function ReadDirectory(Dir: TPas2jsCachedDirectory): boolean; virtual;
+    procedure GetFileSrcAttr(AFilename: string; var AAttr: TPas2jsFileSrcAttr);
   Public
     Constructor Create; override;
     procedure CheckUnitAlias(var UseUnitName: string); override;
@@ -94,6 +98,8 @@ Type
     Property OnReadDirData: Pointer read FOnReadDirData write FOnReadDirData;
     Property OnUnitAlias: TUnitAliasCallBack read FOnUnitAlias write FOnUnitAlias;
     Property OnUnitAliasData: Pointer read FOnUnitAliasData write FOnUnitAliasData;
+    property OnGetFileSrcAttr: TGetFileSrcAttrCallBack read FOnGetFileSrcAttr write FOnGetFileSrcAttr;
+    property OnGetFileSrcAttrData: Pointer read FOnGetFileSrcAttrData write FOnGetFileSrcAttrData;
   end;
 
 Type
@@ -111,6 +117,7 @@ Procedure FreePas2JSCompiler(P : PPas2JSCompiler); {$IFDEF UseCDecl}cdecl{$ELSE}
 Function GetPas2JSCompiler : PPas2JSCompiler; {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 Procedure GetPas2JSCompilerLastError(P : PPas2JSCompiler; AError : PAnsiChar; Var AErrorLength : Longint; AErrorClass : PAnsiChar; Var AErrorClassLength : Longint); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 procedure SetPas2JSLogEncoding(P : PPas2JSCompiler; Enconding: PAnsiChar); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
+procedure SetPas2JSGetFileSrcAttrCallBack(P: PPas2JSCompiler; ACallBack: TGetFileSrcAttrCallBack; ACallBackData: Pointer); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 
 implementation
 
@@ -124,6 +131,13 @@ begin
     Result:=OnReadDir(FOnReadDirData,Dir,PAnsiChar(Dir.Path));
 end;
 
+procedure TLibraryPas2JSCompiler.GetFileSrcAttr(AFilename: string; var AAttr: TPas2jsFileSrcAttr);
+begin
+  AAttr.AllowSrcMap := True;
+  if Assigned(OnGetFileSrcAttr) then
+    OnGetFileSrcAttr(FOnGetFileSrcAttrData, PAnsiChar(AFilename), Length(AFileName), @AAttr);
+end;
+
 function TLibraryPas2JSCompiler.GetLogEncoding: String;
 begin
   Result := Log.Encoding;
@@ -134,19 +148,29 @@ begin
   Log.Encoding := AValue;
 end;
 
-function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean;
+function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename,
+  MapFilename: String; aWriter: TPas2JSMapper): Boolean;
 
 Var
-  Src : string;
+  WithUTF8BOM: Boolean;
+  ms: TMemoryStream;
 
 begin
   Result:=Assigned(OnWriteJSCallBack);
   if Result then
+    begin
+    ms:=TMemoryStream.Create;
     try
-      Src:=aWriter.{$IF FPC_FULLVERSION>30101}AsString{$ELSE}AsAnsistring{$ENDIF};
-      OnWriteJSCallBack(OnWriteJSData,PAnsiChar(DestFileName),Length(DestFileName),PAnsiChar(Src),Length(Src));
-    except
-      Result:=False;
+      try
+        WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
+        aWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),ms);
+        OnWriteJSCallBack(OnWriteJSData,PAnsiChar(DestFileName),Length(DestFileName),PAnsiChar(ms.Memory),ms.Position);
+      except
+        Result:=False;
+      end;
+    finally
+      ms.Free;
+    end;
     end;
 end;
 
@@ -212,6 +236,7 @@ begin
   FileCache.OnReadDirectory:=@ReadDirectory;
   ConfigSupport:=TPas2JSFileConfigSupport.Create(Self);
   PostProcessorSupport:=TPas2JSFSPostProcessorSupport.Create(Self);
+  FileCache.OnGetFileSrcAttr:=@GetFileSrcAttr;
 end;
 
 procedure TLibraryPas2JSCompiler.CheckUnitAlias(var UseUnitName: string);
@@ -361,6 +386,12 @@ end;
 procedure SetPas2JSLogEncoding(P : PPas2JSCompiler; Enconding: PAnsiChar); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   TLibraryPas2JSCompiler(P).LogEncoding := Enconding;
+end;
+
+procedure SetPas2JSGetFileSrcAttrCallBack(P: PPas2JSCompiler; ACallBack: TGetFileSrcAttrCallBack; ACallBackData: Pointer); {$IFDEF UseCDecl}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  TLibraryPas2JSCompiler(P).OnGetFileSrcAttr := ACallBack;
+  TLibraryPas2JSCompiler(P).OnGetFileSrcAttrData := ACallBackData;
 end;
 
 end.

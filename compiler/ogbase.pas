@@ -112,6 +112,14 @@ interface
          RELOC_ABSOLUTE_HI8,
          RELOC_ABSOLUTE_LO8,
 {$endif z80}
+{$ifdef WASM32}
+         RELOC_FUNCTION_INDEX_LEB,
+         RELOC_MEMORY_ADDR_LEB,
+         RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB,
+         RELOC_TYPE_INDEX_LEB,
+         RELOC_GLOBAL_INDEX_LEB,
+         RELOC_TAG_INDEX_LEB,
+{$endif WASM32}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }
@@ -262,7 +270,7 @@ interface
        ThumbFunc : boolean;
 {$endif ARM}
 
-       constructor create(AList:TFPHashObjectList;const AName:string);
+       constructor create(AList:TFPHashObjectList;const AName:string);virtual;
        function  address:qword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;
@@ -430,6 +438,7 @@ interface
        function  symboldefine(const aname:string;abind:TAsmsymbind;atyp:Tasmsymtype):TObjSymbol;
        function  symbolref(asmsym:TAsmSymbol):TObjSymbol;
        function  symbolref(const aname:string):TObjSymbol;
+       procedure symbolpairdefine(akind: TSymbolPairKind;const asym, avalue: string);virtual;
        procedure ResetCachedAsmSymbols;
        { Allocation }
        procedure alloc(len:TObjSectionOfs);
@@ -833,7 +842,7 @@ implementation
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
       begin
-        if not(abind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
+        if not(abind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_LOCAL,AB_COMMON,AB_IMPORT,AB_WEAK]) then
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
@@ -1538,6 +1547,11 @@ implementation
         if not assigned(CurrObjSec) then
           internalerror(200603052);
         result:=CreateSymbol(aname);
+      end;
+
+
+    procedure TObjData.symbolpairdefine(akind: TSymbolPairKind; const asym, avalue: string);
+      begin
       end;
 
 
@@ -3509,6 +3523,8 @@ implementation
           while ObjSectionWorkList.Count>0 do
             begin
               objsec:=TObjSection(ObjSectionWorkList.Last);
+              if not assigned(objsec.exesection) then
+                internalerror(202102001);
               if assigned(exemap) then
                 exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjRelocations.Count)+' references');
               ObjSectionWorkList.Delete(ObjSectionWorkList.Count-1);

@@ -218,7 +218,9 @@ implementation
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_32,OC_NE,0,tr,hl);
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
@@ -298,12 +300,16 @@ implementation
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        if (cs_check_overflow in current_settings.localswitches) then
+          hlcg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,resultdef,left.location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,location.register,hl);
+            hlcg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;

@@ -83,7 +83,7 @@ function paramstr(l: longint) : string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
-     if (l < argc) then
+     if ( l>= 0) and (l < argc) then
        paramstr:=strpas(argv[l])
      else
        paramstr:='';

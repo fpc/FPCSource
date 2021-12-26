@@ -2657,7 +2657,11 @@ implementation
           if use_vectorfpu(realresdef) then
             result:=LOC_MMREGISTER
           else
+{$ifdef x86}
+            result:=LOC_REFERENCE
+{$else x86}
             result:=LOC_FPUREGISTER
+{$endif x86}
         else
           result:=LOC_REFERENCE
       end;

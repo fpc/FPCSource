@@ -49,6 +49,23 @@ type
 
   TTestClass = class of TTestAncestor;
 
+  TUInt16DivTest = class(TTestAncestor)
+    protected
+      FInputArray: array[$00..$FF] of Word;
+      FResultArray: array[$00..$FF] of Word;
+      function GetDivisor: Word; virtual; abstract;
+      function DoVariableDiv(Numerator: Word): Word; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
+  TUInt16ModTest = class(TUInt16DivTest)
+    protected
+      function DoVariableMod(Numerator: Word): Word; inline;
+    public
+      function WriteResults: Boolean; override;
+  end;
+
   TUInt32DivTest = class(TTestAncestor)
     protected
       FInputArray: array[$00..$FF] of Cardinal;
@@ -117,6 +134,7 @@ type
       function WriteResults: Boolean; override;
   end;
 
+{$I bdiv_u16.inc}
 {$I bdiv_u32.inc}
 {$I bdiv_u64.inc}
 {$I bdiv_s32.inc}
@@ -159,6 +177,56 @@ procedure TTestAncestor.Run;
     SetEndTime;
 
     FAvgTime := FEndTime - FStartTime;
+  end;
+
+{ TUInt16DivTest }
+
+function TUInt16DivTest.DoVariableDiv(Numerator: Word): Word;
+  begin
+    Result := Numerator div GetDivisor;
+  end;
+
+function TUInt16DivTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Word;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoVariableDiv(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - ', FInputArray[X], ' div ', GetDivisor, '; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
+  end;
+
+{ TUInt16ModTest }
+
+function TUInt16ModTest.DoVariableMod(Numerator: Word): Word;
+  begin
+    Result := Numerator mod GetDivisor;
+  end;
+
+function TUInt16ModTest.WriteResults: Boolean;
+  var
+    X: Integer;
+    Expected: Word;
+  begin
+    Result := True;
+    for X := 0 to 255 do
+      begin
+        Expected := DoVariableMod(FInputArray[X]);
+        if FResultArray[X] <> Expected then
+          begin
+            WriteLn('FAIL - ', FInputArray[X], ' mod ', GetDivisor, '; expected ', Expected, ' got ', FResultArray[X]);
+            Result := False;
+            Exit;
+          end;
+      end;
   end;
 
 { TUInt32DivTest }
@@ -363,13 +431,29 @@ function TSInt64ModTest.WriteResults: Boolean;
 
 { Main function }
 const
-  TestClasses: array[0..53] of TTestClass = (
+  TestClasses: array[0..69] of TTestClass = (
+    TUInt16Bit1Test,
+    TUInt16Bit1ModTest,
+    TUInt16Bit2Test,
+    TUInt16Bit2ModTest,
+    TUInt16Bit3Test,
+    TUInt16Bit3ModTest,
+    TUInt16Bit7Test,
+    TUInt16Bit7ModTest,
+    TUInt16Bit10Test,
+    TUInt16Bit10ModTest,
+    TUInt16Bit100Test,
+    TUInt16Bit100ModTest,
+    TUInt16Bit1000Test,
+    TUInt16Bit1000ModTest,
     TUInt32Bit1Test,
     TUInt32Bit1ModTest,
     TUInt32Bit2Test,
     TUInt32Bit2ModTest,
     TUInt32Bit3Test,
     TUInt32Bit3ModTest,
+    TUInt32Bit7Test,
+    TUInt32Bit7ModTest,
     TUInt32Bit10Test,
     TUInt32Bit10ModTest,
     TUInt32Bit100Test,
@@ -388,8 +472,8 @@ const
     TUInt64Bit2ModTest,
     TUInt64Bit3Test,
     TUInt64Bit3ModTest,
-    TUInt64Bit5Test,
-    TUInt64Bit5ModTest,
+    TUInt64Bit7Test,
+    TUInt64Bit7ModTest,
     TUInt64Bit10Test,
     TUInt64Bit10ModTest,
     TUInt64Bit100Test,

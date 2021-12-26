@@ -47,6 +47,7 @@ Type
     Procedure TestEmptyLibraryExports;
     Procedure TestEmptyLibraryExportsAlias;
     Procedure TestEmptyLibraryExportsIndex;
+    Procedure TestEmptyLibraryExportsIndexAndName;
     Procedure TestEmptyLibraryExportsTwo;
     Procedure TestEmptyLibraryExportsTwoAlias;
     Procedure TestEmptyLibraryExportsTwoIndex;
@@ -365,6 +366,16 @@ begin
   ParseLibrary;
   AssertEquals('1 export symbol',1,PasLibrary.LibrarySection.ExportSymbols.Count);
   AssertExportSymbol('Export symbol a',0,'A','',23);
+end;
+
+procedure TTestModuleParser.TestEmptyLibraryExportsIndexAndName;
+begin
+  StartLibrary('');
+  UsesClause(['b']);
+  Add('exports A index 23 name ''funa'';');
+  ParseLibrary;
+  AssertEquals('1 export symbol',1,PasLibrary.LibrarySection.ExportSymbols.Count);
+  AssertExportSymbol('Export symbol a',0,'A','funa',23);
 end;
 
 procedure TTestModuleParser.TestEmptyLibraryExportsTwo;

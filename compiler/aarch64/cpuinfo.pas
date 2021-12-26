@@ -23,9 +23,7 @@ Interface
 
 Type
    bestreal = double;
-{$if FPC_FULLVERSION>20700}
    bestrealrec = TDoubleRec;
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type extended;
@@ -131,13 +129,23 @@ Const
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse,cs_opt_consts];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 type
    tcpuflags =
-     (CPUAARCH64_HAS_LSE       { CPU supports Large System Extensions }
+     (CPUAARCH64_HAS_LSE,     { CPU supports Large System Extensions }
+      CPUAARCH64_HAS_DOTPROD, { CPU supports dotprod extension }
+      CPUAARCH64_HAS_CRYPTO,  { CPU supports the crypto extension }
+      CPUAARCH64_HAS_AES,     { CPU supports the AES extension }
+      CPUAARCH64_HAS_SHA2,    { CPU supports the SHA2 extension }
+      CPUAARCH64_HAS_SHA3,    { CPU supports the SHA3 extension }
+      CPUAARCH64_HAS_SM4,     { CPU supports the SM3 and SM4 extension }
+      CPUAARCH64_HAS_PROFILE, { CPU supports the profile extension }
+      CPUAARCH64_HAS_MEMTAG,  { CPU supports the memtag extension }
+      CPUAARCH64_HAS_TME,     { CPU supports the tme extension }
+      CPUAARCH64_HAS_PAUTH    { CPU supports the pauth extension }
      );
 
    tfpuflags =

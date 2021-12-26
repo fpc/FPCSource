@@ -47,7 +47,8 @@ interface
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used
            to allow indirect loading in case of packages and indirect imports }
-         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT,
+         AB_WEAK);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -70,7 +71,12 @@ interface
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
-         AT_GNU_IFUNC
+         AT_GNU_IFUNC,
+         { WebAssembly global variable }
+         AT_WASM_GLOBAL,
+         { WebAssembly exception tag (used as a parameter for the 'throw' and
+           'catch' instructions) }
+         AT_WASM_EXCEPTION_TAG
          );
 
        { is the label only there for getting an DataOffset (e.g. for i/o
@@ -78,11 +84,13 @@ interface
          info alt_dbgline and alt_dbgfile, etc. }
        TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe,alt_eh_begin,alt_eh_end);
 
+       TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
+
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of string[2] = ('j','a','d','l','f','t','c','eb','ee');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
        'local','global','weak external','private external','lazy','import','internal temp',
-       'indirect','external indirect');
+       'indirect','external indirect','weak');
        asmsymbindindirect = [AB_INDIRECT,AB_EXTERNAL_INDIRECT];
 
     type
@@ -188,6 +196,9 @@ interface
            TAsmList with loadsym/loadref/const_symbol (PFV) }
          refs       : longint;
        public
+{$ifdef wasm}
+         nestingdepth : longint;
+{$endif wasm}
          { on avr the compiler needs to replace cond. jumps with too large offsets
            so we have to store an offset somewhere to calculate jump distances }
 {$ifdef AVR}
@@ -257,7 +268,7 @@ interface
 implementation
 
     uses
-      verbose,fpccrc;
+      verbose,fpchash;
 
 
     function create_smartlink_sections:boolean;inline;
@@ -329,6 +340,9 @@ implementation
         typ:=_typ;
         { used to remove unused labels from the al_procedures }
         refs:=0;
+{$ifdef wasm}
+        nestingdepth:=-1;
+{$endif wasm}
       end;
 
 

@@ -635,6 +635,8 @@ var
   readsize: ULONG;
   res: ULONG;
 begin
+  Result := False;
+
   if not Assigned(fBuffer) then begin
     InitUrls;
 
@@ -651,7 +653,9 @@ begin
         fBuffer := GetMem(fBufferSize);
       end;
     until res <> ERROR_MORE_DATA;
-    if res <> NO_ERROR then
+    if res = ERROR_OPERATION_ABORTED then
+      Break
+    else if res <> NO_ERROR then
       DoError(SErrReceiveRequest, [res])
     else begin
       ProcessRequest(fBuffer, readsize, aRequest, aResponse);
@@ -686,6 +690,10 @@ end;
 
 procedure THTTPSysHandler.Terminate;
 begin
+  if fHandle <> INVALID_HANDLE_VALUE then begin
+    HttpCloseRequestQueue(fHandle);
+    fHandle := INVALID_HANDLE_VALUE;
+  end;
   inherited Terminate;
 end;
 

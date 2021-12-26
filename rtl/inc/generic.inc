@@ -16,20 +16,29 @@
 
 function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
-    tmp: PtrUInt;
+    tmp,am1 : PtrUInt;
   begin
-    tmp:=addr+PtrUInt(alignment-1);
-    result:=tmp-(tmp mod alignment)
+    am1:=alignment-1;
+    tmp:=addr+am1;
+    if alignment and am1=0 then
+      { Alignment is a power of two. In practice alignments are powers of two 100% of the time. }
+      result:=tmp and not am1
+    else
+      result:=tmp-(tmp mod alignment);
   end;
 
 
 {$ifndef cpujvm}
 function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
-    tmp: PtrUInt;
+    tmp,am1 : PtrUInt;
   begin
-    tmp:=PtrUInt(addr)+(alignment-1);
-    result:=pointer(ptruint(tmp-(tmp mod alignment)));
+    am1:=alignment-1;
+    tmp:=PtrUint(addr)+am1;
+    if alignment and am1=0 then
+      result:=pointer(tmp and not am1)
+    else
+      result:=pointer(ptruint(tmp-(tmp mod alignment)));
   end;
 {$endif}
 

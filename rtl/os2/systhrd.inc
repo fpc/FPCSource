@@ -250,7 +250,7 @@ begin
   end;
 { The Windows API apparently provides a way to fill the allocated memory with }
 { zeros; we probably need to do it ourselves for compatibility. }
- FillChar (DataIndex^^, 0, ThreadVarBlockSize);
+ FillChar (DataIndex^^, ThreadVarBlockSize, 0);
 end;
 
 function SysRelocateThreadVar (Offset: dword): pointer;

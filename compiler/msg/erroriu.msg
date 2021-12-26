@@ -1870,7 +1870,7 @@ asmr_d_finish_reading=07001_DL_Fine analisi assembler stile $1
 asmr_e_none_label_contain_at=07002_E_Il pattern contiene @ ma non è una label
 % A identifier which isn't a label can't contain a @.
 asmr_e_building_record_offset=07004_E_Errore nella costruzione dell'offset di un record
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_usato OFFSET senza identificatore

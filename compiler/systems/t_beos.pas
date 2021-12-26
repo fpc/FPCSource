@@ -364,7 +364,7 @@ var
   cmdstr : TCmdStr;
   success,
   useshell : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
@@ -426,7 +426,7 @@ var
   cmdstr,
   SoNameStr : TCmdStr;
   success : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   StaticStr,
   StripStr   : string[40];
 

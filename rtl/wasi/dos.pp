@@ -45,9 +45,9 @@ Type
 {$i dosh.inc}
 
 {Extra Utils}
-//function weekday(y,m,d : longint) : longint; platform;
+function weekday(y,m,d : longint) : longint; platform;
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime); platform;
-//Function  DTToUnixDate(DT: DateTime): LongInt; platform;
+Function DTToWasiDate(DT: DateTime): UInt64; platform;
 
 {Disk}
 //Function AddDisk(const path:string) : byte; platform;
@@ -55,7 +55,7 @@ Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime); platform;
 Implementation
 
 Uses
-  WasiAPI;
+  WasiAPI, WasiUtil;
 
 {$DEFINE HAS_GETMSCOUNT}
 
@@ -69,16 +69,6 @@ Uses
                            --- Link C Lib if set ---
 ******************************************************************************}
 
-type
-  RtlInfoType = Record
-    FMode: LongInt;
-    {FInode,
-    FUid,
-    FGid,}
-    FSize: __wasi_filesize_t;
-    FMTime: __wasi_timestamp_t;
-  End;
-
 
 {******************************************************************************
                         --- Info / Date / Time ---
@@ -88,7 +78,7 @@ Function DosVersion:Word;
 Begin
 End;
 
-(*function WeekDay (y,m,d:longint):longint;
+function WeekDay (y,m,d:longint):longint;
 {
   Calculates th day of the week. returns -1 on error
 }
@@ -110,11 +100,31 @@ begin
       end;
      WeekDay:=(d+2*u+((3*(u+1)) div 5)+v+(v div 4)-(v div 100)+(v div 400)+1) mod 7;
    end;
-end;*)
+end;
 
 
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
+var
+  NanoSecsPast: __wasi_timestamp_t;
+  DT: DateTime;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,10000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  begin
+    { todo: convert UTC to local time, as soon as we can get the local timezone
+      from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+    WasiDateToDT(NanoSecsPast,DT);
+    Year:=DT.Year;
+    Month:=DT.Month;
+    MDay:=DT.Day;
+    WDay:=weekday(DT.Year,DT.Month,DT.Day);
+  end
+  else
+  begin
+    Year:=0;
+    Month:=0;
+    MDay:=0;
+    WDay:=0;
+  end;
 end;
 
 
@@ -133,7 +143,88 @@ end;
 
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
+var
+  NanoSecsPast: __wasi_timestamp_t;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,10000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+  begin
+    { todo: convert UTC to local time, as soon as we can get the local timezone
+      from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+    NanoSecsPast:=NanoSecsPast div 10000000;
+    Sec100:=NanoSecsPast mod 100;
+    NanoSecsPast:=NanoSecsPast div 100;
+    Second:=NanoSecsPast mod 60;
+    NanoSecsPast:=NanoSecsPast div 60;
+    Minute:=NanoSecsPast mod 60;
+    NanoSecsPast:=NanoSecsPast div 60;
+    Hour:=NanoSecsPast mod 24;
+  end
+  else
+  begin
+    Hour:=0;
+    Minute:=0;
+    Second:=0;
+    Sec100:=0;
+  end;
+end;
+
+
+Function DTToWasiDate(DT: DateTime): UInt64;
+const
+  days_in_month: array [boolean, 1..12] of Byte =
+    ((31,28,31,30,31,30,31,31,30,31,30,31),
+     (31,29,31,30,31,30,31,31,30,31,30,31));
+  days_before_month: array [boolean, 1..12] of Word =
+    ((0,
+      0+31,
+      0+31+28,
+      0+31+28+31,
+      0+31+28+31+30,
+      0+31+28+31+30+31,
+      0+31+28+31+30+31+30,
+      0+31+28+31+30+31+30+31,
+      0+31+28+31+30+31+30+31+31,
+      0+31+28+31+30+31+30+31+31+30,
+      0+31+28+31+30+31+30+31+31+30+31,
+      0+31+28+31+30+31+30+31+31+30+31+30),
+     (0,
+      0+31,
+      0+31+29,
+      0+31+29+31,
+      0+31+29+31+30,
+      0+31+29+31+30+31,
+      0+31+29+31+30+31+30,
+      0+31+29+31+30+31+30+31,
+      0+31+29+31+30+31+30+31+31,
+      0+31+29+31+30+31+30+31+31+30,
+      0+31+29+31+30+31+30+31+31+30+31,
+      0+31+29+31+30+31+30+31+31+30+31+30));
+var
+  leap: Boolean;
+  days_in_year: LongInt;
+  y,m: LongInt;
+begin
+  if (DT.year<1970) or (DT.month<1) or (DT.month>12) or (DT.day<1) or (DT.day>31) or
+     (DT.hour>=24) or (DT.min>=60) or (DT.sec>=60) then
+  begin
+    DTToWasiDate:=0;
+    exit;
+  end;
+  leap:=((DT.year mod 4)=0) and (((DT.year mod 100)<>0) or ((DT.year mod 400)=0));
+  if DT.day>days_in_month[leap,DT.month] then
+  begin
+    DTToWasiDate:=0;
+    exit;
+  end;
+  DTToWasiDate:=0;
+  for y:=1970 to DT.year-1 do
+    if ((y mod 4)=0) and (((y mod 100)<>0) or ((y mod 400)=0)) then
+      Inc(DTToWasiDate,366)
+    else
+      Inc(DTToWasiDate,365);
+  Inc(DTToWasiDate,days_before_month[leap,DT.month]);
+  Inc(DTToWasiDate,DT.day-1);
+  DTToWasiDate:=((((DTToWasiDate*24+DT.hour)*60+DT.min)*60)+DT.sec)*1000000000;
 end;
 
 
@@ -179,13 +270,14 @@ Begin
 End;
 
 
-Function DTToUnixDate(DT: DateTime): LongInt;
-Begin
-End;
-
-
 function GetMsCount: int64;
+var
+  NanoSecsPast: __wasi_timestamp_t;
 begin
+  if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,1000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
+    GetMsCount:=NanoSecsPast div 1000000
+  else
+    GetMsCount:=0;
 end;
 
 
@@ -283,367 +375,73 @@ end;
 ******************************************************************************}
 
 
-Function FNMatch(const Pattern,Name:string):Boolean;
-Var
-  LenPat,LenName : longint;
-
-  Function DoFNMatch(i,j:longint):Boolean;
-  Var
-    Found : boolean;
-  Begin
-  Found:=true;
-  While Found and (i<=LenPat) Do
-   Begin
-     Case Pattern[i] of
-      '?' : Found:=(j<=LenName);
-      '*' : Begin
-            {find the next character in pattern, different of ? and *}
-              while Found do
-                begin
-                inc(i);
-                if i>LenPat then Break;
-                case Pattern[i] of
-                  '*' : ;
-                  '?' : begin
-                          if j>LenName then begin DoFNMatch:=false; Exit; end;
-                          inc(j);
-                        end;
-                else
-                  Found:=false;
-                end;
-               end;
-              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
-            {Now, find in name the character which i points to, if the * or ?
-             wasn't the last character in the pattern, else, use up all the
-             chars in name}
-              Found:=false;
-              if (i<=LenPat) then
-              begin
-                repeat
-                  {find a letter (not only first !) which maches pattern[i]}
-                  while (j<=LenName) and (name[j]<>pattern[i]) do
-                    inc (j);
-                  if (j<LenName) then
-                  begin
-                    if DoFnMatch(i+1,j+1) then
-                    begin
-                      i:=LenPat;
-                      j:=LenName;{we can stop}
-                      Found:=true;
-                      Break;
-                    end else
-                      inc(j);{We didn't find one, need to look further}
-                  end else
-                  if j=LenName then
-                  begin
-                    Found:=true;
-                    Break;
-                  end;
-                  { This 'until' condition must be j>LenName, not j>=LenName.
-                    That's because when we 'need to look further' and
-                    j = LenName then loop must not terminate. }
-                until (j>LenName);
-              end else
-              begin
-                j:=LenName;{we can stop}
-                Found:=true;
-              end;
-            end;
-     else {not a wildcard character in pattern}
-       Found:=(j<=LenName) and (pattern[i]=name[j]);
-     end;
-     inc(i);
-     inc(j);
-   end;
-  DoFnMatch:=Found and (j>LenName);
-  end;
-
-Begin {start FNMatch}
-  LenPat:=Length(Pattern);
-  LenName:=Length(Name);
-  FNMatch:=DoFNMatch(1,1);
-End;
-
-
-Const
-  RtlFindSize = 15;
-Type
-  RtlFindRecType = Record
-    DirFD    : LongInt;
-    SearchNum,
-    LastUsed : LongInt;
-  End;
-Var
-  RtlFindRecs   : Array[1..RtlFindSize] of RtlFindRecType;
-  CurrSearchNum : LongInt;
-
-
-Procedure FindClose(Var f: SearchRec);
-{
-  Closes dirfd if it is open
-}
-Var
-  res: __wasi_errno_t;
-  i : longint;
-Begin
-  if f.SearchType=0 then
-   begin
-     i:=1;
-     repeat
-       if (RtlFindRecs[i].SearchNum=f.SearchNum) then
-        break;
-       inc(i);
-     until (i>RtlFindSize);
-     If i<=RtlFindSize Then
-      Begin
-        RtlFindRecs[i].SearchNum:=0;
-        if f.dirfd<>-1 then
-          repeat
-            res:=__wasi_fd_close(f.dirfd);
-          until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
-      End;
-   end;
-  f.dirfd:=-1;
-End;
-
-
-Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
+procedure SearchRec2WasiSearchRec(const i: SearchRec; var o: TWasiSearchRec);
 var
-  s_ansi: ansistring;
-  DT   : DateTime;
-  Info : RtlInfoType;
-  st   : __wasi_filestat_t;
-  fd   : __wasi_fd_t;
-  pr   : PChar;
+  DT: DateTime;
 begin
-  FindGetFileInfo:=false;
-  s_ansi:=s;
-  if not ConvertToFdRelativePath(PChar(s_ansi),fd,pr) then
-    exit;
-  { todo: __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW??? }
-  if __wasi_path_filestat_get(fd,0,pr,StrLen(pr),@st)<>__WASI_ERRNO_SUCCESS then
-    begin
-      FreeMem(pr);
-      exit;
-    end;
-  info.FSize:=st.size;
-  info.FMTime:=st.mtim;
-  if st.filetype=__WASI_FILETYPE_DIRECTORY then
-   info.fmode:=$10
-  else
-   info.fmode:=$0;
-  {if (st.st_mode and STAT_IWUSR)=0 then
-   info.fmode:=info.fmode or 1;}
-  if s[f.NamePos+1]='.' then
-   info.fmode:=info.fmode or $2;
-
-  If ((Info.FMode and Not(f.searchattr))=0) Then
-   Begin
-     f.Name:=Copy(s,f.NamePos+1,255);
-     f.Attr:=Info.FMode;
-     f.Size:=Info.FSize;
-     {f.mode:=st.st_mode;}
-     WasiDateToDT(Info.FMTime, DT);
-     PackTime(DT,f.Time);
-     FindGetFileInfo:=true;
-   End;
-  FreeMem(pr);
+  FillChar(o,SizeOf(o),0);
+  o.SearchPos:=i.SearchPos;
+  o.SearchNum:=i.SearchNum;
+  o.DirFD:=i.DirFD;
+  o.SearchType:=i.SearchType;
+  o.SearchAttr:=i.SearchAttr;
+  o.Attr:=i.Attr;
+  UnpackTime(i.Time,DT);
+  o.Time:=DTToWasiDate(DT);
+  o.Size:=i.Size;
+  o.Name:=i.Name;
+  o.SearchSpec:=i.SearchSpec;
+  o.NamePos:=i.NamePos;
 end;
 
 
-Function  FindLastUsed: Longint;
-{
-  Find unused or least recently used dirpointer slot in findrecs array
-}
-Var
-  BestMatch,i : Longint;
-  Found       : Boolean;
+procedure WasiSearchRec2SearchRec(const i: TWasiSearchRec; var o: SearchRec);
+var
+  DT: DateTime;
+begin
+  FillChar(o,SizeOf(o),0);
+  o.SearchPos:=i.SearchPos;
+  o.SearchNum:=i.SearchNum;
+  o.DirFD:=i.DirFD;
+  o.SearchType:=i.SearchType;
+  o.SearchAttr:=i.SearchAttr;
+  o.Attr:=i.Attr;
+  WasiDateToDt(i.Time,DT);
+  PackTime(DT,o.Time);
+  o.Size:=i.Size;
+  o.Name:=i.Name;
+  o.SearchSpec:=i.SearchSpec;
+  o.NamePos:=i.NamePos;
+end;
+
+
+Procedure FindClose(Var f: SearchRec);
+var
+  wf: TWasiSearchRec;
 Begin
-  BestMatch:=1;
-  i:=1;
-  Found:=False;
-  While (i <= RtlFindSize) And (Not Found) Do
-   Begin
-     If (RtlFindRecs[i].SearchNum = 0) Then
-      Begin
-        BestMatch := i;
-        Found := True;
-      End
-     Else
-      Begin
-        If RtlFindRecs[i].LastUsed > RtlFindRecs[BestMatch].LastUsed Then
-         BestMatch := i;
-      End;
-     Inc(i);
-   End;
-  FindLastUsed := BestMatch;
+  SearchRec2WasiSearchRec(f,wf);
+  WasiFindClose(wf);
+  WasiSearchRec2SearchRec(wf,f);
 End;
 
 
-
 Procedure FindNext(Var f: SearchRec);
-{
-  re-opens dir if not already in array and calls FindWorkProc
-}
-Var
-  fd,ourfd: __wasi_fd_t;
-  pr: PChar;
-  res: __wasi_errno_t;
-  DirName  : Array[0..256] of Char;
-  i,
-  ArrayPos : Longint;
-  FName,
-  SName    : string;
-  Found,
-  Finished : boolean;
-  Buf: array [0..SizeOf(__wasi_dirent_t)+256-1] of Byte;
-  BufUsed: __wasi_size_t;
+var
+  wf: TWasiSearchRec;
 Begin
-  If f.SearchType=0 Then
-   Begin
-     ArrayPos:=0;
-     For i:=1 to RtlFindSize Do
-      Begin
-        If RtlFindRecs[i].SearchNum = f.SearchNum Then
-         ArrayPos:=i;
-        Inc(RtlFindRecs[i].LastUsed);
-      End;
-     If ArrayPos=0 Then
-      Begin
-        If f.NamePos = 0 Then
-         Begin
-           DirName[0] := '.';
-           DirName[1] := '/';
-           DirName[2] := #0;
-         End
-        Else
-         Begin
-           Move(f.SearchSpec[1], DirName[0], f.NamePos);
-           DirName[f.NamePos] := #0;
-         End;
-        if ConvertToFdRelativePath(@DirName[0],fd,pr) then
-         begin
-           repeat
-             res:=__wasi_path_open(fd,
-                                   0,
-                                   pr,
-                                   strlen(pr),
-                                   __WASI_OFLAGS_DIRECTORY,
-                                   __WASI_RIGHTS_FD_READDIR,
-                                   __WASI_RIGHTS_FD_READDIR,
-                                   0,
-                                   @ourfd);
-           until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
-           If res=__WASI_ERRNO_SUCCESS Then
-            begin
-              f.DirFD := ourfd;
-              ArrayPos:=FindLastUsed;
-              If RtlFindRecs[ArrayPos].SearchNum > 0 Then
-                repeat
-                  res:=__wasi_fd_close(RtlFindRecs[arraypos].DirFD);
-                until (res=__WASI_ERRNO_SUCCESS) or (res<>__WASI_ERRNO_INTR);
-              RtlFindRecs[ArrayPos].SearchNum := f.SearchNum;
-              RtlFindRecs[ArrayPos].DirFD := f.DirFD;
-            end
-           else
-            f.DirFD:=-1;
-           FreeMem(pr);
-         end
-        else
-         f.DirFD:=-1;
-      End;
-     if ArrayPos>0 then
-       RtlFindRecs[ArrayPos].LastUsed:=0;
-   end;
-{Main loop}
-  SName:=Copy(f.SearchSpec,f.NamePos+1,255);
-  Found:=False;
-  Finished:=(f.DirFD=-1);
-  While Not Finished Do
-   Begin
-     res:=__wasi_fd_readdir(f.DirFD,
-                            @buf,
-                            SizeOf(buf),
-                            f.searchpos,
-                            @bufused);
-     if (res<>__WASI_ERRNO_SUCCESS) or (bufused<=SizeOf(__wasi_dirent_t)) then
-      FName:=''
-     else
-      begin
-        if P__wasi_dirent_t(@buf)^.d_namlen<=255 then
-          SetLength(FName,P__wasi_dirent_t(@buf)^.d_namlen)
-        else
-          SetLength(FName,255);
-        Move(buf[SizeOf(__wasi_dirent_t)],FName[1],Length(FName));
-        f.searchpos:=P__wasi_dirent_t(@buf)^.d_next;
-      end;
-     If FName='' Then
-      Finished:=True
-     Else
-      Begin
-        If FNMatch(SName,FName) Then
-         Begin
-           Found:=FindGetFileInfo(Copy(f.SearchSpec,1,f.NamePos)+FName,f);
-           if Found then
-            Finished:=true;
-         End;
-      End;
-   End;
-{Shutdown}
-  If Found Then
-   DosError:=0
-  Else
-   Begin
-     FindClose(f);
-     DosError:=18;
-   End;
+  SearchRec2WasiSearchRec(f,wf);
+  doserror:=WasiFindNext(wf);
+  WasiSearchRec2SearchRec(wf,f);
 End;
 
 
 Procedure FindFirst(Const Path: PathStr; Attr: Word; Var f: SearchRec);
-{
-  opens dir and calls FindWorkProc
-}
+var
+  wf: TWasiSearchRec;
 Begin
-  fillchar(f,sizeof(f),0);
-  if Path='' then
-   begin
-     DosError:=3;
-     exit;
-   end;
-{Create Info}
-  f.SearchSpec := Path;
-  {We always also search for readonly and archive, regardless of Attr:}
-  f.SearchAttr := Attr or archive or readonly;
-  f.SearchPos  := 0;
-  f.NamePos := Length(f.SearchSpec);
-  while (f.NamePos>0) and not (f.SearchSpec[f.NamePos] in ['/','\']) do
-   dec(f.NamePos);
-{Wildcards?}
-  if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
-   begin
-     if FindGetFileInfo(Path,f) then
-      DosError:=0
-     else
-      begin
-        { According to tdos2 test it should return 18
-        if ErrNo=Sys_ENOENT then
-         DosError:=3
-        else }
-         DosError:=18;
-      end;
-     f.DirFD:=-1;
-     f.SearchType:=1;
-     f.searchnum:=-1;
-   end
-  else
-{Find Entry}
-   begin
-     Inc(CurrSearchNum);
-     f.SearchNum:=CurrSearchNum;
-     f.SearchType:=0;
-     FindNext(f);
-   end;
+  SearchRec2WasiSearchRec(f,wf);
+  doserror:=WasiFindFirst(Path,Attr,wf);
+  WasiSearchRec2SearchRec(wf,f);
 End;
 
 
@@ -651,53 +449,75 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path : pathstr;dirlist : string) : pathstr;
-{Var
-  info : BaseUnix.stat;}
-Begin
-{  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
-    FSearch:=path
-  else
-    FSearch:=Unix.FSearch(path,dirlist);}
-End;
+Function FSearch(path: pathstr; dirlist: string): pathstr;
+var
+  p1     : longint;
+  s      : searchrec;
+  newdir : pathstr;
+begin
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+  begin
+    fsearch:='';
+    exit;
+  end;
+  { check if the file specified exists }
+  findfirst(path,anyfile and not(directory),s);
+  if doserror=0 then
+    begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+    end;
+  findclose(s);
+  //{ allow slash as backslash }
+  //DoDirSeparators(dirlist);
+ repeat
+   p1:=pos(';',dirlist);
+   if p1<>0 then
+    begin
+      newdir:=copy(dirlist,1,p1-1);
+      delete(dirlist,1,p1);
+    end
+   else
+    begin
+      newdir:=dirlist;
+      dirlist:='';
+    end;
+   if (newdir<>'') and (not (newdir[length(newdir)] in (AllowDirectorySeparators+[':']))) then
+    newdir:=newdir+DirectorySeparator;
+   findfirst(newdir+path,anyfile and not(directory),s);
+   if doserror=0 then
+    newdir:=newdir+path
+   else
+    newdir:='';
+   findclose(s);
+ until (dirlist='') or (newdir<>'');
+ fsearch:=newdir;
+end;
 
 Procedure GetFAttr(var f; var attr : word);
-(*Var
-  info    : baseunix.stat;
-  LinAttr : longint;
-  p       : pchar;
-{$ifndef FPC_ANSI_TEXTFILEREC}
-  r       : RawByteString;
-{$endif not FPC_ANSI_TEXTFILEREC}*)
+Var
+  pr: RawByteString;
+  fd: __wasi_fd_t;
+  Info: __wasi_filestat_t;
 Begin
-(*  DosError:=0;
-{$ifdef FPC_ANSI_TEXTFILEREC}
-  { encoding is already correct }
-  p:=@textrec(f).name;
-{$else}
-  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
-{$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
-    a second time whether the string needs to be converted to the right code
-    page
-  }
-  if FPStat(p,info)<0 then
-   begin
-     Attr:=0;
-     DosError:=3;
-     exit;
-   end
-  else
-   LinAttr:=Info.st_Mode;
-  if fpS_ISDIR(LinAttr) then
-   Attr:=$10
-  else
-   Attr:=$0;
-  if fpAccess(p,W_OK)<0 then
-   Attr:=Attr or $1;
+  DosError:=0;
+  Attr:=0;
+  if ConvertToFdRelativePath(textrec(f).name,fd,pr)<>0 then
+    begin
+      DosError:=3;
+      exit;
+    end;
+  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+    begin
+      DosError:=3;
+      exit;
+    end;
+  if Info.filetype=__WASI_FILETYPE_DIRECTORY then
+    Attr:=$10;
   if filerec(f).name[0]='.' then
-   Attr:=Attr or $2;*)
+    Attr:=Attr or $2;
 end;
 
 Procedure getftime (var f; var time : longint);
@@ -726,38 +546,23 @@ Begin
 End;
 
 Procedure setftime(var f; time : longint);
-(*
 Var
-  utim: utimbuf;
   DT: DateTime;
-  p : pchar;
-{$ifndef FPC_ANSI_TEXTFILEREC}
-  r : Rawbytestring;
-{$endif not FPC_ANSI_TEXTFILEREC}*)
+  modtime: UInt64;
+  pr: RawByteString;
+  fd: __wasi_fd_t;
 Begin
-(*  doserror:=0;
-  with utim do
+  doserror:=0;
+  UnPackTime(Time,DT);
+  modtime:=DTToWasiDate(DT);
+  if ConvertToFdRelativePath(textrec(f).name,fd,pr)<>0 then
     begin
-      actime:=fptime;
-      UnPackTime(Time,DT);
-      modtime:=DTToUnixDate(DT);
-    end;
-{$ifdef FPC_ANSI_TEXTFILEREC}
-  { encoding is already correct }
-  p:=@textrec(f).name;
-{$else}
-  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
-{$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
-    a second time whether the string needs to be converted to the right code
-    page
-  }
-  if fputime(p,@utim)<0 then
-    begin
-      Time:=0;
       doserror:=3;
-    end;*)
+      exit;
+    end;
+  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),0,modtime,
+     __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM_NOW)<>__WASI_ERRNO_SUCCESS then
+    doserror:=3;
 End;
 
 {******************************************************************************
@@ -830,10 +635,10 @@ End;
 
 Procedure setfattr (var f;attr : word);
 Begin
-(*  {! No Unix equivalent !}
+  {! No WASI equivalent !}
   { Fail for setting VolumeId }
   if (attr and VolumeID)<>0 then
-   doserror:=5;*)
+   doserror:=5;
 End;
 
 

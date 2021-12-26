@@ -548,6 +548,7 @@ implementation
 
     function same_constvalue(consttyp:tconsttyp;const value1,value2:tconstvalue):boolean;
       begin
+        result:=false;
         case consttyp of
           constnone,
           constnil:

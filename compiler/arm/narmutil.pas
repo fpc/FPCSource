@@ -218,6 +218,11 @@ interface
               fpu_vfpv4,
               fpu_neon_vfpv4:
                 current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,5));
+              fpu_fpv5_sp_d16,
+              fpu_fpv5_d16:
+                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,8));
+              fpu_fp_armv8:
+                current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,7));
               { else not needed anymore PM 2020/04/13
                 Internalerror(2019100603); }
             end;

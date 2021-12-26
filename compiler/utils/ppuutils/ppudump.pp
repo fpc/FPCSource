@@ -1188,7 +1188,8 @@ type
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used
            to allow indirect loading in case of packages and indirect imports }
-         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT,
+         AB_WEAK);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -1211,7 +1212,12 @@ type
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
-         AT_GNU_IFUNC
+         AT_GNU_IFUNC,
+         { WebAssembly global variable }
+         AT_WASM_GLOBAL,
+         { WebAssembly exception tag (used as a parameter for the 'throw' and
+           'catch' instructions) }
+         AT_WASM_EXCEPTION_TAG
          );
 
 var
@@ -1257,6 +1263,8 @@ begin
          bindstr:='Indirect';
        AB_EXTERNAL_INDIRECT :
          bindstr:='Indirect external';
+       AB_WEAK:
+         bindstr:='Weak';
        else
          begin
            bindstr:='<Error !!>';
@@ -1286,6 +1294,10 @@ begin
          typestr:='TLS';
        AT_GNU_IFUNC :
          typestr:='GNU IFUNC';
+       AT_WASM_GLOBAL:
+         typestr:='WebAssembly global variable';
+       AT_WASM_EXCEPTION_TAG:
+         typestr:='WebAssembly exception tag';
        else
          begin
            typestr:='<Error !!>';
@@ -1649,7 +1661,10 @@ const
          (mask:pi_uses_get_frame;
          str:' uses get_frame'),
          (mask:pi_uses_ymm;
-         str:' uses ymm register (x86 only)')
+         str:' uses ymm register (x86 only)'),
+         (mask:pi_no_framepointer_needed;
+         str:' set if no frame pointer is needed, the rules when this applies is target specific'
+         )
   );
 var
   procinfooptions : tprocinfoflags;
@@ -2222,7 +2237,11 @@ const
            allows Windows to move code segments around (in order to defragment
            memory) and then walk through the stacks of all running programs and
            update the segment values of the segment that has moved. }
-        'Use odd BP for far procs' {ts_x86_far_procs_push_odd_bp}
+        'Use odd BP for far procs', {ts_x86_far_procs_push_odd_bp}
+        'No exception support', {ts_wasm_no_exceptions}
+        'Branchful exceptions support', {ts_wasm_bf_exceptions}
+        'JavaScript-based exception support', {ts_wasm_js_exceptions}
+        'Native WebAssembly exceptions support' {ts_wasm_native_exceptions}
        );
     moduleswitchname : array[tmoduleswitch] of string[40] =
        ('Module None', {cs_modulenone,}
@@ -2355,7 +2374,8 @@ const
          { i8086 specific }
         'i8086 force FAR calls', {cs_force_far_calls}
         'i8086 huge pointer arithmetic', {cs_hugeptr_arithmetic_normalization}
-        'i8086 huge pointer comparison' {cs_hugeptr_comparison_normalization}
+        'i8086 huge pointer comparison', {cs_hugeptr_comparison_normalization}
+        'enforce legacy ifend behaviour' {cs_legacyifend}
        );
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        modeswitchname : array[tmodeswitch] of string[50] =
@@ -2445,7 +2465,9 @@ const
          'cs_opt_dead_store_eliminate',
          'cs_opt_forcenostackframe',
          'cs_opt_use_load_modify_store',
-         'cs_opt_unused_para'
+         'cs_opt_unused_para',
+         'cs_opt_consts',
+         'cs_opt_forloop'
        );
     var
          globalswitch  : tglobalswitch;

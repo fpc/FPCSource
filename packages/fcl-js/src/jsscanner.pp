@@ -19,11 +19,25 @@ unit JSScanner;
 
 interface
 
-uses SysUtils, Classes, jstoken;
+uses SysUtils, Classes, jsbase, jstoken;
+
+Type
+  TECMAVersion = (ecma5,ecma2015,ecma2021);
+
+Const
+  // TJSToken is the maximum known set of keywords.
+  // Here we specify what keywords are not keywords for 'older' versions.
+  NonJSKeywords : Array [TECMAVersion] of TJSTokens
+    = (
+        [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsLet, tjsSUPER, tjsYield], //ecma5
+        [], // ecma2015
+        [] // ecma2022
+      );
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'string exceeds end of line';
+  SErrExpectedEllipsis = 'Expected ellipsis, got ..';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
@@ -71,18 +85,22 @@ Type
 
   TJSScanner = class
   private
+    FDisableRShift: Boolean;
+    FECMAVersion: TECMAVersion;
+    FIsTypeScript: Boolean;
     FReturnComments: Boolean;
     FReturnWhiteSpace: Boolean;
     FSourceFile: TLineReader;
     FSourceFilename: string;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: string;
+    FCurTokenString: String;
     FCurLine: string;
     TokenStr: PChar;
     FWasEndOfLine : Boolean;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
+    FNonKeyWords : TJSTokens;
     function CommentDiv: TJSToken;
     function DoIdentifier : TJSToken;
     function DoMultiLineComment: TJSToken;
@@ -94,12 +112,14 @@ Type
     function GetCurColumn: Integer;
     function ReadUnicodeEscape: WideChar;
     Function ReadRegex : TJSToken;
+    procedure SetECMAVersion(AValue: TECMAVersion);
+    procedure SetIsTypeScript(AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
-    constructor Create(ALineReader: TLineReader);
-    constructor Create(AStream : TStream);
+    constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -114,7 +134,10 @@ Type
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
-    property CurTokenString: string read FCurTokenString;
+    property CurTokenString: String read FCurTokenString;
+    property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
+    Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
+    Property DisableRShift : Boolean Read FDisableRShift Write FDisableRShift;
   end;
 
 
@@ -146,17 +169,19 @@ begin
   ReadLn(FTextFile, Result);
 end;
 
-constructor TJSScanner.Create(ALineReader: TLineReader);
+constructor TJSScanner.Create(ALineReader: TLineReader; aECMAVersion: TECMAVersion);
 begin
   inherited Create;
   FSourceFile := ALineReader;
+  ECMAVersion:=aECMAVersion;
+  FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream);
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion);
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
-  Create(TStreamLineReader.Create(AStream));
+  Create(TStreamLineReader.Create(AStream),aECMAVersion);
 end;
 
 destructor TJSScanner.Destroy;
@@ -371,6 +396,21 @@ begin
   Result:=tjsRegEx;
 end;
 
+procedure TJSScanner.SetECMAVersion(AValue: TECMAVersion);
+begin
+  if FECMAVersion=AValue then Exit;
+  FECMAVersion:=AValue;
+  FNonKeyWords:=NonJSKeywords[aValue];
+end;
+
+procedure TJSScanner.SetIsTypeScript(AValue: Boolean);
+begin
+  if FIsTypeScript=AValue then Exit;
+  FIsTypeScript:=AValue;
+  if True then
+    ecmaversion:=ecma2021;
+end;
+
 function TJSScanner.DoStringLiteral: TJSToken;
 
 Var
@@ -438,8 +478,10 @@ function TJSScanner.DoNumericLiteral :TJSToken;
 Var
   TokenStart : PChar;
   Len : Integer;
+  Hex : Boolean;
 
 begin
+  Hex:=False;
   TokenStart := TokenStr;
   while true do
     begin
@@ -451,6 +493,7 @@ begin
           Inc(TokenStr);
           while Upcase(TokenStr[0]) in ['0'..'9','A'..'F'] do
             Inc(TokenStr);
+          Break;  
           end
         else
           Error(SInvalidHexadecimalNumber);
@@ -482,7 +525,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len);
   Result := tjsNumber;
 end;
 
@@ -507,12 +550,13 @@ begin
   // Check if this is a keyword or identifier
   // !!!: Optimize this!
   for i:=FirstKeyword to Lastkeyword do
-    if CurTokenString=TokenInfos[i] then
-      begin
-      Result := i;
-      FCurToken := Result;
-      exit;
-      end;
+    if Not (I in FNonKeyWords) then
+      if (CurTokenString=TokenInfos[i]) then
+        begin
+        Result := i;
+        FCurToken := Result;
+        exit;
+        end;
 end;
 
 Function TJSScanner.FetchToken: TJSToken;
@@ -673,6 +717,17 @@ begin
         If (Result=tjsNumber) then
           FCurTokenString:='0.'+FCurTokenString;
          end
+      else if TokenStr[0] = '.' then
+        begin
+        Inc(TokenStr);
+        if TokenStr[0]='.' then
+          begin
+          Inc(TokenStr);
+          Result:=tjsEllipsis
+          end
+        else
+          Error(SerrExpectedEllipsis);
+        end
       else
         Result := tjsDot;
       end;
@@ -727,6 +782,11 @@ begin
         else
           Result:=tjsEQ;
         end
+      else if (TokenStr[0]='>') then
+        begin
+        Inc(TokenStr);
+        Result:=tjsArrow;
+        end
       else
         Result := tjsAssign;
       end;
@@ -760,7 +820,7 @@ begin
         Inc(TokenStr);
         Result:=tjsGE;
         end
-      else if TokenStr[0] = '>' then
+      else if (TokenStr[0] = '>') and Not DisableRShift then
   	begin
         Inc(TokenStr);
         if (TokenStr[0] = '>') then

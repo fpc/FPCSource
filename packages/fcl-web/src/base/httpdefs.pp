@@ -366,6 +366,7 @@ type
     function GetFieldByName(const AName: String): String;
     // Variables
     Class Function GetVariableHeaderName(AVariable : THTTPVariableType) : String;
+    Class Function GetVariableHeaderType(Const aName : string) : THTTPVariableType;
     Function  GetHTTPVariable(AVariable : THTTPVariableType) : String;
     Class Function ParseContentType(const AContentType: String; Parameters: TStrings) : String;
     // Get/Set custom headers.
@@ -444,17 +445,19 @@ type
   { TRequest }
 
   TRequest = class(THttpHeader)
+  Private
+    class var _RequestCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
   private
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
     FOnUnknownEncoding: TOnUnknownEncodingEvent;
     FFiles : TUploadedFiles;
+    FRequestID: String;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
     FContentRead : Boolean;
     FRouteParams : TStrings;
-
     FStreamingContentType: TStreamingContentType;
     FMimeItems: TMimeItems;
     FKeepFullContents: Boolean;
@@ -466,6 +469,7 @@ type
     function GetRP(AParam : String): String;
     procedure SetRP(AParam : String; AValue: String);
   Protected
+    procedure AllocateRequestID; virtual;
     Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
     Function CreateMimeItems : TMimeItems; virtual;
@@ -497,11 +501,16 @@ type
     procedure ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     procedure HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
     Property ContentRead : Boolean Read FContentRead Write FContentRead;
+  Public
+    Type
+      TConnectionIDAllocator = Procedure(out aID : String) of object;
+    class var IDAllocator : TConnectionIDAllocator;
   public
     Class Var DefaultRequestUploadDir : String;
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
+    Property RequestID : String Read FRequestID;
     Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
     Property LocalPathPrefix : string Read GetLocalPathPrefix;
@@ -556,6 +565,8 @@ type
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
     Procedure SendRedirect(const TargetURL:String);
+    // Set Code and CodeText. Send content if aSend=True
+    Procedure SetStatus(aStatus : Cardinal; aSend : Boolean = False);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
@@ -988,7 +999,6 @@ end;
 function TCORSSupport.HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions: THandleCORSOptions): Boolean;
 
 Var
-  S : String;
   Full : Boolean;
 
 begin
@@ -1008,11 +1018,7 @@ begin
       if MaxAge>0 then
         SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
       if (hcSend in aOptions) then
-        begin
-        Code:=200;
-        CodeText:='OK';
-        SendResponse;
-        end;
+        SetStatus(200,True);
       end;
     end;
 end;
@@ -1732,13 +1738,14 @@ end;
 
 
 function THTTPHeader.GetFieldByName(const AName: String): String;
+
 var
-  i: Integer;
+  H : THeader;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    Result:=self.GetFieldValue(i)
+  H:=HeaderType(aName);
+    If (h<>hhUnknown) then
+    Result:=GetHeader(h)
   else
     Result:=GetCustomHeader(AName);
 end;
@@ -1750,6 +1757,18 @@ begin
     hvSetCookie : Result:=HeaderSetCookie;
     hvCookie : Result:=HeaderCookie;
     hvXRequestedWith : Result:=HeaderXRequestedWith;
+  end;
+end;
+
+class function THTTPHeader.GetVariableHeaderType(Const aName: string): THTTPVariableType;
+
+begin
+  Case IndexText(aName,[FieldCookie,FieldSetCookie,FieldXRequestedWith]) of
+    0 : Result:=hvCookie;
+    1 : Result:=hvSetCookie;
+    2 : Result:=hvXRequestedWith;
+  else
+    Result:=hvUnknown;
   end;
 end;
 
@@ -1819,15 +1838,23 @@ begin
 end;
 
 procedure THTTPHeader.SetFieldByName(const AName, AValue: String);
+
 var
-  i: Integer;
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    SetFieldValue(i,AValue)
+  H:=HeaderType(aName);
+  If (h<>hhUnknown) then
+    SetHeader(H,aValue)
   else
-    SetCustomHeader(AName,AValue);
+    begin
+    V:=GetVariableHeaderType(aName);
+    if V<>hvUnknown then
+      SetHTTPVariable(V,aValue)
+    else
+      SetCustomHeader(AName,AValue);
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -1965,9 +1992,9 @@ begin
     // mean it is being used that way. In those cases the non-streaming file-
     // creation has to take place: (For example, CGI does not use the
     // streaming capabilities (may 2021))
-    CreateUploadedFile(Files)
+    Result:=CreateUploadedFile(Files)
   else
-    CreateFile(Files);
+    Result:=CreateFile(Files);
 end;
 
 
@@ -2059,6 +2086,7 @@ begin
   FFiles:=CreateUploadedFiles;
   FFiles.FRequest:=Self;
   FLocalPathPrefix:='-';
+  AllocateRequestID;
 end;
 
 function TRequest.CreateUploadedFiles: TUploadedFiles;
@@ -2132,6 +2160,7 @@ begin
   FCommandLine := line;
   i := Pos(' ', line);
   FCommand := UpperCase(Copy(line, 1, i - 1));
+  Method:=FCommand;
   URI := Copy(line, i + 1, Length(line));
 
   // Extract HTTP version
@@ -2195,6 +2224,18 @@ begin
     FRouteParams.Values[AParam]:=AValue;
 end;
 
+procedure TRequest.AllocateRequestID;
+begin
+  if Assigned(IDAllocator) then
+    IDAllocator(FRequestID);
+  if FRequestID='' then
+{$IFDEF CPU64}
+    FRequestID:=IntToStr(InterlockedIncrement64(_RequestCount));
+{$ELSE}
+    FRequestID:=IntToStr(InterlockedIncrement(_RequestCount));
+{$ENDIF}
+end;
+
 function TRequest.AllowReadContent: Boolean;
 begin
   Result:=True;
@@ -2256,6 +2297,8 @@ var
     isSep : Boolean;
 
   begin
+    if aPos > aLenStr then Exit(false);
+    Result := true;    
     BoT:=aPos;
     EoT:=aPos;
     for i:=aPos to aLenStr do
@@ -2280,30 +2323,13 @@ var
         begin
         if i = aLenStr then
           begin
-          EoT  := i;
-          aPos := i;
+          EoT  := i+1;
+          aPos := i+1;
           Break;
           end;
         end;
       end;
-    if aPos < aLenStr then
-      begin
-      aToken := Copy(aString, BoT, EoT - BoT);
-      Result := true;
-      end
-    else
-      begin
-      if aPos = aLenStr then
-        begin
-        aToken := Copy(aString, BoT, EoT - BoT + 1);
-        Result := true;
-        aPos   := aPos + 1;
-        end
-      else
-        begin
-        Result := false;
-       end;
-    end;
+    aToken := Copy(aString, BoT, EoT - BoT);
   end;
 
 
@@ -2462,7 +2488,6 @@ procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
 Var
   L : TMimeItems;
   B : String;
-  I : Integer;
   S : String;
   ST: TStringList;
 
@@ -2777,8 +2802,7 @@ constructor TResponse.Create(ARequest : TRequest);
 begin
   inherited Create;
   FRequest:=ARequest;
-  FCode := 200;
-  FCodeText := 'OK';
+  SetStatus(200);
   ContentType:='text/html';
   FContents:=TStringList.Create;
   TStringList(FContents).OnChange:=@ContentsChanged;
@@ -2846,6 +2870,14 @@ begin
     Code := 302;// HTTP/1.0 302 HTTP_MOVED_TEMPORARILY -> 'Found'
     CodeText := 'Moved Temporarily';
     end;
+end;
+
+procedure TResponse.SetStatus(aStatus: Cardinal; aSend: Boolean = False);
+begin
+  Code:=aStatus;
+  CodeText:=GetHTTPStatusText(aStatus);
+  if aSend then
+    SendContent;
 end;
 
 procedure TResponse.SetFirstHeaderLine(const line: String);

@@ -1033,6 +1033,10 @@ unit scandir;
           end;
       end;
 
+    procedure dir_legacyifend;
+      begin
+        do_localswitch(cs_legacyifend);
+      end;
 
     procedure dir_mmx;
       begin
@@ -1914,6 +1918,8 @@ unit scandir;
 
     procedure dir_region;
       begin
+        current_scanner.skipspace;
+        current_scanner.readquotedstring;
       end;
 
     procedure dir_endregion;
@@ -1988,6 +1994,7 @@ unit scandir;
         AddDirective('INLINE',directive_all, @dir_inline);
         AddDirective('INTERFACES',directive_all, @dir_interfaces);
         AddDirective('L',directive_all, @dir_link);
+        AddDirective('LEGACYIFEND',directive_all, @dir_legacyifend);
         AddDirective('LIBEXPORT',directive_mac, @dir_libexport);
         AddDirective('LIBRARYPATH',directive_all, @dir_librarypath);
         AddDirective('LINK',directive_all, @dir_link);

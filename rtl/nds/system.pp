@@ -25,7 +25,7 @@ interface
 {$define FPC_HAS_FEATURE_FILEIO}
 {$define FPC_HAS_FEATURE_THREADING}
 
-{$define CPUARM_HAS_UMULL} 
+{$define CPUARM_HAS_UMULL}
 {$ifdef FPC_HAS_INTERNAL_BSR}
   {$define CPUARM_HAS_CLZ}
 {$endif def FPC_HAS_INTERNAL_BSR}
@@ -76,18 +76,18 @@ var
 //  errno: integer;
   fake_heap_end: ^byte; cvar; external;
   irq_vector: integer; external name '__irq_vector';
-  
+
 function get_cmdline:Pchar;
 
 property cmdline:Pchar read get_cmdline;
 
 implementation
 
-const 
+const
   calculated_cmdline: Pchar = nil;
   { System limits, POSIX value in parentheses, used for buffer and stack allocation }
   ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
-  PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }  
+  PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
@@ -159,8 +159,10 @@ function paramstr(l: longint) : string;
      begin
        paramstr := execpathstr;
      end
-   else
-     paramstr:=strpas(argv[l]);
+   else if (l > 0) and (l < argc) then
+     paramstr := strpas(argv[l])
+  else
+    paramstr := '';
  end;
 
 {*****************************************************************************
@@ -264,7 +266,7 @@ begin
   SysInitExceptions;
 
   SetupCmdLine;
-  
+
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Setup stdin, stdout and stderr }
   SysInitStdIO;

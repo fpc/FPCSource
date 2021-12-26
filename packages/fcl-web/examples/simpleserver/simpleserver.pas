@@ -16,7 +16,7 @@
 {$h+}
 
 { $DEFINE USEGNUTLS}
-{$DEFINE USEMICROHTTP}
+{ $DEFINE USEMICROHTTP}
 
 program simpleserver;
 
@@ -44,7 +44,7 @@ uses
   {$ifdef unix}
   baseunix,
   {$endif}
-  sysutils,Classes, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
+  sysutils,Classes, jsonparser, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
 
 Type
 
@@ -57,8 +57,10 @@ Type
 
   THTTPApplication = Class(TParentApp)
   private
+    FAPISecret : String;
     FBaseDir: string;
     FIndexPageName: String;
+    FInterfaceAddress: String;
     FMimeFile: String;
     FNoIndexPage: Boolean;
     FQuiet: Boolean;
@@ -83,6 +85,7 @@ Type
     Property BaseDir : string Read FBaseDir Write FBaseDir;
     Property NoIndexPage : Boolean Read FNoIndexPage Write FNoIndexPage;
     Property IndexPageName : String Read FIndexPageName Write FIndexPageName;
+    Property InterfaceAddress : String Read FInterfaceAddress Write FInterfaceAddress;
   end;
 
 Var
@@ -168,27 +171,31 @@ begin
     Writeln('Error: ',Msg);
   Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
   Writeln('Where options is one or more of : ');
-  Writeln('-c --config=file    Ini configuration file (default: simpleserver.ini)');
+  Writeln('-A --api=path,secret  Activate location API on path, using secret as accepted bearer token.');
+  Writeln('-a --max-age=age      Set max-age expiry header on returned file requests.');
+  Writeln('-c --config=file      Ini configuration file (default: simpleserver.ini)');
 {$ifdef unix}
-  Writeln('-b --background     fork to background');
+  Writeln('-b --background       fork to background');
 {$endif}
-  Writeln('-d --directory=dir  Base directory from which to serve files.');
-  Writeln('                    Default is current working directory: ',GetCurrentDir);
-  Writeln('-h --help           This help text');
-  Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
-  Writeln('-n --noindexpage    Do not allow index page.');
-  Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
-  Writeln('-m --mimetypes=file path of mime.types. Loaded in addition to OS known types');
-  Writeln('-q --quiet          Do not write diagnostic messages');
-  Writeln('-Q --quit=PWD       register /quit url. Send request with password variable equal to PWD to stop');
-  Writeln('-e --echo       register /quit url. Send request with password variable equal to PWD to stop');
-  Writeln('-s --ssl            Use SSL');
-  Writeln('-H --hostname=NAME  set hostname for self-signed SSL certificate');
-  Writeln('-x --proxy=proxydef Add proxy definition. Definition is of form:');
-  Writeln('                    name:BaseURL');
+  Writeln('-d --directory=dir    Base directory from which to serve files.');
+  Writeln('                      Default is current working directory: ',GetCurrentDir);
+  Writeln('-e --echo             Activate /echo URL.');
+  Writeln('-h --help             This help text');
+  Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate');
+  Writeln('-i --indexpage=name   Directory index page to use (default: index.html)');
+  Writeln('-I --interface=IP     Listen on this interface address only.');
+  Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types');
+  Writeln('-n --noindexpage      Do not allow index page.');
+  Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000)');
+  Writeln('-q --quiet            Do not write diagnostic messages');
+  Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop');
+  Writeln('-s --ssl              Use SSL');
+  Writeln('-x --proxy=proxydef   Add proxy definition. Definition is of form:');
+  Writeln('                      name:BaseURL');
   Writeln('');
   Writeln('Config file is ini file, section [Server]. Key names are long option names');
   Writeln('Proxies are defined in section [Proxy], Key is name, value is URL');
+  Writeln('Locations are defined in section [Locations], Key is location name, value is path');
   Halt(Ord(Msg<>''));
 end;
 
@@ -209,7 +216,7 @@ begin
     MimeTypes.LoadFromFile(MimeTypesFile);  
 end;
 
-procedure THTTPApplication.AddProxy(Const aProxyDef : String);
+procedure THTTPApplication.AddProxy(const aProxyDef: String);
 
 Var
   P : Integer;
@@ -225,12 +232,15 @@ begin
 end;
 
 
-procedure THTTPApplication.ReadConfigFile(Const ConfigFile : string);
+procedure THTTPApplication.ReadConfigFile(const ConfigFile: string);
 
 Const
   SConfig  = 'Server';
   SProxy = 'Proxy';
+  SLocations = 'Locations';
+
   KeyPort  = 'Port';
+  KeyInterface = 'Interface';
   KeyDir   = 'Directory';
   KeyIndexPage = 'IndexPage';
   KeyHostName = 'hostname';
@@ -242,6 +252,7 @@ Const
   KeyNoIndexPage = 'noindexpage';
   KeyBackground = 'background';
   KeyMaxAge = 'MaxAge';
+  KeyAPI = 'API';
 
 Var
   L : TStringList;
@@ -255,6 +266,7 @@ begin
     try
       BaseDir:=ReadString(SConfig,KeyDir,BaseDir);
       Port:=ReadInteger(SConfig,KeyPort,Port);
+      InterfaceAddress:=ReadString(SConfig,KeyInterface,InterfaceAddress);
       Quiet:=ReadBool(SConfig,KeyQuiet,Quiet);
       MimeFile:=ReadString(SConfig,keyMimetypes,MimeFile);
       NoIndexPage:=ReadBool(SConfig,KeyNoIndexPage,NoIndexPage);
@@ -265,6 +277,7 @@ begin
       FPassword:=ReadString(SConfig,KeyQuit,FPassword);
       FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
       FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
+      FAPISecret:=ReadString(SConfig,keyAPI,'');
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
@@ -272,6 +285,14 @@ begin
         L.GetNameValue(I,P,U);
         if (P<>'') and (U<>'') then
           ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
+        end;
+      L.Clear;
+      ReadSectionValues(SLocations,L,[]);
+      For I:=0 to L.Count-1 do
+        begin
+        L.GetNameValue(I,P,U);
+        if (P<>'') and (U<>'') then
+          RegisterFileLocation(P,U);
         end;
     finally
       L.Free;
@@ -287,6 +308,7 @@ Var
 begin
   for S in GetOptionValues('x','proxy') do
     AddProxy(S);
+  FAPISecret:=GetOptionValue('A','api');
   FEcho:=HasOption('e','echo');
   Quiet:=HasOption('q','quiet');
   FPassword:=GetOptionValue('Q','quit');
@@ -301,6 +323,8 @@ begin
     NoIndexPage:=True
   else
     IndexPageName:=GetOptionValue('i','indexpage');
+  if HasOption('I','interface') then
+    InterfaceAddress:=GetOptionValue('I','interface');
   FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
   FBackground:=HasOption('b','background');
 end;
@@ -317,6 +341,8 @@ begin
       Log(etInfo,'Proxy location /proxy/%s redirects to %s',[Path,URL]);
   if not NoIndexPage then
     Log(etInfo,'Using index page %s',[IndexPageName]);
+  Log(etInfo,'Location REST API '+IfThen(FAPISecret<>'','','NOT ')+'activated.');
+
 end;
 
 procedure THTTPApplication.DoRun;
@@ -326,7 +352,7 @@ Var
 
 begin
   FMaxAge:=31557600;
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   if HasOption('c','config') then
@@ -357,6 +383,8 @@ begin
     BaseDir:=GetCurrentDir;
   if (BaseDir<>'') then
     BaseDir:=IncludeTrailingPathDelimiter(BaseDir);
+  if FAPISecret<>'' then
+    TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPISecret,[',']),ExtractWord(2,FAPISecret,[',']));
   TSimpleFileModule.RegisterDefaultRoute;
   TSimpleFileModule.BaseDir:=BaseDir;
   TSimpleFileModule.OnLog:=@Log;
@@ -368,6 +396,8 @@ begin
     end;
   if not Quiet then
     WriteInfo;
+  if InterfaceAddress<>'' then
+    HTTPHandler.Address:=InterfaceAddress;
   inherited;
 end;
 

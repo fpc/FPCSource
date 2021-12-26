@@ -195,6 +195,7 @@ Type
     Procedure WriteVariableStatement(El: TJSVariableStatement);
     Procedure WriteEmptyBlockStatement(El: TJSEmptyBlockStatement); virtual;
     Procedure WriteEmptyStatement(El: TJSEmptyStatement);virtual;
+    Procedure WriteDebuggerStatement(E: TJSDebuggerStatement) ;virtual;
     Procedure WriteLiteral(El: TJSLiteral);virtual;
     Procedure WriteArrayLiteral(El: TJSArrayLiteral);virtual;
     Procedure WriteObjectLiteral(El: TJSObjectLiteral);virtual;
@@ -205,6 +206,8 @@ Type
     Procedure WriteAssignStatement(El: TJSAssignStatement);virtual;
     Procedure WriteForInStatement(El: TJSForInStatement);virtual;
     Procedure WriteWhileStatement(El: TJSWhileStatement);virtual;
+    Procedure WriteImportStatement(El: TJSImportStatement);virtual;
+    Procedure WriteExportStatement(El: TJSExportStatement);virtual;
     Procedure WriteForStatement(El: TJSForStatement);virtual;
     Procedure WriteIfStatement(El: TJSIfStatement);virtual;
     Procedure WriteSourceElements(El: TJSSourceElements);virtual;
@@ -1004,6 +1007,12 @@ begin
     Write('/* Empty statement */')
 end;
 
+procedure TJSWriter.WriteDebuggerStatement(E: TJSDebuggerStatement);
+begin
+  if E=nil then ;
+  Write('debugger');
+end;
+
 procedure TJSWriter.WriteRegularExpressionLiteral(
   El: TJSRegularExpressionLiteral);
 
@@ -1671,6 +1680,86 @@ begin
     end;
 end;
 
+procedure TJSWriter.WriteImportStatement(El: TJSImportStatement);
+
+Var
+  I : integer;
+  N : TJSNamedImportElement;
+  needFrom : Boolean;
+
+begin
+  Write('import ');
+  needFrom:=False;
+  if El.DefaultBinding<>'' then
+    begin
+    Write(El.DefaultBinding+' ');
+    if (El.NameSpaceImport<>'') or El.HaveNamedImports then
+      Write(', ');
+    needFrom:=True;
+    end;
+  if El.NameSpaceImport<>''  then
+    begin
+    Write('* as '+El.NameSpaceImport+' ');
+    needFrom:=True;
+    end;
+  if El.HaveNamedImports then
+    begin
+    needFrom:=True;
+    Write('{ ');
+    For I:=0 to EL.NamedImports.Count-1 do
+      begin
+      N:=EL.NamedImports[i];
+      if I>0 then
+        Write(', ');
+      Write(N.Name+' ');
+      if N.Alias<>'' then
+        Write('as '+N.Alias+' ');
+      end;
+    Write('} ');
+    end;
+  if NeedFrom then
+    Write('from ');
+  write('"'+El.ModuleName+'"');
+end;
+
+procedure TJSWriter.WriteExportStatement(El: TJSExportStatement);
+Var
+  I : integer;
+  N : TJSExportNameElement;
+
+begin
+  Write('export ');
+  if El.IsDefault then
+    Write('default ');
+  if assigned(El.Declaration) then
+    WriteJS(El.Declaration)
+  else if (El.NameSpaceExport<>'') then
+    begin
+    if El.NameSpaceExport<>'*' then
+      Write('* as '+El.NameSpaceExport)
+    else
+      Write('*');
+    if El.ModuleName<>'' then
+      Write(' from "'+El.ModuleName+'"');
+    end
+  else if El.HaveExportNames then
+    begin
+    Write('{ ');
+    For I:=0 to El.ExportNames.Count-1 do
+      begin
+      N:=El.ExportNames[i];
+      if I>0 then
+        Write(', ');
+      Write(N.Name);
+      if N.Alias<>'' then
+        Write(' as '+N.Alias);
+      end;
+    Write(' }');
+    if El.ModuleName<>'' then
+      Write(' from "'+El.ModuleName+'"');
+    end;
+end;
+
 procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
@@ -1910,10 +1999,13 @@ end;
 
 procedure TJSWriter.WriteVariableStatement(El: TJSVariableStatement);
 
+Const
+  Keywords : Array[TJSVarType] of string = ('var','let','const');
+
 begin
-  Write('var ');
+  Write(Keywords[el.varType]+' ');
   FSkipRoundBrackets:=true;
-  WriteJS(El.A);
+  WriteJS(El.VarDecl);
 end;
 
 procedure TJSWriter.WriteJS(El: TJSElement);
@@ -1932,6 +2024,8 @@ begin
     WriteEmptyBlockStatement(TJSEmptyBlockStatement(El))
   else if (C=TJSEmptyStatement) then
     WriteEmptyStatement(TJSEmptyStatement(El))
+  else if (C=TJSDebuggerStatement) then
+    WriteDebuggerStatement(TJSDebuggerStatement(El))
   else if (C=TJSLiteral) then
     WriteLiteral(TJSLiteral(El))
   else if C.InheritsFrom(TJSPrimaryExpression) then
@@ -1970,6 +2064,10 @@ begin
     WriteVarDeclaration(TJSVarDeclaration(El))
   else if (C=TJSIfStatement) then
     WriteIfStatement(TJSIfStatement(El))
+  else if (C=TJSImportStatement) then
+    WriteImportStatement(TJSImportStatement(El))
+  else if (C=TJSExportStatement) then
+    WriteExportStatement(TJSExportStatement(El))
   else if C.InheritsFrom(TJSTargetStatement) then
     WriteTargetStatement(TJSTargetStatement(El))
   else if (C=TJSReturnStatement) then

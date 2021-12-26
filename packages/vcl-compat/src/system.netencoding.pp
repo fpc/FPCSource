@@ -339,7 +339,7 @@ begin
   Src:=Default(TBytes);
   SetLength(Src,Size);
   Move(aInput^,Src[0],Size);
-  DoEncodeBytesToString(Src);
+  Result:=DoEncodeBytesToString(Src);
 end;
 
 Function TNetEncoding.DoEncode(const aInput, aOutput: TStream): Integer;

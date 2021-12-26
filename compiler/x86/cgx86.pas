@@ -1501,7 +1501,7 @@ unit cgx86;
 
             { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
             if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
-              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg2,reg2)
+              instr:=taicpu.op_reg_reg_reg(op,S_NO,reg1,reg1,reg2)
             else
               instr:=taicpu.op_reg_reg(op,S_NO,reg1,reg2);
 
@@ -1705,7 +1705,7 @@ unit cgx86;
 
                  { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
                  if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
-                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,hreg,hreg))
+                   list.concat(taicpu.op_reg_reg_reg(op,S_NO,reg,reg,hreg))
                  else
                    list.concat(taicpu.op_reg_reg(op,S_NO,reg,hreg));
 
@@ -3711,6 +3711,7 @@ unit cgx86;
          ai.is_jmp:=true;
          list.concat(ai);
 
+         a_reg_dealloc(list, NR_DEFAULTFLAGS);
          a_call_name(list,'FPC_OVERFLOW',false);
          a_label(list,hl);
       end;

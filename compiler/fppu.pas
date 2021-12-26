@@ -341,6 +341,21 @@ var
               exit;
             end;
 {$endif i8086}
+{$ifdef wasm}
+          { check WebAssembly exceptions mode flag }
+          if ((mf_wasm_no_exceptions in moduleflags) <>
+              (ts_wasm_no_exceptions in current_settings.targetswitches)) or
+             ((mf_wasm_bf_exceptions in moduleflags) <>
+              (ts_wasm_bf_exceptions in current_settings.targetswitches)) or
+             ((mf_wasm_js_exceptions in moduleflags) <>
+              (ts_wasm_js_exceptions in current_settings.targetswitches)) or
+             ((mf_wasm_native_exceptions in moduleflags) <>
+              (ts_wasm_native_exceptions in current_settings.targetswitches)) then
+            begin
+              Message(unit_u_ppu_invalid_wasm_exceptions_mode,@queuecomment);
+              exit;
+            end;
+{$endif}
           if {$ifdef llvm}not{$endif}(mf_llvm in moduleflags) then
             begin
               Message(unit_u_ppu_llvm_mismatch,@queuecomment);
@@ -1024,6 +1039,16 @@ var
         if current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium] then
           include(moduleflags,mf_i8086_ss_equals_ds);
 {$endif i8086}
+{$ifdef wasm}
+        if ts_wasm_no_exceptions in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_no_exceptions);
+        if ts_wasm_native_exceptions in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_native_exceptions);
+        if ts_wasm_js_exceptions in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_js_exceptions);
+        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_bf_exceptions);
+{$endif wasm}
 {$ifdef llvm}
         include(moduleflags,mf_llvm);
 {$endif}

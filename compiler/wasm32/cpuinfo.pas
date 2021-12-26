@@ -23,9 +23,7 @@ Interface
 
 Type
    bestreal = double;
-{$if FPC_FULLVERSION>20700}
    bestrealrec = TDoubleRec;
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
@@ -73,7 +71,9 @@ Const
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
-     pocall_internproc
+     pocall_internproc,
+     pocall_stdcall,
+     pocall_cdecl
    ];
 
    cputypestr : array[tcputype] of string[9] = ('',

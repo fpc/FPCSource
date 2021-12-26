@@ -35,10 +35,19 @@ Type
   protected
     Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); override;
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); override;
+  Public
     Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
     Property OnAcceptIdle;
     Property AcceptIdleTimeout;
+    Property Address;
+    property AdminMail;
+    property AdminName;
+    property ServerBanner;
+    Property LookupHostNames;
+    property HostName;
+    Property CertificateData;
+    Property UseSSL;
   end;
 
   { TFCgiHandler }

@@ -284,6 +284,7 @@ interface
       var
         hp,hp2 : tai;
         i : longint;
+        vs : tabstractnormalvarsym;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -403,6 +404,23 @@ interface
                       taicpu(hp).CheckIfValid;
 {$endif x86 or z80}
                      end;
+                  ait_const:
+                    with tai_const(hp) do begin
+                      { Handle references to locals from TP-style INLINE(). }
+                      if assigned(sym) and (sym.bind=AB_NONE) then
+                        begin
+                          vs:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find(sym.Name));
+                          if not assigned(vs) then
+                            vs:=tabstractnormalvarsym(current_procinfo.procdef.localst.Find(sym.Name));
+                          if not assigned(vs) then
+                            Internalerror(2021081401);
+                          if vs.localloc.loc<>LOC_REFERENCE then
+                            Internalerror(2021081402);
+                          value:=vs.localloc.reference.offset+symofs;
+                          sym:=nil;
+                          symofs:=0;
+                        end;
+                    end
                   else
                     ;
                 end;

@@ -97,21 +97,69 @@ unit tgcpu;
        hlcgobj,hlcgcpu, procinfo;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
+    var
+      fields, i: Integer;
+      wbt_candidate: TWasmBasicType;
     begin
       Result := assigned(def);
-      if not Result then Exit;
+      if not Result then
+        Exit;
 
       if is_pointer(def) then
         wbt := wbt_i32 // wasm32
       else if is_currency(def) then
         wbt := wbt_i64
-      else if is_ordinal(def) then begin
-        if is_64bit(def) then wbt := wbt_i64
-        else wbt := wbt_i32;
-      end else if is_real(def) then begin
-        if is_single(def) then wbt := wbt_f32
-        else wbt := wbt_f64; // real/double/extended
-      end else
+      else if is_ordinal(def) then
+        begin
+          if is_64bit(def) then
+            wbt := wbt_i64
+          else
+            wbt := wbt_i32;
+        end
+      else if is_real(def) then
+        begin
+          if is_single(def) then
+            wbt := wbt_f32
+          else
+            wbt := wbt_f64; // real/double/extended
+        end
+      else if def.typ=recorddef then
+        begin
+          if not (def.size in [1,2,4,8]) then
+            exit(false);
+          fields:=0;
+          wbt_candidate:=Default(TWasmBasicType);
+          for i:=0 to trecorddef(def).symtable.symlist.count-1 do
+            begin
+              if (tsym(trecorddef(def).symtable.symlist[i]).typ<>fieldvarsym) or
+                 (sp_static in tsym(trecorddef(def).symtable.symlist[i]).symoptions) then
+                continue;
+              if assigned(tfieldvarsym(trecorddef(def).symtable.symlist[i]).vardef) then
+                begin
+                  Inc(fields);
+                  if fields>1 then
+                    exit(false);
+                  { search recursively }
+                  if not defToWasmBasic(tfieldvarsym(trecorddef(def).symtable.symlist[i]).vardef,wbt_candidate) then
+                    exit(false);
+                end;
+            end;
+          if fields=1 then
+            begin
+              wbt:=wbt_candidate;
+              result:=true;
+            end
+          else
+            result:=false;
+        end
+      else if def.typ=arraydef then
+        begin
+          if (def.size in [1,2,4,8]) and (tarraydef(def).elecount=1) then
+            result:=defToWasmBasic(tarraydef(def).elementdef,wbt)
+          else
+            result:=false;
+        end
+      else
         Result := false;
     end;
 

@@ -1,0 +1,36 @@
+# This .gitlab.ci.yml is based on:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+# the FPC specific parts are partly from:
+# https://gitlab.com/alb42/testconversion2/-/blob/main/.gitlab-ci.yml
+
+image: registry.gitlab.com/freepascal.org/fpc/source:buster_fpcbuild
+
+stages:
+  - compilercycle
+  - buildandtest
+
+compiler-fullcycle-job:
+  stage: compilercycle
+  script:
+    - cd compiler
+    - make fullcycle -j 4 "OPT=-Oodfa"
+
+build-and-test-job:
+  stage: buildandtest
+  script:
+    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4" "OPT=-Oodfa"
+    - FPC_SRC=$(pwd)
+    - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
+    - cd tests
+    - make clean TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
+    - make full TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
+    - cd utils
+    - make fpts2junit
+    - cd $FPC_SRC
+    - tests/utils/fpts2junit $FPC_SRC/tests/output/x86_64-linux/ testresult.xml
+  artifacts:
+    when: always  
+    paths:
+      - testresult.xml
+    reports:
+      junit: testresult.xml

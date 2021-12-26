@@ -171,7 +171,8 @@ interface
          { i8086 specific }
          cs_force_far_calls,
          cs_hugeptr_arithmetic_normalization,
-         cs_hugeptr_comparison_normalization
+         cs_hugeptr_comparison_normalization,
+         cs_legacyifend
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -310,7 +311,16 @@ interface
            allows Windows to move code segments around (in order to defragment
            memory) and then walk through the stacks of all running programs and
            update the segment values of the segment that has moved. }
-         ts_x86_far_procs_push_odd_bp
+         ts_x86_far_procs_push_odd_bp,
+         { no exception support. Raising an exception will abort the program. }
+         ts_wasm_no_exceptions,
+         { Branchful exceptions support. A global threadvar is checked after each function call. }
+         ts_wasm_bf_exceptions,
+         { JavaScript-based exception support }
+         ts_wasm_js_exceptions,
+         { native WebAssembly exceptions support:
+           https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md }
+         ts_wasm_native_exceptions
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -349,7 +359,9 @@ interface
          cs_opt_dead_store_eliminate,
          cs_opt_forcenostackframe,
          cs_opt_use_load_modify_store,
-         cs_opt_unused_para
+         cs_opt_unused_para,
+         cs_opt_consts,
+         cs_opt_forloop
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -391,7 +403,11 @@ interface
          mf_package_deny,             { this unit must not be part of a package }
          mf_package_weak,             { this unit may be completely contained in a package }
          mf_llvm,                     { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
-         mf_symansistr                { symbols are ansistrings (for ppudump) }
+         mf_symansistr,               { symbols are ansistrings (for ppudump) }
+         mf_wasm_no_exceptions,       { unit was compiled in WebAssembly 'no exceptions' mode }
+         mf_wasm_bf_exceptions,       { unit was compiled in WebAssembly 'branchful' exceptions mode }
+         mf_wasm_js_exceptions,       { unit was compiled in WebAssembly JavaScript-based exceptions mode }
+         mf_wasm_native_exceptions    { unit was compiled in WebAssembly native exceptions mode }
        );
        tmoduleflags = set of tmoduleflag;
 
@@ -402,7 +418,7 @@ interface
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
-          define: string[25];
+          define: string[30];
        end;
 
     const
@@ -414,7 +430,7 @@ interface
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
          'DEADSTORE','FORCENOSTACKFRAME','USELOADMODIFYSTORE',
-         'UNUSEDPARA'
+         'UNUSEDPARA','CONSTS','FORLOOP'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -434,13 +450,19 @@ interface
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
          (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
-         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP'),
+         (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
+         (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
+         (name: 'JSEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_JS_EXCEPTIONS'),
+         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS')
        );
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_empty_proc,cs_opt_unused_para];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa{$ifndef llvm},cs_opt_use_load_modify_store{$endif},cs_opt_loopunroll];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa
+                                         {$ifndef llvm},cs_opt_use_load_modify_store{$endif},
+                                         cs_opt_loopunroll,cs_opt_forloop];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
@@ -764,7 +786,9 @@ interface
          { subroutine uses get_frame }
          pi_uses_get_frame,
          { x86 only: subroutine uses ymm registers, requires vzeroupper call }
-         pi_uses_ymm
+         pi_uses_ymm,
+         { set if no frame pointer is needed, the rules when this applies is target specific }
+         pi_no_framepointer_needed
        );
        tprocinfoflags=set of tprocinfoflag;
 

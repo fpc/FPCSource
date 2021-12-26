@@ -142,6 +142,7 @@ var
   PKey, POPad, PIPad: PChar;
   VKey, VOPad, VIPad: string;
 begin
+  // Set up masking block from key.
   VLength := Length(AKey);
   if VLength > SHA1_BLOCK_SIZE then
   begin
@@ -153,16 +154,17 @@ begin
   begin
     SetLength(VKey, SHA1_BLOCK_SIZE - VLength);
     FillChar(Pointer(VKey)^, SHA1_BLOCK_SIZE - VLength, #0);
-    VKey := AKey + VKey;
+    VKey := AKey + VKey; // VKEY now has length SHA1_BLOCK_SIZE
   end;
+  PKey := PChar(VKey);
+  // Padding blocks
   SetLength(VOPad, SHA1_BLOCK_SIZE);
   POPad := PChar(VOPad);
   FillChar(POPad^, SHA1_BLOCK_SIZE, $5c);
   SetLength(VIPad, SHA1_BLOCK_SIZE);
   PIPad := PChar(VIPad);
   FillChar(PIPad^, SHA1_BLOCK_SIZE, $36);
-  PKey := PChar(VKey);
-  for I := 1 to VLength do
+  for I := 1 to SHA1_BLOCK_SIZE do
   begin
     POPad^ := Char(Ord(POPad^) xor Ord(PKey^));
     PIPad^ := Char(Ord(PIPad^) xor Ord(PKey^));

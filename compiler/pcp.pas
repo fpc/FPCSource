@@ -73,7 +73,7 @@ interface
 implementation
 
 uses
-  fpccrc;
+  fpchash;
 
   { tpcpfile }
 

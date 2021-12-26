@@ -41,6 +41,8 @@ const
   MH_MAGIC_64 = $FEEDFACF;
   MH_CIGAM    = $CEFAEDFE;
   MH_CIGAM_64 = $CFFAEDFE;
+  FAT_MAGIC   = $CAFEBABE;
+  FAT_CIGAM   = $BEBAFECA;
 
   //Cpu types
   CPU_ARCH_ABI64     = $1000000;
@@ -53,9 +55,16 @@ const
   CPU_TYPE_POWERPC64 = CPU_TYPE_POWERPC or CPU_ARCH_ABI64;
 
   //Cpu subtypes
+  CPU_SUBTYPE_MASK        = tmach_cpu_subtype($ff000000);
+
   CPU_SUBTYPE_I386_ALL    = 3;
-  CPU_SUBTYPE_X86_64_ALL  = CPU_SUBTYPE_I386_ALL;
+  CPU_SUBTYPE_X86_64_ALL  = 3;
+  CPU_SUBTYPE_X86_64_ARCH1= 4;
+  CPU_SUBTYPE_X86_64_H    = 8; // Haswell feature subset
   CPU_SUBTYPE_POWERPC_ALL = 0;
+  CPU_SUBTYPE_POWERPC_7400 = 10;
+  CPU_SUBTYPE_POWERPC_7450 = 11;
+  CPU_SUBTYPE_POWERPC_970  = 100;
   CPU_SUBTYPE_ARM_ALL     = 0;
   CPU_SUBTYPE_ARM_V4T     = 5;
   CPU_SUBTYPE_ARM_V6      = 6;
@@ -64,6 +73,7 @@ const
   CPU_SUBTYPE_ARM_V7      = 9;
   CPU_SUBTYPE_ARM64_ALL   = 0;
   CPU_SUBTYPE_ARM64_V8    = 1;
+  CPU_SUBTYPE_ARM64E      = 2;
 
   //Mach-O object types
   MH_OBJECT      = $1;            // relocatable object file

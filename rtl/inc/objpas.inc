@@ -377,7 +377,7 @@
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
+      class function TObject.InitInstance(instance : pointer) : tobject;
 
 {$ifndef VER3_0}
         var
@@ -1203,5 +1203,11 @@
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-{$i except.inc}
+  {$if defined(FPC_WASM_NATIVE_EXCEPTIONS)}
+    {$I except_native.inc}
+  {$elseif defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+    {$I except_branchful.inc}
+  {$else}
+    {$i except.inc}
+  {$endif}
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

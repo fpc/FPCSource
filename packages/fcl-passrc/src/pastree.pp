@@ -356,6 +356,7 @@ type
     Functions,  // TPasProcedure
     Properties, // TPasProperty
     ResStrings, // TPasResString
+    Labels,     // TPasLabel
     Types,      // TPasType, except TPasClassType, TPasRecordType
     Variables   // TPasVariable, not descendants
       : TFPList;
@@ -537,6 +538,7 @@ type
     DestType: TPasType;
     SubType: TPasType;
     Expr: TPasExpr;
+    CodepageExpr: TPasExpr;
   end;
 
   { TPasPointerType - todo: change it TPasAliasType }
@@ -738,7 +740,7 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    Values: TFPList; // list of TPasElement
+    Values: TFPList; // list of TPasExpr
     Members: TPasRecordType;
   end;
 
@@ -934,6 +936,7 @@ type
   TPasStringType = class(TPasUnresolvedTypeRef)
   public
     LengthExpr : String;
+    CodePageExpr : String;
     function ElementTypeName: string; override;
   end;
 
@@ -1687,6 +1690,13 @@ type
   TPasImplLabelMark = class(TPasImplElement)
   public
     LabelId: String;
+  end;
+
+  { TPasImplGoto }
+
+  TPasImplGoto = class(TPasImplStatement)
+  public
+    LabelName: string;
   end;
 
   { TPassTreeVisitor }
@@ -3278,6 +3288,7 @@ begin
   Properties := TFPList.Create;
   ResStrings := TFPList.Create;
   Types := TFPList.Create;
+  Labels := TFPList.Create;
   Variables := TFPList.Create;
 end;
 
@@ -3296,6 +3307,7 @@ begin
   FreeAndNil(Consts);
   FreeAndNil(Classes);
   FreeAndNil(Attributes);
+  FreeAndNil(Labels);
   {$IFDEF VerbosePasTreeMem}writeln('TPasDeclarations.Destroy Declarations');{$ENDIF}
   for i := 0 to Declarations.Count - 1 do
     begin
@@ -3386,6 +3398,7 @@ begin
   ReleaseAndNil(TPasElement(SubType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.SubType'{$ENDIF});
   ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
   ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'TPasAliasType.Expr'{$ENDIF});
+  ReleaseAndNil(TPasElement(CodepageExpr){$IFDEF CheckPasTreeRefCount},'TPasAliasType.Expr'{$ENDIF});
   inherited Destroy;
 end;
 

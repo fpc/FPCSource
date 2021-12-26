@@ -94,7 +94,7 @@ uses
   {$endif}
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
-  Pas2jsFileUtils, FPPas2Js, jsbase;
+  Pas2jsFileUtils, FPPas2Js, Pas2JSUtils, jsbase;
 
 const
   PCUMagic = 'Pas2JSCache';
@@ -268,7 +268,8 @@ const
   PCUTargetPlatformNames: array[TPasToJsPlatform] of string = (
     'Browser',
     'NodeJS',
-    'Electron'
+    'Electron',
+    'Module'
     );
 
   PCUDefaultTargetProcessor = ProcessorECMAScript5;

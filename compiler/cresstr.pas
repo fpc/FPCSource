@@ -32,9 +32,6 @@ implementation
 
 uses
    SysUtils,
-{$if FPC_FULLVERSION<20700}
-   ccharset,
-{$endif}
    cclasses,widestr,
    cutils,globtype,globals,systems,
    symbase,symconst,symtype,symdef,symsym,symtable,

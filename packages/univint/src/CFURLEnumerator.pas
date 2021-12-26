@@ -259,10 +259,10 @@ type
 const
   kCFURLEnumeratorSuccess = 1;                    { The enumeration was successful. The url output parameter is valid. }
   kCFURLEnumeratorEnd = 2;                        { The enumeration is complete. }
-  kCFURLEnumeratorError = 3;			    { An error occured during enumeration. The retained error output parameter describes the error. }
+  kCFURLEnumeratorError = 3;			    { An error occurred during enumeration. The retained error output parameter describes the error. }
   kCFURLEnumeratorDirectoryPostOrderSuccess = 4;  { The enumeration was successful. The url output parameter is for a directory after all of directory's descendants have been visited (post-order). This result will only be returned for directories when both the kCFURLEnumeratorDescendRecursively and kCFURLEnumeratorIncludeDirectoriesPostOrder options are passed to CFURLEnumeratorCreateForDirectoryURL. }
 
-{ CFURLEnumeratorGetNextURL - Advances the enumerator. If kCFURLEnumeratorSuccess is returned, the url output parameter returns the next URL found. If kCFURLEnumeratorError is returned, an error has occured and the error output parameter describes the error. If kCFURLEnumeratorEnd, the enumeration is finished.
+{ CFURLEnumeratorGetNextURL - Advances the enumerator. If kCFURLEnumeratorSuccess is returned, the url output parameter returns the next URL found. If kCFURLEnumeratorError is returned, an error has occurred and the error output parameter describes the error. If kCFURLEnumeratorEnd, the enumeration is finished.
 
 The url output parameter, if returned, is not retained. The error output parameter, if returned, is retained and must be released.
 }

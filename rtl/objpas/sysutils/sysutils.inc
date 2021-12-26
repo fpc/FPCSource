@@ -254,6 +254,19 @@ end;
     end;
 
 
+    function Exception.GetBaseException : Exception;
+      var
+        _ExceptObjectStack : PExceptObject;
+      begin
+        _ExceptObjectStack:=RaiseList;
+        While Assigned(_ExceptObjectStack) do
+          begin
+            result:=Exception(_ExceptObjectStack^.FObject);
+            _ExceptObjectStack:=_ExceptObjectStack^.Next;
+          end;
+      end;
+
+
     Constructor EVariantError.CreateCode (Code : longint);
     begin
        case Code of

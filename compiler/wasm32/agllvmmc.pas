@@ -40,12 +40,9 @@ interface
 
     TLLVMMachineCodePlaygroundAssembler=class(TGNUassembler)
     protected
-      procedure WriteImports;
-
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-      procedure WriteAsmList;override;
     end;
 
     { TWASM32InstrWriter }
@@ -67,75 +64,6 @@ implementation
   { TLLVMMachineCodePlaygroundAssembler }
 
 
-  procedure TLLVMMachineCodePlaygroundAssembler.WriteImports;
-
-      procedure WriteImportDll(proc: tprocdef);
-        var
-          list : TAsmList;
-        begin
-          list:=TAsmList.Create;
-          thlcgwasm(hlcg).g_procdef(list,proc);
-          WriteTree(list);
-          list.free;
-          writer.AsmWrite(#9'.import_module'#9);
-          writer.AsmWrite(proc.mangledname);
-          writer.AsmWrite(', ');
-          writer.AsmWriteLn(proc.import_dll^);
-          writer.AsmWrite(#9'.import_name'#9);
-          writer.AsmWrite(proc.mangledname);
-          writer.AsmWrite(', ');
-          writer.AsmWriteLn(proc.import_name^);
-        end;
-
-    var
-      i    : integer;
-      def  : tdef;
-      proc : tprocdef;
-      list : TAsmList;
-      cur_unit: tused_unit;
-    begin
-      for i:=0 to current_module.deflist.Count-1 do
-        begin
-          def:=tdef(current_module.deflist[i]);
-          { since commit 48986 deflist might have NIL entries }
-          if assigned(def) and (def.typ=procdef) then
-            begin
-              proc := tprocdef(def);
-              if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                WriteImportDll(proc);
-            end;
-         end;
-      list:=TAsmList.Create;
-      cur_unit:=tused_unit(usedunits.First);
-      while assigned(cur_unit) do
-        begin
-          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
-            begin
-              if mf_init in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-              if mf_finalize in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-            end;
-          for i:=0 to cur_unit.u.deflist.Count-1 do
-            begin
-              def:=tdef(cur_unit.u.deflist[i]);
-              if assigned(def) and (tdef(def).typ = procdef) then
-                begin
-                  proc := tprocdef(def);
-                  if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                    WriteImportDll(proc)
-                  else if (not proc.owner.iscurrentunit or (po_external in proc.procoptions)) and
-                     ((proc.paras.Count=0) or (proc.has_paraloc_info in [callerside,callbothsides])) then
-                    thlcgwasm(hlcg).g_procdef(list,proc);
-                end;
-            end;
-          cur_unit:=tused_unit(cur_unit.Next);
-        end;
-      WriteTree(list);
-      list.free;
-    end;
-
-
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
       if (atype=sec_fpc) or (atype=sec_threadvar) then
@@ -148,15 +76,6 @@ implementation
     begin
       inherited;
       InstrWriter:=TWASM32InstrWriter.create(self);
-    end;
-
-
-  procedure TLLVMMachineCodePlaygroundAssembler.WriteAsmList;
-    begin
-      inherited;
-      { print all global procedures/functions }
-      writer.AsmWriteLn(#9'.globaltype'#9+STACK_POINTER_SYM+', i32');
-      WriteImports;
     end;
 
 
@@ -234,7 +153,7 @@ implementation
               end;
           end
         else
-          result:=result+'0x1.'+HexStr(fraction,fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
+          result:=result+'0x1.'+HexStr(fraction shl (fraction_hexdigits*4-fraction_bits),fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
       end;
 
     function constsingle(s: single): ansistring;
@@ -328,7 +247,7 @@ implementation
          id     : as_wasm32_llvm_mc;
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory --filetype=obj -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';

@@ -95,6 +95,8 @@ interface
     function trimspace(const s:string):string;
     function trimspace(const s:AnsiString):AnsiString;
     function space (b : longint): string;
+    { returns the position of the first char of the set cs in s, if there is none, then it returns 0 }
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
     function PadSpace(const s:string;len:longint):string;
     function PadSpace(const s:AnsiString;len:longint):AnsiString;
     function GetToken(var s:string;endchar:char):string;
@@ -115,8 +117,9 @@ interface
     {# Returns true if abs(value) is a power of 2, the actual
        exponent value is returned in power.
     }
-    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
-    function nextpowerof2(value : int64; out power: longint) : int64;
+    function isabspowerof2(const value : Tconstexprint; out power : longint) : boolean;
+    { # Returns the power of 2 >= value }
+    function nextpowerof2(value : qword; out power: longint) : qword;
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
@@ -290,13 +293,15 @@ implementation
 
 
     function newalignment(oldalignment: longint; offset: int64): longint;
-      var
-        localoffset: longint;
       begin
-        localoffset:=longint(offset);
-        while (localoffset mod oldalignment)<>0 do
-          oldalignment:=oldalignment div 2;
-        newalignment:=oldalignment;
+        { oldalignment must be power of two.
+
+          Negating two's complement number keeps its tail '100...000' and complements all bits above.
+          "x and -x" extracts this tail of 'x'.
+          Said tail of "oldalignment or offset" is the desired answer. }
+
+        result:=oldalignment or longint(offset); { high part of offset won't matter as long as alignment is 32-bit }
+        result:=result and -result;
       end;
 
 
@@ -337,50 +342,45 @@ implementation
 
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if a<=1 then
-          result:=i
-        else
-          begin
-            if i<0 then
-              result:=((i+1-a) div a) * a
-            else
-              result:=((i-1+a) div a) * a;
-          end;
+        { One-line formula for i >= 0 is
+          >>> (i + a - 1) and not (a - 1),
+          and for i < 0 is
+          >>> i and not (a - 1). }
+
+        if a>0 then
+          a:=a-1; { 'a' is decremented beforehand, this also allows a=0 as a synonym for a=1. }
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
       end;
 
 
     function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if a<=1 then
-          result:=i
-        else
-          begin
-            if i<0 then
-              result:=((i+1-a) div a) * a
-            else
-              result:=((i-1+a) div a) * a;
-          end;
+        { Copy of 'longint' version. }
+        if a>0 then
+          a:=a-1;
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
       end;
 
 
     function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
     {
-      return value <i> aligned <a> boundary
+      return value <i> aligned <a> boundary. <a> must be power of two.
     }
       begin
-        { for 0 and 1 no aligning is needed }
-        if (a<=1) or (i=0) then
-          result:=i
-        else
-          result:=((i-1+a) div a) * a;
+        { No i < 0 case here. }
+        if a>0 then
+          a:=a-1;
+        result:=(i+a) and not a;
       end;
 
 
@@ -985,26 +985,18 @@ implementation
       end;
 
 
-    function nextpowerof2(value : int64; out power: longint) : int64;
-    {
-      returns the power of 2 >= value
-    }
-      var
-        i : longint;
+    function nextpowerof2(value : qword; out power: longint) : qword;
       begin
-        result := 0;
-        power := -1;
-        if ((value <= 0) or
-            (value >= $4000000000000000)) then
+        power:=-1;
+        result:=0;
+        if (value=0) or (value>qword($8000000000000000)) then
           exit;
-        result := 1;
-        for i:=0 to 63 do
+
+        power:=BsrQWord(value);
+        result:=qword(1) shl power;
+        if (value and (value-1))<>0 then
           begin
-            if result>=value then
-              begin
-                power := i;
-                exit;
-              end;
+            inc(power);
             result:=result shl 1;
           end;
       end;
@@ -1187,6 +1179,21 @@ implementation
          getmem(result,length(s)+1);
          result^:=s;
       end;
+
+
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
+      var
+        i : integer;
+      begin
+        result:=0;
+        for i:=1 to length(s) do
+          if s[i] in cs then
+            begin
+              result:=i;
+              exit;
+            end;
+      end;
+
 
     function CompareStr(const S1, S2: string): Integer;
       var

@@ -764,20 +764,6 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
-{$ifdef oldregvars}
-       { register variables }
-       pregvarinfo = ^tregvarinfo;
-       tregvarinfo = record
-          regvars : array[1..maxvarregs] of tsym;
-          regvars_para : array[1..maxvarregs] of boolean;
-          regvars_refs : array[1..maxvarregs] of longint;
-
-          fpuregvars : array[1..maxfpuvarregs] of tsym;
-          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
-          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
-       end;
-{$endif oldregvars}
-
        timplprocdefinfo = record
           resultname : pshortstring;
           parentfpstruct: tsym;
@@ -871,9 +857,6 @@ interface
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
-{$ifdef oldregvars}
-          regvarinfo: pregvarinfo;
-{$endif oldregvars}
           import_nr    : word;
           extnumber    : word;
           { set to a value different from tsk_none in case this procdef is for
@@ -1363,7 +1346,7 @@ implementation
       { other }
       aasmbase,
       gendef,
-      fpccrc,
+      fpchash,
       entfile
       ;
 
@@ -1533,7 +1516,7 @@ implementation
       var
         s,
         prefix : TSymStr;
-        crc : dword;
+        hash : qword;
       begin
         prefix:='';
         if not assigned(st) then
@@ -1555,9 +1538,9 @@ implementation
                prefix:=s;
              if length(prefix)>100 then
                begin
-                 crc:=0;
-                 crc:=UpdateCrc32(crc,prefix[1],length(prefix));
-                 prefix:='$CRC'+hexstr(crc,8);
+                 hash:=0;
+                 hash:=UpdateFnv64(hash,prefix[1],length(prefix));
+                 prefix:='$H'+Base64Mangle(hash);
                end;
              st:=st.defowner.owner;
            end;
@@ -3318,10 +3301,12 @@ implementation
 {$ifndef cpu64bitalu}
         if (ordtype in [s64bit,u64bit]) then
 {$else not cpu64bitalu}
-        if (ordtype = u64bit) or
+        if ((ordtype = u64bit) and
+            (high > system.high(int64))) or
            ((ordtype = s64bit) and
             ((low <= (system.low(int64) div 2)) or
-             (high > (system.high(int64) div 2)))) then
+             ((low < 0) and
+              (high > (system.high(int64) div 2))))) then
 {$endif cpu64bitalu}
           result := 64
         else if (
@@ -5452,7 +5437,7 @@ implementation
 
     function tabstractprocdef.mangledprocparanames(oldlen : longint) : string;
       var
-        crc  : dword;
+        hash  : qword;
         hp   : TParavarsym;
         hs   : TSymStr;
         newlen,
@@ -5472,27 +5457,27 @@ implementation
         if not is_void(returndef) then
           result:=result+'$$'+returndef.mangledparaname;
         newlen:=length(result)+oldlen;
-        { Replace with CRC if the parameter line is very long }
+        { Replace with hash if the parameter line is very long }
         if (newlen-oldlen>12) and
            ((newlen>100) or (newlen-oldlen>64)) then
           begin
-            crc:=0;
+            hash:=0;
             for i:=0 to paras.count-1 do
               begin
                 hp:=tparavarsym(paras[i]);
                 if not(vo_is_hidden_para in hp.varoptions) then
                   begin
                     hs:=hp.vardef.mangledparaname;
-                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                    hash:=UpdateFnv64(hash,hs[1],length(hs));
                   end;
               end;
             if not is_void(returndef) then
               begin
                 { add a little prefix so that x(integer; integer) is different from x(integer):integer }
                 hs:='$$'+returndef.mangledparaname;
-                crc:=UpdateCrc32(crc,hs[1],length(hs));
+                hash:=UpdateFnv64(hash,hs[1],length(hs));
               end;
-            result:='$crc'+hexstr(crc,8);
+            result:='$h'+Base64Mangle(hash);
           end;
       end;
 
@@ -7431,7 +7416,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -7489,7 +7474,7 @@ implementation
            end;
 
          { load implemented interfaces }
-         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava] then
            begin
              ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;

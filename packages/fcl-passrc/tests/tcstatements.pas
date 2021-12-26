@@ -68,6 +68,7 @@ Type
     Procedure TestIfSemiColonElseError;
     procedure TestIfforElseBlock;
     procedure TestIfRaiseElseBlock;
+    procedure TestIfGotoElseBlock;
     procedure TestIfWithBlock;
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
@@ -108,6 +109,7 @@ Type
     Procedure TestRaise;
     Procedure TestRaiseEmpty;
     Procedure TestRaiseAt;
+    Procedure TestGoto;
     Procedure TestTryFinally;
     Procedure TestTryFinallyEmpty;
     Procedure TestTryFinallyNested;
@@ -660,7 +662,18 @@ begin
   TestStatement(['if a then','raise','else', 'for X := 0 to 1 do Writeln(X)']);
   I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
   AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
-  AssertEquals('For statement',TPasImplRaise,I.ifBranch.ClassType);
+  AssertEquals('Raise statement',TPasImplRaise,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfGotoElseBlock;
+Var
+  I : TPasImplIfElse;
+begin
+  TestStatement(['if a then','goto bird','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('Goto statement',TPasImplGoto,I.ifBranch.ClassType);
   AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
 end;
 
@@ -671,7 +684,7 @@ begin
   TestStatement(['if a then','with b do something','else', 'for X := 0 to 1 do Writeln(X)']);
   I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
   AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
-  AssertEquals('For statement',TPasImplWithDo,I.ifBranch.ClassType);
+  AssertEquals('With statement',TPasImplWithDo,I.ifBranch.ClassType);
   AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
 end;
 
@@ -1448,6 +1461,18 @@ begin
   AssertNotNull(R.ExceptObject);
   AssertNotNull(R.ExceptAddr);
   AssertExpression('Expression object',R.ExceptAddr,pekIdent,'B');
+end;
+
+procedure TTestStatementParser.TestGoto;
+
+Var
+  R : TPasImplGoto;
+
+begin
+  TestStatement('Goto A;');
+  R:=AssertStatement('Goto statement',TPasImplGoto) as TPasImplGoto;
+  AssertEquals(0,R.Elements.Count);
+  AssertEquals('A',R.LabelName);
 end;
 
 procedure TTestStatementParser.TestTryFinally;

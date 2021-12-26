@@ -86,7 +86,7 @@ interface
           id          : tasm;
           idtxt       : string[12];
           asmbin      : string[16];
-          asmcmd      : string[100];
+          asmcmd      : string[113];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
@@ -218,7 +218,7 @@ interface
           newline      : string[2];
           dirsep       : char;
           assem        : tasm;
-          assemextern  : tasm; { external assembler, used by -a }
+          assemextern  : tasm; { external assembler, used by -a and -s }
           link         : tlink;
           linkextern   : tlink;  { external linker, used by -s }
           ar           : tar;
@@ -311,7 +311,7 @@ interface
                            system_powerpc64_embedded,system_avr_embedded,
                            system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded,
                            system_i8086_embedded,system_riscv32_embedded,system_riscv64_embedded,
-                           system_xtensa_embedded,system_z80_embedded];
+                           system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded];
 
        { all FreeRTOS systems }
        systems_freertos = [system_xtensa_freertos,system_arm_freertos];

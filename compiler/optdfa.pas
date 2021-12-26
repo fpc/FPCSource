@@ -45,6 +45,7 @@ unit optdfa;
         procedure resetdfainfo(node : tnode);
 
         procedure createdfainfo(node : tnode);
+        procedure redodfainfo(node : tnode);
         destructor destroy;override;
       end;
 
@@ -656,6 +657,14 @@ unit optdfa;
 
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
+      end;
+
+
+    procedure TDFABuilder.redodfainfo(node: tnode);
+      begin
+        resetdfainfo(node);
+        createdfainfo(node);
+        include(current_procinfo.flags,pi_dfaavailable);
       end;
 
 

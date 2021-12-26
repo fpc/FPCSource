@@ -821,7 +821,7 @@ unit i_embed;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_wasm32_llvm_mc;
+            assem        : as_wasm32_wasm;
             assemextern  : as_wasm32_llvm_mc;
             link         : ld_none;
             linkextern   : ld_embedded;

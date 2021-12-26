@@ -29,7 +29,7 @@ uses
 {$ifdef HAS_UNIT_PROCESS}
 procedure fpcm_update_revision_info(Sender: TObject);
 
-  function ReadSVNLine(AProcess: TProcess; var ALine: string): boolean;
+  function ReadGitLine(AProcess: TProcess; var ALine: string): boolean;
   var
     b,i: byte;
   begin
@@ -55,17 +55,17 @@ procedure fpcm_update_revision_info(Sender: TObject);
 
 var
   P : TPackage;
-  SVNBin : String;
-  SVNProcess: TProcess;
+  GitBin : String;
+  GitProcess: TProcess;
   f: text;
   fileurl, line, date, lastdate,
-  revision, oldrevstring, olddate : string;
+  hash, lasthash, oldhash,
+  oldhashstring, olddate : string;
   i, io : longint;
-  rev, lastrev, oldrev : longint;
 
 begin
   // If revision.inc does exist, try to update the file with the latest
-  // revision from svn. And include this information in the fpcmake
+  // commit from git. And include this information in the fpcmake
   // executable.
   With installer do
     begin
@@ -78,61 +78,57 @@ begin
       // Run svn info, and catch output.
       P := sender as TPackage;
       P.Options.Add('-dREVINC');
-      SVNBin := ExeSearch(AddProgramExtension('svn', Defaults.BuildOS), GetEnvironmentvariable('PATH'));
-      if SVNBin<>'' then
+      GitBin := ExeSearch(AddProgramExtension('git', Defaults.BuildOS), GetEnvironmentvariable('PATH'));
+      if GitBin<>'' then
         begin
-          SVNProcess := TProcess.create(nil);
+          GitProcess := TProcess.create(nil);
           try
-            SVNProcess.Executable := SVNBin;
-            SVNProcess.Parameters.Add('info');
-            SVNProcess.Parameters.Add('-R');
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmpkg.pp'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.pp'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmwr.pp'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmmain.pp'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmdic.pp'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.ini'));
-            SVNProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'Makefile.fpc'));
-            SVNProcess.Options:=[poUsePipes];
-            SVNProcess.Execute;
+            GitProcess.Executable := GitBin;
+            GitProcess.Parameters.Add('log');
+            GitProcess.Parameters.Add('-n');
+            GitProcess.Parameters.Add('1');
+            GitProcess.Parameters.Add('--date=short');
+            GitProcess.Parameters.Add('--pretty=%cd');
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmpkg.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmwr.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmmain.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmdic.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.ini'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'Makefile.fpc'));            GitProcess.Options:=[poUsePipes];
+            GitProcess.Execute;
 
             // Search for latest revision in output:
-            lastrev:=0;
             lastdate:='0';
-            while ReadSVNLine(SVNProcess, Line) do
-              begin
-                i:=pos('URL: ',line);
-                if i>0 then
-                  begin
-                    fileurl:=copy(line,i+length('URL: '),length(line));
-                    BuildEngine.Log(vlCommand,'fileurl='+fileurl);
-                  end;
-                i:=pos('Last Changed Date: ',line);
-                if i>0 then
-                  begin
-                    date:=copy(line,i+length('Last Changed Date: '),length(line));
-                    i:=pos(' ',date);
-                    if i>0 then
-                      date:=copy(date,1,i-1);
-                    BuildEngine.Log(vlCommand,'date='+date);
-                    if date>lastdate then
-                      lastdate:=date;
-                  end;
-                i:=pos('Last Changed Rev: ',line);
-                if i>0 then
-                  begin
-                    revision:=copy(line,i+length('Last Changed Rev: '),length(line));
-                    BuildEngine.Log(vlCommand,'rev='+revision);
-                    val(revision,rev);
-                    if rev>lastrev then
-                      lastrev:=rev;
-                  end;
-              end;
+            ReadGitLine(GitProcess, lastdate);
           finally
-            SVNProcess.Free;
+            GitProcess.Free;
           end;
 
-          oldrev:=0;
+          GitProcess := TProcess.create(nil);
+          try
+            GitProcess.Executable := GitBin;
+            GitProcess.Parameters.Add('log');
+            GitProcess.Parameters.Add('-n');
+            GitProcess.Parameters.Add('1');
+            GitProcess.Parameters.Add('--pretty=%h');
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmpkg.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmwr.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmmain.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmdic.pp'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'fpcmake.ini'));
+            GitProcess.Parameters.Add(BuildEngine.AddPathPrefix(P,'Makefile.fpc'));            GitProcess.Options:=[poUsePipes];
+            GitProcess.Options:=[poUsePipes];
+            GitProcess.Execute;
+
+            lasthash:='0';
+            ReadGitLine(GitProcess, lasthash);
+          finally
+            GitProcess.Free;
+          end;
+
+          oldhash:='';
           olddate:='';
           // Write the latest change-date and revision to file revision.inc
           system.assign(f,BuildEngine.AddPathPrefix(P,'revision.inc'));
@@ -145,35 +141,35 @@ begin
             end
           else
             begin
-              readln(f,oldrevstring);
+              readln(f,oldhashstring);
               close(f);
-              BuildEngine.Log(vlCommand, 'oldrevstring '+oldrevstring);
-              if oldrevstring[1]='''' then
-                oldrevstring:=copy(oldrevstring,2,length(oldrevstring));
-              i:=length(oldrevstring);
-              if oldrevstring[i]='''' then
-                oldrevstring:=copy(oldrevstring,1,i-1);
-              i:=pos(' rev ',oldrevstring);
+              BuildEngine.Log(vlCommand, 'oldhashstring '+oldhashstring);
+              if oldhashstring[1]='''' then
+                oldhashstring:=copy(oldhashstring,2,length(oldhashstring));
+              i:=length(oldhashstring);
+              if oldhashstring[i]='''' then
+                oldhashstring:=copy(oldhashstring,1,i-1);
+              i:=pos(' hash ',oldhashstring);
               if i>0 then
                 begin
-                  val(copy(oldrevstring,i+5,length(oldrevstring)),oldrev);
-                  olddate:=copy(oldrevstring,1,i-1);
-                  BuildEngine.Log(vlCommand,'Old values '+olddate+' '+IntToStr(oldrev));
-                  if (olddate >= lastdate) and (oldrev >= lastrev) then
+                  oldhash:=copy(oldhashstring,i+6,length(oldhashstring));
+                  olddate:=copy(oldhashstring,1,i-1);
+                  BuildEngine.Log(vlCommand,'Old values '+olddate+' '+oldhash);
+                  if (olddate >= lastdate) and (oldhash <> lasthash) then
                     begin
-                      BuildEngine.Log(vlCommand,'New values '+lastdate+' '+IntToStr(lastrev));
+                      BuildEngine.Log(vlCommand,'New values '+lastdate+' '+lasthash);
                       BuildEngine.Log(vlCommand,'Keeping old values');
-                      lastrev:=oldrev;
+                      lasthash:=oldhash;
                       lastdate:=olddate;
                     end;
                 end;
 
             end;
-          if (lastdate=olddate) and (lastrev=oldrev) then
+          if (lastdate=olddate) and (lasthash=oldhash) then
             BuildEngine.Log(vlCommand,'revision.inc unchanged')
            else
             begin
-              BuildEngine.Log(vlCommand,'revision.inc set to '''+lastdate+' rev '+IntToStr(lastrev)+'''');
+              BuildEngine.Log(vlCommand,'revision.inc set to '''+lastdate+' hash '+lasthash+'''');
 
               system.assign(f,BuildEngine.AddPathPrefix(P,'revision.inc'));
               rewrite(f);
@@ -183,12 +179,12 @@ begin
                   BuildEngine.Log(vlError, 'Error opening revision.inc for writing');
                   halt(3);
                 end;
-              Writeln(f,'''',lastdate,' rev ',lastrev,'''');
+              Writeln(f,'''',lastdate,' hash ',lasthash,'''');
               close(f);
             end
         end
       else
-        BuildEngine.Log(vlWarning,'Subversion executable (svn) not found. Svn-revision in fpcmake executable might be out of date.');
+        BuildEngine.Log(vlWarning,'Git executable (git) not found. Git-hash in fpcmake executable might be out of date.');
     end;
 end;
 {$endif HAS_UNIT_PROCESS}

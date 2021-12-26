@@ -146,7 +146,7 @@ general_t_unitscope=01027_T_Using unit scope: $1
 #
 # Scanner
 #
-# 02105 is the last used one
+# 02107 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -433,6 +433,14 @@ scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supporte
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified controller
 scan_e_emptymacroname=02106_E_A macro/compiler variable name cannot be empty
+scan_e_unexpected_ifend=02107_E_$IFEND directive found without a matching $IF directive
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)DEF directive
+% When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
+% \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
+% \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
 % \end{description}
 #
 # Parser
@@ -2582,7 +2590,7 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 #
 # Assembler reader
 #
-# 07145 is the last used one
+# 07147 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2926,6 +2934,8 @@ asmr_e_invalid_arrangement=07143_E_Invalid arrangement specifier "$1"
 asmr_e_a64_invalid_regset=07144_E_Registers in a register set must be consecutive.
 asmr_e_unknown_field=07145_E_Unknown field identifier
 % The internal assembler read cannot find the passed field identifier.
+asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146_E_Not supported combination opcode: $1 - att-suffix-type {$2} and memrefsize-type {$3}
+asmr_e_a64_regset_too_large=07147_E_Too many registers in register set.
 #
 # Assembler/binary writers
 #
@@ -2990,7 +3000,7 @@ asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
 #
 # Executing linker/assembler
 #
-# 09035 is the last used one
+# 09036 is the last used one
 #
 # BeginOfTeX
 %
@@ -3051,9 +3061,6 @@ exec_e_exe_not_supported=09018_E_Creation of Executables not supported
 exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not supported
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not supported
-% Creating static libraries is not supported for this platform, because it was
-% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Closing script $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource compiler "$1" not found, switching to external mode
@@ -3091,6 +3098,12 @@ exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a li
 % If the system has gcc installed, running \var{gcc --print-file-name <filename>} might return the path to the file.
 % Add this path in your \var{fpc.cfg} using the switch \var{-Fl} to fix this error. This requires though,
 % that gcc targets the same target as FPC.
+exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not supported
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+exec_f_controllertype_expected=09036_F_To generate the correct linker call, a controller type must be set by the directive -Wp
+% Xtensa micro controller require a detailed specification linker command which depends on the target controller.
+% If no target controller is set, this command cannot be build and thus linking cannot be carried out.
 %
 %\end{description}
 # EndOfTeX
@@ -3196,7 +3209,7 @@ link_e_undefined_symbol=09222_E_Undefined symbol: $1
 #
 # Unit loading
 #
-# 10064 is the last used one
+# 10068 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3421,13 +3434,15 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both compiled with or without LLVM support
 % Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
 % and vice versa.
+unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU is compiled for another WebAssembly exceptions mode
+% This unit file was compiled for a different WebAssembly exceptions mode.
 % \end{description}
 # EndOfTeX
 
 #
 #  Options
 #
-# 11063 is the last used one
+# 11064 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3586,6 +3601,8 @@ option_debug_info_requires_external_linker=11061_N_The selected debug format is 
 option_valgrind_heaptrc_mismatch=11062_E_You can not use both options ($1) ($2) at same time.
 option_unsupported_fpu=11063_F_The selected FPU type "$1" is not supported by the selected instruction set "$2"
 % Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
+option_too_many_exception_modes=11064_E_Only one WebAssembly exception support mode can be specified.
+% Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
 %\end{description}
 # EndOfTeX
 
@@ -3862,7 +3879,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 **0*_Put + after a boolean switch option to enable it, - to disable it.
 **1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
 # Assembler related options
-**1a_The compiler does not delete the generated assembler file
+**1a_The compiler does not delete the generated assembler file, automatically switches to external assembler writer
 **2a5_Don't generate Big Obj COFF files for GNU Binutils older than 2.25 (Windows, NativeNT)
 **2al_List sourcecode lines in assembler file
 **2an_List node info in assembler file (-dEXTDEBUG compiler)
@@ -3875,46 +3892,46 @@ F*0*_Only options valid for the default or selected platform are listed.
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
 3*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
+3*2Acoff_COFF (Go32v2) using internal writer
+3*2Aelf_ELF (Linux) using internal writer
 3*2Amacho_Mach-O (Darwin, Intel 32 bit) using internal writer
-8*2Anasm_Assemble using Nasm
-8*2Anasmobj_Assemble using Nasm
+3*2Amasm_Obj file using Masm (Microsoft)
 3*2Anasm_Assemble using Nasm
 3*2Anasmcoff_COFF (Go32v2) file using Nasm
-3*2Anasmelf_ELF32 (Linux) file using Nasm
-3*2Anasmwin32_Win32 object file using Nasm
-3*2Anasmwdosx_Win32/WDOSX object file using Nasm
 3*2Anasmdarwin_macho32 object file using Nasm (experimental)
-3*2Awasm_Obj file using Wasm (Watcom)
+3*2Anasmelf_ELF32 (Linux) file using Nasm
 3*2Anasmobj_Obj file using Nasm
-3*2Amasm_Obj file using Masm (Microsoft)
-3*2Atasm_Obj file using Tasm (Borland)
-3*2Aelf_ELF (Linux) using internal writer
-3*2Acoff_COFF (Go32v2) using internal writer
+3*2Anasmwdosx_Win32/WDOSX object file using Nasm
+3*2Anasmwin32_Win32 object file using Nasm
 3*2Apecoff_PE-COFF (Win32) using internal writer
+3*2Atasm_Obj file using Tasm (Borland)
+3*2Awasm_Obj file using Wasm (Watcom)
 3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
-4*2Agas_Assemble using GNU GAS
 4*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
-4*2Amasm_Win64 object file using ml64 (Microsoft)
-4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Aelf_ELF (Linux-64bit) using internal writer
-4*2Ayasm_Assemble using Yasm (experimental)
+4*2Agas_Assemble using GNU GAS
+4*2Amasm_Win64 object file using ml64 (Microsoft)
 4*2Anasm_Assemble using Nasm (experimental)
-4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
-4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
 4*2Anasmdarwin_Assemble darwin macho64 object file using Nasm (experimental)
+4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
+4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
+4*2Apecoff_PE-COFF (Win64) using internal writer
+4*2Ayasm_Assemble using Yasm (experimental)
 6*2Aas_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
 6*2Avasm_Use vasm to assemble
+8*2Anasm_Assemble using Nasm
+8*2Anasmobj_Assemble using Nasm
 A*2Aas_Assemble using GNU AS
 A*2Aas-darwin_Assemble using GNU AS for Darwin targets
 A*2Aclang_Assemble using clang
 A*2Aelf_Assemble using internal ELF writer
 a*2Aas_Assemble using GNU AS
+a*2Aas-clang_Assemble using clang for other targets
 a*2Aclang_Assemble using clang for darwin/ios targets
-a*2Aas-clang_Assemble using clang for other targets 
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
 s*2Aas_Assemble using GNU AS
@@ -3924,8 +3941,8 @@ W*2Allvm-mc_Assemble using llvm-mc
 W*2Awabt_Assemble using wasa
 x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
-Z*2Az80asm_Assemble using z80asm
 Z*2Avasm_Assemble using Vasm
+Z*2Az80asm_Assemble using z80asm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -3954,9 +3971,9 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
-**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **3CPPACKENUM=<y>_ <y> enum packing: 0, 1, 2 and 4 or DEFAULT or NORMAL
 **3CPPACKRECORD=<y>_ <y> record packing: 0 or DEFAULT or NORMAL, 1, 2, 4, 8, 16 and 32
+**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_Range checking
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
@@ -3968,6 +3985,7 @@ p*2CT<x>_Target-specific code generation options
 P*2CT<x>_Target-specific code generation options
 J*2CT<x>_Target-specific code generation options
 A*2CT<x>_Target-specific code generation options
+W*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTautogetterprefix=X_  Automatically create getters for properties with prefix X (empty string disables)
@@ -3981,13 +3999,17 @@ J*3CTenumfieldinit_       Initialize enumeration fields in constructors to enumt
 J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode verification error if used uninitialized (slows down code)
 J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
+W*3CTnoexceptions_        Disable the exception support. Raising an exception will abort the program.
+W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
+W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly
+W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 J*2Cv_Var/out parameter copy-out checking
 A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
-**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2Dd<x>_Set description to <x>
+**2DD<x>_Set the date string returned by %DATE% to x, it is not checked for being a valid date string
 **2DT<x>_Set the time string returned by %TIME% to x, it is not checked for being a valid time string
 **2Dv<x>_Set DLL version to <x>
 *O2Dw_PM application
@@ -4015,19 +4037,19 @@ A*2CV<x>_Set section threadvar model to <x>
 **2FR<x>_Set resource (.res) linker to <x>
 **2Fu<x>_Add <x> to unit path
 **2FU<x>_Set unit output path to <x>, overrides -FE
-**2FW<x>_Store generated whole-program optimization feedback in <x>
 **2Fw<x>_Load previously stored whole-program optimization feedback from <x>
+**2FW<x>_Store generated whole-program optimization feedback in <x>
 *g1g_Generate debug information (default format for target)
 *g2gc_Generate checks for pointers (experimental, only available on some targets, might generate false positive)
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2gm_Generate Microsoft CodeView debug information (experimental)
 *g2go<x>_Set debug information options
+*g3godwarfcpp_ Simulate C++ debug information in DWARF
+*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
+*g3godwarfomflinnum_ Generate line number information in OMF LINNUM records in MS LINK format in addition to the DWARF debug information (Open Watcom Debugger/Linker compatibility)
 *g3godwarfsets_ Enable DWARF 'set' type debug information (breaks gdb < 6.5)
 *g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
-*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
-*g3godwarfcpp_ Simulate C++ debug information in DWARF
-*g3godwarfomflinnum_ Generate line number information in OMF LINNUM records in MS LINK format in addition to the DWARF debug information (Open Watcom Debugger/Linker compatibility)
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses; multiple 't' changes the trashing value)
@@ -4037,36 +4059,36 @@ A*2CV<x>_Set section threadvar model to <x>
 *g2gw3_Generate DWARFv3 debug information
 *g2gw4_Generate DWARFv4 debug information (experimental)
 **1i_Information
-**2iD_Return compiler date
-**2iSO_Return compiler OS
-**2iSP_Return compiler host processor
-**2iTO_Return target OS
-**2iTP_Return target processor
-**2iV_Return short compiler version
-**2iW_Return full compiler version
 **2ia_Return list of supported ABI targets
 **2ib_Return the used code generation backend type
 **2ic_Return list of supported CPU instruction sets
+**2iD_Return compiler date
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes
 **2im_Return list of supported modeswitches
 **2io_Return list of supported optimizations
 **2ir_Return list of recognized compiler and RTL features
+**2iSO_Return compiler OS
+**2iSP_Return compiler host processor
 **2it_Return list of supported targets
+**2iTO_Return target OS
+**2iTP_Return target processor
 **2iu_Return list of supported microcontroller types
+**2iV_Return short compiler version
 **2iw_Return list of supported whole program optimizations
+**2iW_Return full compiler version
 **1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_Write logo
 **1M<x>_Set language mode to <x> / enable modeswitch <x> (see option -im)
-**2Mfpc_Free Pascal dialect (default)
-**2Mobjfpc_FPC mode with Object Pascal support
 **2Mdelphi_Delphi 7 compatibility mode
-**2Mtp_TP/BP 7.0 compatibility mode
-**2Mmacpas_Macintosh Pascal dialects compatibility mode
-**2Miso_ISO 7185 mode
-**2Mextendedpascal_ISO 10206 mode
 **2Mdelphiunicode_Delphi 2009 and later compatibility mode
+**2Mextendedpascal_ISO 10206 mode
+**2Mfpc_Free Pascal dialect (default)
+**2Miso_ISO 7185 mode
+**2Mmacpas_Macintosh Pascal dialects compatibility mode
+**2Mobjfpc_FPC mode with Object Pascal support
+**2Mtp_TP/BP 7.0 compatibility mode
 **2*_Each mode (as listed above) enables its default set of modeswitches.
 **2*_Other modeswitches are disabled and need to be enabled one by another.
 **1M<x>-_Disable modeswitch <x> (see option -im)
@@ -4081,9 +4103,9 @@ A*2CV<x>_Set section threadvar model to <x>
 **2Oa<x>=<y>_Set alignment
 **2Oo[NO]<x>_Enable or disable optimizations; see fpc -i or fpc -io for possible values
 **2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic for possible values
-**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
-**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
 **2Os_Optimize for size rather than speed
+**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 F*1P<x>_Target CPU / compiler related options:
 F*2PB_Show default compiler binary
@@ -4098,26 +4120,30 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 8*2Ratt_Read AT&T style assembler
 8*2Rintel_Read Intel style assembler
 6*2RMOT_Read Motorola style assembler
+**1s_Do not call assembler and linker
+**2sh_Generate script to link on host, automatically switches to external assembler writer
+**2sr_Skip register allocation phase (use with -alr), automatically switches to external assembler writer
+**2st_Generate script to assemble and link on target, automatically switches to external assembler writer
+**2sT_Generate script only to link on target
 **1S<x>_Syntax options:
 **2S2_Same as -Mobjfpc
-**2Sc_Support operators like C (*=,+=,/= and -=)
 **2Sa_Turn on assertions
+**2Sc_Support operators like C (*=,+=,/= and -=)
 **2Sd_Same as -Mdelphi
 **2Se<x>_Error options. <x> is a combination of the following:
 **3*_<n> : Compiler halts after the <n> errors (default is 1)
-**3*_w : Compiler also halts after warnings
-**3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
+**3*_n : Compiler also halts after notes
+**3*_w : Compiler also halts after warnings
 **2Sf_Enable certain features in compiler and RTL; see fpc -i or fpc -ir for possible values)
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
 **2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
-**2Sj_Allows typed constants to be writeable (default in all modes)
-**2Sk_Load fpcylix unit
 **2SI<x>_Set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface
-**2sT_Generate script only to link on target
+**2Sj_Allows typed constants to be writeable (default in all modes)
+**2Sk_Load fpcylix unit
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Sr_Transparent file names in ISO mode
@@ -4125,10 +4151,6 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2Sv_Support vector processing (use CPU vector extensions if available)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **2Sy_@<pointer> returns a typed pointer, same as $T+
-**1s_Do not call assembler and linker
-**2sh_Generate script to link on host
-**2st_Generate script to assemble and link on target
-**2sr_Skip register allocation phase (use with -alr)
 **1T<x>_Target operating system:
 # i386 targets
 3*2Tandroid_Android
@@ -4148,8 +4170,8 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
+3*2Tsymbian_Symbian OS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
@@ -4227,11 +4249,11 @@ p*2Tdarwin_Darwin/Mac OS X
 p*2Tembedded_Embedded
 p*2Tlinux_Linux
 # riscv32 targets
-R*2Tlinux_Linux
 R*2Tembedded_Embedded
+R*2Tlinux_Linux
 # riscv64 targets
-r*2Tlinux_Linux
 r*2Tembedded_Embedded
+r*2Tlinux_Linux
 # sparc targets
 S*2Tlinux_Linux
 S*2Tsolaris_Solaris
@@ -4246,8 +4268,8 @@ x*2Tfreertos_FreeRTOS
 x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
-Z*2Tzxspectrum_ZX Spectrum
 Z*2Tmsxdos_MSX-DOS
+Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
 W*2Twasi_The WebAssembly System Interface (WASI)
@@ -4258,18 +4280,18 @@ W*2Twasi_The WebAssembly System Interface (WASI)
 **2Ur_Generate release unit files (never automatically recompiled)
 **2Us_Compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_e : Show errors (default)       0 : Show nothing (except errors)
-**2*_w : Show warnings               u : Show unit info
-**2*_n : Show notes                  t : Show tried/used files
-**2*_h : Show hints                  c : Show conditionals
-**2*_i : Show general info           d : Show debug info
-**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
-**2*_s : Show time stamps            q : Show message numbers
-**2*_a : Show everything             x : Show info about invoked tools
-**2*_b : Write file names messages   p : Write tree.log with parse tree
-**2*_    with full path              v : Write fpcdebug.txt with
-**2*_z : Write output to stderr          lots of debugging info
+**2*_0 : Show nothing (except errors) p : Write tree.log with parse tree
+**2*_a : Show everything              q : Show message numbers
+**2*_b : Write file names messages    r : Rhide/GCC compatibility mode
+**2*_    with full path               s : Show time stamps
+**2*_c : Show conditionals            t : Show tried/used files
+**2*_d : Show debug info              u : Show unit info
+**2*_e : Show errors (default)        v : Write fpcdebug.txt with
+**2*_h : Show hints                       lots of debugging info
+**2*_i : Show general info            w : Show warnings
+**2*_l : Show linenumbers             x : Show info about invoked tools
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
+**2*_n : Show notes                   z : Write output to stderr
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)
@@ -4343,8 +4365,8 @@ A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)
 8*2Wt<x>_Set the target executable format
-8*3Wtexe_Create a DOS .EXE file (default)
 8*3Wtcom_Create a DOS .COM file (requires tiny memory model)
+8*3Wtexe_Create a DOS .EXE file (default)
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*2WQ<x>_Set executable metadata format (Sinclair QL)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)
@@ -4355,15 +4377,15 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xa_Generate code which allows to use more than 2 GB static data on 64 Bit targets (Linux)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
+**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xe_Use external linker
 **2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
-**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
 L*2XlS<x>_LLVM utilties suffix (e.g. -7 in case clang is called clang-7)
 **2XLA_Define library substitutions for linking
-**2XLO_Define order of library linking
 **2XLD_Exclude default order of standard libraries
+**2XLO_Define order of library linking
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)

@@ -49,21 +49,31 @@ interface
 implementation
 
     uses
-      globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst;
+      globals, globtype, aasmdata, defutil, tgobj, hlcgcpu, symconst, symcpu;
 
       { twasmcallnode }
 
     procedure twasmcallnode.extra_post_call_code;
       begin
         thlcgwasm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition);
+        hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       end;
 
     procedure twasmcallnode.do_release_unused_return_value;
+      var
+        ft: TWasmFuncType;
+        i: Integer;
       begin
-        if is_void(resultdef) then
-          exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        if procdefinition.typ=procvardef then
+          ft:=tcpuprocvardef(procdefinition).create_functype
+        else
+          ft:=tcpuprocdef(procdefinition).create_functype;
+        for i:=1 to Length(ft.results) do
+          begin
+            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
+            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          end;
+        ft.free;
       end;
 
     procedure twasmcallnode.set_result_location(realresdef: tstoreddef);

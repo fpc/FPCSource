@@ -2,5 +2,5 @@
 # Here we set processor dependent include file names.
 #
 
-CPUNAMES=
+CPUNAMES=except_native
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))

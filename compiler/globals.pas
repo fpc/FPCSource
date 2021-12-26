@@ -207,16 +207,16 @@ interface
       private
         itemcnt : longint;
         fmap : Array Of TLinkRec;
-        function  Lookup(key:Ansistring):longint;
+        function  Lookup(const key:Ansistring):longint;
         function getlinkrec(i:longint):TLinkRec;
       public
-        procedure Add(key:ansistring;value:AnsiString='';weight:longint=LinkMapWeightDefault);
-        procedure addseries(keys:AnsiString;weight:longint=LinkMapWeightDefault);
-        function  AddDep(keyvalue:String):boolean;
-        function  AddWeight(keyvalue:String):boolean;
-        procedure SetValue(key:AnsiString;Weight:Integer);
+        procedure Add(const key:ansistring;const value:AnsiString='';weight:longint=LinkMapWeightDefault);
+        procedure addseries(const keys:AnsiString;weight:longint=LinkMapWeightDefault);
+        function  AddDep(const keyvalue:String):boolean;
+        function  AddWeight(const keyvalue:String):boolean;
+        procedure SetValue(const key:AnsiString;Weight:Integer);
         procedure SortonWeight;
-        function Find(key:AnsiString):AnsiString;
+        function Find(const key:AnsiString):AnsiString;
         procedure Expand(src:TCmdStrList;dest: TLinkStrMap);
         procedure UpdateWeights(Weightmap:TLinkStrMap);
         constructor Create;
@@ -265,6 +265,8 @@ interface
 {$ifdef XTENSA}
        { specified with -Ff }
        idfpath           : TPathStr;
+       { specified with }
+       idf_version       : longint;
 {$endif XTENSA}
        { external assembler extra option }
        asmextraopt       : string;
@@ -699,7 +701,7 @@ implementation
       end;
 
 
-    procedure TLinkStrMap.Add(key:ansistring;value:AnsiString='';weight:longint=LinkMapWeightDefault);
+    procedure TLinkStrMap.Add(const key:ansistring;const value:AnsiString='';weight:longint=LinkMapWeightDefault);
       begin
         if lookup(key)<>-1 Then
           exit;
@@ -712,7 +714,7 @@ implementation
       end;
 
 
-    function  TLinkStrMap.AddDep(keyvalue:String):boolean;
+    function  TLinkStrMap.AddDep(const keyvalue:String):boolean;
       var
         i : Longint;
       begin
@@ -725,7 +727,7 @@ implementation
       end;
 
 
-    function  TLinkStrMap.AddWeight(keyvalue:String):boolean;
+    function  TLinkStrMap.AddWeight(const keyvalue:String):boolean;
       var
         i,j    : Longint;
         Code : Word;
@@ -745,7 +747,7 @@ implementation
       end;
 
 
-    procedure TLinkStrMap.addseries(keys:AnsiString;weight:longint);
+    procedure TLinkStrMap.addseries(const keys:AnsiString;weight:longint);
       var
         i,j,k : longint;
       begin
@@ -761,7 +763,7 @@ implementation
          end;
       end;
 
-    procedure TLinkStrMap.SetValue(Key:Ansistring;weight:Integer);
+    procedure TLinkStrMap.SetValue(const Key:Ansistring;weight:Integer);
       var
         j : longint;
       begin
@@ -771,7 +773,7 @@ implementation
       end;
 
 
-    function TLinkStrMap.find(key:Ansistring):Ansistring;
+    function TLinkStrMap.find(const key:Ansistring):Ansistring;
       var
         j : longint;
       begin
@@ -782,7 +784,7 @@ implementation
       end;
 
 
-    function TLinkStrMap.lookup(key:Ansistring):longint;
+    function TLinkStrMap.lookup(const key:Ansistring):longint;
       var
         i : longint;
       begin
@@ -1112,7 +1114,7 @@ implementation
         p: pbyte;
       begin
         p := pbyte(@r);
-{$ifdef CPU_ARM}
+{$ifdef FPUARM_HAS_FPA}
         inc(p,4);
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}

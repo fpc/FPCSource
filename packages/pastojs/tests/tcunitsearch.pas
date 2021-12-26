@@ -102,6 +102,7 @@ type
     Function OnReadFile(aFilename: string; var aSource: string): boolean; virtual;
     procedure OnWriteFile(aFilename: string; Source: string); virtual;
     procedure WriteSources;
+    procedure CheckDiff(Msg, Expected, Actual: string); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -134,6 +135,8 @@ type
   { TTestCLI_UnitSearch }
 
   TTestCLI_UnitSearch = class(TCustomTestCLI)
+  protected
+    procedure CheckLinklibProgramSrc(Msg,Header: string);
   published
     procedure TestUS_CreateRelativePath;
 
@@ -160,10 +163,14 @@ type
     procedure TestUS_UseUnitTwiceViaNameSpace;
 
     // namespace
-    Procedure TestDefaultNameSpaceLast;
-    Procedure TestDefaultNameSpaceAfterNameSpace;
-    Procedure TestNoNameSpaceBeforeDefaultNameSpace;
-    Procedure TestNoNameSpaceAndDefaultNameSpace;
+    Procedure TestUS_DefaultNameSpaceLast;
+    Procedure TestUS_DefaultNameSpaceAfterNameSpace;
+    Procedure TestUS_NoNameSpaceBeforeDefaultNameSpace;
+    Procedure TestUS_NoNameSpaceAndDefaultNameSpace;
+
+    // linklib
+    procedure TestUS_ProgramLinklib;
+    procedure TestUS_UnitLinklib;
   end;
 
 function LinesToStr(const Lines: array of string): string;
@@ -438,6 +445,15 @@ begin
   end;
 end;
 
+procedure TCustomTestCLI.CheckDiff(Msg, Expected, Actual: string);
+// search diff, ignore changes in spaces
+var
+  s: string;
+begin
+  if CheckSrcDiff(Expected,Actual,s) then exit;
+  Fail(Msg+': '+s);
+end;
+
 constructor TCustomTestCLI.Create;
 begin
   inherited Create;
@@ -466,7 +482,7 @@ begin
   try
     try
       //writeln('TCustomTestCLI.Compile WorkDir=',WorkDir);
-      Compiler.Run(CompilerExe,WorkDir,Params,false);
+      Compiler.Run(CompilerExe,WorkDir,Params,true);
     except
       on E: ECompilerTerminate do
       begin
@@ -603,6 +619,26 @@ begin
 end;
 
 { TTestCLI_UnitSearch }
+
+procedure TTestCLI_UnitSearch.CheckLinklibProgramSrc(Msg, Header: string);
+var
+  aFile: TCLIFile;
+begin
+  aFile:=FindFile('test1.js');
+  CheckDiff(Msg,
+    LinesToStr([
+    #$EF#$BB#$BF+Header,
+    'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run();',
+    '//# sourceMappingURL=test1.js.map',
+    '']),
+    aFile.Source);
+end;
 
 procedure TTestCLI_UnitSearch.TestUS_CreateRelativePath;
 
@@ -902,7 +938,7 @@ begin
   Compile(['test1.pas','-FNsub','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestDefaultNameSpaceLast;
+procedure TTestCLI_UnitSearch.TestUS_DefaultNameSpaceLast;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('Unit2.pas',
@@ -921,7 +957,7 @@ begin
   Compile(['test1.pas','','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestDefaultNameSpaceAfterNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_DefaultNameSpaceAfterNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('prg.Unit2.pas',
@@ -940,7 +976,7 @@ begin
   Compile(['prg.test1.pas','-FNsub','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestNoNameSpaceBeforeDefaultNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_NoNameSpaceBeforeDefaultNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('prg.Unit2.pas',
@@ -959,7 +995,7 @@ begin
   Compile(['prg.test1.pas','','-Jc']);
 end;
 
-procedure TTestCLI_UnitSearch.TestNoNameSpaceAndDefaultNameSpace;
+procedure TTestCLI_UnitSearch.TestUS_NoNameSpaceAndDefaultNameSpace;
 begin
   AddUnit('system.pp',[''],['']);
   AddUnit('UnitA.pas',
@@ -982,6 +1018,38 @@ begin
     '  b:=a;',
     'end.']);
   Compile(['MyProject.Main.pas','','-Jc']);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_ProgramLinklib;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    '{$linklib Bird}',
+    'begin',
+    'end.']);
+  Compile(['-Tnodejs','-va','test1.pas']);
+  CheckLinklibProgramSrc('TestUS_ProgramLinklib',
+    LinesToStr([
+    'import * as bird from "Bird.js";',
+    'pas.$libimports.bird = bird;']));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_UnitLinklib;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddUnit('UnitB.pas',
+    ['{$linklib Bird Thunderbird}',
+     ''],
+    ['']);
+  AddFile('test1.pas',[
+    'uses UnitB;',
+    'begin',
+    'end.']);
+  Compile(['-Tnodejs','-va','test1.pas']);
+  CheckLinklibProgramSrc('TestUS_UnitLinklib',
+    LinesToStr([
+    'import * as Thunderbird from "Bird.js";',
+    'pas.$libimports.Thunderbird = Thunderbird;']));
 end;
 
 Initialization

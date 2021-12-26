@@ -44,7 +44,8 @@ begin
       curl_easy_setopt(hCurl,CURLOPT_URL,[URL]);
       curl_easy_setopt(hCurl,CURLOPT_WRITEFUNCTION,[@DoWrite]);
       curl_easy_setopt(hCurl,CURLOPT_WRITEDATA,[Pointer(F)]);
-      curl_easy_perform(hCurl);
+      if curl_easy_perform(hCurl)<>CURLE_OK then
+        Writeln(StdErr,'Failed to get URL');
       curl_easy_cleanup(hCurl);
       end;
   Finally

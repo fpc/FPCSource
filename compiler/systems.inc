@@ -209,6 +209,7 @@
 
      type
        tasm = (as_none
+             ,as_default
              ,as_gas                   { standard gnu assembler }
              ,as_i386_as_aout
              ,as_i386_nasmcoff
@@ -267,6 +268,7 @@
              ,as_wasm32_wabt
              ,as_wasm32_llvm_mc        { WebAssembly code assembled by llvm-mc (llvm machine code playground) }
              ,as_arm_vasm
+             ,as_wasm32_wasm
        );
 
        tlink = (ld_none,

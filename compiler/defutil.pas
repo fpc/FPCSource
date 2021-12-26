@@ -1588,7 +1588,12 @@ implementation
             else
               result:=tfloat2tcgsize[tfloatdef(def).floattype];
           recorddef :
-            result:=int_cgsize(def.size);
+{$ifdef wasm32}
+            if (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
+              result:=int_float_cgsize(def.size)
+            else
+{$endif wasm32}
+              result:=int_cgsize(def.size);
           arraydef :
             begin
               if is_dynamic_array(def) or not is_special_array(def) then

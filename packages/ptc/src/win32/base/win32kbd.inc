@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2012, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012, 2017, 2021  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -235,6 +235,8 @@ begin
       KeyCode := PTCKEY_SEMICOLON;
     if wParam = VK_OEM_2 then
       KeyCode := PTCKEY_SLASH;
+    if (wParam >= VK_F13) and (wParam <= VK_F24) then
+      KeyCode := wParam + (PTCKEY_F13 - VK_F13);
 
     { handle key repeat count }
     for i := 1 to lParam and $FFFF do

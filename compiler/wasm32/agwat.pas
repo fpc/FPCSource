@@ -853,7 +853,7 @@ implementation
     procedure TWabtTextAssembler.WriteExports(p: TAsmList);
     var
       hp: tai;
-      x: tai_impexp;
+      x: tai_export_name;
       cnt: integer;
     begin
       if not Assigned(p) then Exit;
@@ -863,12 +863,12 @@ implementation
       cnt := 0;
       while Assigned(hp) do begin
         case hp.typ of
-          ait_importexport:
+          ait_export_name:
             inc(cnt);
           else
             ;
         end;
-        hp := tai_impexp(hp.Next);
+        hp := tai_export_name(hp.Next);
       end;
 
       // writting out table, so wat2wasm can create reallocation symbols
@@ -880,16 +880,16 @@ implementation
       hp:=tai(p.First);
       while Assigned(hp) do begin
         case hp.typ of
-          ait_importexport:
+          ait_export_name:
           begin
-            x:=tai_impexp(hp);
+            x:=tai_export_name(hp);
             writer.AsmWrite(#9#9);
             writer.AsmWriteLn(GetWasmName(x.intname));
           end;
           else
             ;
         end;
-        hp := tai_impexp(hp.Next);
+        hp := tai_export_name(hp.Next);
       end;
       writer.AsmWriteLn(#9') ');
 
@@ -897,9 +897,9 @@ implementation
       hp:=tai(p.First);
       while Assigned(hp) do begin
         case hp.typ of
-          ait_importexport:
+          ait_export_name:
           begin
-            x:=tai_impexp(hp);
+            x:=tai_export_name(hp);
             writer.AsmWrite(#9#9'(export "');
             writer.AsmWrite(x.extname);
             writer.AsmWrite('" (');
@@ -916,7 +916,7 @@ implementation
           else
             ;
         end;
-        hp := tai_impexp(hp.Next);
+        hp := tai_export_name(hp.Next);
       end;
     end;
 

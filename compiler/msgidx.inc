@@ -130,6 +130,8 @@ const
   scan_w_setpesubsysversion_not_support=02104;
   scan_n_changecputype=02105;
   scan_e_emptymacroname=02106;
+  scan_e_unexpected_ifend=02107;
+  scan_e_unexpected_endif=02108;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -859,6 +861,8 @@ const
   asmr_e_invalid_arrangement=07143;
   asmr_e_a64_invalid_regset=07144;
   asmr_e_unknown_field=07145;
+  asmr_e_not_supported_combination_attsuffix_memrefsize_type=07146;
+  asmr_e_a64_regset_too_large=07147;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -916,7 +920,6 @@ const
   exec_t_using_util=09017;
   exec_e_exe_not_supported=09018;
   exec_e_dll_not_supported=09019;
-  exec_e_static_lib_not_supported=09035;
   exec_i_closing_script=09020;
   exec_e_res_not_found=09021;
   exec_i_compilingresource=09022;
@@ -932,6 +935,8 @@ const
   exec_e_cant_write_resource_file=09032;
   exec_n_backquote_cat_file_not_found=09033;
   exec_w_init_file_not_found=09034;
+  exec_e_static_lib_not_supported=09035;
+  exec_f_controllertype_expected=09036;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -1028,6 +1033,7 @@ const
   cg_f_internal_type_not_found=10065;
   cg_f_internal_type_does_not_match=10066;
   unit_u_ppu_llvm_mismatch=10067;
+  unit_u_ppu_invalid_wasm_exceptions_mode=10068;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -1087,6 +1093,7 @@ const
   option_debug_info_requires_external_linker=11061;
   option_valgrind_heaptrc_mismatch=11062;
   option_unsupported_fpu=11063;
+  option_too_many_exception_modes=11064;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1140,9 +1147,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 87862;
+  MsgTxtSize = 88971;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,107,361,131,99,63,146,37,223,68,
-    64,20,30,1,1,1,1,1,1,1
+    28,109,361,131,99,63,148,37,223,69,
+    65,20,30,1,1,1,1,1,1,1
   );

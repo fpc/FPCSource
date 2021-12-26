@@ -72,7 +72,7 @@ type
     procedure FixupOpcode;virtual;
     { opcode adding }
     function ConcatInstruction(p : TAsmList) : tai;override;
-    function getstring: string;
+    function getstring(aAddMemRefSize: boolean = true): string;
     { returns true, if the opcode might have an extension as used by AVX512 }
     function MightHaveExtension : boolean;
   end;
@@ -239,7 +239,7 @@ begin
           ;
       end;
     end
-  else if gas_needsuffix[opcode] in [AttSufMM, AttSufMMX] then
+  else if gas_needsuffix[opcode] in [AttSufMM, AttSufMMX, AttSufMMS] then
   begin
     if (opr.typ=OPR_Reference) then
     begin
@@ -456,6 +456,23 @@ var
   mmregs: Set of TSubregister;
   multiplicator: integer;
   bcst1,bcst2: string;
+
+  function ScanLowestOpsize(aValue: int64): int64;
+  var
+    i: integer;
+  begin
+    result := 0;
+
+    if aValue and OT_BITS8 = OT_BITS8 then result := 8
+     else if aValue and OT_BITS16  = OT_BITS16  then result := 16
+     else if aValue and OT_BITS32  = OT_BITS32  then result := 32
+     else if aValue and OT_BITS64  = OT_BITS64  then result := 64
+     else if aValue and OT_BITS128 = OT_BITS128 then result := 128
+     else if aValue and OT_BITS256 = OT_BITS256 then result := 256
+     else if aValue and OT_BITS512 = OT_BITS512 then result := 512;
+  end;
+
+
 begin
   ExistsMemRefNoSize := false;
   ExistsMemRef       := false;
@@ -727,12 +744,49 @@ begin
             msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                          // the vector-register have indices with base of the memory-address in the memory-operand
             msiMultipleMinSize8,
-            msiMultipleMinSize16,
-            msiMultipleMinSize32,
-            msiMultipleMinSize64,
-            msiMultipleMinSize128,
-            msiMultipleMinSize256,
-            msiMultipleMinSize512: ; // ignore
+           msiMultipleMinSize16,
+           msiMultipleMinSize32,
+           msiMultipleMinSize64,
+          msiMultipleMinSize128,
+          msiMultipleMinSize256,
+          msiMultipleMinSize512:
+              begin
+                for j := 1 to ops do
+                begin
+                  if operands[j].Opr.Typ = OPR_REGISTER then
+                  begin
+                    case getsubreg(operands[j].opr.reg) of
+                      R_SUBMMX: begin
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegXMMSizeMask);
+                                  break;
+                                end;
+                      R_SUBMMY: begin
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegYMMSizeMask);
+                                  break;
+                                end;
+                      R_SUBMMZ: begin
+                                  memrefsize := ScanLowestOpsize(MemRefInfo(opcode).RegZMMSizeMask);
+                                  break;
+                                end;
+                           else;
+                    end;
+                  end;
+                end;
+
+                if memrefsize = -1 then
+                begin
+                  case MemRefInfo(opcode).MemRefSize of
+                      msiMultipleMinSize8: memrefsize := 8;
+                     msiMultipleMinSize16: memrefsize := 16;
+                     msiMultipleMinSize32: memrefsize := 32;
+                     msiMultipleMinSize64: memrefsize := 64;
+                    msiMultipleMinSize128: memrefsize := 128;
+                    msiMultipleMinSize256: memrefsize := 256;
+                    msiMultipleMinSize512: memrefsize := 512;
+                                     else;
+                  end;
+                end;
+              end;
             msiNoSize,
             msiNoMemRef,
             msiUnknown,
@@ -802,7 +856,8 @@ begin
               if memoffset < 0 then
               begin
                 Message2(asmr_w_check_mem_operand_negative_offset,
-                         std_op2str[opcode],
+                         //std_op2str[opcode],
+			 getstring(false),
                          ToStr(memoffset));
               end
               else if ((tx86operand(operands[i]).hastype) and (memopsize < memrefsize)) or
@@ -813,7 +868,7 @@ begin
                   if memoffset = 0 then
                   begin
                     Message3(asmr_w_check_mem_operand_size3,
-                             std_op2str[opcode],
+			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize)
                              );
@@ -821,7 +876,7 @@ begin
                   else
                   begin
                     Message4(asmr_w_check_mem_operand_size_offset,
-                             std_op2str[opcode],
+			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize),
                              ToStr(memoffset)
@@ -844,7 +899,8 @@ begin
       if (tx86operand(operands[i]).opsize = S_NO) then
       begin
         case operands[i].Opr.Typ of
-          OPR_REFERENCE:
+          OPR_REFERENCE,
+          OPR_LOCAL:
                 begin
                   if ExistsBCST then
                   begin
@@ -874,7 +930,7 @@ begin
                                 tx86operand(operands[i]).opsize := S_B;
                                 tx86operand(operands[i]).size   := OS_8;
 
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"8 bit memory operand"');
+                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
                               end;
                       msiMem16:
                               begin
@@ -886,7 +942,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_W;
                                  tx86operand(operands[i]).size   := OS_16;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"16 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
                                end;
                       msiMem32:
                                begin
@@ -898,7 +954,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_L;
                                  tx86operand(operands[i]).size   := OS_32;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"32 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
                                end;
                       msiMem64:
                                begin
@@ -910,7 +966,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_Q;
                                  tx86operand(operands[i]).size   := OS_M64;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"64 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
                                end;
                       msiMem128:
                                begin
@@ -922,7 +978,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_XMM;
                                  tx86operand(operands[i]).size   := OS_M128;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"128 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
                                end;
                       msiMem256:
                                begin
@@ -936,7 +992,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M256;
                                  opsize := S_YMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"256 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
                                end;
                       msiMem512:
                                begin
@@ -950,7 +1006,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M512;
                                  opsize := S_ZMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"512 bit memory operand"');
+                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
                                end;
 
                     msiMemRegSize:
@@ -1436,7 +1492,10 @@ procedure Tx86Instruction.SetInstructionOpsize;
   function CheckSSEAVX: Boolean;
   var
     i: integer;
+    iSizeMask: int64;
     bBroadcastMemRef: boolean;
+    bExistMemRef: boolean;
+    ValidOpSizes: Set of topsize;
   begin
     Result := False;
 
@@ -1455,20 +1514,103 @@ procedure Tx86Instruction.SetInstructionOpsize;
         end
         else
         begin
-          if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
+	  if (gas_needsuffix[opcode] = AttSufMMS) and (ops > 0) then
+ 	  begin
+ 	    // special handling = use source operand for calculate instructions-opsize
+            // e.g. vcvtsi2sd, vcvtsi2ss, vcvtusi2sd, vcvtusi2ss,
+            //      vfpclass..
+
+            if (ops > 2) and
+               (tx86operand(operands[1]).opr.typ = OPR_CONSTANT) then
+             opsize:=tx86operand(operands[2]).opsize
+              else opsize:=tx86operand(operands[1]).opsize;
+
+            if (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
+               (not(opsize in [S_XMM, S_YMM, S_ZMM])) then
+            begin
+              // special handling for external gas assembler, special opcodes (e.g. vfpclassps/pd)
+              case MemRefSize of
+                msiMultipleMinSize128: opsize := S_XMM;
+                msiMultipleMinSize256: opsize := S_YMM;
+                msiMultipleMinSize512: opsize := S_ZMM;
+                                 else;
+              end;
+            end;
+
+            result := true;  
+	  end
+          else if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
           begin
             case ops of
               2: begin
                    opsize:=tx86operand(operands[1]).opsize;
                    result := true;
                  end;
-              3: begin
+              3,4:
+                 begin
                    if (tx86operand(operands[1]).opr.typ <> OPR_CONSTANT) then
                     opsize:=tx86operand(operands[1]).opsize
                      else opsize:=tx86operand(operands[2]).opsize;
                    result := true;
                  end;
             end;
+
+            if (result) and
+               (ops > 0) and
+               (MemRefSize in [msiMultipleMinSize128, msiMultipleMinSize256, msiMultipleMinSize512]) and
+               (gas_needsuffix[opcode] in [AttSufMMS, AttSufMMX]) then
+            begin
+              // external gas assembler need suffix (different opsizes possible)
+              // - in fpc not exists datatypes for vector-variables
+              //   =>> all memsize = ok, but any special opcodes (marked with attSufMMS,attSUFMMX) needed in any combination of operandtypes the exact opsize
+              //      =>> check instructions-opsize and use the correct vector-mem-opsize
+
+              for i := 1 to ops do
+               if tx86operand(operands[i]).opr.typ in [OPR_REGISTER] then
+               begin
+                 ValidOpSizes := [];
+
+                 case tx86operand(operands[i]).opsize of
+                   S_XMM: iSizeMask := RegXMMSizeMask;
+                   S_YMM: iSizeMask := RegYMMSizeMask;
+                   S_ZMM: iSizeMask := RegZMMSizeMask;
+                     else iSizeMask := 0;
+                 end;
+
+                 if iSizemask and OT_BITS128 = OT_BITS128 then include(ValidOpSizes, S_XMM);
+                 if iSizemask and OT_BITS256 = OT_BITS256 then include(ValidOpSizes, S_YMM);
+                 if iSizemask and OT_BITS512 = OT_BITS512 then include(ValidOpSizes, S_ZMM);
+
+                 if (ValidOpsizes <> []) then
+                 begin
+                   if not(opsize in ValidOpSizes) then
+                   begin
+                     // instructions-opsize is invalid =>> use smallest valid opsize
+                     if iSizemask and OT_BITS128 = OT_BITS128 then opsize := S_XMM
+                      else if iSizemask and OT_BITS256 = OT_BITS256 then opsize := S_YMM
+                      else if iSizemask and OT_BITS512 = OT_BITS512 then opsize := S_ZMM;
+                   end;
+                 end
+                 else ; // empty ValidOpsize =>> nothing todo???
+
+                 break;
+               end;
+            end;
+          end
+          else if
+             (gas_needsuffix[opcode] = AttSufNone) and
+             (not(MemRefSize in [msiMemRegSize])) then
+          begin
+            // external gnu-assembler: no suffix =>> use instructions.opsize to define memory-reference size
+            // Tx86Instruction: local variable: operand.opsize
+
+            for i := 1 to ops do
+             if tx86operand(operands[i]).opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+             begin
+               opsize := tx86operand(operands[i]).opsize;
+               result := true;
+               break;
+             end;
           end;
         end;
       end;
@@ -1538,21 +1680,11 @@ begin
                     ;
                 end;
               end;
-            A_MOVSS,
-            A_VMOVSS,
             A_MOVD : { movd is a move from a mmx register to a
                        32 bit register or memory, so no opsize is correct here PM }
               exit;
             A_MOVQ :
               opsize:=S_IQ;
-            //A_VCVTPD2DQ,
-            //A_VCVTPD2PS,
-            //A_VCVTTPD2DQ,
-            //A_VCVTPD2UDQ,
-            //A_VCVTQQ2PS,
-            //A_VCVTTPD2UDQ,
-            //A_VCVTUQQ2PS,
-
             A_OUT :
               opsize:=tx86operand(operands[1]).opsize;
             else
@@ -1560,26 +1692,8 @@ begin
               opsize:=tx86operand(operands[2]).opsize;
           end;
         end;
-    3 :
-        begin
-          //case opcode of
-            //A_VCVTSI2SS,
-            //A_VCVTSI2SD,
-            //A_VCVTUSI2SS,
-            //A_VCVTUSI2SD:
-            //  iops:=tx86operand(operands[1]).opsize;
-            //A_VFPCLASSPD,
-            //A_VFPCLASSPS:
-            //  iops:=tx86operand(operands[2]).opsize;
-            //else
-            begin
-              if not CheckSSEAVX then
-               opsize:=tx86operand(operands[ops]).opsize;
-            end;
-          //end;
-        end;
-    4 :
-        opsize:=tx86operand(operands[ops]).opsize;
+    3,4 : if not CheckSSEAVX then
+           opsize:=tx86operand(operands[ops]).opsize;
   end;
 end;
 
@@ -1944,6 +2058,26 @@ begin
              ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
                           localscale,localgetoffset,localforceref);
              ai.oper[i-1]^.localoper^.localsegment:=localsegment;
+
+             // check for embedded broadcast
+             if MemRefInfo(opcode).ExistsSSEAVX then
+             begin
+               asize := 0;
+
+               if ((operands[i] as tx86operand).vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST) and
+                  (MemRefInfo(opcode).MemRefSizeBCST in [msbBCST32,msbBCST64]) then
+               begin
+                 case operands[i].size of
+                   OS_32,OS_M32: asize:=OT_BITS32;
+                   OS_64,OS_M64: asize:=OT_BITS64;
+                   else;
+                 end;
+               end;
+
+               if asize<>0 then
+                //ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
+                ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and OT_NON_SIZE) or asize;
+             end;
            end;
        OPR_REFERENCE:
          begin
@@ -2027,7 +2161,7 @@ begin
   result:=ai;
 end;
 
-function Tx86Instruction.getstring: string;
+function Tx86Instruction.getstring(aAddMemRefSize: boolean): string;
 var
   i : longint;
   s, sval : string;
@@ -2039,7 +2173,7 @@ begin
    begin
      with operands[i] as Tx86Operand do
        begin
-         if i=0 then
+         if i=1 then
           s:=s+' '
          else
           s:=s+',';
@@ -2078,18 +2212,16 @@ begin
                              else
                                if getregtype(opr.reg)=R_ADDRESSREGISTER then
                                begin
-                                 // 14102020 TG TODO CHECK
-                                 if (opr.reg >= NR_K0) and (opr.reg >= NR_K7) then
-                                 begin
-                                   s:=s+'k' + regnr;
-                                 end;
+                                 s:=s+'k' + regnr;
                                end;
 
                            end;
                OPR_LOCAL,
             OPR_REFERENCE: begin
                              s:=s + 'mem';
-                             addsize:=true;
+
+                             if aAddMemRefSize then
+                              addsize:=true;
                            end;
                       else s:=s + '???';
          end;

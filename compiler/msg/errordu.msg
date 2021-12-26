@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 45316
+#   Based on errore.msg of git commit ce1f9cce, 27 Jun, 2021
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2021 by the Free Pascal Development team
@@ -442,6 +442,7 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION wird vom Zielbetriebssy
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION wird vom Zielbetriebssystem nicht unterstützt
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 scan_n_changecputype=02105_N_Geänderter Prozessortyp muss zum angegebenen Controller passen
+scan_e_emptymacroname=02106_E_Der Name einer macro/compiler-Variablen kann nicht leer sein
 %
 % \end{description}
 # EndOfTeX
@@ -449,7 +450,7 @@ scan_n_changecputype=02105_N_Geänderter Prozessortyp muss zum angegebenen Contr
 #
 # Parser
 #
-# 03355 is the last used one
+# 03360 is the last used one
 #
 # BeginOfTeX
 %
@@ -1091,8 +1092,9 @@ parser_e_paraloc_only_one_para=03197_E_Jedes Argument muss seine eigene "locatio
 parser_e_paraloc_all_paras=03198_E_Jedes Argument muss seine explizite "location" haben
 % If one argument has an explicit argument location, all arguments of a procedure
 % must have one.
-parser_e_illegal_explicit_paraloc=03199_E_"location" des Arguments unbekannt
-% The location specified for an argument isn't recognized by the compiler.
+parser_e_illegal_explicit_paraloc=03199_E_Ungültiger expliziter Parameter "location" spezifiziert
+% Syscalls specific: the specified explicit location string for this parameter cannot be parsed, invalid,
+% or the location specified for an argument isn't recognized by the compiler.
 parser_e_32bitint_or_pointer_variable_expected=03200_E_32 Bit-Integer oder Zeiger-Variable erwartet
 % The libbase for MorphOS/AmigaOS can be given only as \var{longint}, \var{dword} or any pointer variable.
 parser_e_goto_outside_proc=03201_E_Goto Statements zwischen verschiedenen Prozeduren sind nicht erlaubt
@@ -1569,7 +1571,7 @@ parser_w_ptr_type_ignored=03338_W_Zeigertyp "$1" ignoriert
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
-parser_e_global_generic_references_static=03339_E_Ein globales, generisches Templat referenziert eine statische Symboltabelle
+parser_e_global_generic_references_static=03339_E_Ein generisches Templat im Interface-Bereich referenziert ein Symbol des Implementation-Bereichs
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
 parser_u_already_compiled=03340_UL_Die Unit $1 wurde inzwischen bereits kompiliert.
@@ -1628,6 +1630,16 @@ parser_e_method_for_type_in_other_unit=03354_E_Implementierung einer Methods fü
 parser_e_generic_constraints_not_allowed_here=03355_E_Eine generische Einschränkung ist hier nicht erlaubt
 % At the current location specifying a constraint is not allowed. For example
 % in delphi mode, a constraint might not be specified in the header of the implementation.
+parser_e_location_size_too_small=03356_E_Die explizite "location" ist zu klein für den Parameter
+% AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
+parser_e_location_size_too_large=03357_E_Die Größe der expliziten "location" ist größer als vom Parameter verlangt
+% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64bit, a register pair is specified
+parser_e_location_regpair_only_data=03358_E_Nur Daten-Register werden für explizite "location" Registerpaare unterstützt
+% AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported
+parser_e_location_regpair_only_consecutive=03359_E_Nur aufeinander folgende Register werden für explizite "location" Registerpaare unterstützt
+% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
+parser_e_constructurs_cannot_take_type_parameters=03360_E_Konstruktoren können keine Type-Parameter übernehmen
+% The use of type parameters in constructors is not allowed.
 %
 % \end{description}
 # EndOfTeX
@@ -1635,7 +1647,7 @@ parser_e_generic_constraints_not_allowed_here=03355_E_Eine generische Einschrän
 #
 # Type Checking
 #
-# 04128 is the last used one
+# 04130 is the last used one
 #
 # BeginOfTeX
 %
@@ -2084,6 +2096,11 @@ type_e_forward_interface_type_does_not_match=04127_E_Der Interfacetyp der Vorwä
 type_e_generic_const_type_not_allowed=04128_E_Typ ist für generische, konstante Parameter nicht erlaubt: $1
 % Only types that can also be used (indirectly) for untyped constants can be used as a
 % type for a generic constant parameter.
+type_e_cant_read_write_type_in_iso_mode=04129_E_Kann Variablen diesen Typs im ISO-Modus nicht lesen oder schreiben
+% You are trying to \var{read} or \var{write} a variable from or to a
+% file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
+type_w_array_size_does_not_match_size_of_constant_string=04130_W_Die Länge der konstanten Zeichenkette (die Länge ist $1) muss so groß wie die Anzahl der Array-Elemente sein ($2 Elemente)
+% ISO Pascal requires that string constants have the same length as the array to which them they are assigned.
 %
 % \end{description}
 # EndOfTeX
@@ -2595,7 +2612,7 @@ cg_w_interrupt_does_not_save_registers=06062_W_Der Zielprozessor unterstützt es
 #
 # Assembler reader
 #
-# 07141 is the last used one
+# 07145 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2935,6 +2952,10 @@ asmr_e_multiple_segment_overrides=07139_E_Kann "multiple segment overrides" nich
 asmr_w_multiple_segment_overrides=07140_W_"Multiple segment overrides" (nur das letzte wird beachtet)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment-Basis $1 wird erzeugt, aber von der CPU im 64-Bit-Modus ignoriert
 asmr_e_mismatch_broadcasting_elements=07142_E_Broadcasting-Elemente passen nicht (erwartet: {$1} gefunden: {$2})
+asmr_e_invalid_arrangement=07143_E_Ungültige Anordnung "$1"
+asmr_e_a64_invalid_regset=07144_E_Register in einem Register-Set müssen aufeinander folgen
+asmr_e_unknown_field=07145_E_Unbekannter Feld-Bezeichner
+% The internal assembler read cannot find the passed field identifier.
 %
 % \end{description}
 # EndOfTeX
@@ -2942,7 +2963,7 @@ asmr_e_mismatch_broadcasting_elements=07142_E_Broadcasting-Elemente passen nicht
 #
 # Assembler/binary writers
 #
-# 08035 is the last used one
+# 08036 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2999,6 +3020,7 @@ asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewählten Be
 asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist außerhalb des Bereichs
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP kann nicht als Indexregister oder mit einem anderen Register in einer Referenz verwendet werden
 asmw_e_seh_invalid_data_size=08035_F_Ungültige Funktionsgröße einer SEH-Funktion
+asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP kann nicht als Indexregister verwendet werden
 %
 % \end{description}
 # EndOfTeX
@@ -3449,7 +3471,7 @@ unit_u_ppu_llvm_mismatch=10067_U_Überspringe die Unit, PPU und Compiler müssen
 #
 # Options
 #
-# 11061 is the last used one
+# 11063 is the last used one
 #
 # BeginOfTeX
 %
@@ -3605,6 +3627,9 @@ option_features_only_for_system_unit=11060_E_Feature-Schalter werden nur beim Ü
 % To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
 % system unit through the ppu of the system unit.
 option_debug_info_requires_external_linker=11061_N_Das ausgewählte Debug-Format wird vom internen Linker nicht unterstützt, schalte um auf externen Linker
+option_valgrind_heaptrc_mismatch=11062_E_Die beiden Optionen ($1) ($2) können nicht gleichzeitig verwendet werden
+option_unsupported_fpu=11063_F_Der ausgewählte FPU-Typ "$1" wird vom ausgewählten Befehlssatz "$2" nicht unterstützt
+% Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
 %
 % \end{description}
 # EndOfTeX
@@ -3896,6 +3921,7 @@ F*0*_Es werden nur Optionen aufgelistet, die für die voreingestellte oder ausge
 **1A<x>_Ausgabe Format:
 **2Adefault_Benutze den "default" Assembler
 3*2Aas_Assembliere mit Hilfe von GNU AS
+3*2Aas-darwin_Assembliere Darwin Mach-O mit Hilfe von GNU GAS
 3*2Amacho_Mach-O (Darwin, Intel 32 bit) mit Hilfe des internen Schreibers
 8*2Anasm_Assembliere mit Hilfe von Nasm
 8*2Anasmobj_Assembliere mit Hilfe von Nasm
@@ -3915,7 +3941,8 @@ F*0*_Es werden nur Optionen aufgelistet, die für die voreingestellte oder ausge
 3*2Ayasm_Assembliere mit Hilfe von Yasm (experimentell)
 4*2Aas_Assembliere mit Hilfe von GNU AS
 4*2Agas_Assembliere mit Hilfe von GNU GAS
-4*2Agas-darwin_Assembliere darwin Mach-O64 mit Hilfe von GNU GAS
+4*2Agas-darwin_Assembliere Darwin Mach-O64 mit Hilfe von GNU GAS
+4*2Aas-darwin_Assembliere Darwin Mach-O64 mit Hilfe von GNU GAS
 4*2Amasm_Win64 Objektdatei mit Hilfe von ml64 (Microsoft)
 4*2Apecoff_PE-COFF (Win64) mit Hilfe des internen Schreibers
 4*2Aelf_ELF (Linux-64bit) mit Hilfe des internen Schreibers
@@ -3930,10 +3957,23 @@ F*0*_Es werden nur Optionen aufgelistet, die für die voreingestellte oder ausge
 6*2Amot_Standard Motorola Assembler
 6*2Avasm_Assembliere mit Hilfe von vasm
 A*2Aas_Assembliere mit Hilfe von GNU AS
+A*2Aas-darwin_Assembliere mit Hilfe von GNU AS für Darwin Zielsysteme
+A*2Aclang_Assembliere mit Hilfe von clang
+A*2Aelf_Assembliere mit Hilfe des internen ELF-Schreibers
+a*2Aas_Assembliere mit Hilfe von GNU AS
+a*2Aclang_Assembliere mit Hilfe von clang für Darwin/iOS Zielsysteme
+a*2Aas-clang_AAssembliere mit Hilfe von clang für andere Zielsysteme 
 P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
+s*2Aas_Assembliere mit Hilfe von GNU AS
+v*2Aas_Assembliere mit Hilfe von GNU AS
+W*2Abinaryen_Assembliere mit Hilfe von GNU AS für wasm32 (wasm-as)
+W*2Allvm-mc_Assembliere mit Hilfe von llvm-mc
+W*2Awabt_Assembliere mit Hilfe von wasa
+x*2Aas_Assembliere mit Hilfe von GNU AS
 Z*2Asdcc-sdasz80_Assembliere mit Hilfe von SDCC-SDASZ80
 Z*2Az80asm_Assembliere mit Hilfe von z80asm
+Z*2Avasm_Assembliere mit Hilfe von Vasm
 # Used only internally by IDE
 **1b_Erzeuge Browser-Info
 **2bl_Erzeuge Info zu lokalen Symbolen
@@ -3994,7 +4034,9 @@ A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2CX_Benutze Smartlinking
 **1d<x>_Definiere das Symbol <x>
 **1D_Erzeuge eine DEF-Datei
+**2DD<x>_Setze die von %DATE% zurück gegebene Datums-Zeichenkette auf x, ohne Überprüfung auf Gültigkeit
 **2Dd<x>_Setze Beschreibung zu <x>
+**2DT<x>_Setze die von %TIME% zurück gegebene Zeit-Zeichenkette auf x, ohne Überprüfung auf Gültigkeit
 **2Dv<x>_Setze DLL Version zu <x>
 *O2Dw_Erzeuge PM-Anwendung
 **1e<x>_Setze Pfad zur ausführbaren Datei
@@ -4007,8 +4049,9 @@ A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2Fd_Schalte den internen Verzeichnis-Cache des Compilers aus
 **2FD<x>_Setze das Verzeichnis für die Compiler-Hilfsprogramme
 **2Fe<x>_Leite die Fehlerausgabe um nach <x>
-**2Ff<x>_Ergänze <x> zum Framework-Pfad (nur Darwin)
 **2FE<x>_Setze den Pfad für Exe/Unit-Dateien auf <x>
+**2Ff<x>_Ergänze <x> zum Framework-Pfad (nur Darwin), oder setze IDF-Pfad auf <x> (Xtensa-FreeRTOS)
+**2FF_Benutze fpcres als Übersetzer von RC nach RES anstelle von windres oder gorc
 **2Fi<x>_Ergänze <x> zum Include-Pfad
 **2Fl<x>_Ergänze <x> zum Bibliotheks-Pfad
 **2FL<x>_Benutze <x> als dynamischen Linker
@@ -4122,6 +4165,7 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 **2SI<x>_Setze den Stil des Interface zu <x>
 **3SIcom_COM kompatibles Interface (Voreinstellung)
 **3SIcorba_CORBA kompatibles Interface
+**2sT_Erzeuge nur Skript, um auf dem Zielsystem zu linken
 **2Sm_Unterstütze Makros wie in C (global)
 **2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
 **2Sr_Transparente Dateinamen im ISO-Modus
@@ -4130,8 +4174,8 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 **2Sx_Exception Schlüsselwörter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
 **2Sy_@<pointer> gibt einen typisierten Zeiger zurück, genau wie $T+
 **1s_Rufe weder Assembler noch Linker auf (nur mit -a)
-**2sh_Erzeuge Script um auf dem Host zu linken
-**2st_Erzeuge Script um auf dem Zielsystem zu linken
+**2sh_Erzeuge Skript, um auf dem Host zu linken
+**2st_Erzeuge Skript, um auf dem Zielsystem zu assemblieren und zu linken
 **2sr_Überspringe die Phase der "register allocation" (mit -alr benutzen)
 **1T<x>_Zielbetriebssystem::
 # i386 targets
@@ -4178,7 +4222,9 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
 6*2Tmacos_Mac OS
+6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
+6*2Tsinclairql_Sinclair QL
 # i8086 targets
 8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (und kompatible)
@@ -4186,10 +4232,10 @@ F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel
 # arm targets
 A*2Tandroid_Android
 A*2Taros_AROS
-A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
 A*2Tfreertos_FreeRTOS
 A*2Tgba_Game Boy Advance
+A*2Tios_iOS
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
 A*2Tnetbsd_NetBSD
@@ -4198,7 +4244,9 @@ A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 # aarch64 targets
 a*2Tandroid_Android
-a*2Tdarwin_Darwin/iOS
+a*2Tdarwin_Darwin/Mac OS X
+a*2Tfreebsd_FreeBSD
+a*2Tios_iOS
 a*2Tlinux_Linux
 a*2Twin64_Windows 64
 # jvm targets
@@ -4218,6 +4266,7 @@ P*2Tdarwin_Darwin und macOS
 P*2Tembedded_Embedded
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
+P*2Tmacosclassic_Classic Mac OS
 P*2Tmorphos_MorphOS
 P*2Tnetbsd_NetBSD
 P*2Twii_Wii
@@ -4247,6 +4296,10 @@ x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
 Z*2Tzxspectrum_ZX Spectrum
+Z*2Tmsxdos_MSX-DOS
+# wasm32 targets
+W*2Tembedded_Embedded
+W*2Twasi_Das WebAssembly System Interface (WASI)
 # end of targets section
 **1u<x>_Entferne die Definition für das Symbol <x>
 **1U<x>_Unit-Optionen:
@@ -4281,9 +4334,10 @@ A*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 3*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
 3*2WB<x>_Setze die Imagebasis auf <x> (Windows, Symbian)
 4*2WB_Erzeuge ein relozierbares Image (Windows)
-4*2WB<x>_Setze die Imagebasis auf <x> (Windows, Symbian)
+4*2WB<x>_Setze die Imagebasis auf <x> (Windows)
 A*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
-A*2WB<x>_Setze die Imagebasis auf <x> (Windows)
+A*2WB<x>_Setze die Imagebasis auf <x> (Windows, Symbian)
+Z*2WB<x>_Setze die Imagebasis auf <x> (ZX Spectrum)
 3*2WC_Spezifiziere "console type application" (EMX, OS/2, Windows)
 4*2WC_Spezifiziere "console type application" (Windows)
 A*2WC_Spezifiziere "console type application" (Windows)
@@ -4341,10 +4395,14 @@ A*2WR_Erzeuge "relocation code" (Windows)
 8*2Wt<x>_Setze das Format der Ziel-Executable
 8*3Wtexe_Erzeuge eine DOS .EXE Datei (Voreinstellung)
 8*3Wtcom_Erzeuge eine DOS .COM Datei (erfordert das winzige (tiny) Speichermodell)
-P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
+P*2WT_Spezifiziere "MPW tool type application" (Classic Mac OS)
+6*2WQ<x>_Setze das "executable" Metadata-Format (Sinclair QL)
+6*3WQqhdr_Setze Metadata auf QDOS Datei-Header Stil (Voreinstellung)
+6*3WQxtcc_Setze Metadata auf XTcc Stil
 **2WX_Ermögliche den executable stack (Linux)
 **1X_Programm-Optionen:
 **2X9_Erzeuge Linkerscript für GNU Binutils ld älter als Version 2.19.1 (Linux)
+**2Xa_Erzeuge Code, der auf 64-Bit Zielsystemen mehr als 2 GB statische Daten erlaubt (Linux)
 **2Xc_Übergebe --shared an den Linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile, wenn nicht -XR verwendet wird)
 **2Xe_Verwende den externen Linker
@@ -4360,12 +4418,13 @@ L*2XlS<x>_Suffix der LLVM-Programme (z. B. -7, wenn clang clang-7 heißt)
 **2XM<x>_Setze den Namen der 'main' Programm-Routine (Voreinstellung ist 'main')
 **2Xn_Nutze den plattformeigenen Linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
 F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
-**2XP<x>_Stelle dem Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
+**2XP<x>_Stelle den Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
 **2Xr<x>_Setze den rlink-Pfad des Linker zu <x> (benötigt für cross compile, siehe ld-Manual für mehr Informationen) (BeOS, Linux)
 **2XR<x>_Stelle allen Linker-Suchpfaden den Namen <x> voran (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Entferne alle Symbole aus der ausführbaren Datei
 **2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
 **2Xt_Linke mit statischen Bibliotheken              (-static wird an den Linker übergeben)
+**2Xu_Erzeuge ausführbares Program im UF2-Format     (nur embedded-Zielsysteme)
 **2Xv_Erzeuge eine Tabelle mit den virtuellen Entry-Aufrufen
 **2XV_Benutze VLink als externen linker              (Voreinstellung für Amiga, MorphOS)
 **2XX_Versuche Units smart zu linken                 (definiert FPC_LINK_SMART)

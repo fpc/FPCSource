@@ -840,14 +840,32 @@ Unit racpugas;
               oper.opr.typ:=OPR_REGSET;
               oper.opr.basereg:=parsereg;
               oper.opr.nregs:=1;
-              while (oper.opr.nregs<4) and
-                    (actasmtoken=AS_COMMA) do
+
+              while (actasmtoken<>AS_RSBRACKET) and (oper.opr.nregs<4) do
                 begin
-                  consume(AS_COMMA);
-                  tempreg:=parsereg;
-                  if getsupreg(tempreg)<>((getsupreg(oper.opr.basereg)+oper.opr.nregs) mod 32) then
-                    Message(asmr_e_a64_invalid_regset);
-                  inc(oper.opr.nregs);
+                  if actasmtoken=AS_MINUS then
+                    begin
+                      consume(AS_MINUS);
+                      tempreg:=parsereg;
+
+                      if (getsupreg(tempreg)-getsupreg(oper.opr.basereg))>=4 then
+                        Message(asmr_e_a64_regset_too_large);
+                      oper.opr.nregs:=getsupreg(tempreg)-getsupreg(oper.opr.basereg)+1;
+                      if actasmtoken<>AS_COMMA then
+                        break;
+                    end;
+                  if actasmtoken=AS_COMMA then
+                    begin
+                      consume(AS_COMMA);
+                      tempreg:=parsereg;
+                      if (getsupreg(tempreg)-getsupreg(oper.opr.basereg))>=4 then
+                        Message(asmr_e_a64_regset_too_large);
+                      if getsupreg(tempreg)<>((getsupreg(oper.opr.basereg)+oper.opr.nregs) mod 32) then
+                        Message(asmr_e_a64_invalid_regset);
+                      inc(oper.opr.nregs);
+                    end
+                  else
+                    break;
                 end;
               consume(AS_RSBRACKET);
               if actasmtoken=AS_LBRACKET then

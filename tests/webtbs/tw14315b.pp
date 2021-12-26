@@ -34,7 +34,7 @@ var
   a : array of byte;
   u1, u2: ptruint;
 begin
-  randseed:=1586103426;
+  randseed:=2327946243;
   writeln('randseed: ',randseed);
   GetStats(u1);
   for i := 0 to 50 do begin
@@ -44,4 +44,5 @@ begin
   GetStats(u2);
   if u1<>u2 then
     halt(1);
+  writeln('ok');
 end.

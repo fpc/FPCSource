@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+{$MODE OBJFPC}
 unit Video;
 
 {.$define VIDEODEBUG}
@@ -48,6 +49,7 @@ procedure GotInactiveWindow;
 function HasInactiveWindow: boolean;
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
+procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
 
 var
   VideoWindow: PWindow;
@@ -177,10 +179,8 @@ var
   videoDefaultFlags: PtrUInt;
 begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
-  {$if not defined(AMIGA_V1_2_ONLY)}
   if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
     videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
-  {$endif}
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -277,6 +277,7 @@ begin
   {$else}
   VideoFont:=@vgafont;
   VideoFontHeight:=16;
+  {$endif}
   if GetVar('FPC_VIDEO_BUILTINFONT',@envBuf,sizeof(envBuf),0) > -1 then
     begin
       case lowerCase(envBuf) of
@@ -290,9 +291,13 @@ begin
             VideoFont:=@vgafont14;
             VideoFontHeight:=14;
           end;
+        'vga16':
+          begin
+            VideoFont:=@vgafont;
+            VideoFontHeight:=16;
+          end;
       end;
     end;
-  {$endif}
 
   // fill videobuf and oldvideobuf with different bytes, to allow proper first draw
   FillDword(VideoBuf^, VideoBufSize div 4, $1234D3AD);
@@ -315,7 +320,7 @@ begin
     // borders or titlebar as intended.
     ScreenWidth := VideoWindow^.GZZWidth div 8;
     ScreenHeight := VideoWindow^.GZZHeight div VideoFontHeight;
-    ScreenColor := True;
+    ScreenColor := False;
 
     {$ifdef VIDEODEBUG}
     Writeln('DEBUG: Fullscreen - windowed - Width * Heigth = ',ScreenWidth,' * ',ScreenHeight);
@@ -558,21 +563,23 @@ begin
   end;
 end;
 
-procedure SysUpdateScreen(Force: Boolean);
+
+procedure UpdateScreenPart(const X1,Y1,X2,Y2: Longint; Force: Boolean);
 var
-  BufCounter: Longint;
   SmallForce: Boolean;
-  Counter, CounterX, CounterY: LongInt;
-  NumChanged: Integer;
+  CounterX, CounterY: LongInt;
   LocalRP: PRastPort;
   sY, sX: LongInt;
-  TmpCharData: Word;
+  BufStartOfs: LongInt;
   {$ifdef VideoSpeedTest}
+  NumChanged: Integer;
   t,ta: Double;
   {$endif}
+  VBuf,OldVBuf: PWord;
 begin
   {$ifdef VideoSpeedTest}
   ta := now();
+  NumChanged := 0;
   {$endif}
   SmallForce := False;
 
@@ -588,19 +595,7 @@ begin
     end;
   end;
 
-  if Force then
-  begin
-    SmallForce:=true;
-  end else
-  begin
-    Counter:=0;
-    if not ForceCursorUpdate then
-      while not smallforce and (Counter < (VideoBufSize div 4) - 1) do
-      begin
-        SmallForce := (PDWord(VideoBuf)[Counter] <> PDWord(OldVideoBuf)[Counter]);
-        inc(Counter);
-      end;
-  end;
+  SmallForce:=Force or not ForceCursorUpdate;
 
   LocalRP := VideoWindow^.RPort;
 
@@ -617,30 +612,31 @@ begin
   LocalRP := BufRp;
   {$endif}
 
-  BufCounter:=0;
-  NumChanged:=0;
-
-
   if Smallforce then
   begin
+    BufStartOfs:=y1 * ScreenWidth + x1;
+    VBuf:=@VideoBuf^[BufStartOfs];
+    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     {$ifdef VideoSpeedTest}
     t := now();
     {$endif}
-    sY := videoWindow^.borderTop;
-    for CounterY := 0 to ScreenHeight - 1 do
+    sY := videoWindow^.borderTop + Y1 * VideoFontHeight;
+    for CounterY := Y1 to Y2 do
     begin
-      sX := videoWindow^.borderLeft;
-      for CounterX := 0 to ScreenWidth - 1 do
+      sX := videoWindow^.borderLeft + X1 * 8;
+      for CounterX := X1 to X2 do
       begin
-        if (VideoBuf^[BufCounter] <> OldVideoBuf^[BufCounter]) or Force then
+        if (VBuf^ <> OldVBuf^) or Force then
         begin
-          TmpCharData := VideoBuf^[BufCounter];
-          SetABPenDrMd(LocalRP, VideoPens[(TmpCharData shr 8) and %00001111], VideoPens[(TmpCharData shr 12) and %00000111], JAM2);
-          BltTemplate(CharPointers[TmpCharData and $FF], 0, SrcMod, LocalRP, sX, sY, 8, VideoFontHeight);
-          OldVideoBuf^[BufCounter] := VideoBuf^[BufCounter];
+          SetABPenDrMd(LocalRP, VideoPens[(VBuf^ shr 8) and %00001111], VideoPens[(VBuf^ shr 12) and %00000111], JAM2);
+          BltTemplate(CharPointers[VBuf^ and $FF], 0, SrcMod, LocalRP, sX, sY, 8, VideoFontHeight);
+          OldVBuf^:=VBuf^;
+          {$ifdef VideoSpeedTest}
           Inc(NumChanged);
+          {$endif}
         end;
-        Inc(BufCounter);
+        Inc(VBuf);
+        Inc(OldVBuf);
         sX := sX + 8;
       end;
       sY := sY + VideoFontHeight;
@@ -670,6 +666,10 @@ begin
   {$endif}
 end;
 
+procedure SysUpdateScreen(Force: Boolean);
+begin
+  UpdateScreenPart(0,0,ScreenWidth-1,ScreenHeight-1,Force);
+end;
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
@@ -853,7 +853,7 @@ begin
     0: begin
          Mode.Col := 80;
          Mode.Row := 25;
-         Mode.Color := False;
+         Mode.Color := True;
        end;
     {$if not defined(AMIGA_V1_2_ONLY)}
     1: begin

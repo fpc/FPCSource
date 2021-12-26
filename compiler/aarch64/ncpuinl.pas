@@ -38,6 +38,7 @@ interface
         function first_int_real: tnode; override;
         function first_frac_real: tnode; override;
         function first_fma : tnode; override;
+        function first_minmax : tnode; override;
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
@@ -49,6 +50,7 @@ interface
         procedure second_get_frame; override;
         procedure second_fma; override;
         procedure second_prefetch; override;
+        procedure second_minmax; override;
       private
         procedure load_fpu_location;
       end;
@@ -58,6 +60,7 @@ implementation
 
     uses
       globtype,verbose,globals,
+      compinnr,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
       ncal,nutils,
@@ -344,6 +347,101 @@ implementation
          else
            { nothing to prefetch };
        end;
+      end;
+
+
+    function taarch64inlinenode.first_minmax : tnode;
+      begin
+        if is_single(resultdef) or is_double(resultdef) then
+          begin
+            expectloc:=LOC_MMREGISTER;
+            Result:=nil;
+          end
+        else if is_32bitint(resultdef) then
+          begin
+            expectloc:=LOC_REGISTER;
+            Result:=nil;
+          end
+        else
+          Result:=inherited first_minmax;
+      end;
+
+
+    procedure taarch64inlinenode.second_minmax;
+      var
+        paraarray : array[1..2] of tnode;
+        i: Integer;
+        ai: taicpu;
+        op: TAsmOp;
+      begin
+        paraarray[1]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+          paraarray[2]:=tcallparanode(parameters).paravalue;
+
+        for i:=low(paraarray) to high(paraarray) do
+           secondpass(paraarray[i]);
+
+        if is_single(resultdef) or is_double(resultdef) then
+           begin
+             { no memory operand is allowed }
+             for i:=low(paraarray) to high(paraarray) do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,
+                     paraarray[i].resultdef,true);
+               end;
+
+             location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,
+               paraarray[1].location.register,paraarray[2].location.register));
+
+             case inlinenumber of
+               in_min_single,
+               in_min_double:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_FCSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_MI));
+               in_max_single,
+               in_max_double:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_FCSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
+               else
+                 Internalerror(2021121802);
+             end;
+
+             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+           end
+         else if is_32bitint(resultdef) then
+           begin
+             { no memory operand is allowed }
+             for i:=low(paraarray) to high(paraarray) do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                   hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[i].location,
+                     paraarray[i].resultdef,paraarray[i].resultdef,true);
+               end;
+
+             location_reset(location,LOC_REGISTER,paraarray[1].location.size);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,
+               paraarray[1].location.register,paraarray[2].location.register));
+
+             case inlinenumber of
+               in_min_dword,
+               in_min_longint:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_LT));
+               in_max_dword,
+               in_max_longint:
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,
+                  location.register,paraarray[1].location.register,paraarray[2].location.register,C_GT));
+               else
+                 Internalerror(2021121901);
+             end;
+           end
+         else
+           internalerror(2021121801);
       end;
 
 

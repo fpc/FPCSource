@@ -30,14 +30,19 @@ var
   TmpFileList : TStringList;
 
 function GenerateTempDir: string;
+const
+  max_attempts = 10;
 var
   TempDirName: string;
   BaseTempDir: string;
   Done: Boolean = False;
+  attempt: longint;
 begin
   BaseTempDir := GetTempDir(False);
   Result := no_temp_dir_generated;
+  attempt := 0;
   repeat
+    inc(attempt);
     try
       TempDirName := BaseTempDir + 'dosboxwrappertmp_' + IntToStr(Random(100000));
       if verbose then
@@ -56,8 +61,13 @@ begin
             raise;
           end;
       end;
+      on E: Exception do
+      begin
+        Writeln('Exception ',E.Message);
+        Sleep(1000);
+      end;
     end;
-  until Done;
+  until Done or (attempt > max_attempts);
   Result := TempDirName + DirectorySeparator;
 end;
 

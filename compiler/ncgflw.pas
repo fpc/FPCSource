@@ -177,9 +177,6 @@ implementation
          exclude(flowcontrol,fc_unwind_loop);
 
          sync_regvars(true);
-{$ifdef OLDREGVARS}
-         load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if lnf_testatbegin in loopflags then
@@ -197,10 +194,6 @@ implementation
 
          if assigned(right) then
            secondpass(right);
-
-{$ifdef OLDREGVARS}
-         load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
 
          hlcg.a_label(current_asmdata.CurrAsmList,lcont);
          if lnf_checknegate in loopflags then
@@ -435,9 +428,6 @@ implementation
          include(flowcontrol,fc_break);
          if current_procinfo.CurrBreakLabel<>nil then
            begin
-{$ifdef OLDREGVARS}
-             load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
              if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
              else
@@ -461,9 +451,6 @@ implementation
          include(flowcontrol,fc_continue);
          if current_procinfo.CurrContinueLabel<>nil then
            begin
-{$ifdef OLDREGVARS}
-             load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
              if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
              else
@@ -486,9 +473,6 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          include(flowcontrol,fc_gotolabel);
-{$ifdef OLDREGVARS}
-         load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
          hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
          if not(cs_opt_size in current_settings.optimizerswitches) then
            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
@@ -516,11 +500,8 @@ implementation
     procedure tcglabelnode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
-
-         include(flowcontrol,fc_gotolabel);
-{$ifdef OLDREGVARS}
-         load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
+         if not (nf_internal in flags) then
+           include(flowcontrol,fc_gotolabel);
          hlcg.a_label(current_asmdata.CurrAsmList,getasmlabel);
 
          { Write also extra label if this label was referenced from

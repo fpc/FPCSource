@@ -136,9 +136,9 @@ var rtl = {
       if (!module) rtl.error('rtl.run module "'+module_name+'" missing');
       rtl.loadintf(module);
       rtl.loadimpl(module);
-      if (module_name=='program'){
+      if ((module_name=='program') || (module_name=='library')){
         if (rtl.debug_load_units) rtl.debug('running $main');
-        var r = pas.program.$main();
+        var r = pas[module_name].$main();
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
     } catch(re) {
@@ -1189,13 +1189,13 @@ var rtl = {
 	  // exponent width
 	  var pad = "";
 	  var ad = Math.abs(d);
-	  if (ad<1.0e+10) {
+	  if (((ad>1) && (ad<1.0e+10)) ||  ((ad>1.e-10) && (ad<1))) {
 		pad='00';
-	  } else if (ad<1.0e+100) {
+	  } else if ((ad>1) && (ad<1.0e+100) || (ad<1.e-10)) {
 		pad='0';
       }  	
 	  if (arguments.length<2) {
-	    w=9;		
+	    w=24;		
       } else if (w<9) {
 		w=9;
       }		  
@@ -1268,7 +1268,7 @@ var rtl = {
     if (rtl.debug_rtti) rtl.debug('initRTTI');
 
     // base types
-    rtl.tTypeInfo = { name: "tTypeInfo" };
+    rtl.tTypeInfo = { name: "tTypeInfo", kind: 0, $module: null, attr: null };
     function newBaseTI(name,kind,ancestor){
       if (!ancestor) ancestor = rtl.tTypeInfo;
       if (rtl.debug_rtti) rtl.debug('initRTTI.newBaseTI "'+name+'" '+kind+' ("'+ancestor.name+'")');
@@ -1311,7 +1311,7 @@ var rtl = {
     newBaseTI("tTypeInfoRefToProcVar",17 /* tkRefToProcVar */,rtl.tTypeInfoProcVar);
 
     // member kinds
-    rtl.tTypeMember = {};
+    rtl.tTypeMember = { attr: null };
     function newMember(name,kind){
       var m = Object.create(rtl.tTypeMember);
       m.name = name;
@@ -1366,7 +1366,7 @@ var rtl = {
     tis.addMethod = function(name,methodkind,params,result,flags,options){
       var t = this.$addMember(name,rtl.tTypeMemberMethod,options);
       t.methodkind = methodkind;
-      t.procsig = rtl.newTIProcSig(params,result?result:null,flags?flags:0);
+      t.procsig = rtl.newTIProcSig(params,result,flags);
       this.methods.push(name);
       return t;
     };
@@ -1377,7 +1377,7 @@ var rtl = {
       t.getter = getter;
       t.setter = setter;
       // Note: in options: params, stored, defaultvalue
-      if (rtl.isArray(t.params)) t.params = rtl.newTIParams(t.params);
+      t.params = rtl.isArray(t.params) ? rtl.newTIParams(t.params) : null;
       this.properties.push(name);
       if (!rtl.isString(t.stored)) t.stored = "";
       return t;
@@ -1449,7 +1449,7 @@ var rtl = {
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
     $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
     $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); },
-    $ExtClass: function(name,o){ return this.$Scope(name,rtl.tTypeInfoExtClass,o); }
+    $ExtClass: function(name,o){ return this.$inherited(name,rtl.tTypeInfoExtClass,o); }
   },
 
   newTIParam: function(param){
@@ -1474,8 +1474,8 @@ var rtl = {
   newTIProcSig: function(params,result,flags){
     var s = {
       params: rtl.newTIParams(params),
-      resulttype: result,
-      flags: flags
+      resulttype: result?result:null,
+      flags: flags?flags:0
     };
     return s;
   },
@@ -1497,4 +1497,3 @@ var rtl = {
     return Object.keys(rtl.$res);
   }
 }
-

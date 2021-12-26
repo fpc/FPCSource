@@ -157,6 +157,8 @@ interface
         function single2str(d : single) : string; virtual;
         function double2str(d : double) : string; virtual;
         function extended2str(e : extended) : string; virtual;
+        function sleb128tostr(a : int64) : string;
+        function uleb128tostr(a : qword) : string;
         Function DoPipe:boolean; virtual;
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; virtual;
@@ -268,6 +270,9 @@ Implementation
       sfpux80,
 {$endif FPC_SOFT_FPUX80}
 {$endif}
+{$ifdef WASM}
+      ogwasm,
+{$endif WASM}
       cscript,fmodule,verbose,
       cpubase,cpuinfo,triplet,
       aasmcpu;
@@ -275,7 +280,7 @@ Implementation
     var
       CAssembler : array[tasm] of TAssemblerClass;
 
-    function fixline(s:string):string;
+    function fixline(const s:string):string;
      {
        return s with all leading and ending spaces and tabs removed
      }
@@ -288,10 +293,10 @@ Implementation
         j:=1;
         while (j<i) and (s[j] in [#9,' ']) do
           inc(j);
-        for k:=j to i do
-          if s[k] in [#0..#31,#127..#255] then
-            s[k]:='.';
-        fixline:=Copy(s,j,i-j+1);
+        result := Copy(s, j, i - j + 1);
+        for k:=1 to length(result) do
+          if result[k] in [#0..#31,#127..#255] then
+            result[k]:='.';
       end;
 
 {*****************************************************************************
@@ -743,6 +748,36 @@ Implementation
           hs[1]:='+';
          extended2str:='0d'+hs
       end;
+
+    function TExternalAssembler.sleb128tostr(a: int64): string;
+      var
+        i,len : longint;
+        buf   : array[0..31] of byte;
+      begin
+        result:='';
+        len:=EncodeSleb128(a,buf,0);
+        for i:=0 to len-1 do
+          begin
+            if (i > 0) then
+              result:=result+',';
+            result:=result+tostr(buf[i]);
+          end;
+      end;
+
+    function TExternalAssembler.uleb128tostr(a: qword): string;
+    var
+      i,len : longint;
+      buf   : array[0..31] of byte;
+    begin
+      result:='';
+      len:=EncodeUleb128(a,buf,0);
+      for i:=0 to len-1 do
+        begin
+          if (i > 0) then
+            result:=result+',';
+          result:=result+tostr(buf[i]);
+        end;
+    end;
 
 
     Function TExternalAssembler.DoPipe:boolean;
@@ -1755,6 +1790,9 @@ Implementation
                       internalerror(2009090804); ;}
                  ObjData.SymbolDefine(Tai_symbol(hp).sym);
                end;
+             ait_symbolpair :
+               with tai_symbolpair(hp) do
+                 ObjData.SymbolPairDefine(kind,sym^,value^);
              ait_label :
                ObjData.SymbolDefine(Tai_label(hp).labsym);
              ait_string :
@@ -1799,6 +1837,22 @@ Implementation
                      Internalerror(2019100701);
                  end;
                end;
+{$ifdef WASM}
+             ait_globaltype:
+               TWasmObjData(ObjData).DeclareGlobalType(tai_globaltype(hp));
+             ait_functype:
+               TWasmObjData(ObjData).DeclareFuncType(tai_functype(hp));
+             ait_tagtype:
+               TWasmObjData(ObjData).DeclareTagType(tai_tagtype(hp));
+             ait_export_name:
+               TWasmObjData(ObjData).DeclareExportName(tai_export_name(hp));
+             ait_import_module:
+               TWasmObjData(ObjData).DeclareImportModule(tai_import_module(hp));
+             ait_import_name:
+               TWasmObjData(ObjData).DeclareImportName(tai_import_name(hp));
+             ait_local:
+               TWasmObjData(ObjData).DeclareLocal(tai_local(hp));
+{$endif WASM}
              else
                ;
            end;
@@ -1906,6 +1960,9 @@ Implementation
                  objsym:=ObjData.SymbolRef(Tai_symbol_end(hp).sym);
                  objsym.size:=ObjData.CurrObjSec.Size-objsym.offset;
                end;
+             ait_symbolpair:
+               with tai_symbolpair(hp) do
+                 ObjData.SymbolPairDefine(kind,sym^,value^);
              ait_label :
                ObjData.SymbolDefine(Tai_label(hp).labsym);
              ait_string :

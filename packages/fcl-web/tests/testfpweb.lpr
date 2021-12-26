@@ -3,7 +3,8 @@ program testfpweb;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tchttproute;
+  Classes, consoletestrunner, tchttproute, tcjwt, jsonparser,
+  fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256;
 
 type
 

@@ -241,7 +241,7 @@ var
   nm : TSymStr;
 begin
   nm := tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
-  current_asmdata.asmlists[al_exports].Concat(tai_impexp.create(hp.name^, nm, ie_Func));
+  current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(hp.name^, nm, ie_Func));
 end;
 
 procedure texportlibwasi.exportvar(hp: texported_item);

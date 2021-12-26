@@ -7,7 +7,6 @@
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -20,11 +19,19 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <UseFileFilters Value="True"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
+      </local>
       <FormatVersion Value="2"/>
-      <Modes Count="0"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-px8664 -ffpc -o\home\torsten\tmp\fpc\fpc -z -mvgatherqpd"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="4">
       <Unit0>
@@ -53,7 +60,15 @@
       <Filename Value="avxtestgenerator"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="1">
+      <Item1>
+        <Name Value="Unknown"/>
+      </Item1>
+    </Exceptions>
+  </Debugging>
 </CONFIG>

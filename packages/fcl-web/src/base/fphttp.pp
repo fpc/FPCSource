@@ -202,6 +202,7 @@ Type
     FRouteID : Integer;
   Protected
     procedure HandleRequest(ARequest: TRequest; AResponse: TResponse);
+    // Route.ID+1
     Property RouteID : Integer Read FRouteID;
   Public
     Destructor Destroy; override;
@@ -226,6 +227,8 @@ Type
     Function FindModule(const AModuleName : String) : TModuleItem;
     Function ModuleByName(const AModuleName : String) : TModuleItem;
     Function IndexOfModule(const AModuleName : String) : Integer;
+    Procedure RemoveModule(const AModuleName : String);
+    function MoveModuleBeforeDefault(const AModuleName: String): Boolean;
     Property Modules [Index : Integer]: TModuleItem Read GetModule Write SetModule;default;
     Property OnModuleRequest : TOnModuleRequest Read FOnModuleRequest Write FOnModuleRequest;
   end;
@@ -444,6 +447,26 @@ begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(Modules[Result].ModuleName,AModuleName)<>0) do
     Dec(Result);
+end;
+
+procedure TModuleFactory.RemoveModule(const AModuleName: String);
+
+Var
+  aRouteID,Idx : Integer;
+
+begin
+  Idx:=IndexOfModule(aModuleName);
+  if Idx<>-1 then
+    begin
+    aRouteID:=Modules[Idx].RouteID;
+    HTTPRouter.DeleteRouteByID(aRouteID);
+    Delete(Idx);
+    end;
+end;
+
+function TModuleFactory.MoveModuleBeforeDefault(const AModuleName: String) : Boolean;
+begin
+  Result:=HTTPRouter.MoveRouteBeforeDefault(ModuleByName(aModuleName).RouteID-1);
 end;
 
 

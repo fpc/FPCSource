@@ -30,13 +30,11 @@ Interface
 
 Type
    bestreal = extended;
-{$if FPC_FULLVERSION>20700}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
    bestrealrec = TExtended80Rec;
 {$else}
    bestrealrec = TDoubleRec;
 {$endif}
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
@@ -161,7 +159,7 @@ Const
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
-     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse,cs_opt_consts];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_userbp];
 

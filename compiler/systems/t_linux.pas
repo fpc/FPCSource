@@ -738,7 +738,7 @@ var
   mapstr,
   ltostr  : TCmdStr;
   success : boolean;
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
   GCSectionsStr,
   StaticStr,
   StripStr   : string[40];

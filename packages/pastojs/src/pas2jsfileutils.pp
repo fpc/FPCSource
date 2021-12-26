@@ -31,7 +31,7 @@ uses
   {$IFDEF Pas2JS}
   JS, NodeJS, Node.FS,
   {$ENDIF}
-  SysUtils, Classes;
+  SysUtils, Classes, Pas2JSUtils;
 
 function FilenameIsAbsolute(const aFilename: string):boolean;
 function FilenameIsWinAbsolute(const aFilename: string):boolean;
@@ -96,13 +96,6 @@ function GetUnixEncoding: string;
 function IsASCII(const s: string): boolean; inline;
 
 {$IFDEF FPC_HAS_CPSTRING}
-const
-  UTF8BOM = #$EF#$BB#$BF;
-function UTF8CharacterStrictLength(P: PChar): integer;
-
-function UTF8ToUTF16(const s: string): UnicodeString;
-function UTF16ToUTF8(const s: UnicodeString): string;
-
 function UTF8ToSystemCP(const s: string): string;
 function SystemCPToUTF8(const s: string): string;
 
@@ -920,65 +913,6 @@ begin
     end;
     inc(p);
   until false;
-end;
-{$ENDIF}
-
-{$IFDEF FPC_HAS_CPSTRING}
-function UTF8CharacterStrictLength(P: PChar): integer;
-begin
-  if p=nil then exit(0);
-  if ord(p^)<%10000000 then
-  begin
-    // regular single byte character
-    exit(1);
-  end
-  else if ord(p^)<%11000000 then
-  begin
-    // invalid single byte character
-    exit(0);
-  end
-  else if ((ord(p^) and %11100000) = %11000000) then
-  begin
-    // should be 2 byte character
-    if (ord(p[1]) and %11000000) = %10000000 then
-      exit(2)
-    else
-      exit(0);
-  end
-  else if ((ord(p^) and %11110000) = %11100000) then
-  begin
-    // should be 3 byte character
-    if ((ord(p[1]) and %11000000) = %10000000)
-    and ((ord(p[2]) and %11000000) = %10000000) then
-      exit(3)
-    else
-      exit(0);
-  end
-  else if ((ord(p^) and %11111000) = %11110000) then
-  begin
-    // should be 4 byte character
-    if ((ord(p[1]) and %11000000) = %10000000)
-    and ((ord(p[2]) and %11000000) = %10000000)
-    and ((ord(p[3]) and %11000000) = %10000000) then
-      exit(4)
-    else
-      exit(0);
-  end else
-    exit(0);
-end;
-
-function UTF8ToUTF16(const s: string): UnicodeString;
-begin
-  Result:=UTF8Decode(s);
-end;
-
-function UTF16ToUTF8(const s: UnicodeString): string;
-begin
-  if s='' then exit('');
-  Result:=UTF8Encode(s);
-  // prevent UTF8 codepage appear in the strings - we don't need codepage
-  // conversion magic
-  SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
 {$ENDIF}
 

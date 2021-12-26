@@ -47,7 +47,7 @@ unit i_wasi;
             shortname    : 'Wasi';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_no_generic_stackcheck,
-                            tf_smartlink_sections,
+                            tf_smartlink_sections,tf_has_winlike_resources,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_wasm32;
@@ -77,7 +77,7 @@ unit i_wasi;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_wasm32_llvm_mc;
+            assem        : as_wasm32_wasm;
             assemextern  : as_wasm32_llvm_mc;
             link         : ld_none;
             linkextern   : ld_wasi; // there's no linker, only object files for WASM

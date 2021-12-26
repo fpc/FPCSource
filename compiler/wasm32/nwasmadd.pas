@@ -268,8 +268,21 @@ interface
           equaln,unequaln:
             second_generic_compare(true);
           lten,gten:
-            { not implemented yet }
-            internalerror(2021060104);
+            begin
+              pass_left_right;
+
+              if (not(nf_swapped in flags) and (nodetype = gten)) or
+                 ((nf_swapped in flags) and (nodetype = lten)) then
+                swapleftright;
+
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(hlcg).a_op_stack(current_asmdata.CurrAsmList,OP_AND,resultdef);
+              thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+              thlcgwasm(hlcg).a_cmp_stack_stack(current_asmdata.CurrAsmList,resultdef,OC_EQ);
+              set_result_location_reg;
+              thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+            end;
           else
             internalerror(2021060103);
         end;
@@ -285,8 +298,17 @@ interface
           secondpass(left);
           thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
-          current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
-          thlcgwasm(hlcg).incblock;
+          if is_64bit(left.resultdef) then
+            begin
+              thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,left.resultdef,0,R_INTREGISTER);
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_ne));
+              thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+            end;
+
+          if is_64bit(left.resultdef) then
+            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i64])))
+          else
+            current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_if,TWasmFuncType.Create([],[wbt_i32])));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
 
           case nodetype of
@@ -302,14 +324,20 @@ interface
 
                    // inside of ELSE (the condition evaluated as false)
                    // for "and" must end evaluation immediately
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+                   if is_64bit(left.resultdef) then
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 0) )
+                   else
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
                    thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                 end;
               orn :
                 begin
                    // inside of IF (the condition evaluated as true)
                    // for "or" must end evalaution immediately - satified!
-                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
+                   if is_64bit(left.resultdef) then
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i64_const, 1) )
+                   else
+                     current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
                    thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
 
                    current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
@@ -325,7 +353,6 @@ interface
                 Internalerror(2019091902);
               end;
           current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end_if) );
-          thlcgwasm(hlcg).decblock;
           set_result_location_reg;
           thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
         end else

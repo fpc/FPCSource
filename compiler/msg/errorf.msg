@@ -1334,7 +1334,7 @@ asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
 asmr_w_override_op_not_supported=07003_W_Override operator not supported
 % The Override operator is not supported
 asmr_e_building_record_offset=07004_E_Error building record offset
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_OFFSET used without identifier

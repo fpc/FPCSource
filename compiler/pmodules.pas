@@ -413,6 +413,11 @@ implementation
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$pop}
+{$ifdef XTENSA}
+        if not(current_module.is_unit) and (target_info.system=system_xtensa_freertos) then
+          if (current_settings.controllertype=ct_esp32) and (idf_version>=40200) then
+            AddUnit('espidf_40200');
+{$endif XTENSA}
       end;
 
 

@@ -1089,6 +1089,7 @@ begin
     begin
     FCurrRecNo:=Value-1;
     Resync([]);
+    DoAfterScroll;
     end;
 end;
 

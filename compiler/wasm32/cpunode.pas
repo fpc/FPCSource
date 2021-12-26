@@ -33,15 +33,11 @@ implementation
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
     
-    nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,nwasminl,
-    (* todo: WASM
-    njvmcnv,njvmcon,njvminl,njvmmem,njvmld,
-    njvmset,njvmvmt
+    nwasmbas,nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcon,nwasmcnv,nwasmset,nwasminl,
     { these are not really nodes }
-    ,rgcpu,tgcpu,njvmutil,njvmtcon,
-    *)
+    nwasmutil,
     { symtable }
-    symcpu;
-    { no aasmdef, the WebAssembly uses the base TAsmData class (set in init code of aasmcpu) }
+    symcpu,
+    aasmdef;
 
 end.

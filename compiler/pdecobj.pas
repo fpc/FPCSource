@@ -165,6 +165,8 @@ implementation
     procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
       var
         p : tpropertysym;
+        _deprecatedmsg: pshortstring;
+        _symoptions: tsymoptions;
       begin
         { check for a class, record or helper }
         if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or
@@ -214,12 +216,25 @@ implementation
               Message(parser_e_enumerator_identifier_required);
             consume(_SEMICOLON);
           end;
-        trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
+        { in case of a previous error, p might not be assigned }
+        if assigned(p) then
+          begin
+            trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
 
-        { hint directives, these can be separated by semicolons here,
-          that needs to be handled here with a loop (PFV) }
-        while try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
-          Consume(_SEMICOLON);
+            { hint directives, these can be separated by semicolons here,
+              that needs to be handled here with a loop (PFV) }
+            while try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
+              Consume(_SEMICOLON);
+          end
+        else
+          begin
+            { recover from error so we can continue to parse }
+
+            { hint directives, these can be separated by semicolons here,
+              that needs to be handled here with a loop (PFV) }
+            while try_consume_hintdirective(_symoptions,_deprecatedmsg) do
+              Consume(_SEMICOLON);
+          end;
       end;
 
 

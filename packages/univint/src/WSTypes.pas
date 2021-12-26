@@ -230,7 +230,7 @@ uses MacTypes,CFBase;
 
 const
 	errWSInternalError = -65793; { An internal framework error }
-	errWSTransportError = -65794; { A network error occured }
+	errWSTransportError = -65794; { A network error occurred }
 	errWSParseError = -65795; { The server response wasn't valid XML }
 	errWSTimeoutError = -65796; { The invocation timed out }
 

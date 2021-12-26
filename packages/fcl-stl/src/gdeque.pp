@@ -23,10 +23,13 @@ interface
 
 type
   generic TDeque<T>=class
-  private
+  public
   type
     PT=^T;
+  protected
+  type
     TArr=array of T;
+  private
   var
     FData:TArr;
     FDataSize:SizeUInt;
@@ -236,7 +239,7 @@ const
   cSizeSmall = 1*1024*1024;
   cSizeBig = 256*1024*1024;
 var
-  i,OldEnd,
+  OldEnd,
   DataSize,CurLast,EmptyElems,Elems:SizeUInt;
 begin
   OldEnd:=FCapacity;

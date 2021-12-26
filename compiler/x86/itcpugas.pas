@@ -29,7 +29,7 @@ interface
       cgbase,cpubase;
 
     type
-      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX);
+      TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint,AttSufINTdual,AttSufMM,AttSufMMX,AttSufMMS);
 
     const
       { include mnemonic strings }
@@ -73,7 +73,7 @@ interface
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO,S_NO
      );
      att_sizemmsuffix : array[0..14] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM,S_ZMM
+       S_NO,S_NO,S_NO,S_NO,S_NO, S_NO,{S_NO,}S_NO,S_NO,S_IL,S_NO,S_IQ,S_NO,S_XMM,S_YMM,S_ZMM
      );
      att_sizemmxsuffix : array[0..14] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_NO,S_NO

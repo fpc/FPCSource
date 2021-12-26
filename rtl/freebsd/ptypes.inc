@@ -191,7 +191,7 @@ Const
 
 Type TStatFS =  {?} Record
        case boolean of
-       0 : ( // current FreeBSD
+       false : ( // current FreeBSD
         version     : cuint32;        { structure version number }
         ftype       : cuint32;        { type of filesystem }
         fflags      : cuint64;        { copy of mount exported flags }
@@ -215,7 +215,7 @@ Type TStatFS =  {?} Record
         mnfromname  : array[0..MNAMELEN-1]   of ansichar; { mounted filesystem }
         mountpoint  : array[0..MNAMELEN-1]   of ansichar; { directory on which mounted }
         );
-        1:( // union for old fieldname's sake.
+        true : ( // union for old fieldname's sake.
         f_version     : cuint32;        { structure version number }
         f_type        : cuint32;        { type of filesystem }
         f_flags       : cuint64;        { copy of mount exported flags }
