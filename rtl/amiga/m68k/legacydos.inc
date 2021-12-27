@@ -238,6 +238,7 @@ var
   Path,FileN: AnsiString;
   LastSeparatorPos: Integer;
   i: Integer;
+  newLock: boolean;
   DirLock: BPTR;
   ib: TFileInfoBlock;
   Res: LongInt;
@@ -272,12 +273,16 @@ begin
   // if no path is given use the current working dir, or try to lock the dir
   if Path = '' then
   begin
+    newLock := False;
     DirLock := CurrentDir(0);
     if DirLock <> 0 then
-      CurrentDir(DirLock);
+      UnLock(CurrentDir(DirLock));
   end
   else
+  begin
+    newLock := True;
     DirLock := Lock(PChar(Path), ACCESS_READ);
+  end;
   //
   // no dirlock found -> dir not found
   if DirLock = 0 then
@@ -289,6 +294,8 @@ begin
   if Examine(DirLock, @ib) = 0 then
   begin
     MatchFirst := -1;
+    if newLock then
+      UnLock(DirLock);
     Exit;
   end;
   // we search here directly what we need to find
@@ -334,7 +341,8 @@ begin
     // most importantly set the return code
     MatchFirst := 0;
   end;
-  Unlock(DirLock);
+  if newLock then
+    Unlock(DirLock);
 end;
 
 function MatchNext(anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchnext';
