@@ -137,6 +137,7 @@ unit aoptx86;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
         function DoSubAddOpt(var p : tai) : Boolean;
+        function DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
         function PrePeepholeOptIMUL(var p : tai) : boolean;
@@ -3878,50 +3879,10 @@ unit aoptx86;
                 Exit;
               end;
 
-            if MatchOpType(taicpu(p),top_ref,top_reg) and
-              { The x86 assemblers have difficulty comparing values against absolute addresses }
-              (taicpu(p).oper[0]^.ref^.refaddr in [addr_no, addr_pic, addr_pic_no_got]) and
-              (taicpu(hp1).oper[0]^.typ <> top_ref) and
-              MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) and
-              (
-                (
-                  (taicpu(hp1).opcode = A_TEST)
-                ) or (
-                  (taicpu(hp1).opcode = A_CMP) and
-                  { A sanity check more than anything }
-                  not MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg)
-                )
-              ) then
+            if DoMovCmpMemOpt(p, hp1, True) then
               begin
-                { change
-                    mov      mem, %reg
-                    cmp/test x,   %reg / test %reg,%reg
-                    (reg deallocated)
-
-                    to
-
-                    cmp/test x,   mem  / cmp  0,   mem
-                }
-                TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
-                  begin
-                    { Convert test %reg,%reg or test $-1,%reg to cmp $0,mem }
-                    if (taicpu(hp1).opcode = A_TEST) and
-                      (
-                        MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) or
-                        MatchOperand(taicpu(hp1).oper[0]^, -1)
-                      ) then
-                      begin
-                        taicpu(hp1).opcode := A_CMP;
-                        taicpu(hp1).loadconst(0, 0);
-                      end;
-                    taicpu(hp1).loadref(1, taicpu(p).oper[0]^.ref^);
-                    DebugMsg(SPeepholeOptimization + 'MOV/CMP -> CMP (memory check)', p);
-                    RemoveCurrentP(p, hp1);
-                    Result := True;
-                    Exit;
-                  end;
+                Result := True;
+                Exit;
               end;
           end;
 
@@ -5226,6 +5187,59 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
+      begin
+        Result := False;
+        if UpdateTmpUsedRegs then
+          TransferUsedRegs(TmpUsedRegs);
+
+        if MatchOpType(taicpu(p),top_ref,top_reg) and
+          { The x86 assemblers have difficulty comparing values against absolute addresses }
+          (taicpu(p).oper[0]^.ref^.refaddr <> addr_full) and
+          (taicpu(hp1).oper[0]^.typ <> top_ref) and
+          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) and
+          (
+            (
+              (taicpu(hp1).opcode = A_TEST)
+            ) or (
+              (taicpu(hp1).opcode = A_CMP) and
+              { A sanity check more than anything }
+              not MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg)
+            )
+          ) then
+          begin
+            { change
+                mov      mem, %reg
+                cmp/test x,   %reg / test %reg,%reg
+                (reg deallocated)
+
+                to
+
+                cmp/test x,   mem  / cmp  0,   mem
+            }
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+              begin
+                { Convert test %reg,%reg or test $-1,%reg to cmp $0,mem }
+                if (taicpu(hp1).opcode = A_TEST) and
+                  (
+                    MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) or
+                    MatchOperand(taicpu(hp1).oper[0]^, -1)
+                  ) then
+                  begin
+                    taicpu(hp1).opcode := A_CMP;
+                    taicpu(hp1).loadconst(0, 0);
+                  end;
+                taicpu(hp1).loadref(1, taicpu(p).oper[0]^.ref^);
+                DebugMsg(SPeepholeOptimization + 'MOV/CMP -> CMP (memory check)', p);
+                RemoveCurrentP(p, hp1);
+                Result := True;
+                Exit;
+              end;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass1Sub(var p : tai) : boolean;
       var
         hp1, hp2: tai;
@@ -6113,6 +6127,7 @@ unit aoptx86;
 
                    end;
                end;
+
              { Search for:
                  cmp   ###,###
                  j(c1) @lbl1
@@ -6120,16 +6135,16 @@ unit aoptx86;
 
                Remove second cmp
              }
-
              if GetNextInstruction(p_jump, hp2) and
                (
                  (
-                   MatchInstruction(hp2, A_CMP, []) and
+                   MatchInstruction(hp2, A_CMP, [taicpu(p).opsize]) and
                    (
                      (
                        MatchOpType(taicpu(p), top_const, top_reg) and
+                       MatchOpType(taicpu(hp2), top_const, top_reg) and
                        (taicpu(hp2).oper[0]^.val = taicpu(p).oper[0]^.val) and
-                       SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp2).oper[1]^.reg)
+                       Reg1WriteOverwritesReg2Entirely(taicpu(hp2).oper[1]^.reg, taicpu(p).oper[1]^.reg)
                      ) or (
                        MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
                        MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^)
@@ -6142,7 +6157,7 @@ unit aoptx86;
                    MatchInstruction(hp2, A_TEST, []) and
                    MatchOpType(taicpu(hp2), top_reg, top_reg) and
                    (taicpu(hp2).oper[0]^.reg = taicpu(hp2).oper[1]^.reg) and
-                   SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp2).oper[1]^.reg)
+                   Reg1WriteOverwritesReg2Entirely(taicpu(hp2).oper[1]^.reg, taicpu(p).oper[1]^.reg)
                  )
                ) then
                begin
@@ -6175,6 +6190,10 @@ unit aoptx86;
            a conditional branch.
          }
          if not (cs_opt_size in current_settings.optimizerswitches) and
+           (
+             (hp1 = p_jump) or
+             GetNextInstruction(p, hp1)
+           ) and
            MatchInstruction(hp1, A_Jcc, []) and
            IsJumpToLabel(taicpu(hp1)) and
            (taicpu(hp1).condition in [C_E, C_Z]) and
@@ -6182,7 +6201,7 @@ unit aoptx86;
            MatchInstruction(hp2, A_CMP, A_TEST, [taicpu(p).opsize]) and
            MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^) and
            { The first operand of CMP instructions can only be a register or
-             operand anyway, so no need to check }
+             immediate anyway, so no need to check }
            GetNextInstruction(hp2, p_label) and
            (p_label.typ = ait_label) and
            (tai_label(p_label).labsym.getrefs = 1) and
@@ -7516,7 +7535,13 @@ unit aoptx86;
         if not GetNextInstruction(p, hp1) then
           Exit;
 
-        if MatchInstruction(hp1, A_JMP, [S_NO]) then
+        if MatchInstruction(hp1, A_CMP, A_TEST, [taicpu(p).opsize])
+          and DoMovCmpMemOpt(p, hp1, True) then
+          begin
+            Result := True;
+            Exit;
+          end
+        else if MatchInstruction(hp1, A_JMP, [S_NO]) then
           begin
             { Sometimes the MOVs that OptPass2JMP produces can be improved
               further, but we can't just put this jump optimisation in pass 1
