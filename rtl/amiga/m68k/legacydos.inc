@@ -271,7 +271,11 @@ begin
 
   // if no path is given use the current working dir, or try to lock the dir
   if Path = '' then
-    DirLock := CurrentDir(0)
+  begin
+    DirLock := CurrentDir(0);
+    if DirLock <> 0 then
+      CurrentDir(DirLock);
+  end
   else
     DirLock := Lock(PChar(Path), ACCESS_READ);
   //
