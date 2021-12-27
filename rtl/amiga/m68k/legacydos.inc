@@ -338,7 +338,7 @@ begin
         NChain^.an_Parent := Pointer(Anchor);
       end;
       // copy the fileinfoblock into the chain
-      Move(fib, NChain^.an_Info, SizeOf(TFileInfoBlock));
+      Move(fib^, NChain^.an_Info, SizeOf(TFileInfoBlock));
     end;
   until Res = 0; // useless... we jump out earlier
   //
