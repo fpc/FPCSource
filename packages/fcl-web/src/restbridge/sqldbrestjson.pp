@@ -178,6 +178,8 @@ begin
       rftString : Result:=TJSONString.Create(F.AsString);
       rftBoolean : Result:=TJSONBoolean.Create(F.AsBoolean);
       rftBlob : Result:=TJSONString.Create(FieldToBase64(F));
+    else
+      Result:=Nil;
     end;
 end;
 
@@ -220,6 +222,8 @@ begin
       rftTime : F.Add(GetString(rpFieldDateFormatProp),GetString(rpTimeFormat));
       rftDateTime : F.Add(GetString(rpFieldDateFormatProp),GetString(rpDateTimeFormat));
       rftString : F.Add(GetString(rpFieldMaxLenProp),P.DBField.Size);
+    else
+      ;
     end;
     end;
 end;

@@ -848,6 +848,8 @@ begin
     rftString : Result:=F.AsString;
     rftBoolean : Result:=BoolToStr(F.AsBoolean,'true','false');
     rftBlob : Result:=FieldToBase64(F);
+  else
+    Result:='';
   end;
 end;
 

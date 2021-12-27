@@ -86,7 +86,7 @@ Type
   { TBufDatasetInputStreamer }
 
   TBufDatasetInputStreamer = Class(TCDSInputStreamer)
-  Protected
+  Public
     Class Function ForBufDataset: Boolean; override;
   end;
 
