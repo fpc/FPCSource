@@ -3,7 +3,7 @@
 # the FPC specific parts are partly from:
 # https://gitlab.com/alb42/testconversion2/-/blob/main/.gitlab-ci.yml
 
-image: registry.gitlab.com/freepascal.org/fpc/source:buster_fpcbuild
+image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
 
 stages:
   - compilercycle
