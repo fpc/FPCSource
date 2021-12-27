@@ -230,11 +230,31 @@ end;
 
 { helper function used by MatchFirst, all input is expected to be lowercase }
 function NameMatchesPattern(pattern: AnsiString; filename: AnsiString): boolean;
+var
+  ofs: longint;
 begin
   NameMatchesPattern:=(pattern = '*') or (pattern = '#?') or (pattern = filename);
   if not NameMatchesPattern then
   begin
-    // TODO: pattern detection
+    { handle the simple case of #?.<ext> and *.<ext>, which is one of the most often used }
+    ofs:=Pos('#?',pattern);
+    if (ofs = 1) then
+    begin
+      Delete(pattern,1,length('#?'));
+      ofs:=Pos(pattern,filename);
+      NameMatchesPattern:=(ofs > 0) and ((ofs - 1) = length(filename) - length(pattern));
+      if NameMatchesPattern then
+        exit;
+    end;
+    ofs:=Pos('*',pattern);
+    if (ofs = 1) then
+    begin
+      Delete(pattern,1,length('*'));
+      ofs:=Pos(pattern,filename);
+      NameMatchesPattern:=(ofs > 0) and ((ofs - 1) = length(filename) - length(pattern));
+      if NameMatchesPattern then
+        exit;
+    end;
   end;
 end;
 
