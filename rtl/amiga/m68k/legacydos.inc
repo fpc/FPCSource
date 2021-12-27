@@ -233,6 +233,8 @@ end;
 function MatchFirst(pat   : PChar;
                     anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchfirst';
 var
+  fib_area: array[1..sizeof(TFileInfoBlock) + sizeof(longint)] of byte;
+  fib: pfileinfoblock;
   p: PChar;
   len: LongInt;
   Path,FileN: AnsiString;
@@ -240,7 +242,6 @@ var
   i: Integer;
   newLock: boolean;
   DirLock: BPTR;
-  ib: TFileInfoBlock;
   Res: LongInt;
   NChain: PAChain;
 begin
@@ -290,8 +291,10 @@ begin
     MatchFirst := -1;
     Exit;
   end;
+
+  fib:=align(@fib_area[1],sizeof(longint));
   // examine the dir to get the fib for ExNext
-  if Examine(DirLock, @ib) = 0 then
+  if Examine(DirLock, fib) = 0 then
   begin
     MatchFirst := -1;
     if newLock then
@@ -302,7 +305,7 @@ begin
   //  guess it's not meant that way but works
   repeat
     // get next dir entry
-    Res := ExNext(DirLock, @ib);
+    Res := ExNext(DirLock, fib);
     // nothing nore found -> exit
     if Res = 0 then
       break;
@@ -327,7 +330,7 @@ begin
         NChain^.an_Parent := Pointer(Anchor);
       end;
       // copy the fileinfoblock into the chain
-      Move(ib, NChain^.an_Info, SizeOf(TFileInfoBlock));
+      Move(fib, NChain^.an_Info, SizeOf(TFileInfoBlock));
     end;
   until Res = 0; // useless... we jump out earlier
   //
