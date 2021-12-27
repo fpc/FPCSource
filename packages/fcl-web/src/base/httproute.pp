@@ -522,6 +522,7 @@ destructor THTTPRouter.Destroy;
 begin
   FreeAndNil(FLock);
   FreeAndNil(FRoutes);
+  FreeAndNil(FIntercepts);
   inherited Destroy;
 end;
 
