@@ -228,8 +228,16 @@ begin
   NextDosEntry:=dlist;
 end;
 
-// Very first dirty version of MatchFirst/Next/End)
-//TODO: pattern detection, for now only simple "*" or "#?" or full name  (without patterns) is supported
+{ helper function used by MatchFirst, all input is expected to be lowercase }
+function NameMatchesPattern(pattern: AnsiString; filename: AnsiString): boolean;
+begin
+  NameMatchesPattern:=(pattern = '*') or (pattern = '#?') or (pattern = filename);
+  if not NameMatchesPattern then
+  begin
+    // TODO: pattern detection
+  end;
+end;
+
 function MatchFirst(pat   : PChar;
                     anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchfirst';
 var
@@ -310,7 +318,7 @@ begin
     if Res = 0 then
       break;
     // include some nifty pattern compare here? later maybe!
-    if (FileN = '*') or (FileN = '#?') or (FileN = lowercase(AnsiString(ib.fib_FileName))) then
+    if NameMatchesPattern(FileN, lowercase(AnsiString(fib^.fib_FileName))) then
     begin
       // Match found
       // new chain
