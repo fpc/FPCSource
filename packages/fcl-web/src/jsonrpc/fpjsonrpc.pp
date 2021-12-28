@@ -112,6 +112,9 @@ Type
     Destructor Destroy; override;
     Procedure CheckParams(Const Params : TJSONData);
     Function ParamByName(Const AName : String) : TJSONData;
+    // Called before execute is called.
+    Procedure SetRequestClassAndMethod(const aClassName,aMethodName : String); virtual;
+    // Actually call method.
     Function Execute(Const Params : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
     // Checked on incoming request
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
@@ -746,6 +749,12 @@ begin
     end;
 end;
 
+procedure TCustomJSONRPCHandler.SetRequestClassAndMethod(const aClassName, aMethodName: String);
+begin
+  // Do nothing
+  if aClassName=aMethodName then;
+end;
+
 procedure TCustomJSONRPCHandler.SetParamDefs(const AValue: TJSONParamDefs);
 begin
   if FParamDefs=AValue then exit;
@@ -1127,14 +1136,22 @@ function TCustomJSONRPCDispatcher.ExecuteMethod(Const AClassName,AMethodName: TJ
 Var
   H : TCustomJSONRPCHandler;
   FreeObject : TComponent;
+  aClonedID : TJSONData;
 
 begin
   H:=FindHandler(AClassName,AMethodName,AContext,FreeObject);
   If (H=Nil) then
-    if (AClassName='') then
-      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty))
+    begin
+    if Assigned(ID) then
+      aClonedID:=ID.Clone
     else
-      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty));
+      aClonedID:=TJSONNull.Create;
+    if (AClassName='') then
+      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty))
+    else
+      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty));
+    end;
+  H.SetRequestClassAndMethod(aClassName,aMethodName);
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
@@ -1194,7 +1211,7 @@ begin
       If (Result=Nil) then
         begin
         // No response, and a response was expected.
-        if (ID<>Nil) or not (jdoNotifications in Options) then
+        if (ID<>Nil) and (jdoStrictNotifications in Options) then
           Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
         end
       else
@@ -1308,7 +1325,7 @@ begin
     if Not (D is TJSONString) then
       Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     AClassName:=D.AsString;
-    If (AMethodName='') and (jdoRequireClass in options)  then
+    If (AClassName='') and (jdoRequireClass in options)  then
       Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     end;
   // Get params, if they exist
@@ -1379,7 +1396,7 @@ end;
 
 class function TCustomJSONRPCDispatcher.ClassNameProperty: String;
 begin
-  Result:=''; // Do not localize
+  Result:='classname'; // Do not localize
 end;
 
 class function TCustomJSONRPCDispatcher.ParamsProperty: String;
