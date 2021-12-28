@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    Demonstrate client-side JSON-RPC functionality using Invoke.
+    Copyright (c) 2022 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program rpcclient;
 
 {$if not defined(CPU386) and not defined(WIN64)}
@@ -5,7 +19,7 @@ program rpcclient;
 {$endif}
 
 uses
-  sysutils, jsonparser, fprpcclient, {$ifdef useffi} ffi.manager,{$endif} myapi;
+  sysutils, jsonparser, {$ifdef useffi} ffi.manager,{$endif} myapi, fprpcclient;
 
 
 Procedure DoTestRPC(RPC : TFPRPCClient);
@@ -16,6 +30,7 @@ var
   s: String;
   res: Boolean;
 begin
+  // Simple typecast to the needed interface
   client := RPC as IMyInterface;
   Writeln('===== Testing SayHello');
   client.SayHello;
@@ -42,6 +57,7 @@ Procedure DoTestRPC2(RPC : TFPRPCClient);
 var
   client: IMyOtherInterface;
 begin
+  // Explicitly create a service by name
   Client:=RPC.Specialize CreateService<IMyotherInterface>('Service2');
   Writeln('===== Testing SayHello');
   Writeln('Sayhello: ',client.SayHello);
@@ -60,7 +76,9 @@ begin
     aRPCClient.BaseURL:=ParamStr(1);
     if (aRPCClient.BaseURL='') then
       aRPCClient.BaseURL:='http://localhost:8080/RPC';
+    // Typecast
     DoTestRPC(aRPCClient);
+    // Actually create service
     DoTestRPC2(aRPCClient);
   finally
     aRPCClient.Free;
