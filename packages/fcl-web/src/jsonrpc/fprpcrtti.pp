@@ -86,7 +86,7 @@ function RTTIJSONRPCRegistry : TRTTIJSONRPCRegistry;
 
 implementation
 
-uses fpjsonvalue;
+uses fprpcstrings, fpjsonvalue;
 
 function RTTIJSONRPCRegistry : TRTTIJSONRPCRegistry;
 
@@ -194,7 +194,7 @@ begin
   TRTTIJSONRPCRegistry.Instance.Get(FRPCClassName,FIntfType,FCreator);
   FMethod:=FIntfType.GetMethod(aMethodName);
   if FMethod=Nil then
-    Raise EJSONRPC.CreateFmt('unknown method name for class %s: %s',[aClassName,aMethodName]);
+    raise EJSONRPC.CreateFmt(SErrUnknownMethodForClass, [aClassName, aMethodName]);
 end;
 
 class function TRTTIJSONRPCHandler.ValueToJSON(const aValue: TValue; aType: TRttiType): TJSONData;
@@ -253,7 +253,7 @@ begin
   if (Intf.QueryInterface(IRPCCallContext,CC)=S_OK) then
     CC.RPCCallContext:=aContext;
   if Intf.QueryInterface(FIntfType.GUID,APIIntf)<>S_OK then
-    Raise EJSONRPC.CreateFmt('Creator does not support interface %s',[FIntfType.Name]);
+    raise EJSONRPC.CreateFmt(SErrCreatorDoesNotSupportInterface, [FIntfType.Name]);
   TValue.Make(@APIIntf, PTypeInfo(FIntfType.Handle), instance);
 
   res := method.Invoke(instance, args);

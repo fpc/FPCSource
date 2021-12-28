@@ -147,9 +147,9 @@ type
 
 implementation
 
-{$ifdef debugjsonrpc}
-uses dbugintf;
-{$endif}
+
+uses {$ifdef debugjsonrpc}dbugintf,{$endif} fprpcstrings;
+
 
 Const
   SApplicationJSON = 'application/json';

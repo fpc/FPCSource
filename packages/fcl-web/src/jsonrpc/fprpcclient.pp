@@ -123,13 +123,9 @@ Type
 
 Function RPCServiceRegistry : TFPRPCServiceRegistry;
 
-Resourcestring
-  SErrUnknownServiceName = 'Unknown service name : "%s"';
-  SErrUnknownServiceGUID = 'Unknown service GUID : "%s"';
-  SErrSupportedServiceName = 'Interface does not support service: "%s"';
-  SErrExpectedReturnButNoServerReturn = 'Method "%s" expects return values, but no result was returned';
-
 implementation
+
+uses fprpcstrings;
 
 function IsGUIDEqual(const guid1, guid2: tguid): boolean;
   begin
@@ -480,10 +476,10 @@ begin
   Req:=aClient.CreateRequest;
   try
     S:=aRequest.AsJSON;
-    Writeln('Request : ',S);
+    // Writeln('Request : ',S);
     Req.Content.WriteBuffer(S[1],Length(S));
     Resp:=aClient.ExecuteRequest('POST',FBaseURL,Req);
-    Writeln('Response : ',Resp.GetContentAsString);
+    // Writeln('Response : ',Resp.GetContentAsString);
     // For notification methods, there is no return !
     if (resp.Content.Size>0) then
       begin
@@ -494,7 +490,7 @@ begin
       else
         begin
         Res.Free;
-        Raise ERPCClient.Create('Invalid server response');
+        Raise ERPCClient.Create(SErrInvalidServerResponse);
         end;
       end;
   finally

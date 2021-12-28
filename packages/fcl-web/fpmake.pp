@@ -302,8 +302,9 @@ begin
       AddUnit('httpdefs');
       AddUnit('fpextjs');
       end;
-    T:=P.Targets.AddUnit('fpjsonrpc.pp');
+    T:=P.Targets.AddUnit('fprpcstrings.pp');
     T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpjsonrpc.pp');
     T:=P.Targets.AddUnit('webjsonrpc.pp');
     With T.Dependencies do
       begin
@@ -314,9 +315,7 @@ begin
       begin
       AddUnit('fpjsonrpc');
       end;
-//    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fprpcclient.pp');
-    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
     With T.Dependencies do
@@ -324,7 +323,6 @@ begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpextdirect.pp');
-    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpdispextdirect');

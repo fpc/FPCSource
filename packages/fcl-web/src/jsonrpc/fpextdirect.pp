@@ -120,12 +120,10 @@ Type
 
 implementation
 
-{$ifdef extdebug}
-uses dbugintf;
-{$endif}
 
-Resourcestring
-  SErrInvalidPath = 'Invalid path';
+uses {$ifdef extdebug}dbugintf,{$endif} fprpcstrings;
+
+
 
 { TCustomExtDirectDispatcher }
 
