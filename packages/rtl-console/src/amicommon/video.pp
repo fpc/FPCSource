@@ -572,6 +572,7 @@ var
   LocalRP: PRastPort;
   sY, sX: LongInt;
   BufStartOfs: LongInt;
+  BufLineDiff: Longint;
   {$ifdef VideoSpeedTest}
   NumChanged: Integer;
   t,ta: Double;
@@ -615,12 +616,13 @@ begin
 
   if Smallforce then
   begin
-    BufStartOfs:=y1 * ScreenWidth + x1;
-    VBuf:=@VideoBuf^[BufStartOfs];
-    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     {$ifdef VideoSpeedTest}
     t := now();
     {$endif}
+    BufStartOfs:=Y1 * ScreenWidth + X1;
+    BufLineDiff:=ScreenWidth-(X2-X1+1);
+    VBuf:=@VideoBuf^[BufStartOfs];
+    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     sY := videoWindow^.borderTop + Y1 * VideoFontHeight;
     for CounterY := Y1 to Y2 do
     begin
@@ -640,6 +642,8 @@ begin
         Inc(OldVBuf);
         sX := sX + 8;
       end;
+      Inc(VBuf,BufLineDiff);
+      Inc(OldVBuf,BufLineDiff);
       sY := sY + VideoFontHeight;
     end;
     {$ifdef VideoSpeedTest}
