@@ -1,0 +1,14 @@
+object RPCModule: TRPCModule
+  OldCreateOrder = False
+  DispatchOptions = [jdoSearchRegistry, jdoSearchOwner, jdoJSONRPC1, jdoJSONRPC2, jdoRequireClass, jdoNotifications, jdoAllowAPI, jdoCacheAPI]
+  CORS.Enabled = False
+  CORS.Options = [coAllowCredentials, coEmptyDomainToOrigin]
+  CORS.AllowedMethods = 'GET, PUT, POST, OPTIONS, HEAD'
+  CORS.AllowedOrigins = '*'
+  CORS.AllowedHeaders = 'x-requested-with, content-type, authorization'
+  CORS.MaxAge = 0
+  Height = 150
+  HorizontalOffset = 509
+  VerticalOffset = 204
+  Width = 150
+end
