@@ -1,4 +1,3 @@
-{ %FAIL }
 { Old file: tbf0326.pp }
 {  }
 

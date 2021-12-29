@@ -4938,7 +4938,7 @@ type
 
              '%' :
                begin
-                 if not(m_fpc in current_settings.modeswitches) then
+                 if [m_fpc,m_delphi] * current_settings.modeswitches = [] then
                   Illegal_Char(c)
                  else
                   begin
