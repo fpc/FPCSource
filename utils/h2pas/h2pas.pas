@@ -203,7 +203,7 @@ program h2pas;
     }
     function FixId(const s:string):string;
     const
-     maxtokens = 14;
+     maxtokens = 16;
      reservedid: array[1..maxtokens] of string[14] =
        (
          'CLASS',
@@ -212,6 +212,7 @@ program h2pas;
          'FALSE',
          'LABEL',
          'NEW',
+         'OUT',
          'PROPERTY',
          'PROCEDURE',
          'RECORD',
@@ -219,7 +220,8 @@ program h2pas;
          'STRING',
          'TYPE',
          'TRUE',
-         'UNTIL'
+         'UNTIL',
+         'VAR'
        );
       var
         b : boolean;
