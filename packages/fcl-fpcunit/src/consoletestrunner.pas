@@ -26,13 +26,13 @@ interface
 uses
   custapp, Classes, SysUtils, fpcunit, testregistry, testutils,
   fpcunitreport, latextestreport, xmltestreport, plaintestreport,
-  dom;
+  junittestreport, dom;
 
 const
   Version = '0.3';
 
 type
-  TFormat = (fPlain, fLatex, fXML, fPlainNoTiming);
+  TFormat = (fPlain, fLatex, fXML, fPlainNoTiming, fJUnit);
   TRunMode = (rmUnknown,rmList,rmSuite,rmAll);
 
 var
@@ -237,6 +237,7 @@ begin
     'plain': Result:=fPlain;
     'plainnotiming': Result:=fPlainNoTiming;
     'xml': Result:=fXML;
+    'junit': Result:=fJUnit;
   else
     Raise EConvertError.CreateFmt('Not a valid output format : "%s"',[S]);
   end;
@@ -248,6 +249,7 @@ begin
     fLatex:         Result := TLatexResultsWriter.Create(nil);
     fPlain:         Result := TPlainResultsWriter.Create(nil);
     fPlainNotiming: Result := TPlainResultsWriter.Create(nil);
+    fJUnit:         Result := TJUnitResultsWriter.Create(nil)
   else
     begin
       Result := TXmlResultsWriter.Create(nil);
@@ -317,6 +319,7 @@ begin
     writeln('    plain            output as plain ASCII source');
     writeln('    plainnotiming    output as plain ASCII source, skip timings');
     writeln('    xml              output as XML source (default)');
+    writeln('    junit            output as JUnit compatible XML source');
     writeln('  --skiptiming              Do not output timings (useful for diffs of testruns)');
     writeln('  --sparse                  Produce Less output (errors/failures only)');
     writeln('  --no-addresses            Do not display address info');
