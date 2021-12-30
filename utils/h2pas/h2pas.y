@@ -3019,7 +3019,9 @@ begin
   for i:=0 to (PTypeList.Count-1) do
    begin
      originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
-     Writeln(headerfile,aktspace,PTypeList[i],'  = ^',originalstr,';');
+     if PrependTypes then
+       originalstr:='T'+originalstr;
+     Writeln(headerfile,aktspace,'  '+PTypeList[i],'  = ^',originalstr,';');
    end;
   if not packrecords then
    begin
