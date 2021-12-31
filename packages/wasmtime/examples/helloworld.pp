@@ -68,7 +68,7 @@ begin
     F.Free;
   end;
 
-  error:=wasmtime_wat2wasm(pcchar(wat.data), wat.size, @wasm);
+  error:=wasmtime_wat2wasm(pchar(wat.data), wat.size, @wasm);
   if (error<>Nil) then
     exit_with_error('failed to parse wat', error, Nil);
   wasm_byte_vec_delete(@wat);

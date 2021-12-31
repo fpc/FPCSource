@@ -9,7 +9,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="memory"/>
+      <Title Value="linking"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -25,7 +25,7 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="memory.pp"/>
+        <Filename Value="linking.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -33,7 +33,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="memory"/>
+      <Filename Value="linking"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
