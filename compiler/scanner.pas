@@ -4198,6 +4198,7 @@ type
       var
         base,
         i  : longint;
+        firstdigitread: Boolean;
       begin
         case c of
           '%' :
@@ -4227,17 +4228,20 @@ type
               i:=0;
             end;
         end;
+        firstdigitread:=false;
         while ((base>=10) and (c in ['0'..'9'])) or
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
               ((base=8) and (c in ['0'..'7'])) or
-              ((base=2) and (c in ['0'..'1'])) do
+              ((base=2) and (c in ['0'..'1'])) or
+              ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
          begin
-           if i<255 then
+           if (i<255) and (c<>'_') then
             begin
               inc(i);
               pattern[i]:=c;
             end;
            readchar;
+           firstdigitread:=true;
          end;
         pattern[0]:=chr(i);
       end;
@@ -4795,7 +4799,7 @@ type
         m       : longint;
         mac     : tmacro;
         asciinr : string[33];
-        iswidestring : boolean;
+        iswidestring , firstdigitread: boolean;
       label
          exit_label;
       begin
@@ -5006,10 +5010,14 @@ type
                            begin
                              { insert the number after the . }
                              pattern:=pattern+'.';
-                             while c in ['0'..'9'] do
+                             firstdigitread:=false;
+                             while (c in ['0'..'9']) or
+                              ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                               begin
-                                pattern:=pattern+c;
+                                if c<>'_' then
+                                  pattern:=pattern+c;
                                 readchar;
+                                firstdigitread:=true;
                               end;
                            end;
                          else
@@ -5031,11 +5039,15 @@ type
                           readchar;
                         end;
                        if not(c in ['0'..'9']) then
-                        Illegal_Char(c);
-                       while c in ['0'..'9'] do
+                         Illegal_Char(c);
+                       firstdigitread:=false;
+                       while (c in ['0'..'9']) or
+                        ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                         begin
+                          if c<>'_' then
                           pattern:=pattern+c;
                           readchar;
+                          firstdigitread:=true;
                         end;
                      end;
                     token:=_REALNUMBER;
