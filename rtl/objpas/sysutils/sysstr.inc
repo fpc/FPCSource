@@ -1006,10 +1006,14 @@ begin
 end;
 
 function TryStrToDWord(const s: string; Out D: DWord): boolean;
-var Error : word;
+var 
+  Error : word;
+  lq : QWord;
 begin
-  Val(s, D, Error);
-  TryStrToDWord:=Error=0
+  Val(s, lq, Error);
+  TryStrToDWord:=(Error=0) and (lq<=High(DWord));
+  if TryStrToDWord then
+    D:=lq;
 end;
 
 function StrToUInt(const s: string): Cardinal;
