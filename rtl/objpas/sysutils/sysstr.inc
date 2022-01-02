@@ -962,7 +962,7 @@ var
   li : Int64;
 begin
   Val(s, li, Error);
-  TryStrToInt:=(Error=0) and (li<=High(Longint)) and (li>=Low(Longint));
+  TryStrToInt:=(Error=0) and (li<=High(DWord)) and (li>=Low(Longint));
   if TryStrToInt then
     i:=li;
 end;
