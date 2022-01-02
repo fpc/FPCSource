@@ -3625,7 +3625,7 @@ type
             exit;
            repeat
            { still more to read?, then change the #0 to a space so its seen
-             as a seperator, this can't be used for macro's which can change
+             as a separator, this can't be used for macro's which can change
              the place of the #0 in the buffer with tempopen }
              if (c=#0) and (bufsize>0) and
                 not(inputfile.is_macro) and
@@ -4233,7 +4233,7 @@ type
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
               ((base=8) and (c in ['0'..'7'])) or
               ((base=2) and (c in ['0'..'1'])) or
-              ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
          begin
            if (i<255) and (c<>'_') then
             begin
@@ -5012,7 +5012,7 @@ type
                              pattern:=pattern+'.';
                              firstdigitread:=false;
                              while (c in ['0'..'9']) or
-                              ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+                              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                               begin
                                 if c<>'_' then
                                   pattern:=pattern+c;
@@ -5042,7 +5042,7 @@ type
                          Illegal_Char(c);
                        firstdigitread:=false;
                        while (c in ['0'..'9']) or
-                        ((m_underscoreisseperator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+                        ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                         begin
                           if c<>'_' then
                           pattern:=pattern+c;

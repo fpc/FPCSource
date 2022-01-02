@@ -1631,7 +1631,7 @@ Begin
   repeat
     prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
     inc(TextRec(f).BufPos);
-{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ no system uses #10#13 as line separator (#10 = *nix, #13 = Mac, }
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;
@@ -1686,7 +1686,7 @@ Begin
   repeat
     prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
     inc(TextRec(f).BufPos);
-{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ no system uses #10#13 as line separator (#10 = *nix, #13 = Mac, }
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;

@@ -3301,7 +3301,7 @@ unit cgcpu;
           end
         else
           handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
-        { VSTR cannot generate an FPU exception, VCVT is handled seperately, so we do not need a check here }
+        { VSTR cannot generate an FPU exception, VCVT is handled separately, so we do not need a check here }
       end;
 
 

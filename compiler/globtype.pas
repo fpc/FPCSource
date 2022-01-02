@@ -528,7 +528,7 @@ interface
          m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
          m_array2dynarray,      { regular arrays can be implicitly converted to dynamic arrays }
          m_prefixed_attributes, { enable attributes that are defined before the type they belong to }
-         m_underscoreisseperator{ _ can be used as seperator to group digits in numbers }
+         m_underscoreisseparator{ _ can be used as separator to group digits in numbers }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -721,7 +721,7 @@ interface
          'MULTIHELPERS',
          'ARRAYTODYNARRAY',
          'PREFIXEDATTRIBUTES',
-         'UNDERSCOREISSEPERATOR'
+         'UNDERSCOREISSEPARATOR'
          );
 
 

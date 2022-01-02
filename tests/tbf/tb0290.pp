@@ -1,5 +1,5 @@
 { %fail }
-{$modeswitch underscoreisseperator}
+{$modeswitch underscoreisseparator}
 
 begin
   writeln(123567.1234e_12);

@@ -55,7 +55,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records,
-          m_array_operators,m_prefixed_attributes,m_underscoreisseperator];
+          m_array_operators,m_prefixed_attributes,m_underscoreisseparator];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -306,7 +306,7 @@ interface
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
        unicodepath   : TPathStr;
-       { path for searching units, different paths can be seperated by ; }
+       { path for searching units, different paths can be separated by ; }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
