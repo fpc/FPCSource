@@ -66,5 +66,25 @@ begin
     end
   else
     writeln('no');
+  write('ADX support: ');
+  if ADXSupport then
+    begin
+      writeln('yes');
+      asm
+        adcx %eax,%eax
+      end;
+    end
+  else
+    writeln('no');
+  write('RDSEED support: ');
+  if RDSEEDSupport then
+    begin
+      writeln('yes');
+      asm
+        rdseed %eax
+      end;
+    end
+  else
+    writeln('no');
 end.
 

@@ -43,6 +43,8 @@ unit cpu;
     function AVX512CDSupport: boolean;inline;    
     function AVX512BWSupport: boolean;inline;    
     function AVX512VLSupport: boolean;inline;    
+    function RDSEEDSupport: boolean;inline;
+    function ADXSupport: boolean;inline;
     function SHASupport: boolean;inline;    
     function FMASupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
@@ -76,6 +78,8 @@ unit cpu;
       _AVX512CDSupport,
       _AVX512BWSupport,
       _AVX512VLSupport,
+      _RDSEEDSupport,
+      _ADXSupport,
       _SHASupport,
       _FMASupport,
       _POPCNTSupport,
@@ -250,6 +254,8 @@ unit cpu;
                   _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
                   _AVX512FSupport:=(_ebx and $10000)<>0;
                   _AVX512DQSupport:=(_ebx and $20000)<>0;
+                  _RDSEEDSupport:=(_ebx and $40000)<>0;
+                  _ADXSupport:=(_ebx and $80000)<>0;
                   _AVX512IFMASupport:=(_ebx and $200000)<>0;
                   _AVX512PFSupport:=(_ebx and $4000000)<>0;
                   _AVX512ERSupport:=(_ebx and $8000000)<>0;
@@ -336,6 +342,18 @@ unit cpu;
     function AVX512VLSupport: boolean;inline;    
       begin
         result:=_AVX512VLSupport;
+      end;
+
+
+    function RDSEEDSupport: boolean;inline;
+      begin
+        result:=_RDSEEDSupport;
+      end;
+
+
+    function ADXSupport: boolean;inline;
+      begin
+        result:=_ADXSupport;
       end;
 
 
