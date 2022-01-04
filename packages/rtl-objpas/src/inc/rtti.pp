@@ -158,7 +158,10 @@ type
     function GetReferenceToRawData: Pointer;
     procedure ExtractRawData(ABuffer: Pointer);
     procedure ExtractRawDataNoCopy(ABuffer: Pointer);
-    class operator := (const AValue: String): TValue; inline;
+    class operator := (const AValue: ShortString): TValue; inline;
+    class operator := (const AValue: AnsiString): TValue; inline;
+    class operator := (const AValue: UnicodeString): TValue; inline;
+    class operator := (const AValue: WideString): TValue; inline;
     class operator := (AValue: LongInt): TValue; inline;
     class operator := (AValue: Single): TValue; inline;
     class operator := (AValue: Double): TValue; inline;
@@ -2369,7 +2372,22 @@ begin
     Move((@FData.FAsPointer)^, ABuffer^, DataSize);
 end;
 
-class operator TValue.:=(const AValue: String): TValue;
+class operator TValue.:=(const AValue: ShortString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: AnsiString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: UnicodeString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: WideString): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
