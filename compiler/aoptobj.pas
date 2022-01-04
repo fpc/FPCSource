@@ -1369,24 +1369,29 @@ Unit AoptObj;
            (ptaiprop(p1.optinfo)^.usedregs <> initialusedregs) then
          internalerror(2004101010); }
 {$endif EXTDEBUG}
+        if not Assigned(p2) then
+          { We need a valid final instruction }
+          InternalError(2022010401);
+
         start := p1;
-       if (reg = NR_STACK_POINTER_REG) or
+        if (reg = NR_STACK_POINTER_REG) or
           (reg = current_procinfo.framepointer) or
            not(assigned(p1)) then
           { this happens with registers which are loaded implicitely, outside the }
           { current block (e.g. esi with self)                                    }
           exit;
+
+{$ifdef allocregdebug}
+        insertllitem(p1.previous,p1,tai_comment.Create(strpnew('allocating '+std_regname(reg)+' from here...')));
+        insertllitem(p2,p2.next,tai_comment.Create(strpnew('allocated '+std_regname(reg)+' till here...')));
+{$endif allocregdebug}
+
         { make sure we allocate it for this instruction }
         getnextinstruction(p2,p2);
         lastRemovedWasDealloc := false;
         removedSomething := false;
         firstRemovedWasAlloc := false;
-{$ifdef allocregdebug}
-        hp := tai_comment.Create(strpnew('allocating '+std_regname(reg)+' from here...'));
-        insertllitem(p1.previous,p1,hp);
-        hp := tai_comment.Create(strpnew('allocated '+std_regname(reg)+' till here...'));
-        insertllitem(p2,p2.next,hp);
-{$endif allocregdebug}
+
         { do it the safe way: always allocate the full super register,
           as we do no register re-allocation in the peephole optimizer,
           this does not hurt
