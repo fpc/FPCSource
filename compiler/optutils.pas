@@ -159,10 +159,68 @@ unit optutils;
       end;
 
 
+    type
+      PBreakContinueStackNode = ^TBreakContinueStackNode;
+      TBreakContinueStackNode = record
+        { successor node for a break statement in the current loop }
+        brk,
+        { successor node for a continue statement in the current loop }
+        cont : tnode;
+        next : PBreakContinueStackNode;
+      end;
+
+      { implements a stack to track successor nodes for break and continue
+        statements }
+      TBreakContinueStack = object
+        top: PBreakContinueStackNode;
+        procedure Init; {$ifdef USEINLINE} inline; {$endif}
+        procedure Done; {$ifdef USEINLINE} inline; {$endif}
+        procedure Push(brk,cont : tnode);
+        procedure Pop;
+      end;
+
+    const
+      NullBreakContinueStackNode : TBreakContinueStackNode = (brk: nil; cont: nil; next: nil);
+
+
+    procedure TBreakContinueStack.Init;
+      begin
+        top:=@NullBreakContinueStackNode;
+      end;
+
+
+    procedure TBreakContinueStack.Done;
+      begin
+        while top<>@NullBreakContinueStackNode do
+          Pop;
+      end;
+
+
+    procedure TBreakContinueStack.Push(brk,cont : tnode);
+      var
+        n : PBreakContinueStackNode;
+      begin
+        new(n);
+        n^.brk:=brk;
+        n^.cont:=cont;
+        n^.next:=top;
+        top:=n;
+      end;
+
+
+    procedure TBreakContinueStack.Pop;
+      var
+        n : PBreakContinueStackNode;
+      begin
+        n:=top;
+        top:=n^.next;
+        Dispose(n);
+      end;
+
+
     procedure SetNodeSucessors(p,last : tnode);
       var
-        Continuestack : TFPList;
-        Breakstack : TFPList;
+        BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;
       { sets the successor nodes of a node tree block
         returns the first node of the tree if it's a controll flow node }
@@ -216,8 +274,7 @@ unit optutils;
               end;
             forn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the for body is the dummy loop iteration node
                   it allows the dfa to inject needed life information into the loop }
@@ -225,23 +282,21 @@ unit optutils;
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             breakn:
               begin
                 result:=p;
-                p.successor:=tnode(Breakstack.Last);
+                p.successor:=BreakContinueStack.top^.brk;
               end;
             continuen:
               begin
                 result:=p;
-                p.successor:=tnode(Continuestack.Last);
+                p.successor:=BreakContinueStack.top^.cont;
               end;
             whilerepeatn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
@@ -257,8 +312,7 @@ unit optutils;
                       p.successor:=nil;
                   end;
 
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             ifn:
               begin
@@ -342,12 +396,10 @@ unit optutils;
         end;
 
       begin
-        Breakstack:=TFPList.Create;
-        Continuestack:=TFPList.Create;
+        BreakContinueStack.Init;
         Exitsuccessor:=nil;
         DoSet(p,last);
-        Continuestack.Free;
-        Breakstack.Free;
+        BreakContinueStack.Done;
       end;
 
     var
