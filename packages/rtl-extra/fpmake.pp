@@ -159,8 +159,8 @@ begin
      begin
        addinclude('clocale.inc',clocaleincOSes);
      end;
-    T:=P.Targets.AddUnit('sortalgs.pp',AllTargetsextra
-                                       -[wasi]);  { uses goto, which is not supported on the WebAssembly target }
+    { sortalgs unit source code uses goto, which is not supported on wasm32 CPU }
+    T:=P.Targets.AddUnit('sortalgs.pp',AllCPUs-[wasm32], AllTargetsextra);
   end
 end;
 
