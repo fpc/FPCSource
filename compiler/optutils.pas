@@ -173,8 +173,8 @@ unit optutils;
         statements }
       TBreakContinueStack = object
         top: PBreakContinueStackNode;
-        procedure Init; {$ifdef USEINLINE} inline; {$endif}
-        procedure Done; {$ifdef USEINLINE} inline; {$endif}
+        constructor Init;
+        destructor Done;
         procedure Push(brk,cont : tnode);
         procedure Pop;
       end;
@@ -183,13 +183,13 @@ unit optutils;
       NullBreakContinueStackNode : TBreakContinueStackNode = (brk: nil; cont: nil; next: nil);
 
 
-    procedure TBreakContinueStack.Init;
+    constructor TBreakContinueStack.Init;
       begin
         top:=@NullBreakContinueStackNode;
       end;
 
 
-    procedure TBreakContinueStack.Done;
+    destructor TBreakContinueStack.Done;
       begin
         while top<>@NullBreakContinueStackNode do
           Pop;
