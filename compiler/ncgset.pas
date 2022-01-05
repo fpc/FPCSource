@@ -1251,9 +1251,9 @@ implementation
 
                    distv:=max_label-min_label;
                    if distv>=0 then
-                     dist:=distv.uvalue
+                     dist:=min(distv.uvalue,high(dist))
                    else
-                     dist:=asizeuint(-distv.svalue);
+                     dist:=min(asizeuint(-distv.svalue),high(dist));
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
