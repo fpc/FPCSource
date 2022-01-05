@@ -1,3 +1,19 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2022 by the Free Pascal development team
+    Original author: Michael van Canneyt
+
+    Some helper routines for the CGI code generator app
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 unit cgutils;
 
 {$mode ObjFPC}{$H+}
@@ -118,6 +134,52 @@ begin
   Result:=UN;
 end;
 
+procedure AddWebAliases(S: Tstrings);
+
+begin
+  With S do
+    begin
+    {$i web.inc}
+    end;
+end;
+
+procedure AddJSAliases(S: Tstrings);
+
+begin
+  With S do
+    begin
+    Add('Object=TJSObject');
+    Add('Function=TJSFunction');
+    Add('RegExp=TJSRegexp');
+    Add('Promise=TJSPromise');
+    Add('Date=TJSDate');
+    Add('Array=TJSArray');
+    Add('Iterator=TJSIterator');
+    Add('IteratorResult=TJSIteratorResult');
+    Add('AsyncIterator=TJSAsyncIterator');
+    Add('ArrayBuffer=TJSArrayBuffer');
+    Add('Set=TJSSet');
+    Add('Map=TJSMap');
+    Add('BufferSource=TJSBufferSource');
+    Add('DataView=TJSDataView');
+    Add('Int8Array=TJSInt8Array');
+    Add('Int8ClampedArray=TJSInt8ClampedArray');
+    Add('Int16Array=TJSInt16Array');
+    Add('Int32Array=TJSInt32Array');
+    Add('Uint8Array=TJSUInt8Array');
+    Add('Uint8ClampedArray=TJSUInt8ClampedArray');
+    Add('Uint16Array=TJSUInt16Array');
+    Add('Uint32Array=TJSUInt32Array');
+    Add('Float32Array=TJSFloat32Array');
+    Add('Float64Array=TJSFloat64Array');
+    Add('JSON=TJSJSON');
+    Add('TextDecoder=TJSTextDecoder');
+    Add('TextEncoder=TJSTextEncoder');
+    Add('SyntaxError=TJSSyntaxError');
+    Add('Error=TJSError');
+    end;
+end;
+
 Procedure ConvertFile(Const BaseDir,aFileName,aUnitName : String; aOptions : TConversionOptions; aPascal,aLog : TStrings);
 
 Var
@@ -133,6 +195,8 @@ begin
     L.InputFileName:=FN;
     L.OutputUnitName:=UN;
     L.Logs:=aLog;
+    AddJSAliases(L.TypeAliases);
+    AddWebAliases(L.TypeAliases);
     L.Execute;
     aPascal.Assign(L.Source);
   finally
