@@ -94,7 +94,9 @@ Type
   end;
 
 implementation
+
 { TPascalCodeGenerator }
+
 procedure TPascalCodeGenerator.Indent;
 begin
   FIndent:=FIndent+StringOfChar(' ',2);
