@@ -1297,8 +1297,6 @@ end;
 procedure TWSConnection.Disconnect;
 begin
   DoDisconnect;
-  if Assigned(FOnDisconnect) then
-    FOnDisconnect(Self);
 end;
 
 procedure TWSConnection.Close(aData: TBytes);
