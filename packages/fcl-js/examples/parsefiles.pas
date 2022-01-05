@@ -91,7 +91,7 @@ begin
     aFile.LoadFromFile(aFileName);
     S:=TStringStream.Create('');
     S.LoadFromFile(aFileName);
-    P:=TJSParser.Create(S,ecma2021,FTypescript);
+    P:=TJSParser.Create(S,ecma2021,FTypescript,aFileName);
     try
       El:=P.Parse;
       Result:=True;

@@ -28,6 +28,7 @@ type
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSToken); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSVarType); overload;
+    Procedure AssertEquals(Const AMessage : String; Expected, Actual : TKeyOptionality); overload;
     Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
     procedure AssertEquals(Const AMessage : String; aExpected : AnsiString; aActual : TJSString); overload;
     Function  GetSourceElements : TJSSourceElements;
@@ -334,6 +335,16 @@ Var
 begin
   NE:=GetEnumName(TypeInfo(TJSVarType),Ord(Expected));
   NA:=GetEnumName(TypeInfo(TJSVarType),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
+end;
+
+procedure TTestBaseJSParser.AssertEquals(const AMessage: String; Expected, Actual: TKeyOptionality);
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TKeyOptionality),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TKeyOptionality),Ord(Actual));
   AssertEquals(AMessage,NE,NA);
 end;
 

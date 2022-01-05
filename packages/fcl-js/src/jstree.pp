@@ -131,7 +131,9 @@ Type
   TJSFuncDef = Class(TJSObject)
   private
     FBody: TJSFunctionBody;
+    FIsAsserts: Boolean;
     FIsAsync: Boolean;
+    FIsConstructor: Boolean;
     FIsEmpty: Boolean;
     FName: TJSString;
     FParams: TStrings;
@@ -150,7 +152,9 @@ Type
     Property Name : TJSString Read FName Write FName;
     Property IsEmpty : Boolean Read FIsEmpty Write FIsEmpty;
     Property IsAsync : Boolean Read FIsAsync Write FIsAsync;
-    Property GenericParams : TJSElementNodes Read FGenericParams Write FGenericParams; 
+    Property IsAsserts : Boolean Read FIsAsserts Write FIsAsserts;
+    Property IsConstructor : Boolean Read FIsConstructor Write FIsConstructor;
+    Property GenericParams : TJSElementNodes Read FGenericParams Write FGenericParams;
   end;
 
   { TJSElement }
@@ -163,7 +167,11 @@ Type
     FColumn: Integer;
     FSource: String;
   Public
+    class var
+      GlobalFreeHook : Procedure(aEl : TJSElement) of object;
+  Public
     Constructor Create(ALine,AColumn : Integer; Const ASource : String = ''); virtual;
+    Destructor Destroy; override;
     Procedure AssignPosition(El: TJSElement); virtual;
     Property Source : String Read FSource Write FSource;
     Property Line : Integer Read FLine Write FLine;
@@ -252,11 +260,13 @@ Type
   TJSArrayLiteral = Class(TJSElement)
   private
     FElements: TJSArrayLiteralElements;
+    function GetCount: Integer;
   Public
     Constructor Create(ALine,AColumn : Integer; const ASource : String = ''); override;
     procedure AddElement(El: TJSElement);
     Destructor Destroy; override;
     Property Elements : TJSArrayLiteralElements Read FElements;
+    Property Count : Integer Read GetCount;
   end;
 
   { TJSObjectLiteralElement - an item of TJSObjectLiteralElements }
@@ -822,6 +832,7 @@ Type
   TJSVarDeclaration = Class(TJSElement)
   private
     FInit: TJSElement;
+    FIsUnique: Boolean;
     FName: TJSString;
     FOwnsType: Boolean;
     FTyped: TJSTypeDef;
@@ -837,6 +848,7 @@ Type
     // Typescript type. Setting to non-nil value will set OwnsType
     Property Typed : TJSTypeDef Read FTyped Write SetTyped;
     Property OwnsType : Boolean Read FOwnsType;
+    Property IsUnique : Boolean Read FIsUnique Write FIsUnique;
   end;
 
   { TJSIfStatement - e.g. if (Cond) btrue else bfalse }
@@ -1128,11 +1140,26 @@ Type
     FNode: TJSElement;
   Public
     Destructor Destroy; override;
+    Procedure Assign(aSource : TPersistent); override;
     Property Node : TJSElement Read FNode Write FNode;
     Property IsAmbient : Boolean Read FIsAmbient Write FIsAmbient;
     Property IsExport : Boolean Read FIsExport Write FIsExport;
   end;
 
+  { TJSTransientElementNode }
+
+  // Will not free the node.
+  TJSTransientElementNode = Class(TJSElementNode)
+  Public
+    Destructor Destroy; override;
+  end;
+  { TElementNodeEnumerator }
+
+  TElementNodeEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TJSElementNode; reintroduce;
+    property Current: TJSElementNode read GetCurrent;
+  end;
   { TJSElementNodes - see TJSSourceElements }
 
   TJSElementNodes = Class(TCollection)
@@ -1144,6 +1171,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure ClearNodes;
+    Function GetEnumerator : TElementNodeEnumerator;
     Function AddNode(aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
     Function AddNode(aEl : TJSElement; aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
     Function InsertNode(Index: integer) : TJSElementNode;
@@ -1158,15 +1186,27 @@ Type
   TJSTypedParam = Class(TJSElementNode)
   private
     FDestructured: TJSObjectTypeDef;
+    FIsInferred: Boolean;
     FIsOptional: Boolean;
     FIsSpread: Boolean;
     FName: jsbase.TJSString;
+    function GetTypeDef: TJSTypeDef;
   Public
+    Procedure Assign(Source : TPersistent); override;
     Destructor Destroy; override;
+    Property Type_ : TJSTypeDef read GetTypeDef;
     Property Name : jsbase.TJSString Read FName Write FName;
+    Property IsInferred : Boolean Read FIsInferred Write FIsInferred;
     Property IsOptional : Boolean Read FIsOptional Write FIsOptional;
     Property IsSpread : Boolean Read FIsSpread Write FIsSpread;
     Property Destructured : TJSObjectTypeDef Read FDestructured Write FDestructured;
+  end;
+
+  { TJSTransientParamType }
+
+  TJSTransientParamType = Class(TJSTypedParam)
+  Public
+    Destructor Destroy; override;
   end;
 
   { TJSTypedParams }
@@ -1177,10 +1217,12 @@ Type
     function GetParams(aIndex : Integer): TJSTypedParam;
     function GetTypes(aIndex : Integer): TJSElement;
   Public
+    Constructor Create; Reintroduce;
+    Constructor CreateTransient;
     function AddParam(aName : jsBase.TJSString) : TJSTypedParam;
-    Property Params[aIndex : Integer] : TJSTypedParam Read GetParams;
+    Property Params[aIndex : Integer] : TJSTypedParam Read GetParams; default;
     Property Types[aIndex : Integer] : TJSElement Read GetTypes;
-    Property Names[aIndex : Integer] : TJSString Read GetNames; default;
+    Property Names[aIndex : Integer] : TJSString Read GetNames;
   end;
 
 
@@ -1222,22 +1264,30 @@ Type
   end;
 
   { TJSTypeDef }
-
+  TTypeGuardKind = (tgkIs,tgkExtendsCond,tgkExtendsEquals);
   TJSTypeDef = class(TJSElement)
   Private
+    FIsInferred: Boolean;
     FIsKeyOf : Boolean;
     FIsExtends : Boolean;
+    FIsReadonly: Boolean;
     FIsSpread: Boolean;
+    FIsTypeOf: Boolean;
     FTypeGuard: TJSTypeDef;
     FExtendsCond : TJSTypeDef;
     FExtendsTrue : TJSTypeDef;
     FExtendsFalse : TJSTypeDef;
+    FTypeGuardKind: TTypeGuardKind;
   Public
     Destructor destroy; override;
     Property IsKeyOf : Boolean Read FIsKeyOf Write FIsKeyof;
+    Property IsReadonly : Boolean Read FIsReadonly Write FIsReadonly;
+    Property IsInferred : Boolean Read FIsInferred Write FIsInferred;
+    Property IsTypeOf : Boolean Read FIsTypeOf Write FIsTypeOf;
     Property IsExtends : Boolean Read FIsExtends Write FIsExtends;
     Property IsSpread : Boolean Read FIsSpread Write FIsSpread;
     property TypeGuard : TJSTypeDef Read FTypeGuard Write FTypeGuard;
+    property TypeGuardKind : TTypeGuardKind Read FTypeGuardKind Write FTypeGuardKind;
     Property ExtendsCond : TJSTypeDef Read FExtendsCond Write FExtendsCond;
     Property ExtendsTrue : TJSTypeDef Read FExtendsTrue Write FExtendsTrue;
     Property ExtendsFalse : TJSTypeDef Read FExtendsFalse Write FExtendsFalse;
@@ -1259,14 +1309,30 @@ Type
 
   TJSTypeReference = class(TJSTypeDef)
   Private
-    FIsTypeOf: Boolean;
     FName: TJSString;
-    FIsImport : Boolean;
   Public
     // Type name or filename in import('filename') when IsImport is True
     Property Name : TJSString Read FName Write FName;
-    Property IsTypeOf : Boolean Read FIsTypeOf Write FIsTypeOf;
-    Property IsImport: Boolean Read FIsImport Write FIsImport;
+  end;
+
+  { TJSImportTypeRef }
+
+  TJSImportTypeRef = Class(TJSTypeReference)
+  private
+    FFileName: String;
+  Public
+    Property FileName : String Read FFileName Write FFileName;
+  end;
+
+
+  { TJSTypeFuncCall }
+
+  TJSTypeFuncCall = Class(TJSTypeReference)
+  private
+    FArgType: TJSTypeDef;
+  Public
+    Destructor Destroy; override;
+    Property ArgType : TJSTypeDef Read FArgType Write FargType;
   end;
 
   { TJSFixedStringReference }
@@ -1368,15 +1434,27 @@ Type
     property TypeCount : Integer Read GetTypeCount;
   end;
 
-  TJSUnionTypeDef = class(TJSUnionOrTupleTypeDef)
+  { TJSTupleTypeDef }
+
+  TJSTupleTypeDef = class(TJSUnionOrTupleTypeDef)
+  Public
+    Function GetEqualTypes : Boolean;
+  end;
+
+  TOnlyConstants = (ocFalse,ocTrue,ocAllSameTypes);
+
+  { TJSUnionOrIntersectTypeDef }
+
+  TJSUnionOrIntersectTypeDef = class(TJSUnionOrTupleTypeDef)
   private
     FAllowEmpty: Boolean;
   Public
+    Function GetOnlyConstants : TOnlyConstants;
     Property AllowEmpty : Boolean Read FAllowEmpty Write FAllowEmpty;
   end;
 
-  TJSTupleTypeDef = class(TJSUnionOrTupleTypeDef);
-  TJSInterSectionTypeDef = class(TJSUnionOrTupleTypeDef);
+  TJSUnionTypeDef = Class(TJSUnionOrIntersectTypeDef);
+  TJSInterSectionTypeDef = class(TJSUnionOrIntersectTypeDef);
 
   { TJSArrayTypeDef }
 
@@ -1409,20 +1487,24 @@ Type
   TAccessibility = (accDefault,accPrivate,accProtected,accPublic);
 
   { TJSObjectTypeElementDef }
+  TKeyOptionality = (koDefault,koOptional,koForceOptional,koDisableOptional);
+  TKeyOptionalities = Set of TKeyOptionality;
 
   TJSObjectTypeElementDef = Class(TJSNamedTypedElement)
   private
     FAccessibility: TAccessibility;
+    FIsReadOnly: Boolean;
     FIsStatic: Boolean;
-    FOptional: Boolean;
+    FOptional: TKeyOptionality;
     FIsAbstract : Boolean;
     FIsSet : Boolean;
     FIsGet : Boolean;
   Public
     Destructor Destroy; override;
-    Property Optional : Boolean Read FOptional Write FOptional;
+    Property Optional : TKeyOptionality Read FOptional Write FOptional;
     Property Accessibility : TAccessibility Read FAccessibility Write FAccessibility;
     Property IsStatic : Boolean Read FIsStatic Write FIsStatic;
+    Property IsReadOnly : Boolean Read FIsReadOnly Write FIsReadOnly;
     Property IsAbstract : Boolean Read FIsAbstract Write FIsAbstract;
     Property IsGet : Boolean Read FIsGet Write FIsGet;
     Property IsSet : Boolean Read FIsSet Write FIsSet;
@@ -1432,11 +1514,19 @@ Type
 
   TJSPropertyDeclaration = Class(TJSObjectTypeElementDef)
   private
-    FIsReadOnly: Boolean;
     function GetFixedStringValue: jsBase.TJSString;
   Public
     Property FixedStringValue : jsBase.TJSString Read GetFixedStringValue;
-    Property IsReadOnly : Boolean Read FIsReadOnly Write FisReadonly;
+  end;
+
+  { TJSClassConstDeclaration }
+
+  TJSClassConstDeclaration = Class(TJSObjectTypeElementDef)
+  private
+    FValue: TJSElement;
+  Public
+    Destructor Destroy; override;
+    Property Value : TJSElement Read FValue Write FValue;
   end;
 
   { TJSIndexSignatureDeclaration }
@@ -1476,6 +1566,11 @@ Type
     function GetElementCount: Integer;
   Public
     procedure AddElement(const aEl: TJSObjectTypeElementDef);
+    function HasSetter(const aName: TJSString): Boolean;
+    Function HasAccessMembers(aAccess : TAccessibility) : Boolean;
+    Function HasProperties : Boolean;
+    Function IsFunctionDef : Boolean;
+    Function FunctionDef : TJSFuncDef;
     Property Name : TJSString Read FName Write FName;
     Property Elements[aIndex : Integer] : TJSObjectTypeElementDef Read GetElement;
     Property ElementCount : Integer Read GetElementCount;
@@ -1575,7 +1670,7 @@ Type
     Destructor Destroy; override;
     Property ClassDef : TJSObjectTypeDef Read FClassDef Write FClassDef;
   end;
-
+  TJSAmbientClassDeclarationArray = Array of TJSAmbientClassDeclaration;
   { TJSClassStatement }
 
   TJSClassStatement =  Class(TJSDeclarationStatement)
@@ -1597,7 +1692,7 @@ Type
     Procedure AddExtends(Const aName : TJSString);
     property Extends : TJSElementNodes Read FExtends;
   end;
-
+  TJSInterfaceDeclarationArray = array of TJSInterfaceDeclaration;
 
   { TJSInterfaceStatement }
 
@@ -1658,7 +1753,123 @@ Type
 
 implementation
 
+{ TJSTupleTypeDef }
+
+function TJSTupleTypeDef.GetEqualTypes: Boolean;
+
+Var
+  I : Integer;
+  N : TJSString;
+
+begin
+  I:=Values.Count-1;
+  Result:=True;
+  While (I>=0) and (Result) do
+    begin
+    Result:=(Values[I].Node is TJSTypeReference);
+    if Result then
+      if I=Values.Count-1 then
+        N:=(Values[I].Node as TJSTypeReference).Name
+      else
+        Result:=N=(Values[I].Node as TJSTypeReference).Name;
+    Dec(i);
+    end;
+end;
+
+{ TJSUnionOrIntersectTypeDef }
+
+function TJSUnionOrIntersectTypeDef.GetOnlyConstants: TOnlyConstants;
+
+Var
+  I : integer;
+  FT : TJSType;
+  Ref : TJSFixedValueReference;
+
+begin
+  Result:=ocAllSameTypes;
+  I:=Values.Count-1;
+  While (I>=0) and (Result<>ocFalse) do
+    begin
+    if Not (Values[I].Node is TJSFixedValueReference) then
+      Result:=ocFalse
+    else
+      begin
+      Ref:=Values[I].Node as TJSFixedValueReference;
+      If (I=Values.Count-1) then
+        ft:=Ref.FixedValue.Value.ValueType
+      else if (ft<>Ref.FixedValue.Value.ValueType) then
+        Result:=ocTrue
+      end;
+    Dec(I);
+    end;
+end;
+
+{ TJSTransientParamType }
+
+destructor TJSTransientParamType.Destroy;
+begin
+  FDestructured:=Nil;
+  FNode:=nil;
+  inherited Destroy;
+end;
+
+{ TJSTransientElementNode }
+
+destructor TJSTransientElementNode.Destroy;
+begin
+  Node:=Nil;
+  inherited Destroy;
+end;
+
+{ TElementNodeEnumerator }
+
+function TElementNodeEnumerator.GetCurrent: TJSElementNode;
+begin
+  Result:=(Inherited GetCurrent) as TJSElementNode
+end;
+
+{ TJSClassConstDeclaration }
+
+destructor TJSClassConstDeclaration.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited Destroy;
+end;
+
+{ TTJSTypeFuncCall }
+
+destructor TJSTypeFuncCall.Destroy;
+begin
+  FreeAndNil(FArgType);
+  inherited Destroy;
+end;
+
 { TJSTypedParam }
+
+function TJSTypedParam.GetTypeDef: TJSTypeDef;
+begin
+  if Assigned(Node) then
+    Result:=Node as TJSTypeDef
+  else
+    Result:=Nil;
+end;
+
+procedure TJSTypedParam.Assign(Source: TPersistent);
+
+Var
+  aParam : TJSTypedParam absolute Source;
+
+begin
+  If Source is TJSTypedParam then
+    begin
+    FDestructured:=aParam.FDestructured;
+    FIsInferred:=aParam.IsInferred;
+    FIsOptional:=aParam.FIsOptional;
+    FIsSpread:=aParam.FIsSpread;
+    FName:=aParam.Name;
+    end;
+  inherited Assign(Source);
+end;
 
 destructor TJSTypedParam.Destroy;
 begin
@@ -1956,6 +2167,67 @@ begin
   Values.AddNode(False).Node:=aEl;
 end;
 
+Function TJSObjectTypeDef.HasSetter(Const aName : TJSString) : Boolean;
+
+Var
+  I : Integer;
+  aEl : TJSObjectTypeElementDef;
+
+begin
+  Result:=False;
+  I:=ElementCount-1;
+  While (Not Result) and (I>=0) do
+    begin
+    aEl:=Elements[i];
+    Result:=(aName=aEl.Name) and (aEl is TJSMethodDeclaration) and (aEl.IsSet);
+    Dec(I);
+    end;
+end;
+
+
+function TJSObjectTypeDef.HasAccessMembers(aAccess: TAccessibility): Boolean;
+
+Var
+  I : integer;
+
+begin
+  Result:=False;
+  I:=ElementCount-1;
+  While (Not Result) and (I>=0) do
+    begin
+    Result:=Elements[i].Accessibility=aAccess;
+    Dec(I);
+    end;
+end;
+
+function TJSObjectTypeDef.HasProperties: Boolean;
+
+Var
+  I : Integer;
+
+begin
+  Result:=False;
+  I:=ElementCount-1;
+  While (not Result) and (I>=0) do
+    begin
+    Result:=Elements[I] is TJSPropertyDeclaration;
+    Dec(i);
+    end;
+end;
+
+function TJSObjectTypeDef.IsFunctionDef: Boolean;
+begin
+  Result:=(ElementCount=1) and (Elements[0] is TJSMethodDeclaration) and (TJSMethodDeclaration(Elements[0]).Name='');
+end;
+
+function TJSObjectTypeDef.FunctionDef: TJSFuncDef;
+begin
+  if IsFunctionDef then
+    Result:=TJSMethodDeclaration(Elements[0]).FuncDef
+  else
+    Result:=Nil;
+end;
+
 { TJSObjectTypeElementDef }
 
 destructor TJSObjectTypeElementDef.Destroy;
@@ -2074,6 +2346,18 @@ end;
 function TJSTypedParams.GetTypes(aIndex : Integer): TJSElement;
 begin
   Result:=Params[aIndex].Node;
+end;
+
+constructor TJSTypedParams.Create;
+
+begin
+  Inherited Create(TJSTypedParam);
+end;
+
+constructor TJSTypedParams.CreateTransient;
+
+begin
+  Inherited Create(TJSTransientParamType);
 end;
 
 function TJSTypedParams.AddParam(aName: jsBase.TJSString): TJSTypedParam;
@@ -2717,6 +3001,13 @@ begin
   FSource:=ASource;
 end;
 
+destructor TJSElement.Destroy;
+begin
+  if Assigned(GlobalFreeHook) then
+    GlobalFreeHook(Self);
+  inherited Destroy;
+end;
+
 procedure TJSElement.AssignPosition(El: TJSElement);
 begin
   Source:=El.Source;
@@ -2765,6 +3056,11 @@ begin
 end;
 
 { TJSArrayLiteral }
+
+function TJSArrayLiteral.GetCount: Integer;
+begin
+  Result:=Elements.Count;
+end;
 
 constructor TJSArrayLiteral.Create(ALine, AColumn: Integer; const ASource: String);
 begin
@@ -3213,6 +3509,11 @@ begin
      end;
 end;
 
+function TJSElementNodes.GetEnumerator: TElementNodeEnumerator;
+begin
+  Result:=TElementNodeEnumerator.Create(Self);
+end;
+
 function TJSElementNodes.AddNode(aIsAmbient : Boolean = False; aIsExport : Boolean = False): TJSElementNode;
 begin
   Result:=TJSElementNode(Add);
@@ -3247,6 +3548,22 @@ begin
   inherited Destroy;
 end;
 
+procedure TJSElementNode.Assign(aSource: TPersistent);
+
+Var
+  aNode : TJSElementNode absolute aSource;
+
+begin
+  if aSource is TJSElementNode then
+    begin
+    FIsAmbient:=aNode.FIsAmbient;
+    FIsExport:=aNode.FIsExport;
+    FNode:=aNode.Node;
+    end
+  else
+    inherited Assign(aSource);
+end;
+
 { TJSFuncDef }
 
 procedure TJSFuncDef.SetParams(const AValue: TStrings);
@@ -3260,7 +3577,7 @@ end;
 constructor TJSFuncDef.Create;
 begin
   FParams:=TStringList.Create;
-  FTypedParams:=TJSTypedParams.Create(TJSTypedParam);
+  FTypedParams:=TJSTypedParams.Create;
 end;
 
 destructor TJSFuncDef.Destroy;
