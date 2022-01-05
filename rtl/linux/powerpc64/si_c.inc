@@ -712,6 +712,10 @@ data_start:
 .text
   end;
 
+procedure ini_dummy;
+  begin
+  end;
+
 const
   start_addresses: record
     sda_base: pointer;
@@ -721,8 +725,10 @@ const
   end
   = (sda_base: nil; {* was _SDA_BASE_  but not in 64-bit ABI }
      main: @main_stub;
-     libc_csu_init: @__libc_csu_init;
-     libc_csu_fini: @__libc_csu_fini
+     { use dummy, it should not be used anymore by glibc }
+     libc_csu_init: @ini_dummy;
+     { use dummy, it should not be used anymore by glibc }
+     libc_csu_fini: @ini_dummy
     );
 
 
