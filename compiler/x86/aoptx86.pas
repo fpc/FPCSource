@@ -12310,14 +12310,34 @@ unit aoptx86;
            GetNextInstruction(p,hp2) and
            MatchInstruction(hp2,A_SETcc,A_Jcc,A_CMOVcc,[]) then
           case taicpu(hp1).opcode Of
-            A_ADD, A_SUB, A_OR, A_XOR, A_AND:
+            A_ADD, A_SUB, A_OR, A_XOR, A_AND,
+            { These two instructions set the zero flag if the result is zero }
+            A_POPCNT, A_LZCNT:
               begin
-                if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) and
-                  { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
-                  { and in case of carry for A(E)/B(E)/C/NC                  }
-                   ((taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
-                    ((taicpu(hp1).opcode <> A_ADD) and
-                     (taicpu(hp1).opcode <> A_SUB))) then
+                if (
+                    { With POPCNT, an input of zero will set the zero flag
+                      because the population count of zero is zero }
+                    (taicpu(hp1).opcode = A_POPCNT) and
+                    (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) and
+                    (
+                      OpsEqual(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^) or
+                      { Faster than going through the second half of the 'or'
+                        condition below }
+                      OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^)
+                    )
+                  ) or (
+                    OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^) and
+                    { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
+                    { and in case of carry for A(E)/B(E)/C/NC                  }
+                    (
+                      (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
+                      (
+                        (taicpu(hp1).opcode <> A_ADD) and
+                        (taicpu(hp1).opcode <> A_SUB) and
+                        (taicpu(hp1).opcode <> A_LZCNT)
+                      )
+                    )
+                  ) then
                   begin
                     RemoveCurrentP(p, hp2);
                     Result:=true;
