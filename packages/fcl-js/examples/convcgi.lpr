@@ -1,19 +1,26 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2022 by the Free Pascal development team
+    Original author: Michael van Canneyt
+
+    CGI TypeScript definitelytyped to pas2js code generator app
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program convcgi;
 
+{ $DEFINE USEHTTPAPP}
 
-uses sysutils, classes, cgutils, {fphttpapp, } fpcgi, httpdefs, httproute;
-
-Procedure touch(fn : string);
-
-begin
-  With TStringList.Create do
-    try
-      Add(FN);
-      SaveToFile('/tmp/touch-'+FN);
-    finally
-      Free;
-    end;
-end;
+uses
+  sysutils, classes, cgutils,
+  {$IFDEF USEHTTPAPP} fphttpapp{$ELSE} fpcgi {$ENDIF},
+  httpdefs, httproute;
 
 Procedure CreateJSONFileList(aDir : String; aFileName : string);
 
@@ -76,15 +83,9 @@ Var
   aList : TStrings;
 
 begin
-  Touch('i');
   S:=GetSettings;
-  Touch('k');
   aList:=TstringList.Create;
   try
-    aList.Add(S.BaseDir);
-    aList.Add(S.cachefile);
-    Alist.SaveToFile('/tmp/sett.txt');
-    aList.Clear;
     if Not FileExists(S.cachefile) then
       CreateJSONFileList(S.BaseDir,S.cachefile);
     aList.LoadFromFile(S.cachefile);
@@ -105,9 +106,7 @@ Var
   aFileName : string;
 
 begin
-  Touch('g');
   S:=GetSettings;
-  Touch('h');
   aPas:=TStringList.Create;
   try
     aFileName:=aRequest.QueryFields.Values['file'];
@@ -121,56 +120,24 @@ begin
   end;
 end;
 
-procedure d;
-
-Var
-  S : TSettings;
-  aList : TStrings;
-
 begin
-  S:=GetSettings;
-  aList:=TstringList.Create;
-  try
-    if Not FileExists(S.cachefile) then
-      CreateJSONFileList(S.BaseDir,S.cachefile);
-    aList.LoadFromFile(S.cachefile);
-    Writeln(aList.text);
-//    aResponse.Content:=aList.text;
-//    aResponse.ContentLength:=Length(aResponse.Content);
-//    aResponse.ContentType:='application/javascript';
-//    aResponse.SendResponse;
-  finally
-    aList.Free;
-  end;
-end;
-
-begin
-//  D;
-//  exit;
-  Touch('w0');
   if GetEnvironmentVariable('REQUEST_METHOD')='' then
     begin
-    Touch('wa');
     if ParamCount=2 then
       CreateJSONFileList(Paramstr(1),ParamStr(2))
     else if ParamCount=1 then
       ConvertFile(Paramstr(1));
-    Touch('wb');
     end
   else
     begin
-    Touch('a');
     HTTPRouter.RegisterRoute('list',rmGet,@DoList);
-    Touch('b');
     HTTPRouter.RegisterRoute('convert',rmAll,@DoConvertFile);
-    Touch('c');
-    // Application.Port:=8080;
+    {$IFDEF USEHTTPAPP}
+    Application.Port:=8080;
+    {$ENDIF}
     Application.Title:='Typescript to pascal converter';
-    Touch('d');
     Application.Initialize;
-    Touch('e');
     Application.Run;
-    Touch('f');
     end
 end.
 
