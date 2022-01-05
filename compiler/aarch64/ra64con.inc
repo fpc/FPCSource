@@ -70,6 +70,7 @@ NR_NZCV = tregister($05000000);
 NR_FPCR = tregister($05000001);
 NR_FPSR = tregister($05000002);
 NR_TPIDR_EL0 = tregister($05000003);
+NR_MPIDR_EL1 = tregister($05000004);
 NR_B0 = tregister($04010000);
 NR_H0 = tregister($04030000);
 NR_S0 = tregister($04090000);

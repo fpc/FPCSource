@@ -123,7 +123,7 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL) or defined(RISCV32) or defined(XTENSA)}
+{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL) or defined(RISCV32) or defined(XTENSA) or defined(AARCH64)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -255,6 +255,107 @@ begin
         LinkRes.Add(')');
       end;
    end;
+
+{$ifdef AARCH64}
+  case current_settings.controllertype of
+    ct_none:
+      begin
+      end;
+    ct_raspi3:
+      begin
+        with embedded_controllers[current_settings.controllertype] do
+        begin
+          with linkres do
+          begin
+            Add('ENTRY(_START)');
+            Add('MEMORY');
+            Add('{');
+            Add('    ram : ORIGIN = 0x' + IntToHex(srambase,8)
+              + ', LENGTH = 0x' + IntToHex(sramsize,8));
+
+            Add('}');
+            Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+
+            Add('SECTIONS');
+            Add('{');
+            Add('    .text :');
+            Add('    {');
+            Add('      _text_start = .;');
+            Add('      KEEP(*(.init .init.*))');
+            Add('      *(.text .text.* .gnu.linkonce.t*)');
+            Add('      *(.strings)');
+            Add('      *(.rodata .rodata.* .gnu.linkonce.r*)');
+            Add('      *(.comment)');
+            Add('      . = ALIGN(8);');
+            Add('      _etext = .;');
+            Add('    } >ram');
+            Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
+
+            Add('    .data :');
+            Add('    {');
+            Add('      _data = .;');
+            Add('      *(.data .data.* .gnu.linkonce.d*)');
+            Add('      KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+            Add('      _edata = .;');
+            Add('    } >ram');
+
+            Add('    .bss :');
+            Add('    {');
+            Add('      . = ALIGN(16);');
+            Add('      _bss_start = .;');
+            Add('      *(.bss .bss.*)');
+            Add('      *(COMMON)');
+            Add('    } >ram');
+            Add('. = ALIGN(8);');
+            Add('_bss_end = . ;');
+
+            Add('  .stab          0 : { *(.stab) }');
+            Add('  .stabstr       0 : { *(.stabstr) }');
+            Add('  .stab.excl     0 : { *(.stab.excl) }');
+            Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+            Add('  .stab.index    0 : { *(.stab.index) }');
+            Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+            Add('  .comment       0 : { *(.comment) }');
+            Add('  /* DWARF debug sections.');
+            Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+            Add('     of the section so we begin them at 0.  */');
+            Add('  /* DWARF 1 */');
+            Add('  .debug          0 : { *(.debug) }');
+            Add('  .line           0 : { *(.line) }');
+            Add('  /* GNU DWARF 1 extensions */');
+            Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+            Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+            Add('  /* DWARF 1.1 and DWARF 2 */');
+            Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+            Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+            Add('  /* DWARF 2 */');
+            Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+            Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+            Add('  .debug_line     0 : { *(.debug_line) }');
+            Add('  .debug_frame    0 : { *(.debug_frame) }');
+            Add('  .debug_str      0 : { *(.debug_str) }');
+            Add('  .debug_loc      0 : { *(.debug_loc) }');
+            Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+            Add('  /* SGI/MIPS DWARF 2 extensions */');
+            Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+            Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+            Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+            Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+            Add('  /* DWARF 3 */');
+            Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+            Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+
+            Add('}');
+            Add('_bss_size = (_bss_end - _bss_start)>>3;');
+            Add('_end = .;');
+          end;
+        end;
+    end
+    else
+      if not (cs_link_nolink in current_settings.globalswitches) then
+          internalerror(200902011);
+  end;
+{$endif}
 
 {$ifdef ARM}
   case current_settings.controllertype of
@@ -435,7 +536,7 @@ begin
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
-      
+
       ct_stm32f401cb,
       ct_stm32f401rb,
       ct_stm32f401vb,
@@ -573,12 +674,12 @@ begin
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
-      
+
       ct_lm3s5d51,
-      
+
       { TI - Stellaris something }
       ct_lm4f120h5,
-      
+
       { Infineon }
       ct_xmc4500x1024,
       ct_xmc4500x768,
@@ -631,14 +732,14 @@ begin
       ct_mk22fn512vll12,
       ct_mk22fn512vmp12,
       ct_freedom_k22f,
- 
+
       { Atmel }
       ct_sam3x8e,
       ct_samd51p19a,
       ct_arduino_due,
       ct_flip_n_click,
       ct_wio_terminal,
-      
+
       { Nordic Semiconductor }
       ct_nrf51422_xxaa,
       ct_nrf51422_xxab,
@@ -648,7 +749,7 @@ begin
       ct_nrf51822_xxac,
       ct_nrf52832_xxaa,
       ct_nrf52840_xxaa,
-      
+
       ct_sc32442b,
 
       { Raspberry Pi 2 }
@@ -681,8 +782,8 @@ begin
 
               Add('}');
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
-    
-              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
+
+              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary
               writeln(controllerunitstr);
               if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
                 Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
@@ -1697,7 +1798,7 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
 
 
 function TlinkerEmbedded.GenerateUF2(binFile,uf2File : string;baseAddress : longWord):boolean;
-type 
+type
   TFamilies= record
     k : String;
     v : longWord;
@@ -2124,6 +2225,11 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
 *****************************************************************************}
 
 initialization
+{$ifdef aarch64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_aarch64_embedded_info);
+{$endif aarch64}
+
 {$ifdef arm}
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_arm_embedded_info);

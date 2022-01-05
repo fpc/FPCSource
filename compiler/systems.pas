@@ -311,7 +311,8 @@ interface
                            system_powerpc64_embedded,system_avr_embedded,
                            system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded,
                            system_i8086_embedded,system_riscv32_embedded,system_riscv64_embedded,
-                           system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded];
+                           system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded,
+                           system_aarch64_embedded];
 
        { all FreeRTOS systems }
        systems_freertos = [system_xtensa_freertos,system_arm_freertos];
@@ -1158,6 +1159,10 @@ begin
     {$ifndef default_target_set}
       default_target(system_aarch64_linux);
       {$define default_target_set}
+    {$endif}
+    {$ifdef embedded}
+      {$define default_target_set}
+      default_target(system_aarch64_embedded);
     {$endif}
   {$endif cpuaarch64}
 {$endif aarch64}

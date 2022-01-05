@@ -386,7 +386,7 @@ Var
 begin
   E:=GetVars;
   AssertNotNull('Have statements',E);
-  Writeln('Count : ',E.Count);
+  // Writeln('Count : ',E.Count);
   If (E.Count=0) then
     Fail('Zero variables defined');
   Result:=E.Nodes[0].Node;
@@ -2171,7 +2171,6 @@ Var
   E : TJSSourceElements;
   N : TJSElement;
   FD : TJSFunctionDeclarationStatement;
-  P : TJSTypedParam;
 
 begin
   CreateParser('function a (...b,c) {}');

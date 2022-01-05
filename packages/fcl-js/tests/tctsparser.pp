@@ -5,7 +5,7 @@ unit tctsparser;
 interface
 
 uses
-  Classes, SysUtils, testregistry, tcparser, jsscanner, jsbase, jstree, jstoken, jsparser;
+  Classes, SysUtils, testregistry, tcparser, jsscanner, jsbase, jstree, jstoken;
 
 Type
 
@@ -357,10 +357,10 @@ begin
   AssertEquals('Correct number of elements',2,U.TypeCount);
   AssertEquals('Correct type of element 0',TJSFixedValueReference, U.Types[0].ClassType);
   R:=U.Types[0] as TJSFixedValueReference;
-//  AssertEquals('Name type 0','string',R.Name);
+  AssertEquals('Name type 0','string',R.FixedValue.Value.AsString);
   AssertEquals('Correct type of element 0',TJSFixedValueReference, U.Types[1].ClassType);
   R:=U.Types[1] as TJSFixedValueReference;
-//  AssertEquals('Name type 1','number',R.Name);
+  AssertEquals('Name type 1','number',R.FixedValue.Value.AsString);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareTypeUnionAllowEmpty;
@@ -389,7 +389,6 @@ end;
 procedure TTestTypeScriptParser.TestDeclareUnionTuple;
 Var
   T : TJSTypeDeclaration;
-  U : TJSUnionTypeDef;
 begin
   StartTS('declare type Color = string | [number, number, number, number] | ColorObject;');
   T:=GetFirstType;
@@ -400,7 +399,6 @@ procedure TTestTypeScriptParser.TestDeclareUnionIntersectionType;
 Var
   T : TJSTypeDeclaration;
   U : TJSUnionTypeDef;
-  R : TJSTypeReference;
 
 begin
   StartTs('declare type MyType = number | (string | number) ;');
@@ -645,8 +643,6 @@ procedure TTestTypeScriptParser.TestDeclareTypeGenericNestedTwice;
 
 Var
   T : TJSTypeDeclaration;
-  G : TJSGenericTypeRef;
-  R : TJSTypeReference;
 
 begin
   StartTS('type a = A<Q<B<C<D>>>>;');
@@ -1251,7 +1247,6 @@ procedure TTestTypeScriptParser.TestDeclareInterfaceExtendsGeneric;
 Var
   Decl : TJSInterfaceDeclaration;
   R : TJSTypeReference;
-  Lit : TJSLiteral;
 
 begin
   StartTS('interface Empty <TItem> extends ParentEmpty<Titem> {};');
@@ -1852,7 +1847,6 @@ end;
 procedure TTestTypeScriptParser.TestExportTypeArrowFunctionArgsComma;
 Var
   S : TJSExportStatement;
-  T:TJSTypeDeclaration;
 
 begin
   StartTS('export type ConnectionRequestCb = ('#10+
@@ -1861,7 +1855,7 @@ begin
           '      reject: ConnectionRequestRejectFn,'#10+
           '  ) => void;');
   S:=TJSExportStatement(CheckClass('First statement',TJSExportStatement,GetFirstStatement));
-  T:=TJSTypeDeclaration(CheckClass('Decl',TJSTypeDeclaration,S.Declaration));
+  CheckClass('Decl',TJSTypeDeclaration,S.Declaration);
 end;
 
 procedure TTestTypeScriptParser.TestExportEnum;

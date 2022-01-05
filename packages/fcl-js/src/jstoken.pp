@@ -58,7 +58,7 @@ const
   FirstKeyword = tjsAwait;
   LastKeyWord = tJSYield;
 
-  TokenInfos: array[TJSToken] of string = ('unknown',
+  TokenInfos: array[TJSToken] of String = ('unknown',
        // Specials
         'EOF','whitespace','Char','String', 'identifier','number','comment','regular expression', 'reserved word',
         '&&','&=',

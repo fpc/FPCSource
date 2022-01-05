@@ -68,6 +68,12 @@ CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 
+ifeq ($(ARCH),aarch64)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
+CPU_UNITS_DEFINED=1
+endif
+
 ifeq ($(ARCH),arm)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)

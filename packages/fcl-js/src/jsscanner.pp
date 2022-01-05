@@ -36,7 +36,7 @@ Const
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrUnTerminatedString = 'string exceeds end of line';
   SErrExpectedEllipsis = 'Expected ellipsis, got ..';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
@@ -100,7 +100,7 @@ Type
     FSourceFilename: string;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: String;
+    FCurTokenString: UTF8String;
     FCurLine: string;
     FWasMultilineString: Boolean;
     TokenStr: PChar;
@@ -126,7 +126,7 @@ Type
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
     constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
-    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; aFileName : string = '');
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; const aFileName : string = '');
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -141,7 +141,7 @@ Type
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
-    property CurTokenString: String read FCurTokenString;
+    property CurTokenString: UTF8String read FCurTokenString;
     property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
     Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
     Property DisableRShift : Boolean Read FDisableRShift Write FDisableRShift;
@@ -185,7 +185,7 @@ begin
   FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; aFileName : string = '');
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; Const aFileName : string = '');
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
@@ -426,7 +426,7 @@ Var
   Delim : Char;
   TokenStart : PChar;
   Len,OLen: Integer;
-  S : String;
+  S : UTF8String;
 
   Procedure AddToString;
 
@@ -463,9 +463,9 @@ begin
         '\' : S:='\';
         '/' : S:='/';
         'u' : begin
-              S:=ReadUniCodeEscape;
+              S:=UTF8Encode(ReadUniCodeEscape);
               end;
-        #0  : Error(SErrOpenString);
+        #0  : Error(SErrUnterminatedString);
       else
         Error(SErrInvalidCharacter, [TokenStr[0]]);
       end;
@@ -482,20 +482,20 @@ begin
     if TokenStr[0] = #0 then
       begin
       if Delim<>'`' then
-        Error(SErrOpenString)
+        Error(SErrUnterminatedString)
       else
         begin
         AddToString;
         FCurTokenString:=FCurTokenString+FSourceFile.LastLF;
         oLen:=oLen+Length(FSourceFile.LastLF);
         if Not FetchLine then
-          Error(SErrOpenString);
+          Error(SErrUnterminatedString);
         TokenStart:=TokenStr;
         end
       end;
     end;
   if TokenStr[0] = #0 then
-    Error(SErrOpenString);
+    Error(SErrUnterminatedString);
   AddToString;
   Inc(TokenStr);
   Result := tjsString;
