@@ -126,7 +126,7 @@ Type
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
     constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
-    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; aFileName : string = '');
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; const aFileName : string = '');
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -185,7 +185,7 @@ begin
   FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; aFileName : string = '');
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; Const aFileName : string = '');
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
