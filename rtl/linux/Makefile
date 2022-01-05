@@ -370,6 +370,7 @@ SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS=abitag
 endif
 ifeq ($(ARCH),powerpc64)
+override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 ifeq ($(ARCH),sparc64)
