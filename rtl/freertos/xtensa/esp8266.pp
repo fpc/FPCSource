@@ -8,27 +8,6 @@ unit esp8266;
 
   interface
 
-{$linklib esp8266, static}
-{$linklib log, static}
-{$linklib c_fnano, static}
-{$linklib newlib, static}
-{$linklib heap, static}
-{$linklib vfs, static}
-{$linklib esp_common, static}
-{$linklib core, static}
-{$linklib freertos, static}
-{$linklib phy, static}
-{$linklib net80211, static}
-{$linklib hal, static}
-{$linklib nvs_flash, static}
-{$linklib rtc, static}
-{$linklib spi_flash, static}
-{$linklib esp_ringbuf, static}
-{$linklib gcc, static}
-{$linklib pp, static}
-{$linklib stdc++, static}
-{$linklib pthread, static}
-
   implementation
 
     uses
