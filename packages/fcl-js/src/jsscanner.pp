@@ -36,7 +36,7 @@ Const
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrUnTerminatedString = 'string exceeds end of line';
   SErrExpectedEllipsis = 'Expected ellipsis, got ..';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
@@ -100,7 +100,7 @@ Type
     FSourceFilename: string;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: String;
+    FCurTokenString: UTF8String;
     FCurLine: string;
     FWasMultilineString: Boolean;
     TokenStr: PChar;
@@ -141,7 +141,7 @@ Type
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
-    property CurTokenString: String read FCurTokenString;
+    property CurTokenString: UTF8String read FCurTokenString;
     property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
     Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
     Property DisableRShift : Boolean Read FDisableRShift Write FDisableRShift;
@@ -426,7 +426,7 @@ Var
   Delim : Char;
   TokenStart : PChar;
   Len,OLen: Integer;
-  S : String;
+  S : UTF8String;
 
   Procedure AddToString;
 
@@ -463,9 +463,9 @@ begin
         '\' : S:='\';
         '/' : S:='/';
         'u' : begin
-              S:=ReadUniCodeEscape;
+              S:=UTF8Encode(ReadUniCodeEscape);
               end;
-        #0  : Error(SErrOpenString);
+        #0  : Error(SErrUnterminatedString);
       else
         Error(SErrInvalidCharacter, [TokenStr[0]]);
       end;
@@ -482,20 +482,20 @@ begin
     if TokenStr[0] = #0 then
       begin
       if Delim<>'`' then
-        Error(SErrOpenString)
+        Error(SErrUnterminatedString)
       else
         begin
         AddToString;
         FCurTokenString:=FCurTokenString+FSourceFile.LastLF;
         oLen:=oLen+Length(FSourceFile.LastLF);
         if Not FetchLine then
-          Error(SErrOpenString);
+          Error(SErrUnterminatedString);
         TokenStart:=TokenStr;
         end
       end;
     end;
   if TokenStr[0] = #0 then
-    Error(SErrOpenString);
+    Error(SErrUnterminatedString);
   AddToString;
   Inc(TokenStr);
   Result := tjsString;
