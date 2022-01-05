@@ -70,6 +70,7 @@
 'fpcr',
 'fpsr',
 'tpidr_el0',
+'mpidr_el1',
 'b0',
 'h0',
 's0',

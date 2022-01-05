@@ -362,45 +362,49 @@ implementation
               ait_regalloc:
                 with Tai_regalloc(p) do
                   begin
-                    case getregtype(reg) of
-                      R_INTREGISTER:
-                        if getsubreg(reg)=R_SUBD then
-                          size:=4
-                        else
-                          size:=8;
-                      R_ADDRESSREGISTER:
-                        size:=4;
-                      R_FPUREGISTER:
-                        if getsubreg(reg)=R_SUBFS then
-                          size:=4
-                        else
-                          size:=8;
-                      else
-                        internalerror(2010122912);
-                    end;
-                    case ratype of
-                      ra_alloc :
-                        tg.gettemp(templist,
-                                   size,1,
-                                   tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
-                      ra_dealloc :
-                        begin
-                          tg.ungettemp(templist,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
-                          { don't invalidate the temp reference, may still be used one instruction
-                            later }
+                    { NR_DEFAULTFLAGS is NR_NO for JVM CPU }
+                    if (reg<>NR_DEFAULTFLAGS) then
+                      begin
+                        case getregtype(reg) of
+                          R_INTREGISTER:
+                            if getsubreg(reg)=R_SUBD then
+                              size:=4
+                            else
+                              size:=8;
+                          R_ADDRESSREGISTER:
+                            size:=4;
+                          R_FPUREGISTER:
+                            if getsubreg(reg)=R_SUBFS then
+                              size:=4
+                            else
+                              size:=8;
+                          else
+                            internalerror(2010122912);
                         end;
-                      else
-                        ;
-                    end;
-                    { insert the tempallocation/free at the right place }
-                    list.insertlistbefore(p,templist);
-                    { remove the register allocation info for the register
-                      (p.previous is valid because we just inserted the temp
-                       allocation/free before p) }
-                    q:=Tai(p.previous);
-                    list.remove(p);
-                    p.free;
-                    p:=q;
+                        case ratype of
+                          ra_alloc :
+                            tg.gettemp(templist,
+                                       size,1,
+                                       tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                          ra_dealloc :
+                            begin
+                              tg.ungettemp(templist,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                              { don't invalidate the temp reference, may still be used one instruction
+                                later }
+                            end;
+                          else
+                            ;
+                        end;
+                        { insert the tempallocation/free at the right place }
+                        list.insertlistbefore(p,templist);
+                        { remove the register allocation info for the register
+                          (p.previous is valid because we just inserted the temp
+                           allocation/free before p) }
+                        q:=Tai(p.previous);
+                        list.remove(p);
+                        p.free;
+                        p:=q;
+                      end;
                   end;
               ait_instruction:
                 do_spill_replace_all(list,taicpu(p),spill_temps);

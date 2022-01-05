@@ -204,7 +204,8 @@
              system_z80_amstradcpc,     { 112 }
              system_m68k_sinclairql,    { 113 }
              system_wasm32_wasi,        { 114 }
-             system_aarch64_freebsd     { 115 }
+             system_aarch64_freebsd,    { 115 }
+             system_aarch64_embedded    { 116 }
        );
 
      type

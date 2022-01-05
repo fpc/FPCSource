@@ -657,9 +657,6 @@ _restvr_31: addi r12,r0,-16
                           Process start/halt
  ******************************************************************************}
 
-procedure __libc_csu_init; cdecl; external;
-procedure __libc_csu_fini; cdecl; external;
-
 procedure __libc_start_main(r3,r4,r5,r6,r7,r8,r9: pointer); cdecl; external;
 
 var
@@ -715,6 +712,10 @@ data_start:
 .text
   end;
 
+procedure ini_dummy;
+  begin
+  end;
+
 const
   start_addresses: record
     sda_base: pointer;
@@ -724,8 +725,10 @@ const
   end
   = (sda_base: nil; {* was _SDA_BASE_  but not in 64-bit ABI }
      main: @main_stub;
-     libc_csu_init: @__libc_csu_init;
-     libc_csu_fini: @__libc_csu_fini
+     { use dummy, it should not be used anymore by glibc }
+     libc_csu_init: @ini_dummy;
+     { use dummy, it should not be used anymore by glibc }
+     libc_csu_fini: @ini_dummy
     );
 
 

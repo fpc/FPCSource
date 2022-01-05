@@ -74,9 +74,9 @@ Type
     Function FindInNodes(aNodes: TJSElementNodes; const aName: String): TJSTypeDeclaration;
     Function FindInScope(aScope: TJSSourceElements; const aName: String): TJSTypeDef;
     Function FindTypeDef(const aName : String) : TJSTypeDef;
-    Function FindTypeAlias(aName : jsbase.TJSString) : String;
-    Procedure AddToTypeMap(aName : UTF8String; const aPasName : String);
-    Procedure AddToTypeMap(aName : jsbase.TJSString; const aPasName : String);
+    Function FindTypeAlias(const aName : jsbase.TJSString) : String;
+    Procedure AddToTypeMap(const aName : UTF8String; const aPasName : String);
+    Procedure AddToTypeMap(const aName : jsbase.TJSString; const aPasName : String);
     Procedure AddToTypeMap(aType : TJSElement);
     Procedure RemoveFromTypeMap(aType : TJSElement);
     Property TypeMap : TFPObjectHashTable Read FTypeMap;
@@ -148,8 +148,8 @@ Type
     function GetFixedValueTypeName(ATypeDef: TJSFixedValueReference): String;
     function GetIsRaw: Boolean;
     function HasReadOnlyPropFields(aTypeDef: TJSObjectTypeDef): Boolean;
-    function HaveClass(aName: TJSString): Boolean;
-    function HaveModule(aName: TJSString): Boolean;
+    function HaveClass(const aName: TJSString): Boolean;
+    function HaveModule(const aName: TJSString): Boolean;
     function NamespaceExtendsClass(aNs: TJSNamespaceDeclaration): Boolean;
     function NamespaceExtendsModule(aNs: TJSNamespaceDeclaration): Boolean;
     function ResolveTypeRef(D: TJSTypeDef): TJSTypeDef;
@@ -195,7 +195,7 @@ Type
     // Overload handling
     function GetOverloads(const aDefs: TJSFuncDefArray): TFunctionOverLoadArgumentsList;
     procedure AddOverloadParams(aList: TFunctionOverLoadArgumentsList; adef: TJSFuncDef; aIdx: Integer);
-    procedure AddUnionOverloads(aList: TFunctionOverLoadArgumentsList; AName: TJSString; UT: TJSUnionTypeDef);
+    procedure AddUnionOverloads(aList: TFunctionOverLoadArgumentsList; const AName: TJSString; UT: TJSUnionTypeDef);
     procedure AddParameterToOverloads(aList: TFunctionOverLoadArgumentsList; const AName: TJSString; ATypeDef: TJSTypeDef);
     procedure AddParameterToOverloads(aList: TFunctionOverLoadArgumentsList; const aParam : TJSTypedParam);
     function CloneNonPartialParameterList(aList: TFunctionOverLoadArgumentsList; ADest: TFunctionOverLoadArgumentsList = Nil; AsPartial: Boolean = True): integer;
@@ -211,7 +211,7 @@ Type
     function WriteReadonlyProperty(aProp: TJSPropertyDeclaration): Boolean;
     function WritePropertyDef(aProp: TJSPropertyDeclaration): Boolean;
     function WriteReadOnlyPropFields(aTypeDef: TJSObjectTypeDef): Integer;
-    function WriteAmbientClassDef(aPasName: String; aOrgName: TJSString; aTypeParams: TJSElementNodes; aClass: TJSAmbientClassDeclarationArray): Boolean;
+    function WriteAmbientClassDef(const aPasName: String; aOrgName: TJSString; aTypeParams: TJSElementNodes; aClass: TJSAmbientClassDeclarationArray): Boolean;
     function WriteClassDefs(aClasses: TJSElementNodes) : Integer;
 
     // Forwards
@@ -280,8 +280,8 @@ Type
     function WriteIndirectTypeDefs(aParams: TJStypedParams): Integer; overload; virtual;
     Function WriteIndirectTypeDefs(aElements : TJSElementNodes) : Integer; overload; virtual;
     function WriteClassIndirectTypeDefs(aElements: TJSElementNodes; isClassLocal: Boolean): Integer;
-    function WritePropertyTypeDefs(aElements: TJSElementNodes; SectionName: String=''): Integer;
-    function WriteMethodParameterDefs(aElements: TJSElementNodes; SectionName : String = ''): Integer;
+    function WritePropertyTypeDefs(aElements: TJSElementNodes; Const SectionName: String=''): Integer;
+    function WriteMethodParameterDefs(aElements: TJSElementNodes; Const SectionName : String = ''): Integer;
 
     // List of identifiers: global, namespace or class
     procedure WriteSourceElements(SourceElements: TJSSourceElements; aNamespace: TJSString);
@@ -317,6 +317,33 @@ Type
 implementation
 
 uses typinfo, strutils;
+
+Resourcestring
+  SErrorCannotPopNilScope = 'Cannot pop nil scope';
+  SErrCannotPushNilScope = 'Cannot push nil scope';
+  SErrCanOnlyPopToplevelScope = 'Can only pop toplevel scope/forwards';
+  SErrIgnoringDuplicateTypeName = 'Ignoring duplicate type name %s -> %s (%s)';
+  SErrParseResultIsNotFunctionBody = 'Parse result is not a function body';
+  SErrCannotGetTypeNameFromType = 'Cannot get type name from %s at row %d, col %d.';
+  SErrUnsupportedNamedParamType = 'Unsupported named type parameter: "%s"';
+  ResUnsupportedTypeParameter = 'Unsupported type parameter: "%s"';
+  SCommentImportFile = 'Import file : %s';
+  SCommentRequiredImportFile = 'Import (require) file : ';
+  SLogRenamedType = 'Renamed %s to %s';
+  SLogRenamingUnitCompile = 'Renaming unit %s to %s to allow compilation.';
+  SErrRenamingUnitConflict = 'Renaming unit %s to %s to avoid name conflict.';
+  SLogParsedNDefinitions = 'Parsed %d type definitions.';
+  SErrUnsupportedTupleElementType = 'Unsupported tuple element type: %s';
+  SCommentIgnoringDuplicateType = 'Ignoring duplicate type %s (%s)';
+  SErrUnsupportedType = '%s (%s) has unsupported type "%s" : ';
+  SErrNoNameAllocatedForFunctionResult = 'No name allocated for function %s (%d,%d) result type %s';
+  SErrElementWithoutTypeName = 'Element without allocated typename: %s %s';
+  SLogFoldingClassDefinitions = 'Folding %d definitions to 1 class for %s';
+  SLogIgnoringEmptyMethod = 'Ignoring empty method';
+  SLogIgnoringEmptyFunction = 'Ignoring empty function definition';
+  SLogIgnoreDoubleClassDefinition = 'Ignore double class definition: "%s"';
+  SForwardClassDefinitions = 'Forward class definitions';
+  SLogFoldingInterfaceDefinitions = 'Folding %d definitions to 1 interface for %s';
 
 { TFunctionOverLoadArgumentsList }
 
@@ -465,7 +492,7 @@ end;
 procedure TTSContext.PushScope(aScope: TJSSourceElements; aForwards : TStringList);
 begin
   if aScope=Nil then
-    Raise ETSToPas.Create('Cannot push nil scope');
+    raise ETSToPas.Create(SErrCannotPushNilScope);
   Inc(FCurrentScopeIdx);
   if FCurrentScopeIdx>=Length(FScopes) then
     SetLength(FScopes,Length(FScopes)*2);
@@ -473,12 +500,13 @@ begin
   FScopes[FCurrentScopeIdx].Forwards:=aForwards;
 end;
 
+
 procedure TTSContext.PopScope(aScope: TJSSourceElements; aForwards : TStringList);
 begin
   if (aScope=Nil) then
-    Raise ETSToPas.Create('Cannot pop nil scope');
-  if aScope<>CurrentScope then
-    Raise ETSToPas.Create('Can only pop toplevel scope');
+    Raise ETSToPas.Create(SErrorCannotPopNilScope);
+  if (aScope<>CurrentScope) or (aForwards<>CurrentForwards) then
+    raise ETSToPas.Create(SErrCanOnlyPopToplevelScope);
   Dec(FCurrentScopeIdx);
 end;
 
@@ -600,7 +628,7 @@ begin
     end;
 end;
 
-function TTSContext.FindTypeAlias(aName: jsbase.TJSString): String;
+function TTSContext.FindTypeAlias(const aName: jsbase.TJSString): String;
 
 Var
   S : UTF8String;
@@ -646,7 +674,7 @@ begin
         begin
         N:=UTF8Encode(TPasData(El.Data).OriginalName);
         if FTypeMap.Find(N)<>Nil then
-          FConverter.DoLog('Ignoring duplicate type name %s -> %s (%s)',[N,TPasData(El.Data).PasName,EL.ClassName])
+          FConverter.DoLog(SErrIgnoringDuplicateTypeName, [N, TPasData(El.Data).PasName, EL.ClassName])
         else
           FTypeMap.Add(N,El.Data) ;
         end;
@@ -677,12 +705,12 @@ begin
   FTypeDeclarations.Extract(aEl);
 end;
 
-procedure TTSContext.AddToTypeMap(aName: UTF8String; const aPasName: String);
+procedure TTSContext.AddToTypeMap(const aName: UTF8String; const aPasName: String);
 begin
   FTypeMap.Add(aName,FConverter.CreatePasName(UTF8Decode(aName),aPasName));
 end;
 
-procedure TTSContext.AddToTypeMap(aName: jsbase.TJSString; const aPasName: String);
+procedure TTSContext.AddToTypeMap(const aName: jsbase.TJSString; const aPasName: String);
 begin
   AddToTypeMap(UTF8Encode(aName),aPasName);
 end;
@@ -808,7 +836,7 @@ begin
     if not (El is TJSFunctionBody) then
       begin
       EL.Free;
-      Raise ETStoPas.Create('Parse result is not a function body');
+      raise ETStoPas.Create(SErrParseResultIsNotFunctionBody);
       end;
     FElements:=El as TJSFunctionBody;
     // DumpElements;
@@ -914,7 +942,7 @@ begin
   else if ATypeDef is TJSFixedValueReference then
     Result:=GetFixedValueTypeName(ATypeDef as TJSFixedValueReference)
   else
-    Raise ETSToPas.CreateFmt('Cannot get type name from %s at row %d, col %d.',[aTypeDef.ClassName,aTypeDef.Line,aTypeDef.Column]);
+    raise ETSToPas.CreateFmt(SErrCannotGetTypeNameFromType, [aTypeDef.ClassName, aTypeDef.Line, aTypeDef.Column]);
 end;
 
 
@@ -1000,13 +1028,13 @@ begin
       if (N is TJSTypeReference) then
         aName:=(N as TJSTypeReference).Name
       else
-        Raise ETSToPas.CreateFmt('Unsupported named type parameter: "%s"',[ATypeParams[I].Node.ClassName]);
+        raise ETSToPas.CreateFmt(SErrUnsupportedNamedParamType, [ATypeParams[I].Node.ClassName]);
       if Result<>'' then
         Result:=Result+',';
       Result:=Result+UTF8Encode(aName);
       end
     else
-      Raise ETSToPas.CreateFmt('Unsupported type parameter: "%s"',[ATypeParams[I].Node.ClassName]);
+      raise ETSToPas.CreateFmt(ResUnsupportedTypeParameter, [ATypeParams[I].Node.ClassName]);
   if Result<>'' then
     Result:='<'+Result+'>';
 end;
@@ -1291,12 +1319,12 @@ begin
              and (CE.Args.Count=1)
              and (CE.Args.Elements[0].Expr is TJSLiteral) then
            begin
-             Comment('Import (require) file : '+(CE.Args.Elements[0].expr as TJSLiteral).Value.AsString);
+             Comment(SCommentRequiredImportFile+Utf8Encode((CE.Args.Elements[0].expr as TJSLiteral).Value.AsString));
            end;
          end;
        end
      else
-       Comment('Import file : '+Imps.ModuleName)
+       Comment(Format(SCommentImportFile, [Imps.ModuleName]))
      end;
 end;
 
@@ -1437,7 +1465,7 @@ begin
     begin
     if (ParentName<>'') then
       ParentName:=ParentName+'.';
-    DoLog('Renamed %s to %s',[ParentName+UTF8Encode(Org),TPasData(D.Data).PasName]);
+    DoLog(SLogRenamedType, [ParentName+UTF8Encode(Org), TPasData(D.Data).PasName]);
     end;
 end;
 
@@ -1714,14 +1742,14 @@ begin
   NN:=OutputUnitName;
   if (NN<>'') and (NN[1] in ['0'..'9']) then
     begin
-    Dolog('Renaming unit %s to %s to allow compilation.',[OutputUnitName,NN]);
+    Dolog(SLogRenamingUnitCompile, [OutputUnitName, NN]);
     NN:='_'+NN;
     end;
   For I:=0 to SourceElements.Functions.Count-1 do
-    if (SourceElements.Functions[i].Node as TJSFunctionStatement).AFunction.Name=OutputUnitName then
+    if UTF8Encode((SourceElements.Functions[i].Node as TJSFunctionStatement).AFunction.Name)=OutputUnitName then
       begin
       NN:=NN+'_';
-      Dolog('Renaming unit %s to %s to avoid name conflict.',[OutputUnitName,NN]);
+      Dolog(SErrRenamingUnitConflict, [OutputUnitName, NN]);
       end;
   if OutputUnitName<>NN then
     OutputUnitName:=NN;
@@ -1746,7 +1774,7 @@ begin
       CheckUnitName(SourceElements);
       FContext.TypesToMap;
       if Verbose then
-        DoLog('Parsed %d type definitions.',[FContext.FTypeMap.Count]);
+        DoLog(SLogParsedNDefinitions, [FContext.FTypeMap.Count]);
     finally
       Context.PopScope(SourceElements,Fwds);
     end;
@@ -1922,7 +1950,7 @@ begin
       Result:=Format('Array[0..%d] of %s',[aTypeDef.Values.Count-1,elName]);
     end
   else
-    Raise ETSToPas.Create('Unsupported tuple element type');
+    raise ETSToPas.CreateFmt(SErrUnsupportedTupleElementType, [aTypeDef.Values[0].Node.ClassName]);
 end;
 procedure TTypescriptToPas.WriteTupleTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString;
   aTypeParams: TJSElementNodes; aTypeDef: TJSTupleTypeDef);
@@ -1985,7 +2013,7 @@ Procedure TTypescriptToPas.WriteTypeDef(const aPasName : string; const aOrgName 
 begin
   if NameScopeHas(aPasName) then
     begin
-    Comment(Format('Ignoring duplicate type %s (%s)',[aPasName,UTF8Encode(aOrgName)]));
+    Comment(Format(SCommentIgnoringDuplicateType, [aPasName, UTF8Encode(aOrgName)]));
     exit;
     end;
   AddToNameScope(aPasName,aOrgName);
@@ -2006,7 +2034,7 @@ begin
   else if aTypeDef is TJSTupleTypeDef then
     WriteTupleTypedef(aPasName,aOrgName,aTypeParams,TJSTupleTypeDef(aTypeDef))
   else
-    AddLn('%s (%s) has unsupported type "%s" : ',[aPasName,aOrgName,aTypeDef.ClassName]);
+    Comment(Format(SErrUnsupportedType, [aPasName, aOrgName, aTypeDef.ClassName]));
 end;
 
 function TTypescriptToPas.WriteIndirectTypeDefs(aParams: TJStypedParams): Integer;
@@ -2136,7 +2164,8 @@ begin
     WriteIndirectTypeDefs(FD.ResultType);
     PD:=TPasData(FD.ResultType.Data);
     if PD=Nil then
-      Raise ETSToPas.CreateFmt('No name allocated for function %s (%d,%d) result type %s',[FD.Name,FD.ResultType.Line,FD.ResultType.Column,FD.ResultType.ClassName]);
+      raise ETSToPas.CreateFmt(SErrNoNameAllocatedForFunctionResult, [FD.Name, FD.ResultType.Line, FD.ResultType.Column,
+        FD.ResultType.ClassName]);
     WriteTypeDef(PD.PasName,PD.OriginalName,nil,FD.ResultType);
     end;
 end;
@@ -2163,11 +2192,11 @@ begin
   WritePropertyTypeDefs(aElements,'');
 end;
 
-function TTypescriptToPas.WritePropertyTypeDefs(aElements: TJSElementNodes; SectionName : String = ''): Integer;
+function TTypescriptToPas.WritePropertyTypeDefs(aElements: TJSElementNodes; const SectionName: String): Integer;
 
 Var
   P : TJSPropertyDeclaration;
-  aName : String;
+  aName : TJSString;
   PD : TPasData;
   EN : TJSElementNode;
   TD : TJSTypeDef;
@@ -2211,7 +2240,7 @@ begin
       else if TD is TJSObjectTypeDef then
         Result:=Result+WriteIndirectTypeDefs((TD as TJSObjectTypeDef).Values);
       if PD=Nil then
-        Raise ETSToPas.CreateFmt('Element without allocated typename: %s %s',[aName,TD.ClassName]);
+        raise ETSToPas.CreateFmt(SErrElementWithoutTypeName, [aName, TD.ClassName]);
       WriteTypeDef(PD.PasName,PD.OriginalName,Nil,TD);
       Inc(Result);
       end;
@@ -2223,13 +2252,12 @@ begin
     end;
 end;
 
-function TTypescriptToPas.WriteMethodParameterDefs(aElements: TJSElementNodes; SectionName : String = ''): Integer;
+function TTypescriptToPas.WriteMethodParameterDefs(aElements: TJSElementNodes; const SectionName: String): Integer;
 
 var
   EN : TJSElementNode;
   FD : TJSFuncDef;
   Didindent : Boolean;
-  PD : TPasData;
 
 begin
   Result:=0;
@@ -2373,7 +2401,8 @@ begin
     Result:=Result+WritePropertyTypeDefs(aElements,Sect);
     end;
 end;
-function TTypescriptToPas.WriteAmbientClassDef(aPasName : String; aOrgName : TJSString; aTypeParams: TJSElementNodes; aClass: TJSAmbientClassDeclarationArray): Boolean;
+function TTypescriptToPas.WriteAmbientClassDef(const aPasName: String; aOrgName: TJSString; aTypeParams: TJSElementNodes;
+  aClass: TJSAmbientClassDeclarationArray): Boolean;
 
 Type
   TMembers = array of TJSSourceElements;
@@ -2398,7 +2427,7 @@ Type
 
 
 Var
-  Sect,aParentName : string;
+  aParentName : string;
   aCount : Integer;
   Members : TMembers;
   M : TJSSourceElements;
@@ -2444,7 +2473,7 @@ end;
 
 function TTypescriptToPas.WriteClassDefs(aClasses: TJSElementNodes): Integer;
 
-  Function GetClasses(aName : TJSString) : TJSAmbientClassDeclarationArray;
+  Function GetClasses(const aName : String) : TJSAmbientClassDeclarationArray;
 
   Var
     I,aCount : Integer;
@@ -2452,6 +2481,7 @@ function TTypescriptToPas.WriteClassDefs(aClasses: TJSElementNodes): Integer;
 
   begin
     aCount:=0;
+    Result:=[];
     SetLength(Result,aClasses.Count);
     For I:=0 to aClasses.Count-1 do
       begin
@@ -2496,7 +2526,7 @@ begin
      if Length(AmbientDecl)>0 then
        begin
        if Length(AmbientDecl)>1 then
-         DoLog('Folding %d definitions to 1 class for %s',[Length(AmbientDecl),aName]);
+         DoLog(SLogFoldingClassDefinitions, [Length(AmbientDecl), aName]);
        if WriteAmbientClassDef(aName, AmbientDecl[0].Name, AmbientDecl[0].TypeParams, AmbientDecl) then
          Inc(Result);
        end;
@@ -2572,7 +2602,7 @@ begin
            (GetName(aTypeDef.Elements[I])=FN) then
              begin
              if TJSMethodDeclaration(aTypeDef.Elements[I]).FuncDef=nil then
-               DoLog('Ignoring empty method')
+               DoLog(SLogIgnoringEmptyMethod)
              else
                begin
                aDefs[aCount]:=TJSMethodDeclaration(aTypeDef.Elements[I]).FuncDef;
@@ -2709,7 +2739,7 @@ Type
   TJSPartialParams = Class(TJSTypedParams);
 
 
-procedure TTypescriptToPas.AddUnionOverloads(aList: TFunctionOverLoadArgumentsList; AName : TJSString; UT : TJSUnionTypeDef);
+procedure TTypescriptToPas.AddUnionOverloads(aList: TFunctionOverLoadArgumentsList; const AName: TJSString; UT: TJSUnionTypeDef);
 
 Var
   L,L2 : TFunctionOverLoadArgumentsList;
@@ -2858,10 +2888,9 @@ function TTypescriptToPas.GetOverloads(const aDefs: TJSFuncDefArray): TFunctionO
 Var
   aDef : TJSFuncDef;
   aFunc : TFunctionOverLoadArgumentsList;
-  Len,I : Integer;
+  I : Integer;
 
 begin
-  Len:=Length(aDefs);
   Result:=TFunctionOverLoadArgumentsList.Create;
   try
     aFunc:=TFunctionOverLoadArgumentsList.Create(False);
@@ -2984,7 +3013,7 @@ begin
         if ExportNode(EN) and (GetName(EN.Node)=FN) then
           begin
           if (EN.Node as TJSFunctionDeclarationStatement).AFunction = Nil then
-            DoLog('Ignoring empty function definition')
+            DoLog(SLogIgnoringEmptyFunction)
           else
             begin
             aDefs[aCount]:=(EN.Node as TJSFunctionDeclarationStatement).AFunction;
@@ -3012,7 +3041,7 @@ begin
   if Result then
     AddLn('%s = Class;',[aName])
   else
-    DoLog('Ignore double class definition: "%s"',[aName]);
+    DoLog(SLogIgnoreDoubleClassDefinition, [aName]);
 end;
 
 function TTypescriptToPas.WriteForwardClassDef(aIntf: TJSInterfaceDeclaration): Boolean;
@@ -3057,7 +3086,7 @@ function TTypescriptToPas.WriteForwardClassDefs(aClassList: TJSElementNodes): In
   Procedure MaybeComment;
   begin
     if Result=0 then
-      Comment('Forward class definitions');
+      Comment(SForwardClassDefinitions);
   end;
 
 Var
@@ -3139,7 +3168,7 @@ begin
   Result:=HaveModule(aNS.Name);
 end;
 
-Function TTypescriptToPas.HaveClass(aName : TJSString) : Boolean;
+function TTypescriptToPas.HaveClass(const aName: TJSString): Boolean;
 
 Var
   I : Integer;
@@ -3154,7 +3183,7 @@ begin
     end;
 end;
 
-function TTypescriptToPas.HaveModule(aName: TJSString): Boolean;
+function TTypescriptToPas.HaveModule(const aName: TJSString): Boolean;
 Var
   I : Integer;
 
@@ -3324,7 +3353,7 @@ end;
 
 function TTypescriptToPas.WriteInterfaceDefs(aList: TJSElementNodes): Integer;
 
-  Function GetInterfaces(aName : TJSString) : TJSInterfaceDeclarationArray;
+  Function GetInterfaces(aName : String) : TJSInterfaceDeclarationArray;
 
   Var
     I,aCount : Integer;
@@ -3332,6 +3361,7 @@ function TTypescriptToPas.WriteInterfaceDefs(aList: TJSElementNodes): Integer;
 
   begin
     aCount:=0;
+    Result:=[];
     SetLength(Result,aList.Count);
     For I:=0 to aList.Count-1 do
       begin
@@ -3375,7 +3405,7 @@ begin
      if Length(IntfDecl)>0 then
        begin
        if Length(IntfDecl)>1 then
-         DoLog('Folding %d definitions to 1 interface for %s',[Length(IntfDecl),aName]);
+         DoLog(SLogFoldingInterfaceDefinitions, [Length(IntfDecl), aName]);
        if WriteInterfaceDef(IntfDecl) then
          Inc(Result);
        end;

@@ -1319,9 +1319,9 @@ Type
 
   TJSImportTypeRef = Class(TJSTypeReference)
   private
-    FFileName: String;
+    FFileName: TJSString;
   Public
-    Property FileName : String Read FFileName Write FFileName;
+    Property FileName : TJSString Read FFileName Write FFileName;
   end;
 
 

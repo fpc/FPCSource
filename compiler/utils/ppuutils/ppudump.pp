@@ -235,7 +235,8 @@ const
   { 112 } 'AmstradCPC-Z80',
   { 113 } 'SinclairQL-m68k',
   { 114 } 'WASI-WASM32',
-  { 115 } 'FreeBSD-AArch64'
+  { 115 } 'FreeBSD-AArch64',
+  { 116 } 'Embedded-aarch64'
   );
 
 const

@@ -70,6 +70,7 @@ RS_NZCV = $00;
 RS_FPCR = $01;
 RS_FPSR = $02;
 RS_TPIDR_EL0 = $03;
+RS_MPIDR_EL1 = $04;
 RS_B0 = $00;
 RS_H0 = $00;
 RS_S0 = $00;

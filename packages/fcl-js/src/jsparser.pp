@@ -75,11 +75,11 @@ Type
     procedure ClassDefToMembers(aClass: TJSClassDeclaration; aClassDef: TJSObjectTypeDef);
     function CurrentTokenIsValidIdentifier: Boolean;
     function GetIsTypeScript: Boolean;
-    function  IdentifierIsLiteral(aValue : String) : Boolean;
-    Procedure CheckIdentifierLiteral(aValue : String);
-    function ConsumeIdentifierLiteral(aValue: String): TJSToken;
+    function  IdentifierIsLiteral(const aValue : jsbase.TJSString) : Boolean;
+    Procedure CheckIdentifierLiteral(const aValue : jsbase.TJSString);
+    function ConsumeIdentifierLiteral(const aValue: jsbase.TJSString): TJSToken;
     function CheckSemiColonInsert(aToken: TJSToken; Consume: Boolean): Boolean;
-    function EnterLabel(ALabelName: String): TJSLabel;
+    function EnterLabel(const ALabelName: jsBase.TJSString): TJSLabel;
     // Check that current token is aToken
     procedure Expect(aToken: TJSToken);
     // Check that current token is aToken and goto next token.
@@ -87,14 +87,14 @@ Type
     procedure FreeCurrentLabelSet;
     function GetVersion: TECMAVersion;
     procedure LeaveLabel;
-    function LookupLabel(ALabelName: String; Kind: TJSToken): TJSLabel;
+    function LookupLabel(const ALabelName: jsBase.TJSString; Kind: TJSToken): TJSLabel;
     function ParseAdditiveExpression: TJSElement;
     procedure ParseAliasElements(aElements: TJSAliasElements);
     procedure ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     function ParseArguments: TJSarguments;
     function ParseArrayLiteral: TJSElement;
     procedure ParseArrowFunctionTypeDef(aDef: TJSArrowFunctionTypeDef; aFirstParam: TJSTypedParam); overload;
-    function ParseArrowFunctionTypeDef(aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef; overload;
+    function ParseArrowFunctionTypeDef(const  aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef; overload;
     function ParseArrowFunctionTypeDef(aFirst: TJSObjectTypeDef; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;  overload;
     function ParseAssignmentExpression: TJSElement;
     function ParseBitwiseAndExpression: TJSElement;
@@ -187,16 +187,16 @@ Type
     Function CreateElement(AElementClass : TJSElementClass)  : TJSElement; virtual;
     Procedure FreeElement(aElement : TJSElement); virtual;
     Procedure FreeElement(aElements : TJSElementNodes); virtual;
-    Procedure Error(Msg : String);
-    Procedure Error(Fmt : String; Args : Array of const);
+    Procedure Error(const Msg : String);
+    Procedure Error(const Fmt : String; Args : Array of const);
     // Parse functions
-    Function IsIdentifier(const aIdentifier : String) : Boolean; inline;
+    Function IsIdentifier(const aIdentifier : jsBase.TJSString) : Boolean; inline;
     function ParseSourceElements(ScopeType : TScopeType = stFunction; ParentisAmbient : Boolean = False): TJSSourceElements;
     Property FunctionDepth : Integer Read FFunctionDepth Write FFunctionDepth;
     Property NoIn : Boolean Read FNoIn Write FNoIn;
     Property IsLHS : Boolean Read FIsLHS Write FIsLHS;
   Public
-    Constructor Create(AInput: TStream; aVersion : TECMAVersion = ecma5; aIsTypeScript : Boolean = false; aFileName : String = '');
+    Constructor Create(AInput: TStream; aVersion : TECMAVersion = ecma5; aIsTypeScript : Boolean = false; const aFileName : String = '');
     // Scanner has version
     Constructor Create(AScanner : TJSScanner);
     Destructor Destroy; override;
@@ -353,7 +353,7 @@ begin
   L.Free; // ??
 end;
 
-function TJSParser.LookupLabel(ALabelName : String; Kind : TJSToken) :TJSLabel;
+function TJSParser.LookupLabel(const ALabelName: jsBase.TJSString; Kind: TJSToken): TJSLabel;
 
 Var
   L : TJSLabel;
@@ -382,7 +382,7 @@ begin
     end;
 end;
 
-function TJSParser.EnterLabel(ALabelName : String) :TJSLabel;
+function TJSParser.EnterLabel(const ALabelName: jsBase.TJSString): TJSLabel;
 
 Var
   L : TJSLabel;
@@ -451,7 +451,7 @@ begin
   aElements.Free;
 end;
 
-Procedure TJSParser.Error(Msg: String);
+Procedure TJSParser.Error(const Msg: String);
 
 Var
   ErrAt : String;
@@ -470,17 +470,17 @@ begin
   Raise E;
 end;
 
-Procedure TJSParser.Error(Fmt: String; Args: Array of const);
+Procedure TJSParser.Error(const Fmt: String; Args: Array of const);
 begin
   Error(Format(Fmt,Args));
 end;
 
-function TJSParser.IsIdentifier(const aIdentifier: String): Boolean;
+function TJSParser.IsIdentifier(const aIdentifier: jsBase.TJSString): Boolean;
 begin
   Result:=IdentifierIsLiteral(aIdentifier);
 end;
 
-constructor TJSParser.Create(AInput: TStream; aVersion: TECMAVersion; aIsTypeScript: Boolean; aFileName : String = '');
+constructor TJSParser.Create(AInput: TStream; aVersion: TECMAVersion; aIsTypeScript: Boolean; const aFileName : String = '');
 begin
   FInput:=AInput;
   FCurrent:=TJSUnknown;
@@ -514,23 +514,24 @@ begin
       Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
 end;
 
-function TJSParser.IdentifierIsLiteral(aValue: String): Boolean;
+function TJSParser.IdentifierIsLiteral(const aValue: jsbase.TJSString): Boolean;
 begin
   Result:=(CurrentToken=tjsIdentifier) and (CurrentTokenString=aValue);
 end;
+
 
 function TJSParser.GetIsTypeScript: Boolean;
 begin
   Result:=FScanner.IsTypeScript;
 end;
 
-procedure TJSParser.CheckIdentifierLiteral(aValue: String);
+procedure TJSParser.CheckIdentifierLiteral(const aValue: jsbase.TJSString);
 begin
   if Not IdentifierIsLiteral(aValue) then
     Error(SErrExpectedButFound,[aValue,CurrentTokenString]);
 end;
 
-Function TJSParser.ConsumeIdentifierLiteral(aValue: String) : TJSToken;
+function TJSParser.ConsumeIdentifierLiteral(const aValue: jsbase.TJSString): TJSToken;
 begin
   CheckidentifierLiteral(aValue);
   Result:=GetNextToken;
@@ -897,7 +898,7 @@ begin
     end;
 end;
 
-Function TJSParser.ParseArrowFunctionTypeDef (aArgName : jsBase.TJSString; aArgIsSpread : Boolean) : TJSArrowFunctionTypeDef;
+function TJSParser.ParseArrowFunctionTypeDef(const aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;
 
 var
   P : TJSTypedParam;
@@ -1092,7 +1093,7 @@ function TJSParser.ParseTypeSimple(aOptions : TParseTypeOptions): TJSTypeDef;
 Var
   CurrT : TJSToken;
   isInferred,IsReadOnly,IsTypeOf,IsKeyOf : Boolean;
-  aName : String;
+  aName : jsBase.TJSString;
 
 begin
   Result:=Nil;
@@ -1683,7 +1684,7 @@ begin
   try
     if Pos('0x',CurrentTokenString) = 1 then
       begin
-      D:=StrToInt('$'+Copy(CurrentTokenString,3,Length(CurrentTokenString)-2));
+      D:=StrToInt('$'+UTF8Encode(Copy(CurrentTokenString,3,Length(CurrentTokenString)-2)));
       I:=0;
       end
     else
@@ -1721,7 +1722,7 @@ end;
 function TJSParser.ParseRegularExpressionLiteral: TJSElement;
 
 Var
-  S,pa,fl : String;
+  S,pa,fl : jsBase.TJSString;
   P : integer;
   R : TJSRegularExpressionLiteral;
 begin
@@ -2728,7 +2729,7 @@ end;
 Procedure TJSParser.ParseAliasElements(aElements : TJSAliasElements);
 // Parse { N [as M] }. On entry, must be on {, on exit curtoken is token after }
 Var
-  aName,aAlias : String;
+  aName,aAlias : jsbase.TJSString;
 begin
   Consume(tjsCurlyBraceOpen);
   if (CurrentToken<>tjsCurlyBraceClose) then
@@ -3974,7 +3975,7 @@ Procedure TJSParser.ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     Result.Name:='any';
   end;
   
-  Function CheckSpecial(aName : string) : Boolean;
+  Function CheckSpecial(aName : jsBase.TJSstring) : Boolean;
   
   begin
     Result:=IsIdentifier(aName) and Not (PeekNextToken in [tjsConditional,tjsColon]);

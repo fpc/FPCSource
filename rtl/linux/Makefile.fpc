@@ -79,10 +79,11 @@ endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_g si_dll
-override LOADERS+=abitag
+override LOADERS=abitag
 endif
 
 ifeq ($(ARCH),powerpc64)
+override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 

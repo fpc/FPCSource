@@ -52,7 +52,11 @@ Type
      );
 
    tcontrollertype =
-     (ct_none
+     (ct_none,
+
+      { Raspberry Pi 3/4 }
+      ct_raspi3,
+      ct_raspi4
      );
 
    tcontrollerdatatype = record
@@ -69,7 +73,7 @@ Const
 
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
-   ControllerSupport = false; (* Not yet at least ;-) *)
+   ControllerSupport = true; (* Not yet at least ;-) *)
    {# Size of native extended floating point type }
    extended_size = 8;
    { target cpu string (used by compiler options) }
@@ -81,7 +85,13 @@ Const
     {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0),
+
+      { Raspberry Pi 3/4 }
+      (controllertypestr:'RASPI3'; controllerunitstr:'RASPI3'; cputype:cpu_armv8a; fputype:fpu_vfp; flashbase:$00000000; flashsize:$00000000; srambase:$00008000; sramsize:$10000000),
+      (controllertypestr:'RASPI4'; controllerunitstr:'RASPI4'; cputype:cpu_armv8a; fputype:fpu_vfp; flashbase:$00000000; flashsize:$00000000; srambase:$00008000; sramsize:$10000000)
+
+      );
    {$POP}
 
    { calling conventions supported by the code generator }
