@@ -995,9 +995,8 @@ begin
     TWSFramePayload.CopyMasked(Payload.Data,Buffer,Payload.MaskKey,aOffset);
     end
   else
-    if Payload.DataLength > 0 then
-      for I:=0 to Payload.DataLength-1 do
-        buffer[aOffset + I]:=Payload.Data[I];
+    for I:=0 to int64(Payload.DataLength)-1 do
+      buffer[aOffset + I]:=Payload.Data[I];
 
   Result := Buffer;
 end;
