@@ -2021,7 +2021,6 @@ uses
                         handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
                       else
                         handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
-                      pdflags:=pdflags+[pd_body,pd_implemen];
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitely declare the routine as
                         having its implementation although we'll not specialize it in reality }
