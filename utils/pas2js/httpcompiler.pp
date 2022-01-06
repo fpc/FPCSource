@@ -773,6 +773,7 @@ begin
     ConfigFile:=GetOptionValue('c','config')
   else
     ConfigFile:='compileserver.ini';
+  Port:=3000;
   ReadConfigFile(ConfigFile);
   If not ProcessOptions then
     begin
