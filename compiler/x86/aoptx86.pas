@@ -6869,7 +6869,12 @@ unit aoptx86;
                { RegUsedAfterInstruction modifies TmpUsedRegs }
                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
                begin
-                 DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
+                 { Register can appear in p if it's not used afterwards, so only
+                   allocate between hp1 and hp1_dist }
+                 NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, p_dist);
+                 if NewReg <> NR_NO then
+                   begin
+                     DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
 
                  { Change the jump instruction into a SETcc instruction }
                  taicpu(hp1).opcode := A_SETcc;
@@ -6879,21 +6884,25 @@ unit aoptx86;
                  { This is now a dead label }
                  tai_label(p_label).labsym.decrefs;
 
-                 hp2 := taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg);
+                     { Prefer adding before the next instruction so the FLAGS
+                       register is deallocated first  }
+                     hp2 := taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg);
 
-                 { Try to add the instruction right after the flags get deallocated, since
-                   the flags may become allocated again before the next instruction
-                   (reuse p_dist, not hp1, since that needs to remain as the
-                   instruction immediately after p) }
-                 if SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(p_dist.Next)), p_dist) then
-                   AsmL.InsertAfter(hp2, p_dist)
-                 else
-                   AsmL.InsertBefore(hp2, hp1_dist);
+                     AsmL.InsertBefore(
+                       hp2,
+                       hp1_dist
+                     );
 
-                 Result := True;
-                 { Don't exit yet, as p wasn't changed and hp1, while
-                   modified, is still intact and might be optimised by the
-                   SETcc optimisation below }
+                     { Make sure the new register is in use over the new instruction
+                       (long-winded, but things work best when the FLAGS register
+                       is not allocated here) }
+                     AllocRegBetween(NewReg, p_dist, hp2, TmpUsedRegs);
+
+                     Result := True;
+                     { Don't exit yet, as p wasn't changed and hp1, while
+                       modified, is still intact and might be optimised by the
+                       SETcc optimisation below }
+                   end;
                end;
            end;
 
