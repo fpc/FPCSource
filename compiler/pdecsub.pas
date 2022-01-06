@@ -69,8 +69,8 @@ interface
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_proctype_directives(pd:tprocvardef);
-    procedure parse_object_proc_directives(pd:tabstractprocdef);
-    procedure parse_record_proc_directives(pd:tabstractprocdef);
+    procedure parse_object_proc_directives(pd:tprocdef);
+    procedure parse_record_proc_directives(pd:tprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
     function  parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
     procedure parse_proc_dec_finish(pd:tprocdef;flags:tparse_proc_flags;astruct:tabstractrecorddef);
@@ -3440,7 +3440,7 @@ const
       end;
 
 
-    procedure parse_object_proc_directives(pd:tabstractprocdef);
+    procedure parse_object_proc_directives(pd:tprocdef);
       var
         pdflags : tpdflags;
       begin
@@ -3448,7 +3448,7 @@ const
         parse_proc_directives(pd,pdflags);
       end;
 
-    procedure parse_record_proc_directives(pd:tabstractprocdef);
+    procedure parse_record_proc_directives(pd:tprocdef);
       var
         pdflags : tpdflags;
       begin
