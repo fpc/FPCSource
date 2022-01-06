@@ -18,7 +18,7 @@ program convcgi;
 { $DEFINE USEHTTPAPP}
 
 uses
-  sysutils, classes, cgutils,
+  typinfo, sysutils, classes, cgutils, tstopas,
   {$IFDEF USEHTTPAPP} fphttpapp{$ELSE} fpcgi {$ENDIF},
   httpdefs, httproute;
 
@@ -98,25 +98,54 @@ begin
   end;
 end;
 
+function GetRequestOptions(ARequest: TRequest) : TConversionOptions;
+
+Var
+  T : TConversionOption;
+  S,N : String;
+
+begin
+  Result:=[];
+  For T in TConversionOption do
+    begin
+    N:=GetEnumName(TypeInfo(TConversionOption),Ord(T));
+    S:=aRequest.QueryFields.Values[N];
+    if (S='1') or (S='true') then
+      Include(Result,T);
+    end;
+end;
+
 procedure DoConvertFile(ARequest: TRequest; AResponse: TResponse);
 
 Var
   S : TSettings;
-  aPas : TStrings;
-  aFileName : string;
+  aPas,aLog : TStrings;
+  aFileName,aUnitName,aOutput : string;
+  Opts : TConversionOptions;
 
 begin
   S:=GetSettings;
+  aLog:=Nil;
   aPas:=TStringList.Create;
   try
+    Opts:=GetRequestOptions(aRequest);
     aFileName:=aRequest.QueryFields.Values['file'];
-    cgUtils.ConvertFile(S.BaseDir,aFileName,'',[],aPas,Nil);
-    aResponse.Content:=aPas.text;
+    aUnitName:=aRequest.QueryFields.Values['unit'];
+    if aRequest.QueryFields.Values['prependlog']='1' then
+      aLog:=TStringList.Create;
+    cgUtils.ConvertFile(S.BaseDir,aFileName,aUnitName,Opts,aPas,aLog);
+    if Assigned(aLog) then
+      aOutput:='(* // Conversion log:'+sLineBreak+aLog.Text+sLineBreak+'*)'+sLineBreak
+    else
+      aOutput:='';
+    aOutput:=aOutput+aPas.text;
+    aResponse.Content:=aOutput;
     aResponse.ContentLength:=Length(aResponse.Content);
     aResponse.ContentType:='text/x-pascal';
     aResponse.SendResponse;
   Finally
     aPas.Free;
+    aLog.Free;
   end;
 end;
 
