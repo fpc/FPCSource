@@ -228,7 +228,8 @@ implementation
          old_block_type : tblock_type;
          first,
          isgeneric,
-         skipequal : boolean;
+         expect_directive,
+         skip_initialiser : boolean;
          varspez : tvarspez;
          asmtype : tasmlisttype;
       begin
@@ -288,7 +289,6 @@ implementation
                    consume(_COLON);
                    read_anon_type(hdef,false);
                    block_type:=bt_const;
-                   skipequal:=false;
                    { create symbol }
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
@@ -322,33 +322,26 @@ implementation
                      end;
                    sym.register_sym;
                    current_tokenpos:=storetokenpos;
-                   { procvar can have proc directives, but not type references }
+                   skip_initialiser:=false;
+                   { Anonymous proctype definitions can have proc directives }
                    if (hdef.typ=procvardef) and
                       (hdef.typesym=nil) then
                     begin
-                      { support p : procedure;stdcall=nil; }
-                      if try_to_consume(_SEMICOLON) then
+                      { Either "procedure; stdcall" or "procedure stdcall" }
+                      expect_directive:=try_to_consume(_SEMICOLON);
+                      if check_proc_directive(true) then
+                        parse_proctype_directives(tprocvardef(hdef))
+                      else if expect_directive then
                        begin
-                         if check_proc_directive(true) then
-                          parse_proctype_directives(tprocvardef(hdef))
-                         else
-                          begin
-                            Message(parser_e_proc_directive_expected);
-                            skipequal:=true;
-                          end;
-                       end
-                      else
-                      { support p : procedure stdcall=nil; }
-                       begin
-                         if check_proc_directive(true) then
-                          parse_proctype_directives(tprocvardef(hdef));
+                         Message(parser_e_proc_directive_expected);
+                         skip_initialiser:=true;
                        end;
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(hdef),hcc_default_actions_intf);
                     end;
-                   if not skipequal then
+                   { Parse the initialiser }
+                   if not skip_initialiser then
                     begin
-                      { get init value }
                       consume(_EQ);
                       read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
