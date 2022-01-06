@@ -37,6 +37,8 @@ interface
 {$linklib pp, static}
 {$linklib stdc++, static}
 {$linklib pthread, static}
+{$linklib util,static}
+{$linklib wpa,static}
 
 implementation
 
