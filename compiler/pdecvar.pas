@@ -886,8 +886,6 @@ implementation
 
 
      function maybe_parse_proc_directives(def:tdef):boolean;
-       var
-         newtype : ttypesym;
        begin
          result:=false;
          { Process procvar directives before = and ; }
@@ -895,11 +893,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ctypesym.create('unnamed',def);
-              parse_var_proc_directives(tsym(newtype));
-              newtype.typedef:=nil;
-              def.typesym:=nil;
-              newtype.free;
+              parse_proctype_directives(tprocvardef(def));
               result:=true;
            end;
        end;

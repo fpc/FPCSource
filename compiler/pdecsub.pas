@@ -69,6 +69,7 @@ interface
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_var_proc_directives(sym:tsym);
+    procedure parse_proctype_directives(pd:tprocvardef);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
@@ -218,7 +219,6 @@ implementation
         parseprocvar : tppv;
         locationstr : string;
         paranr : integer;
-        dummytype : ttypesym;
         explicit_paraloc,
         need_array,
         is_univ: boolean;
@@ -352,22 +352,16 @@ implementation
                 single_type(pv.returndef,[]);
                 block_type:=bt_var;
               end;
-             hdef:=pv;
              { possible proc directives }
              if check_proc_directive(true) then
-               begin
-                  dummytype:=ctypesym.create('unnamed',hdef);
-                  parse_var_proc_directives(tsym(dummytype));
-                  dummytype.typedef:=nil;
-                  hdef.typesym:=nil;
-                  dummytype.free;
-               end;
+               parse_proctype_directives(pv);
              { Add implicit hidden parameters and function result }
              handle_calling_convention(pv,hcc_default_actions_intf);
 {$ifdef jvm}
              { anonymous -> no name }
              jvm_create_procvar_class('',pv);
 {$endif}
+             hdef:=pv;
            end
           else
           { read type declaration, force reading for value paras }
@@ -3440,25 +3434,30 @@ const
 
     procedure parse_var_proc_directives(sym:tsym);
       var
-        pdflags : tpdflags;
-        pd      : tabstractprocdef;
+        pd      : tprocvardef;
       begin
-        pdflags:=[pd_procvar];
-        pd:=nil;
         case sym.typ of
           fieldvarsym,
           staticvarsym,
           localvarsym,
           paravarsym :
-            pd:=tabstractprocdef(tabstractvarsym(sym).vardef);
+            pd:=tprocvardef(tabstractvarsym(sym).vardef);
           typesym :
-            pd:=tabstractprocdef(ttypesym(sym).typedef);
+            pd:=tprocvardef(ttypesym(sym).typedef);
           else
             internalerror(2003042617);
         end;
         if pd.typ<>procvardef then
           internalerror(2003042618);
-        { names should never be used anyway }
+        parse_proctype_directives(pd);
+      end;
+
+
+    procedure parse_proctype_directives(pd:tprocvardef);
+      var
+        pdflags : tpdflags;
+      begin
+        pdflags:=[pd_procvar];
         parse_proc_directives(pd,pdflags);
       end;
 

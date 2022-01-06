@@ -1565,8 +1565,7 @@ implementation
         function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist;doregister:boolean):tdef;
           var
             is_func:boolean;
-            pd:tabstractprocdef;
-            newtype:ttypesym;
+            pd:tprocvardef;
             old_current_genericdef,
             old_current_specializedef: tstoreddef;
             old_parse_generic: boolean;
@@ -1628,18 +1627,11 @@ implementation
               end;
             symtablestack.pop(pd.parast);
             tparasymtable(pd.parast).readonly:=false;
-            result:=pd;
             { possible proc directives }
             if parseprocvardir then
               begin
                 if check_proc_directive(true) then
-                  begin
-                    newtype:=ctypesym.create('unnamed',result);
-                    parse_var_proc_directives(tsym(newtype));
-                    newtype.typedef:=nil;
-                    result.typesym:=nil;
-                    newtype.free;
-                  end;
+                  parse_proctype_directives(pd);
                 { Add implicit hidden parameters and function result }
                 handle_calling_convention(pd,hcc_default_actions_intf);
               end;
@@ -1647,6 +1639,8 @@ implementation
             parse_generic:=old_parse_generic;
             current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
+
+            result:=pd;
           end;
 
       const
