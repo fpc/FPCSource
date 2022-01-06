@@ -584,13 +584,16 @@ implementation
 
 
     procedure internalerror(i : longint);noreturn;
+      procedure doraise;
+        begin
+          raise ECompilerAbort.Create;
+        end;
       begin
         UpdateStatus;
         do_internalerror(i);
         GenerateError;
-        raise ECompilerAbort.Create;
+        doraise;
       end;
-
 
     procedure Comment(l:longint;s:ansistring);
       var

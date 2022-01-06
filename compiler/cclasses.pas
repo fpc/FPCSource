@@ -86,14 +86,14 @@ type
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index : Integer);noreturn;
+    Procedure RaiseIndexError(Index : Integer);
     property List: PPointerList read FList;
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);noreturn;
+    class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
@@ -225,7 +225,7 @@ type
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);noreturn;
+    class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
@@ -716,7 +716,7 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-procedure TFPList.RaiseIndexError(Index : Integer);noreturn;
+procedure TFPList.RaiseIndexError(Index : Integer);
 begin
   Error(SListIndexError, Index);
 end;
@@ -812,7 +812,7 @@ begin
   end;
 end;
 
-class procedure TFPList.Error(const Msg: string; Data: PtrInt);noreturn;
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -1568,7 +1568,7 @@ begin
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);noreturn;
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
   Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
