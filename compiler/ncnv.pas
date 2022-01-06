@@ -2494,6 +2494,7 @@ implementation
         aprocdef : tprocdef;
         eq : tequaltype;
         cdoptions : tcompare_defs_options;
+        selfnode : tnode;
         newblock: tblocknode;
         newstatement: tstatementnode;
         tempnode: ttempcreatenode;
@@ -2657,8 +2658,14 @@ implementation
                             tprocdef(currprocdef),tcallnode(left).symtableproc);
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=ObjectSymtable) then
                          begin
-                           if assigned(tcallnode(left).methodpointer) then
-                             tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
+                           selfnode:=tcallnode(left).methodpointer;
+                           if assigned(selfnode) then
+                            begin
+                              { in case the nodetype is a typen, avoid the internal error
+                                in set_mp and instead let the code error out normally }
+                              if selfnode.nodetype<>typen then
+                                tloadnode(hp).set_mp(selfnode.getcopy)
+                            end
                            else
                              tloadnode(hp).set_mp(load_self_node);
                          end;
