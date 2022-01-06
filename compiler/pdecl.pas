@@ -229,8 +229,8 @@ implementation
          first,
          isgeneric,
          skipequal : boolean;
-         tclist : tasmlist;
          varspez : tvarspez;
+         asmtype : tasmlisttype;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -293,9 +293,15 @@ implementation
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    if not (cs_typed_const_writable in current_settings.localswitches) then
-                     varspez:=vs_const
+                     begin
+                       varspez:=vs_const;
+                       asmtype:=al_rotypedconsts;
+                     end
                    else
-                     varspez:=vs_value;
+                     begin
+                       varspez:=vs_value;
+                       asmtype:=al_typedconsts;
+                     end;
                    { if we are dealing with structure const then we need to handle it as a
                      structure static variable: create a symbol in unit symtable and a reference
                      to it from the structure or linking will fail }
@@ -344,11 +350,7 @@ implementation
                     begin
                       { get init value }
                       consume(_EQ);
-                      if (cs_typed_const_writable in current_settings.localswitches) then
-                        tclist:=current_asmdata.asmlists[al_typedconsts]
-                      else
-                        tclist:=current_asmdata.asmlists[al_rotypedconsts];
-                      read_typed_const(tclist,tstaticvarsym(sym),in_structure);
+                      read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
