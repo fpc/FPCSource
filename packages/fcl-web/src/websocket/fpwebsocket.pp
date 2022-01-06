@@ -834,7 +834,7 @@ begin
     if aCount>MaxBufSize then
       aCount:=MaxBufSize;
     SetLength(Buf,aCount);
-    aTransport.ReadBytes(Buf,aCount);
+    acount:=aTransport.ReadBytes(Buf,aCount);
     Move(Buf[0],Content[aPos],aCount);
     Inc(aPos,aCount);
     ToRead:=DataLength-aPos;
