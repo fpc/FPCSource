@@ -1076,7 +1076,12 @@ implementation
                 else
                   begin
                     typecheckpass(p1);
-                    if (p1.resultdef.typ=objectdef) then
+                    if (p1.resultdef.typ=classrefdef) and assigned(getprocvardef) then
+                      begin
+                        p1:=cloadvmtaddrnode.create(p1);
+                        tloadnode(p2).set_mp(p1);
+                      end
+                    else if (p1.resultdef.typ=objectdef) then
                       { so we can create the correct  method pointer again in case
                         this is a "objectprocvar:=@classname.method" expression }
                       tloadnode(p2).symtable:=tobjectdef(p1.resultdef).symtable
