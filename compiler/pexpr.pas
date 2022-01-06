@@ -1361,8 +1361,25 @@ implementation
                                    again,p1,callflags,spezcontext);
                       { we need to know which procedure is called }
                       do_typecheckpass(p1);
+
+                      { We are loading... }
+                      if p1.nodetype=loadn then
+                       begin
+                         { an instance method }
+                         if not (po_classmethod in tloadnode(p1).procdef.procoptions) and
+                             { into a method pointer (not just taking a code address) }
+                             not getaddr and
+                             { and the selfarg is... }
+                             (
+                               { either a record/object/helper type, }
+                               not assigned(tloadnode(p1).left) or
+                               { or a class/metaclass type, or a class reference }
+                               (tloadnode(p1).left.resultdef.typ=classrefdef)
+                             ) then
+                           Message(parser_e_only_class_members_via_class_ref);
+                       end
                       { calling using classref? }
-                      if (
+                      else if (
                             isclassref or
                             (
                               (isobjecttype or
