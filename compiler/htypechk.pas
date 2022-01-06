@@ -69,13 +69,13 @@ interface
          wrongparanr : byte;
       end;
 
-      tcallcandidates = class
+      tcallcandidates = object
       private
         FProcsym     : tprocsym;
         FProcsymtable : tsymtable;
         FOperator    : ttoken;
         FCandidateProcs    : pcandidate;
-        FIgnoredCandidateProcs: tfpobjectlist;
+        FIgnoredCandidateProcs : tfplist;
         FProcCnt    : integer;
         FParaNode   : tnode;
         FParaLength : smallint;
@@ -87,9 +87,9 @@ interface
         procedure calc_distance(st_root:tsymtable;objcidcall: boolean);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
-        constructor create_operator(op:ttoken;ppn:tnode);
-        destructor destroy;override;
+        constructor init(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
+        constructor init_operator(op:ttoken;ppn:tnode);
+        destructor done;
         procedure list(all:boolean);
 {$ifdef EXTDEBUG}
         procedure dump_info(lvl:longint);
@@ -804,12 +804,12 @@ implementation
             ppn:=ccallparanode.create(tunarynode(t).left.getcopy,nil);
             ppn.get_paratype;
           end;
-        candidates:=tcallcandidates.create_operator(optoken,ppn);
+        candidates.init_operator(optoken,ppn);
 
         { stop when there are no operators found }
         if candidates.count=0 then
           begin
-            candidates.free;
+            candidates.done;
             ppn.free;
             if not (ocf_check_only in ocf) then
               begin
@@ -830,7 +830,7 @@ implementation
         { exit when no overloads are found }
         if cand_cnt=0 then
           begin
-            candidates.free;
+            candidates.done;
             ppn.free;
             if not (ocf_check_only in ocf) then
               begin
@@ -852,7 +852,7 @@ implementation
             { we'll just use the first candidate to make the
               call }
           end;
-        candidates.free;
+        candidates.done;
 
         if ocf_check_only in ocf then
           begin
@@ -889,13 +889,13 @@ implementation
             { generate parameter nodes }
             ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil));
             ppn.get_paratype;
-            candidates:=tcallcandidates.create_operator(optoken,ppn);
+            candidates.init_operator(optoken,ppn);
 
             { for commutative operators we can swap arguments and try again }
             if (candidates.count=0) and
                not(optoken in non_commutative_op_tokens) then
               begin
-                candidates.free;
+                candidates.done;
                 reverseparameters(ppn);
                 { reverse compare operators }
                 case optoken of
@@ -910,7 +910,7 @@ implementation
                   else
                     ;
                 end;
-                candidates:=tcallcandidates.create_operator(optoken,ppn);
+                candidates.init_operator(optoken,ppn);
               end;
 
             { stop when there are no operators found }
@@ -918,7 +918,7 @@ implementation
             if (result=0) and generror then
               begin
                 CGMessage(parser_e_operator_not_overloaded);
-                candidates.free;
+                candidates.done;
                 ppn.free;
                 ppn:=nil;
                 exit;
@@ -939,7 +939,7 @@ implementation
             if (result=0) and generror then
               begin
                 CGMessage3(parser_e_operator_not_overloaded_3,ld.GetTypeName,arraytokeninfo[optoken].str,rd.GetTypeName);
-                candidates.free;
+                candidates.done;
                 ppn.free;
                 ppn:=nil;
                 exit;
@@ -957,7 +957,7 @@ implementation
                 { we'll just use the first candidate to make the
                   call }
               end;
-            candidates.free;
+            candidates.done;
           end;
 
       begin
@@ -2194,7 +2194,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
+    constructor tcallcandidates.init(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -2202,23 +2202,21 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
-        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited,spezcontext);
       end;
 
 
-    constructor tcallcandidates.create_operator(op:ttoken;ppn:tnode);
+    constructor tcallcandidates.init_operator(op:ttoken;ppn:tnode);
       begin
         FOperator:=op;
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
-        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(false,false,false,false,false,false,nil);
       end;
 
 
-    destructor tcallcandidates.destroy;
+    destructor tcallcandidates.done;
       var
         hpnext,
         hp : pcandidate;
@@ -2229,12 +2227,7 @@ implementation
         FIgnoredCandidateProcs.free;
         { free any symbols for anonymous parameter types that we're used for
           specialization when no specialization was picked }
-        if assigned(FParaAnonSyms) then
-          begin
-            for i := 0 to FParaAnonSyms.count-1 do
-              tsym(FParaAnonSyms[i]).free;
-            FParaAnonSyms.free;
-          end;
+        TFPList.FreeAndNilObjects(FParaAnonSyms);
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
@@ -2284,7 +2277,7 @@ implementation
                 continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
-                  FIgnoredCandidateProcs.add(pd);
+                  TFPList.AddOnDemand(FIgnoredCandidateProcs,pd);
                   continue;
                 end;
               { in case of anonymous inherited, only match procdefs identical
@@ -2517,7 +2510,7 @@ implementation
                           continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin
-                            FIgnoredCandidateProcs.add(pd);
+                            TFPList.AddOnDemand(FIgnoredCandidateProcs,pd);
                             continue;
                           end;
                         { Store first procsym found }
@@ -2626,7 +2619,7 @@ implementation
 {$ifdef DISABLE_FAST_OVERLOAD_PATCH}
             if (FParalength>=pd.minparacount) and
 {$else}
-            if (pd.seenmarker<>pointer(self)) and (FParalength>=pd.minparacount) and
+            if (pd.seenmarker<>pointer(@self)) and (FParalength>=pd.minparacount) and
 {$endif}
                (
                 (
@@ -2685,7 +2678,7 @@ implementation
                     proc_add(st,pd,objcidcall);
                     added:=true;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
-                    pd.seenmarker:=self;
+                    pd.seenmarker:=pointer(@self);
 {$endif}
                   end;
               end;
@@ -3636,7 +3629,7 @@ implementation
           parameters (so the overload choosing was not influenced by their
           presence, but now that we've decided which overloaded version to call,
           make sure we call the version closest in terms of visibility }
-        if cntpd=1 then
+        if (cntpd=1) and assigned(FIgnoredCandidateProcs) then
           begin
             for res:=0 to FIgnoredCandidateProcs.count-1 do
               begin
@@ -3864,7 +3857,7 @@ implementation
           parameters (so the overload choosing was not influenced by their
           presence, but now that we've decided which overloaded version to call,
           make sure we call the version closest in terms of visibility }
-        if cntpd=1 then
+        if (cntpd=1) and assigned(FIgnoredCandidateProcs) then
           begin
             for res:=0 to FIgnoredCandidateProcs.count-1 do
               begin

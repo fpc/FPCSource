@@ -1227,11 +1227,7 @@ uses
                   sym:=create_unnamed_typesym(caller_def);
                   { add the unnamed sym to the list but only it was allocated manually }
                   if sym.owner=caller_def.owner then
-                    begin
-                      if not assigned(unnamed_syms) then
-                        unnamed_syms:=tfplist.create;
-                      unnamed_syms.add(sym);
-                    end;
+                    TFPList.AddOnDemand(unnamed_syms,sym);
                   genericparams.add(target_key,sym);
                 end
               else
@@ -1267,11 +1263,7 @@ uses
                   result.insert(0,sym);
                   { add the unnamed sym to the list but only if it was allocated manually }
                   if sym.owner=paradef.owner then
-                    begin
-                      if not assigned(unnamed_syms) then
-                        unnamed_syms:=tfplist.create;
-                      unnamed_syms.add(sym);
-                    end;
+                    TFPList.AddOnDemand(unnamed_syms,sym);
                 end
               else
                 result.insert(0,paradef.typesym);
@@ -1280,7 +1272,7 @@ uses
         end;
 
       var
-        i,j,k : integer;
+        i,j : integer;
         srsym : tprocsym;
         callerparams : tfplist;
         pd : tprocdef;
@@ -1333,12 +1325,7 @@ uses
                 else
                   begin
                     { the specialization was not chosen so clean up any unnamed syms }
-                    if pd_unnamed_syms<>nil then
-                      begin
-                        for k:=0 to pd_unnamed_syms.count-1 do
-                          tsym(pd_unnamed_syms[k]).free;
-                        pd_unnamed_syms.free;
-                      end;
+                    TFPList.FreeAndNilObjects(pd_unnamed_syms);
                   end;
               end;
           end;

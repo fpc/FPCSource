@@ -110,6 +110,12 @@ type
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
+
+    { Add to list, creating it if required. }
+    class procedure AddOnDemand(var Lst: TFPList; Item: Pointer); static;
+
+    { FreeAndNil the list, and its items as TObjects. }
+    class procedure FreeAndNilObjects(var Lst: TFPList); static;
   end;
 
 
@@ -1029,6 +1035,27 @@ begin
       if assigned(p) then
         proc2call(p,arg);
     end;
+end;
+
+class procedure TFPList.AddOnDemand(var Lst: TFPList; Item: Pointer);
+begin
+  if not Assigned(Lst) then
+      Lst := TFPList.Create;
+  Lst.Add(Item);
+end;
+
+class procedure TFPList.FreeAndNilObjects(var Lst: TFPList);
+var
+  Lp: PPointer;
+  I: SizeInt;
+begin
+  if not Assigned(Lst) then
+    exit;
+  Lp := Lst.FList;
+  for I := 0 to Lst.Count-1 do
+    TObject(Lp[I]).Free;
+  Lst.Free;
+  Lst := nil;
 end;
 
 
