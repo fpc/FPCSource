@@ -324,7 +324,7 @@ implementation
                       if try_to_consume(_SEMICOLON) then
                        begin
                          if check_proc_directive(true) then
-                          parse_var_proc_directives(sym)
+                          parse_proctype_directives(tprocvardef(hdef))
                          else
                           begin
                             Message(parser_e_proc_directive_expected);
@@ -335,7 +335,7 @@ implementation
                       { support p : procedure stdcall=nil; }
                        begin
                          if check_proc_directive(true) then
-                          parse_var_proc_directives(sym);
+                          parse_proctype_directives(tprocvardef(hdef));
                        end;
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(hdef),hcc_default_actions_intf);
@@ -1051,7 +1051,7 @@ implementation
                            try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                            consume(_SEMICOLON);
                          end;
-                       parse_var_proc_directives(tsym(newtype));
+                       parse_proctype_directives(tprocvardef(hdef));
                        if po_is_function_ref in tprocvardef(hdef).procoptions then
                          begin
                            { these always support everything, no "of object" or

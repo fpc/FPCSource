@@ -1998,7 +1998,7 @@ uses
                             hintsprocessed:=true;
                         end;
                       if replaydepth>current_scanner.replay_stack_depth then
-                        parse_var_proc_directives(ttypesym(srsym));
+                        parse_proctype_directives(tprocvardef(result));
                       handle_calling_convention(tprocvardef(result),hcc_default_actions_intf);
                       if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
                         begin

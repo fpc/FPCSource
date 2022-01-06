@@ -68,7 +68,6 @@ interface
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
-    procedure parse_var_proc_directives(sym:tsym);
     procedure parse_proctype_directives(pd:tprocvardef);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
@@ -3429,27 +3428,6 @@ const
             not (po_assembler in pd.procoptions) and
             ((pd.typ<>procdef) or not tprocdef(pd).forwarddef) then
            message(parser_e_nostackframe_without_assembler);
-      end;
-
-
-    procedure parse_var_proc_directives(sym:tsym);
-      var
-        pd      : tprocvardef;
-      begin
-        case sym.typ of
-          fieldvarsym,
-          staticvarsym,
-          localvarsym,
-          paravarsym :
-            pd:=tprocvardef(tabstractvarsym(sym).vardef);
-          typesym :
-            pd:=tprocvardef(ttypesym(sym).typedef);
-          else
-            internalerror(2003042617);
-        end;
-        if pd.typ<>procvardef then
-          internalerror(2003042618);
-        parse_proctype_directives(pd);
       end;
 
 
