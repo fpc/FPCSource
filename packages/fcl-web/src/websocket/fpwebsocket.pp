@@ -58,6 +58,19 @@ Const
   FlagRES2 = $20;
   FlagRES3 = $10;
 
+  CLOSE_NORMAL_CLOSURE = 1000;
+  CLOSE_GOING_AWAY = 1001;
+  CLOSE_PROTOCOL_ERROR = 1002;
+  CLOSE_UNSUPORTED_DATA = 1003;
+  CLOSE_RESERVER = 1004;
+  CLOSE_NO_STATUS_RCVD = 1005;
+  CLOSE_ABNORMAL_CLOSURE = 1006;
+  CLOSE_INVALID_FRAME_PAYLOAD_DATA = 1007;
+  CLOSE_POLICY_VIOLATION = 1008;
+  CLOSE_MESSAGE_TOO_BIG = 1009;
+  CLOSE_MANDRATORY_EXT = 1010;
+  CLOSE_INTERNAL_SERVER_ERROR = 1011;
+  CLOSE_TLS_HANDSHAKE = 1015;
 
 type
   EWebSocket = Class(Exception);
@@ -316,7 +329,8 @@ type
     Class Function GetCloseData(aBytes : TBytes; Out aReason : String) : Word;
     // Send close with message data
     procedure Close(aData : TBytes = Nil); overload;
-    procedure Close(aMessage : UTF8String);overload;
+    procedure Close(aMessage : UTF8String); overload;
+    procedure Close(aMessage : UTF8String; aReason: word); overload;
     // Check incoming message
     function CheckIncoming(aTimeout: Integer; DoRead : Boolean = True): TIncomingResult;
     // read & process incoming message. Return nil if connection was close.
@@ -1291,7 +1305,23 @@ end;
 
 procedure TWSConnection.Close(aMessage: UTF8String);
 begin
-  Close(TEncoding.UTF8.GetAnsiBytes(aMessage));
+  Close(aMessage, CLOSE_NORMAL_CLOSURE);
+end;
+
+procedure TWSConnection.Close(aMessage: UTF8String; aReason: word);
+var
+  aData: TBytes;
+  aSize: Integer;
+begin
+  // first two bytes is reason of close RFC 6455 section-5.5.1
+  aData := TEncoding.UTF8.GetAnsiBytes(aMessage);
+  aSize := Length(aData);
+  SetLength(aData, aSize + 2);
+  if aSize > 0 then
+    move(aData[0], aData[2], aSize);
+  aData[0] := (aReason and $FF00) shr 8;
+  aData[1] := aReason and $FF;
+  Close(aData);
 end;
 
 procedure TWSConnection.Disconnect;
