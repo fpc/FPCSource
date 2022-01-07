@@ -77,7 +77,7 @@ type
   EWebSocket = Class(Exception);
   EWSHandShake = class(EWebSocket);
 
-  TFrameType = (ftContinuation,ftText,ftBinary,ftClose,ftPing,ftPong,ftReserved);
+  TFrameType = (ftContinuation,ftText,ftBinary,ftClose,ftPing,ftPong,ftFutureOpcodes);
 
   TFrameTypes = Set of TFrameType;
 
@@ -501,7 +501,7 @@ begin
     FlagPing :         Self:=ftPing;
     FlagPong :         Self:=ftPong;
   else
-    Self:=ftReserved;
+    Self:=ftFutureOpcodes;
     //Raise EConvertError.CreateFmt(SErrInvalidFrameType,[aValue]);
   end;
 end;
@@ -1269,7 +1269,19 @@ begin
     Exit;
   end;
   // check Reserved opcode
-  if aFrame.FrameType = ftReserved then
+  if aFrame.FrameType = ftFutureOpcodes then
+  begin
+    Close('', CLOSE_PROTOCOL_ERROR);
+    UpdateCloseState;
+    Result:=false;
+    Exit;
+  end;
+  { If control frame it must be complete }
+  if ((aFrame.FrameType=ftPing) or
+      (aFrame.FrameType=ftPong) or
+      (aFrame.FrameType=ftClose) or
+      (aFrame.FrameType=ftContinuation))
+     and (not aFrame.FinalFrame) then
   begin
     Close('', CLOSE_PROTOCOL_ERROR);
     UpdateCloseState;
