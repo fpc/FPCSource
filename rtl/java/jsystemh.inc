@@ -108,6 +108,39 @@ procedure fillchar(var arr: array of qword; len: sizeint; val: boolean); externa
 procedure fillchar(var arr: array of qword; len: sizeint; val: ansichar); external;
 procedure fillchar(var arr: array of qword; len: sizeint; val: jbyte); external;
 
+procedure fillword(var arr: array of jshort; len: sizeint; val: word);
+procedure fillword(var arr: array of jshort; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jshort; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jshort; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of word; len: sizeint; val: word);  external;
+procedure fillword(var arr: array of word; len: sizeint; val: boolean);  external;
+procedure fillword(var arr: array of word; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of word; len: sizeint; val: jshort); external;
+
+{ widechar maps to a different signature }
+procedure fillword(var arr: array of widechar; len: sizeint; val: word);
+procedure fillword(var arr: array of widechar; len: sizeint; val: boolean);
+procedure fillword(var arr: array of widechar; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of widechar; len: sizeint; val: jshort); external;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: word);
+procedure fillword(var arr: array of jint; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jint; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jint; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: word); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: boolean); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: jshort); external;
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: word);
+procedure fillword(var arr: array of jlong; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jlong; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jlong; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: word); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: boolean); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: jshort); external;
+
 
 function  IndexChar(const buf: array of boolean;len:SizeInt;b:ansichar):SizeInt;
 function  IndexChar(const buf: array of jbyte;len:SizeInt;b:ansichar):SizeInt;

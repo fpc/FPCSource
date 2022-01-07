@@ -177,6 +177,21 @@ begin
     result:=JLString.Create(TJCharArray(p),0,Size);
 end;
 
+{$define FPC_HAS_UNICODESTR_OF_CHAR}
+Function  StringOfChar(c : Unicodechar;l : SizeInt) : UnicodeString;
+  var
+    arr : array of jchar;
+begin
+  if l>0 then
+    begin
+      SetLength(arr,l);
+      FillWord(arr,l,word(c));
+      Setlength(StringOfChar,l);
+      StringOfChar:=JLString.Create(TJCharArray(arr),0,l);
+    end
+  else
+   StringOfChar:='';
+end;
 
 { lie, not used by compiler }
 {$define FPC_HAS_PUNICODECHAR_TO_SHORTSTR}

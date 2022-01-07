@@ -175,11 +175,77 @@ procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
     fillchar(arr,len,jbyte(val));
   end;
 
-{$pop}
-
 {$define FPC_SYSTEM_HAS_FILLWORD}
+procedure fillword(var arr: array of jshort; len: sizeint; val: word);
+  begin
+    JUArrays.fill(arr,0,len,jshort(val));
+  end;
+
+procedure fillword(var arr: array of jshort; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+{ widechar maps to a different signature }
+procedure fillword(var arr: array of widechar; len: sizeint; val: word);
+  var
+    w : widechar;
+  begin
+    w:=widechar(val);
+    JUArrays.fill(arr,0,len,w);
+  end;
+
+procedure fillword(var arr: array of widechar; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: word);
+  var
+    d, dmask: jint;
+  begin
+    d:=cardinal(val shl 16) or val;
+    JUArrays.fill(arr,0,len div 2,d);
+    len:=len and 1;
+    if len<>0 then
+      begin
+        dmask:=not((1 shl (32-8*len))-1);
+        d:=d and dmask;
+        arr[len shr 2+1]:=(arr[len shr 2+1] and not(dmask)) or d;
+      end;
+  end;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: word);
+  var
+    i, imask: jlong;
+  begin
+    i:=cardinal(val shl 16) or val;
+    i:=(i shl 32) or i;
+    JUArrays.fill(arr,0,len shr 2,i);
+    len:=len and 3;
+    if len<>0 then
+      begin
+        imask:=not((1 shl (32-8*len))-1);
+        i:=i and imask;
+        arr[len shr 2+1]:=(arr[len shr 2+1] and not(imask)) or i;
+      end;
+  end;
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
+
+{$pop}
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 
