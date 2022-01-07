@@ -636,8 +636,6 @@ var
   buf: TBytes;
   aPos, toRead: QWord;
 begin
-  { TODO: read aCount bytes }
-//  toRead := aCount;
   aPos := 0;
   SetLength(aBytes, aCount);
   repeat
@@ -977,7 +975,7 @@ begin
     Raise EWebSocket.Create('Could not read frame header');
   B1:=buffer[0];
   FFinalFrame:=(B1 and FlagFinalFrame) = FlagFinalFrame;
-  FRSV:=B1 and ($F0) and (not FlagFinalFrame);
+  FRSV:=(B1 and %01110000) shr 4;
   FFrameType.AsFlag:=(B1 and $F);
   FPayload.Read(Buffer,aTransport);
   Result:=True;
@@ -1260,6 +1258,15 @@ Function TWSConnection.HandleIncoming(aFrame : TWSFrame) : Boolean;
 
 begin
   Result:=True;
+  // check Reserved
+  if aFrame.Reserved<>0 then
+  begin
+    Close('', CLOSE_PROTOCOL_ERROR);
+    UpdateCloseState;
+    Result:=false;
+    Exit;
+  end;
+
   // here we handle payload.
   if aFrame.FrameType<>ftContinuation then
     FInitialOpcode:=aFrame.FrameType;
@@ -1282,16 +1289,16 @@ begin
      // If our side sent the initial close, this is the reply, and we must disconnect (Result=false).
      Result:=FCloseState=csNone;
      if Result then
-       begin
+     begin
        FMessageContent:=aFrame.Payload.Data;
        if not (woCloseExplicit in Options) then
-         begin
-         Send(ftClose); // Will update state
+       begin
+         Close('', CLOSE_NORMAL_CLOSURE); // Will update state
          Result:=False; // We can disconnect.
-         end
+       end
        else
          UpdateCloseState
-       end
+     end
      else
        UpdateCloseState;
      end;
