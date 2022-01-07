@@ -40,6 +40,7 @@ Const
   DefaultWebSocketVersion = 13;
 
   // Opcodes
+  FlagReserved     = $F;
   FlagContinuation = $0;
   FlagText         = $1;
   FlagBinary       = $2;
@@ -76,7 +77,7 @@ type
   EWebSocket = Class(Exception);
   EWSHandShake = class(EWebSocket);
 
-  TFrameType = (ftContinuation,ftText,ftBinary,ftClose,ftPing,ftPong);
+  TFrameType = (ftContinuation,ftText,ftBinary,ftClose,ftPing,ftPong,ftReserved);
 
   TFrameTypes = Set of TFrameType;
 
@@ -484,7 +485,7 @@ uses strutils, sha1,base64;
 function TFrameTypeHelper.GetAsFlag: Byte;
 
 Const
-  Flags : Array[TFrameType] of byte = (FlagContinuation,FlagText,FlagBinary,FlagClose,FlagPing,FlagPong);
+  Flags : Array[TFrameType] of byte = (FlagContinuation,FlagText,FlagBinary,FlagClose,FlagPing,FlagPong,FlagReserved);
 
 begin
   Result:=Flags[Self];
@@ -500,7 +501,8 @@ begin
     FlagPing :         Self:=ftPing;
     FlagPong :         Self:=ftPong;
   else
-    Raise EConvertError.CreateFmt(SErrInvalidFrameType,[aValue]);
+    Self:=ftReserved;
+    //Raise EConvertError.CreateFmt(SErrInvalidFrameType,[aValue]);
   end;
 end;
 
@@ -1258,7 +1260,7 @@ Function TWSConnection.HandleIncoming(aFrame : TWSFrame) : Boolean;
 
 begin
   Result:=True;
-  // check Reserved
+  // check Reserved bits
   if aFrame.Reserved<>0 then
   begin
     Close('', CLOSE_PROTOCOL_ERROR);
@@ -1266,7 +1268,14 @@ begin
     Result:=false;
     Exit;
   end;
-
+  // check Reserved opcode
+  if aFrame.FrameType = ftReserved then
+  begin
+    Close('', CLOSE_PROTOCOL_ERROR);
+    UpdateCloseState;
+    Result:=false;
+    Exit;
+  end;
   // here we handle payload.
   if aFrame.FrameType<>ftContinuation then
     FInitialOpcode:=aFrame.FrameType;
