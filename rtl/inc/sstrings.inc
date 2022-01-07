@@ -1161,6 +1161,10 @@ var
   UnsignedUpper: UInt64;
   RolledOverAt: integer;
   RollOverPoint: ValUInt;
+const
+  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,
+                                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                          10,11,12,13,14,15);
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
@@ -1194,30 +1198,29 @@ begin
 
   while Code<=Length(s) do
    begin
-     case s[Code] of
-       '0'..'9' : u:=Ord(S[Code])-Ord('0');
-       'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-       'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+     u:=16;
+     case s[code] of
+       '0'..'f' : u:=ValueArray[S[Code]];
        #0 : break;
      else
-      u:=16;
+       ;
      end;
 
      Prev := Temp;
      Temp := Temp*ValUInt(base);
      If (u >= base) or
         (ValUInt(maxNewValue-u) < Temp) or
-        (prev > maxPrevValue)
-        or ((Temp+u)>UnsignedUpper) Then
+        (prev > maxPrevValue) or
+        ((Temp+u)>UnsignedUpper) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
        End;
      if (not RolledOver) and ((Temp+u)>RollOverPoint) then
-     begin
-       RolledOver := True;
-       RolledOverAt := Code;
-     end;
+       begin
+         RolledOver := True;
+         RolledOverAt := Code;
+       end;
      Temp:=Temp+u;
      inc(code);
    end;
