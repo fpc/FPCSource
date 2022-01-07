@@ -371,6 +371,7 @@ implementation
 *****************************************************************************}
 
     const
+      DirectiveIgnored=pointer(1);
       { use any special name that is an invalid file name to avoid problems }
       preprocstring : array [preproctyp] of string[7]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE','$ELSEIF');
@@ -4567,7 +4568,7 @@ type
              end
             else
              begin
-               current_scanner.ignoredirectives.Add(hs,nil);
+               current_scanner.ignoredirectives.Add(hs,DirectiveIgnored);
                Message1(scan_w_illegal_directive,'$'+hs);
              end;
             { conditionals already read the comment }
