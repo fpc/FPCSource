@@ -1200,13 +1200,12 @@ begin
      If (u >= base) or
         (ValUInt(maxNewValue-u) < Temp) or
         (prev > maxPrevValue)  or
-
-        ((base<>10) and (not negative) and ((Temp+u)>UnsignedUpper))  or
-        ((base=10) and (not negative) and (Int64(Temp+u)>SignedUpper)) or
-        (negative and (-Int64(Temp+u)<SignedLower)) or
-        ((DestSize=8) and (base<>10) and (negative) and ((Temp+u)>QWord(SignedLower)))
-
-        Then
+        ((not negative) and (((base<>10) and ((Temp+u)>UnsignedUpper)) or
+         ((base=10) and (Int64(Temp+u)>SignedUpper)))
+        ) or
+        (negative and ((-Int64(Temp+u)<SignedLower) or 
+          ((DestSize=8) and (base<>10) and ((Temp+u)>QWord(SignedLower))))
+        ) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
