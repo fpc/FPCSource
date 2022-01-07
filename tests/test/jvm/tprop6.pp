@@ -7,7 +7,7 @@ Unit tprop6;
 interface
 
 uses
- jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 type
  TBaseClassProp6 = class
