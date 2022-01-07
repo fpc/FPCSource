@@ -1027,11 +1027,11 @@ parser_e_illegal_field_or_method=03181_E_Unknown class field or method identifie
 parser_w_proc_overriding_calling=03182_W_Overriding calling convention "$1" with "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used.
-parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of object" can only be initialized with NIL
-% You cannot assign the address of a method to a typed constant which has a
-% 'procedure of object' type, because such a constant requires two addresses:
-% that of the method (which is known at compile time) and that of the object or
-% class instance it operates on (which cannot be known at compile time).
+parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of object" need a Self pointer that's known at compile time
+% In order to initialize a method pointer with a method, the value of the \var{Self}
+% pointer for calling that method at run time must be known at compile time.
+% Thus, a method pointer can be initialized either with \var{Nil}, or with a class
+% method that is accessed via a class type or a class reference type.
 parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
 % It is not possible to specify a default value for several parameters at once.
 % The following is invalid:

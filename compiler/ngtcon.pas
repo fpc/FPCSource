@@ -1464,6 +1464,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         procaddrdef: tprocvardef;
         havepd,
         haveblock: boolean;
+        selfnode: tnode;
+        selfdef: tdef;
       begin
         { Procvars and pointers are no longer compatible.  }
         { under tp:  =nil or =var under fpc: =nil or =@var }
@@ -1478,12 +1480,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              ftcb.maybe_end_aggregate(def);
              exit;
           end;
-        { you can't assign a value other than NIL to a typed constant  }
-        { which is a "procedure of object", because this also requires }
-        { address of an object/class instance, which is not known at   }
-        { compile time (JM)                                            }
-        if (po_methodpointer in def.procoptions) then
-          Message(parser_e_no_procvarobj_const);
         { parse the rest too, so we can continue with error checking }
         getprocvardef:=def;
         n:=comp_expr([ef_accept_equal]);
@@ -1549,10 +1545,31 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 ftcb.queue_emit_staticvar(tstaticvarsym(tloadnode(n).symtableentry));
               end;
+            { the Data field of a method pointer can be initialised
+              either with NIL (handled above) or with a class type }
+            if po_methodpointer in def.procoptions then
+              begin
+                selfnode:=tloadnode(n).left;
+                { class type must be known at compile time }
+                if assigned(selfnode) and
+                    (selfnode.nodetype=loadvmtaddrn) and
+                    (tloadvmtaddrnode(selfnode).left.nodetype=typen) then
+                  begin
+                    selfdef:=selfnode.resultdef;
+                    if selfdef.typ<>classrefdef then
+                      internalerror(2021122301);
+                    selfdef:=tclassrefdef(selfdef).pointeddef;
+                    ftcb.emit_tai(Tai_const.Create_sym(
+                      current_asmdata.RefAsmSymbol(tobjectdef(selfdef).vmt_mangledname,AT_DATA)),
+                      def);
+                  end
+                else
+                  Message(parser_e_no_procvarobj_const);
+              end
             { nested procvar typed consts can only be initialised with nil
               (checked above) or with a global procedure (checked here),
               because in other cases we need a valid frame pointer }
-            if is_nested_pd(def) then
+            else if is_nested_pd(def) then
               begin
                 if haveblock or
                    is_nested_pd(pd) then
