@@ -1157,10 +1157,19 @@ var
   temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base,u : byte;
   negative : boolean;
+  SignedLower, SignedUpper: Int64;
+  UnsignedUpper: UInt64;
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
   Code:=InitVal(s,negative,base);
+  case DestSize of
+    1: begin SignedLower:=Low(ShortInt); SignedUpper:=(High(ShortInt)); UnSignedUpper:=High(Byte) end;
+    2: begin SignedLower:=Low(SmallInt); SignedUpper:=(High(SmallInt)); UnSignedUpper:=High(Word) end;
+    4: begin SignedLower:=Low(LongInt);  SignedUpper:=(High(LongInt));  UnSignedUpper:=High(DWord) end;
+    8: begin SignedLower:=Low(Int64);    SignedUpper:=(High(Int64));    UnSignedUpper:=High(QWord) end;
+  end;
+
   if Code>length(s) then
    exit;
   if (s[Code]=#0) then
@@ -1174,6 +1183,7 @@ begin
     maxNewValue := MaxSIntValue + ord(negative)
   else
     maxNewValue := MaxUIntValue;
+
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -1186,9 +1196,17 @@ begin
      end;
      Prev := Temp;
      Temp := Temp*ValUInt(base);
+
      If (u >= base) or
         (ValUInt(maxNewValue-u) < Temp) or
-        (prev > maxPrevValue) Then
+        (prev > maxPrevValue)  or
+
+        ((base<>10) and (not negative) and ((Temp+u)>UnsignedUpper))  or
+        ((base=10) and (not negative) and (Int64(Temp+u)>SignedUpper)) or
+        (negative and (-Int64(Temp+u)<SignedLower)) or
+        ((DestSize=8) and (base<>10) and (negative) and ((Temp+u)>QWord(SignedLower)))
+
+        Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
@@ -1197,9 +1215,11 @@ begin
      inc(code);
    end;
   code := 0;
+
   fpc_Val_SInt_ShortStr := ValSInt(Temp);
   If Negative Then
     fpc_Val_SInt_ShortStr := -fpc_Val_SInt_ShortStr;
+
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
     Case DestSize of
@@ -1210,6 +1230,7 @@ begin
 {$endif cpu64}
     End;
 end;
+
 
 {$ifndef FPC_HAS_INT_VAL_SINT_SHORTSTR}
 {$define FPC_HAS_INT_VAL_SINT_SHORTSTR}
@@ -1267,12 +1288,13 @@ end;
        negative : boolean;
 
   const maxint64=qword($7fffffffffffffff);
+        minint64_unsigned=qword($8000000000000000);
         maxqword=qword($ffffffffffffffff);
 
   begin
-{$ifdef EXCLUDE_COMPLEX_PROCS}
+  {$ifdef EXCLUDE_COMPLEX_PROCS}
     runerror(219);
-{$else EXCLUDE_COMPLEX_PROCS}
+  {$else EXCLUDE_COMPLEX_PROCS}
     fpc_val_int64_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
@@ -1304,7 +1326,8 @@ end;
        Temp:=Temp*qword(base);
      If (u >= base) or
         (qword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) Then
+        (prev > maxprevvalue) or
+        ((base<>10) and (negative) and ((Temp+u)>minint64_unsigned)) Then
        Begin
          fpc_val_int64_shortstr := 0;
          Exit
@@ -1316,7 +1339,7 @@ end;
     fpc_val_int64_shortstr:=int64(Temp);
     If Negative Then
       fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
-{$endif EXCLUDE_COMPLEX_PROCS}
+  {$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
 
