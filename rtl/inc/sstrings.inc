@@ -1156,9 +1156,11 @@ Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 var
   temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base,u : byte;
-  negative : boolean;
+  negative, RolledOver: boolean;
   SignedLower, SignedUpper: Int64;
   UnsignedUpper: UInt64;
+  RolledOverAt: integer;
+  RollOverPoint: ValUInt;
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
@@ -1169,6 +1171,12 @@ begin
     4: begin SignedLower:=Low(LongInt);  SignedUpper:=(High(LongInt));  UnSignedUpper:=High(DWord) end;
     8: begin SignedLower:=Low(Int64);    SignedUpper:=(High(Int64));    UnSignedUpper:=High(QWord) end;
   end;
+
+  RolledOver:=False;
+  if negative then
+    RollOverPoint:=-SignedLower
+  else
+    RollOverPoint:=SignedUpper;
 
   if Code>length(s) then
    exit;
@@ -1194,22 +1202,22 @@ begin
      else
       u:=16;
      end;
+
      Prev := Temp;
      Temp := Temp*ValUInt(base);
-
      If (u >= base) or
         (ValUInt(maxNewValue-u) < Temp) or
-        (prev > maxPrevValue)  or
-        ((not negative) and (((base<>10) and ((Temp+u)>UnsignedUpper)) or
-         ((base=10) and (Int64(Temp+u)>SignedUpper)))
-        ) or
-        (negative and ((-Int64(Temp+u)<SignedLower) or 
-          ((DestSize=8) and (base<>10) and ((Temp+u)>QWord(SignedLower))))
-        ) Then
+        (prev > maxPrevValue)
+        or ((Temp+u)>UnsignedUpper) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
        End;
+     if (not RolledOver) and ((Temp+u)>RollOverPoint) then
+     begin
+       RolledOver := True;
+       RolledOverAt := Code;
+     end;
      Temp:=Temp+u;
      inc(code);
    end;
@@ -1218,6 +1226,13 @@ begin
   fpc_Val_SInt_ShortStr := ValSInt(Temp);
   If Negative Then
     fpc_Val_SInt_ShortStr := -fpc_Val_SInt_ShortStr;
+
+  if RolledOver and ((base=10) or ((base<>10) and (negative))) {and (not negative)} then
+    begin
+      fpc_Val_SInt_ShortStr:=0;
+      Code := RolledOverAt;
+      exit;
+    end;
 
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
