@@ -715,7 +715,8 @@ begin
       if Connection.CheckIncoming(10)=irClose then
       begin
         // answer for client about close connection
-        Connection.Close('', CLOSE_NORMAL_CLOSURE);
+        if not (Connection.CloseState = csClosed) then
+          Connection.Close('', CLOSE_NORMAL_CLOSURE);
         Terminate;
       end;
   except

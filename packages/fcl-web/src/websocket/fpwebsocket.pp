@@ -219,13 +219,13 @@ type
     DataLength: QWord;
     // Data is unmasked
     Data: TBytes;
-    MaskKey: Integer;
+    MaskKey: dword;
     Masked: Boolean;
     Procedure ReadData(var Content : TBytes; aTransport : IWSTransport);
     Procedure Read(buffer: TBytes; aTransport : IWSTransport);
-    class procedure DoMask(var aData: TBytes; Key: Integer); static;
-    class procedure CopyMasked(SrcData: TBytes; var DestData: TBytes; Key: Integer; aOffset: Integer); static;
-    class function CopyMasked(SrcData: TBytes; Key: Integer) : TBytes; static;
+    class procedure DoMask(var aData: TBytes; Key: DWORD); static;
+    class procedure CopyMasked(SrcData: TBytes; var DestData: TBytes; Key: DWORD; aOffset: Integer); static;
+    class function CopyMasked(SrcData: TBytes; Key: DWORD) : TBytes; static;
   end;
 
   { TWSFrame }
@@ -447,9 +447,11 @@ Type
 
   TBytesHelper = Type helper for TBytes
     // No swapping of bytes
+    Function ToDword(aOffset : Integer = 0) : DWORD;
     Function ToInt32(aOffset : Integer = 0) : LongInt;
     Function ToWord(aOffset : Integer = 0) : Word;
     Function ToQWord(aOffset : Integer = 0) : QWord;
+    Procedure FromDword(const aData : DWORD; aOffset : Integer = 0);
     Procedure FromInt32(const aData : Longint; aOffset : Integer = 0);
     Procedure FromWord(const aData : Word; aOffset : Integer = 0);
     Procedure FromQWord(const aData : QWord; aOffset : Integer = 0);
@@ -630,10 +632,25 @@ begin
 end;
 
 function TWSSocketHelper.ReadBytes(var aBytes: TBytes; aCount: Integer): Integer;
+var
+  buf: TBytes;
+  aPos, toRead: QWord;
 begin
-  SetLength(aBytes,aCount);
-  Result:=FSocket.ReadData(aBytes,aCount);
-  SetLength(aBytes,Result);
+  { TODO: read aCount bytes }
+//  toRead := aCount;
+  aPos := 0;
+  SetLength(aBytes, aCount);
+  repeat
+    SetLength(buf, aCount);
+    Result := FSocket.ReadData(buf, aCount - aPos);
+    if Result = -1 then
+      break;
+    SetLength(buf, Result);
+    Move(buf[0], aBytes[aPos], Result);
+    Inc(aPos, Result);
+    ToRead := aCount - aPos;
+    Result := aCount;
+  until toRead <= 0;
 end;
 
 procedure TWSSocketHelper.ReadBuffer(aBytes: TBytes);
@@ -666,7 +683,7 @@ end;
 
 { TBytesHelper }
 
-Function TBytesHelper.Reverse(Offset: Integer; Size: Integer) : TBytes;
+function TBytesHelper.Reverse(Offset: Integer; Size: Integer): TBytes;
 
 begin
   Result:=[];
@@ -703,6 +720,12 @@ begin
   Move(Self[aOffSet],Result,SizeOf(LongInt));
 end;
 
+function TBytesHelper.ToDword(aOffset: Integer): DWORD;
+begin
+  Result:=0;
+  Move(Self[aOffSet],Result,SizeOf(DWORD));
+end;
+
 function TBytesHelper.ToWord(aOffset: Integer): Word;
 begin
   Result:=0;
@@ -713,6 +736,11 @@ function TBytesHelper.ToQWord(aOffset: Integer): QWord;
 begin
   Result:=0;
   Move(Self[aOffSet],Result,SizeOf(QWord));
+end;
+
+procedure TBytesHelper.FromDword(const aData: DWORD; aOffset: Integer);
+begin
+  Move(aData, Self[aOffSet],SizeOf(DWORD));
 end;
 
 
@@ -834,7 +862,7 @@ begin
     if aCount>MaxBufSize then
       aCount:=MaxBufSize;
     SetLength(Buf,aCount);
-    acount:=aTransport.ReadBytes(Buf,aCount);
+    aCount := aTransport.ReadBytes(Buf,aCount);
     Move(Buf[0],Content[aPos],aCount);
     Inc(aPos,aCount);
     ToRead:=DataLength-aPos;
@@ -872,8 +900,9 @@ begin
 
   if Masked then
   begin
+    // In some times, not 4 bytes are returned
     aTransport.ReadBytes(Buffer,4);
-    MaskKey:=buffer.ToInt32(0);
+    MaskKey:=buffer.ToDword(0);
   end;
   SetLength(content, DataLength);
   if (DataLength>0) then
@@ -1009,20 +1038,19 @@ begin
     TWSFramePayload.CopyMasked(Payload.Data,Buffer,Payload.MaskKey,aOffset);
     end
   else
-    for I:=0 to int64(Payload.DataLength)-1 do
-      buffer[aOffset + I]:=Payload.Data[I];
-
+    if Payload.DataLength > 0 then
+      move(Payload.Data[0], buffer[aOffset], Payload.DataLength);
   Result := Buffer;
 end;
 
-class Procedure TWSFramePayload.DoMask(var aData: TBytes; Key: Integer);
+class procedure TWSFramePayload.DoMask(var aData: TBytes; Key: DWORD);
 
 
 begin
   CopyMasked(aData,aData,Key,0)
 end;
 
-class procedure TWSFramePayload.CopyMasked(SrcData : TBytes; Var DestData: TBytes; Key: Integer; aOffset: Integer);
+class procedure TWSFramePayload.CopyMasked(SrcData: TBytes; var DestData: TBytes; Key: DWORD; aOffset: Integer);
 
 var
   currentMaskIndex: Longint;
@@ -1033,7 +1061,7 @@ begin
   CurrentMaskIndex := 0;
   byteKeys:=[];
   SetLength(byteKeys, SizeOf(Key));
-  ByteKeys.FromInt32(Key);
+  ByteKeys.FromDword(Key);
   for I := 0 to Length(SrcData) - 1 do
     begin
     DestData[I+aOffset] := SrcData[I] XOR byteKeys[currentMaskIndex];
@@ -1041,7 +1069,7 @@ begin
     end;
 end;
 
-class function TWSFramePayload.CopyMasked(SrcData: TBytes; Key: Integer): TBytes;
+class function TWSFramePayload.CopyMasked(SrcData: TBytes; Key: DWORD): TBytes;
 begin
   Result:=[];
   SetLength(Result,Length(SrcData));
@@ -1239,12 +1267,15 @@ begin
     FMessageContent:=aFrame.Payload.Data;
   // Special handling
   Case aFrame.FrameType of
-   ftContinuation:
+    ftContinuation:
      FMessageContent.Append(aFrame.Payload.Data);
-   ftPing:
-     begin
-     if not (woPongExplicit in Options) then
-       Send(ftPong,aFrame.Payload.Data);
+    ftPing:
+      begin
+        if aFrame.Payload.DataLength > 125 then
+          Close('', CLOSE_PROTOCOL_ERROR)
+        else
+          if not (woPongExplicit in Options) then
+            Send(ftPong,aFrame.Payload.Data);
      end;
    ftClose:
      begin
