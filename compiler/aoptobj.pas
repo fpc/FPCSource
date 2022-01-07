@@ -274,6 +274,10 @@ Unit AoptObj;
         Procedure UpdateUsedRegs(p : Tai);
         class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai); static;
 
+        { UpdateUsedRegsBetween updates the given TUsedRegs from p1 to p2 exclusive, calling GetNextInstruction
+          to move between instructions and sending p1.Next to UpdateUsedRegs }
+        class procedure UpdateUsedRegsBetween(var Regs: TAllUsedRegs; p1, p2: Tai); static;
+
         { If UpdateUsedRegsAndOptimize has read ahead, the result is one before
           the next valid entry (so "p.Next" returns what's expected).  If no
           reading ahead happened, then the result is equal to p. }
@@ -1115,6 +1119,21 @@ Unit AoptObj;
         begin
           for i:=low(TRegisterType) to high(TRegisterType) do
             Regs[i].Update(p);
+        end;
+
+
+      class procedure TAOptObj.UpdateUsedRegsBetween(var Regs: TAllUsedRegs; p1, p2: Tai); static;
+        var
+          i : TRegisterType;
+        begin
+          while (p1 <> p2) do
+            begin
+              for i:=low(TRegisterType) to high(TRegisterType) do
+                Regs[i].Update(tai(p1.Next));
+
+              if not GetNextInstruction(p1, p1) then
+                InternalError(2022010701);
+            end;
         end;
 
 
