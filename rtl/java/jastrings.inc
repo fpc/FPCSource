@@ -669,9 +669,10 @@ end;
 { can't implement reference counting since no control over what javacc-compiled
   code does with ansistrings -> always create a copy }
 {$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-procedure FPC_ANSISTR_UNIQUE(var s: AnsiString); inline;
+function FPC_ANSISTR_UNIQUE(var s: AnsiString): pointer; inline;
 begin
   s:=ansistring(AnsistringClass.Create(s,AnsiStringClass(s).fCodePage));
+  result:=pointer(s);
 end;
 
 
