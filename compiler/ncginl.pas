@@ -992,7 +992,7 @@ implementation
 
     procedure tcginlinenode.second_minmax;
       begin
-        internalerror(2020120501);
+        internalerror(2020120510);
       end;
 
 begin
