@@ -313,7 +313,7 @@ type
     Procedure DoDisconnect; virtual; abstract;
     // Read message from connection. Return False if connection was closed.
     function DoReadMessage: Boolean;
-    procedure DispatchEvent(aInitialType : TFrameType; aFrame: TWSFrame);
+    procedure DispatchEvent(aInitialType : TFrameType; aFrame: TWSFrame; aMessageContent: TBytes);
     Procedure SetHandShakeRequest(aRequest : TWSHandShakeRequest);
     Function HandleIncoming(aFrame: TWSFrame) : Boolean; virtual;
     function GetHandshakeCompleted: Boolean; virtual; abstract;
@@ -502,7 +502,6 @@ begin
     FlagPong :         Self:=ftPong;
   else
     Self:=ftFutureOpcodes;
-    //Raise EConvertError.CreateFmt(SErrInvalidFrameType,[aValue]);
   end;
 end;
 
@@ -1210,7 +1209,7 @@ begin
   Result:=DoReadMessage;
 end;
 
-procedure TWSConnection.DispatchEvent(aInitialType : TFrameType; aFrame : TWSFrame);
+procedure TWSConnection.DispatchEvent(aInitialType: TFrameType; aFrame: TWSFrame; aMessageContent: TBytes);
 
 Var
   msg: TWSMessage;
@@ -1220,11 +1219,8 @@ begin
   ftPing,
   ftPong,
   ftClose :
-     begin
-     If Assigned(FOnControl) then
-       FOnControl(Self,aInitialType,FMessageContent);
-     FMessageContent:=[];
-     end;
+    If Assigned(FOnControl) then
+      FOnControl(Self,aInitialType,aMessageContent);
   ftBinary,
   ftText :
     begin
@@ -1238,16 +1234,15 @@ begin
         Msg.Sequences:=[fsContinuation];
       if aFrame.FinalFrame then
         Msg.Sequences:=Msg.Sequences+[fsLast];
-      Msg.PayLoad:=FMessageContent;
+      Msg.PayLoad:=aMessageContent;
       FOnMessageReceived(Self, Msg);
       end;
-    FMessageContent:=[];
     end;
   ftContinuation: ; // Cannot happen normally
   end;
 end;
 
-Function TWSConnection.HandleIncoming(aFrame : TWSFrame) : Boolean;
+function TWSConnection.HandleIncoming(aFrame: TWSFrame) : Boolean;
 
    Procedure UpdateCloseState;
 
@@ -1279,8 +1274,7 @@ begin
   { If control frame it must be complete }
   if ((aFrame.FrameType=ftPing) or
       (aFrame.FrameType=ftPong) or
-      (aFrame.FrameType=ftClose) or
-      (aFrame.FrameType=ftContinuation))
+      (aFrame.FrameType=ftClose))
      and (not aFrame.FinalFrame) then
   begin
     Close('', CLOSE_PROTOCOL_ERROR);
@@ -1289,21 +1283,30 @@ begin
     Exit;
   end;
   // here we handle payload.
-  if aFrame.FrameType<>ftContinuation then
+  if aFrame.FrameType in [ftBinary,ftText] then
+  begin
     FInitialOpcode:=aFrame.FrameType;
-  if aFrame.FrameType in [ftPong,ftBinary,ftText,ftPing] then
     FMessageContent:=aFrame.Payload.Data;
+  end;
   // Special handling
   Case aFrame.FrameType of
     ftContinuation:
-     FMessageContent.Append(aFrame.Payload.Data);
+      begin
+        FMessageContent.Append(aFrame.Payload.Data);
+        if aFrame.FinalFrame then
+          DispatchEvent(FInitialOpcode,aFrame,FMessageContent);
+      end;
+
     ftPing:
       begin
         if aFrame.Payload.DataLength > 125 then
           Close('', CLOSE_PROTOCOL_ERROR)
         else
           if not (woPongExplicit in Options) then
+          begin
             Send(ftPong,aFrame.Payload.Data);
+            DispatchEvent(ftPing,aFrame,aFrame.Payload.Data);
+          end;
      end;
    ftClose:
      begin
@@ -1311,11 +1314,11 @@ begin
      Result:=FCloseState=csNone;
      if Result then
      begin
-       FMessageContent:=aFrame.Payload.Data;
        if not (woCloseExplicit in Options) then
        begin
          Close('', CLOSE_NORMAL_CLOSURE); // Will update state
          Result:=False; // We can disconnect.
+         DispatchEvent(ftClose,aFrame,aFrame.Payload.Data);
        end
        else
          UpdateCloseState
@@ -1323,11 +1326,12 @@ begin
      else
        UpdateCloseState;
      end;
+   ftBinary,ftText:
+     if aFrame.FinalFrame then
+       DispatchEvent(FInitialOpcode,aFrame,aFrame.Payload.Data);
   else
     ; // avoid Compiler warning
   End;
-  if (aFrame.FinalFrame) or (woIndividualFrames in Options) then
-    DispatchEvent(FInitialOpcode,aFrame);
 end;
 
 function TWSConnection.FrameClass: TWSFrameClass;
@@ -1336,7 +1340,7 @@ begin
   Result:=TWSFrame;
 end;
 
-procedure TWSConnection.Send(const AMessage: UTF8String);
+procedure TWSConnection.Send(const AMessage: UTF8string);
 
 var
   aFrame: TWSFrame;
@@ -1412,7 +1416,7 @@ begin
     end;
 end;
 
-Function TWSConnection.DoReadMessage : Boolean ;
+function TWSConnection.DoReadMessage: Boolean;
 
 Var
   F : TWSFrame;
