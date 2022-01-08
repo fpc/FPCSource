@@ -1154,33 +1154,41 @@ end;
 
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
-  temp, prev, maxPrevValue, maxNewValue: ValUInt;
+  temp, prev, maxPrevValue: ValUInt;
   base,u : byte;
-  negative, RolledOver: boolean;
-  SignedLower, SignedUpper: Int64;
-  UnsignedUpper: UInt64;
-  RolledOverAt: integer;
-  RollOverPoint: ValUInt;
+  negative: boolean;
+  UnsignedUpperLimit: ValUInt;
 const
-  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,
-                                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                          $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
                                           10,11,12,13,14,15);
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
   Code:=InitVal(s,negative,base);
-  case DestSize of
-    1: begin SignedLower:=Low(ShortInt); SignedUpper:=(High(ShortInt)); UnSignedUpper:=High(Byte) end;
-    2: begin SignedLower:=Low(SmallInt); SignedUpper:=(High(SmallInt)); UnSignedUpper:=High(Word) end;
-    4: begin SignedLower:=Low(LongInt);  SignedUpper:=(High(LongInt));  UnSignedUpper:=High(DWord) end;
-    8: begin SignedLower:=Low(Int64);    SignedUpper:=(High(Int64));    UnSignedUpper:=High(QWord) end;
-  end;
 
-  RolledOver:=False;
-  if negative then
-    RollOverPoint:=-SignedLower
+  if (base=10) or negative then
+    begin //always limit to either Low(DestType) or High(DestType)
+      case DestSize of
+        1: UnsignedUpperLimit := ValUInt(High(ShortInt))+Ord(negative);
+        2: UnsignedUpperLimit := ValUInt(High(SmallInt))+Ord(negative);
+        4: UnsignedUpperLimit := ValUInt(High(LongInt))+Ord(negative);
+        {$ifdef CPU64}
+        8: UnsignedUpperLimit := ValUInt(High(Int64))+Ord(negative);
+        {$endif CPU64}
+      end;
+    end
   else
-    RollOverPoint:=SignedUpper;
+    begin //not decimal and not negative
+      case DestSize of
+        1: UnsignedUpperLimit := High(Byte);
+        2: UnsignedUpperLimit := High(Word);
+        4: UnsignedUpperLimit := High(DWord);
+        {$ifdef CPU64}
+        8: UnsignedUpperLimit := High(UInt64);
+        {$endif CPU64}
+      end;
+    end;
 
   if Code>length(s) then
    exit;
@@ -1190,11 +1198,8 @@ begin
         Code:=0;
       exit;
     end;
+
   maxPrevValue := ValUInt(MaxUIntValue) div ValUInt(Base);
-  if (base = 10) then
-    maxNewValue := MaxSIntValue + ord(negative)
-  else
-    maxNewValue := MaxUIntValue;
 
   while Code<=Length(s) do
    begin
@@ -1208,19 +1213,14 @@ begin
 
      Prev := Temp;
      Temp := Temp*ValUInt(base);
+
      If (u >= base) or
-        (ValUInt(maxNewValue-u) < Temp) or
-        (prev > maxPrevValue) or
-        ((Temp+u)>UnsignedUpper) Then
+        (prev > maxPrevValue)
+        or ((Temp)>(UnsignedUpperLimit-u)) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
        End;
-     if (not RolledOver) and ((Temp+u)>RollOverPoint) then
-       begin
-         RolledOver := True;
-         RolledOverAt := Code;
-       end;
      Temp:=Temp+u;
      inc(code);
    end;
@@ -1229,13 +1229,6 @@ begin
   fpc_Val_SInt_ShortStr := ValSInt(Temp);
   If Negative Then
     fpc_Val_SInt_ShortStr := -fpc_Val_SInt_ShortStr;
-
-  if RolledOver and ((base=10) or ((base<>10) and (negative))) {and (not negative)} then
-    begin
-      fpc_Val_SInt_ShortStr:=0;
-      Code := RolledOverAt;
-      exit;
-    end;
 
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
