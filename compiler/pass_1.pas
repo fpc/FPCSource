@@ -78,7 +78,7 @@ implementation
               p.free;
               { switch to new node }
               p:=hp;
-              { transfer generic paramter flag }
+              { transfer generic parameter flag }
               if nf_generic_para in oldflags then
                 include(p.flags,nf_generic_para);
             end;
