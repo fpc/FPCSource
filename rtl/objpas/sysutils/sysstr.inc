@@ -959,13 +959,11 @@ end;
 function TryStrToInt(const s: string; out i : Longint) : boolean;
 var
   Error : word;
-  li : Int64;
 begin
-  Val(s, li, Error);
-  TryStrToInt:=(Error=0) and (li<=High(DWord)) and (li>=Low(Longint));
-  if TryStrToInt then
-    i:=li;
+  Val(s, i, Error);
+  TryStrToInt:=(Error=0)
 end;
+
 
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
