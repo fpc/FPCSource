@@ -543,6 +543,8 @@ implementation
          case hp.typ of
            ait_section :
              begin
+               ResetSourceLines;
+
                if tai_section(hp).sectype<>sec_none then
                 begin
                   if asminfo^.id=as_x86_64_masm then

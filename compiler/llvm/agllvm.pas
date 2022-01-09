@@ -857,6 +857,9 @@ implementation
               WriteSourceLine(hp as tailineinfo);
           end;
 
+         if hp.typ=ait_section then
+           ResetSourceLines;
+
          WriteTai(replaceforbidden,do_line,mk_none,InlineLevel,asmblock,hp);
          hp:=tai(hp.next);
        end;

@@ -889,6 +889,8 @@ implementation
 
            ait_section :
              begin
+               ResetSourceLines;
+
                if tai_section(hp).sectype<>sec_none then
                  if replaceforbidden then
                    WriteSection(tai_section(hp).sectype,ApplyAsmSymbolRestrictions(tai_section(hp).name^),tai_section(hp).secorder,

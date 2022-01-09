@@ -763,6 +763,8 @@ interface
               ;
             ait_section:
               begin
+                 ResetSourceLines;
+
                  {if LastSecType<>sec_none then
                   writer.AsmWriteLn('_'+asminfo^.secnames[LastSecType]+#9#9'ENDS');}
 

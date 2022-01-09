@@ -757,6 +757,8 @@ interface
          case hp.typ of
            ait_section :
              begin
+               ResetSourceLines;
+
                if tai_section(hp).sectype<>sec_none then
                  WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secalign);
                LastSecType:=tai_section(hp).sectype;

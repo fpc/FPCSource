@@ -555,6 +555,8 @@ unit agsdasz80;
           case hp.typ of
             ait_section :
               begin
+                ResetSourceLines;
+
                 if tai_section(hp).sectype<>sec_none then
                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,
                     tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
