@@ -150,6 +150,7 @@ interface
         lastinfile   : tinputfile;
       {last section type written}
         lastsectype : TAsmSectionType;
+        procedure ResetSourceLines;
         procedure WriteSourceLine(hp: tailineinfo);
         procedure WriteTempalloc(hp: tai_tempalloc);
         procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
@@ -1026,6 +1027,25 @@ Implementation
     function TExternalAssembler.RerunAssembler: boolean;
       begin
         result:=false;
+      end;
+
+
+    procedure TExternalAssembler.ResetSourceLines;
+
+      procedure DoReset(f:tinputfile);
+        var
+          i : longint;
+        begin
+          if not assigned(f) then
+            exit;
+          for i:=0 to f.maxlinebuf-1 do
+            if f.linebuf^[i]<0 then
+              f.linebuf^[i]:=-f.linebuf^[i]-1;
+        end;
+
+      begin
+        DoReset(infile);
+        DoReset(lastinfile);
       end;
 
 
