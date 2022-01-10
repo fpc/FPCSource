@@ -35,11 +35,7 @@ begin
      do_error(3);
    s:='2147483648';
    val(s,l,code);
-{$ifdef CPU64}
-   if code<>0 then
-{$else CPU64}
    if code=0 then
-{$endif CPU64}
      do_error(4);
    s:='-2147483648';
    val(s,l,code);
@@ -47,10 +43,6 @@ begin
      do_error(5);
    s:='-2147483649';
    val(s,l,code);
-{$ifdef CPU64}
-   if code<>0 then
-{$else CPU64}
    if code=0 then
-{$endif CPU64}
      do_error(6);
 end.
