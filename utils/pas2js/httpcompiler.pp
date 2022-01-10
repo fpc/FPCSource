@@ -9,10 +9,12 @@ uses
   {$ifdef unix}baseunix,{$endif}
   sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
   fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
-  Pas2JSCompilerCfg;
+  Pas2JSCompilerCfg, ssockets;
 
 Const
   nErrTooManyThreads = -1;
+
+  nExitCodeSocketError = 1;
 
 Type
   TDirWatcher = Class;
@@ -813,7 +815,15 @@ begin
   TSimpleFileModule.RegisterDefaultRoute;
   if InterfaceAddress<>'' then
     HTTPHandler.Address:=InterfaceAddress;
-  inherited;
+  try
+    inherited DoRun;
+  except
+    on E: ESocketError do begin
+      Log(etError,E.ClassName+': '+E.Message);
+      ExitCode:=nExitCodeSocketError;
+      Terminate;
+    end;
+  end;
 end;
 
 end.
