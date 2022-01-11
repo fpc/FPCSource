@@ -987,6 +987,19 @@ begin
   FRSV:=(B1 and %01110000) shr 4;
   FFrameType.AsFlag:=(B1 and $F);
   FPayload.Read(Buffer,aTransport);
+  FReason:=CLOSE_NORMAL_CLOSURE;
+  if FFrameType=ftClose then
+    if FPayload.DataLength = 1 then
+      FReason:=CLOSE_PROTOCOL_ERROR
+    else
+    if FPayload.DataLength>1 then
+    begin
+      FReason:=SwapEndian(FPayload.Data.ToWord(0));
+      FPayload.DataLength := FPayload.DataLength - 2;
+      if FPayload.DataLength > 0 then
+        move(FPayload.Data[2], FPayload.Data[0], FPayload.DataLength - 2);
+      SetLength(FPayload.Data, FPayload.DataLength);
+    end;
   Result:=True;
 end;
 
@@ -1342,7 +1355,7 @@ begin
        Result:=FCloseState=csNone;
        if Result then
        begin
-         if (Length(aFrame.Payload.Data)=1) or (Length(aFrame.Payload.Data)>125) then
+         if (aFrame.Payload.DataLength>123) then
          begin
            ProtocolError(CLOSE_PROTOCOL_ERROR);
            exit;
@@ -1350,10 +1363,25 @@ begin
 
          if not (woCloseExplicit in Options) then
          begin
-           DispatchEvent(ftClose,aFrame,aFrame.Payload.Data);
-           Close('', CLOSE_NORMAL_CLOSURE); // Will update state
-           UpdateCloseState;
-           Result:=False; // We can disconnect.
+          if (aFrame.Reason<CLOSE_NORMAL_CLOSURE) or
+             (aFrame.Reason=CLOSE_RESERVER) or
+             (aFrame.Reason=CLOSE_NO_STATUS_RCVD) or
+             (aFrame.Reason=CLOSE_ABNORMAL_CLOSURE) or
+             ((aFrame.Reason>CLOSE_TLS_HANDSHAKE) and (aFrame.Reason<3000)) then
+           begin
+             ProtocolError(CLOSE_PROTOCOL_ERROR);
+             exit;
+           end;
+           if IsValidUTF8(aFrame.Payload.Data) then
+           begin
+             DispatchEvent(ftClose,aFrame,aFrame.Payload.Data);
+             Close('', aFrame.Reason); // Will update state
+             UpdateCloseState;
+             Result:=False; // We can disconnect.
+           end
+           else
+            ProtocolError(CLOSE_PROTOCOL_ERROR);
+
          end
          else
            UpdateCloseState
@@ -1554,7 +1582,12 @@ begin
   f:=FrameClass.CreateFromStream(Transport);
   try
     if Assigned(F) then
+    begin
+      // check correct frame
+
       Result:=HandleIncoming(F)
+
+    end;
   finally
     F.Free;
   end;
