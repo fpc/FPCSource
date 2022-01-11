@@ -1258,7 +1258,10 @@ begin
   fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
-    Exit;
+   begin
+     if Negative then Code:=Pos('-',S);
+     Exit;
+   end;
   if (s[Code]=#0) then
     begin
       if (Code>1) and (s[Code-1]='0') then
@@ -1365,7 +1368,10 @@ end;
     fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
-      Exit;
+      begin
+        if Negative then Code:=Pos('-',S);
+        Exit;
+      end;
     if (s[Code]=#0) then
       begin
         if (Code>1) and (s[Code-1]='0') then
@@ -1564,7 +1570,10 @@ end;
     fpc_val_word_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
-      Exit;
+      begin
+        if Negative then Code:=Pos('-',S);
+        Exit;
+      end;
     if (s[Code]=#0) then
       begin
         if (Code>1) and (s[Code-1]='0') then
