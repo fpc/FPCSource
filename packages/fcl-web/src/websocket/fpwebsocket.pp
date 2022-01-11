@@ -1582,12 +1582,7 @@ begin
   f:=FrameClass.CreateFromStream(Transport);
   try
     if Assigned(F) then
-    begin
-      // check correct frame
-
       Result:=HandleIncoming(F)
-
-    end;
   finally
     F.Free;
   end;
