@@ -88,6 +88,7 @@ interface
           procedure add_done_statement(n:tnode);
           procedure convert_carg_array_of_const;
           procedure order_parameters;
+          function heuristics_favors_inlining:boolean;
           procedure check_inlining;
           function  pass1_normal:tnode;
           procedure register_created_object_types;
@@ -4753,6 +4754,30 @@ implementation
       end;
 
 
+    function tcallnode.heuristics_favors_inlining:boolean;
+      var
+        limExcluding: cardinal;
+      begin
+        {  Prevent too deep inlining recursion and code bloat by inlining
+
+           The actual formuala is
+                             inlinelevel/3+1    /-------
+               node count <  -----------------\/  10000
+
+           This allows exponential grow of the code only to a certain limit.
+
+           Remarks
+            - The current approach calculates the inlining level top down, so outer call nodes (nodes closer to the leaf) might not be inlined
+              if the max. complexity is reached. This is done because it makes the implementation easier and because
+              there might be situations were it is more beneficial to inline inner nodes and do the calls to the outer nodes
+              if the outer nodes are in a seldomly used code path
+            - The code avoids to use functions from the math unit
+        }
+        limExcluding:=round(exp((1.0/(inlinelevel/3.0+1))*ln(10000)));
+        result:=node_count(tprocdef(procdefinition).inlininginfo^.code,limExcluding)<limExcluding;
+      end;
+
+
     procedure tcallnode.check_inlining;
       var
         st   : tsymtable;
@@ -4762,22 +4787,7 @@ implementation
         if (po_inline in procdefinition.procoptions) and
            (procdefinition.typ=procdef) and
            tprocdef(procdefinition).has_inlininginfo and
-           {  Prevent too deep inlining recursion and code bloat by inlining
-
-              The actual formuala is
-                                inlinelevel/3+1    /-------
-                  node count <  -----------------\/  10000
-
-              This allows exponential grow of the code only to a certain limit.
-
-              Remarks
-               - The current approach calculates the inlining level top down, so outer call nodes (nodes closer to the leaf) might not be inlined
-                 if the max. complexity is reached. This is done because it makes the implementation easier and because
-                 there might be situations were it is more beneficial to inline inner nodes and do the calls to the outer nodes
-                 if the outer nodes are in a seldomly used code path
-               - The code avoids to use functions from the math unit
-           }
-           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel/3.0+1))*ln(10000)))) then
+           heuristics_favors_inlining then
           begin
             include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that

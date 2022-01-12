@@ -134,10 +134,11 @@ interface
     function has_conditional_nodes(n : tnode) : boolean;
 
     { count the number of nodes in the node tree,
-      rough estimation how large the tree "node" is }
-    function node_count(node : tnode) : dword;
+      rough estimation how large the tree "node" is
+      If more than max nodes, returns max, so node_count(n, 10 + 1) <= 10 answers whether the tree has ≤10 nodes but avoids traversing the remaining 990. }
+    function node_count(node : tnode; max : dword = High(dword)) : dword;
 
-    function node_count_weighted(node : tnode) : dword;
+    function node_count_weighted(node : tnode; max : dword = High(dword)) : dword;
 
     { returns true, if the value described by node is constant/immutable, this approximation is safe
       if no dirty tricks like buffer overflows or pointer magic are used }
@@ -1438,37 +1439,49 @@ implementation
         result:=foreachnodestatic(n,@check_for_conditional_nodes,nil);
       end;
 
-    var
-      nodecount : dword;
 
     function donodecount(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        inc(nodecount);
-        result:=fen_false;
+        if PDWord(arg)^>0 then
+          begin
+            dec(PDWord(arg)^);
+            result:=fen_false;
+          end
+        else
+          result:=fen_norecurse_false;
       end;
 
 
-    function node_count(node : tnode) : dword;
+    function node_count(node : tnode; max : dword = High(dword)) : dword;
+      var
+        left : dword;
       begin
-        nodecount:=0;
-        foreachnodestatic(node,@donodecount,nil);
-        result:=nodecount;
+        left:=max;
+        foreachnodestatic(node,@donodecount,@left);
+        result:=max-left;
       end;
 
 
     function donodecount_weighted(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        if not(n.nodetype in [blockn,statementn,callparan,nothingn]) then
-          inc(nodecount);
-        result:=fen_false;
+        if PDWord(arg)^>0 then
+          begin
+            if not(n.nodetype in [blockn,statementn,callparan,nothingn]) then
+              dec(PDWord(arg)^);
+            result:=fen_false;
+          end
+        else
+          result:=fen_norecurse_false;
       end;
 
 
-    function node_count_weighted(node : tnode) : dword;
+    function node_count_weighted(node : tnode; max : dword = High(dword)) : dword;
+      var
+        left : dword;
       begin
-        nodecount:=0;
-        foreachnodestatic(node,@donodecount_weighted,nil);
-        result:=nodecount;
+        left:=max;
+        foreachnodestatic(node,@donodecount_weighted,@left);
+        result:=max-left;
       end;
 
 
