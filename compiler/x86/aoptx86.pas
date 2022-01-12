@@ -50,7 +50,7 @@ unit aoptx86;
         OptsToCheck : set of TOptsToCheck;
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
         function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
-        function RegReadByInstruction(reg : TRegister; hp : tai) : boolean;
+        class function RegReadByInstruction(reg : TRegister; hp : tai) : boolean; static;
         function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
         function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
 
@@ -98,12 +98,12 @@ unit aoptx86;
         function GetMMRegisterBetween(RegSize: TSubRegister; var AUsedRegs: TAllUsedRegs; p, hp: tai): TRegister;
 
         { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
-        function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+        class function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean; static;
         { checks whether reading the value in reg1 depends on the value of reg2. This
           is very similar to SuperRegisterEquals, except it takes into account that
           R_SUBH and R_SUBL are independendent (e.g. reading from AL does not
           depend on the value in AH). }
-        function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
+        class function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean; static;
 
         { Replaces all references to AOldReg in a memory reference to ANewReg }
         class function ReplaceRegisterInRef(var ref: TReference; const AOldReg, ANewReg: TRegister): Boolean; static;
@@ -353,13 +353,12 @@ unit aoptx86;
     function RefsEqual(const r1, r2: treference): boolean;
       begin
         RefsEqual :=
-          (r1.offset = r2.offset) and
-          (r1.segment = r2.segment) and (r1.base = r2.base) and
-          (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
           (r1.relsymbol = r2.relsymbol) and
-          (r1.volatility=[]) and
-          (r2.volatility=[]);
+          (r1.segment = r2.segment) and (r1.base = r2.base) and
+          (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+          (r1.offset = r2.offset) and
+          (r1.volatility + r2.volatility = []);
       end;
 
 
@@ -476,7 +475,7 @@ unit aoptx86;
     end;
 
 
-  function TX86AsmOptimizer.RegReadByInstruction(reg: TRegister; hp: tai): boolean;
+  class function TX86AsmOptimizer.RegReadByInstruction(reg: TRegister; hp: tai): boolean;
     var
       p: taicpu;
       opcount: longint;
@@ -1069,7 +1068,6 @@ unit aoptx86;
         Currentp: tai;
         Breakout: Boolean;
       begin
-        { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
         RegSet :=
           paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption) +
@@ -1143,7 +1141,6 @@ unit aoptx86;
         Currentp: tai;
         Breakout: Boolean;
       begin
-        { TODO: Currently, only the volatile registers are checked - can this be extended to use any register the procedure has preserved? }
         Result := NR_NO;
         RegSet :=
           paramanager.get_volatile_registers_mm(current_procinfo.procdef.proccalloption) +
@@ -1198,7 +1195,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+    class function TX86AsmOptimizer.Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
       begin
         if not SuperRegistersEqual(reg1,reg2) then
           exit(false);
@@ -1235,7 +1232,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
+    class function TX86AsmOptimizer.Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
       begin
         if not SuperRegistersEqual(reg1,reg2) then
           exit(false);
@@ -1426,7 +1423,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
       var
-        p: taicpu absolute hp;
+        p: taicpu absolute hp; { Implicit typecast }
         i: Integer;
       begin
         Result := False;
@@ -1434,7 +1431,6 @@ unit aoptx86;
            (hp.typ <> ait_instruction) then
          Exit;
 
-//        p := taicpu(hp);
         Prefetch(insprop[p.opcode]);
         if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
           with insprop[p.opcode] do
@@ -1442,12 +1438,14 @@ unit aoptx86;
               case getsubreg(reg) of
                 R_SUBW,R_SUBD,R_SUBQ:
                   Result:=
-                    RegLoadedWithNewValue(NR_CARRYFLAG,hp) and
-                    RegLoadedWithNewValue(NR_PARITYFLAG,hp) and
-                    RegLoadedWithNewValue(NR_AUXILIARYFLAG,hp) and
-                    RegLoadedWithNewValue(NR_ZEROFLAG,hp) and
-                    RegLoadedWithNewValue(NR_SIGNFLAG,hp) and
-                    RegLoadedWithNewValue(NR_OVERFLOWFLAG,hp);
+                    { ZF, CF, OF, SF, PF and AF must all be set in some way (ordered so the most
+                      uncommon flags are checked first }
+                    ([Ch_W0AuxiliaryFlag,Ch_W1AuxiliaryFlag,Ch_WAuxiliaryFlag,Ch_WUAuxiliaryFlag,Ch_WFlags] * Ch <> []) and
+                    ([Ch_W0ParityFlag,Ch_W1ParityFlag,Ch_WParityFlag,Ch_WUParityFlag,Ch_WFlags]*Ch <> []) and
+                    ([Ch_W0SignFlag,Ch_W1SignFlag,Ch_WSignFlag,Ch_WUSignFlag,Ch_WFlags]*Ch <> []) and
+                    ([Ch_W0OverflowFlag,Ch_W1OverflowFlag,Ch_WOverflowFlag,Ch_WUOverflowFlag,Ch_WFlags]*Ch <> []) and
+                    ([Ch_W0CarryFlag,Ch_W1CarryFlag,Ch_WCarryFlag,Ch_WUCarryFlag,Ch_WFlags]*Ch <> []) and
+                    ([Ch_W0ZeroFlag,Ch_W1ZeroFlag,Ch_WZeroFlag,Ch_WUZeroFlag,Ch_WFlags]*Ch <> []);
                 R_SUBFLAGCARRY:
                   Result:=[Ch_W0CarryFlag,Ch_W1CarryFlag,Ch_WCarryFlag,Ch_WUCarryFlag,Ch_WFlags]*Ch<>[];
                 R_SUBFLAGPARITY:
@@ -1465,10 +1463,7 @@ unit aoptx86;
                 R_SUBFLAGDIRECTION:
                   Result:=[Ch_W0DirFlag,Ch_W1DirFlag,Ch_WFlags]*Ch<>[];
                 else
-                  begin
-                  writeln(getsubreg(reg));
                   internalerror(2017050501);
-                  end;
               end;
               exit;
             end;
@@ -1731,7 +1726,7 @@ unit aoptx86;
                             end;
                         end;
 
-                      { Don't do these ones first in case an input operand is equal to an explicit output registers }
+                      { Don't do these ones first in case an input operand is equal to an explicit output register }
                       case getsupreg(reg) of
                         RS_EAX:
                           if ([Ch_WEAX{$ifdef x86_64},Ch_WRAX{$endif x86_64}]*Ch<>[]) and Reg1WriteOverwritesReg2Entirely(NR_EAX, reg) then
@@ -5002,7 +4997,8 @@ unit aoptx86;
                       ((taicpu(p).oper[0]^.ref^.symbol=nil) or (taicpu(hp1).oper[ref]^.ref^.symbol=nil)) and
                       ((taicpu(p).oper[0]^.ref^.relsymbol=nil) or (taicpu(hp1).oper[ref]^.ref^.relsymbol=nil)) and
                       ((taicpu(p).oper[0]^.ref^.scalefactor <= 1) or (taicpu(hp1).oper[ref]^.ref^.scalefactor <= 1)) and
-                      (taicpu(p).oper[0]^.ref^.segment=NR_NO) and (taicpu(hp1).oper[ref]^.ref^.segment=NR_NO)
+                      { Segment register of p.oper[0]^.ref will be NR_NO already }
+                      (taicpu(hp1).oper[ref]^.ref^.segment=NR_NO)
 {$ifdef x86_64}
                       and (abs(taicpu(hp1).oper[ref]^.ref^.offset+taicpu(p).oper[0]^.ref^.offset)<=$7fffffff)
                       and (((taicpu(p).oper[0]^.ref^.base<>NR_RIP) and (taicpu(p).oper[0]^.ref^.index<>NR_RIP)) or
@@ -5053,10 +5049,9 @@ unit aoptx86;
             if MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
               (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) and
               (taicpu(p).oper[0]^.ref^.relsymbol = nil) and
-              (taicpu(p).oper[0]^.ref^.segment = NR_NO) and
               (taicpu(p).oper[0]^.ref^.symbol = nil) and
               (taicpu(hp1).oper[0]^.ref^.relsymbol = nil) and
-              (taicpu(hp1).oper[0]^.ref^.segment = NR_NO) and
+              { Since we're merging two LEA instructions, the segment registers don't matter }
               (taicpu(hp1).oper[0]^.ref^.symbol = nil) and
               (
                 (taicpu(p).oper[0]^.ref^.base = NR_NO) or { Don't call RegModifiedBetween unnecessarily }
@@ -5855,7 +5850,7 @@ unit aoptx86;
                     if (TmpRef.base = NR_NO) and
                        (taicpu(hp1).oper[0]^.ref^.symbol=nil) and
                        (taicpu(hp1).oper[0]^.ref^.relsymbol=nil) and
-                       (taicpu(hp1).oper[0]^.ref^.segment=NR_NO) and
+                       { Segment register isn't a concern here }
                        ((taicpu(hp1).oper[0]^.ref^.scalefactor=0) or
                        (taicpu(hp1).oper[0]^.ref^.scalefactor*tmpref.scalefactor<=8)) then
                       begin
@@ -12200,7 +12195,6 @@ unit aoptx86;
            (taicpu(p).oper[0]^.ref^.offset=-24))  and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
-          (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(p, hp1) and
           { Take a copy of hp1 }
@@ -12217,7 +12211,7 @@ unit aoptx86;
           (taicpu(hp2).oper[0]^.ref^.index=NR_NO) and
           (taicpu(hp2).oper[0]^.ref^.symbol=nil) and
           (taicpu(hp2).oper[0]^.ref^.relsymbol=nil) and
-          (taicpu(hp2).oper[0]^.ref^.segment=NR_NO) and
+          { Segment register will be NR_NO }
           (taicpu(hp2).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(hp2, hp3) and
           { trick to skip label }
