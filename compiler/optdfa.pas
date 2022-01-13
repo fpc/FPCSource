@@ -185,7 +185,7 @@ unit optdfa;
         { update life entry of a node with l, set changed if this changes
           life info for the node
         }
-        procedure updatelifeinfo(n : tnode;l : TDFASet);
+        procedure updatelifeinfo(n : tnode;const l : TDFASet);
           var
             b : boolean;
           begin
