@@ -603,6 +603,8 @@ Procedure TComponent.InsertComponent(AComponent: TComponent);
 begin
   AComponent.ValidateContainer(Self);
   ValidateRename(AComponent,'',AComponent.FName);
+  If AComponent.FOwner<>Nil then
+    AComponent.FOwner.Remove(AComponent);
   Insert(AComponent);
   AComponent.SetReference(True);
   If csDesigning in FComponentState then
