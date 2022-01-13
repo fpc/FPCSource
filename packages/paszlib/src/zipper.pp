@@ -585,9 +585,12 @@ Type
     Class Procedure Unzip(const AZipFileName : RawByteString);
     // Unzip a single file.
     Class Procedure Unzip(const AZipFileName : RawByteString;aExtractFileName : RawByteString);
+    Class Procedure UnZip(const AZipFileName, aExtractFileName: RawByteString; aOutputFileName : string);
     // Unzip several files
     Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : Array of RawByteString);
     Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : TStrings);
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : Array of RawByteString; aOutputDir : RawByteString; aFlat : Boolean = false);
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : TStrings; aOutputDir : RawByteString; aFlat : Boolean = false);
     Procedure Clear;
     Procedure Examine;
     Procedure Terminate;
@@ -3020,6 +3023,62 @@ begin
     end;
 end;
 
+Type
+
+  { TCustomExtractor }
+
+  TCustomExtractor = Class(TObject)
+  Private
+    FStream : TStream;
+    FunZipper  : TUnzipper;
+    procedure DoCreateStream(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
+  Public
+    Constructor Create(aUnZipper : TUnzipper);
+    Destructor Destroy; override;
+    Procedure UnZip(const AZipFileName, aExtractFileName: RawByteString; aOutputFileName: string);
+  end;
+
+{ TCustomExtractor }
+
+procedure TCustomExtractor.DoCreateStream(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
+begin
+  aStream:=FStream;
+  FStream:=Nil;
+end;
+
+constructor TCustomExtractor.Create(aUnZipper: TUnzipper);
+begin
+  FStream:=Nil;
+  FUnzipper:=aUnzipper;
+end;
+
+destructor TCustomExtractor.Destroy;
+begin
+  FreeAndNil(FUnZipper);
+  FreeAndNil(FStream);
+  Inherited;
+end;
+
+procedure TCustomExtractor.UnZip(const AZipFileName, aExtractFileName: RawByteString; aOutputFileName: string);
+begin
+  FStream:=TFileStream.Create(aOutputFileName,fmCreate);
+  FUnZipper.OnCreateStream:=@DoCreateStream;
+  FUnzipper.UnzipFile(aZipFileName,aExtractFileName);
+end;
+
+class procedure TUnZipper.UnZip(const AZipFileName, aExtractFileName: RawByteString; aOutputFileName: string);
+
+
+
+begin
+  With TCustomExtractor.Create(Self.Create) do
+    try
+      Unzip(aZipFileName,aExtractFileName,aOutputFileName);
+    Finally
+      Free;
+    end;
+end;
+
 class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: array of RawByteString);
 begin
   With Self.Create do
@@ -3034,6 +3093,31 @@ class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: TS
 begin
   With Self.Create do
     try
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: array of RawByteString; aOutputDir: RawByteString;
+  aFlat: Boolean);
+begin
+  With Self.Create do
+    try
+      Flat:=aFlat;
+      OutputPath:=aOutputDir;
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: TStrings; aOutputDir: RawByteString; aFlat: Boolean);
+begin
+  With Self.Create do
+    try
+      Flat:=aFlat;
+      OutputPath:=aOutputDir;
       UnZipFiles(aZipFileName,aFileList);
     finally
       Free;
