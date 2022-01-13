@@ -549,13 +549,23 @@ end;
 function TField.GetAsDateTime: TDateTime;
 
 begin
-  raise AccessError(SdateTime);
+  raise AccessError(SDateTime);
+end;
+
+function TField.GetAsExtended: Extended;
+begin
+  Result := GetAsFloat;
 end;
 
 function TField.GetAsFloat: Double;
 
 begin
   raise AccessError(SDateTime);
+end;
+
+function TField.GetAsSingle: Single;
+begin
+  Result := GetAsFloat;
 end;
 
 function TField.GetAsLargeInt: Largeint;
@@ -585,7 +595,6 @@ function TField.GetAsVariant: variant;
 begin
   raise AccessError(SVariant);
 end;
-
 
 function TField.GetAsString: string;
 begin
@@ -905,6 +914,16 @@ procedure TField.SetAsDateTime(AValue: TDateTime);
 
 begin
   Raise AccessError(SDateTime);
+end;
+
+procedure TField.SetAsSingle(AValue: Single);
+begin
+  SetAsFloat(AValue);
+end;
+
+procedure TField.SetAsExtended(AValue: Extended);
+begin
+  SetAsFloat(AValue);
 end;
 
 procedure TField.SetAsFloat(AValue: Double);
@@ -1579,10 +1598,10 @@ begin
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
-procedure TNumericField.RangeError(AValue, Min, Max: Double);
+procedure TNumericField.RangeError(const AValue, Min, Max: Extended);
 
 begin
-  DatabaseErrorFmt(SFieldError+SRangeError2,[DisplayName,AValue,Min,Max]);
+  DatabaseErrorFmt(SFieldError+SRangeError2, [DisplayName,AValue,Min,Max]);
 end;
 
 procedure TNumericField.SetDisplayFormat(const AValue: string);
@@ -2216,17 +2235,6 @@ begin
     Result:=0.0;
 end;
 
-function TFloatField.GetAsVariant: Variant;
-
-var f : Double;
-
-begin
-  If GetData(@f) then
-    Result := f
-  else
-    Result:=Null;
-end;
-
 function TFloatField.GetAsLargeInt: LargeInt;
 begin
   Result:=Round(GetAsFloat);
@@ -2254,6 +2262,17 @@ begin
     Result:='';
 end;
 
+function TFloatField.GetAsVariant: Variant;
+
+var f : Double;
+
+begin
+  If GetData(@f) then
+    Result := f
+  else
+    Result:=Null;
+end;
+
 function TFloatField.GetDataSize: Integer;
 
 begin
@@ -2263,15 +2282,15 @@ end;
 procedure TFloatField.GetText(var AText: string; ADisplayText: Boolean);
 
 Var
-    fmt : string;
-    E : Double;
-    Digits : integer;
-    ff: TFloatFormat;
+  Fmt : string;
+  f : Double;
+  Digits : integer;
+  ff: TFloatFormat;
 
 begin
   AText:='';
-  If Not GetData(@E) then exit;
-  If ADisplayText or (Length(FEditFormat) = 0) Then
+  if not GetData(@f) then exit;
+  if ADisplayText or (Length(FEditFormat) = 0) Then
     Fmt:=FDisplayFormat
   else
     Fmt:=FEditFormat;
@@ -2281,18 +2300,17 @@ begin
     ff := ffGeneral
   else
     begin
-    Digits := CurrencyDecimals;
+    Digits := DefaultFormatSettings.CurrencyDecimals;
     if ADisplayText then
       ff := ffCurrency
     else
       ff := ffFixed;
     end;
 
-
-  If fmt<>'' then
-    AText:=FormatFloat(fmt,E)
+  if Fmt<>'' then
+    AText:=FormatFloat(Fmt, f)
   else
-    AText:=FloatToStrF(E,ff,FPrecision,Digits);
+    AText:=FloatToStrF(f, ff, FPrecision, Digits);
 end;
 
 procedure TFloatField.SetAsBCD(const AValue: TBCD);
@@ -2351,13 +2369,13 @@ begin
   Inherited Create(AOwner);
   SetDataType(ftFloat);
   FPrecision:=15;
-  FValidChars := [DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
+  FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
 end;
 
-Function TFloatField.CheckRange(AValue : Double) : Boolean;
+function TFloatField.CheckRange(AValue : Double) : Boolean;
 
 begin
-  If (FMinValue<>0) or (FMaxValue<>0) then
+  if (FMinValue<>0) or (FMaxValue<>0) then
     Result:=(AValue>=FMinValue) and (AValue<=FMaxValue)
   else
     Result:=True;
@@ -2371,6 +2389,182 @@ begin
   inherited Create(AOwner);
   SetDataType(ftCurrency);
   Currency := True;
+end;
+
+{ TExtendedField }
+
+constructor TExtendedField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftExtended);
+  FPrecision:=15;
+  FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
+end;
+
+procedure TExtendedField.SetCurrency(const AValue: Boolean);
+begin
+  if FCurrency=AValue then Exit;
+  FCurrency:=AValue;
+end;
+
+procedure TExtendedField.SetPrecision(const AValue: Longint);
+begin
+  if (AValue = -1) or (AValue > 1) then
+    FPrecision := AValue
+  else
+    FPrecision := 2;
+end;
+
+function TExtendedField.GetAsBCD: TBCD;
+var e: Extended;
+begin
+  if GetData(@e) then
+    Result := DoubleToBCD(e)
+  else
+    Result := NullBCD;
+end;
+
+function TExtendedField.GetAsExtended: Extended;
+var e: Extended;
+begin
+  if GetData(@e) then
+    Result := e
+  else
+    Result := 0.0;
+end;
+
+function TExtendedField.GetAsFloat: Double;
+begin
+  Result := GetAsExtended;
+end;
+
+function TExtendedField.GetAsLargeInt: LargeInt;
+begin
+  Result := Round(GetAsExtended);
+end;
+
+function TExtendedField.GetAsLongWord: LongWord;
+begin
+  Result := Round(GetAsExtended);
+end;
+
+function TExtendedField.GetAsInteger: Longint;
+begin
+  Result := Round(GetAsExtended);
+end;
+
+function TExtendedField.GetAsString: string;
+var e: Extended;
+begin
+  if GetData(@e) then
+    Result := FloatToStr(e)
+  else
+    Result := '';
+end;
+
+function TExtendedField.GetAsVariant: Variant;
+var e: Extended;
+begin
+  if GetData(@e) then
+    Result := e
+  else
+    Result := Null;
+end;
+
+function TExtendedField.GetDataSize: Integer;
+begin
+  Result:=SizeOf(Extended);
+end;
+
+procedure TExtendedField.GetText(var AText: string; ADisplayText: Boolean);
+var
+  Fmt: string;
+  e: Extended;
+  Digits: integer;
+  ff: TFloatFormat;
+begin
+  AText:='';
+  if not GetData(@e) then Exit;
+  if ADisplayText or (FEditFormat = '') then
+    Fmt := FDisplayFormat
+  else
+    Fmt := FEditFormat;
+
+  Digits := 0;
+  if not FCurrency then
+    ff := ffGeneral
+  else
+    begin
+    Digits := DefaultFormatSettings.CurrencyDecimals;
+    if ADisplayText then
+      ff := ffCurrency
+    else
+      ff := ffFixed;
+    end;
+
+  if Fmt<>'' then
+    AText := FormatFloat(Fmt, e)
+  else
+    AText := FloatToStrF(e, ff, FPrecision, Digits);
+end;
+
+procedure TExtendedField.SetAsBCD(const AValue: TBCD);
+begin
+  SetAsExtended(BCDToDouble(AValue));
+end;
+
+procedure TExtendedField.SetAsExtended(AValue: Extended);
+begin
+  if CheckRange(AValue) then
+    SetData(@AValue)
+  else
+    RangeError(AValue,FMinValue,FMaxValue);
+end;
+
+procedure TExtendedField.SetAsFloat(AValue: Double);
+begin
+  SetAsExtended(AValue);
+end;
+
+procedure TExtendedField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsExtended(AValue);
+end;
+
+procedure TExtendedField.SetAsLongWord(AValue: LongWord);
+begin
+  SetAsExtended(AValue);
+end;
+
+procedure TExtendedField.SetAsInteger(AValue: Longint);
+begin
+  SetAsExtended(AValue);
+end;
+
+procedure TExtendedField.SetAsString(const AValue: string);
+var e: Extended;
+begin
+  if AValue='' then
+    Clear
+  else
+    begin
+    if not TryStrToFloat(AValue, e) then
+      DatabaseErrorFmt(SNotAFloat, [AValue]);
+    SetAsExtended(e);
+    end;
+end;
+
+procedure TExtendedField.SetVarValue(const AValue: Variant);
+begin
+  SetAsExtended(AValue);
+end;
+
+function TExtendedField.CheckRange(AValue: Extended) : Boolean;
+begin
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
+  else
+    Result := True;
 end;
 
 { TBooleanField }
@@ -2976,7 +3170,7 @@ begin
   Inherited Create(AOwner);
   FMaxValue := 0;
   FMinValue := 0;
-  FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
+  FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
   Precision := 18;
   Size := 4;
@@ -2996,7 +3190,7 @@ begin
   Inherited Create(AOwner);
   FMaxValue := 0;
   FMinValue := 0;
-  FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
+  FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftFMTBCD);
 // Max.precision for NUMERIC,DECIMAL datatypes supported by some databases:
 //  Firebird-18; Oracle,SqlServer-38; MySQL-65; PostgreSQL-1000
