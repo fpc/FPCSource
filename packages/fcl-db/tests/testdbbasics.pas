@@ -2731,6 +2731,10 @@ begin
   CheckEquals('+',Fld.DisplayText,'Correct true');
   Fld.AsBoolean:=False;
   CheckEquals('',Fld.DisplayText,'Correct false');
+  Fld.AsString:='+';
+  CheckEquals(true,Fld.AsBoolean,'Correct true');
+  Fld.AsString:='';
+  CheckEquals(False,Fld.AsBoolean,'Correct False');
 end;
 
 procedure TTestDBBasics.TestSupportFloatFields;
