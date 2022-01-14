@@ -20,6 +20,7 @@ type
 
   TTestDBBasics = class(TDBBasicsTestCase)
   private
+    procedure TestFieldDefinition(AFieldType: TFieldType; ADataSize: integer); overload;
     procedure TestFieldDefinition(AFieldType : TFieldType; ADataSize : integer; out ADS : TDataset; out AFld : TField); overload;
     procedure TestFieldDefinition(AFld: TField; AFieldType : TFieldType; ADataSize : integer); overload;
     procedure TestCalculatedField_OnCalcfields(DataSet: TDataSet);
@@ -47,6 +48,9 @@ type
     procedure TestSupportFixedStringFields;
     procedure TestSupportBlobFields;
     procedure TestSupportMemoFields;
+    procedure TestSupportByteFields;
+    procedure TestSupportShortIntFields;
+    procedure TestSupportExtendedFields;
 
     procedure TestBlobBlobType; //bug 26064
 
@@ -2588,6 +2592,22 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestFieldDefinition(AFieldType: TFieldType; ADataSize: integer);
+var
+  ADataSet: TDataset;
+  AField: TField;
+  i: integer;
+begin
+  TestFieldDefinition(AFieldType, ADataSize, ADataSet, AField);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    CheckEquals(testValues[AFieldType,i], AField.AsString);
+    ADataSet.Next;
+    end;
+  ADataSet.Close;
+end;
+
 procedure TTestDBBasics.TestFieldDefinition(AFieldType: TFieldType; ADataSize: integer; out ADS: TDataset; out AFld: TField);
 begin
   ADS := DBConnector.GetFieldDataset;
@@ -2911,34 +2931,28 @@ begin
 end;
 
 procedure TTestDBBasics.TestSupportBlobFields;
-
-var i          : byte;
-    ds         : TDataset;
-    Fld        : TField;
 begin
-  TestFieldDefinition(ftBlob,0,ds,Fld);
-
-  for i := 0 to testValuesCount-1 do
-    begin
-    CheckEquals(testValues[ftBlob,i],Fld.AsString);
-    ds.Next;
-    end;
-  ds.Close;
+  TestFieldDefinition(ftBlob,0);
 end;
 
 procedure TTestDBBasics.TestSupportMemoFields;
-var i          : byte;
-    ds         : TDataset;
-    Fld        : TField;
 begin
-  TestFieldDefinition(ftMemo,0,ds,Fld);
+  TestFieldDefinition(ftMemo,0);
+end;
 
-  for i := 0 to testValuesCount-1 do
-    begin
-    CheckEquals(testValues[ftMemo,i],Fld.AsString);
-    ds.Next;
-    end;
-  ds.Close;
+procedure TTestDBBasics.TestSupportByteFields;
+begin
+  TestFieldDefinition(ftByte, SizeOf(Byte));
+end;
+
+procedure TTestDBBasics.TestSupportShortIntFields;
+begin
+  TestFieldDefinition(ftShortInt, SizeOf(ShortInt));
+end;
+
+procedure TTestDBBasics.TestSupportExtendedFields;
+begin
+  TestFieldDefinition(ftExtended, SizeOf(Extended));
 end;
 
 procedure TTestDBBasics.TestBlobBlobType;

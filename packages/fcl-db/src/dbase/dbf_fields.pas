@@ -477,7 +477,7 @@ begin
       , ftLargeInt
 {$endif}
 {$ifdef SUPPORT_LONGWORD}
-      , ftLongWord, ftShortInt, ftByte
+      , ftLongWord, ftShortInt, ftByte, ftExtended
 {$endif}
                :
       FNativeFieldType := 'N'; //numerical
@@ -575,6 +575,11 @@ begin
       begin
         FSize := 3;
         FPrecision := 0;
+      end;
+    ftExtended:
+      begin
+        FSize := 19;
+        FPrecision := 8;
       end;
 {$endif}
     ftString {$ifdef SUPPORT_FIELDTYPES_V4}, ftFixedChar, ftWideString{$endif}:
