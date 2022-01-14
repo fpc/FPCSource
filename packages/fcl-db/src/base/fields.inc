@@ -2642,7 +2642,14 @@ var Temp : string;
 begin
   Temp:=UpperCase(AValue);
   if Temp='' then
-    Clear
+    begin
+    if FDisplays[True,True]='' then
+      SetAsBoolean(True)
+    else if FDisplays[True,False]='' then
+      SetAsBoolean(False)
+    else
+      Clear
+    end
   else if pos(Temp, FDisplays[True,True])=1 then
     SetAsBoolean(True)
   else if pos(Temp, FDisplays[True,False])=1 then
