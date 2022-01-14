@@ -35,6 +35,7 @@ type
     procedure TestSupportWordFields;
     procedure TestSupportStringFields;
     procedure TestSupportBooleanFields;
+    procedure TestSupportBooleanFieldDisplayValue;
     procedure TestSupportFloatFields;
     procedure TestSupportLargeIntFields;
     procedure TestSupportDateFields;
@@ -2714,6 +2715,22 @@ begin
     end;
 
   ds.Close;
+end;
+
+procedure TTestDBBasics.TestSupportBooleanFieldDisplayValue;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+    BoolFld : TBooleanField absolute Fld;
+begin
+  TestFieldDefinition(ftBoolean,2,ds,Fld);
+  CheckEquals(TBooleanField,Fld.ClassType,'Correct class');
+  BoolFld.DisplayValues:='+';
+  ds.Edit;
+  Fld.AsBoolean:=True;
+  CheckEquals('+',Fld.DisplayText,'Correct true');
+  Fld.AsBoolean:=False;
+  CheckEquals('',Fld.DisplayText,'Correct false');
 end;
 
 procedure TTestDBBasics.TestSupportFloatFields;

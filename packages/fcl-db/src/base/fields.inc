@@ -2669,11 +2669,13 @@ Procedure TBooleanField.SetDisplayValues(const AValue : String);
 var I : longint;
 
 begin
+  if aValue='' then
+    DatabaseErrorFmt(SFieldError+SInvalidDisplayValues,[DisplayName,AValue]);
   If FDisplayValues<>AValue then
     begin
     I:=Pos(';',AValue);
-    If (I<2) or (I=Length(AValue)) then
-      DatabaseErrorFmt(SFieldError+SInvalidDisplayValues,[DisplayName,AValue]);
+    If I=0 then
+      I:=Length(aValue)+1;
     FdisplayValues:=AValue;
     // Store display values and their uppercase equivalents;
     FDisplays[False,True]:=Copy(AValue,1,I-1);
