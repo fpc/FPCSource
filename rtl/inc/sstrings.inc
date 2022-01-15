@@ -1151,6 +1151,10 @@ begin
   InitVal:=code;
 end;
 
+const
+  ValValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                             $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
+                                             10,11,12,13,14,15);
 
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
@@ -1158,10 +1162,6 @@ var
   base,u : byte;
   negative: boolean;
   UnsignedUpperLimit: ValUInt;
-const
-  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
-                                          $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
-                                          10,11,12,13,14,15);
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
@@ -1205,7 +1205,7 @@ begin
    begin
      u:=16;
      case s[code] of
-       '0'..'f' : u:=ValueArray[S[Code]];
+       '0'..'f' : u:=ValValueArray[S[Code]];
        #0 : break;
      else
        ;
@@ -1255,10 +1255,6 @@ var
   base,u : byte;
   negative : boolean;
   UpperLimit: ValUInt;
-const
-  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
-                                          $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
-                                          10,11,12,13,14,15);
 begin
   fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
@@ -1289,7 +1285,7 @@ begin
    begin
      u:=16;
      case s[code] of
-       '0'..'f' : u:=ValueArray[S[Code]];
+       '0'..'f' : u:=ValValueArray[S[Code]];
        #0 : break;
      else
        ;
@@ -1386,10 +1382,6 @@ end;
        negative : boolean;
 
   const maxqword=qword($ffffffffffffffff);
-        ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
-                                                $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
-                                                10,11,12,13,14,15);
-
   begin
     fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
@@ -1408,7 +1400,7 @@ end;
      begin
        u:=16;
        case s[code] of
-         '0'..'f' : u:=ValueArray[S[Code]];
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
          ;
