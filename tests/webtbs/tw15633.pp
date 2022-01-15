@@ -4,6 +4,6 @@ var value : word;
 begin
   Val('4294901772', Value, code);
   writeln(code);
-  if code<>10 then
+  if code<>6 then
     halt(1);
 end.
