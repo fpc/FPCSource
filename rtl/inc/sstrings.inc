@@ -1254,32 +1254,48 @@ Function fpc_Val_UInt_Shortstr({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2}
 var
   base,u : byte;
   negative : boolean;
+  UpperLimit: ValUInt;
+const
+  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                          $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
+                                          10,11,12,13,14,15);
 begin
   fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
-   begin
-     if Negative then Code:=Pos('-',S);
-     Exit;
-   end;
+    begin
+      if Negative then Code:=Pos('-',S);
+      Exit;
+    end;
   if (s[Code]=#0) then
     begin
       if (Code>1) and (s[Code-1]='0') then
         Code:=0;
       exit;
     end;
+  {$ifndef VER3_2}
+  case DestSize of
+    1: UpperLimit:=High(Byte);
+    2: UpperLimit:=High(Word);
+    4: UpperLimit:=High(DWord);
+    {$ifdef CPU64}
+    8: UpperLimit:=High(QWord);
+    {$endif CPU64}
+  end;
+  {$else VER3_2}
+  UpperLimit:=High(ValUInt);  //this preserves 3.2 (and earlier) behaviour
+  {$ENDIF}
   while Code<=Length(s) do
    begin
-     case s[Code] of
-       '0'..'9' : u:=Ord(S[Code])-Ord('0');
-       'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-       'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+     u:=16;
+     case s[code] of
+       '0'..'f' : u:=ValueArray[S[Code]];
        #0 : break;
      else
-      u:=16;
+       ;
      end;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<fpc_val_uint_shortstr) then
+        (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_uint_shortstr) then
       begin
         fpc_Val_UInt_Shortstr:=0;
         exit;
@@ -1288,6 +1304,14 @@ begin
      inc(code);
    end;
   code := 0;
+  {$ifndef VER3_2}
+  case DestSize of
+    1: fpc_Val_UInt_Shortstr:=Byte(fpc_Val_UInt_Shortstr);
+    2: fpc_Val_UInt_Shortstr:=Word(fpc_Val_UInt_Shortstr);
+    4: fpc_Val_UInt_Shortstr:=DWord(fpc_Val_UInt_Shortstr);
+    //8: no typecast needed for QWord
+  end;
+  {$ENDIF}
 end;
 
 
@@ -1355,7 +1379,6 @@ end;
   {$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
-
   Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
 
   var  u : sizeuint;
@@ -1363,6 +1386,9 @@ end;
        negative : boolean;
 
   const maxqword=qword($ffffffffffffffff);
+        ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                                $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
+                                                10,11,12,13,14,15);
 
   begin
     fpc_val_qword_shortstr:=0;
@@ -1380,13 +1406,12 @@ end;
       end;
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
        If (u>=base) or
          ((QWord(maxqword-u) div QWord(base))<fpc_val_qword_shortstr) then
@@ -1399,6 +1424,7 @@ end;
      end;
     code := 0;
   end;
+
 
 {$endif CPU64}
 
