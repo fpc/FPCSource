@@ -27,6 +27,15 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
+
+# CC
+ifdef SUBARCH
+FPC_TARGETOPT+=--subarch=$(SUBARCH)
+endif
+ifdef ABI
+FPC_TARGETOPT+=--abi=$(ABI)
+endif
+
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 # Get the location of the bootstrap-fpmkunit units
@@ -55,6 +64,13 @@ SUB_FPMAKE_SRCS=$(wildcard */fpmake.pp)
 # Do not pass the Makefile's unit and binary target locations. Fpmake uses it's own.
 override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
 override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+
+# CC
+override FPCOPT:=$(filter-out -Cp%,$(FPCOPT))
+override FPCOPT:=$(filter-out -P%,$(FPCOPT))
+override FPCOPT:=$(filter-out -T%,$(FPCOPT))
+override FPCOPT:=$(filter-out -Ca%,$(FPCOPT))
+
 # Do not pass the package-unitdirectories. Fpmake adds those and this way they don't apear in the .fpm
 override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# Compose general fpmake-parameters
 # Compose general fpmake-parameters

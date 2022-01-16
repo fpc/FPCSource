@@ -1060,6 +1060,8 @@ Type
     FOptions: TStrings;
     FCPU: TCPU;
     FOS: TOS;
+    FSubArch: string;
+    FABI: string;
     FSourceCPU: TCPU;
     FSourceOS: TOS;
     FMode : TCompilerMode;
@@ -1114,6 +1116,11 @@ Type
     procedure SetCPU(const AValue: TCPU);
     procedure SetOptions(const AValue: TStrings);
     procedure SetOS(const AValue: TOS);
+
+    // CC
+    Property SubArch: string read FSubArch write FSubArch;
+    Property ABI: string read FABI write FABI;
+
     procedure SetPrefix(const AValue: String);
     procedure SetSearchPath(AValue: TStrings);
     procedure SetTarget(const AValue: String);
@@ -1887,6 +1894,11 @@ ResourceString
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
   SHelpOS             = 'Compile for indicated OS';
+
+  // CC
+  SHelpSubArch        = 'Compile for indicated subarchitecture (if supported by CPU).';
+  SHelpABI            = 'Compile for indicated ABI.';
+
   SHelpTarget         = 'Compile for indicated target';
   SHelpList           = 'list commands instead of actually executing them.';
   SHelpPrefix         = 'Use indicated prefix directory for all commands.';
@@ -2473,7 +2485,17 @@ begin
   if ALimit83 then
     Result := OSToString(OS)
   else
+  begin
     Result:=CPUToString(CPU)+'-'+OSToString(OS);
+
+    // CC
+    if (CPU in [avr, arm]) and (Defaults.SubArch <> '') then
+    begin
+      result := result + '-' + Defaults.SubArch;
+      if (CPU = arm) and (Defaults.ABI <> '') then
+        result := result + '-' + Defaults.ABI;
+    end;
+  end;
 end;
 
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
@@ -5015,6 +5037,11 @@ begin
   FNoFPCCfg:=False;
   FCPU:=cpuNone;
   FOS:=osNone;
+
+  // CC
+  FSubArch := '';
+  FABI := '';
+
   FUnitInstallDir:='$(baseinstalldir)units/$(target)/$(packagename)';
   FUnitConfigFilesInstallDir:='fpmkinst/$(target)';
   FBuildMode:=bmOneByOne;
@@ -5631,6 +5658,13 @@ begin
         Defaults.OS:=StringToOS(OptionArg(I));
         Defaults.ExplicitOSNone := OptionArg(I) = OSToString(osNone);
       end
+
+    // CC
+    else if Checkoption(I,'S','subarch') then
+      Defaults.SubArch := lowercase(OptionArg(I))
+    else if Checkoption(I,'ab','abi') then
+      Defaults.ABI := lowercase(OptionArg(I))
+
     else if Checkoption(I,'t','target') then
       Defaults.Target:=OptionArg(I)
     else if CheckOption(I,'lc','list-commands') then
@@ -5785,6 +5819,11 @@ begin
   LogOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('C','cpu',SHelpCPU);
   LogArgOption('O','os',SHelpOS);
+
+  // CC
+  LogArgOption('S','subarch',SHelpSubArch);
+  LogArgOption('ab','abi',SHelpABI);
+
   LogArgOption('t','target',SHelpTarget);
   LogArgOption('P','prefix',SHelpPrefix);
   LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
@@ -7189,6 +7228,13 @@ begin
   // This setting is only applicable when 'fpc' is used as compiler-executable.
   if ExtractFileName(GetCompiler) = 'fpc' then
     Args.Add('-P'+CPUToString(Defaults.CPU));
+
+  // CC
+  // Add subarch and ABI if used
+  if Defaults.SubArch <> '' then
+    Args.Add('-Cp' + Defaults.SubArch);
+  if Defaults.ABI <> '' then
+    Args.Add('-Ca' + Defaults.ABI);
 
   // Compile mode
   If ATarget.Mode<>cmFPC then
