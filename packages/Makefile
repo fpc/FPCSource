@@ -167,6 +167,12 @@ OS_TARGET:=$(word 5,$(FPC_COMPILERINFO))
 endif
 FULL_TARGET=$(CPU_TARGET)-$(OS_TARGET)
 FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+ifeq ($(ABI),)
+ABI:=default
+else
+override FPCOPT+=-Ca$(ABI)
+endif
+SUBARCH_ABI_SUFFIX=
 ifeq ($(CPU_TARGET),armeb)
 ARCH=arm
 override FPCOPT+=-Cb
@@ -174,27 +180,37 @@ else
 ifeq ($(CPU_TARGET),armel)
 ARCH=arm
 override FPCOPT+=-CaEABI
+override ABI:=eabi
 else
 ARCH=$(CPU_TARGET)
 endif
+endif
+ifeq ($(FULL_TARGET),aarch64-embedded)
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t or SUBARCH=armv7m) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
+ifeq ($(ABI),)
+SUBARCH_ABI_SUFFIX=-$(SUBARCH)
+else
+SUBARCH_ABI_SUFFIX=-$(SUBARCH)-$(ABI)
+endif
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
+SUBARCH_ABI_SUFFIX=-$(SUBARCH)
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
+SUBARCH_ABI_SUFFIX=-$(SUBARCH)
 endif
 ifeq ($(FULL_TARGET),xtensa-embedded)
 ifeq ($(SUBARCH),)
@@ -221,7 +237,7 @@ else
 ifneq ($(filter $(OS_TARGET),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 else
-TARGETSUFFIX=$(FULL_TARGET)
+TARGETSUFFIX=$(FULL_TARGET)$(SUBARCH_ABI_SUFFIX)
 endif
 SOURCESUFFIX=$(FULL_SOURCE)
 endif
@@ -358,6 +374,12 @@ FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+ifdef SUBARCH
+FPC_TARGETOPT+=--subarch=$(SUBARCH)
+endif
+ifdef ABI
+FPC_TARGETOPT+=--abi=$(ABI)
 endif
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
@@ -904,9 +926,9 @@ ZIPSOURCESUFFIX=.source
 ZIPEXAMPLESUFFIX=.examples
 ifdef CROSSCOMPILE
 ZIPSUFFIX=.$(SOURCESUFFIX)
-ZIPCROSSPREFIX=$(TARGETSUFFIX)-
+ZIPCROSSPREFIX=$(TARGETSUFFIX)
 else
-ZIPSUFFIX=.$(TARGETSUFFIX)
+ZIPSUFFIX=.$(TARGETSUFFIX)$(FILESUFFIX)
 ZIPCROSSPREFIX=
 endif
 endif
@@ -1898,6 +1920,10 @@ include fpcmake.loc
 endif
 override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
 override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+override FPCOPT:=$(filter-out -Cp%,$(FPCOPT))
+override FPCOPT:=$(filter-out -P%,$(FPCOPT))
+override FPCOPT:=$(filter-out -T%,$(FPCOPT))
+override FPCOPT:=$(filter-out -Ca%,$(FPCOPT))
 override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# Compose general fpmake-parameters
 ifdef FPMAKEOPT
 FPMAKE_OPT+=$(FPMAKEOPT)
